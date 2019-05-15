@@ -26,10 +26,17 @@ windows:
     - unzip alglib-2.6.0.cpp.zip
     - mv cpp alglib
     - cd alglib
-    - chmod u+x build
-    - update-alternatives --install /usr/bin/gcc gcc /mxe/usr/bin/x86_64-w64-mingw32.static-gcc 10
-    - update-alternatives --install /usr/bin/g++ g++ /mxe/usr/bin/x86_64-w64-mingw32.static-g++ 10
-    - ./build gcc "-pipe -std=c++17 -O2 -ftree-loop-vectorize -Wall -Wextra -Wpedantic -Werror=format-security -D_GLIBC_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fpie -fstack-protector-strong -lssp"
+#    - chmod u+x build
+#    - ./build gcc "-pipe -std=c++17 -O2 -ftree-loop-vectorize -Wall -Wextra -Wpedantic -Werror=format-security -D_GLIBC_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fpie -fstack-protector-strong"
+# we build it manually using gcc => see the build script of alglib
+    - cp src/* _tmp
+    - cd _tmp
+    - x86_64-w64-mingw32.static-gcc -I. -L. -c -pipe -std=c++17 -O2 -ftree-loop-vectorize -Wall -Wextra -Wpedantic -Werror=format-security -D_GLIBC_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fpie *.cpp
+    - x86_64-w64-mingw32.static-ar -rc libalglib.a *.o
+    - cp libalglib.a ../out
+    - cp ../src/*.h ../out
+    - rm -f *
+    - cd ..
     # Build mesh parts.
     - cd ../..
     - mkdir meshBuild

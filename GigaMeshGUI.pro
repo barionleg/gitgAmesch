@@ -174,11 +174,10 @@ win32 {
         DEFINES += THREADS
         CONFIG += console
 
-#        QMAKE_CXXFLAGS += -std=gnu++17 -Wextra -Wpedantic -pedantic-errors
 		QMAKE_CXXFLAGS += -std=c++17 -Wextra -Wpedantic -Wl,-z,relro
 		QMAKE_CXXFLAGS += -Werror=format-security -pedantic-errors
 		QMAKE_CXXFLAGS += -D_GLIBCXX_ASSERTIONS -fasynchronous-unwind-tables
-		QMAKE_CXXFLAGS += -fexceptions -fpie -Wl,-pie -fstack-protector-strong -lssp
+		QMAKE_CXXFLAGS += -fexceptions -fpie -Wl,-pie
 		QMAKE_CXXFLAGS_RELEASE += -D_FORTIFY_SOURCE=2
         QTPLUGIN += qsvgicon qsvg
     }
