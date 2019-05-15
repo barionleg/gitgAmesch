@@ -1,0 +1,68 @@
+\documentclass[a4paper,hidelinks]{article}
+	% General document formatting
+	\usepackage[margin=20mm]{geometry}
+	\usepackage[parfill]{parskip}
+	\usepackage[utf8]{inputenc}
+
+	\usepackage{graphicx}      % For inclusions of images
+	\usepackage{caption}       % Figure caption without number
+	\usepackage{numprint}      % Number formatting
+
+	\usepackage[pdftex,
+	            pdfauthor={__PDF_AUTHOR__},
+	            pdftitle={__OBJECT_ID__ rendered with GigaMesh},
+	            pdfsubject={Side-Views of __OBJECT_ID__},
+	            pdfkeywords={3D, visualization},
+	            pdfproducer={GigaMesh Software Framework},
+	            pdfcreator={pdflatex}]{hyperref}
+	\hypersetup{frenchlinks=true}
+
+	\def\figurescale{__SCALE_FACTOR__}
+
+	\usepackage{titleps}    % Header and footer
+	\newpagestyle{ruled}{
+		\sethead{}{__WEB_REFERENCE__ \hfill  __OBJECT_ID__}{}\headrule
+		\setfoot{}{Rendered with \url{https://gigamesh.eu} \hfill Scale $__SCALE_FACTOR_STRING__$}{}\footrule
+	}
+	\pagestyle{ruled}
+
+\begin{document}
+	%\section*{__SECTION_CAPTION__}
+	\pagenumbering{gobble} % Turn off page number
+
+	\vspace*{\fill}
+	\begin{figure*}[!ht]
+		\begin{center}
+			\includegraphics[scale=\figurescale]{{__FIGURE_IMAGE_FILE__}}
+ 		%\caption*{__FIGURE_CAPTION__}
+ 		%\label{__FIGURE_LABEL__}
+		\end{center}
+	\end{figure*}
+	\vspace*{\fill}
+
+	\begin{center}
+		\begin{tabular}{cc}
+			\begin{tabular}{|l|r|}
+				\hline
+				Max.~dim.       & $\numprint{__BOUNDING_BOX_WIDTH__} \times \numprint{__BOUNDING_BOX_HEIGHT__} \times \numprint{__BOUNDING_BOX_THICK__} \,cm$ \\
+				\hline
+				Vertices        & $\numprint{__VERTEX_COUNT__}$ \\
+				Faces           & $\numprint{__FACE_COUNT__}$ \\
+				\hline
+				Material        & \multicolumn{1}{l|}{__OBJECT_MATERIAL__} \\
+				\hline
+			\end{tabular}
+			\begin{tabular}{|l|r|}
+				\hline
+				Surface,~acq.   & $\numprint{__AREA_TOTAL__}\,mm^2$ \\
+				\hline
+				Res.,~avg.      & $\numprint{__AREA_RESOLUTION_METRIC__}\,cm^{-2}$ \\
+				                & $\numprint{__AREA_RESOLUTION_DPI__}\,DPI$ \\
+				\hline
+				Volume,~est.    & $\numprint{__VOLUME_TOTAL__}\,cm^3$ \\
+				\hline
+			\end{tabular}
+		\end{tabular}
+	\end{center}
+
+\end{document}

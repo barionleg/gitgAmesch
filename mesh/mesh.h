@@ -1,0 +1,795 @@
+#ifndef MESH_H
+#define MESH_H
+
+extern "C"
+{
+#include "triangle/triangle.h"
+}
+#include "triangle/triangleTriangleIntersection.h"
+
+#include <cstdlib>
+#include <cstring>
+#include <cfloat>
+#include <cmath>
+#include <chrono>
+
+#include <iostream>
+#include <array>
+#include <vector>
+#include <map>
+#include <list>
+#include <set>
+
+#include "bitflagarray.h"
+#include "vertex.h"
+#include "face.h"
+#include "plane.h"
+#include "octree.h"
+
+#include "polyline.h"
+#include "sphere.h"
+#include "rectbox.h"
+
+#include "edgegeodesic.h"
+#include "geodentry.h"
+
+#include "voxelfilter25d.h"
+
+#ifdef THREADS
+	// Multithreading (CPU):
+    #include <thread>
+#endif
+
+// CUDA/OpenCL
+#ifdef CUDA
+	#include <cuda.h>
+	#include "cudamesh.h"
+#endif
+
+#include "meshinfodata.h"
+#include "meshio.h"
+#include "mesh_params.h"
+
+// Helper classes
+#include "showprogress.h"
+#include "userinteraction.h"
+
+
+//!
+//! \brief Central class for mesh manipulation. (Layer 0)
+//!
+//! Central class organizing a mesh described by vertices and faces.
+//! Supplies additional classes/parts of the mesh like edges and methods for
+//! manipulating the mesh.
+//!
+//! One should always call Mesh::establishStructure after creation.
+//! For performance and test reasons it is not integrated into Mesh::Mesh.
+//!
+//! Due to the design in respect to OpenCL/CUDA, we allocate memory for the longest
+//! feature vector x number of Primitive. In case a feature vector is shorter
+//! the unused elements have to be set to not-a-number.
+//!
+//! Layer 0
+//!
+
+class Mesh : public Primitive, public MeshIO, public MeshParams,
+             protected ShowProgress, protected UserInteraction {
+
+	public:
+		Mesh();
+		Mesh( const std::string& rFileName, bool& rReadSuccess );
+		Mesh( std::set<Face*>* someFaces );
+		~Mesh();
+
+		// Menu handling
+		virtual bool   setParamFloatMesh( MeshParams::eParamFlt rParam, double rValue );
+		virtual bool   callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOptional=false );
+
+	private:
+		// to be called after READING a file
+		        void establishStructure( std::vector<sVertexProperties>& rVertexProps,
+			                         std::vector<sFaceProperties>& rFaceProps );
+
+	public:
+		// Octree
+		virtual void generateOctree( int vertexmaxnr, int facemaxnr );
+
+		// Information retrival - overloaded from Primitive:
+		virtual double   getX() const;
+		virtual double   getY() const;
+		virtual double   getZ() const;
+
+		// IO Operations - overloaded from MeshIO and MeshSeedExt
+		virtual bool     writeFile( const std::string& rFileName );
+		virtual bool     importFeatureVectorsFromFile( const std::string& rFileName );
+
+	private:
+				bool     assignFeatureVectors( const std::vector<double>& rFeatureVecs, const uint64_t& rMaxFeatVecLen );
+
+	public:
+		// IO Operations - overloaded from MeshSeed
+		virtual bool     getVertNormal( int rVertIdx, double* rNormal );
+
+		// Vertex navigation:
+				uint64_t  getVertexNr();
+				Vertex*      getVertexPos( uint64_t rPosIdx );
+		        bool         orderVertsByIndex();
+		        bool         orderVertsByFuncVal();
+		        bool         setVertexPosToIndex();
+		        bool         setVertexFlagForAll( ePrimitiveFlags rFlag );
+		        bool         clearVertexFlagForAll( ePrimitiveFlags rFlag );
+				bool         getVertexList( std::set<Vertex*>* rVertices );
+				bool         getVertexList( std::vector<Vertex*>* rVertices );
+				bool         getVertexListValidFuncVal( std::vector<Vertex*>* rVertices );
+
+				const std::vector<Vertex*>* getPrimitiveListVertices();
+				const std::vector<Face*>*   getPrimitiveListFaces();
+
+		// Face navigation:
+		uint64_t getFaceNr();
+		Face*        getFacePos( uint64_t posIdx );
+		bool         getFaceList( std::set<Face*>* rFaces );
+		bool         getFaceList( std::vector<Face*>* rFaces );
+
+		// Polyline navigation -- partially overloaded from MeshSeedExt
+		virtual unsigned int  getPolyLineNr();
+		virtual unsigned int  getPolyLineLength( unsigned int rPolyIdx );
+		virtual int           getPolyLineVertIdx( unsigned int rPolyIdx, unsigned int rElementIdx );
+		virtual uint64_t getPolyLineLabel( unsigned int rPolyIdx );
+		virtual PrimitiveInfo getPolyLinePrimInfo( unsigned int rPolyIdx );
+		        PolyLine*     getPolyLinePos( unsigned int rPosIdx );
+		        bool          getPolyLineBoundingBoxFromAll( double* rMinX, double* rMinY, double* rMinZ, \
+		                                                     double* rMaxX, double* rMaxY, double* rMaxZ, \
+		                                                     bool rProjectToPlane );
+
+		// Data retrival:
+				Vertex* getVertexByIdxOriginal( int findIdx ); // overloaded from Primitive
+				Vertex* getVertexByIdx( int findIdx );
+				bool    getVertexNextTo( Vector3D rVertPos, Vertex** rVertexNext );
+				bool    getVerticesInBeam( Vector3D rVertAPos, Vector3D rVertBPos, float rBeamPerimeterRadius, std::set<Vertex*>* rVertsInBeam );
+				bool    getFacesInBeam( Vector3D rVertAPos, Vector3D rVertBPos, float rBeamPerimeterRadius, std::set<Face*>* rFacesInBeam );
+		        double  getEdgeLenMin();
+		        double  getEdgeLenMax();
+		        double  getAltitudeMin();
+		virtual int     getType();
+		        bool    getVerticesSelectedIndicesStr( std::string& rVertIdx );
+
+		// De-Selection --------------------------------------------------------------------------------------------------------------------------------
+		virtual bool    deSelMVertsAll();
+		virtual bool    deSelMVertsNoLabel();
+		// Selection - Changes -------------------------------------------------------------------------------------------------------------------------
+		virtual unsigned int  selectedMVertsChanged();
+		virtual unsigned int  selectedMFacesChanged();
+		virtual unsigned int  selectedMPolysChanged();
+		virtual unsigned int  selectedMPositionsChanged();
+		// Selection -----------------------------------------------------------------------------------------------------------------------------------
+		        bool          selectVertsByIdxShow();
+		        bool          selectVertsByIdxUser();
+		        bool          selectVertsRandomUser();
+		        bool          selectVertsByIdx( const std::vector<long>& rVertIndices );
+                bool          selectVertsByIdx( const std::set<uint64_t>& rVertIndices );
+		        bool          selectVertsRandom( const double rPercent, const bool rAreaWeight );
+		virtual bool          addToSelection( Vertex* const rVertToAdd );
+		virtual bool          addToSelection( std::vector<Vertex*>* const rVertsToAdd );
+		virtual bool          addToSelection( Face* const rFaceToAdd );
+		virtual bool          addToSelection( const std::set<Vertex*>& rVertsToAdd );
+		virtual bool          addToSelection( const std::set<Face*>& rFaceToAdd );
+		//.
+		virtual int    selectVertFuncValLowerThan( double rVal );
+		virtual int    selectVertFuncValGreatThan( double rVal );
+		//.
+
+        //TODO: is this the right place for these structs?
+        struct vertexNeighbourhoodHelper{
+            Vertex* vert;
+            int type;
+            bool visited = false;
+
+            vertexNeighbourhoodHelper(Vertex* aVert, int anInt, bool aBool) : vert(aVert), type(anInt), visited(aBool) { }
+
+            bool operator < (const vertexNeighbourhoodHelper& other) const {
+                return (type < other.type);
+            }
+        };
+
+		struct find_vertex_struct {
+            Vertex* vert;
+            find_vertex_struct(Vertex* vert):vert(vert) { }
+            bool operator()(vertexNeighbourhoodHelper const& v) const {
+                return v.vert == vert;
+            }
+        };
+
+	//------------------------------------------------------------------------------------------------------------------------------------------------------
+	// Non-Max Suppression and (Skeleton) line determination
+	//------------------------------------------------------------------------------------------------------------------------------------------------------
+		virtual bool   traverseSkeletonLine(std::vector<vertexNeighbourhoodHelper> &neighbourhood,
+		                                    vertexNeighbourhoodHelper &x, vertexNeighbourhoodHelper &start, PolyLine* &line);
+        virtual bool   createSkeletonLineInit(int connectTriangles);
+	//------------------------------------------------------------------------------------------------------------------------------------------------------
+		virtual bool   findVerticesOnSecondaryDirection(Vertex* &curVertex, Vector3D principalDirection,
+		                                                std::vector<double> &comparisonFunctionValues, Vertex* &VertexMAXnormal, bool printDebug);
+		virtual bool   temporaryMeshSimplification(std::list<Vertex*> &adjacentVertsInOrder, double eps, bool printDebug);
+        virtual bool   PlaneSegmentIntersectionAndInterpolation(Vertex* &planeVertex, Vector3D planeNormal, Vertex* &segmentPoint1, Vertex* &segmentPoint2, Vector3D &resIntersectionPoint, double &resInterpolatedFunctionValue, bool debugPrint);
+        virtual bool   selectVertNonMaximum( double eps );
+        virtual bool   nonMaximumCorrectnessCheck( );
+		virtual bool   getSurroundingVerticesInOrder (std::list<Vertex*> &adjacentVertsInOrder, Vertex* &pi, bool printDebug);
+		virtual bool   organizeGroupList(std::list<std::pair<Vertex*, int>> &Lgroup, std::list<Vertex*> &adjacentVertsInOrder, bool printDebug);
+		virtual bool   groupListMerge(std::list<std::pair<Vertex*, int>> &helperList, std::list<Vertex*> &adjacentVertsInOrder, bool printDebug);
+	//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+		virtual bool   selectVertLocalMin();
+		virtual bool   selectVertLocalMax();
+		//.
+		virtual bool   selectVertSolo();
+		virtual bool   selectVertNonManifoldFaces();
+		virtual bool   selectVertDoubleCone();
+		virtual bool   selectVertLabelAreaLT( double rAreaMax );
+		virtual bool   selectVertLabelAreaRelativeLT( double rPercent );
+		virtual bool   selectVertBorder();
+		virtual bool   selectVertFaceMinAngleLT( double rMaxAngle );
+		virtual bool   selectVertFaceMaxAngleGT( double rMinAngle );
+		virtual bool   selectVertLabelNo();
+		virtual bool   selectVertLabelNo( std::set<long>& rLabelNrs );
+		virtual bool   selVertLabeledNot();
+		virtual bool   selVertByFlag( ePrimitiveFlags rFlag );
+		virtual bool   selectVertInvert();
+		virtual bool   selectVertFromFaces();
+		virtual bool   selectVertFromFacesRidges();
+		//.
+		virtual bool   selectFaceNone();
+		virtual bool   selectFaceSticky();
+		virtual bool   selectFaceNonManifold();
+		virtual bool   selectFacesOppositeToPlane(double nx, double ny, double nz, double d, bool reverseDirection = false);
+		virtual bool   selectFaceZeroArea();
+		virtual bool   selectFaceInSphere( Vertex* rSeed, double rRadius );
+		virtual bool   selectFaceRandom( double rRatio );
+		virtual bool   selectFaceWithSyntheticVertices();
+		        bool   selectFaceThreeBorderVertices();
+		        bool   selectFaceLabeledVerticesCorner();
+		virtual bool   selectFaceSelfIntersecting();
+
+		//.
+		virtual bool   selectPolyNoLabel();
+		virtual bool   selectPolyRunLenGT( double rValue );
+		virtual bool   selectPolyRunLenLT( double rValue );
+		virtual bool   selectPolyLongest();
+		virtual bool   selectPolyShortest();
+		virtual bool   selectPolyLabelNo(const std::vector<int>& rLabelNrs );
+		virtual bool   selectPolyNotLabeled();
+		virtual bool   selectPolyVertexCount( unsigned int rMinNr, unsigned int rMaxNr );
+		//.
+		virtual bool   getSelectedVerts( std::set<Vertex*>* rSomeVerts );
+
+		// Single selection - SelPrim i.e. SelVert and SelFace
+		        Primitive* getPrimitiveSelected();
+		        bool       selectPrimitiveVertexUser();
+
+		//-------------------------------------------------------------------------------------------
+		// Plane definition:
+		        bool   isPlanePosCSet();
+		virtual bool   getPlanePosToSet( int* rPosID );
+		virtual bool   setPlaneVPos( std::vector<double>* rPositions );
+		virtual bool   setPlanePos( Vector3D* rSomePos );
+		        bool   getPlaneHNF( Vector3D* rPlaneHNF );
+		        bool   getPlaneHNF( double* rPlaneHNF );
+		virtual bool   setPlaneHNF( Vector3D* rPlaneHNF );
+		        bool   setPlaneHNFbyAxisSelPrim();
+		        bool   flipPlane();
+		        bool   getPlaneIntersectEdge( Vector3D* rayTop, Vector3D* rayBot, Vector3D* rayIntersect );
+		        bool   getPlaneIntersectLine( Vector3D* ptA, Vector3D* ptB, Vector3D* lineIntersect );
+		        bool   getPlaneIntersectLineDir( Vector3D* rRayPos, Vector3D* rRayDir, Vector3D* rRayIntersect );
+		        bool   getPlanePositions( double* rThreePos );
+		        bool   getMeshPlaneFan( Vector3D* rCentralPoint, std::vector<Vector3D>* rFanVertices );
+		virtual bool   applyTransfromToPlane( Matrix4D rTransMat );
+		virtual bool   splitByPlane( Vector3D planeHNF, bool duplicateVertices = false, bool noRedraw = false );
+		virtual bool   splitByIsoLine( double rIsoVal, bool duplicateVertices = false, bool noRedraw = false, Vector3D rUniformOffset=Vector3D( 0.0, 0.0, 0.0, 0.0 ) );
+	private:
+		virtual bool   triangulateSplitFace(std::vector<VertexOfFace*>& faceVertices, std::set<Face*>* newFaces = nullptr);
+
+	public:
+		// Cone stuff:
+		//---------------------------------------------------------------------------------------------------------------------------------------------
+		// Status flags for drawing partial results of the cone selection:
+		enum coneStates {
+			CONE_UNDEFINED,
+			CONE_DEFINED_AXIS,
+			CONE_DEFINED_UPPER_RADIUS,
+			CONE_DEFINED_LOWER_RADIUS,
+			CONE_UNROLLED
+		};
+
+		virtual bool setConeAxis(const Vector3D& upper, const Vector3D& lower);
+		virtual bool setConeRadius(Vector3D& p);
+		virtual bool setConeRadius(double upperRadius, double lowerRadius);
+		        bool getConeAxis( Vector3D* rAxisTop, Vector3D* rAxisBottom );
+		        bool getConeAxisPosDir( Vector3D* rAxisBottom, Vector3D* rAxisOrient );
+		        bool getConeAxisDefined();
+		        bool getConeMeridianZero( Vector3D* rMeridianTop, Vector3D* rMeridianBottom, bool rOppsoite );
+		        bool getConeRadii( double* rUpperRadius, double* rLowerRadius );
+		//! \todo Source revision: Move cone status to MeshParams
+		        void setConeStatus( coneStates rConeStatus );
+		        void setConeOuterPoint( double rRadius );
+		        bool setConeCoverMesh();
+		        bool setConeConsistentPointOrder();
+				bool getConeInfoDump(const std::string& rCallingFunc );
+		virtual coneStates getConeStatus();
+	private:
+		        bool calcConeTip( Vector3D* rConeTip );
+		        bool calcConeHeigth( double* rHeight );
+		        bool calcConeAngle( double* rAngle );
+		//---------------------------------------------------------------------------------------------------------------------------------------------
+	public:
+		// Sphere stuff:
+		//---------------------------------------------------------------------------------------------------------------------------------------------
+		virtual bool	setSpherePoint(Vector3D& p, Vector3D &normal);
+		virtual bool	getSphereData(Vector3D* center, double* radius);
+		virtual bool	getSphereData(double* spherePoints, double* sphereNormals = nullptr);
+		virtual int	getSpherePointIdx();
+		        double	getSphereRadius();
+		        bool	isUnrolledAroundSphere();
+		//---------------------------------------------------------------------------------------------------------------------------------------------
+
+		// texture map per vertex
+		virtual bool    assignImportedTexture( int rLineCount, uint64_t* rRefToPrimitves, unsigned char* rTexMap );
+		virtual bool    assignImportedNormalsToVertices( std::vector<grVector3ID>* rNormals );
+		virtual bool    multiplyColorWithFuncVal();
+		virtual bool    multiplyColorWithFuncVal( const double rMin, const double rMax );
+
+		// feature vectors
+	protected:
+		virtual int    removeFeatureVectors();
+
+	public:
+		//! \todo use MeshParams::eFunctionCall to avoid/reduce copy&paste code!
+		// Feature vector functions
+		 uint64_t getFeatureVecLenMax( int rPrimitiveType );
+		        double* getFeatureElementsNr(const int primitiveType, const int elementNr, const double* minVal, const double* maxVal, int* elementsNr );
+		        int     cutOffFeatureElements( int primitiveType, double minVal, double maxVal, bool setToNotANumber );
+		// Norm of the feature vector
+		        bool    estFeatureVecLenManVertex( double** funcValues, Vertex*** vertices, int* vertCount );
+		        bool    estFeatureVecLenEucVertex( double** funcValues, Vertex*** vertices, int* vertCount );
+		        bool    estFeatureVecBVFunc( double** rFuncValues, Vertex*** rVertices, int* rVertCount );
+		        bool    estFeatureVecTVSeqn( double** rFuncValues, Vertex*** rVertices, int* rVertCount );
+		// Norm of the feature vector with a given reference
+			bool    estFeatureDistManToVertex( Primitive* rSomePrim, double** funcValues, Vertex*** vertices, int* vertCount );
+		        bool    estFeatureDistManToVertex( double* someFeatureVector, double** funcValues, Vertex*** vertices, int* vertCount );
+		        bool    estFeatureDistEucToVertex( Primitive* rSomePrim, double** rFuncValues, Vertex*** rVertices, int* rVertCount );
+		        bool    estFeatureDistEucToVertex( double* someFeatureVector, double** funcValues, Vertex*** vertices, int* vertCount );
+			bool    estFeatureDistEucNormToVertex( Primitive* rSomePrim, double** rFuncValues, Vertex*** rVertices, int* rVertCount );
+		        bool    estFeatureDistEucNormToVertex( double* someFeatureVector, double** funcValues, Vertex*** vertices, int* vertCount );
+		        bool    estFeatureCosineSimToVertex( Primitive* rSomePrim, double** rFuncValues, Vertex*** rVertices, int* rVertCount );
+		        bool    estFeatureCosineSimToVertex( double* rSomeFeatureVector, double** rFuncValues, Vertex*** rVertices, int* rVertCount );
+		        bool    estFeatureTanimotoDistTo( Primitive* rSomePrim, double** rFuncValues, Vertex*** rVertices, int* rVertCount );
+		        bool    estFeatureTanimotoDistTo( double* rSomeFeatureVector, double** rFuncValues, Vertex*** rVertices, int* rVertCount );
+		// Other feature vector related functions
+		        bool    estFeatureAutoCorrelationVertex( double** funcValues, Vertex*** vertices, int* vertCount );
+		        bool    estFeatureCorrelationVertex( Primitive* somePrim, double** funcValues, Vertex*** vertices, int* vertCount );
+		        bool    estFeatureAutoCorrelationVertex( Primitive* somePrim, double** funcValues, Vertex*** vertices, int* vertCount );
+		// Feature vector smoothing
+		        bool    featureVecMedianOneRingUI( bool rPreferMeanOverMedian );
+		        bool    featureVecMedianOneRing( unsigned int rIterations=1, double rFilterSize=0.0, bool rPreferMeanOverMedian=true );
+
+		//.
+				std::set<Vertex*> intersectSphere( Vertex* someVert, float radius );
+
+		// Mesh information:
+				bool         getVertNotANumber( std::set<Vertex*>* rSomeVerts );
+				bool         getVertPartOfZeroFace( std::set<Vertex*>* rSomeVerts );
+				bool         getVertSolo( std::set<Vertex*>* rSomeVerts );
+				bool         getVertNonManifoldFaces( std::set<Vertex*>* rSomeVerts );
+				bool         getDoubleCones( std::set<Vertex*>* rSomeVerts );
+				bool         getVertLabelAreaLargest( uint64_t& rLargestLabelId );
+				bool         getVertLabelAreaLT( double rAreaMax, std::set<Vertex*>* rSomeVerts );
+				bool         getVertLabelAreaRelativeLT( double rPercent, std::set<Vertex*>* rSomeVerts );
+				bool         getVertLabled( std::set<Vertex*>* rSomeVerts );
+				bool         getVertBorder( std::set<Vertex*>* rSomeVerts );
+				bool         getVertFaceMinAngleLT( double rMaxAngle, std::set<Vertex*>* rSomeVerts );
+				bool         getVertFaceMaxAngleGT( double rMinAngle, std::set<Vertex*>* rSomeVerts );
+				bool         getVertLabelNo( std::set<long>& rLabelNrs, std::set<Vertex*>* rSomeVerts );
+				bool         getVertLabeledNot( std::set<Vertex*>* rSomeVerts );
+				bool         getVertWithFlag( std::set<Vertex*>* rSomeVerts, ePrimitiveFlags rFlag );
+				bool         getVertInverted( std::set<Vertex*>& rSomeVerts );
+		//.
+				bool         getFaceFlag( std::set<Face*>* rSomeFaces, int rFlag );
+				bool         getFaceSticky( std::set<Face*>* rSomeFaces );
+				bool         getFaceNonManifold( std::set<Face*>* rSomeFaces );
+				bool         getFaceThreeBorderVertices( std::set<Face*>& rSomeFaces );
+				bool         getFaceLabeledVerticesCorner( std::set<Face*>& rSomeFaces );
+				bool         getFaceZeroArea( std::set<Face*>* rSomeFaces );
+		//.
+				bool         getPolyNoLabel( std::set<PolyLine*>* rSomePolyLines );
+				bool         getPolyRunLenGT( std::set<PolyLine*>* rSomePolyLines, double rValue );
+				bool         getPolyRunLenLT( std::set<PolyLine*>* rSomePolyLines, double rValue );
+				bool         getPolyLongest( std::set<PolyLine*>* rSomePolyLines );
+				bool         getPolyShortest( std::set<PolyLine*>* rSomePolyLines );
+				bool         getPolyLabelNo( const std::vector<int>& rLabelNrs, std::set<PolyLine*>* rSomePolyLines );
+				bool         getPolyNotLabel( std::set<PolyLine*>* rSomePolyLines );
+				bool         getPolyVertexCount( std::set<PolyLine*>* rSomePolyLines, unsigned int rMinNr, unsigned int rMaxNr );
+
+				std::set<Face*>   getNonManifoldFaces();
+				bool         estimateVolumeDivergence( double* rVolumeDXYZ );
+				bool         compVolumePlane( double* rVolumePos, double* rVolumeNeg );
+
+		// Histogram:
+		virtual bool         getHistogramValues( eHistogramType rHistType, std::vector<unsigned int>* rNumArray, double* rValMin, double* rValMax );
+
+		// setup the mesh (with respect to CUDA/OpenCL)
+				void  estimateEdges();
+
+		// Labeling -- Connected Components
+		virtual bool labelsChanged();
+				bool labelCount( int rPrimitiveType, uint64_t& rLabelMaxNr );
+		        int  labelCountElements( int primitiveType );
+				bool estLabelNormalSizeCenterVert( std::vector<Vector3D>* rLabelCenters, std::vector<Vector3D>* rLabelNormals );
+		        void labelVerticesNone();
+		        void labelVerticesBackground();
+		virtual int  labelFaces( int facesNrToRemove=0 );
+		virtual bool labelVerticesAll();
+		virtual bool labelVertices( const std::vector<Vertex*>& rVerticesToLabel, std::set<Vertex*>& rVerticesSeeds );
+		virtual bool labelVertices( const std::set<Vertex*>&    rVerticesToLabel, std::set<Vertex*>& rVerticesSeeds );
+		virtual void labelSelectionToSeeds();
+		virtual bool labelSelectedVertices();
+		virtual bool labelSelectedVertices( std::set<Vertex *>& rSelectedVertices );
+		virtual bool labelVerticesEqualFV();
+		virtual bool labelSelMVertsToBack();
+
+		virtual bool compPolylinesIntInvRunLen( double rIIRadius, PolyLine::ePolyIntInvDirection rDirection );
+		virtual bool compPolylinesIntInvAngle( double rIIRadius );
+		virtual void getPolylineExtrema( bool absolut );
+		virtual bool setPolylinesNormalToVert();
+		        bool planeIntersectionToPolyline();
+		        bool planeIntersectionsAxisAndPositions();
+		        bool isolineToPolylineMultiple();
+		virtual bool isolineToPolyline();
+		virtual bool isolineToPolyline( double rIsoValue, Plane* rPlaneIntersect=nullptr );
+		virtual bool extrudePolylines();
+        virtual bool featureLineExtraction( double rIsoValue );
+				bool labelVertSurface( uint64_t& rlabelsNr, double** rArea );
+				bool labelFacesVert( std::set<Face*>** rLabelFaces, uint64_t& rlabelsNr );
+		// -- Polylines --------------------------------------------------------------------------------------------------------------------------------
+		virtual void polyLinesChanged();
+		virtual bool removePolylinesAll();
+		virtual bool removePolylinesSelected();
+		        void convertLabelBordersToPolylines();
+		virtual bool convertBordersToPolylines();
+		        void convertSelectedVerticesToPolyline();
+
+		// --- Function Values (FV, FuncVal ) ----------------------------------------------------------------------------------------------------------
+		// OLD style - Compute function values:
+				//! \todo source revision
+				bool getVertIndices( double** funcValues, Vertex*** vertices, int* vertCount );
+				bool getVert1RingArea( double** funcValues, Vertex*** vertices, int* vertCount );
+				bool getDistanceVerticesToPosition( Vector3D rPos, double* rDistMin, double* rDistMax ); // <- this is not an OLD style function - to be kept!
+				bool getHueValues( double** funcValues, Vertex*** vertices, int* vertCount );
+		// NEW style, Faces - Compute and modify function values:
+				bool setFaceFuncValSortIdx();
+				bool setFaceFuncValMarchRadiusIdx( Primitive* rSeed, double rRadius );
+		// NEW style, Vertices - Compute and modify function values:
+		virtual bool setVertFuncValSlope();
+		virtual bool setVertFuncValAngleToRadial();
+		virtual bool setVertFuncValAxisAngleToRadial();
+		virtual bool setVertFuncValOrthogonalAxisAngleToRadial();
+		virtual bool setVertFuncValGraylevel( Vertex::eGrayLevelConversion rGrayLevelConvMethod );
+		virtual bool setVertFuncValDistanceToLinePosDir();
+		virtual bool setVertFuncValDistanceToLinePosDir( const Vector3D* rPos, const Vector3D* rDir );
+		virtual bool setVertFuncValDistanceToAxis();
+		virtual bool setVertFuncValAngleBasedOnAxis( Vector3D* rPosBottom, Vector3D* rPosTop );
+		virtual bool setVertFuncVal( double rVal );
+		virtual bool setVertFuncValCutOff( double minVal, double maxVal, bool setToNotANumber );
+		virtual bool setVertFuncValNormalize();
+		virtual bool setVertFuncValAbs();
+		virtual bool setVertFuncValAdd( double rVal );
+		virtual bool setVertFuncValMult();
+		virtual bool setVertFuncValMult( double rVal );
+		virtual bool setVertFuncValToOrder();
+				bool setVertFuncValDistanceToCone( bool rAbsDist );
+				bool setVertFuncValDistanceToSphere();
+				bool setVertFuncVal1RSumAngles();
+				bool setVertFuncValOctreeIdx( double rEdgeLen );
+				bool setVertFuncValFaceSphereAngleMax( double rRadius );
+				bool setVertFuncValFaceSphereMeanAngleMax( double rRadius );
+		// NEW style and NEW naming convention:
+		enum eFuncFeatureVecPNormWeigth {
+			FEATURE_VECTOR_PNORM_WEIGTH_LINEAR,
+			FEATURE_VECTOR_PNORM_WEIGTH_QUADRATIC,
+			FEATURE_VECTOR_PNORM_WEIGTH_CUBIC
+		};
+		        bool funcVertMedianOneRingUI( bool rPreferMeanOverMedian );
+		        bool funcVertMedianOneRing( unsigned int rIterations=1, double rFilterSize=0.0, bool rPreferMeanOverMedian=true, bool rStoreDiffAsFeatureVec=false );
+		        bool funcVertAdjacentFaces();
+		virtual bool funcVert1RingRMin();
+		virtual bool funcVert1RingVolInt();
+		virtual bool funcVertDistancesMax();
+		        bool funcVertFeatureElementsStdDev();
+		virtual bool funcVertFeatureVecMin();
+		virtual bool funcVertFeatureVecMax();
+		virtual bool funcVertFeatureVecMahalDist();
+		virtual bool funcVertFeatureVecPNorm();
+		virtual bool funcVertFeatureVecPNorm( const std::vector<double>& rReferenceVector, const double& rpNorm, eFuncFeatureVecPNormWeigth rWeigthType );
+		virtual bool funcVertFeatureVecElementByIndex( unsigned int rElementNr );
+		virtual bool funcVertDistanceToPlane( Vector3D rPlaneHNF, bool rAbsDist, bool rSilent=false );
+				bool funcVertAddLight(Matrix4D &rTransformMat, unsigned int rArrayWidth, unsigned int rArrayHeight, const std::vector<float>& rDepths, float rZTolerance );
+		// Again some old style function value calls:
+		        bool setVertFuncValCorrTo( std::vector<double>* rFeatVector );
+		        bool setVertFuncValDistanceToSelPrim();
+		        bool setVertFuncValDistanceTo( const Vector3D& rPos );
+		// Stubs for notification
+		virtual void changedFaceFuncVal();
+		virtual void changedVertFuncVal();
+		virtual void changedVertFeatureVectors();
+		// Information about function values.
+		        bool getVertFuncValAverage( double* rAverage );
+		// Partially old stuff:
+		//! \todo source revision
+		virtual bool   setVertexFuncValues(Vertex** vertices, double* values, int verticesNr, const std::string& setName );
+		        bool   getFuncValuesMinMax( double& rMinVal, double& rMaxVal );
+		        bool   getFuncValuesMinMaxQuantil( double rMinQuantil, double rMaxQuantil, double& rMinVal, double& rMaxVal );
+		        bool   getFuncValuesMinMaxInfNanFail( double& rMinVal, double& rMaxVal, int& rInfCount, int& rNanCount, int& rFailCount );
+				bool   getFuncValuesMinMaxInfNanFail( double& rMinVal, double& rMaxVal, Vertex*& rVertMin, Vertex*& rVertMax, int& rInfCount, int& rNanCount, int& rFailCount, uint64_t& rFiniteCount );
+
+		// --- Mesh manipulation - GENERIC -------------------------------------------------------------------------------------------------------------
+		virtual bool   changedMesh();
+		// --- Mesh manipulation - REMOVAL -------------------------------------------------------------------------------------------------------------
+		virtual bool   removeVertices( std::set<Vertex*>* verticesToRemove );    // removal of a list of vertices
+		virtual bool   removeVerticesSelected();
+		virtual bool   removeUncleanSmall( double rPercentArea, bool rApplyErosion, const std::string& rFileName );
+		virtual bool   removeSyntheticComponents( std::set<Vertex*>* rVerticesSeeds );
+		virtual bool   removeFacesSelected();
+				bool   removeFaces( std::set<Face*>* facesToRemove );            // removal of a list of faces
+		virtual bool   removeFacesZeroArea();
+		        bool   removeFacesBorderErosion();
+		// --- Mesh manipulation - MESH POLISHING ------------------------------------------------------------------------------------------------------
+		virtual bool   completeRestore(); // AKA Mesh polishing
+		virtual bool   completeRestore( const std::string& rFilename, double rPercentArea, bool rApplyErosion,
+				                        bool rPrevent, uint64_t rMaxNumberVertices, std::string* rResultMsg );
+		// --- Mesh manipulation - Manuall adding primitives -------------------------------------------------------------------------------------------
+		virtual bool   insertVerticesEnterManual();
+		virtual bool   insertVerticesCoordTriplets( std::vector<double>* rCoordTriplets );
+		virtual bool   insertVertices( std::vector<Vertex*>* rNewVertices );
+		// ---------------------------------------------------------------------------------------------------------------------------------------------
+
+		// --- SHELLING --------------------------------------------------------------------------------------------------------------------------------
+		//        void* detectCriticalPlacesForShelling(void* value);
+				bool delaunyTriangulation( std::vector<Vertex*> vertexList, std::vector<Vertex*>* outputList );
+		        Vector3D getInterpolatedNormal( Face* face, Vector3D pos );
+		        bool rayTriangleIntersection( Vector3D _origin, Vector3D _direction, Face* _triangle, Vector3D &intersectionPoint );
+		        bool triangleIntersectTriangle( Face *triangleA, Face *triangleB, Vector3D &intersectionPointA, Vector3D &intersectionPointB );
+
+		        void   flipTriangle(int index);                             // flip triangle orientation
+		        void   recalculateTriangleOrientation();                    // recalculate the triangle orientation and flip it if necessary
+		        void   removeDoubleTriangles();                             // remove double Triangles
+		        void   fixTriangleIntersection();                           // repair Triangle-Intersection -> split off and re-triangulate via delauny-triangulation
+		//----------------------------------------------------------------------------------------------------------------------------------------------
+
+		// mainly used to set the initial view (see objwidget)
+				void     getCenterOfGravity( float* cog );
+				Vector3D getCenterOfGravity();
+				Vector3D getBoundingBoxCenter();
+				bool     getBoundingBoxSize( Vector3D& rBbSize );
+				double   getBoundingBoxRadius();
+				float    getPerimeterRadius();
+		// Bounding Box Corners:
+				Vector3D getBoundingBoxA();
+				Vector3D getBoundingBoxB();
+				Vector3D getBoundingBoxC();
+				Vector3D getBoundingBoxD();
+				Vector3D getBoundingBoxE();
+				Vector3D getBoundingBoxF();
+				Vector3D getBoundingBoxG();
+				Vector3D getBoundingBoxH();
+
+		// Bit arrays for labeling, fetch in sphere, etc.
+		enum eBitArrayFlags{
+			BIT_ARRAY_MARK_NOTHING      = 0x00000000, //!< Zero
+			BIT_ARRAY_MARK_LABEL_BACKGR = 0x00000001, //!< Mark all primitives visited, which are tagged as background.
+			BIT_ARRAY_MARK_BORDER       = 0x00000002  //!< Mark all primitives visited, which are at the border of the mesh.
+		};
+		        uint64_t getBitArrayVerts( uint64_t** rVertBitArray, eBitArrayFlags rInitFlags=BIT_ARRAY_MARK_NOTHING );
+				uint64_t getBitArrayFaces( uint64_t** rFaceBitArray, eBitArrayFlags rInitFlags=BIT_ARRAY_MARK_NOTHING );
+				uint64_t getBitArrayEdges( uint64_t** rEdgeBitArray );
+
+		// Estimate geodesic neighbourhood.
+		virtual bool       geodPatchVertSel(bool rWeightFuncVal, bool rGeodDistToFuncVal );
+		virtual bool       geodPatchVertSel( std::set<Vertex*>* rmLabelSeedVerts, bool rWeightFuncVal, bool rGeodDistToFuncVal );
+		virtual bool       geodPatchVertSelOrder( bool rWeightFuncVal, bool rGeodDistToFuncVal );
+		virtual bool       geodPatchVertSelOrder( std::vector<Vertex*>* rmLabelSeedVerts, bool rWeightFuncVal, bool rGeodDistToFuncVal );
+		        bool       estGeodesicPatchSelPrim();
+		virtual bool       estGeodesicPatchRelabel( std::map<Vertex*,GeodEntry*>* geoDistList );
+				bool       estGeodesicPatchFuncVal( std::map<Vertex*,GeodEntry*>* rGeoDistList, const std::string& rSomeName );
+		        bool       estGeodesicPatchFuncVal( Vertex* seedVertex, double radius, bool weightFuncVal );
+		        bool       estGeodesicPatchFuncVal( Face* seedFace,     double radius, bool weightFuncVal );
+				bool       estGeodesicPatch( Vertex* seedVertex, double radius, std::map<Vertex*,GeodEntry*>* geoDistList, bool weightFuncVal );
+				bool       estGeodesicPatch( Face* seedFace,     double radius, std::map<Vertex*,GeodEntry*>* geoDistList, bool weightFuncVal );
+		private:
+				bool       estGeodesicPatch( Vertex* seedVertex, double radius, std::map<Vertex*,GeodEntry*>* geoDistList, uint64_t* faceBitArray, int faceNrBlocks, bool weightFuncVal );
+				bool       estGeodesicPatch( Face* seedFace,     double radius, std::map<Vertex*,GeodEntry*>* geoDistList, uint64_t* faceBitArray, int faceNrBlocks, bool weightFuncVal );
+				bool       estGeodesicPatch( std::map<Vertex*,GeodEntry*>* geoDistList, std::deque<EdgeGeodesic*>* frontEdges, double radius, uint64_t* faceBitArray, int faceNrBlocks, bool weightFuncVal );
+
+		public:
+		// Estimate neighbourhood within a spherical volume --------------------------------------------------------------------------------------------
+				std::set<Face*> fetchSphere( Vertex* seedVertex, float radius, bool noDebugTexture=true );
+				bool       fetchSphereMarching( Vertex* seedVertex, std::set<Face*>* facesInSphere, float radius, bool noDebugTexture=true );
+				bool       fetchSphereMarchingDualFront( Vertex* seedVertex, std::set<Face*>* facesInSphere, float radius );
+				bool       fetchSphereBitArray( Vertex* rSeedVertex, std::vector<Face*>* rFacesInSphere, float rRadius,
+				                                int rVertNrLongs, uint64_t* rVertBitArrayVisited,
+				                                int rFaceNrLongs, uint64_t* rFaceBitArrayVisited,
+		                                        bool rOrderToFuncVal=false );
+		        bool       fetchSphereBitArray1R( Vertex* rSeedVertex, std::vector<Face*>& rFacesInSphere, double rRadius,
+				                                  uint64_t rVertNrLongs, uint64_t* rVertBitArrayVisited,
+				                                  uint64_t rFaceNrLongs, uint64_t* rFaceBitArrayVisited,
+		                                          bool rOrderToFuncVal=false );
+
+			// Compute or estimate Multi-Scale Integral Invariants (MSII) ----------------------------------------------------------------------------------
+				double     fetchSphereCubeVolume25D( Vertex* seedVertex, std::set<Face*>*    facesInSphere, double radius, double* rasterArray, int cubeEdgeLengthInVoxels=256 );
+				double     fetchSphereCubeVolume25D( Vertex* seedVertex, std::vector<Face*>* facesInSphere, double radius, double* rasterArray, uint cubeEdgeLengthInVoxels=256 );
+				bool       fetchSphereArea( Vertex* rSeedPosition, std::vector<Face*>* rFacesInSphere, unsigned int rRadiiNr, double* rRadii, double* rAreas );
+				bool       fetchSphereAreaEst( const Vertex* rSeedPosition, std::vector<Face*>* rFacesInSphere, const unsigned int rRadiiNr, const double* rRadii, double* rAreas );
+				double*    getTriangleVertices( std::set<Face*>* someFaceList );
+				double*    getTriangleVertices( std::vector<Face*>* someFaceList );
+
+				std::set<Face*> getFacesIntersectSphere1( Vector3D positionVec, float radius );
+				std::set<Face*> getFacesIntersectSphere2( Vector3D positionVec, float radius );
+				std::vector<Vector3D> getPointsIntersectSphere( Vector3D positionVec, float radius );
+
+
+		// Datum Sphere and Box
+		virtual bool     datumAddSphere( Vector3D rPos, double rRadius, unsigned char rRed=255, unsigned char rGreen=127, unsigned char rBlue=0 );
+
+		enum eTranslate {
+			TRANSLATE_PLACE_ON_XZ_ONLY,      //!< Place mesh on xz-plane with no further transformation.
+			TRANSLATE_PLACE_ON_XZ_CENTER,    //!< Place mesh on xz-plane and center the bounding box.
+		};
+
+		// mesh transformation
+		        Matrix4D rotateToZ( Vector3D directionVec );          // generate rotation matrix to transform mesh so that the given direction vector is paralllel to the z-axis
+		virtual bool     applyTransformationToWholeMesh( Matrix4D rTrans, bool rResetNormals = true );
+		virtual bool     applyTransformation( Matrix4D rTrans, std::set<Vertex*>* rSomeVerts, bool rResetNormals = true );
+		virtual bool     applyTransformationPlacement( eTranslate rType, Matrix4D* rAppliedMat=nullptr );
+		virtual bool     applyTransformationAxisToY( Matrix4D* rAppliedMat=nullptr );
+		virtual bool     applyTransformationDefaultViewMatrix( Matrix4D* rViewMatrix );
+		virtual bool     applyMeltingSphere( double rRadius, double rRel );
+		        bool     applyInvertOrientationFaces();
+		        bool     applyInvertOrientationFaces( std::vector<Face*> rFacesToInvert );
+
+		        bool     resetFaceNormals( double* rAreaTotal=nullptr );
+		virtual bool     resetVertexNormals();
+		virtual bool     changedBoundingBox();
+
+		virtual bool	applyNormalShift(double offset);
+		virtual bool	applyNormalShiftHelper(bool initCall, bool removeOriginalObject, bool connectBorders);
+
+
+        public:
+		        bool     estBoundingBox();
+
+		// normal vector related
+		public:
+				double    averageNormalByArea( std::set<Face*>* someFaces, double* normalVec );
+				double    averageNormalByArea( std::vector<Face*>* someFaces, double* normalVec );
+				Vector3D  averageNormal( std::set<Face*>* someFaces, float* maxAngleDeviation=nullptr, float* avgAngleDeviation=nullptr );
+				Vector3D  averageNormal( float* maxAngleDeviation=nullptr, float* avgAngleDeviation=nullptr );
+
+		// rasterization / voxelization
+				// from meshseed:
+				// we follow roughly this approach: http://www.3ddrome.com/articles/triangleraster.php
+				// new link: https://www.joshbeam.com/articles/triangle_rasterization/
+				double*   rasterViewFromZ( int xDim, int yDim );
+				void      rasterViewFromZ( double* vertexArr, uint64_t vertexSize, double *rasterArray, long rasterSizeX, long rasterSizeY );
+				uint8_t*  rasterToHeightMap( const double* rasterArray, const int xDim, const int yDim, const int zDim, bool scaleZ=false );
+				uint8_t*  rasterToVolume( const float* rasterArray, int xDim, int yDim, int zDim );
+
+		// import / export
+		virtual bool fillPolyLines( const uint64_t& rMaxNrVertices, uint64_t& rFilled, uint64_t& rFail, uint64_t& rSkipped );
+				bool exportPolyLinesCoords( std::string rFileName, bool rWithNormals, bool rWithVertIdx );
+				bool exportPolyLinesCoordsProjected( std::string rFileName, bool rWithVertIdx, double rAngleRot=0.0 );
+				bool exportPolyLinesFuncVals( std::string rFileName );
+				bool exportFuncVals( std::string rFileName, bool rWithVertIdx );
+		virtual bool exportFaceNormalAngles( std::string filename );
+
+		// Extra menu
+		virtual void cuneiformFigureLaTeX();
+
+	public:
+		// Mesh information - Details
+		        bool getFaceSurfSum( double* rSurfSum );
+		virtual bool getPlaneVPos( std::string* rPlaneInfo );
+		virtual bool getPlaneHNF( std::string* rPlaneHNF );
+				bool dumpMatlabFaceNormalsSel( std::string* rStrMatlab );
+		// .... LaTeX output:
+				bool latexFetchFigureInfos( std::vector<std::pair<std::string, std::string>>* rStrings );
+		// Mesh information - Display for the console in plain text and html for the GUI
+		        bool showInfoMeshHTML();
+		        bool getMeshInfoData( MeshInfoData& rMeshInfos, bool rAbsolutePath );
+		        void dumpMeshInfo( bool avoidSlow=true );
+		virtual bool showInfoSelectionHTML();
+		virtual bool showInfoFuncValHTML();
+		        bool showInfoLabelPropsHTML();
+		virtual bool showInfoAxisHTML();
+
+    protected:
+		// Bounding Box:
+		double             mMinX;                //!< Bounding Box - minimum X
+		double             mMaxX;                //!< Bounding Box - maximum X
+		double             mMinY;                //!< Bounding Box - minimum Y
+		double             mMaxY;                //!< Bounding Box - maximum Y
+		double             mMinZ;                //!< Bounding Box - minimum Z
+		double             mMaxZ;                //!< Bounding Box - maximum Z
+
+		// Datums
+		std::vector<Sphere*>    mDatumSpheres;        //!< Datum list/set for spheres.
+		std::vector<RectBox*>   mDatumBoxes;          //!< Datum list/set for boxes.
+
+		// Labeling, Selections and Polyline:
+		std::set<Vertex*>       mLabelSeedVerts;      //!< Vertices selected as seeds for labeling.
+		std::set<Vertex*>       mSelectedMVerts;      //!< Vertices selected by user or some function e.g. by borders of labels.
+		std::set<Face*>         mFacesSelected;       //!< Face selected by user or some function e.g. non-manifold.
+		std::vector<PolyLine*>  mPolyLines;           //!< Polylines with or without labels.
+		std::set<PolyLine*>     mPolyLinesSelected;   //!< Selected polylines.
+		// Single selection of a primitive:
+		Primitive*         mPrimSelected;        //!< Pointer corresponding to the element related to the selected pixel. Will be a Face or a Vertex in most cases.
+
+		// Selection of positions e.g. to measure distances:
+		std::vector<std::tuple<Vector3D,Primitive*,bool> > mSelectedPositions;  //!< Selected coordinates, which are typically from a face or (solo) vertices.
+	public:
+		        bool addSelectedPosition( Vector3D rPos, Primitive* rPrimFrom, bool rLast );
+				bool getSelectedPosition( std::vector<std::tuple<Vector3D, Primitive *, bool> > *rVec );
+				bool getSelectedPositionLines(std::vector<std::tuple<Vector3D, Primitive *> > *rVec );
+				bool getSelectedPositionCircleCenters( std::vector<Vertex*>* rCenterVertices );
+		virtual bool getAxisFromCircleCenters();
+		virtual bool getAxisFromCircleCenters( Vector3D* rTop, Vector3D* rBottom );
+
+		// Binary Space Partitioning -- Octree
+	protected:
+		Octree<Vertex*>*   mOctree;              //! Octree handling the Vertices stored in mVertices.
+		Octree<Face*>*     mOctreeface;          //! Octree handling the Faces stored in mFaces.
+
+		// Primitves describing the Mesh:
+		std::vector<Vertex*> mVertices;   //!< Vertices of the Mesh.
+
+	private:
+		//----------------------------------------------------------------------
+		std::vector<Face*>   mFaces;      //!< Faces of the Mesh.
+		// Optional pre-computed information:
+		//! \todo these values are only set, when a 3D-model is loaded, but NOT when feature vectors are added at a later time.
+		std::vector<double>        mVerticesFeatVecMean;   //!< Mean values of all the elements of feature std::vectors of the vertices.
+		std::vector<double>        mVerticesFeatVecStd;    //!< Standard deviation of all the elements of feature vectors of the vertices.
+
+		//----------------------------------------------------------------------
+		// Selection of points for a plane:
+		Plane::ePlaneVerts    mPlanePosIdx;           //!< Index of the next position vector of a plane to be set.
+		Plane    mPlane;             //!< Mesh internal plane, used for various operations like cut, projection, etc.
+
+		//! \todo the mConeAxisPoints and MeshParams::AXIS_PRIMEMERIDIAN are also used for the cylinder and (in the future) the sphere. Therefore the name and handling has to be adapted.
+		// Selection of points for a cone:
+		Vector3D    mConeAxisPoints[2];   //! Stores points on axis of cone (upper & lower point); the points
+		                                  //! will be updated after the user has chosen two radii. If this is
+		                                  //! done, the points will be the foot of perpendicular of the radius
+		                                  //! point with respect to the cone axis.
+		double      mConeRadius[2];       //! Stores radii of cone (upper & lower radius)
+		int         mConeRadiusIdx;       //! Stores index of cone radius
+		coneStates  mConeStatus;          //! Stores current status of cone selection
+
+	protected:
+		virtual bool centerAroundCone( bool rResetNormals=true );
+		virtual bool unrollAroundCone( bool* rIsCylinderCase );
+		virtual bool unrollAroundCylinderRadius();
+
+	private:
+
+		// Selection of points for a sphere:
+		int      mSpherePointsIdx;      //! Stores next index for sphere point position storage
+		Vector3D mSpherePoints[4];      //! Stores points for sphere
+		Vector3D mSpherePointNormals[4];//! Stores normals of the points for the sphere
+		Vector3D mSphereCenter;         //! Stores center of sphere; calculated once four points have been selected
+		double   mSphereRadius;         //! Stores radius of sphere; calculated once four points have been selected
+		bool     mCenteredAroundSphere; //! Flag signalling that the mesh is centered around the sphere
+		bool     mUnrolledAroundSphere; //! Flag signalling that the mesh has been unrolled
+
+
+protected:
+		virtual bool centerAroundSphere();
+		virtual bool unrollAroundSphere();
+
+};
+#endif

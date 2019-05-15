@@ -1,0 +1,200 @@
+\documentclass[12pt,a4paper]{article}
+%%\documentclass[12pt,a4paper]{report}
+
+\title{3D Visualization of Cuneiform Tablets -- Collection of the \emph{Assyriologie, Heidelberg} and \linebreak[4] \emph{VAM, Berlin}} 
+\author{Hubert Mara$^{\ddagger}$, Anja Sch\"{a}fer$^{\dagger}$ and Andreas Beyer$^{\dagger}$}
+% --- Date is optional and by default the current date ----------------------
+%\date{Jannuary 2011}
+
+% --- Additional information for the titlepage -------------------------------
+\def\iwrworkgroup{Visualization and Numerical Geometry Group}
+%\def\iwrworkgroup{Visualisierung und Numerische Geometrie Gruppe}
+% --- Type of the docment - show on the front page on the top right ----------
+\def\iwrdocinfo{Draft -- Layout} % optional information displayed on the titlepage. e.g.: report number, draft, etc. 
+% --- properties used to create a pdf - used only for nice PDFs with hyperrefs
+\def\pdftitle{Visualization of 3D-Models of Cuneiform Tablets: VAM Berlin}
+\def\pdfsubject{\pdftitle}
+\def\pdfauthor{Hubert Mara, IWR - Heidelberg University, Germany}
+\def\pdfkeywords{Keilschrift; Assyriologie; 3D-Scanner; cuneiform tablets; assyriology}
+%------------------------------------------------------------------------------
+
+% --- Alternate logos - e.g. IWR and HGS --------------------------------------
+%\def\logoleft{logos/iwr_logo}
+%\def\logoright{logos/hgs_mathcomp_logo}
+% --- alternate logos - e.g. HAW and IWR --------------------------------------
+\def\logoleft{logos/haw_logo_black}
+%\def\logoright{logos/iwr_logo}
+%------------------------------------------------------------------------------
+
+% --- Alternate address - e.g. IWR and HAW ------------------------------------
+\def\iwraddress{
+	Heidelberg Academy of Sciences and Humanities$^{\dagger}$ \medskip \\
+	in cooperation with the \medskip \\
+	Interdisciplinary Center for Scientific Computing$^{\ddagger}$ \\
+	\iwrworkgroup \\
+	Ruprecht-Karls-Universit\"{a}t Heidelberg
+}
+%------------------------------------------------------------------------------
+
+% --- UNCOMMENT for Wordcompatible copy and paste -----------------------------
+% Remark: after commenting you have to compile the document TWICE!
+%\def\wordcompat{anyvalue}
+%------------------------------------------------------------------------------
+
+% --- Style & Titlepahe - does all the formating and including ----------------
+\usepackage{iwr_titlepage}
+%------------------------------------------------------------------------------
+
+% --- Your Commands -----------------------------------------------------------
+% Remark: has to be before acronyms and glossary:
+%%\input{thesis_defines.tex}
+%------------------------------------------------------------------------------
+
+% --- Glossary ----------------------------------------------------------------
+% has to be after hyperlinks - otherwise the PDF will not be interactive
+% When the glossary is missing within the PDF try `makeglossaries <filename>`
+% very old: \usepackage[acronym]{glossary}
+%%\usepackage[acronym=false,toc]{glossaries}
+%%\input{thesis_glossary}
+%\glsSetSuffixF{\nohyperpage{f.}}
+%\glsSetSuffixFF{\nohyperpage{ff.}}
+%%\makeglossaries
+%------------------------------------------------------------------------------
+
+% --- Wallpaper ---------------------------------------------------------------
+\usepackage{wallpaper}
+\CenterWallPaper{1.0}{logos/draft}
+%------------------------------------------------------------------------------
+
+% --- Figures -----------------------------------------------------------------
+\graphicspath{{./figs/}{./figs/tablets/}}
+%------------------------------------------------------------------------------
+
+% === MAIN ====================================================================
+% About conditional compilation and includes see:
+%       http://www.tex.ac.uk/cgi-bin/texfaq2html?label=conditional
+%       http://web.science.mq.edu.au/~rdale/resources/writingnotes/latexstruct.html
+% ASCII graphics for chapters:
+%       http://www.network-science.de/ascii/
+
+% thesis_acronyms is recommended always to be included
+%\includeonly{thesis_ch2_theory,thesis_acronyms}
+
+% Include other stuff
+%-----------------------------------
+\usepackage{tablets}
+
+\begin{document}
+	% If you do not have an abstract -- or do not want to show it, use:
+	% \renewcommand*{\makeabstract}{}
+	% If you want a list of figures instead the abstract, use:
+	\renewcommand*{\makeabstract}{\listoffigures}
+	% Include an abstract or use \abstract{...} before \maketitlepage
+	% \include{abstract}
+	\maketitlepage
+	% To skip the TOC comment the next two lines:
+	%%\pagenumbering{roman}
+	%%\tableofcontents
+	\clearpage
+	\pagenumbering{arabic}
+	%-----------------------------------
+
+	% Include your stuff
+	%-----------------------------------
+	\include{report_visualization_examples_tablets}
+
+	\section*{Key data of the 3D-models}
+
+	\begin{center}\scriptsize % \tiny
+		\begin{tabular}[!hptb]{|l|c|r|r|r|r|r|l|}
+			\hline
+			% --- captions ---
+			Inventory No.  &
+			\multicolumn{1}{c|}{Max. dimension} & 
+			\multicolumn{1}{c|}{Vertices}   & 
+			\multicolumn{1}{c|}{Faces}      & 
+			\multicolumn{1}{c|}{Surface}    & 
+			\multicolumn{1}{c|}{Res., avg.} & 
+			\multicolumn{1}{c|}{Vol., est.} &
+			Material \\
+			% --- Units ---
+			&
+			\multicolumn{1}{c|}{$[cm]$} & 
+			\multicolumn{1}{c|}{$|\mathcal{L}_{p}|$} & 
+			\multicolumn{1}{c|}{$|\mathcal{L}_{t}|$} & 
+			\multicolumn{1}{c|}{$[mm^2]$} & 
+			\multicolumn{1}{c|}{$[mm^{-2}]$} & 
+			\multicolumn{1}{c|}{$[cm^3]$} &
+			\\
+			\hline
+			\hline
+			% --- Data ---
+
+			TCH.92,G.127 &
+			$\numprint{79.6} \times \numprint{110.5} \times \numprint{25.3}$ &
+			$\numprint{4466245}$ &
+			$\numprint{8932486}$ &
+			$\numprint{23442}$ &
+			$\numprint{191}$ &
+			$\numprint{141}$ &
+			cast copy, gypsum \\
+			\hline
+
+			VAT 9728 &
+			$\numprint{165.9} \times \numprint{105.2} \times \numprint{26.5}$ &
+			$\numprint{9897424}$ &
+			$\numprint{19692569}$ &
+			$\numprint{43291}$ &
+			$\numprint{229}$ &
+			$\numprint{294}\,\pm\numprint{18}$ &
+			original, clay\\
+			\hline
+
+			VAT 11403 &
+			$\numprint{63.6} \times \numprint{55.4} \times \numprint{8.3}$ &
+			$\numprint{7002755}$ &
+			$\numprint{13968296}$ &
+			$\numprint{5606}$ &
+			$\numprint{1249}$ &
+			$\numprint{11}\,\pm\numprint{1}$ &
+			original, clay\\
+			\hline
+
+		\end{tabular}
+	\end{center}
+
+	Explanation of the table's columns:
+	\begin{itemize}
+		\item \emph{Max. dimension} shows the length of the edges (width, height, thickness) of the so-called bounding box of the 3D-model of an oriented tablet.
+		\item \emph{Vertices} $|\mathcal{L}_{p}|$ shows the number of measuring points $\mathbf{p}$ of the final 3D-model.
+		\item \emph{Faces} $|\mathcal{L}_{t}|$ shows the number of triangles $\mathbf{t}$ connecting the measuring points.
+		\item \emph{Surface} shows the acquired area of a tablet. It is computed as sum of the area of all triangles $\mathbf{t}$. 
+		\item \emph{Res., avg. -- average resolution}: number of measuring points divided by the \emph{surface}.
+		\item \emph{Vol., est. -- estimated volume}: computed using the 3D-model and only given for tablets, where $>\approx 95\perc$ was acquired.
+		\item \emph{Material} is noted as it influences the quality of the text image. 
+		      Cast copies in general do have a lower quality of the text image than originals -- espically casts using ceramic.
+	\end{itemize}
+
+	%%\appendix
+	%%\chapter{Cuneiform tablets}
+	%%\include{tablets}
+
+	%\chapter*{Acknowledgements}
+
+	%%\include{thesis_acronyms}
+
+	% Glossary (again)
+	%----------------------------------------------------------------------------
+	% When the glossary is missing within the PDF try `makeglossaries <filename>`
+	%%\glossarystyle{long4colheader}
+	%%\printglossaries
+
+	%%\setlength{\bibsep}{0mm}
+	%%\begin{spacing}{0.9}
+	%%	\bibliographystyle{alpha}
+	%%	\bibliography{mara_cuneiform,mara_hubert_publications}
+	%%\end{spacing}
+	%%\addcontentsline{toc}{chapter}{Bibliography}
+
+\end{document}
+
