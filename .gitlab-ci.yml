@@ -29,7 +29,7 @@ windows:
     - chmod u+x build
     - update-alternatives --install /usr/bin/gcc gcc /mxe/usr/bin/x86_64-w64-mingw32.static-gcc 10
     - update-alternatives --install /usr/bin/g++ g++ /mxe/usr/bin/x86_64-w64-mingw32.static-g++ 10
-    - ./build gcc "-pipe -std=c++17 -O2 -ftree-loop-vectorize -Wall -Wextra -Wpedantic -Werror=format-security -D_GLIBC_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fpie -fstack-protector-strong"
+    - ./build gcc "-pipe -std=c++17 -O2 -ftree-loop-vectorize -Wall -Wextra -Wpedantic -Werror=format-security -D_GLIBC_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fpie -fstack-protector-strong -lssp"
     # Build mesh parts.
     - cd ../..
     - mkdir meshBuild
