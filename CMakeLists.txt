@@ -1,6 +1,15 @@
 cmake_minimum_required(VERSION 3.10)
 
-#CMAKEFile for building the command-line tools of gigamesh
+# CMAKEFile for building the command-line tools of gigamesh
+
+# note for building the CLI for Ubuntu, if g++-8 is not the default compiler, you have two options:
+# 1. Export CC and CXX before calling cmake:
+# export CC=/usr/bin/gcc-8
+# export CXX=/usr/bin/g++-8
+#
+# 2. set g++-8 as alternative permanently:
+# sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 10
+# sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 10
 
 project(GigaMesh-CLT LANGUAGES CXX C)
 
