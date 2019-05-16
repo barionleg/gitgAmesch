@@ -807,10 +807,12 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 	// Guess some initial distance for fog:
 	double minDist;
 	double maxDist;
-	double viewDist = abs3( mCameraCenter-mCenterView );
-	mMeshVisual->getDistanceVerticesToPosition( mCenterView, &minDist, &maxDist );
-	setParamFloatMeshWidget( FOG_LINEAR_START, viewDist-(maxDist*0.9) );
-	setParamFloatMeshWidget( FOG_LINEAR_END,   viewDist+(maxDist*0.9) );
+
+	double bboxLength = mMeshVisual->getBoundingBoxRadius() * 2.0;
+
+	double centerDistance = mMeshVisual->getBoundingBoxCenter().getLength3();
+	setParamFloatMeshWidget( FOG_LINEAR_START, bboxLength  * 0.75);
+	setParamFloatMeshWidget( FOG_LINEAR_END,   bboxLength  * 1.75);
 
 	// Setup the dynamic menu by emitting flags:
 	cout << "[MeshWidget::" << __FUNCTION__ << "] Sending initial signals with flags and parameters ..." << endl;
