@@ -804,6 +804,16 @@
     <property name="title">
      <string>A&amp;nalyze</string>
     </property>
+    <widget class="QMenu" name="menuOctree">
+     <property name="title">
+      <string>Octree</string>
+     </property>
+     <addaction name="actionGenerateOctree"/>
+     <addaction name="actionDraw_Octree"/>
+     <addaction name="actionDetect_Self_Intersections"/>
+     <addaction name="actionRemove_Drawing_of_Octree"/>
+     <addaction name="actionDelete_Octree"/>
+    </widget>
     <addaction name="actionApplyTpsRpmTransformation"/>
     <addaction name="separator"/>
     <addaction name="actionEstimateMSIIFeature"/>
@@ -835,11 +845,7 @@
     <addaction name="separator"/>
     <addaction name="actionSphereIntersect"/>
     <addaction name="separator"/>
-    <addaction name="actionGenerateOctree"/>
-    <addaction name="actionDraw_Octree"/>
-    <addaction name="actionDetect_Self_Intersections"/>
-    <addaction name="actionRemove_Drawing_of_Octree"/>
-    <addaction name="actionDelete_Octree"/>
+    <addaction name="menuOctree"/>
     <addaction name="separator"/>
     <addaction name="actionEllipsenFit"/>
    </widget>
