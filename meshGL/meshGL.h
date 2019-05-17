@@ -76,8 +76,10 @@ class MeshGL : public Mesh, public MeshGLParams {
 		virtual bool       multiplyColorWithFuncVal( const double rMin, const double rMax );
 
 		// UI/Selection:
-		virtual bool       selectAtMouseLeft( int xPixel, int yPixel );
-		virtual bool       selectAtMouseRight( int xPixel, int yPixel );
+		        bool       selectPlaneThreePoints( int rXPixel, int rYPixel );
+			bool       selectConePoints( int rXPixel, int rYPixel );
+		        bool       selectSpherePoints( int rXPixel, int rYPixel );
+		        bool       selectPositionAt( int rXPixel, int rYPixel, bool rLastPoint );
 		virtual bool       selectPrism( std::vector<PixCoord> &rTri );
 		virtual bool       selectPoly( std::vector<PixCoord>& rPixels );
 		virtual bool       callTriangle(std::vector<PixCoord> &p, std::vector<PixCoord> &tri);
@@ -85,7 +87,8 @@ class MeshGL : public Mesh, public MeshGLParams {
 		virtual Primitive* selectPrimitiveAt( int primitiveTypeToSelect, int xPixel, int yPixel, bool addToList );
 	private:
 		        Vertex*    getVertexAt( int xPixel, int yPixel );
-		        Face*      getFaceAt( int rPixelX, int rPixelY, Vector3D* rPointIntersect=NULL );
+		        Face*      getFaceAt( int rPixelX, int rPixelY, Vector3D* rPointIntersect=nullptr );
+		        Face*      getFaceAt( const Vector3D& rRayTop, const Vector3D& rRayBot, const Vector3D& vecPointSel, Vector3D* rPointIntersect=nullptr );
 	public:
 		        bool       getRayWorld( int xPixel, int yPixel, Vector3D* rayTop, Vector3D* rayBot );
 		        bool       getWorldPoint( int rPixelX, int rPixelY, float rDepth, Vector3D* rPosVec );

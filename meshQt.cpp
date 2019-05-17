@@ -2082,20 +2082,6 @@ bool MeshQt::selectPolyNotLabeled() {
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Performs a selection at a given widget coordinate considering the mouse button involved in this choice.
-bool MeshQt::selectAt( QPoint rPoint, QFlags<Qt::MouseButton> rMouseButton ) {
-    bool retVal = false;
-	switch( rMouseButton ) {
-		case Qt::LeftButton:
-			retVal = MeshGL::selectAtMouseLeft( rPoint.x(), rPoint.y() );
-			break;
-		case Qt::RightButton:
-			retVal = MeshGL::selectAtMouseRight( rPoint.x(), rPoint.y() );
-			break;
-	}
-	return retVal;
-}
-
 //! Select vertices within a polygonal area defined by the camera view direction (=prism) .
 bool MeshQt::selectPoly( vector<QPoint> &rPixelCoords ) {
 	vector<PixCoord> polyCoords;

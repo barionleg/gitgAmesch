@@ -150,7 +150,7 @@ class Primitive : public BitFlagArray  {
 
 		// Plane related - requires Point+Normal
 		        bool     getIntersectionFacePlaneLineDir( Vector3D* rRayPos, Vector3D* rRayDir, Vector3D* rRayIntersect );
-		        bool     getIntersectionFacePlaneLinePos( Vector3D* rayTop, Vector3D* rayBot, Vector3D* rayIntersect );
+		        bool     getIntersectionFacePlaneLinePos( const Vector3D& rayTop, const Vector3D& rayBot, Vector3D& rayIntersect );
 		        bool     getIntersectionFacePlaneEdge( Vector3D* rayTop, Vector3D* rayBot, Vector3D* rayIntersect );
 		        bool     getDistanceToPoint( Vector3D* somePos, double* dist );
 		// Center of gravity related

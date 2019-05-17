@@ -3232,7 +3232,7 @@ bool Mesh::getPlaneIntersectEdge( Vector3D* rayTop, Vector3D* rayBot, Vector3D* 
 //! Calculates intersection of a line given by `ptA` and `ptB` with the plane. Result is
 //! stored in `lineIntersect`.
 bool Mesh::getPlaneIntersectLine( Vector3D* ptA, Vector3D* ptB, Vector3D* lineIntersect ) {
-	return(mPlane.getIntersectionFacePlaneLinePos(ptA, ptB, lineIntersect));
+	return( mPlane.getIntersectionFacePlaneLinePos( *ptA, *ptB, *lineIntersect) );
 }
 
 //! Returns the intersection of a line with the plane.
@@ -3538,7 +3538,7 @@ bool Mesh::splitByPlane( Vector3D planeHNF, bool duplicateVertices, bool noRedra
 			if(sideY > 0) {
 				// ...but first vertex is behind plane
 				if(sideX <= 0) {
-					cutPlane.getIntersectionFacePlaneLinePos( &positionX, &positionY, &vecIntersection );
+					cutPlane.getIntersectionFacePlaneLinePos( positionX, positionY, vecIntersection );
 
 					if(duplicateVertices) {
 						if(!vertIntersection1 && !vertIntersection2) {
@@ -3571,7 +3571,7 @@ bool Mesh::splitByPlane( Vector3D planeHNF, bool duplicateVertices, bool noRedra
 			else if(sideY < 0) {
 				// ..but first vertex is in front of plane
 				if(sideX >= 0) {
-					cutPlane.getIntersectionFacePlaneLinePos( &positionX, &positionY, &vecIntersection );
+					cutPlane.getIntersectionFacePlaneLinePos( positionX, positionY, vecIntersection );
 
 					if(duplicateVertices) {
 						if(!vertIntersection1 && !vertIntersection2) {

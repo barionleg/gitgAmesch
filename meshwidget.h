@@ -258,7 +258,6 @@ signals:
 	void sParamFlagMesh(MeshGLParams::eParamFlag,bool);             //!< Sets a specific display flag see MeshGL::setShowFlag.
 	void sParamFlagMeshWidget(MeshWidgetParams::eParamFlag,bool);   //!< Sets a specific display flag see MeshWidget::setShowFlag.
 	void sParamIntegerMeshWidget(MeshWidgetParams::eParamInt,int);  //!< Sets a specific display integer see MeshWidget::
-	void sSelectAt(QPoint,QFlags<Qt::MouseButton>);                 //!< Emitted when a selection occurs (e.g. double click).
 	void sSelectPoly(std::vector<QPoint>&);                              //!< Pixel coordinates for polygonal/prism selection.
 	// changes to plane position
 	void sApplyTransfromToPlane(Matrix4D);                          //!< Emitted when the planes postion was (interactivly) changed.
@@ -288,7 +287,10 @@ private:
 
 	// User Interaction:
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
-	bool setConeAxisCentralPixel();
+	bool userSetConeAxisCentralPixel();
+	bool userSelectByMouseClick( QPoint rPoint, QFlags<Qt::MouseButton> rMouseButton );
+	bool userSelectAtMouseLeft( const QPoint& rPoint );
+	bool userSelectAtMouseRight( const QPoint& rPoint );
 
 	// Main members
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
