@@ -77,7 +77,7 @@ class MeshGL : public Mesh, public MeshGLParams {
 
 		// UI/Selection:
 		        bool       selectPlaneThreePoints( int rXPixel, int rYPixel );
-			bool       selectConePoints( int rXPixel, int rYPixel );
+		        bool       selectConePoints( int rXPixel, int rYPixel );
 		        bool       selectSpherePoints( int rXPixel, int rYPixel );
 		        bool       selectPositionAt( int rXPixel, int rYPixel, bool rLastPoint );
 		virtual bool       selectPrism( std::vector<PixCoord> &rTri );
