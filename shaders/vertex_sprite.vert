@@ -97,7 +97,7 @@ void main(void) {
 	}
 
 	// Point sprite specifics:
-	gl_PointSize = uPointSizeBase * ( 1.0 - ( gl_Position.z + 1.0 )/2.0 ) + uPointSizeBaseMinimal;
+	gl_PointSize = uPointSizeBase * ( 1.0 - ( (gl_Position.z / gl_Position.w) + 1.0 )/2.0 ) + uPointSizeBaseMinimal;
 	gl_Position.z += uPointShiftViewZ;
 
 	// EXAMPLE for passing on flags:
