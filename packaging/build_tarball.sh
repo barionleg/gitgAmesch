@@ -29,20 +29,35 @@ fi
 sed -i "/unreleasd/c\Version $CURRENT_VERSION" CHANGELOG
 
 # c-q-make everything
-cd external/libpsalm
+cd external/libpsalmBoostless
+mkdir build
+cd build
 # make clean # <- this fails since March 13, 2019
-cmake .
-make -j $NUM_PROCESSORS
+cmake ..
+cmake --build . --config Release
+cp libpsalm.a ..
+cd ..
+rm -rf build
+cd ..
+# Make ALGLIB
+unzip alglib-2.6.0.cpp.zip
+mv cpp alglib
+cd alglib
+chmod u+x build
+./build gcc
 cd ../..
-
-cd mesh
-make -j $NUM_PROCESSORS CC=gcc-8 CXX=g++-8 LINK=g++-8 package-files
+# Make the mesh cli
+mkdir meshBuild
+cd meshBuild
+cmake ..
+cmake --build . --config Release
 find . -type f -executable -not -name \*.sh -exec strip {} \;
 cd ..
 # Inside GigaMesh folder now
 #make clean
-qmake
-make -j $NUM_PROCESSORS CC=gcc-8 CXX=g++-8 LINK=g++-8
+qmake CONFIG+=release
+#make -j $NUM_PROCESSORS CC=gcc-8 CXX=g++-8 LINK=g++-8 <--- set these via export before running the script
+make -j $NUM_PROCESSORS
 strip gigamesh
 #Move Back to packaging
 cd packaging
@@ -54,10 +69,10 @@ cp -a ../CHANGELOG $ND
 
 # --- binaries
 cp -a ../gigamesh $ND
-cp -a ../mesh/gigamesh-info  $ND
-cp -a ../mesh/gigamesh-clean $ND
-cp -a ../mesh/gigamesh-tolegacy $ND
-cp -a ../mesh/gigamesh-featurevectors $ND
+cp -a ../meshBuild/gigamesh-info  $ND
+cp -a ../meshBuild/gigamesh-clean $ND
+cp -a ../meshBuild/gigamesh-tolegacy $ND
+cp -a ../meshBuild/gigamesh-featurevectors $ND
 # --- Scripts ---
 # None for now, which is a good thing.
 

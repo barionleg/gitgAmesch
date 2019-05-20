@@ -54,9 +54,14 @@ fi
 cd ../..
 
 # Make libpsalm
-cd external/libpsalm
-cmake .
-make -j $NUM_PROCESSORS
+cd external/libpsalmBoostless
+mkdir build
+cd build
+cmake ..
+cmake --build . --config Release
+cp libpsalm.a ..
+cd ..
+rm -rf build
 cd ..
 # Make ALGLIB
 unzip alglib-2.6.0.cpp.zip
@@ -70,14 +75,15 @@ cd ../..
 #make -j $NUM_PROCESSORS
 #cd ..
 # Make Mesh
-cd mesh
-make -j $NUM_PROCESSORS
+mkdir meshBuild
+cd meshBuild
+cmake ..
+cmake --build . --config Release
 find . -type f -executable -not -name \*.sh -exec strip {} \;
 cd ..
-
 # qmake before clean - otherwise the paths are not correct within the Makefile
 
-qmake
+qmake CONFIG+=release
 make -j $NUM_PROCESSORS
 strip gigamesh
 
@@ -86,7 +92,7 @@ cd packaging/arch
 which makepkg
 if [ $? == 0 ]; then
 	# We enforce the package build e.g. today's package has to be redone.
-	makepkg -f
+	makepkg -f -L
 	rm -R pkg
 else
 	echo \'makepg\' missing - seems this is not a Manjaro system.

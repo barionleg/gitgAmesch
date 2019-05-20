@@ -46,10 +46,10 @@ package() {
 
 	mkdir -p $pkgdir/usr/bin
 	cp gigamesh $pkgdir/usr/bin
-	cp mesh/gigamesh-info $pkgdir/usr/bin
-	cp mesh/gigamesh-clean $pkgdir/usr/bin
-	cp mesh/gigamesh-tolegacy $pkgdir/usr/bin
-	cp mesh/gigamesh-featurevectors $pkgdir/usr/bin
+	cp meshBuild/gigamesh-info $pkgdir/usr/bin
+	cp meshBuild/gigamesh-clean $pkgdir/usr/bin
+	cp meshBuild/gigamesh-tolegacy $pkgdir/usr/bin
+	cp meshBuild/gigamesh-featurevectors $pkgdir/usr/bin
 
 	mkdir -p $pkgdir/usr/share/pixmaps
 	cp forms/gigamesh_logo.svg $pkgdir/usr/share/pixmaps
