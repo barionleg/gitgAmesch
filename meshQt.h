@@ -53,7 +53,6 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		virtual bool readIsRegularGrid( bool* rIsGrid ); // overloaded from MeshIO
 
 		virtual void   polyLinesChanged();
-		virtual bool   setVertexFuncValues(Vertex** vertices, double* values, int verticesNr, const std::string& setName );
 
 		virtual void   changedFaceFuncVal();
 		virtual void   changedVertFuncVal();
@@ -116,7 +115,7 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		// edit actions:
 		virtual bool   changedMesh();
 		virtual bool   removeVerticesSelected();
-		virtual bool   removeUncleanSmall();
+		        bool   removeUncleanSmallUser();
 		virtual bool   completeRestore();
 		virtual bool   insertVerticesEnterManual();
 		//.
@@ -213,7 +212,6 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		virtual bool   selectPolyLabelNo(const std::vector<int>& rLabelNrs );
 		virtual bool   selectPolyNotLabeled();
 
-		virtual bool       selectAt( QPoint rPoint, QFlags<Qt::MouseButton> rMouseButton );
 		virtual bool       selectPoly( std::vector<QPoint>& rPixelCoords );
 		virtual Primitive* selectPrimitiveAt( int primitiveTypeToSelect, int xPixel, int yPixel, bool addToList );
 		// Selection - Plane definition:

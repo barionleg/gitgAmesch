@@ -560,7 +560,7 @@ bool MeshWidget::callFunctionMeshWidget( MeshWidgetParams::eFunctionCall rFuncti
 			retVal &= screenshotViewsPNGDirectory();
 			break;
 		case EDIT_SET_CONEAXIS_CENTRALPIXEL:
-			retVal &= setConeAxisCentralPixel();
+			retVal &= userSetConeAxisCentralPixel();
 			break;
 		case SET_CURRENT_VIEW_TO_DEFAULT:
 			retVal &= currentViewToDefault();
@@ -795,7 +795,6 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 	}
 
 	QObject::connect( this,        SIGNAL(sParamFlagMesh(MeshGLParams::eParamFlag,bool)), mMeshVisual, SLOT(setParamFlagMeshGL(MeshGLParams::eParamFlag,bool)) );
-	QObject::connect( this,        SIGNAL(sSelectAt(QPoint,QFlags<Qt::MouseButton>)),     mMeshVisual, SLOT(selectAt(QPoint,QFlags<Qt::MouseButton>))          );
 	QObject::connect( this,        SIGNAL(sSelectPoly(std::vector<QPoint>&)),                  mMeshVisual, SLOT(selectPoly(std::vector<QPoint>&))                       );
 	QObject::connect( mMeshVisual, SIGNAL(updateGL()),                                    this,        SLOT(update())                                          );
 	// Interaction -----------------------------------------------------------------------------------------------------------------------------------------
@@ -6384,7 +6383,7 @@ void MeshWidget::mousePressEvent( QMouseEvent *rEvent ) {
 			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Wrong selection mode (SELECTION_MODE_POLYLINE)!" << endl;
 			return;
 		}
-		emit sSelectAt( rEvent->pos(), mouseButtonsPressed );
+		userSelectByMouseClick( rEvent->pos(), mouseButtonsPressed );
 		return;
 	}
 }
@@ -6764,7 +6763,7 @@ void MeshWidget::keyPressEvent( QKeyEvent *rEvent ) {
 //! See also Mesh::setConeAxis.
 //!
 //! @returns false in case of an error. True otherwise.
-bool MeshWidget::setConeAxisCentralPixel() {
+bool MeshWidget::userSetConeAxisCentralPixel() {
 	// Sanity check
 	if( mMeshVisual == nullptr ) {
 		return( false );
@@ -6796,6 +6795,132 @@ bool MeshWidget::setConeAxisCentralPixel() {
 	return mMeshVisual->setConeAxis( &rayTop, &rayBot );
 }
 
+
+//! Performs a selection at a given widget coordinate considering the mouse button involved in this choice.
+bool MeshWidget::userSelectByMouseClick(
+                QPoint rPoint,
+                QFlags<Qt::MouseButton> rMouseButton
+) {
+	bool retVal = false;
+	switch( rMouseButton ) {
+		case Qt::LeftButton:
+			retVal = userSelectAtMouseLeft( rPoint );
+			break;
+		case Qt::RightButton:
+			retVal = userSelectAtMouseRight( rPoint );
+			break;
+	}
+	return( retVal );
+}
+
+//! Performs a selection at the given screen/widget coordinate.
+//! Triggered by pressing the left mouse button.
+bool MeshWidget::userSelectAtMouseLeft( const QPoint& rPoint ) {
+	// Sanity
+	if( mMeshVisual == nullptr ) {
+		return( false );
+	}
+
+	// Correct for OpenGL:
+	GLint viewport[4];
+	glGetIntegerv( GL_VIEWPORT, viewport );
+	int yPixel = viewport[3] - rPoint.y();
+	int xPixel = rPoint.x();
+
+	MeshWidgetParams::eSelectionModes selectionMode;
+	this->getParamIntegerMeshWidget( MeshWidgetParams::SELECTION_MODE, reinterpret_cast<int*>(&selectionMode) );
+
+	bool retVal = false;
+	switch( selectionMode ) {
+		case MeshWidgetParams::SELECTION_MODE_NONE:
+			// Nothing to do.
+			return( true );
+			break;
+		case MeshWidgetParams::SELECTION_MODE_VERTEX:
+			retVal = mMeshVisual->selectPrimitiveAt( Primitive::IS_VERTEX, xPixel, yPixel, false );
+			break;
+		case MeshWidgetParams::SELECTION_MODE_FACE:
+			retVal = mMeshVisual->selectPrimitiveAt( Primitive::IS_FACE, xPixel, yPixel, false );
+			break;
+		case MeshWidgetParams::SELECTION_MODE_VERTICES:
+			retVal = mMeshVisual->selectPrimitiveAt( Primitive::IS_VERTEX, xPixel, yPixel, true );
+			break;
+		case MeshWidgetParams::SELECTION_MODE_MULTI_FACES:
+			retVal = mMeshVisual->selectPrimitiveAt( Primitive::IS_FACE, xPixel, yPixel, true );
+			break;
+		case MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO:
+			// Nothing to do.
+			return( true );
+			break;
+		case MeshWidgetParams::SELECTION_MODE_PLANE_3FP:
+			retVal = mMeshVisual->selectPlaneThreePoints( xPixel, yPixel );
+			break;
+		case MeshWidgetParams::SELECTION_MODE_POSITIONS:
+			retVal = mMeshVisual->selectPositionAt( rPoint.x(), yPixel, false );
+			break;
+		case MeshWidgetParams::SELECTION_MODE_CONE: {
+			retVal = mMeshVisual->selectConePoints( xPixel, yPixel );
+			break;
+		}
+		case MeshWidgetParams::SELECTION_MODE_SPHERE: {
+			retVal = mMeshVisual->selectSpherePoints( xPixel, yPixel );
+			break;
+		}
+		default:
+			std::cerr << "[MeshGL::" << __FUNCTION__ << "] invalid selection mode: " << selectionMode << "!" << std::endl;
+			retVal = false;
+	}
+
+	if( !retVal ) {
+		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR. Unknown!" << std::endl;
+	}
+	return( retVal );
+}
+
+
+//! Performs a selection at the given screen/widget coordinate.
+//! Triggered by pressing the right mouse button.
+bool MeshWidget::userSelectAtMouseRight( const QPoint& rPoint ) {
+	// Sanity
+	if( mMeshVisual == nullptr ) {
+		return( false );
+	}
+
+	// Correct for OpenGL:
+	GLint viewport[4];
+	glGetIntegerv( GL_VIEWPORT, viewport );
+	int yPixel = viewport[3] - rPoint.y();
+
+	MeshWidgetParams::eSelectionModes selectionMode;
+	this->getParamIntegerMeshWidget( MeshWidgetParams::SELECTION_MODE, reinterpret_cast<int*>(&selectionMode) );
+
+	bool retVal = false;
+	switch( selectionMode ) {
+		case MeshWidgetParams::SELECTION_MODE_NONE:
+		case MeshWidgetParams::SELECTION_MODE_VERTEX:
+		case MeshWidgetParams::SELECTION_MODE_FACE:
+		case MeshWidgetParams::SELECTION_MODE_VERTICES:
+		case MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO:
+		case MeshWidgetParams::SELECTION_MODE_MULTI_FACES:
+		case MeshWidgetParams::SELECTION_MODE_PLANE_3FP:
+		case MeshWidgetParams::SELECTION_MODE_CONE:
+		case MeshWidgetParams::SELECTION_MODE_SPHERE:
+			// Nothing to do.
+			retVal = true;
+			break;
+		case MeshWidgetParams::SELECTION_MODE_POSITIONS:
+			retVal = mMeshVisual->selectPositionAt( rPoint.x(), yPixel, true );
+			break;
+		default:
+			std::cerr << "[MeshGL::" << __FUNCTION__ << "] invalid selection mode: " << selectionMode << "!" << std::endl;
+			retVal = false;
+	}
+
+	if( !retVal ) {
+		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR. Unknown!" << std::endl;
+	}
+	return( retVal );
+}
 
 //! Restore the view and the lights to the default setting.
 //! Was identical to the (removed) slot resetView().

@@ -150,7 +150,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 
 	// Edit menu ----------------------------------------------------------------------------------------------------------
 	QObject::connect( mMainWindow, SIGNAL(removeVerticesSelected()),     this, SLOT(removeVerticesSelected()) );
-	QObject::connect( mMainWindow, SIGNAL(removeUncleanSmall()),         this, SLOT(removeUncleanSmall())     );
+	QObject::connect( mMainWindow, SIGNAL(removeUncleanSmall()),         this, SLOT(removeUncleanSmallUser()) );
 	//.
 	QObject::connect( mMainWindow, SIGNAL(cutOffFeatureVertex()),        this, SLOT(cutOffFeatureVertex())    );
 	//.
@@ -372,17 +372,6 @@ void MeshQt::polyLinesChanged() {
 	} else {
 		emit hasElement( Primitive::IS_POLYLINE, false );
 	}
-}
-
-//! Set a value array to be visualized with a colormap.
-//! values will be copied and normalized to [0.0...1.0] - be aware of numeric errors!
-//! Returns false in case of an error.
-//! See MeshGL::setVertexFuncValues and MeshGL::setVertexFuncValues
-bool MeshQt::setVertexFuncValues( Vertex** vertices, double* values, int verticesNr, const string& setName ) {
-	if( !MeshGL::setVertexFuncValues( vertices, values, verticesNr, setName ) ) {
-		return false;
-	}
-	return true;
 }
 
 //! Handles UI, when the function values of the faces were changed.
@@ -828,17 +817,15 @@ bool MeshQt::removeVerticesSelected() {
 //! Set parameters by user interaction.
 //!
 //! @returns false in case of an error. True otherwise.
-bool MeshQt::removeUncleanSmall() {
+bool MeshQt::removeUncleanSmallUser() {
 
+	// Set small areas to be removed.
 	QGMDialogSliderHD dlgSlider;
 	dlgSlider.setMin(   0.0 + DBL_EPSILON );
 	dlgSlider.setMax( 100.0 - DBL_EPSILON );
 	dlgSlider.setPos( 10.0 );
-	//dlgSlider.setPos( getParaSmoothLength() );
 	dlgSlider.suppressPreview();
 	dlgSlider.setWindowTitle(  "Maximum label area (relative)" );
-	//QObject::connect( &dlgSlider, SIGNAL(valuePreview(int,double)),  this, SLOT(setViewParams(int,double)) );
-	//QObject::connect( &dlgSlider, SIGNAL(valueSelected(double)), this, SLOT(removeUncleanSmall(double)) );
 	if( dlgSlider.exec() == QDialog::Rejected ) {
 		return false;
 	}
@@ -852,14 +839,16 @@ bool MeshQt::removeUncleanSmall() {
 	// Optional border erosion
 	bool applyErosion;
 	bool userCancel;
-	SHOW_QUESTION( "Apply border erosion", "Do you want to remove dangling faces along the borders?<br /><br />Recommended: YES", applyErosion, userCancel );
+	SHOW_QUESTION( "Apply border erosion", "Do you want to remove dangling faces along the borders?"
+	                                       "<br /><br />Recommended: NO, if bridges were added between borders."
+	                                       "<br /><br />Recommended: YES, otherwise.", applyErosion, userCancel )
 	if( userCancel ) {
 		return( false );
 	}
 
 	// Ask if we wan't to store the result, when finished.
 	bool saveFile;
-	SHOW_QUESTION( "Store results", "Do you want to store the result as file?", saveFile, userCancel );
+	SHOW_QUESTION( "Store results", "Do you want to store the result as file?", saveFile, userCancel )
 	if( userCancel ) {
 		return( false );
 	}
@@ -871,10 +860,10 @@ bool MeshQt::removeUncleanSmall() {
 	}
 
 	// Store old mesh size to determine the number of changes
-	int  oldVertexNr = getVertexNr();
-	int  oldFaceNr   = getFaceNr();
+	uint64_t oldVertexNr = getVertexNr();
+	uint64_t oldFaceNr   = getFaceNr();
 	bool retVal = MeshGL::removeUncleanSmall( percentArea, applyErosion, fileName.toStdString() );
-	SHOW_MSGBOX_INFO( "Primitives removed", tr( "%1 Vertices\n%2 Faces" ).arg( oldVertexNr - getVertexNr() ).arg( oldFaceNr - getFaceNr() ) );
+	SHOW_MSGBOX_INFO( "Primitives removed", tr( "%1 Vertices\n%2 Faces" ).arg( oldVertexNr - getVertexNr() ).arg( oldFaceNr - getFaceNr() ) )
 	return retVal;
 }
 
@@ -894,7 +883,6 @@ bool MeshQt::completeRestore() {
 	dlgSlider.setMin(   0.0 + DBL_EPSILON );
 	dlgSlider.setMax( 100.0 - DBL_EPSILON );
 	dlgSlider.setPos( 10.0 );
-	//dlgSlider.setPos( getParaSmoothLength() );
 	dlgSlider.suppressPreview();
 	dlgSlider.setWindowTitle(  "Maximum label area (relative)" );
 	if( dlgSlider.exec() == QDialog::Rejected ) {
@@ -914,7 +902,7 @@ bool MeshQt::completeRestore() {
 		"Remove longest polyline -- keep largest hole", \
 		"Do you want to remove the longest polyline, to prevent it from getting filled?\n\ni.e. Do you want to keep the largest hole in the mesh?", \
 		prevent, userCancel \
-	);
+	)
 	if( userCancel ) {
 		return( false );
 	}
@@ -923,7 +911,7 @@ bool MeshQt::completeRestore() {
 	bool applyErosion;
 	SHOW_QUESTION( "Apply border erosion", "Do you want to remove dangling faces along the borders?"
 	                                       "<br /><br />Recommended: NO, if bridges were added between borders."
-	                                       "<br /><br />Recommended: YES, otherwise.", applyErosion, userCancel );
+	                                       "<br /><br />Recommended: YES, otherwise.", applyErosion, userCancel )
 	if( userCancel ) {
 		return( false );
 	}
@@ -934,7 +922,7 @@ bool MeshQt::completeRestore() {
 
 	// Ask if we wan't to store the result, when finished.
 	bool saveFile;
-	SHOW_QUESTION( "Store results", "Do you want to store the result as file?", saveFile, userCancel );
+	SHOW_QUESTION( "Store results", "Do you want to store the result as file?", saveFile, userCancel )
 	if( userCancel ) {
 		return false;
 	}
@@ -951,7 +939,7 @@ bool MeshQt::completeRestore() {
 	// Iterative cleaning is done in the Mesh class.
 	string resultMsg;
 	MeshGL::completeRestore( fileName.toStdString(), percentArea, applyErosion, prevent, maxNrVertices, &resultMsg );
-	SHOW_MSGBOX_INFO( "Complete Restore finished", QString( resultMsg.c_str() ) );
+	SHOW_MSGBOX_INFO( "Complete Restore finished", QString( resultMsg.c_str() ) )
 
 	return true;
 }
@@ -2081,20 +2069,6 @@ bool MeshQt::selectPolyNotLabeled() {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Performs a selection at a given widget coordinate considering the mouse button involved in this choice.
-bool MeshQt::selectAt( QPoint rPoint, QFlags<Qt::MouseButton> rMouseButton ) {
-    bool retVal = false;
-	switch( rMouseButton ) {
-		case Qt::LeftButton:
-			retVal = MeshGL::selectAtMouseLeft( rPoint.x(), rPoint.y() );
-			break;
-		case Qt::RightButton:
-			retVal = MeshGL::selectAtMouseRight( rPoint.x(), rPoint.y() );
-			break;
-	}
-	return retVal;
-}
 
 //! Select vertices within a polygonal area defined by the camera view direction (=prism) .
 bool MeshQt::selectPoly( vector<QPoint> &rPixelCoords ) {

@@ -357,116 +357,106 @@ bool MeshGL::multiplyColorWithFuncVal( const double rMin, double rMax ) {
 		return retVal;
 }
 
-//! Performs a selection at the given screen/widget coordinate.
-//! Triggered by pressing the left mouse button.
-bool MeshGL::selectAtMouseLeft( int xPixel, int yPixel ) {
-#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
-#endif
-		// Correct for OpenGL:
-		GLint viewport[4];
-		glGetIntegerv( GL_VIEWPORT, viewport );
-		yPixel = viewport[3] - yPixel;
 
-		MeshWidgetParams::eSelectionModes selectionMode;
-		mWidgetParams->getParamIntegerMeshWidget( MeshWidgetParams::SELECTION_MODE, reinterpret_cast<int*>(&selectionMode) );
+//! Select a point of the plane by pixel coordinates in screen space.
+//!
+//! @return false in case of an error. True otherwise.
+bool MeshGL::selectPlaneThreePoints( int rXPixel, int rYPixel ) {
+	Vector3D pointIntersect;
+	Face* currFace;
+	currFace = getFaceAt( rXPixel, rYPixel, &pointIntersect );
+	if( currFace != nullptr ) {
+		// Only when a face was selected there is a pointIntersect
+		pointIntersect.dumpInfo();
+		setPlanePos( &pointIntersect );
+	}
+	return( true );
+}
 
-		switch( selectionMode ) {
-				case MeshWidgetParams::SELECTION_MODE_NONE:
-						// Nothing to do.
-						return true;
-						break;
-				case MeshWidgetParams::SELECTION_MODE_VERTEX:
-						selectPrimitiveAt( Primitive::IS_VERTEX, xPixel, yPixel, false );
-						break;
-				case MeshWidgetParams::SELECTION_MODE_FACE:
-						selectPrimitiveAt( Primitive::IS_FACE, xPixel, yPixel, false );
-						break;
-				case MeshWidgetParams::SELECTION_MODE_VERTICES:
-						selectPrimitiveAt( Primitive::IS_VERTEX, xPixel, yPixel, true );
-						break;
-				case MeshWidgetParams::SELECTION_MODE_MULTI_FACES:
-						selectPrimitiveAt( Primitive::IS_FACE, xPixel, yPixel, true );
-						break;
-				case MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO:
-						// Nothing to do.
-						return true;
-						break;
-				case MeshWidgetParams::SELECTION_MODE_PLANE_3FP: {
-						Vector3D pointIntersect;
-						Face* currFace;
-						currFace = getFaceAt( xPixel, yPixel, &pointIntersect );
-						if( currFace != nullptr ) {
-								// Only when a face was selected there is a pointIntersect
-								pointIntersect.dumpInfo();
-								setPlanePos( &pointIntersect );
-						}
-						} break;
-				case MeshWidgetParams::SELECTION_MODE_POSITIONS: { //! \todo extende to solo vertices and polylines.
-								Vector3D pointIntersect;
-								Face*    currFace;
-								currFace = getFaceAt( xPixel, yPixel, &pointIntersect );
-								if( currFace != nullptr ) {
-										addSelectedPosition( pointIntersect, currFace, false );
-								}
-						} break;
-				case MeshWidgetParams::SELECTION_MODE_CONE: {
+//! Select a point of the cone by pixel coordinates in screen space.
+//!
+//! @return false in case of an error. True otherwise.
+bool MeshGL::selectConePoints( int rXPixel, int rYPixel ) {
+	// new cone (either old data is overwritten or it is
+	// indeed the first cone the user selected)
+	if(   this->getConeStatus() == CONE_UNDEFINED
+	   || this->getConeStatus() == CONE_DEFINED_LOWER_RADIUS )
+	{
+		// Get _general_ cone axis first
+		Vector3D upper;
+		Vector3D lower;
+		getRayWorld( rXPixel, rYPixel, &upper, &lower);
+		setConeAxis( &upper, &lower );
+	}
 
-						// new cone (either old data is overwritten or it is
-						// indeed the first cone the user selected)
-						if(   this->getConeStatus() == CONE_UNDEFINED
-						   || this->getConeStatus() == CONE_DEFINED_LOWER_RADIUS)
-						{
-								// Get _general_ cone axis first
-
-								Vector3D upper;
-								Vector3D lower;
-
-								getRayWorld(xPixel, yPixel, &upper, &lower);
-								setConeAxis(&upper, &lower);
-						}
-
-						// axis is defined, but no radius yet or first radius has been defined
-						else if(   this->getConeStatus() == CONE_DEFINED_AXIS
-								|| this->getConeStatus() == CONE_DEFINED_UPPER_RADIUS)
-						{
-								// Set next radius of cone. This _also_ changes the previously defined
-								// axis. Namely, the upper/lower point of the axis is changed to the
-								// appropriat point on the axis where the user selected the radius
-								// (perpendicular foot)
-
-								Vector3D pointIntersect;
-								Face*    currFace;
-								currFace = getFaceAt( xPixel, yPixel, &pointIntersect );
-								if( currFace != nullptr ) {
-										// Only when a face was selected there is a pointIntersect
-										setConeRadius(pointIntersect);
-								}
-						}
-
-						break;
-				}
-				case MeshWidgetParams::SELECTION_MODE_SPHERE: {
-						// Select next point in row; once four points have been determined,
-						// sphere data is calculated automatically
-						Vector3D pointIntersect;
-						Face*    currFace;
-						currFace = getFaceAt( xPixel, yPixel, &pointIntersect );
-						if( currFace != nullptr ) {
-								// Only when a face was selected there is a pointIntersect
-								float faceNormal[3]{0};
-								currFace->copyNormalXYZTo(faceNormal, true);
-								Vector3D normalVec(faceNormal[0], faceNormal[1], faceNormal[2]);
-								setSpherePoint(pointIntersect, normalVec);
-						}
-						break;
-				}
-				default:
-						cerr << "[MeshGL::" << __FUNCTION__ << "] invalid selection mode: " << selectionMode << "!" << endl;
-						return false;
+	// axis is defined, but no radius yet or first radius has been defined
+	else if(    this->getConeStatus() == CONE_DEFINED_AXIS
+	         || this->getConeStatus() == CONE_DEFINED_UPPER_RADIUS )
+	{
+		// Set next radius of cone. This _also_ changes the previously defined
+		// axis. Namely, the upper/lower point of the axis is changed to the
+		// appropriat point on the axis where the user selected the radius
+		// (perpendicular foot)
+		Vector3D pointIntersect;
+		Face*    currFace;
+		currFace = getFaceAt( rXPixel, rYPixel, &pointIntersect );
+		if( currFace != nullptr ) {
+			// Only when a face was selected there is a pointIntersect
+			setConeRadius(pointIntersect);
 		}
-		// we should never reach this point.
-		return false;
+	}
+	return( true );
+}
+
+//! Select a point of the sphere by pixel coordinates in screen space.
+//!
+//! @return false in case of an error. True otherwise.
+bool MeshGL::selectSpherePoints( int rXPixel, int rYPixel ) {
+	// Select next point in row; once four points have been determined,
+	// sphere data is calculated automatically
+	Vector3D pointIntersect;
+	Face*    currFace;
+	currFace = getFaceAt( rXPixel, rYPixel, &pointIntersect );
+	if( currFace != nullptr ) {
+		// Only when a face was selected there is a pointIntersect
+		float faceNormal[3]{0};
+		currFace->copyNormalXYZTo( faceNormal, true );
+		Vector3D normalVec( faceNormal[0], faceNormal[1], faceNormal[2] );
+		setSpherePoint( pointIntersect, normalVec );
+	}
+	return( true );
+}
+
+
+//! Select a position by pixel coordinates in screen space.
+//!
+//! @return false in case of an error. True otherwise.
+bool MeshGL::selectPositionAt( int rXPixel, int rYPixel, bool rLastPoint ) {
+	//! \todo extend to solo vertices and polylines.
+	Vector3D pointIntersect;
+	Face*    currFace;
+	currFace = getFaceAt( rXPixel, rYPixel, &pointIntersect );
+	if( currFace != nullptr ) {
+		addSelectedPosition( pointIntersect, currFace, not( rLastPoint ) );
+	}
+	if( rLastPoint ) {
+		// Check the presence of an axis:
+		if( !getConeAxisDefined() ) {
+			return( true );
+		}
+		// If there is an axis, ask the user to compute profile lines.
+		bool rUserChoice;
+		string rHead = "Compute Profile lines";
+		string rMsg = "Do you want to compute profile lines using the axis and the selected positions";
+		if( !showQuestion( &rUserChoice, rHead, rMsg ) || !rUserChoice ) {
+			// User cancel or NO.
+			return( true );
+		}
+		// User choice YES:
+		callFunction( POLYLINES_FROM_AXIS_AND_POSTIONS );
+	}
+	// Done
+	return( true );
 }
 
 
@@ -1229,65 +1219,6 @@ bool MeshGL::normalizeFunctionValues()
 	return( allSet );
 }
 
-//! Performs a selection at the given screen/widget coordinate.
-//! Triggered by pressing the right mouse button.
-bool MeshGL::selectAtMouseRight( int xPixel, int yPixel ) {
-#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
-#endif
-		// Correct for OpenGL:
-		GLint viewport[4];
-		glGetIntegerv( GL_VIEWPORT, viewport );
-		yPixel = viewport[3] - yPixel;
-
-		MeshWidgetParams::eSelectionModes selectionMode;
-		mWidgetParams->getParamIntegerMeshWidget( MeshWidgetParams::SELECTION_MODE, reinterpret_cast<int*>(&selectionMode) );
-
-		switch( selectionMode ) {
-				case MeshWidgetParams::SELECTION_MODE_NONE:
-				case MeshWidgetParams::SELECTION_MODE_VERTEX:
-				case MeshWidgetParams::SELECTION_MODE_FACE:
-				case MeshWidgetParams::SELECTION_MODE_VERTICES:
-				case MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO:
-				case MeshWidgetParams::SELECTION_MODE_MULTI_FACES:
-				case MeshWidgetParams::SELECTION_MODE_PLANE_3FP:
-				case MeshWidgetParams::SELECTION_MODE_CONE:
-				case MeshWidgetParams::SELECTION_MODE_SPHERE:
-						// Nothing to do.
-						return( true );
-						break;
-				case MeshWidgetParams::SELECTION_MODE_POSITIONS: { //! \todo extend to solo vertices and polylines.
-								Vector3D pointIntersect;
-								Face*    currFace;
-								currFace = getFaceAt( xPixel, yPixel, &pointIntersect );
-								if( currFace != nullptr ) {
-										addSelectedPosition( pointIntersect, currFace, true );
-								}
-								// Check the presence of an axis:
-								if( !getConeAxisDefined() ) {
-										return( true );
-								}
-								// If there is an axis, ask the user to compute profile lines.
-								bool rUserChoice;
-								string rHead = "Compute Profile lines";
-								string rMsg = "Do you want to compute profile lines using the axis and the selected positions";
-								if( !showQuestion( &rUserChoice, rHead, rMsg ) || !rUserChoice ) {
-										// User cancel or NO.
-										return( true );
-								}
-								// User choice YES:
-								callFunction( POLYLINES_FROM_AXIS_AND_POSTIONS );
-								return( true );
-						} break;
-				default:
-						cerr << "[MeshGL::" << __FUNCTION__ << "] invalid selection mode: " << selectionMode << "!" << endl;
-						return( false );
-		}
-
-		// we should never reach this point.
-		cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR. Unknown!" << endl;
-		return( false );
-}
 
 //call triangle lib, to triangulate a Planar straight-line graph (PLSG) given in p
 //result is returned to tri
@@ -1553,9 +1484,6 @@ Primitive* MeshGL::selectPrimitiveAt( int primitiveTypeToSelect, int xPixel, int
 
 //! Select a visible Vertex at the given position within the Viewport.
 Vertex* MeshGL::getVertexAt( int xPixel, int yPixel ) {
-#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
-#endif
 		// Fetch value from Z-Buffer entry:
 		GLfloat zDepth;
 		glReadPixels( xPixel, yPixel, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &zDepth );
@@ -1571,9 +1499,6 @@ Vertex* MeshGL::getVertexAt( int xPixel, int yPixel ) {
 
 //! Select a visible Face at the given position within the Viewport.
 Face* MeshGL::getFaceAt( int rPixelX, int rPixelY, Vector3D* rPointIntersect ) {
-#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
-#endif
 		float timeStart = clock();
 		// Fetch value from Z-Buffer entry:
 		GLfloat zDepth;
@@ -1583,89 +1508,46 @@ Face* MeshGL::getFaceAt( int rPixelX, int rPixelY, Vector3D* rPointIntersect ) {
 		Vector3D vecPointSel;
 		getWorldPoint( rPixelX, rPixelY, zDepth, &vecPointSel );
 
-		Vertex* vertNearby = nullptr;
-		getVertexNextTo( vecPointSel, &vertNearby );
-		vector<Face*> faceCandidates;
-		vertNearby->getFaces( &faceCandidates );
-
 		Vector3D selectBeamTop;
 		Vector3D selectBeamBot;
 		getRayWorld( rPixelX, rPixelY, &selectBeamTop, &selectBeamBot );
-
-		Vector3D pointIntersectionTemp;
-		Face*    faceSelected = nullptr;
-		unsigned int faceSelectedCtr = 0;
-		for( auto const& currFace: faceCandidates ) {
-				currFace->getIntersectionFacePlaneLinePos( &selectBeamTop, &selectBeamBot, &pointIntersectionTemp );
-				if( currFace->pointintriangle( &pointIntersectionTemp ) ) {
-						//cout << "[MeshGL::" << __FUNCTION__ << "] Face found:" << currFace->getIndex() << endl;
-						faceSelected = currFace;
-						if( rPointIntersect != nullptr ) {
-								rPointIntersect->set( &pointIntersectionTemp );
-						}
-						faceSelectedCtr++;
-				}
-		}
-		if( faceSelectedCtr == 0 ) {
-				cout << "[MeshGL::" << __FUNCTION__ << "] No face selected."  << endl;
-		} else if( faceSelectedCtr > 1 ) {
-				cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: More than one faces selected (" << faceSelectedCtr << ") -- the last was choosen!"  << endl;
-		}
-
 		cout << "[MeshGL::" << __FUNCTION__ << "] time using depth buffer: " << ( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
-		return faceSelected;
+		return getFaceAt( selectBeamTop, selectBeamBot, vecPointSel, rPointIntersect );
+}
 
-#ifdef DEPRECATED_FACE_SELECTION //! \todo Remove at some point in the future i.e. when the Octree was improved. Marked for removal on 16.May 2014
-		Vector3D selectBeamP0;
-		Vector3D selectBeamP1;
-		getRayWorld( rPixelX, rPixelY, &selectBeamP0, &selectBeamP1 );
+Face* MeshGL::getFaceAt(
+                const Vector3D& rRayTop,
+                const Vector3D& rRayBot,
+                const Vector3D& vecPointSel,
+                Vector3D* rPointIntersect
+) {
+	// Fetch candidate faces
+	Vertex* vertNearby = nullptr;
+	getVertexNextTo( vecPointSel, &vertNearby );
+	vector<Face*> faceCandidates;
+	vertNearby->getFaces( &faceCandidates );
 
-		float timeStart = clock();
-		vector<Octnode<Vertex*>*> nodelist;
-		if( mOctree == NULL ) {
-				generateOctree( 0.05*getVertexNr(), 0 );
-				//cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: No Octree present!"  << endl;
-				//return NULL;
+	Vector3D pointIntersectionTemp;
+	Face*    faceSelected = nullptr;
+	unsigned int faceSelectedCtr = 0;
+	for( auto const& currFace: faceCandidates ) {
+		currFace->getIntersectionFacePlaneLinePos( rRayTop, rRayBot, pointIntersectionTemp );
+		if( currFace->pointintriangle( &pointIntersectionTemp ) ) {
+			//cout << "[MeshGL::" << __FUNCTION__ << "] Face found:" << currFace->getIndex() << endl;
+			faceSelected = currFace;
+			if( rPointIntersect != nullptr ) {
+				rPointIntersect->set( &pointIntersectionTemp );
+			}
+			faceSelectedCtr++;
 		}
-		mOctree->getleaflineintersection(nodelist, selectBeamP0, selectBeamP1);
-		cout << "[MeshGL::" << __FUNCTION__ << "] faceCandidates time: " << (float)( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
+	}
+	if( faceSelectedCtr == 0 ) {
+		cout << "[MeshGL::" << __FUNCTION__ << "] No face selected."  << endl;
+	} else if( faceSelectedCtr > 1 ) {
+		cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: More than one faces selected (" << faceSelectedCtr << ") -- the last was choosen!"  << endl;
+	}
 
-		vector<Face*> facelist;
-		vector<Vertex*> vertexlist;
-
-		for (vector<Octnode<Vertex*>*>::iterator it=nodelist.begin(); it!=nodelist.end(); ++it) {
-				vertexlist.insert(vertexlist.end(), (*it)->mElements.begin(), (*it)->mElements.end());
-		}
-
-		for (vector<Vertex*>::iterator it=vertexlist.begin(); it!=vertexlist.end(); ++it) {
-				(*it)->getFaces(&facelist);
-		}
-
-		Vector3D pointintertemp;
-		vector<Face*> selectedfaces;
-		for(vector<Face*>::iterator it = facelist.begin(); it != facelist.end(); ++it) {
-				(*it)->getIntersectionFacePlaneLinePos( &selectBeamP0, &selectBeamP1, &pointintertemp );
-				if ( (*it)->pointintriangle( &pointintertemp ) ) {
-						(*it)->setFuncValue( distance(&pointintertemp, &selectBeamP0) );
-						selectedfaces.push_back(*it);
-				}
-		}
-
-		// Sanity: no face selected at all.
-		if( selectedfaces.size() == 0 ) {
-				return NULL;
-		}
-
-		// walk thru faces:
-		sort( selectedfaces.begin(), selectedfaces.end(), Face::funcValLower );
-
-		Face* faceSelected = selectedfaces[0];
-		if( ( faceSelected != NULL ) && ( rPointIntersect != NULL ) ) {
-				faceSelected->getIntersectionFacePlaneLinePos( &selectBeamP0, &selectBeamP1, rPointIntersect );
-		}
-		cout << "[MeshGL::" << __FUNCTION__ << "] faceCandidates time: " << (float)( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
-		return faceSelected;
-#endif
+	return faceSelected;
 }
 
 //! Gets the line of view in world-coordinates for a given pixel (-> raytracing).

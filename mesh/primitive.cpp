@@ -917,10 +917,14 @@ bool Primitive::getIntersectionFacePlaneLineDir( Vector3D* rRayPos, Vector3D* rR
 //! Intersects a ray given by two points with the plane described by the Face.
 //! Does not check if the ray hits within the face or outside the Face.
 //! Returns false, when the ray does not intersect the faces plane (co-planar).
-bool Primitive::getIntersectionFacePlaneLinePos( Vector3D* rayTop, Vector3D* rayBot, Vector3D* rayIntersect ) {
-	double denom = getNormalX() * ( rayTop->getX() - rayBot->getX() )
-		     + getNormalY() * ( rayTop->getY() - rayBot->getY() )
-		     + getNormalZ() * ( rayTop->getZ() - rayBot->getZ() );
+bool Primitive::getIntersectionFacePlaneLinePos(
+                const Vector3D& rayTop,
+                const Vector3D& rayBot,
+                Vector3D& rayIntersect
+) {
+	double denom = getNormalX() * ( rayTop.getX() - rayBot.getX() )
+		     + getNormalY() * ( rayTop.getY() - rayBot.getY() )
+		     + getNormalZ() * ( rayTop.getZ() - rayBot.getZ() );
 	if( denom == 0.0 ) {
 		// parallel
 		return false;
@@ -928,20 +932,20 @@ bool Primitive::getIntersectionFacePlaneLinePos( Vector3D* rayTop, Vector3D* ray
 	//double hnfD  = dot3( -vertA->getCenterOfGravity(), Vector3D( getNormalX(), getNormalY(), getNormalZ(), 0.0 ) );
 	Vector3D somePointOnPlane = getCenterOfGravity();
 	double hnfD  = dot3( -somePointOnPlane, Vector3D( getNormalX(), getNormalY(), getNormalZ(), 0.0 ) );
-	double numer = -hnfD - getNormalX() * rayBot->getX() - getNormalY() * rayBot->getY() - getNormalZ() * rayBot->getZ();
+	double numer = -hnfD - getNormalX() * rayBot.getX() - getNormalY() * rayBot.getY() - getNormalZ() * rayBot.getZ();
 	if( numer == 0.0 ) {
 		// line in plane
 		return false;
 	}
 	double lambda = numer / denom;
-	rayIntersect->set( (*rayBot) + ( (*rayTop) - (*rayBot) ) * lambda );
+	rayIntersect.set( rayBot + ( rayTop - rayBot ) * lambda );
 	return true;
 }
 
 //! Same as getIntersectionFacePlaneLine, except:
 //! the method will return false, when the point of intersection is not between rayTop and rayBot.
 bool Primitive::getIntersectionFacePlaneEdge( Vector3D* rayTop, Vector3D* rayBot, Vector3D* rayIntersect ) {
-	if( !getIntersectionFacePlaneLinePos( rayTop, rayBot, rayIntersect ) ) {
+	if( !getIntersectionFacePlaneLinePos( *rayTop, *rayBot, *rayIntersect ) ) {
 		// co-planar - so there is no intersection at all.
 		return false;
 	}
