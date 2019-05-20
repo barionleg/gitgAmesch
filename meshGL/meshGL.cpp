@@ -1515,6 +1515,7 @@ Face* MeshGL::getFaceAt( int rPixelX, int rPixelY, Vector3D* rPointIntersect ) {
 		return getFaceAt( selectBeamTop, selectBeamBot, vecPointSel, rPointIntersect );
 }
 
+//! Select a visible Face at the given position within the model space.
 Face* MeshGL::getFaceAt(
                 const Vector3D& rRayTop,
                 const Vector3D& rRayBot,

@@ -9,6 +9,7 @@ Current version
 +) GUI revision: 'Settings' has a new sub menu for 'Material Defaults'.
 +) GUI revision: 'Colorramps' has new sub menus for 'Hypsometric Tints' and 'Deprecated Colorramps'.
 +) GUI revision: 'View', 'Select' and 'Edit' has new sub menus for extra/advanced/more options and methods.
++) Bugfixes for perspective view.
 +) Minor bugfixes.
 
 Version 190416
