@@ -56,8 +56,7 @@ cd ..
 # Inside GigaMesh folder now
 #make clean
 qmake CONFIG+=release
-#make -j $NUM_PROCESSORS CC=gcc-8 CXX=g++-8 LINK=g++-8 <--- set these via export before running the script
-make -j $NUM_PROCESSORS
+make -j $NUM_PROCESSORS CC=gcc-8 CXX=g++-8 LINK=g++-8
 strip gigamesh
 #Move Back to packaging
 cd packaging
