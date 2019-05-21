@@ -144,7 +144,7 @@ vec4 shadeFragment()
     if( uRenderColor == 3 ) {
             // Shade labeled areas:
             float labelNrShifted = gVertex.labelNr + uLabelCountOffset;
-            float labelIDMod = labelNrShifted - uLabelColorCount * floor( labelNrShifted / uLabelColorCount );
+			float labelIDMod = mod(labelNrShifted , uLabelColorCount);
             float labelTexCoordMap = (512.0 - 10.0*uLabelTexMapSel+4.5)/512.0; // Texture map with color ramps is 512x512 pixel and each colorramp is 10 pixel wide (in y).
             float labelTexCoord = (4.5 + 10.0*labelIDMod)/512.0;
             if( uLabelSameColor ) {
@@ -154,7 +154,7 @@ vec4 shadeFragment()
                     outputColor  =  texColor * colorLight;
             }
             // Shade faces between different labels (or background vertices) differently:
-            if( abs( gVertex.labelNr - float( floor( gVertex.labelNr ) ) ) > 0.0 ) {
+			if( fwidth( gVertex.labelNr ) > 0.00001 ) {
                     outputColor = uLabelBorderColor * colorLight;
             }
             // Shading color if the fragment is part of the background label:
