@@ -2471,6 +2471,30 @@ bool Face::hasBorderVertex(
 	return( true );
 }
 
+//! Count the number of border edges of this face.
+//!
+//! Typically used for erosion of the mesh border before filling.
+//!
+//! @returns false in case of an error. True otherwise.
+bool Face::hasBorderEdges(
+                unsigned int& rIsBorder   //!< Number of vertices along a border (return value)
+) {
+	// Reset counter
+	rIsBorder = 0;
+	if( FACE_NEIGHBOUR_AB == nullptr ) {
+		rIsBorder++;
+	}
+	if( FACE_NEIGHBOUR_BC == nullptr ) {
+		rIsBorder++;
+	}
+	if( FACE_NEIGHBOUR_CA == nullptr ) {
+		rIsBorder++;
+	}
+	// Done
+	return( true );
+}
+
+
 bool Face::isNonManifold() {	
 	//! A Face is not manifold, when there are more than two neighbours for any Edge of the Face.
 	//! Internally this is indicated by mNeighbourFacesNonManifold.

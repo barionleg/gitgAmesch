@@ -180,6 +180,7 @@ class Face : public Primitive {
 		// used for some mesh-checking:
 		        bool     hasSyntheticVertex( unsigned int& rIsSynthetic );   // number of vertices having the FLAG_SYNTHETIC set
 		        bool     hasBorderVertex(    unsigned int& rIsBorder );      // number of vertices being part of a border
+		        bool     hasBorderEdges(     unsigned int& rIsBorder );      // number of edges being part of a border
 		        bool     isNonManifold(); // when connected to ONE or MORE non-manifold edges OR has to border edges with an vertex connected to other faces
 		        bool     isManifold();    // when connected to manifold edges only
 		        bool     isBorder();      // when connected to ONE or more border edges

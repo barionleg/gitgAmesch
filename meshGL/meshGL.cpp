@@ -437,7 +437,7 @@ bool MeshGL::selectPositionAt( int rXPixel, int rYPixel, bool rLastPoint ) {
 	Face*    currFace;
 	currFace = getFaceAt( rXPixel, rYPixel, &pointIntersect );
 	if( currFace != nullptr ) {
-		addSelectedPosition( pointIntersect, currFace, not( rLastPoint ) );
+		addSelectedPosition( pointIntersect, currFace, rLastPoint );
 	}
 	if( rLastPoint ) {
 		// Check the presence of an axis:

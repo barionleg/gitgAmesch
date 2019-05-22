@@ -25,6 +25,7 @@ class MeshInfoData {
 		enum eMeshPropertyULongCount {
 			VERTICES_TOTAL,                //!< Number of vertices.
 			VERTICES_NAN,
+			VERTICES_NORMAL_LEN_NORMAL,
 			VERTICES_SOLO,
 			VERTICES_POLYLINE,
 			VERTICES_BORDER,
@@ -41,6 +42,9 @@ class MeshInfoData {
 			FACES_TOTAL,                   //!< Number of faces.
 			FACES_SOLO,
 			FACES_BORDER,
+			FACES_BORDER_THREE_VERTICES,
+			FACES_BORDER_BRDIGE_TRICONN,
+			FACES_BORDER_BRDIGE,
 			FACES_BORDER_DANGLING,
 			FACES_MANIFOLD,
 			FACES_NONMANIFOLD,

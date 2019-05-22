@@ -556,7 +556,12 @@
      <addaction name="actionSelFaceSticky"/>
      <addaction name="actionSelFaceNonManifold"/>
      <addaction name="actionSelFaceZeroArea"/>
-     <addaction name="actionSelMFacesWithThreeBorderVertices"/>
+     <addaction name="separator"/>
+     <addaction name="actionSelMFacesBorderBridgeTriConn"/>
+     <addaction name="actionSelMFacesBorderDangling"/>
+     <addaction name="actionSelMFacesBorderBridge"/>
+     <addaction name="actionSelMFacesBorderWithThreeVertices"/>
+     <addaction name="separator"/>
      <addaction name="actionSelFaceSelfIntersecting"/>
      <addaction name="actionSelFaceInSphere"/>
      <addaction name="actionSelFaceRandom"/>
@@ -4067,9 +4072,9 @@ p, li { white-space: pre-wrap; }
     <string>Label - All</string>
    </property>
   </action>
-  <action name="actionSelMFacesWithThreeBorderVertices">
+  <action name="actionSelMFacesBorderWithThreeVertices">
    <property name="text">
-    <string>Faces - having 3 Border Vertices</string>
+    <string>Faces - Border - 3 Vertices</string>
    </property>
   </action>
   <action name="actionEditRemoveFacesBorderErosion">
@@ -4301,6 +4306,21 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="shortcut">
     <string>Shift+C</string>
+   </property>
+  </action>
+  <action name="actionSelMFacesBorderBridge">
+   <property name="text">
+    <string>Faces - Border - Bridge</string>
+   </property>
+  </action>
+  <action name="actionSelMFacesBorderDangling">
+   <property name="text">
+    <string>Faces - Border - Dangling</string>
+   </property>
+  </action>
+  <action name="actionSelMFacesBorderBridgeTriConn">
+   <property name="text">
+    <string>Faces - Border - Bridge Tri-Connection</string>
    </property>
   </action>
  </widget>

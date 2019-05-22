@@ -76,6 +76,7 @@ class Vertex : public Primitive {
 		virtual double   getNormalX();
 		virtual double   getNormalY();
 		virtual double   getNormalZ();
+		        double   getNormalLen() const;
 		        Vector3D getCenterOfGravity();
 		        Vector3D getNormal( bool normalized=true );
 		virtual bool     copyNormalXYZTo( float*  rNormalXYZ, bool rNormalized=true );

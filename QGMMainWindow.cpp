@@ -1025,7 +1025,10 @@ void QGMMainWindow::initMeshSignals() {
 	actionSelVertsByIdx->setProperty(                             "gmMeshFunctionCall", MeshParams::SELMVERTS_SELECT_INDICES                     );
 	actionSelVertsRandom->setProperty(                            "gmMeshFunctionCall", MeshParams::SELMVERTS_RANDOM                             );
 	actionSelMFacesWithSyntheticVertices->setProperty(            "gmMeshFunctionCall", MeshParams::SELMFACES_WITH_SYNTHETIC_VERTICES            );
-	actionSelMFacesWithThreeBorderVertices->setProperty(          "gmMeshFunctionCall", MeshParams::SELMFACES_WITH_THREE_BORDER_VERTICES         );
+	actionSelMFacesBorderWithThreeVertices->setProperty(          "gmMeshFunctionCall", MeshParams::SELMFACES_WITH_THREE_BORDER_VERTICES         );
+	actionSelMFacesBorderBridgeTriConn->setProperty(              "gmMeshFunctionCall", MeshParams::SELMFACES_BORDER_BRIDGE_TRICONN              );
+	actionSelMFacesBorderBridge->setProperty(                     "gmMeshFunctionCall", MeshParams::SELMFACES_BORDER_BRIDGE                      );
+	actionSelMFacesBorderDangling->setProperty(                   "gmMeshFunctionCall", MeshParams::SELMFACES_BORDER_DANGLING                    );
 	actionSelMFacesLabledVerticesVoronoiCorner->setProperty(      "gmMeshFunctionCall", MeshParams::SELMFACES_LABEL_CORNER                       );
 	actionSelPolyVerticesNr->setProperty(                         "gmMeshFunctionCall", MeshParams::SELMPOLY_BY_VERTEX_COUNT                     );
 	actionPlaneSetByAxisSelPrim->setProperty(                     "gmMeshFunctionCall", MeshParams::SELECT_MESH_PLANE_AXIS_SELPRIM               );

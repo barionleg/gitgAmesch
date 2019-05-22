@@ -301,7 +301,16 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			retVal = selectFaceWithSyntheticVertices();
 			break;
 		case SELMFACES_WITH_THREE_BORDER_VERTICES:
-			retVal = selectFaceThreeBorderVertices();
+			retVal = selectFaceBorderThreeVertices();
+			break;
+		case SELMFACES_BORDER_BRIDGE_TRICONN:
+			retVal = selectFaceBorderBridgeTriConnect();
+			break;
+		case SELMFACES_BORDER_BRIDGE:
+			retVal = selectFaceBorderBridge();
+			break;
+		case SELMFACES_BORDER_DANGLING:
+			retVal = selectFaceBorderDangling();
 			break;
 		case SELMFACES_LABEL_CORNER:
 			retVal = selectFaceLabeledVerticesCorner();
@@ -1706,13 +1715,13 @@ unsigned int Mesh::selectedMVertsChanged() {
 unsigned int Mesh::selectedMFacesChanged() {
 	cout << "[Mesh::" << __FUNCTION__ << "] SelMFaces has changed. |SelMFaces| is now " <<  mFacesSelected.size() << endl;
 	int timeStart = clock();
-	for( auto const& currVertex: mFaces ) {
-		currVertex->clearFlag( FLAG_SELECTED );
+	for( auto const& currFace: mFaces ) {
+		currFace->clearFlag( FLAG_SELECTED );
 	}
 	cout << "[Mesh::" << __FUNCTION__ << "] Clear vertex flags: " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
 	timeStart = clock();
-	for( auto const& selVertex: mFacesSelected ) {
-		selVertex->setFlag( FLAG_SELECTED );
+	for( auto const& selFace: mFacesSelected ) {
+		selFace->setFlag( FLAG_SELECTED );
 	}
 	cout << "[Mesh::" << __FUNCTION__ << "] Set vertex flags: " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
 	return mFacesSelected.size();
@@ -2985,8 +2994,41 @@ bool Mesh::selectFaceWithSyntheticVertices() {
 //! Typically used for erosion of the mesh border before filling.
 //!
 //! @returns false in case of an error. True otherwise.
-bool Mesh::selectFaceThreeBorderVertices() {
-	bool retVal = getFaceThreeBorderVertices( mFacesSelected );
+bool Mesh::selectFaceBorderThreeVertices() {
+	bool retVal = getFaceBorderThreeVertices( mFacesSelected );
+	selectedMFacesChanged();
+	return( retVal );
+}
+
+//! Selects all faces along a border connecting three bridges.
+//!
+//! Related to erosion of the mesh border before filling.
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::selectFaceBorderBridgeTriConnect() {
+	bool retVal = getFaceBorderVertsEdges( mFacesSelected, 3, 0 );
+	selectedMFacesChanged();
+	return( retVal );
+}
+
+//! Selects all faces along a border being part of a bridge.
+//!
+//! Related to erosion of the mesh border before filling.
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::selectFaceBorderBridge() {
+	bool retVal = getFaceBorderVertsEdges( mFacesSelected, 3, 1 );
+	selectedMFacesChanged();
+	return( retVal );
+}
+
+//! Selects all dangling faces along a border.
+//!
+//! Typically used for erosion of the mesh border before filling.
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::selectFaceBorderDangling() {
+	bool retVal = getFaceBorderVertsEdges( mFacesSelected, 3, 2 );
 	selectedMFacesChanged();
 	return( retVal );
 }
@@ -9585,7 +9627,7 @@ bool Mesh::removeFacesBorderErosion() {
 	do {
 		oldFaceNr = getFaceNr();
 		facesToRemove.clear();
-		retVal &= getFaceThreeBorderVertices( facesToRemove );
+		retVal &= getFaceBorderVertsEdges( facesToRemove, 3, 2 ); // i.e. Dangling faces.
 		// Fetch all vertices, which have to be checked for becoming solo/singe.
 		for( auto const& currFace: facesToRemove ) {
 			currFace->getVertABC( &verticesCandidatesForRemoval );
@@ -9695,7 +9737,25 @@ bool Mesh::completeRestore(
 		(*rResultMsg) = tempstr + "\n\n" + to_string( polishIterations ) + " iterations.";
 	}
 
-	return retVal;
+	// Adjust/refresh selected vertices:
+	mSelectedMVerts.clear();
+	for( auto const& currVertex: mVertices ) {
+		if( currVertex->getFlag( FLAG_SELECTED ) ) {
+			mSelectedMVerts.insert( currVertex );
+		}
+	}
+	selectedMVertsChanged();
+
+	// Adjust/refresh selected faces:
+	mFacesSelected.clear();
+	for( auto const& currFace: mFaces ) {
+		if( currFace->getFlag( FLAG_SELECTED ) ) {
+			mFacesSelected.insert( currFace );
+		}
+	}
+	selectedMFacesChanged();
+
+	return( retVal );
 }
 
 // --- Mesh manipulation - Manuall adding primitives -------------------------------------------------------------------------------------------
@@ -10320,13 +10380,12 @@ bool Mesh::getFaceNonManifold( set<Face*>* rSomeFaces ) {
 	return true;
 }
 
-//! Adds all 'dangling' faces having three border vertices to
-//! the given set.
-//!
-//! Typically used for border erosion.
+//! Adds all faces having three border vertices to
+//! the given set. These faces contain 'dangling', 'bridge'
+//! and others.
 //!
 //! @returns false in case of an error. True otherwise.
-bool Mesh::getFaceThreeBorderVertices( set<Face*>& rSomeFaces ) {
+bool Mesh::getFaceBorderThreeVertices( set<Face*>& rSomeFaces ) {
 	for( uint64_t faceIdx = 0; faceIdx < getFaceNr(); faceIdx++ ) {
 		Face* currFace = getFacePos( faceIdx );
 		unsigned int numberBorderVert;
@@ -10336,6 +10395,42 @@ bool Mesh::getFaceThreeBorderVertices( set<Face*>& rSomeFaces ) {
 		}
 	}
 	cout << "[Mesh::" << __FUNCTION__ << "] in set:    " << rSomeFaces.size() << endl;
+	return( true );
+}
+
+//! Adds all faces having a given number of border vertices
+//! and border edges to the given set.
+//!
+//! 'Bridges' have rHasBorderVertices == 3 and rHasBorderEdges == 1
+//! 'Dangling' have rHasBorderVertices == 3 and rHasBorderEdges == 2
+//!
+//! Typically user for border erosion.
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::getFaceBorderVertsEdges(
+                set<Face*>& rSomeFaces,
+                unsigned int rHasBorderVertices,
+                unsigned int rHasBorderEdges
+) {
+	if( rHasBorderVertices > 3 ) {
+		std::cout << "[Mesh::" << __FUNCTION__ << "] ERROR: Wrong number of vertices " << rHasBorderVertices << " - vaild: [0...3]!" << std::endl;
+		return( false );
+	}
+	if( rHasBorderEdges > 3 ) {
+		std::cout << "[Mesh::" << __FUNCTION__ << "] ERROR: Wrong number of edges " << rHasBorderEdges << " - vaild: [0...3]!" << std::endl;
+		return( false );
+	}
+	for( uint64_t faceIdx = 0; faceIdx < getFaceNr(); faceIdx++ ) {
+		Face* currFace = getFacePos( faceIdx );
+		unsigned int numberBorderVertices;
+		currFace->hasBorderVertex( numberBorderVertices );
+		unsigned int numberBorderEdges;
+		currFace->hasBorderEdges( numberBorderEdges );
+		if( ( numberBorderVertices >= rHasBorderVertices ) && ( numberBorderEdges == rHasBorderEdges ) ) {
+			rSomeFaces.insert( currFace );
+		}
+	}
+	std::cout << "[Mesh::" << __FUNCTION__ << "] in set:    " << rSomeFaces.size() << std::endl;
 	return( true );
 }
 
@@ -15463,6 +15558,10 @@ bool Mesh::getMeshInfoData(
 		if( currVertex->isNotANumber() ) {
 			rMeshInfos.mCountULong[MeshInfoData::VERTICES_NAN]++;
 		}
+		double vertexNormalLen = currVertex->getNormalLen();
+		if( !isnormal( vertexNormalLen ) ) {
+			rMeshInfos.mCountULong[MeshInfoData::VERTICES_NORMAL_LEN_NORMAL]++;
+		}
 		// Mesh structure:
 		if( currVertex->isSolo() ) {
 			rMeshInfos.mCountULong[MeshInfoData::VERTICES_SOLO]++;
@@ -15511,17 +15610,30 @@ bool Mesh::getMeshInfoData(
 	Face* currFace;
 	for( uint64_t faceIdx=0; faceIdx<getFaceNr(); faceIdx++ ) {
 		currFace = getFacePos( faceIdx );
-		if( currFace->isSolo() ) {
-			rMeshInfos.mCountULong[MeshInfoData::FACES_SOLO]++;
-		}
 		if( currFace->isBorder() ) {
 			rMeshInfos.mCountULong[MeshInfoData::FACES_BORDER]++;
 		}
+		// Special border configurations
+		unsigned int nrEdgesBorder = 0;
+		currFace->hasBorderEdges( nrEdgesBorder );
+		if( nrEdgesBorder == 3 ) { // Same as: if( currFace->isSolo() ) {
+			rMeshInfos.mCountULong[MeshInfoData::FACES_SOLO]++;
+		}
 		unsigned int nrVerticesBorder = 0;
 		currFace->hasBorderVertex( nrVerticesBorder );
-		if( nrVerticesBorder == 3 ) {
+		if( ( nrVerticesBorder == 3 ) && ( nrEdgesBorder == 0 ) ) {
+			rMeshInfos.mCountULong[MeshInfoData::FACES_BORDER_BRDIGE_TRICONN]++;
+		}
+		if( ( nrVerticesBorder == 3 ) && ( nrEdgesBorder == 1 ) ) {
+			rMeshInfos.mCountULong[MeshInfoData::FACES_BORDER_BRDIGE]++;
+		}
+		if( ( nrVerticesBorder == 3 ) && ( nrEdgesBorder == 2 ) ) {
 			rMeshInfos.mCountULong[MeshInfoData::FACES_BORDER_DANGLING]++;
 		}
+		if( nrVerticesBorder == 3 ) {
+			rMeshInfos.mCountULong[MeshInfoData::FACES_BORDER_THREE_VERTICES]++;
+		}
+		// ...
 		if( currFace->isManifold() ) {
 			rMeshInfos.mCountULong[MeshInfoData::FACES_MANIFOLD]++;
 		}
