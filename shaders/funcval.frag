@@ -18,7 +18,7 @@ uniform int       uRenderColor = 0;
 // Label settings:
 uniform sampler2D uLabelTexMap;                                          // Texturemap storing the label colors.
 uniform float     uLabelTexMapSel       =  1.0;                          // Selected row within the texture map.
-uniform float     uLabelColorCount      = 11.0;                          // Number of colors available within the selected row of the texture map.
+uniform float     uLabelColorCount      = 10.0;                          // Number of colors available within the selected row of the texture map.
 uniform float     uLabelCountOffset     =  0.0;                          // Offset to shift the color with the row of the texture map.
 uniform vec4      uLabelBorderColor     = vec4( 0.25, 0.25, 0.25, 1.0 ); // Color for connected components tagged as background
 uniform vec4      uLabelBackgroundColor = vec4( 0.25, 0.25, 0.25, 1.0 ); // Color for connected components tagged as background
@@ -171,15 +171,18 @@ void main(void) {
 	// Set a default color to be overwritten later:
 	vec4 outputColor = vec4( 0.5, 0.0, 0.0, 1.0 );
 
-	if( gl_FrontFacing ) {
+	if( gl_FrontFacing )
+	{
 	// ++++ Solid color:
 		outputColor = colorSolid;
 	// ++++ Color per Vertex:
-		if( uRenderColor == 1 ) {
+		if( uRenderColor == 1 )
+		{
 			outputColor  =  gVertex.vertexColor;
 		}
 	// ++++ Function value mapped to color ramp:
-		if( uRenderColor == 2 ) {
+		if( uRenderColor == 2 )
+		{
 			vec4 texColor = texture( uFuncValTexMap, gVertex.vertexFuncValTexCoord );
 			outputColor  =  texColor;
 		}
@@ -187,7 +190,8 @@ void main(void) {
 		// Shade background faces:
 		// ... todo ...
 		// Shade faces with a certain color:
-		if( uRenderColor == 3 ) {
+		if( uRenderColor == 3 )
+		{
 			int labelIndex = vBarycenter[0] > vBarycenter[1] ? 0 : 1;
 			if(vBarycenter[2] > vBarycenter[labelIndex])
 				labelIndex = 2;
@@ -196,11 +200,13 @@ void main(void) {
 			// Shade labeled areas:
 			float labelNrShifted = round(labelNr) + uLabelCountOffset;
 			float labelIDMod = mod(labelNrShifted , uLabelColorCount);
-			float labelTexCoordMap = (512.0 - 10.0*uLabelTexMapSel+4.5)/512.0; // Texture map with color ramps is 512x512 pixel and each colorramp is 10 pixel wide (in y).
-			float labelTexCoord = (4.5 + 10.0*labelIDMod)/512.0;
-			if( uLabelSameColor ) {
+			float labelTexCoordMap = (512.0 - 11.0*uLabelTexMapSel+5.0)/512.0; // Texture map with color ramps is 512x512 pixel and each colorramp is 10 pixel wide (in y).
+			float labelTexCoord = (5.0 + 11.0*labelIDMod)/512.0;
+			if( uLabelSameColor )
+			{
 				outputColor  =  uLabelSingleColor;
-			} else {
+			} else
+			{
 				vec4 texColor = texture( uLabelTexMap, vec2( labelTexCoord, labelTexCoordMap ) );
 				outputColor  =  texColor;
 			}
@@ -209,17 +215,20 @@ void main(void) {
 				outputColor = uLabelBorderColor;
 			}
 			// Shading color if the fragment is part of the background label:
-			if( false ) {
+			if( false )
+			{
 				outputColor = uLabelBackgroundColor;
 			}
 			// Shade faces not being a label with a given color:
-			if( gVertex.flagNoLabel > 0.0 ) {
+			if( gVertex.flagNoLabel > 0.0 )
+			{
 				outputColor = uLabelNoColor;
 			}
 		}
 
 	// +++ Invert color, when request e.g. for normals:
-		if( gInvertColor > 0u ) {
+		if( gInvertColor > 0u )
+		{
 			outputColor.rgb = 1.0 - outputColor.rgb;
 		}	
 	}
@@ -241,8 +250,10 @@ void main(void) {
 	if( funcValIsoLineParams.mIsoLinesShow)
 	{
 		float isoLineIntensity = getIsoLineAlpha( gVertex.vertexFuncVal, funcValIsoLineParams );
-		if( funcValIsoLineParams.mIsoLinesOnly ) {
-			if( isoLineIntensity == 0.0 ) {
+		if( funcValIsoLineParams.mIsoLinesOnly )
+		{
+			if( isoLineIntensity == 0.0 )
+			{
 				discard;
 			}
 			outputColor   = uIsoSolidColor;
@@ -262,7 +273,8 @@ void main(void) {
 
 	// +++ Edge/Wireframe Rendering
 	float edgeIntensity = 0.0;
-	if( uEdgeShown ) {
+	if( uEdgeShown )
+	{
 		float nearD = min( min( vEdgeDist[0], vEdgeDist[1] ), vEdgeDist[2] );  // determine frag distance to closest edge
 		edgeIntensity = exp2( -1.0*nearD*nearD );         // -1.0 correlates to the width - the smaller the number the broader the line.
 	}
@@ -271,11 +283,10 @@ void main(void) {
 	// +++ Add fog (if present):
 	float fFogCoord  = 0.0;
 	float fFogFactor = 0.0;
-	if( fogPresent ) {
+	if( fogPresent )
+	{
 		fFogCoord  = abs( gVertex.ec_pos.z / gVertex.ec_pos.w );
 		fFogFactor = getFogFactor( fogParams, fFogCoord );
-	}
-	if( fogPresent ) {
 		outputColor = mix( outputColor, fogParams.vFogColor, fFogFactor );
 	}
 
