@@ -49,6 +49,8 @@ flat out uint gInvertColor;
 
 // +++ Edge/Wireframe Rendering 
 noperspective out vec3 vEdgeDist;              // Barycenter coordinates.
+out vec3 vBarycenter;            // normalized Barycenter coordinates
+flat out vec3 vLabelNumbers;                        // vector to hold all three labelNr's to get uninterpolated result
 uniform vec2 uViewPortSize = vec2( 860, 718 ); // ( width, height ) of the viewport in pixel
 
 //uniform float uExplodeFactor = 0.12;
@@ -65,6 +67,9 @@ void main(void) {
 
 	gInvertColor = 0u;
 	int i;
+
+	vLabelNumbers = vec3(oVertex[0].labelNr,oVertex[1].labelNr,oVertex[2].labelNr);
+
 	// Pass thru the triangle as it is.
 	for( i=0; i<gl_in.length(); i++ ) {
 		// According to http://www.opengl.org/wiki/Built-in_Variable_%28GLSL%29#Vertex_shader_outputs
@@ -97,6 +102,7 @@ void main(void) {
 		if( i==2 ) {
 			vEdgeDist = vec3( 0.0, 0.0, area/length(v2) );
 		}
+		vBarycenter = normalize(vEdgeDist);
 		// +++ DONE
 		EmitVertex();
 	}
