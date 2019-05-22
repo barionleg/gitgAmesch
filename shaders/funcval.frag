@@ -228,7 +228,7 @@ void main(void) {
 		if(!backLighting)
 			colorLight = vec4(1.0);
 
-		vec4 outputColor  = colorSolidBack;
+		outputColor  = colorSolidBack;
 	}
 	else
 	{ // No backfaces at all.
