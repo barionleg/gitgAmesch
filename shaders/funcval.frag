@@ -146,17 +146,21 @@ float getIsoLineAlpha( float vertexFuncVal, grFuncValIsoLineParams rFuncValIsoLi
 // --- MAIN ----------------------------------------------------------------------------------------------------------------------------------------------------
 void main(void) {
 	vec3 normal = gVertex.normal_interp; // face normal in eyespace:
-	if( flatShade ) { // flat shading
+
+	if( flatShade ) // flat shading
+	{
 		normal = normalize( cross( dFdx( gVertex.ec_pos.xyz ), dFdy( gVertex.ec_pos.xyz ) ) ); // normal of the triangle
 	}
 
-
-
-
+	if(!gl_FrontFacing)
+	{
+		normal = -normal;
+	}
 
 	// ++++ Compute the illumination equation for the lights:
 	vec4 colorLight = vec4( 1.0, 1.0, 1.0, 1.0 );
-	if( uLightEnabled ) {
+	if( uLightEnabled )
+	{
 		vec4 fixedCamLight   = getLightAmount( gVertex.FixedCam_L,   normal, gVertex.FixedCam_halfVector,   FixedCam_DiffuseProduct,   FixedCam_SpecularProduct   );
 		vec4 fixedWorldLight = getLightAmount( gVertex.FixedWorld_L, normal, gVertex.FixedWorld_halfVector, FixedWorld_DiffuseProduct, FixedWorld_SpecularProduct );
 		// ++++ Sum up all parts of the light:
