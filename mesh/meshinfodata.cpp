@@ -20,6 +20,7 @@ MeshInfoData::MeshInfoData() {
 	// Unsigned long names
 	mCountULongName[VERTICES_TOTAL] = "Total number of vertices";
 	mCountULongName[VERTICES_NAN] = "Vertices not-a-number";
+	mCountULongName[VERTICES_NORMAL_LEN_NORMAL] = "Vertex normal vector length normal";
 	mCountULongName[VERTICES_SOLO] = "Vertices solo";
 	mCountULongName[VERTICES_POLYLINE] = "Vertices of polylines";
 	mCountULongName[VERTICES_BORDER] = "Border vertices";
@@ -36,6 +37,9 @@ MeshInfoData::MeshInfoData() {
 	mCountULongName[FACES_TOTAL] = "Total number of faces";
 	mCountULongName[FACES_SOLO] = "Solo faces";
 	mCountULongName[FACES_BORDER] = "Border faces";
+	mCountULongName[FACES_BORDER_THREE_VERTICES] = "Faces with three border vertices";
+	mCountULongName[FACES_BORDER_BRDIGE_TRICONN] = "Border faces bridge tri-connection";
+	mCountULongName[FACES_BORDER_BRDIGE] = "Bridge border faces";
 	mCountULongName[FACES_BORDER_DANGLING] = "Dangling border faces";
 	mCountULongName[FACES_MANIFOLD] = "Manifold faces";
 	mCountULongName[FACES_NONMANIFOLD] = "Non-manifold faces";
@@ -189,12 +193,13 @@ bool MeshInfoData::getMeshInfoHTML(
 	infoStr += "<tr><td colspan=\"3\" align=\"center\"><b>Vertices</b></td></tr>\n";
 	infoStr += "<tr><td>Total:</td><td align=\"right\">"                                + std::to_string( this->mCountULong[MeshInfoData::VERTICES_TOTAL] )                  + "</td><td align=\"center\">-</td></tr>\n";
 	infoStr += "<tr><td>NaN<sup>a)</sup>&ensp;coordinate(s):</td><td align=\"right\">"  + std::to_string( this->mCountULong[MeshInfoData::VERTICES_NAN] )                    + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_SOLO].str()                   + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Normal&nbsp;length&nbsp;not&nbsp;normal:</td><td align=\"right\">"      + std::to_string( this->mCountULong[MeshInfoData::VERTICES_NORMAL_LEN_NORMAL] )      + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_NORMAL_LEN_NORMAL].str()      + "&#37;</td></tr>\n";
 	infoStr += "<tr><td>Solo:</td><td align=\"right\">"                                 + std::to_string( this->mCountULong[MeshInfoData::VERTICES_SOLO] )                   + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_SOLO].str()                   + "&#37;</td></tr>\n";
 	infoStr += "<tr><td>Polyline:</td><td align=\"right\">"                             + std::to_string( this->mCountULong[MeshInfoData::VERTICES_POLYLINE] )               + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_POLYLINE].str()               + "&#37;</td></tr>\n";
 	infoStr += "<tr><td>Border:</td><td align=\"right\">"                               + std::to_string( this->mCountULong[MeshInfoData::VERTICES_BORDER] )                 + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_BORDER].str()                 + "&#37;</td></tr>\n";
 	infoStr += "<tr><td>Non-manifold:</td><td align=\"right\">"                         + std::to_string( this->mCountULong[MeshInfoData::VERTICES_NONMANIFOLD] )            + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_NONMANIFOLD].str()            + "&#37;</td></tr>\n";
 	infoStr += "<tr><td>Inverted edge<sup>b)</sup>:</td><td align=\"right\">"           + std::to_string( this->mCountULong[MeshInfoData::VERTICES_ON_INVERTED_EDGE] )       + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_ON_INVERTED_EDGE].str()       + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Part&ensp;of&ensp;zero&ensp;area&ensp;face:</td><td align=\"right\">"   + std::to_string( this->mCountULong[MeshInfoData::VERTICES_PART_OF_ZERO_FACE] )      + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_PART_OF_ZERO_FACE].str()      + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Part&nbsp;of&nbsp;zero&nbsp;area&nbsp;face:</td><td align=\"right\">"   + std::to_string( this->mCountULong[MeshInfoData::VERTICES_PART_OF_ZERO_FACE] )      + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_PART_OF_ZERO_FACE].str()      + "&#37;</td></tr>\n";
 	infoStr += "<tr><td>Synthetic:</td><td align=\"right\">"                            + std::to_string( this->mCountULong[MeshInfoData::VERTICES_SYNTHETIC] )              + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_SYNTHETIC].str()              + "&#37;</td></tr>\n";
 	infoStr += "<tr><td>Manual:</td><td align=\"right\">"                               + std::to_string( this->mCountULong[MeshInfoData::VERTICES_MANUAL] )                 + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_MANUAL].str()                 + "&#37;</td></tr>\n";
 	infoStr += "<tr><td>Circle Centers:</td><td align=\"right\">"                       + std::to_string( this->mCountULong[MeshInfoData::VERTICES_CIRCLE_CENTER] )          + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_CIRCLE_CENTER].str()          + "&#37;</td></tr>\n";
@@ -210,15 +215,18 @@ bool MeshInfoData::getMeshInfoHTML(
 
 	infoStr += "<table align=\"center\" width=\"99%\" border='" + tableBorder + "'>\n";
 	infoStr += "<tr><td colspan=\"3\" align=\"center\"><b>Faces</b></td></tr>\n";
-	infoStr += "<tr><td>Total:</td><td align=\"right\">"                         + std::to_string( this->mCountULong[MeshInfoData::FACES_TOTAL] )             + "</td><td align=\"center\">-</td></tr>\n";
-	infoStr += "<tr><td>Manifold:</td><td align=\"right\">"                      + std::to_string( this->mCountULong[MeshInfoData::FACES_MANIFOLD] )          + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_MANIFOLD].str()        + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Non-manifold:</td><td align=\"right\">"                  + std::to_string( this->mCountULong[MeshInfoData::FACES_NONMANIFOLD] )       + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_NONMANIFOLD].str()     + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Inverted<sup>c)</sup>:</td><td align=\"right\">"         + std::to_string( this->mCountULong[MeshInfoData::FACES_INVERTED] )          + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_INVERTED].str()        + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Sticky:</td><td align=\"right\">"                        + std::to_string( this->mCountULong[MeshInfoData::FACES_STICKY] )            + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_STICKY].str()          + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Zero&ensp;area:</td><td align=\"right\">"                + std::to_string( this->mCountULong[MeshInfoData::FACES_ZEROAREA] )          + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_ZEROAREA].str()        + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Border:</td><td align=\"right\">"                        + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER] )      + "</td><td align=\"right\">"       + fractionsFormatted[MeshInfoData::FACES_BORDER].str()          + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Border - Dangling:</td><td align=\"right\">"             + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER_DANGLING] )   + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER_DANGLING].str() + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Solo:</td><td align=\"right\">"                          + std::to_string( this->mCountULong[MeshInfoData::FACES_SOLO] )        + "</td><td align=\"right\">"       + fractionsFormatted[MeshInfoData::FACES_SOLO].str()            + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Total:</td><td align=\"right\">"                                       + std::to_string( this->mCountULong[MeshInfoData::FACES_TOTAL] )                   + "</td><td align=\"center\">-</td></tr>\n";
+	infoStr += "<tr><td>Manifold:</td><td align=\"right\">"                                    + std::to_string( this->mCountULong[MeshInfoData::FACES_MANIFOLD] )                + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_MANIFOLD].str()              + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Non-manifold:</td><td align=\"right\">"                                + std::to_string( this->mCountULong[MeshInfoData::FACES_NONMANIFOLD] )             + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_NONMANIFOLD].str()           + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Inverted<sup>c)</sup>:</td><td align=\"right\">"                       + std::to_string( this->mCountULong[MeshInfoData::FACES_INVERTED] )                + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_INVERTED].str()              + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Sticky:</td><td align=\"right\">"                                      + std::to_string( this->mCountULong[MeshInfoData::FACES_STICKY] )                  + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_STICKY].str()                + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Zero&ensp;area:</td><td align=\"right\">"                              + std::to_string( this->mCountULong[MeshInfoData::FACES_ZEROAREA] )                + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_ZEROAREA].str()              + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Border:</td><td align=\"right\">"                                      + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER] )                  + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER].str()                + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>...&nbsp;3&nbsp;Vertices&nbsp;(3V):</td><td align=\"right\">"          + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER_THREE_VERTICES] )   + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER_THREE_VERTICES].str() + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>...&nbsp;Bridge&nbsp;triconn.&nbsp;(3V0E):</td><td align=\"right\">"   + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER_BRDIGE_TRICONN] )   + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER_BRDIGE_TRICONN].str() + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>...&nbsp;Bridge&nbsp;(3V1E):</td><td align=\"right\">"                 + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER_BRDIGE] )           + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER_BRDIGE].str()         + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>...&nbsp;Dangling&nbsp;(3V2E):</td><td align=\"right\">"               + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER_DANGLING] )         + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER_DANGLING].str()       + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>...&nbsp;3&nbsp;Edges&nbsp;(Solo,3E):</td><td align=\"right\">"        + std::to_string( this->mCountULong[MeshInfoData::FACES_SOLO] )                    + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_SOLO].str()                  + "&#37;</td></tr>\n";
 	infoStr += "</table>\n";
 
 	// Outer table - End

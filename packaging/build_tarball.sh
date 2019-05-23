@@ -62,7 +62,7 @@ strip gigamesh
 cd packaging
 
 #Create generic binary directory and compress it
-ND="gigamesh-$CURRENT_VERSION-x86_64"
+ND="gigamesh-$CURRENT_VERSION-linux-x86_64"
 mkdir -p $ND/scripts
 cp -a ../CHANGELOG $ND
 

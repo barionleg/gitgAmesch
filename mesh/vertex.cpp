@@ -339,6 +339,14 @@ double Vertex::getNormalZ() {
 	return NORMAL_Z;
 }
 
+//! Returns the length of the normal vector, which is typically 1.0.
+double Vertex::getNormalLen() const {
+	double retVal = sqrt( pow( NORMAL_X, 2.0 ) +
+	                      pow( NORMAL_Y, 2.0 ) +
+	                      pow( NORMAL_Z, 2.0 ) );
+	return( retVal );
+}
+
 Vector3D Vertex::getCenterOfGravity() {
 	//! Returns the center of gravity, which is stored in an external array.
 	//! When the reference to this array is not set Vector3D( nan, nan, nan, 1.0 )

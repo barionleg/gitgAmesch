@@ -840,8 +840,7 @@ bool MeshQt::removeUncleanSmallUser() {
 	bool applyErosion;
 	bool userCancel;
 	SHOW_QUESTION( "Apply border erosion", "Do you want to remove dangling faces along the borders?"
-	                                       "<br /><br />Recommended: NO, if bridges were added between borders."
-	                                       "<br /><br />Recommended: YES, otherwise.", applyErosion, userCancel )
+	                                       "<br /><br />Recommended: YES", applyErosion, userCancel )
 	if( userCancel ) {
 		return( false );
 	}
@@ -910,8 +909,7 @@ bool MeshQt::completeRestore() {
 	// Optional border erosion
 	bool applyErosion;
 	SHOW_QUESTION( "Apply border erosion", "Do you want to remove dangling faces along the borders?"
-	                                       "<br /><br />Recommended: NO, if bridges were added between borders."
-	                                       "<br /><br />Recommended: YES, otherwise.", applyErosion, userCancel )
+	                                       "<br /><br />Recommended: YES", applyErosion, userCancel )
 	if( userCancel ) {
 		return( false );
 	}

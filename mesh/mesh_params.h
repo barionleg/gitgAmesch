@@ -73,7 +73,10 @@ class MeshParams {
 			SELMVERTS_SELECT_INDICES,                  //!< Select vertices using indicies given by the user.
 			SELMVERTS_RANDOM,                          //!< Randomly select vertices. Amount given by user.
 			SELMFACES_WITH_SYNTHETIC_VERTICES,         //!< Select faces having synthetic vertices.
-			SELMFACES_WITH_THREE_BORDER_VERTICES,      //!< Select face having three border vertices e.g. for erosion.
+			SELMFACES_WITH_THREE_BORDER_VERTICES,      //!< Select faces having three border vertices e.g. for erosion.
+			SELMFACES_BORDER_BRIDGE_TRICONN,           //!< Select faces along the border connecting three bridges i.e. 0 border edge and three border vertices.
+			SELMFACES_BORDER_BRIDGE,                   //!< Select faces along the border of a bridge i.e. 1 border edge and three border vertices.
+			SELMFACES_BORDER_DANGLING,                 //!< Select faces dangling at the border i.e. 2 border edges and three border vertices.
 			SELMFACES_LABEL_CORNER,                    //!< Select faces having three vertices with different label id.
 			SELMPOLY_BY_VERTEX_COUNT,                  //!< Call selection of (multiple) Polylines (SelMPoly) by given number of vertices.
 			SELECT_MESH_PLANE_AXIS_SELPRIM,            //!< Define the mesh plane using the axis and the selected primitive.

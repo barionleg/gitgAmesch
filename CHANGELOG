@@ -1,4 +1,11 @@
 Current version
++) More information about faces at borders and vertex normals. See 'Info -> Mesh properties' and CLI 'gigamesh-info'.
++) New face selection along mesh borders. See 'Select -> Faces extra -> Face - Border - ...'.
++) Mesh cleaning and repair improved to keep bridges, which were formerly removed together with dangling faces.
++) Bugfix: swapped mouse buttons for selection of positions (SelMPos).
++) Minor bugfixes.
+
+Version 190520
 +) 'Export Plane Intersections (SVG)' adds upper radius, lower radius and height as text to the SVG.
 +) New in toolbar: set the center for e.g. axis determination to the corner or sides of the viewport.
 +) New: 'Settings -> External Programs' to configure tools used to show or create PDFs and SVGs.
