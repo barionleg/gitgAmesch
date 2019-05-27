@@ -7,19 +7,18 @@ uniform vec2 uViewPortSize;
 
 // +++ Values to be passed from the vertex or geometry shader
 in struct grVertex {
-        vec4  ec_pos;        // eye coordinate position to be used for on-the-fly-computation of a triangles normal within the fragment shader.
-        vec3  normal_interp; // Normal vector, which will be interpolated
-        vec3  FixedCam_halfVector,FixedCam_L;
-        vec3  FixedWorld_halfVector,FixedWorld_L;
-        //+++ Color of the vertex
-        vec4  vertexColor;
-        // +++ Function value of the vertex passed to the fragment shader:
-        float vertexFuncVal;
-        float vertexFuncVal_normalized; //normalized to 0.0-1.0 for transparency...
-        vec2  vertexFuncValTexCoord;
-        // +++ Labels
-        float labelNr;       // corresponds to vLabelID
-        float flagNoLabel;
+	vec4  ec_pos;        // eye coordinate position to be used for on-the-fly-computation of a triangles normal within the fragment shader.
+	vec3  normal_interp; // Normal vector, which will be interpolated
+	vec3  FixedCam_halfVector,FixedCam_L;
+	vec3  FixedWorld_halfVector,FixedWorld_L;
+	//+++ Color of the vertex
+	vec4  vertexColor;
+	// +++ Function value of the vertex passed to the fragment shader:
+	float vertexFuncVal;
+	vec2  vertexFuncValTexCoord;
+	// +++ Labels
+	float labelNr;       // corresponds to vLabelID
+	float flagNoLabel;
 } gVertex;
 
 //flat in float labelNr;
@@ -259,7 +258,7 @@ void main(void)
         fragment.a = uUniformAlpha;
 
     else if(uTransparencyType == 2)
-        fragment.a = mix(uUniformAlpha, uAlpha2, pow(clamp(gVertex.vertexFuncVal_normalized,0.0,1.0), uGamma));
+		fragment.a = mix(uUniformAlpha, uAlpha2, pow(clamp(gVertex.vertexFuncValTexCoord.s,0.0,1.0), uGamma));
 
     else if(uTransparencyType == 3){
         fragment.a = mix(uUniformAlpha, uAlpha2, pow(

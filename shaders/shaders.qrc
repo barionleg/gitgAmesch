@@ -21,7 +21,6 @@
         <file>polyline.geom</file>
         <file>meshwidget_image2d.vert</file>
         <file>meshwidget_image2d.frag</file>
-        <file>transparency/transparency_createBuffers.vert</file>
         <file>NPR/NPR_ApplySobel.frag</file>
         <file>NPR/NPR_buildFBO.frag</file>
         <file>NPR/NPR_buildFBO.vert</file>

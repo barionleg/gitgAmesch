@@ -610,7 +610,7 @@ OTHER_FILES += shaders/transparency/atomicLoop/transparency_renderALBuffers.frag
 OTHER_FILES += shaders/transparency/atomicLoop/transparency_ALcollectDepth.frag
 OTHER_FILES += shaders/transparency/WeightedOIT/transparency_geomWOIT.frag
 OTHER_FILES += shaders/transparency/WeightedOIT/transparency_blendWOIT.frag
-OTHER_FILES += shaders/transparency/transparency_createBuffers.vert
+OTHER_FILES +=
 #--- Shaders GLSL sources for Non-Photorealistic Rendering (NPR) -----------------
 OTHER_FILES += shaders/NPR/NPR_ApplySobel.frag
 OTHER_FILES += shaders/NPR/NPR_drawFBO.frag

@@ -10,7 +10,6 @@ in struct grVertex {
 	vec4  vertexColor;
 	// +++ Function value of the vertex passed to the fragment shader:
 	float vertexFuncVal;
-	float vertexFuncVal_normalized; //normalized to 0.0-1.0 for transparency...
 	vec2  vertexFuncValTexCoord;
 	// +++ Labels
 	float labelNr;       // corresponds to vLabelID
@@ -222,7 +221,7 @@ void main(void)
 	fragment.a = uUniformAlpha;
 
     else if(uTransparencyType == 2)
-	fragment.a = mix(uUniformAlpha, uAlpha2, pow(clamp(gVertex.vertexFuncVal_normalized,0.0,1.0), uGamma));
+	fragment.a = mix(uUniformAlpha, uAlpha2, pow(clamp(gVertex.vertexFuncValTexCoord.s,0.0,1.0), uGamma));
 
     else if(uTransparencyType == 3){
 	fragment.a = mix(uUniformAlpha, uAlpha2, pow(

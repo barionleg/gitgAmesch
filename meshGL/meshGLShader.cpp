@@ -296,7 +296,7 @@ MeshGLShader::MeshGLShader(
         //======================================================================================================================================================
         // CREATE new shader to fill Transparency-Buffers (ABUFFER variant)
         //------------------------------------------------------------------------------------------------------------------------------------------------------
-		if( !shaderLink( &mShaderTransparencyABFill, ":/GMShaders/transparency/transparency_createBuffers.vert", "", ":/GMShaders/transparency/ABuffer/transparency_createABuffers.frag", "TFILLAB")) {
+		if( !shaderLink( &mShaderTransparencyABFill, ":/GMShaders/funcval.vert", ":/GMShaders/funcval.geom", ":/GMShaders/transparency/ABuffer/transparency_createABuffers.frag", "TFILLAB")) {
             cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
         }
 
@@ -324,7 +324,7 @@ MeshGLShader::MeshGLShader(
         //======================================================================================================================================================
         // CREATE new shader to fill Transparency-Buffers (Atomic Loop variant)
         //------------------------------------------------------------------------------------------------------------------------------------------------------
-		if( !shaderLink( &mShaderTransparencyALFill, ":/GMShaders/transparency/transparency_createBuffers.vert", "", ":/GMShaders/transparency/atomicLoop/transparency_createALBuffers.frag", "TFILLAL")) {
+		if( !shaderLink( &mShaderTransparencyALFill, ":/GMShaders/funcval.vert", ":/GMShaders/funcval.geom", ":/GMShaders/transparency/atomicLoop/transparency_createALBuffers.frag", "TFILLAL")) {
             cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
         }
 
@@ -346,7 +346,7 @@ MeshGLShader::MeshGLShader(
     //======================================================================================================================================================
     // CREATE new shader for Weighted Blend OIT (geometry pass)
     //------------------------------------------------------------------------------------------------------------------------------------------------------
-	if( !shaderLink( &mShaderTransparencyGeomWOIT, ":/GMShaders/transparency/transparency_createBuffers.vert", "", ":/GMShaders/transparency/WeightedOIT/transparency_geomWOIT.frag", "TGEOMWOIT")) {
+	if( !shaderLink( &mShaderTransparencyGeomWOIT, ":/GMShaders/funcval.vert", ":/GMShaders/funcval.geom", ":/GMShaders/transparency/WeightedOIT/transparency_geomWOIT.frag", "TGEOMWOIT")) {
         cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
     }
 
