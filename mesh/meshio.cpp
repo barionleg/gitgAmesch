@@ -2020,9 +2020,9 @@ bool MeshIO::writePLY(
 			if( mExportFlags[EXPORT_VERT_NORMAL] ) {
 				float someFloat = static_cast<float>(rVertexProps.at( i ).mNormalX);
 				filestr.write( reinterpret_cast<char*>(&someFloat), PLY_FLOAT32 ); // floats have 4 bytes in a binary PLY
-				someFloat = static_cast<float>(rVertexProps.at( i ).mNormalX);
+				someFloat = static_cast<float>(rVertexProps.at( i ).mNormalY);
 				filestr.write( reinterpret_cast<char*>(&someFloat), PLY_FLOAT32 );
-				someFloat = static_cast<float>(rVertexProps.at( i ).mNormalX);
+				someFloat = static_cast<float>(rVertexProps.at( i ).mNormalZ);
 				filestr.write( reinterpret_cast<char*>(&someFloat), PLY_FLOAT32 );
 			}
 			if( mExportFlags[EXPORT_VERT_LABEL] ) {
