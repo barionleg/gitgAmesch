@@ -142,6 +142,56 @@ float getIsoLineAlpha( float vertexFuncVal, grFuncValIsoLineParams rFuncValIsoLi
 	return alphaValue;
 }
 
+vec4 getLabelColor(vec3 barycenter, vec3 labels)
+{
+	vec4 outputColor = vec4(1.0);
+
+	int labelIndex = barycenter[0] > barycenter[1] ? 0 : 1;
+	if(barycenter[2] > barycenter[labelIndex])
+		labelIndex = 2;
+
+	float labelNr = labels[labelIndex];
+	// Shade labeled areas:
+	float labelNrShifted = round(labelNr) + uLabelCountOffset;
+	float labelIDMod = mod(labelNrShifted , uLabelColorCount);
+	float labelTexCoordMap = (512.0 - 11.0*uLabelTexMapSel+5.0)/512.0; // Texture map with color ramps is 512x512 pixel and each colorramp is 10 pixel wide (in y).
+	float labelTexCoord = (5.0 + 11.0*labelIDMod)/512.0;
+	if( uLabelSameColor )
+	{
+		outputColor  =  uLabelSingleColor;
+	} else
+	{
+		vec4 texColor = texture( uLabelTexMap, vec2( labelTexCoord, labelTexCoordMap ) );
+		outputColor  =  texColor;
+	}
+	// Shade intermediate area between different labels (or background vertices) differently:
+	int ind1 = (labelIndex + 1) % 3;
+	int ind2 = (labelIndex + 2) % 3;
+
+	if( (abs(barycenter[labelIndex] -
+			 barycenter[ind1      ]) < 0.2
+			 && labelNr != labels[ind1]
+		 ) ||
+		(abs(barycenter[labelIndex] -
+			 barycenter[ind2      ]) < 0.2
+			 && labelNr != labels[ind2]
+		 ) ||
+		fwidth(labelNr) != 0.0) {
+		outputColor = uLabelBorderColor;
+	}
+	// Shading color if the fragment is part of the background label:
+	if( false )
+	{
+		outputColor = uLabelBackgroundColor;
+	}
+	// Shade faces not being a label with a given color:
+	if( gVertex.flagNoLabel > 0.0 )
+	{
+		outputColor = uLabelNoColor;
+	}
+
+	return outputColor;
+}
 
 // --- MAIN ----------------------------------------------------------------------------------------------------------------------------------------------------
 void main(void) {
@@ -192,49 +242,7 @@ void main(void) {
 		// Shade faces with a certain color:
 		if( uRenderColor == 3 )
 		{
-			int labelIndex = vBarycenter[0] > vBarycenter[1] ? 0 : 1;
-			if(vBarycenter[2] > vBarycenter[labelIndex])
-				labelIndex = 2;
-
-			float labelNr = vLabelNumbers[labelIndex];
-			// Shade labeled areas:
-			float labelNrShifted = round(labelNr) + uLabelCountOffset;
-			float labelIDMod = mod(labelNrShifted , uLabelColorCount);
-			float labelTexCoordMap = (512.0 - 11.0*uLabelTexMapSel+5.0)/512.0; // Texture map with color ramps is 512x512 pixel and each colorramp is 10 pixel wide (in y).
-			float labelTexCoord = (5.0 + 11.0*labelIDMod)/512.0;
-			if( uLabelSameColor )
-			{
-				outputColor  =  uLabelSingleColor;
-			} else
-			{
-				vec4 texColor = texture( uLabelTexMap, vec2( labelTexCoord, labelTexCoordMap ) );
-				outputColor  =  texColor;
-			}
-			// Shade intermediate area between different labels (or background vertices) differently:
-			int ind1 = (labelIndex + 1) % 3;
-			int ind2 = (labelIndex + 2) % 3;
-
-			if( (abs(vBarycenter[labelIndex] -
-					 vBarycenter[ind1      ]) < 0.2
-					 && vLabelNumbers[labelIndex] != vLabelNumbers[ind1]
-				 ) ||
-				(abs(vBarycenter[labelIndex] -
-					 vBarycenter[ind2      ]) < 0.2
-					 && vLabelNumbers[labelIndex] != vLabelNumbers[ind2]
-				 ) ||
-				fwidth(labelNr) != 0.0) {
-				outputColor = uLabelBorderColor;
-			}
-			// Shading color if the fragment is part of the background label:
-			if( false )
-			{
-				outputColor = uLabelBackgroundColor;
-			}
-			// Shade faces not being a label with a given color:
-			if( gVertex.flagNoLabel > 0.0 )
-			{
-				outputColor = uLabelNoColor;
-			}
+			outputColor = getLabelColor(vBarycenter, vLabelNumbers);
 		}
 
 	// +++ Invert color, when request e.g. for normals:

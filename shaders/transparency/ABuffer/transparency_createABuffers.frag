@@ -23,6 +23,8 @@ in struct grVertex {
 
 //flat in float labelNr;
 //flat in float flagNoLabel;
+in vec3 vBarycenter;            // normalized Barycenter coordinates
+flat in vec3 vLabelNumbers;                        // vector to hold all three labelNr's to get uninterpolated result
 
 // Switch betwenn flat and smooth shading
 uniform bool  flatShade = false;
@@ -101,101 +103,103 @@ float getFogFactor( FogParameters params, float fFogCoord ) {
         return fResult;
 }
 
+vec4 getLabelColor(vec3 barycenter, vec3 labels)
+{
+	vec4 outputColor = vec4(1.0);
+
+	int labelIndex = barycenter[0] > barycenter[1] ? 0 : 1;
+	if(barycenter[2] > barycenter[labelIndex])
+		labelIndex = 2;
+
+	float labelNr = labels[labelIndex];
+	// Shade labeled areas:
+	float labelNrShifted = round(labelNr) + uLabelCountOffset;
+	float labelIDMod = mod(labelNrShifted , uLabelColorCount);
+	float labelTexCoordMap = (512.0 - 11.0*uLabelTexMapSel+5.0)/512.0; // Texture map with color ramps is 512x512 pixel and each colorramp is 10 pixel wide (in y).
+	float labelTexCoord = (5.0 + 11.0*labelIDMod)/512.0;
+	if( uLabelSameColor )
+	{
+		outputColor  =  uLabelSingleColor;
+	} else
+	{
+		vec4 texColor = texture( uLabelTexMap, vec2( labelTexCoord, labelTexCoordMap ) );
+		outputColor  =  texColor;
+	}
+	// Shade intermediate area between different labels (or background vertices) differently:
+	int ind1 = (labelIndex + 1) % 3;
+	int ind2 = (labelIndex + 2) % 3;
+
+	if( (abs(barycenter[labelIndex] -
+			 barycenter[ind1      ]) < 0.2
+			 && labelNr != labels[ind1]
+		 ) ||
+		(abs(barycenter[labelIndex] -
+			 barycenter[ind2      ]) < 0.2
+			 && labelNr != labels[ind2]
+		 ) ||
+		fwidth(labelNr) != 0.0) {
+		outputColor = uLabelBorderColor;
+	}
+	// Shading color if the fragment is part of the background label:
+	if( false )
+	{
+		outputColor = uLabelBackgroundColor;
+	}
+	// Shade faces not being a label with a given color:
+	if( gVertex.flagNoLabel > 0.0 )
+	{
+		outputColor = uLabelNoColor;
+	}
+
+	return outputColor;
+}
 
 vec4 shadeFragment()
 {
-    vec3 normal = normalize(gVertex.normal_interp); // face normal in eyespace:
-    if( flatShade ) { // flat shading
-            normal = normalize( cross( dFdx( gVertex.ec_pos.xyz ), dFdy( gVertex.ec_pos.xyz ) ) ); // normal of the triangle
-    }
+	vec3 normal = normalize(gVertex.normal_interp); // face normal in eyespace:
+	if( flatShade ) { // flat shading
+		normal = normalize( cross( dFdx( gVertex.ec_pos.xyz ), dFdy( gVertex.ec_pos.xyz ) ) ); // normal of the triangle
+	}
 
-    // +++ Add fog (if present):
-    float fFogCoord  = 0.0;
-    float fFogFactor = 0.0;
-    if( fogPresent ) {
-            fFogCoord  = abs( gVertex.ec_pos.z / gVertex.ec_pos.w );
-            fFogFactor = getFogFactor( fogParams, fFogCoord );
-    }
-    // Set a default color to be overwritten later:
-    vec4 outputColor = vec4( 0.5, 0.0, 0.0, 1.0 );
-    // ++++ Compute the illumination equation for the lights:
-    vec4 colorLight = vec4( 1.0, 1.0, 1.0, 1.0 );
-    if( uLightEnabled ) {
-            vec4 fixedCamLight   = getLightAmount( gVertex.FixedCam_L,   normal, gVertex.FixedCam_halfVector,   FixedCam_DiffuseProduct,   FixedCam_SpecularProduct   );
-            vec4 fixedWorldLight = getLightAmount( gVertex.FixedWorld_L, normal, gVertex.FixedWorld_halfVector, FixedWorld_DiffuseProduct, FixedWorld_SpecularProduct );
-            // ++++ Sum up all parts of the light:
-            colorLight = AmbientProduct + fixedCamLight + fixedWorldLight;
-            colorLight.a = 1.0;
-    }
-    // ++++ Solid color:
-    outputColor = colorSolid * colorLight;
-    // ++++ Color per Vertex:
-    if( uRenderColor == 1 ) {
-            outputColor  =  gVertex.vertexColor * colorLight;
-    }
-    // ++++ Function value mapped to color ramp:
-    if( uRenderColor == 2 ) {
-            vec4 texColor = texture( uFuncValTexMap, gVertex.vertexFuncValTexCoord );
-            outputColor  =  texColor * colorLight;
-    }
-    // ++++ Label ID mapped to color:
-    // Shade faces with a certain color:
-    if( uRenderColor == 3 ) {
-            // Shade labeled areas:
-            float labelNrShifted = gVertex.labelNr + uLabelCountOffset;
-			float labelIDMod = mod(labelNrShifted , uLabelColorCount);
-            float labelTexCoordMap = (512.0 - 10.0*uLabelTexMapSel+4.5)/512.0; // Texture map with color ramps is 512x512 pixel and each colorramp is 10 pixel wide (in y).
-            float labelTexCoord = (4.5 + 10.0*labelIDMod)/512.0;
-            if( uLabelSameColor ) {
-                    outputColor  =  uLabelSingleColor * colorLight;
-            } else {
-                    vec4 texColor = texture( uLabelTexMap, vec2( labelTexCoord, labelTexCoordMap ) );
-                    outputColor  =  texColor * colorLight;
-            }
-            // Shade faces between different labels (or background vertices) differently:
-			if( fwidth( gVertex.labelNr ) > 0.00001 ) {
-                    outputColor = uLabelBorderColor * colorLight;
-            }
-            // Shading color if the fragment is part of the background label:
-            if( false ) {
-                    outputColor = uLabelBackgroundColor * colorLight;
-            }
-            // Shade faces not being a label with a given color:
-            if( gVertex.flagNoLabel > 0.0 ) {
-                    outputColor = uLabelNoColor * colorLight;
-            }
-    }
-    // ++++ Isolines based on the function value:
-    /*
-    if( funcValIsoLineParams.mIsoLinesShow ) {
-            float isoLineIntensity = getIsoLineAlpha( gVertex.vertexFuncVal, funcValIsoLineParams );
-            if( funcValIsoLineParams.mIsoLinesOnly ) {
-                    if( isoLineIntensity == 0.0 ) {
-                            discard;
-                    }
-                    outputColor   = uIsoSolidColor;
-                    outputColor.a = isoLineIntensity;
-            } else {
-                    vec4  isoLineColor = uIsoSolidColor;
-                    if( !uIsoSolidFlag ) {
-                            float grayValInv = 1.0 - length( outputColor.xyz );
-                            isoLineColor = vec4( grayValInv, grayValInv, grayValInv, 1.0 );
-                    }
-                    outputColor = mix( outputColor, isoLineColor, isoLineIntensity );
-            }
-    }
-    */
-    // +++ Add fog (if present):
-    if( fogPresent ) {
-            outputColor = mix( outputColor, fogParams.vFogColor, fFogFactor );
-    }
-    /*
-    // +++ Invert color, when request e.g. for normals:
-    if( gInvertColor > 0u ) {
-            outputColor.rgb = 1.0 - outputColor.rgb;
-    }
-    */
-    return outputColor;
+	// Set a default color to be overwritten later:
+	vec4 outputColor = vec4( 0.5, 0.0, 0.0, 1.0 );
+	// ++++ Compute the illumination equation for the lights:
+	vec4 colorLight = vec4( 1.0, 1.0, 1.0, 1.0 );
+	if( uLightEnabled ) {
+		vec4 fixedCamLight   = getLightAmount( gVertex.FixedCam_L,   normal, gVertex.FixedCam_halfVector,   FixedCam_DiffuseProduct,   FixedCam_SpecularProduct   );
+		vec4 fixedWorldLight = getLightAmount( gVertex.FixedWorld_L, normal, gVertex.FixedWorld_halfVector, FixedWorld_DiffuseProduct, FixedWorld_SpecularProduct );
+		// ++++ Sum up all parts of the light:
+		colorLight = AmbientProduct + fixedCamLight + fixedWorldLight;
+		colorLight.a = 1.0;
+	}
+	// ++++ Solid color:
+	outputColor = colorSolid;
+	// ++++ Color per Vertex:
+	if( uRenderColor == 1 ) {
+		outputColor  =  gVertex.vertexColor;
+	}
+	// ++++ Function value mapped to color ramp:
+	if( uRenderColor == 2 ) {
+		outputColor  =  texture( uFuncValTexMap, gVertex.vertexFuncValTexCoord );
+	}
+	// ++++ Label ID mapped to color:
+	// Shade faces with a certain color:
+	if( uRenderColor == 3 ) {
+		outputColor = getLabelColor(vBarycenter, vLabelNumbers);
+	}
+
+	outputColor *= colorLight;
+
+	// +++ Add fog (if present):
+	float fFogCoord  = 0.0;
+	float fFogFactor = 0.0;
+	if( fogPresent ) {
+		fFogCoord  = abs( gVertex.ec_pos.z / gVertex.ec_pos.w );
+		fFogFactor = getFogFactor( fogParams, fFogCoord );
+		outputColor = mix( outputColor, fogParams.vFogColor, fFogFactor );
+	}
+
+	return outputColor;
 
 }
 
