@@ -31,7 +31,7 @@ uniform int       uRenderColor = 0;
 // Label settings:
 uniform sampler2D uLabelTexMap;                                          // Texturemap storing the label colors.
 uniform float     uLabelTexMapSel       =  1.0;                          // Selected row within the texture map.
-uniform float     uLabelColorCount      = 11.0;                          // Number of colors available within the selected row of the texture map.
+uniform float     uLabelColorCount      = 10.0;                          // Number of colors available within the selected row of the texture map.
 uniform float     uLabelCountOffset     =  0.0;                          // Offset to shift the color with the row of the texture map.
 uniform vec4      uLabelBorderColor     = vec4( 0.25, 0.25, 0.25, 1.0 ); // Color for connected components tagged as background
 uniform vec4      uLabelBackgroundColor = vec4( 0.25, 0.25, 0.25, 1.0 ); // Color for connected components tagged as background
@@ -140,17 +140,13 @@ void main(void)
 		    // Shade labeled areas:
 		    float labelNrShifted = gVertex.labelNr + uLabelCountOffset;
 			float labelIDMod = mod(labelNrShifted , uLabelColorCount);
-		    float labelTexCoordMap = (512.0 - 10.0*uLabelTexMapSel+4.5)/512.0; // Texture map with color ramps is 512x512 pixel and each colorramp is 10 pixel wide (in y).
-		    float labelTexCoord = (4.5 + 10.0*labelIDMod)/512.0;
+			float labelTexCoordMap = (512.0 - 11.0*uLabelTexMapSel+4.5)/512.0; // Texture map with color ramps is 512x512 pixel and each colorramp is 10 pixel wide (in y).
+			float labelTexCoord = (4.5 + 11.0*labelIDMod)/512.0;
 		    if( uLabelSameColor ) {
 			    outputColor  =  uLabelSingleColor * colorLight;
 		    } else {
 			    vec4 texColor = texture( uLabelTexMap, vec2( labelTexCoord, labelTexCoordMap ) );
 			    outputColor  =  texColor * colorLight;
-		    }
-		    // Shade faces between different labels (or background vertices) differently:
-			if( fwidth( gVertex.labelNr ) > 0.00001 ) {
-			    outputColor = uLabelBorderColor * colorLight;
 		    }
 		    // Shading color if the fragment is part of the background label:
 		    if( false ) {
