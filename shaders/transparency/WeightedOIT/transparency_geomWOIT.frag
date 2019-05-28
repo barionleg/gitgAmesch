@@ -35,7 +35,7 @@ uniform int       uRenderColor = 0;
 // Label settings:
 uniform sampler2D uLabelTexMap;                                          // Texturemap storing the label colors.
 uniform float     uLabelTexMapSel       =  1.0;                          // Selected row within the texture map.
-uniform float     uLabelColorCount      = 11.0;                          // Number of colors available within the selected row of the texture map.
+uniform float     uLabelColorCount      = 10.0;                          // Number of colors available within the selected row of the texture map.
 uniform float     uLabelCountOffset     =  0.0;                          // Offset to shift the color with the row of the texture map.
 uniform vec4      uLabelBorderColor     = vec4( 0.25, 0.25, 0.25, 1.0 ); // Color for connected components tagged as background
 uniform vec4      uLabelBackgroundColor = vec4( 0.25, 0.25, 0.25, 1.0 ); // Color for connected components tagged as background
@@ -99,30 +99,15 @@ float getFogFactor( FogParameters params, float fFogCoord ) {
 	return fResult;
 }
 
-
-vec4 getLabelColor(vec3 barycenter, vec3 labels)
+//get label-nr associated to fragment. returns -1 if it is on a border-region
+float getLabelNr(vec3 barycenter, vec3 labels)
 {
-	vec4 outputColor = vec4(1.0);
-
 	int labelIndex = barycenter[0] > barycenter[1] ? 0 : 1;
 	if(barycenter[2] > barycenter[labelIndex])
 		labelIndex = 2;
 
 	float labelNr = labels[labelIndex];
-	// Shade labeled areas:
-	float labelNrShifted = round(labelNr) + uLabelCountOffset;
-	float labelIDMod = mod(labelNrShifted , uLabelColorCount);
-	float labelTexCoordMap = (512.0 - 11.0*uLabelTexMapSel+5.0)/512.0; // Texture map with color ramps is 512x512 pixel and each colorramp is 10 pixel wide (in y).
-	float labelTexCoord = (5.0 + 11.0*labelIDMod)/512.0;
-	if( uLabelSameColor )
-	{
-		outputColor  =  uLabelSingleColor;
-	} else
-	{
-		vec4 texColor = texture( uLabelTexMap, vec2( labelTexCoord, labelTexCoordMap ) );
-		outputColor  =  texColor;
-	}
-	// Shade intermediate area between different labels (or background vertices) differently:
+
 	int ind1 = (labelIndex + 1) % 3;
 	int ind2 = (labelIndex + 2) % 3;
 
@@ -135,8 +120,43 @@ vec4 getLabelColor(vec3 barycenter, vec3 labels)
 			 && labelNr != labels[ind2]
 		 ) ||
 		fwidth(labelNr) != 0.0) {
+		labelNr = -1.0;
+	}
+
+	return labelNr;
+}
+
+vec4 getLabelColor(vec3 barycenter, vec3 labels)
+{
+	vec4 outputColor = vec4(1.0);
+
+	int labelIndex = barycenter[0] > barycenter[1] ? 0 : 1;
+	if(barycenter[2] > barycenter[labelIndex])
+		labelIndex = 2;
+
+	float labelNr = getLabelNr(barycenter, labels);
+
+	if( uLabelSameColor )
+	{
+		outputColor  =  uLabelSingleColor;
+	}
+	else if(labelNr < 0.0)
+	{
+		// Shade intermediate area between different labels (or background vertices) differently:
 		outputColor = uLabelBorderColor;
 	}
+	else
+	{
+		// Shade labeled areas:
+		float labelNrShifted = round(labelNr) + uLabelCountOffset;
+		float labelIDMod = mod(labelNrShifted , uLabelColorCount);
+		float labelTexCoordMap = (512.0 - 11.0*uLabelTexMapSel+5.0)/512.0; // Texture map with color ramps is 512x512 pixel and each colorramp is 11 pixel wide (in y).
+		float labelTexCoord = (5.0 + 11.0*labelIDMod)/512.0;
+
+		vec4 texColor = texture( uLabelTexMap, vec2( labelTexCoord, labelTexCoordMap ) );
+		outputColor  =  texColor;
+	}
+
 	// Shading color if the fragment is part of the background label:
 	if( false )
 	{
@@ -239,7 +259,7 @@ void main(void)
 	}
 	else if(uTransparencyType == 4)
 	{
-	fragment.a = (gVertex.labelNr == uTransLabelNr && !(gVertex.flagNoLabel > 0.0) )? uAlpha2 : uUniformAlpha;
+	fragment.a = (getLabelNr(vBarycenter,vLabelNumbers) == uTransLabelNr && !(gVertex.flagNoLabel > 0.0) )? uAlpha2 : uUniformAlpha;
 	}
 
 	else if(uTransparencyType == 5)
