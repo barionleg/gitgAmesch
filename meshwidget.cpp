@@ -2698,7 +2698,7 @@ bool MeshWidget::screenshotViewsPDFUser() {
 #ifdef WIN32
 	fileName.replace( QString("/") , QString("\\"));
 #endif
-	if( !QProcess::startDetached( QString(pdfViewerCommand.c_str()) + " " + fileName ) ) {
+	if( !QProcess::startDetached( QString(pdfViewerCommand.c_str()) + " \"" + fileName + "\"" ) ) {
 		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Program " + pdfViewerCommand + " not found!" << std::endl;
 	}
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2804,13 +2804,14 @@ bool MeshWidget::screenshotViewsPDF( const QString& rFileName ) {
 	}
 	fileLatexOut.close();
 
+	QString qPrefixPath(prefixPath.c_str());
 #ifdef WIN32
-	prefixPath.replace(prefixPath.begin(), prefixPath.end(), '/' , '\\');
+	qPrefixPath.replace(QString("/"), QString("\\"));
 	filePrefixTex.replace(QString("/"), QString("\\"));
 #endif
 
 	// Compile and show LaTeX file.
-	if( !screenshotPDFMake( QString( prefixPath.c_str() ), filePrefixTex ) ) {
+	if( !screenshotPDFMake( qPrefixPath, filePrefixTex ) ) {
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: LaTeX file could not be compiled!" << endl;
 		return( false );
 	}
@@ -2831,9 +2832,10 @@ bool MeshWidget::screenshotPDFMake(
 	std::string pdfLatexCommand;
 	getParamStringMeshWidget(MeshWidgetParams::PDF_LATEX_COMMAND, &pdfLatexCommand);
 
+	std::cout << rPrefixPath.toStdString() << " " << rFilePrefixTex.toStdString() << std::endl;
 	QProcess runPDFLaTeX;
 	runPDFLaTeX.setWorkingDirectory( rPrefixPath );
-	runPDFLaTeX.start( QString(pdfLatexCommand.c_str()) + " -interaction=nonstopmode " + rFilePrefixTex + ".tex" );
+	runPDFLaTeX.start( QString(pdfLatexCommand.c_str()) + " -interaction=nonstopmode \"" + rFilePrefixTex + ".tex\"" );
 	if( !runPDFLaTeX.waitForFinished() ) {
 		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR testing PDFLaTeX had a timeout!" << endl;
 		checkPDFLaTeXFailed = true;
@@ -3329,7 +3331,7 @@ bool MeshWidget::screenshotPDFUser() {
 	fileName.replace( QString("/") , QString("\\"));
 #endif
 
-	if( !QProcess::startDetached( QString(pdfViewerCommand.c_str()) + " " + fileName ) ) {
+	if( !QProcess::startDetached( QString(pdfViewerCommand.c_str()) + " \"" + fileName + "\"") ) {
 		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Program " + pdfViewerCommand + " not found!" << std::endl;
 	}
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3387,7 +3389,7 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled )
 	mMeshVisual->latexFetchFigureInfos( &replacmentStrings );
 
 	// Replace placeholders
-	latexTemplate.replace( QRegExp( "__FIGURE_IMAGE_FILE__" ), "{"+QString( prefixStem.c_str() )+"}.png" );
+	latexTemplate.replace( QRegExp( "__FIGURE_IMAGE_FILE__" ), "\""+QString( prefixStem.c_str() )+"\".png" );
 	latexTemplate.replace( QRegExp( "__SCALE_FACTOR_STRING__" ), scaleFactorTex );
 	latexTemplate.replace( QRegExp( "__SCALE_FACTOR__" ), QString( "%1" ).arg( scaleFactor, 'f' ).trimmed() );
 	for( pair<string, string>& replacmentString : replacmentStrings ) {
@@ -3409,11 +3411,13 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled )
 
 	// Compile and show LaTeX file.
 
+	QString qPrefixPath(prefixPath.c_str());
 #ifdef WIN32
-	prefixPath.replace(prefixPath.begin(), prefixPath.end(), '/' , '\\');
+	qPrefixPath.replace(QString("/"), QString("\\"));
 	filePrefixTex.replace(QString("/"), QString("\\"));
 #endif
-	if( !screenshotPDFMake( QString( prefixPath.c_str() ), filePrefixTex ) ) {
+
+	if( !screenshotPDFMake( qPrefixPath , filePrefixTex ) ) {
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: LaTeX file could not be compiled!" << endl;
 		return( false );
 	}

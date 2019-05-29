@@ -35,12 +35,15 @@ flat out uint gInvertColor;
 
 // +++ Edge/Wireframe Rendering 
 noperspective out vec3 vEdgeDist;              // Barycenter coordinates. REQUIRED by funcval.frag
+out vec3 vBarycenter;            // normalized Barycenter coordinates
+flat out vec3 vLabelNumbers;                        // vector to hold all three labelNr's to get uninterpolated result
 
 //uniform float uExplodeFactor = 0.12;
 
 void main(void) {
 	vEdgeDist = vec3( 1.0, 1.0, 1.0 ); // REQUIRED by funcval.frag
-
+	vBarycenter = vec3(1.0);
+	vLabelNumbers = vec3(1.0);
 	gInvertColor = 1u;
 	int i;
 	// Pass thru the triangle as it is.

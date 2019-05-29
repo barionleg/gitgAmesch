@@ -15495,12 +15495,15 @@ bool Mesh::latexFetchFigureInfos( vector<pair<string,string>>* rStrings ) {
 			// Remove trailing zeros
 			content.erase( content.find_last_not_of('0') + 1, std::string::npos );
 			content.erase( content.find_last_not_of('.') + 1, std::string::npos );
-			content += "}\\,\\pm\\numprint{" + to_string( volumeDev );
+
 			// Enforce "." for deviation
-			kommaPos = content.find_last_of( ',' );
+			std::string volumeDevText = to_string(volumeDev);
+			kommaPos = volumeDevText.find_last_of( ',' );
 			if( kommaPos != string::npos ) {
-				content.replace( kommaPos, 1, 1, '.' );
+				volumeDevText.replace( kommaPos, 1, 1, '.' );
 			}
+			content += "}\\,\\pm\\numprint{" + volumeDevText;
+
 			rString.second = content;
 		}
 		//! Remove trailing zeros after the decimal point.
