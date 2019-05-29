@@ -303,6 +303,9 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 		case SELMFACES_WITH_THREE_BORDER_VERTICES:
 			retVal = selectFaceBorderThreeVertices();
 			break;
+		case SELMFACES_WITH_THREE_SELECTED_VERTICES:
+			retVal = selectFaceThreeVerticesSelected();
+			break;
 		case SELMFACES_BORDER_BRIDGE_TRICONN:
 			retVal = selectFaceBorderBridgeTriConnect();
 			break;
@@ -2996,6 +2999,18 @@ bool Mesh::selectFaceWithSyntheticVertices() {
 //! @returns false in case of an error. True otherwise.
 bool Mesh::selectFaceBorderThreeVertices() {
 	bool retVal = getFaceBorderThreeVertices( mFacesSelected );
+	selectedMFacesChanged();
+	return( retVal );
+}
+
+//! Selects all faces having all three vertices selected i.e.
+//! are in SelMVerts.
+//!
+//! Typically used for erosion of the mesh border before filling.
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::selectFaceThreeVerticesSelected() {
+	bool retVal = getFaceThreeVerticesSelected( mFacesSelected );
 	selectedMFacesChanged();
 	return( retVal );
 }
@@ -10395,6 +10410,28 @@ bool Mesh::getFaceBorderThreeVertices( set<Face*>& rSomeFaces ) {
 		}
 	}
 	cout << "[Mesh::" << __FUNCTION__ << "] in set:    " << rSomeFaces.size() << endl;
+	return( true );
+}
+
+//! Adds all faces having three vertices selected to
+//! the given set.
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::getFaceThreeVerticesSelected( std::set<Face*>& rSomeFaces ) {
+	for( uint64_t faceIdx = 0; faceIdx < getFaceNr(); faceIdx++ ) {
+		Face* currFace = getFacePos( faceIdx );
+		if( !currFace->getVertA()->getFlag( FLAG_SELECTED ) ) {
+			continue;
+		}
+		if( !currFace->getVertB()->getFlag( FLAG_SELECTED ) ) {
+			continue;
+		}
+		if( !currFace->getVertC()->getFlag( FLAG_SELECTED ) ) {
+			continue;
+		}
+		rSomeFaces.insert( currFace );
+	}
+	std::cout << "[Mesh::" << __FUNCTION__ << "] in set:    " << rSomeFaces.size() << std::endl;
 	return( true );
 }
 

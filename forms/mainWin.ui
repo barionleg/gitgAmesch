@@ -566,6 +566,7 @@
      <addaction name="actionSelFaceInSphere"/>
      <addaction name="actionSelFaceRandom"/>
      <addaction name="actionSelMFacesLabledVerticesVoronoiCorner"/>
+     <addaction name="actionSelMFacesWithThreeVerticesSelected"/>
     </widget>
     <addaction name="actionDeSelVertsAll"/>
     <addaction name="menuVertices_SelMVerts_Unselect"/>
@@ -4321,6 +4322,11 @@ p, li { white-space: pre-wrap; }
   <action name="actionSelMFacesBorderBridgeTriConn">
    <property name="text">
     <string>Faces - Border - Bridge Tri-Connection</string>
+   </property>
+  </action>
+  <action name="actionSelMFacesWithThreeVerticesSelected">
+   <property name="text">
+    <string>Faces - with three selected vertices (SelMVerts)</string>
    </property>
   </action>
  </widget>

@@ -1026,6 +1026,7 @@ void QGMMainWindow::initMeshSignals() {
 	actionSelVertsRandom->setProperty(                            "gmMeshFunctionCall", MeshParams::SELMVERTS_RANDOM                             );
 	actionSelMFacesWithSyntheticVertices->setProperty(            "gmMeshFunctionCall", MeshParams::SELMFACES_WITH_SYNTHETIC_VERTICES            );
 	actionSelMFacesBorderWithThreeVertices->setProperty(          "gmMeshFunctionCall", MeshParams::SELMFACES_WITH_THREE_BORDER_VERTICES         );
+	actionSelMFacesWithThreeVerticesSelected->setProperty(        "gmMeshFunctionCall", MeshParams::SELMFACES_WITH_THREE_SELECTED_VERTICES       );
 	actionSelMFacesBorderBridgeTriConn->setProperty(              "gmMeshFunctionCall", MeshParams::SELMFACES_BORDER_BRIDGE_TRICONN              );
 	actionSelMFacesBorderBridge->setProperty(                     "gmMeshFunctionCall", MeshParams::SELMFACES_BORDER_BRIDGE                      );
 	actionSelMFacesBorderDangling->setProperty(                   "gmMeshFunctionCall", MeshParams::SELMFACES_BORDER_DANGLING                    );

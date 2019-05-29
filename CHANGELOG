@@ -1,6 +1,7 @@
 Current version
 +) More information about faces at borders and vertex normals. See 'Info -> Mesh properties' and CLI 'gigamesh-info'.
 +) New face selection along mesh borders. See 'Select -> Faces extra -> Face - Border - ...'.
++) Use selected vertices to select faces. See 'Select -> Faces extra -> Face - with three selected vertices (SelMVerts)'.
 +) Mesh cleaning and repair improved to keep bridges, which were formerly removed together with dangling faces.
 +) Bugfix: swapped mouse buttons for selection of positions (SelMPos).
 +) Minor bugfixes.

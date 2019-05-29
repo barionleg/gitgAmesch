@@ -246,6 +246,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool   selectFaceRandom( double rRatio );
 		virtual bool   selectFaceWithSyntheticVertices();
 		        bool   selectFaceBorderThreeVertices();
+		        bool   selectFaceThreeVerticesSelected();
 		        bool   selectFaceBorderBridgeTriConnect();
 		        bool   selectFaceBorderBridge();
 		        bool   selectFaceBorderDangling();
@@ -398,6 +399,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool         getFaceSticky( std::set<Face*>* rSomeFaces );
 				bool         getFaceNonManifold( std::set<Face*>* rSomeFaces );
 				bool         getFaceBorderThreeVertices( std::set<Face*>& rSomeFaces );
+				bool         getFaceThreeVerticesSelected( std::set<Face*>& rSomeFaces );
 				bool         getFaceBorderVertsEdges( std::set<Face*>& rSomeFaces, unsigned int rHasBorderVertices, unsigned int rHasBorderEdges );
 				bool         getFaceLabeledVerticesCorner( std::set<Face*>& rSomeFaces );
 				bool         getFaceZeroArea( std::set<Face*>* rSomeFaces );
