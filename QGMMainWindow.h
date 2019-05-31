@@ -338,16 +338,11 @@ signals:
 	void visualizeDistanceToCone();                          //!< triggers distance to cone estimation (if cone has been selected)
 	// # Other
 	void visualizeVertexIndices();                           //!< triggers coloring of vertices by index.
-	void visualizeVertex1RingArea();                         //!< triggers coloring of vertices its surrounding.
-	void visualizeVertex1RSumAngles();                       //!< triggers coloring by sum of the angles of the adjacent faces.
 	void sFuncVert1RingRMin();                               //!< Compute r_min_i for 1-rings.
 	void sFuncVert1RingVolInt();                             //!< Compute voluem integral for r->0.
 	void visualizeVertexOctree();                            //!< triggers octree visualization.
 	void visualizeVertexFaceSphereAngleMax();                //!< Visualize the max face angle to the vertex normal within a spherical neighbourhood.
 	void visualizeVertFaceSphereMeanAngleMax();              //!< Visualize the max face angle to the mean normal of the faces within a spherical neighbourhood.
-	void sFuncVertDistancesMax();                            //!< Compute maximum distances between vertices.
-	// # Faces
-	void visualizeFaceSortIndex();                           //!< Visualize the sorting index of the faces.
 	// #####################################################################################################################################################
 
 	// --- Texture Map -------------------------------------------------------------------------------------------------------------------------------------

@@ -270,16 +270,11 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionDistanceToCone,                 SIGNAL(triggered()),   this,       SIGNAL(visualizeDistanceToCone())              ); // <- OLD
 	// # Other
 	QObject::connect( actionVisVertIndex,                   SIGNAL(triggered()),   this,       SIGNAL(visualizeVertexIndices())               ); // <- OLD
-	QObject::connect( actionVisVert1RArea,                  SIGNAL(triggered()),   this,       SIGNAL(visualizeVertex1RingArea())             ); // <- OLD
-	QObject::connect( actionVisVert1RSumAngles,             SIGNAL(triggered()),   this,       SIGNAL(visualizeVertex1RSumAngles())           ); // <- OLD
 	QObject::connect( actionFuncVert1RingRMin,              SIGNAL(triggered()),   this,       SIGNAL(sFuncVert1RingRMin())                   ); // <- NEW naming convention based on new menu structure!
 	QObject::connect( actionFuncVert1RingVolInt,            SIGNAL(triggered()),   this,       SIGNAL(sFuncVert1RingVolInt())                 ); // <- NEW naming convention based on new menu structure!
 	QObject::connect( actionVisVertOctree,                  SIGNAL(triggered()),   this,       SIGNAL(visualizeVertexOctree())                ); // <- OLD
 	QObject::connect( actionVisVertFaceSphereAngleMax,      SIGNAL(triggered()),   this,       SIGNAL(visualizeVertexFaceSphereAngleMax())    ); // <- OLD
 	QObject::connect( actionVisVertFaceSphereMeanAngleMax,  SIGNAL(triggered()),   this,       SIGNAL(visualizeVertFaceSphereMeanAngleMax())  ); // <- OLD
-	QObject::connect( actionFuncVertDistancesMax,           SIGNAL(triggered()),   this,       SIGNAL(sFuncVertDistancesMax())                ); // <- NEW naming convention based on new menu structure!
-	// # Faces
-	QObject::connect( actionVisFaceSortIndex,               SIGNAL(triggered()),   this,       SIGNAL(visualizeFaceSortIndex())               ); // <- OLD
 	// #####################################################################################################################################################
 
 	// --- Colors ------------------------------------------------------------------------------------------------------------------------------------------
@@ -1063,6 +1058,10 @@ void QGMMainWindow::initMeshSignals() {
 	actionFuncValMedianOneRingRepeat->setProperty(                "gmMeshFunctionCall", MeshParams::FUNCVAL_MEDIAN_ONE_RING_REPEAT               );
 	actionFuncValAdjacentFaceCount->setProperty(                  "gmMeshFunctionCall", MeshParams::FUNCVAL_ADJACENT_FACES                       );
 	actionVisFaceMarchSphereIndex->setProperty(                   "gmMeshFunctionCall", MeshParams::FUNCVAL_DISTANCE_TO_SEED_MARCHING            );
+	actionVisVert1RArea->setProperty(                             "gmMeshFunctionCall", MeshParams::FUNCVAL_VERT_ONE_RING_AREA                   );
+	actionVisVert1RSumAngles->setProperty(                        "gmMeshFunctionCall", MeshParams::FUNCVAL_VERT_ONE_RING_ANGLE_SUM              );
+	actionFuncVertDistancesMax->setProperty(                      "gmMeshFunctionCall", MeshParams::FUNCVAL_VERT_MAX_DISTANCE                    );
+	actionVisFaceSortIndex->setProperty(                          "gmMeshFunctionCall", MeshParams::FUNCVAL_FACE_SORT_INDEX                      );
 	actionAmbientOcclusion->setProperty(                          "gmMeshGLFunctionCall", MeshGLParams::FUNCVAL_AMBIENT_OCCLUSION                );
 	// ... Mesh editing ......................................................................................................................................
 	actionRemoveFacesSelected->setProperty(                       "gmMeshFunctionCall", MeshParams::EDIT_REMOVE_SELMFACES                        );

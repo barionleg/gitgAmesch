@@ -110,6 +110,10 @@ class MeshParams {
 			FUNCVAL_MEDIAN_ONE_RING_REPEAT,            //!< Apply a median filter repeatedly to the function value within a 1-ring neighbourhood.
 			FUNCVAL_ADJACENT_FACES,                    //!< Count the number of adjacent faces and store this value as function value for each vertex.
 			FUNCVAL_DISTANCE_TO_SEED_MARCHING,         //!< Compute the euclidean distance to a SelPrim/SelVert within a sphere for faces reached by a marching front.
+			FUNCVAL_VERT_ONE_RING_AREA,                //!< Compute the 1-ring areas of all vertices.
+			FUNCVAL_VERT_ONE_RING_ANGLE_SUM,           //!< Compute the sum of all adjacent face angles within a 1-ring for all vertices.
+			FUNCVAL_VERT_MAX_DISTANCE,                 //!< tba
+			FUNCVAL_FACE_SORT_INDEX,                   //!< Sort index to face function value.
 			EDIT_REMOVE_SELMFACES,                     //!< Remove selected faces (SelMFace).
 			EDIT_REMOVE_FACESZERO,                     //!< Call to remove face with zero area.
 			EDIT_REMOVE_FACES_BORDER_EROSION,          //!< Call to remove faces having three border vertices iterativly.
