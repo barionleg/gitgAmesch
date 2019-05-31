@@ -11052,7 +11052,7 @@ bool Mesh::geodPatchVertSel( set<Vertex*>* rmLabelSeedVerts,  //!< List of seed 
 	}
 
 	// Start marching:
-	bool retVal = estGeodesicPatch( &geoDistList, &frontEdges, _INFINITE_DBL_, faceBitArray, faceNrBlocks, rWeightFuncVal );
+	bool retVal = estGeodesicPatch( &geoDistList, &frontEdges, _INFINITE_DBL_, faceBitArray, rWeightFuncVal ); // faceNrBlocks not used
 
 	// Write to function values:
 	if( rGeodDistToFuncVal ) {
@@ -11148,7 +11148,7 @@ bool Mesh::geodPatchVertSelOrder( vector<Vertex*>* rmLabelSeedVerts,    //!< Lis
 			cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: initializing front failed!" << endl;
 		}
 		// Start marching:
-		if( estGeodesicPatch( &geoDistList, &frontEdges, _INFINITE_DBL_, faceBitArray, faceNrBlocks, rWeightFuncVal ) ) {
+		if( estGeodesicPatch( &geoDistList, &frontEdges, _INFINITE_DBL_, faceBitArray, rWeightFuncVal ) ) { // faceNrBlocks not used
 			cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: marching front failed!" << endl;
 		}
 		//frontEdges.clear();
@@ -11369,7 +11369,7 @@ bool Mesh::estGeodesicPatch( Vertex* seedVertex, double radius, map<Vertex*,Geod
 	}
 
 	// Start marching:
-	bool retVal = estGeodesicPatch( geoDistList, &frontEdges, radius, faceBitArray, faceNrBlocks, weightFuncVal );
+	bool retVal = estGeodesicPatch( geoDistList, &frontEdges, radius, faceBitArray, weightFuncVal ); // faceNrBlocks not used
 	return retVal;
 }
 
@@ -11387,7 +11387,7 @@ bool Mesh::estGeodesicPatch( Face* seedFace, double radius, map<Vertex*,GeodEntr
 	}
 
 	// Start marching:
-	bool retVal = estGeodesicPatch( geoDistList, &frontEdges, radius, faceBitArray, faceNrBlocks, weightFuncVal );
+	bool retVal = estGeodesicPatch( geoDistList, &frontEdges, radius, faceBitArray, weightFuncVal ); // faceNrBlocks not used
 	return retVal;
 }
 
@@ -11403,10 +11403,13 @@ bool Mesh::estGeodesicPatch( Face* seedFace, double radius, map<Vertex*,GeodEntr
 bool Mesh::estGeodesicPatch( map<Vertex*,GeodEntry*>* geoDistList,                          //!< already estimated geodesic distances - typically pre-computed for one or more seed primitives.
                              deque<EdgeGeodesic*>*    frontEdges,                           //!< current front - typically pre-computed for one or more seed primitives.
                              double                   radius,                               //!< soft abort criteria - can be set to infinity, because estGeodesicPatch will stop, when no further faces can be visitied.
-                             uint64_t*           faceBitArray,                         //!< bitarray for faces
-                             int                      faceNrBlocks , //!< maximum number of bit-blocks in faceBitArray
+                             uint64_t*                faceBitArray,                         //!< bitarray for faces
+//                             int                      faceNrBlocks,                         //!< maximum number of bit-blocks in faceBitArray
                              bool                     weightFuncVal                         //!< use function values as weights
     ) {
+	// Start and stop are easy, but determining a percentage is not straight forward.
+	showProgressStart( "Geodesic Patches" );
+	showProgress( 0.0, "Geodesic Patches" );
 
 	// Rock'n'roll:
 	bool stopFlagFound = false;
@@ -11609,14 +11612,15 @@ bool Mesh::estGeodesicPatch( map<Vertex*,GeodEntry*>* geoDistList,              
 			    ( ( abs(geodAngleCA) > M_PI/2.0) || (abs(geodAngleCB) > M_PI/2.0)  )
 			) {
 //			if( ( ( geodAngleCA * geodAngleCB )<0 ) && ( ( abs(geodAngleCA) > M_PI/2.0 ) || ( abs(geodAngleCB) > M_PI/2.0 ) ) ) {
-				cerr << "+++geodAngleCA: " << geodAngleCA *180.0/M_PI<< endl;
-				cerr << "+++geodAngleCB: " << geodAngleCB *180.0/M_PI<< endl;
+				// Debuging info regarding bad angles:
+				// std::cerr << "+++geodAngleCA: " << geodAngleCA *180.0/M_PI<< std::endl;
+				// std::cerr << "+++geodAngleCB: " << geodAngleCB *180.0/M_PI<< std::endl;
 				if( geodAngleC < 0 ) {
 					geodAngleC += M_PI;
 				} else {
 					geodAngleC -= M_PI;
 				}
-				cerr << "....geodAngleC: " << geodAngleC *180.0/M_PI<< endl;
+				// std::cerr << "....geodAngleC: " << geodAngleC *180.0/M_PI<< std::endl;
 			} else {
 				geodAngleC = ( geodAngleCA + geodAngleCB ) / 2.0;
 			}
@@ -11634,15 +11638,16 @@ bool Mesh::estGeodesicPatch( map<Vertex*,GeodEntry*>* geoDistList,              
 			//cout << "sqrt( pow( " << vAC << ", 2 ) + pow( " << geodA << ", 2 ) - 2.0 * " << vAC << " * " << geodA << " * cos( " << alpha0 << " + " << alphaJ << " ) );" << endl;
 			//cout << "[Mesh::estGeodesicPatch] geodesic dist (3): "  << geodC << endl;
 		}
-		if( vertA->getIndex() == 5821 ) {
-			cerr << "geodAngleA: " << geodAngleA << " " << geodAngleA*180.0/M_PI << endl;
-			cerr << "+: " << acos((vAC * vAC - geodA * geodA - geodC * geodC) / (-2.0 * geodA * geodC)) *180.0/M_PI<< endl;
-			cerr << "geodAngleB: " << geodAngleB << " " << geodAngleB *180.0/M_PI << endl;
-			cerr << "-: " << acos((vCB * vCB - geodC * geodC - geodB * geodB) / (-2.0 * geodC * geodB)) *180.0/M_PI<< endl;
-			cerr << "-->geodAngleCA: " << geodAngleCA *180.0/M_PI<< endl;
-			cerr << "-->geodAngleCB: " << geodAngleCB *180.0/M_PI<< endl;
-			cerr << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
-		}
+// THIS is testing/debuging code ONLY:
+//		if( vertA->getIndex() == 5821 ) {
+//			cerr << "geodAngleA: " << geodAngleA << " " << geodAngleA*180.0/M_PI << endl;
+//			cerr << "+: " << acos((vAC * vAC - geodA * geodA - geodC * geodC) / (-2.0 * geodA * geodC)) *180.0/M_PI<< endl;
+//			cerr << "geodAngleB: " << geodAngleB << " " << geodAngleB *180.0/M_PI << endl;
+//			cerr << "-: " << acos((vCB * vCB - geodC * geodC - geodB * geodB) / (-2.0 * geodC * geodB)) *180.0/M_PI<< endl;
+//			cerr << "-->geodAngleCA: " << geodAngleCA *180.0/M_PI<< endl;
+//			cerr << "-->geodAngleCB: " << geodAngleCB *180.0/M_PI<< endl;
+//			cerr << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
+//		}
 		if( std::isnan( geodC ) ) {
 			cerr << "[Mesh::" << __FUNCTION__ << "] bad geodesic distance - not a number!" << endl;
 			break;
@@ -11706,17 +11711,19 @@ bool Mesh::estGeodesicPatch( map<Vertex*,GeodEntry*>* geoDistList,              
 		frontEdges->clear();
 	}
 
+	showProgressStop( "Geodesic Patches" );
+
 	if( badAngles[0] > 0 ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: " << badAngles[0] << " Bad angle(s) Alpha +!" << endl;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: " << badAngles[0] << " Bad angle(s) Alpha counted +!" << std::endl;
 	}
 	if( badAngles[1] > 0 ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: " << badAngles[1] << " Bad angle(s) Alpha -!" << endl;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: " << badAngles[1] << " Bad angle(s) Alpha counted -!" << std::endl;
 	}
 	if( badAngles[2] > 0 ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: " << badAngles[2] << " Bad angle(s) Beta +!" << endl;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: " << badAngles[2] << " Bad angle(s) Beta counted +!" << std::endl;
 	}
 	if( badAngles[3] > 0 ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: " << badAngles[3] << " Bad angle(s) Beta -!" << endl;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: " << badAngles[3] << " Bad angle(s) Beta counted -!" << std::endl;
 	}
 
 	return true;

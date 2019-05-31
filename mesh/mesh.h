@@ -607,10 +607,10 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		        bool       estGeodesicPatchFuncVal( Face* seedFace,     double radius, bool weightFuncVal );
 				bool       estGeodesicPatch( Vertex* seedVertex, double radius, std::map<Vertex*,GeodEntry*>* geoDistList, bool weightFuncVal );
 				bool       estGeodesicPatch( Face* seedFace,     double radius, std::map<Vertex*,GeodEntry*>* geoDistList, bool weightFuncVal );
-		private:
-				bool       estGeodesicPatch( Vertex* seedVertex, double radius, std::map<Vertex*,GeodEntry*>* geoDistList, uint64_t* faceBitArray, int faceNrBlocks, bool weightFuncVal );
-				bool       estGeodesicPatch( Face* seedFace,     double radius, std::map<Vertex*,GeodEntry*>* geoDistList, uint64_t* faceBitArray, int faceNrBlocks, bool weightFuncVal );
-				bool       estGeodesicPatch( std::map<Vertex*,GeodEntry*>* geoDistList, std::deque<EdgeGeodesic*>* frontEdges, double radius, uint64_t* faceBitArray, int faceNrBlocks, bool weightFuncVal );
+	private:
+		        bool       estGeodesicPatch( Vertex* seedVertex, double radius, std::map<Vertex*,GeodEntry*>* geoDistList, uint64_t* faceBitArray, int faceNrBlocks, bool weightFuncVal );
+		        bool       estGeodesicPatch( Face* seedFace,     double radius, std::map<Vertex*,GeodEntry*>* geoDistList, uint64_t* faceBitArray, int faceNrBlocks, bool weightFuncVal );
+		        bool       estGeodesicPatch( std::map<Vertex*,GeodEntry*>* geoDistList, std::deque<EdgeGeodesic*>* frontEdges, double radius, uint64_t* faceBitArray, bool weightFuncVal ); // , int faceNrBlocks not used
 
 		public:
 		// Estimate neighbourhood within a spherical volume --------------------------------------------------------------------------------------------
