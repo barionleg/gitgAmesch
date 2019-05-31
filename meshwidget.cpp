@@ -5135,7 +5135,7 @@ bool MeshWidget::screenshotTiledPNG(
 			orthoViewPort[0] += realWidth - (2*rBorderSize * widthRatio);
 			orthoViewPort[1] += realWidth - (2*rBorderSize * widthRatio);
 			cout << "X";
-			double tilesDone = static_cast<double>( iy * tilesY + ix ) / tileCount;
+			double tilesDone = static_cast<double>( iy * tilesX + ix ) / tileCount;
 			mMeshVisual->showProgress( tilesDone, "Tiled Rendering - High-res Screenhot" );
 		}
 		orthoViewPort[2] -= realHeight - (2*rBorderSize * heightRatio);
