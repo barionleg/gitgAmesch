@@ -14,6 +14,30 @@ NormalSphereSelectionDialog::NormalSphereSelectionDialog(QWidget *parent) :
 {
 	ui->setupUi(this);
 
+	ui->colorMap_comboBox->addItem(tr("grayscale"));
+	ui->colorMap_comboBox->addItem(tr("hot"));
+	ui->colorMap_comboBox->addItem(tr("cold"));
+	ui->colorMap_comboBox->addItem(tr("hsv"));
+	ui->colorMap_comboBox->addItem(tr("hsv_part"));
+	ui->colorMap_comboBox->addItem(tr("brewer_rdgy"));
+	ui->colorMap_comboBox->addItem(tr("brewer_spectral"));
+	ui->colorMap_comboBox->addItem(tr("brewer_rdylgn"));
+	ui->colorMap_comboBox->addItem(tr("hypso"));
+	ui->colorMap_comboBox->addItem(tr("octave_jet"));
+	ui->colorMap_comboBox->addItem(tr("morgenstemning"));
+	ui->colorMap_comboBox->addItem(tr("hypso_hirise1"));
+	ui->colorMap_comboBox->addItem(tr("hypso_hirise2"));
+	ui->colorMap_comboBox->addItem(tr("parula"));
+	ui->colorMap_comboBox->addItem(tr("brewer_ylorbr"));
+	ui->colorMap_comboBox->addItem(tr("octave_copper"));
+	ui->colorMap_comboBox->addItem(tr("rusttones"));
+	ui->colorMap_comboBox->addItem(tr("siennatones"));
+	ui->colorMap_comboBox->addItem(tr("hypse_arid"));
+
+	QObject::connect(ui->colorMap_comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index) {this->ui->openGLWidget->setColorMapIndex(index);});
+
+	ui->colorMap_comboBox->setCurrentIndex(11);
+
 	connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &NormalSphereSelectionDialog::comboButtonBoxClicked);
 }
 

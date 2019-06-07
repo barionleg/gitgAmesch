@@ -27,6 +27,8 @@ class NormalSphereSelectionRenderWidget : public QOpenGLWidget, QOpenGLFunctions
 		void clearSelected();
 		bool isNormalSelected(float nx, float ny, float nz);
 		// QWidget interface
+
+		void setColorMapIndex(unsigned int index);
 	protected:
 		void mousePressEvent(QMouseEvent* event) override;
 		void mouseReleaseEvent(QMouseEvent* event) override;
@@ -52,20 +54,19 @@ class NormalSphereSelectionRenderWidget : public QOpenGLWidget, QOpenGLFunctions
 		QOpenGLVertexArrayObject mIcoSphereVAO;
 		QOpenGLShaderProgram mIcoSphereShader;
 
-		bool mUpdateSelectionTexture;
+		bool mUpdateSelectionTexture = false;
 
 		std::vector<float> mNormalUpload;
-		GLsizei mNumNormals;
-
-		float mMaxNormalDensity;
 
 		ArcBall mArcBall;
 
-		int mScreenWidth;
-		int mScreenHeight;
+		int mScreenWidth = 0;
+		int mScreenHeight = 0;
 
 		IcoSphereTree mIcoSphereTree;
-		float mMinData;
+		float mMinData = 0.0f;
+
+		unsigned int mColorMapIndex = 0;
 };
 
 #endif // NormalSphereSELECTIONRenderWIDGET_H

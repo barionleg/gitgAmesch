@@ -1,23 +1,18 @@
 #version 150
-
-out vec4 fragColor;
+in float data;
 
 uniform sampler2D uFuncValTexture;
-
-in vec3 norm;
-in float data;
+uniform float uColorMapIndex = 0.0f;
 
 uniform float uMaxData;
 uniform float uMinData = 0.0f;
 
+out vec4 fragColor;
 
 void main(void)
 {
 	float funcVal = clamp((data - uMinData) / (uMaxData - uMinData), 0.0, 1.0);
-
-	vec2 funcvalTexCoord = vec2(funcVal, 115.0 / 512.0); //105 should be morgenstemming
+	vec2 funcvalTexCoord = vec2(funcVal, (uColorMapIndex * 10.0f + 5.0f)  / 512.0);
 
 	fragColor = texture(uFuncValTexture, funcvalTexCoord);
-	fragColor.a = 1.0;
-
 }

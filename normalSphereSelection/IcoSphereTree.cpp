@@ -366,6 +366,8 @@ bool IcoSphereTree::getNearestVertexFromRay(const QVector3D& rayOrigin, const QV
 	if(distance2 > 1.0)
 		return false;
 
+	//get closest point from ray. then test intersection from that point emitting a ray to the origin
+
 	//check root faces and recusivly refine the closest triangle intersection
 
 	float minDist = std::numeric_limits<float>::max();
@@ -409,6 +411,11 @@ void IcoSphereTree::deselectVertex(size_t index)
 void IcoSphereTree::clearSelection()
 {
 	mSelectedVertices.clear();
+}
+
+bool IcoSphereTree::isSelected(size_t index)
+{
+	return mSelectedVertices.find(index) != mSelectedVertices.end();
 }
 
 void IcoSphereTree::incData(size_t index)

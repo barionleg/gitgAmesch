@@ -26,9 +26,11 @@ class IcoSphereTree
 		//returns true if ray intersects icosphere. If true, the index of the nearest vertex is stored in 'index'
 		//last parameter toggles, if vertices "behind" the ray should also be considered
 		bool getNearestVertexFromRay(const QVector3D& rayOrigin, const QVector3D& rayDirection, size_t& index, bool rayIsLine = true) const;
+
 		void selectVertex(size_t index);
 		void deselectVertex(size_t index);
 		void clearSelection();
+		bool isSelected(size_t index);
 
 		void incData(size_t index);
 		unsigned int getMaxData() const;
