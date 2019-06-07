@@ -98,6 +98,10 @@ void NormalSphereSelectionRenderWidget::setSelected(float nx, float ny, float nz
 void NormalSphereSelectionRenderWidget::clearSelected()
 {
 	mIcoSphereTree.clearSelection();
+
+	for(auto& val : mSelectionBuffer)
+		val = 0;
+
 	mUpdateSelectionTexture = true;
 	update();
 }
