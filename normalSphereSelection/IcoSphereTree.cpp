@@ -1,0 +1,425 @@
+#include "IcoSphereTree.h"
+#include <cmath>
+#include <unordered_map>
+#include <queue>
+#include <limits>
+#include <cassert>
+
+//based on
+//https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
+
+//possible optimisations here:
+//https://github.com/erich666/jgt-code/blob/master/Volume_02/Number_1/Moller1997a/raytri.c
+
+//calculates intersection between ray starting at origin and rayDir
+//and triangle described by the vertices t0,t1,t2 . Returns true if the ray intersects the triangle and returns the distance in t
+//note, t can be negative. This means we have a line-intersection, not a ray-intersection
+bool intersectTriangle(const QVector3D& rayOrigin, const QVector3D& rayDir,
+					   const QVector3D& t0, const QVector3D& t1, const QVector3D& t2,
+					   float& t)
+{
+	const float eps = 0.000001;
+	/* find vectors for two edges sharing vert0 */
+	QVector3D edge1 = t1 - t0;
+	QVector3D edge2 = t2 - t0;
+
+	/* begin calculating determinant - also used to calculate U parameter */
+	QVector3D pvec = QVector3D::crossProduct(rayDir, edge2);
+
+	/* if determinant is near zero, ray lies in plane of triangle */
+	float det = QVector3D::dotProduct(edge1, pvec);
+
+	if(det > -eps && det < eps)
+		return false;
+
+	float inv_det = 1.0f / det;
+
+	/* calculate distance from vert0 to ray origin */
+	QVector3D tvec = rayOrigin - t0;
+
+	/* calculate U parameter and test bounds */
+	float u = QVector3D::dotProduct(tvec, pvec) * inv_det;
+	if(u < 0.0f || u > 1.0f)
+		return false;
+
+	/* prepare to test V parameter */
+	QVector3D qvec = QVector3D::crossProduct(tvec, edge1);
+
+	/* calculate V parameter and test bounds */
+	float v = QVector3D::dotProduct(rayDir, qvec) * inv_det;
+	if( v < 0.0f || u + v > 1.0)
+		return false;
+
+	/* calculate t, ray intersects triangle */
+	t = QVector3D::dotProduct(edge2, qvec) * inv_det;
+
+	return true;
+}
+
+IcoSphereTree::IcoSphereTree(unsigned int subdivision)
+{
+	mVertices.resize(12);
+	//initialise root icosahedron, t == golden ratio
+	float t = (1.0f + sqrtf(5.0f)) / 2.0f;
+
+	// create 12 vertices of a icosahedron
+	mVertices[ 0] = (QVector3D(-1.0f,  t, 0.0f).normalized());
+	mVertices[ 1] = (QVector3D( 1.0f,  t, 0.0f).normalized());
+	mVertices[ 2] = (QVector3D(-1.0f, -t, 0.0f).normalized());
+	mVertices[ 3] = (QVector3D( 1.0f, -t, 0.0f).normalized());
+
+	mVertices[ 4] =(QVector3D( 0.0f, -1.0f,  t).normalized());
+	mVertices[ 5] =(QVector3D( 0.0f,  1.0f,  t).normalized());
+	mVertices[ 6] =(QVector3D( 0.0f, -1.0f, -t).normalized());
+	mVertices[ 7] =(QVector3D( 0.0f,  1.0f, -t).normalized());
+
+	mVertices[ 8] =(QVector3D( t, 0.0f, -1.0f).normalized());
+	mVertices[ 9] =(QVector3D( t, 0.0f,  1.0f).normalized());
+	mVertices[10] =(QVector3D(-t, 0.0f, -1.0f).normalized());
+	mVertices[11] =(QVector3D(-t, 0.0f,  1.0f).normalized());
+
+	// 5 faces around point 0
+	mRootFaces[0].setVertIndices(0, 11,  5);
+	mRootFaces[1].setVertIndices(0,  5,  1);
+	mRootFaces[2].setVertIndices(0,  1,  7);
+	mRootFaces[3].setVertIndices(0,  7, 10);
+	mRootFaces[4].setVertIndices(0, 10, 11);
+
+	// 5 adjacent faces
+	mRootFaces[5].setVertIndices( 1,  5, 9);
+	mRootFaces[6].setVertIndices( 5, 11, 4);
+	mRootFaces[7].setVertIndices(11, 10, 2);
+	mRootFaces[8].setVertIndices(10,  7, 6);
+	mRootFaces[9].setVertIndices( 7,  1, 8);
+
+	// 5 faces around point 3
+	mRootFaces[10].setVertIndices(3, 9, 4);
+	mRootFaces[11].setVertIndices(3, 4, 2);
+	mRootFaces[12].setVertIndices(3, 2, 6);
+	mRootFaces[13].setVertIndices(3, 6, 8);
+	mRootFaces[14].setVertIndices(3, 8, 9);
+
+	// 5 adjacent faces
+	mRootFaces[15].setVertIndices(4, 9,  5);
+	mRootFaces[16].setVertIndices(2, 4, 11);
+	mRootFaces[17].setVertIndices(6, 2, 10);
+	mRootFaces[18].setVertIndices(8, 6,  7);
+	mRootFaces[19].setVertIndices(9, 8,  1);
+
+	subdivide(subdivision);
+}
+
+void IcoSphereTreeFaceNode::setVertIndices(size_t v0, size_t v1, size_t v2)
+{
+	vertexIndices[0] = v0;
+	vertexIndices[1] = v1;
+	vertexIndices[2] = v2;
+}
+
+size_t getMidPoint(size_t p1, size_t p2, std::vector<QVector3D>& vertices, std::unordered_map<uint64_t, size_t>& cache)
+{
+	uint64_t minIndex = std::min(p1, p2);
+	uint64_t maxIndex = std::max(p1, p2);
+	uint64_t key = (minIndex << 32) + maxIndex;
+
+	auto item = cache.find(key);
+	if(item != cache.end())
+	{
+		return item->second;
+	}
+
+	QVector3D middle = (vertices[p1] + vertices[p2]) * 0.5f;
+	unsigned int retVal = vertices.size();
+
+	vertices.emplace_back(middle.normalized());
+	cache.emplace(std::make_pair(key, retVal));
+
+	return retVal;
+}
+
+void subdivideFaces(std::unordered_map<uint64_t, size_t>& newNodeCache, std::queue<IcoSphereTreeFaceNode*>& faces, std::vector<QVector3D>& vertices)
+{
+	while(!faces.empty())
+	{
+		auto face = faces.front();
+		faces.pop();
+
+		//check if current face is a leaf-node
+		//if not, push children to the queue and skip further processing
+		if(!face->childNodes.empty())
+		{
+			for(auto& child : face->childNodes)
+			{
+				faces.push(child.get());
+			}
+			continue;
+		}
+
+		face->childNodes.reserve(4);
+
+		unsigned int a = getMidPoint(face->vertexIndices[0], face->vertexIndices[1], vertices, newNodeCache);
+		unsigned int b = getMidPoint(face->vertexIndices[1], face->vertexIndices[2], vertices, newNodeCache);
+		unsigned int c = getMidPoint(face->vertexIndices[2], face->vertexIndices[0], vertices, newNodeCache);
+
+		auto newFace = std::make_unique<IcoSphereTreeFaceNode>();
+		newFace->setVertIndices(face->vertexIndices[0], a, c);
+		face->childNodes.emplace_back(std::move(newFace));
+
+		newFace = std::make_unique<IcoSphereTreeFaceNode>();
+		newFace->setVertIndices(face->vertexIndices[1], b, a);
+		face->childNodes.emplace_back(std::move(newFace));
+
+		newFace = std::make_unique<IcoSphereTreeFaceNode>();
+		newFace->setVertIndices(face->vertexIndices[2], c, b);
+		face->childNodes.emplace_back(std::move(newFace));
+
+		newFace = std::make_unique<IcoSphereTreeFaceNode>();
+		newFace->setVertIndices(a, b, c);
+		face->childNodes.emplace_back(std::move(newFace));
+	}
+}
+//smoothes the sphere, resets the data
+void IcoSphereTree::subdivide(unsigned int subdivisions)
+{
+	std::unordered_map<uint64_t, size_t> newVertexCache;
+	for(unsigned int i = 0; i< subdivisions; ++i)
+	{
+		std::queue<IcoSphereTreeFaceNode*> faces;
+		for(auto& face : mRootFaces)
+		{
+			faces.push(&face);
+		}
+
+		subdivideFaces(newVertexCache, faces, mVertices);
+	}
+
+	mVertexData = std::vector<unsigned int>(mVertices.size(), 0);
+
+}
+
+std::vector<unsigned int> IcoSphereTree::getFaceIndices(int subdivisionLevel) const
+{
+	int level = 0;
+
+	std::queue<const IcoSphereTreeFaceNode*> currLevelFaces;
+
+	for(auto& face : mRootFaces)
+	{
+		currLevelFaces.push(&face);
+	}
+
+	while((level < subdivisionLevel || subdivisionLevel < 0) && !currLevelFaces.front()->childNodes.empty())
+	{
+		std::queue<const IcoSphereTreeFaceNode*> nextLevelFaces;
+
+		while(!currLevelFaces.empty())
+		{
+			auto face = currLevelFaces.front();
+			currLevelFaces.pop();
+
+			for(auto& child : face->childNodes)
+			{
+				nextLevelFaces.push(child.get());
+			}
+		}
+
+		std::swap(currLevelFaces, nextLevelFaces);
+		++level;
+	}
+
+
+	std::vector<unsigned int> retVec;
+	retVec.reserve(currLevelFaces.size() * 3);
+
+	while(!currLevelFaces.empty())
+	{
+		auto face = currLevelFaces.front();
+		currLevelFaces.pop();
+
+		retVec.push_back(face->vertexIndices[0]);
+		retVec.push_back(face->vertexIndices[1]);
+		retVec.push_back(face->vertexIndices[2]);
+	}
+
+	return retVec;
+}
+
+std::vector<float> IcoSphereTree::getVertexData() const
+{
+	std::vector<float> retVec(mVertices.size() * 3);
+
+	auto it = mVertices.begin();
+	for(size_t i = 0; i< retVec.size(); i += 3, ++it)
+	{
+		retVec[i    ] = it->x();
+		retVec[i + 1] = it->y();
+		retVec[i + 2] = it->z();
+	}
+
+	return retVec;
+}
+
+float pointRayDistanceSquared(const QVector3D& origin, const QVector3D& direction, const QVector3D& p)
+{
+	return QVector3D::crossProduct(p - origin, direction).lengthSquared();
+}
+
+size_t getClosestFaceVertexIndexToRay(const QVector3D& rayOrigin, const QVector3D& rayDirection, const IcoSphereTreeFaceNode* face, const std::vector<QVector3D>& vertices)
+{
+	//find closest vertex of the face to the intersection-point
+	int retIndex = face->vertexIndices[0];
+	float minDistance = pointRayDistanceSquared(rayOrigin, rayDirection, vertices[face->vertexIndices[0]]);
+
+	float distance = pointRayDistanceSquared(rayOrigin, rayDirection, vertices[face->vertexIndices[1]]);
+
+	if(distance < minDistance)
+	{
+		minDistance = distance;
+		retIndex = face->vertexIndices[1];
+	}
+
+	distance = pointRayDistanceSquared(rayOrigin, rayDirection, vertices[face->vertexIndices[2]]);
+
+	if(distance < minDistance)
+	{
+		retIndex = face->vertexIndices[2];
+	}
+	return retIndex;
+}
+
+inline QVector3D getFaceCenter(const IcoSphereTreeFaceNode* face, const std::vector<QVector3D>& vertices)
+{
+	return (vertices[face->vertexIndices[0]] + vertices[face->vertexIndices[1]] + vertices[face->vertexIndices[2]]) * 0.3;
+}
+
+size_t getVertexIndexClosestToRay(const IcoSphereTreeFaceNode* faceToRefine, const QVector3D& rayOrigin, const QVector3D& rayDirection, const std::vector<QVector3D>& vertices)
+{
+	const IcoSphereTreeFaceNode* vertexFace = faceToRefine;
+	float t;
+
+
+	//descent until we have the triangle on the lowest level
+	while(!vertexFace->childNodes.empty())
+	{
+		bool found = false;
+		//select triangle that intersects
+		for(const auto& child : vertexFace->childNodes)
+		{
+			if(intersectTriangle(rayOrigin, rayDirection, vertices[child->vertexIndices[0]], vertices[child->vertexIndices[1]], vertices[child->vertexIndices[2]], t))
+			{
+				vertexFace = child.get();
+				found = true;
+				break;
+			}
+		}
+		//no face collision detected. this may happen, if the ray is on the edge of two faces. in this case, we have to search through the vertices manually by distance...
+		if(!found)
+		{
+			break;
+		}
+	}
+
+	//need to refine further by finding the closest face vertices => this is not correct, as there are many times two triangles that fit the criteria
+	//=> better: check for distance to triangle center!
+	while(!vertexFace->childNodes.empty())
+	{
+		float minDist = std::numeric_limits<float>::max();
+		IcoSphereTreeFaceNode* candidate = nullptr;
+		//check which child shares the closes vertex
+		for(const auto& child : vertexFace->childNodes)
+		{
+			QVector3D center = getFaceCenter(child.get(), vertices);
+
+			float distance = pointRayDistanceSquared(rayOrigin, rayDirection, center);
+			if(distance < minDist)
+			{
+				minDist = distance;
+				candidate = child.get();
+			}
+		}
+		//this should not happen
+		assert(candidate != nullptr);
+
+		vertexFace = candidate;
+	}
+
+	return getClosestFaceVertexIndexToRay(rayOrigin, rayDirection, vertexFace, vertices);
+}
+
+size_t IcoSphereTree::getNearestVertexIndexAt(const QVector3D& position) const
+{
+	size_t index = 0;
+
+	//no check if it hits, because the ray is directed into the ico-spheres origin
+	getNearestVertexFromRay(position, (-position).normalized() , index);
+	return index;
+}
+
+bool IcoSphereTree::getNearestVertexFromRay(const QVector3D& rayOrigin, const QVector3D& rayDirection, size_t& index, bool rayIsLine) const
+{
+	//check if ray hits the sphere:
+	//origin of sphere is 0,0,0 , so direction from rayOrigin to sphereOrigin is -rayOrigin
+
+	float distance2 = QVector3D::crossProduct(-rayOrigin, rayDirection).lengthSquared();
+
+	//sphere has unit-radius
+	if(distance2 > 1.0)
+		return false;
+
+	//check root faces and recusivly refine the closest triangle intersection
+
+	float minDist = std::numeric_limits<float>::max();
+	const IcoSphereTreeFaceNode* refineFace = nullptr;
+	for(const auto& faceCandidate : mRootFaces)
+	{
+		float distance = 0.0;
+		if(intersectTriangle(rayOrigin, rayDirection, mVertices[faceCandidate.vertexIndices[0]], mVertices[faceCandidate.vertexIndices[1]], mVertices[faceCandidate.vertexIndices[2]],distance))
+		{
+			if(rayIsLine && distance < 0.0)
+				distance = -distance;
+
+			if(distance < minDist)
+			{
+				refineFace = &faceCandidate;
+				minDist = abs(distance);
+			}
+		}
+	}
+
+	if(refineFace == nullptr)
+		return false;
+
+	index = getVertexIndexClosestToRay(refineFace, rayOrigin, rayDirection, mVertices);
+	return true;
+}
+
+void IcoSphereTree::selectVertex(size_t index)
+{
+	mSelectedVertices.insert(index);
+}
+
+void IcoSphereTree::deselectVertex(size_t index)
+{
+	auto itemIt = mSelectedVertices.find(index);
+
+	if(itemIt != mSelectedVertices.end())
+		mSelectedVertices.erase(itemIt);
+}
+
+void IcoSphereTree::clearSelection()
+{
+	mSelectedVertices.clear();
+}
+
+void IcoSphereTree::incData(size_t index)
+{
+	if(index > mVertexData.size())
+		return;
+
+	mMaxData = std::max(mMaxData, ++mVertexData[index]);	//increment mVertexData, update maxData
+}
+
+unsigned int IcoSphereTree::getMaxData() const
+{
+	return mMaxData;
+}

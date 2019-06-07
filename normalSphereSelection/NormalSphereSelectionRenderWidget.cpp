@@ -1,0 +1,284 @@
+#include "NormalSphereSelectionRenderWidget.h"
+#include <cassert>
+#include <iostream>
+#include <QtMath>
+#include <QMouseEvent>
+#include <array>
+#include "IcoSphereTree.h"
+
+bool initShaderProgram(QOpenGLShaderProgram& program, const QString& vertexSource, const QString& fragmentSource)
+{
+	if(!program.addShaderFromSourceFile(QOpenGLShader::Vertex, vertexSource))
+	{
+		std::cerr << program.log().toStdString() << std::endl;
+		return false;
+	}
+
+	if(!program.addShaderFromSourceFile(QOpenGLShader::Fragment, fragmentSource))
+	{
+		std::cerr << program.log().toStdString() << std::endl;
+		return false;
+	}
+	if(!program.link())
+	{
+		std::cerr << program.log().toStdString() << std::endl;
+		return false;
+	}
+	return true;
+}
+
+QVector2D vec3ToSphereCoord(const QVector3D& vec)
+{
+	return QVector2D(
+			(atan2f(vec.y(), vec.x()) / M_PI + 1.0f) * 0.5f,
+			acosf(vec.z()) / M_PI
+			);
+}
+
+
+QVector2D getScreenPosNormalized(int posX, int posY, int w, int h)
+{
+	float x = (static_cast<float>(posX) / static_cast<float>(w)) * 2.0f - 1.0f;
+	float y = (static_cast<float>(posY) / static_cast<float>(h)) * 2.0f - 1.0f;
+
+	return QVector2D(x , -y);
+}
+
+float raySphereIntersect(const QVector3D& r0, const QVector3D& rd)
+{
+	float b = 2.0f * QVector3D::dotProduct(rd, r0);
+	float c = QVector3D::dotProduct(r0, r0) - 1.0f;
+
+	float test = b*b - 4.0f*c;
+
+	if (test < 0.0f) {
+		return -1.0f;
+	}
+	return (-b - sqrtf(test))/ 2.0f;
+}
+
+
+NormalSphereSelectionRenderWidget::NormalSphereSelectionRenderWidget(QWidget* parent)
+	: QOpenGLWidget(parent), mNumNormals(0),  mFuncValTexture(QOpenGLTexture::Target2D),
+	   mUpdateSelectionTexture(true), mMaxNormalDensity(0.0f),
+	  mScreenWidth(0), mScreenHeight(0),
+	  mIcosphereIndices(QOpenGLBuffer::IndexBuffer),
+	  mIcoSphereTree(6), mMinData(0.0f)
+{
+}
+
+void NormalSphereSelectionRenderWidget::setRenderNormals(std::vector<float>& normals)
+{
+	mNormalUpload = std::move(normals);
+
+	for(size_t i = 0; i<mNormalUpload.size(); i += 3)
+	{
+		size_t index = mIcoSphereTree.getNearestVertexIndexAt(QVector3D(mNormalUpload[i], mNormalUpload[i+1], mNormalUpload[i+2]));
+		mIcoSphereTree.incData(index);
+	}
+}
+
+void NormalSphereSelectionRenderWidget::setSelected(float nx, float ny, float nz)
+{
+	if(std::isnan(nx) || std::isnan(ny) || std::isnan(nz))
+		return;
+
+	mUpdateSelectionTexture = true;
+	update();
+}
+
+void NormalSphereSelectionRenderWidget::clearSelected()
+{
+	mUpdateSelectionTexture = true;
+	update();
+}
+
+bool NormalSphereSelectionRenderWidget::isNormalSelected(float nx, float ny, float nz)
+{
+	return false;
+}
+
+void NormalSphereSelectionRenderWidget::refreshNormals()
+{
+
+	mIcosphereDataBuffer.bind();
+	std::vector<float> dataBuffer(mIcoSphereTree.getVertexDataP()->size());
+
+	for(size_t i = 0; i<dataBuffer.size(); ++i)
+	{
+		dataBuffer[i] = static_cast<float>((*mIcoSphereTree.getVertexDataP())[i]);
+	}
+
+	mMinData = dataBuffer[0];
+	for(auto dat : dataBuffer)
+	{
+		mMinData = std::min(mMinData, dat);
+	}
+
+	mIcosphereDataBuffer.write(0,dataBuffer.data(), dataBuffer.size() * sizeof (float));
+	mIcosphereDataBuffer.release();
+	assert(glGetError() == GL_NO_ERROR);
+
+	mNormalUpload.resize(0);
+}
+
+void NormalSphereSelectionRenderWidget::mousePressEvent(QMouseEvent* event)
+{
+	if(event->button() == Qt::MouseButton::LeftButton)
+	{
+		mArcBall.beginDrag( getScreenPosNormalized(event->x(), event->y() , mScreenWidth, mScreenHeight ));
+		update();
+	}
+	else if(event->button() == Qt::MouseButton::RightButton)
+	{
+		update();
+	}
+}
+
+void NormalSphereSelectionRenderWidget::mouseReleaseEvent(QMouseEvent* event)
+{
+}
+
+void NormalSphereSelectionRenderWidget::mouseMoveEvent(QMouseEvent* event)
+{
+	if(event->buttons() & Qt::LeftButton)
+	{
+		mArcBall.drag( getScreenPosNormalized(event->x(), event->y() , mScreenWidth, mScreenHeight ) );
+		update();
+	}
+	else if(event->buttons() & Qt::RightButton)
+	{
+		update();
+	}
+}
+
+void NormalSphereSelectionRenderWidget::initializeGL()
+{
+	initializeOpenGLFunctions();
+
+	glClearColor(1.0,1.0,1.0,0.0);
+
+	mProjectionMatrix.ortho(-1.0,1.0,-1.0,1.0,0.0,2);	//ortho matrix with unit qube for the sphere
+
+	assert(glGetError() == GL_NO_ERROR);
+
+	if(!initShaderProgram(mIcoSphereShader, tr(":GMShaders/normalSphere/IcoshphereShader.vert"), tr(":GMShaders/normalSphere/IcosphereShader.frag")))
+		assert(false);
+
+	//icosphere buffer
+	mIcoSphereShader.bind();
+	mIcoSphereVAO.create();
+	mIcoSphereVAO.bind();
+
+	assert(glGetError() == GL_NO_ERROR);
+
+	mIcosphereBuffer.create();
+	mIcosphereBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
+	mIcosphereBuffer.bind();
+
+	assert(glGetError() == GL_NO_ERROR);
+
+	auto vertexData = mIcoSphereTree.getVertexData();
+
+	mIcosphereBuffer.allocate(vertexData.data(), vertexData.size() * sizeof (float));
+
+	assert(glGetError() == GL_NO_ERROR);
+
+	auto vertexLoc = mIcoSphereShader.attributeLocation("vPosition");
+	mIcoSphereShader.enableAttributeArray(vertexLoc);
+	mIcoSphereShader.setAttributeBuffer(vertexLoc, GL_FLOAT, 0, 3, 0);
+
+	assert(glGetError() == GL_NO_ERROR);
+
+	mIcosphereBuffer.release();
+
+	assert(glGetError() == GL_NO_ERROR);
+	mIcosphereDataBuffer.create();
+	mIcosphereDataBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
+	mIcosphereDataBuffer.bind();
+
+	mIcosphereDataBuffer.allocate(vertexData.size() / 3 * sizeof (float));
+
+	assert(glGetError() == GL_NO_ERROR);
+	vertexLoc = mIcoSphereShader.attributeLocation("vData");
+	mIcoSphereShader.enableAttributeArray(vertexLoc);
+	mIcoSphereShader.setAttributeBuffer(vertexLoc, GL_FLOAT, 0, 1, 0);
+
+	assert(glGetError() == GL_NO_ERROR);
+	mIcosphereIndices.create();
+	mIcosphereIndices.setUsagePattern(QOpenGLBuffer::StaticDraw);
+	mIcosphereIndices.bind();
+
+	auto faceIndices = mIcoSphereTree.getFaceIndices();
+	mIcosphereIndices.allocate(faceIndices.data(), faceIndices.size() * sizeof(unsigned int));
+
+	mIcoSphereVAO.release();
+	mIcosphereIndices.release();
+	mIcosphereDataBuffer.release();
+	mIcoSphereShader.release();
+
+
+	QImage texImage(tr(":/GMShaders/funcvalmapsquare.png"));
+	mFuncValTexture.setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Linear);
+	mFuncValTexture.setWrapMode(QOpenGLTexture::ClampToEdge);
+	mFuncValTexture.setData(texImage.mirrored(), QOpenGLTexture::DontGenerateMipMaps);
+
+}
+
+void NormalSphereSelectionRenderWidget::resizeGL(int w, int h)
+{
+	assert(glGetError() == GL_NO_ERROR);
+	glViewport(0,0,w,h);
+	mScreenWidth = w;
+	mScreenHeight = h;
+	assert(glGetError() == GL_NO_ERROR);
+}
+
+void NormalSphereSelectionRenderWidget::paintGL()
+{
+	assert(glGetError() == GL_NO_ERROR);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glEnable(GL_DEPTH_TEST);
+
+	assert(glGetError() == GL_NO_ERROR);
+	if(!mNormalUpload.empty())
+	{
+		refreshNormals();
+	}
+
+	assert(glGetError() == GL_NO_ERROR);
+	mIcoSphereShader.bind();
+	mIcoSphereVAO.bind();
+
+	//glCullFace(GL_BACK);
+	QQuaternion quat = mArcBall.getTransformationQuat();
+
+	QVector3D origin = quat.conjugated() * QVector3D(0.0,0.0, 1.5);
+	QVector3D up = quat.conjugated() * QVector3D(0.0,1.0,0.0);
+
+	mViewMatrix.setToIdentity();
+	mViewMatrix.lookAt(origin, QVector3D(0.0,0.0,0.0), up);
+
+	mIcoSphereShader.setUniformValue("uModelViewMatrix",mViewMatrix);
+	mIcoSphereShader.setUniformValue("uProjectionMatrix", mProjectionMatrix);
+	mIcoSphereShader.setUniformValue("uMaxData", static_cast<float>(mIcoSphereTree.getMaxData()));
+	mIcoSphereShader.setUniformValue("uMinData", mMinData);
+
+	glActiveTexture(GL_TEXTURE0);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, mFuncValTexture.textureId());
+
+	mIcoSphereShader.setUniformValue("uFuncValTexture", 0);
+
+	glDrawElements(GL_TRIANGLES, mIcosphereIndices.size() / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
+
+	assert(glGetError() == GL_NO_ERROR);
+
+	mIcoSphereShader.release();
+	mIcoSphereVAO.release();
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glDisable(GL_TEXTURE_2D);
+	assert(glGetError() == GL_NO_ERROR);
+}
