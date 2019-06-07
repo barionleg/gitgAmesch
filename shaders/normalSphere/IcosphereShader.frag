@@ -1,5 +1,6 @@
 #version 150
 in float data;
+in float selected;
 
 uniform sampler2D uFuncValTexture;
 uniform float uColorMapIndex = 0.0f;
@@ -15,4 +16,5 @@ void main(void)
 	vec2 funcvalTexCoord = vec2(funcVal, (uColorMapIndex * 10.0f + 5.0f)  / 512.0);
 
 	fragColor = texture(uFuncValTexture, funcvalTexCoord);
+	fragColor.rgb = mix(fragColor.rgb, vec3(0,1,0), selected);
 }

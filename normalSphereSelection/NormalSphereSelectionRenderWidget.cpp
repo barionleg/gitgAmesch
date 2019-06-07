@@ -59,9 +59,9 @@ float raySphereIntersect(const QVector3D& r0, const QVector3D& rd)
 
 
 NormalSphereSelectionRenderWidget::NormalSphereSelectionRenderWidget(QWidget* parent)
-	: QOpenGLWidget(parent),  mFuncValTexture(QOpenGLTexture::Target2D),
+	: QOpenGLWidget(parent),  mFuncValTexture(QOpenGLTexture::Target2D), mSelectionTexture(QOpenGLTexture::Target2D),
 	  mIcosphereIndices(QOpenGLBuffer::IndexBuffer),
-	  mIcoSphereTree(6)
+	  mIcoSphereTree(6), mSelectionBuffer(0,0)
 {
 }
 
@@ -87,6 +87,9 @@ void NormalSphereSelectionRenderWidget::setSelected(float nx, float ny, float nz
 	size_t index = mIcoSphereTree.getNearestVertexIndexAt(QVector3D(nx, ny, nz));
 
 	mIcoSphereTree.selectVertex(index);
+
+	if(index < mSelectionBuffer.size())
+		mSelectionBuffer[index] = 255;
 
 	mUpdateSelectionTexture = true;
 	update();
@@ -139,6 +142,23 @@ void NormalSphereSelectionRenderWidget::refreshNormals()
 	mNormalUpload.resize(0);
 }
 
+bool getSpherePoint(const QVector2D& screenCoordNorm, const QQuaternion& camRotation, QVector3D& retVec)
+{
+	if(screenCoordNorm.length() > 1.0 || screenCoordNorm.x() > 1.0 || screenCoordNorm.x() < -1.0 || screenCoordNorm.y() > 1.0 || screenCoordNorm.y() < -1.0)
+			return false;
+
+	QVector3D origin = camRotation * QVector3D(screenCoordNorm.x(), screenCoordNorm.y(), 1.5);
+	QVector3D viewDirection = camRotation * QVector3D(0.0,0.0, -1.0);
+
+	float interSectDist = raySphereIntersect(origin, viewDirection);
+
+	if(interSectDist < 0.0)
+		return false;
+
+	retVec = (origin + viewDirection * interSectDist);
+	return true;
+}
+
 void NormalSphereSelectionRenderWidget::mousePressEvent(QMouseEvent* event)
 {
 	if(event->button() == Qt::MouseButton::LeftButton)
@@ -149,11 +169,11 @@ void NormalSphereSelectionRenderWidget::mousePressEvent(QMouseEvent* event)
 	else if(event->button() == Qt::MouseButton::RightButton)
 	{
 		auto posNormalized = getScreenPosNormalized(event->x(), event->y(), mScreenWidth, mScreenHeight);
-
-		//project to sphere
-		//select point
-
-		update();
+		QVector3D sphereVec;
+		if(getSpherePoint(posNormalized, mArcBall.getTransformationQuat().conjugated(), sphereVec ))
+		{
+			setSelected(sphereVec.x(), sphereVec.y(), sphereVec.z());
+		}
 	}
 }
 
@@ -170,7 +190,12 @@ void NormalSphereSelectionRenderWidget::mouseMoveEvent(QMouseEvent* event)
 	}
 	else if(event->buttons() & Qt::RightButton)
 	{
-		update();
+		auto posNormalized = getScreenPosNormalized(event->x(), event->y(), mScreenWidth, mScreenHeight);
+		QVector3D sphereVec;
+		if(getSpherePoint(posNormalized, mArcBall.getTransformationQuat().conjugated(), sphereVec ))
+		{
+			setSelected(sphereVec.x(), sphereVec.y(), sphereVec.z());
+		}
 	}
 }
 
@@ -239,11 +264,31 @@ void NormalSphereSelectionRenderWidget::initializeGL()
 	mIcosphereDataBuffer.release();
 	mIcoSphereShader.release();
 
-
 	QImage texImage(tr(":/GMShaders/funcvalmapsquare.png"));
 	mFuncValTexture.setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Linear);
 	mFuncValTexture.setWrapMode(QOpenGLTexture::ClampToEdge);
 	mFuncValTexture.setData(texImage.mirrored(), QOpenGLTexture::DontGenerateMipMaps);
+
+	unsigned int texWidth = 64;
+	unsigned int texHeight = 64;
+
+	int maxTexSize;
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSize);
+
+	while(texWidth < maxTexSize && texWidth * texHeight < vertexData.size() / 3)
+	{
+		texWidth <= texHeight ? texWidth *= 2 : texHeight *= 2;
+	}
+
+	mSelectionBuffer.resize(texWidth * texHeight, 0);
+
+	mSelectionTexture.setFormat(QOpenGLTexture::R8_UNorm);
+	mSelectionTexture.setSize(texWidth, texHeight);
+	mSelectionTexture.setMinMagFilters(QOpenGLTexture::Nearest, QOpenGLTexture::Nearest);
+	mSelectionTexture.setWrapMode(QOpenGLTexture::ClampToEdge);
+	mSelectionTexture.allocateStorage();
+
+	mSelectionTexture.setData(0,QOpenGLTexture::Red,QOpenGLTexture::UInt8, mSelectionBuffer.data());
 
 }
 
@@ -272,6 +317,12 @@ void NormalSphereSelectionRenderWidget::paintGL()
 		refreshNormals();
 	}
 
+	if(mUpdateSelectionTexture)
+	{
+		mUpdateSelectionTexture = false;
+		mSelectionTexture.setData(0,QOpenGLTexture::Red,QOpenGLTexture::UInt8, mSelectionBuffer.data());
+	}
+
 	assert(glGetError() == GL_NO_ERROR);
 	mIcoSphereShader.bind();
 	mIcoSphereVAO.bind();
@@ -297,12 +348,22 @@ void NormalSphereSelectionRenderWidget::paintGL()
 
 	mIcoSphereShader.setUniformValue("uFuncValTexture", 0);
 
+	glActiveTexture(GL_TEXTURE1);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, mSelectionTexture.textureId());
+
+	mIcoSphereShader.setUniformValue("uSelectionTexture", 1);
+	mIcoSphereShader.setUniformValue("uTextureWidth", mSelectionTexture.width());
+
 	glDrawElements(GL_TRIANGLES, mIcosphereIndices.size() / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
 
 	assert(glGetError() == GL_NO_ERROR);
 
 	mIcoSphereShader.release();
 	mIcoSphereVAO.release();
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE0);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glDisable(GL_TEXTURE_2D);

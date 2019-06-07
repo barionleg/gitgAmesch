@@ -43,10 +43,12 @@ class NormalSphereSelectionRenderWidget : public QOpenGLWidget, QOpenGLFunctions
 	private:
 		void initializeUnitSphereBuffer();
 		void refreshNormals();
+
 		QMatrix4x4 mViewMatrix;
 		QMatrix4x4 mProjectionMatrix;
 
 		QOpenGLTexture mFuncValTexture;
+		QOpenGLTexture mSelectionTexture;
 
 		QOpenGLBuffer mIcosphereBuffer;
 		QOpenGLBuffer mIcosphereDataBuffer;
@@ -57,6 +59,7 @@ class NormalSphereSelectionRenderWidget : public QOpenGLWidget, QOpenGLFunctions
 		bool mUpdateSelectionTexture = false;
 
 		std::vector<float> mNormalUpload;
+		std::vector<GLubyte> mSelectionBuffer;
 
 		ArcBall mArcBall;
 

@@ -367,6 +367,10 @@ bool IcoSphereTree::getNearestVertexFromRay(const QVector3D& rayOrigin, const QV
 		return false;
 
 	//get closest point from ray. then test intersection from that point emitting a ray to the origin
+	//we do this, because the ray might intersect the sphere, but miss the lowest resolution of the icosphere
+	QVector3D newOrigin = QVector3D::dotProduct(rayOrigin, rayDirection) * rayDirection; //(dot(a-p, n) * n) ; p == 0,0,0
+	QVector3D newDir = (-newOrigin).normalized();
+	newOrigin -= newDir; //we push the origin out of the sphere. Otherwise it might be inside...
 
 	//check root faces and recusivly refine the closest triangle intersection
 
@@ -375,7 +379,7 @@ bool IcoSphereTree::getNearestVertexFromRay(const QVector3D& rayOrigin, const QV
 	for(const auto& faceCandidate : mRootFaces)
 	{
 		float distance = 0.0;
-		if(intersectTriangle(rayOrigin, rayDirection, mVertices[faceCandidate.vertexIndices[0]], mVertices[faceCandidate.vertexIndices[1]], mVertices[faceCandidate.vertexIndices[2]],distance))
+		if(intersectTriangle(newOrigin, newDir, mVertices[faceCandidate.vertexIndices[0]], mVertices[faceCandidate.vertexIndices[1]], mVertices[faceCandidate.vertexIndices[2]],distance))
 		{
 			if(rayIsLine && distance < 0.0)
 				distance = -distance;
