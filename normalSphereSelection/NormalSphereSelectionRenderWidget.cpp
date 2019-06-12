@@ -41,6 +41,13 @@ QVector2D getScreenPosNormalized(int posX, int posY, int w, int h)
 	float x = (static_cast<float>(posX) / static_cast<float>(w)) * 2.0f - 1.0f;
 	float y = (static_cast<float>(posY) / static_cast<float>(h)) * 2.0f - 1.0f;
 
+
+	//respect aspect ratio
+	if(w < h)
+		y *= static_cast<float>(h) / static_cast<float>(w);
+	else
+		x *= static_cast<float>(w) / static_cast<float>(h);
+
 	return QVector2D(x , -y);
 }
 
@@ -86,10 +93,13 @@ void NormalSphereSelectionRenderWidget::setSelected(float nx, float ny, float nz
 
 	size_t index = mIcoSphereTree.getNearestVertexIndexAt(QVector3D(nx, ny, nz));
 
-	mIcoSphereTree.selectVertex(index);
+	if(mSelectionMask != 0)
+		mIcoSphereTree.selectVertex(index);
+	else
+		mIcoSphereTree.deselectVertex(index);
 
 	if(index < mSelectionBuffer.size())
-		mSelectionBuffer[index] = 255;
+		mSelectionBuffer[index] = mSelectionMask;
 
 	mUpdateSelectionTexture = true;
 	update();
@@ -146,6 +156,18 @@ void NormalSphereSelectionRenderWidget::refreshNormals()
 	mNormalUpload.resize(0);
 }
 
+
+
+float NormalSphereSelectionRenderWidget::selectionRadius() const
+{
+	return mSelectionRadius;
+}
+
+void NormalSphereSelectionRenderWidget::setSelectionRadius(float selectionRadius)
+{
+	mSelectionRadius = std::min(selectionRadius, 10.0f);
+}
+
 bool getSpherePoint(const QVector2D& screenCoordNorm, const QQuaternion& camRotation, QVector3D& retVec)
 {
 	if(screenCoordNorm.length() > 1.0 || screenCoordNorm.x() > 1.0 || screenCoordNorm.x() < -1.0 || screenCoordNorm.y() > 1.0 || screenCoordNorm.y() < -1.0)
@@ -163,6 +185,49 @@ bool getSpherePoint(const QVector2D& screenCoordNorm, const QQuaternion& camRota
 	return true;
 }
 
+void NormalSphereSelectionRenderWidget::selectAt(int xCoord, int yCoord)
+{
+	if(mSelectionRadius == 1.0f)
+	{
+		auto posNormalized = getScreenPosNormalized(xCoord, yCoord, mScreenWidth, mScreenHeight);
+		QVector3D sphereVec;
+		if(getSpherePoint(posNormalized, mArcBall.getTransformationQuat().conjugated(), sphereVec ))
+		{
+			setSelected(sphereVec.x(), sphereVec.y(), sphereVec.z());
+		}
+	}
+
+	else
+	{
+		//TODO: do this in normalized coordinates
+		for(float x = -mSelectionRadius; x < mSelectionRadius; x += 1.0f)
+		{
+			for(float y = -mSelectionRadius; y < mSelectionRadius; y += 1.0f)
+			{
+				if(QVector2D(x,y).lengthSquared() > mSelectionRadius * mSelectionRadius)
+					continue;
+
+				auto posNormalized = getScreenPosNormalized(xCoord + x, yCoord + y, mScreenWidth, mScreenHeight);
+				QVector3D sphereVec;
+				if(getSpherePoint(posNormalized, mArcBall.getTransformationQuat().conjugated(), sphereVec ))
+				{
+					setSelected(sphereVec.x(), sphereVec.y(), sphereVec.z());
+				}
+			}
+		}
+	}
+}
+
+GLubyte NormalSphereSelectionRenderWidget::selectionMask() const
+{
+	return mSelectionMask;
+}
+
+void NormalSphereSelectionRenderWidget::setSelectionMask(const GLubyte& selectionMask)
+{
+	mSelectionMask = selectionMask;
+}
+
 void NormalSphereSelectionRenderWidget::mousePressEvent(QMouseEvent* event)
 {
 	if(event->button() == Qt::MouseButton::LeftButton)
@@ -172,12 +237,8 @@ void NormalSphereSelectionRenderWidget::mousePressEvent(QMouseEvent* event)
 	}
 	else if(event->button() == Qt::MouseButton::RightButton)
 	{
-		auto posNormalized = getScreenPosNormalized(event->x(), event->y(), mScreenWidth, mScreenHeight);
-		QVector3D sphereVec;
-		if(getSpherePoint(posNormalized, mArcBall.getTransformationQuat().conjugated(), sphereVec ))
-		{
-			setSelected(sphereVec.x(), sphereVec.y(), sphereVec.z());
-		}
+		selectAt(event->x(), event->y());
+		update();
 	}
 }
 
@@ -194,12 +255,8 @@ void NormalSphereSelectionRenderWidget::mouseMoveEvent(QMouseEvent* event)
 	}
 	else if(event->buttons() & Qt::RightButton)
 	{
-		auto posNormalized = getScreenPosNormalized(event->x(), event->y(), mScreenWidth, mScreenHeight);
-		QVector3D sphereVec;
-		if(getSpherePoint(posNormalized, mArcBall.getTransformationQuat().conjugated(), sphereVec ))
-		{
-			setSelected(sphereVec.x(), sphereVec.y(), sphereVec.z());
-		}
+		selectAt(event->x(), event->y());
+		update();
 	}
 }
 
@@ -207,9 +264,9 @@ void NormalSphereSelectionRenderWidget::initializeGL()
 {
 	initializeOpenGLFunctions();
 
-	glClearColor(1.0,1.0,1.0,0.0);
+	glClearColor(1.0f,1.0f,1.0f,0.0f);
 
-	mProjectionMatrix.ortho(-1.0,1.0,-1.0,1.0,0.0,2);	//ortho matrix with unit qube for the sphere
+	mProjectionMatrix.ortho(-1.0f,1.0f,-1.0f,1.0f,0.0f,2.0f);	//ortho matrix with unit qube for the sphere
 
 	assert(glGetError() == GL_NO_ERROR);
 
@@ -293,7 +350,6 @@ void NormalSphereSelectionRenderWidget::initializeGL()
 	mSelectionTexture.allocateStorage();
 
 	mSelectionTexture.setData(0,QOpenGLTexture::Red,QOpenGLTexture::UInt8, mSelectionBuffer.data());
-
 }
 
 void NormalSphereSelectionRenderWidget::resizeGL(int w, int h)
@@ -303,6 +359,19 @@ void NormalSphereSelectionRenderWidget::resizeGL(int w, int h)
 	mScreenWidth = w;
 	mScreenHeight = h;
 	assert(glGetError() == GL_NO_ERROR);
+
+	float width = 1.0f;
+	float height = 1.0f;
+
+	//maintain aspect ratio
+	if(w < h)
+		height = static_cast<float>(h) / static_cast<float>(w);
+	else
+		width = static_cast<float>(w) / static_cast<float>(h);
+
+	mProjectionMatrix.setToIdentity();
+	mProjectionMatrix.ortho(-width,width,-height,height,0.0f,2.0f);	//ortho matrix with unit qube for the sphere
+
 }
 
 void NormalSphereSelectionRenderWidget::paintGL()

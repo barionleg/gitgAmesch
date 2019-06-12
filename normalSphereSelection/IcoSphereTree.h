@@ -27,6 +27,9 @@ class IcoSphereTree
 		//last parameter toggles, if vertices "behind" the ray should also be considered
 		bool getNearestVertexFromRay(const QVector3D& rayOrigin, const QVector3D& rayDirection, size_t& index, bool rayIsLine = true) const;
 
+		//returns a set of vertices which intersect with the radius
+		//void getNearestVerticesFromRay(const QVector3D& rayOrigin, const QVector3D& rayDirection, float radius, std::unordered_set<size_t>& retVertexIndices);
+
 		void selectVertex(size_t index);
 		void deselectVertex(size_t index);
 		void clearSelection();

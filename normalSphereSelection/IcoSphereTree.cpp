@@ -4,6 +4,7 @@
 #include <queue>
 #include <limits>
 #include <cassert>
+#include <unordered_set>
 
 //based on
 //https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
@@ -315,32 +316,23 @@ size_t getVertexIndexClosestToRay(const IcoSphereTreeFaceNode* faceToRefine, con
 		//no face collision detected. this may happen, if the ray is on the edge of two faces. in this case, we have to search through the vertices manually by distance...
 		if(!found)
 		{
-			break;
-		}
-	}
+			float minDist = std::numeric_limits<float>::max();
+			IcoSphereTreeFaceNode* candidate = nullptr;
 
-	//need to refine further by finding the closest face vertices => this is not correct, as there are many times two triangles that fit the criteria
-	//=> better: check for distance to triangle center!
-	while(!vertexFace->childNodes.empty())
-	{
-		float minDist = std::numeric_limits<float>::max();
-		IcoSphereTreeFaceNode* candidate = nullptr;
-		//check which child shares the closes vertex
-		for(const auto& child : vertexFace->childNodes)
-		{
-			QVector3D center = getFaceCenter(child.get(), vertices);
-
-			float distance = pointRayDistanceSquared(rayOrigin, rayDirection, center);
-			if(distance < minDist)
+			//check which child shares the closes vertex
+			for(const auto& child : vertexFace->childNodes)
 			{
-				minDist = distance;
-				candidate = child.get();
-			}
-		}
-		//this should not happen
-		assert(candidate != nullptr);
+				QVector3D center = getFaceCenter(child.get(), vertices);
 
-		vertexFace = candidate;
+				float distance = pointRayDistanceSquared(rayOrigin, rayDirection, center);
+				if(distance < minDist)
+				{
+					minDist = distance;
+					candidate = child.get();
+				}
+			}
+			vertexFace = candidate;
+		}
 	}
 
 	return getClosestFaceVertexIndexToRay(rayOrigin, rayDirection, vertexFace, vertices);

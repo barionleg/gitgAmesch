@@ -9,7 +9,7 @@
 class ArcBall
 {
 	public:
-		ArcBall(const QVector3D& center = QVector3D(0.0,0.0,0.0), float radius = 1.0);
+		ArcBall(const QVector3D& center = QVector3D(0.0,0.0,0.0), float radius = 2.0);
 
 		~ArcBall() = default;
 
@@ -18,6 +18,7 @@ class ArcBall
 		void drag(const QVector2D& screenCoords);
 
 		[[nodiscard]] QQuaternion getTransformationQuat() const;
+		void setTransformationQuat(const QQuaternion& quat);
 	private:
 
 		QVector3D mouseOnSphere(const QVector2D& mousePos);

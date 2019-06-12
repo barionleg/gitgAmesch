@@ -27,6 +27,11 @@ QQuaternion ArcBall::getTransformationQuat() const
 	return mQNow;
 }
 
+void ArcBall::setTransformationQuat(const QQuaternion& quat)
+{
+	mQNow = quat;
+}
+
 QVector3D ArcBall::mouseOnSphere(const QVector2D& mousePos)
 {
 	QVector3D ballMouse;

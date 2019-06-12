@@ -24,11 +24,18 @@ class NormalSphereSelectionRenderWidget : public QOpenGLWidget, QOpenGLFunctions
 		void setRenderNormals(std::vector<float>& normals);
 
 		void setSelected(float nx, float ny, float nz);
+		void setSelected(float nx, float ny, float nz, float radius);
 		void clearSelected();
 		bool isNormalSelected(float nx, float ny, float nz);
 		// QWidget interface
 
 		void setColorMapIndex(unsigned int index);
+		float selectionRadius() const;
+		void setSelectionRadius(float selectionRadius);
+
+		GLubyte selectionMask() const;
+		void setSelectionMask(const GLubyte& selectionMask);
+
 	protected:
 		void mousePressEvent(QMouseEvent* event) override;
 		void mouseReleaseEvent(QMouseEvent* event) override;
@@ -43,6 +50,7 @@ class NormalSphereSelectionRenderWidget : public QOpenGLWidget, QOpenGLFunctions
 	private:
 		void initializeUnitSphereBuffer();
 		void refreshNormals();
+		void selectAt(int xCoord, int yCoord);
 
 		QMatrix4x4 mViewMatrix;
 		QMatrix4x4 mProjectionMatrix;
@@ -70,6 +78,9 @@ class NormalSphereSelectionRenderWidget : public QOpenGLWidget, QOpenGLFunctions
 		float mMinData = 0.0f;
 
 		unsigned int mColorMapIndex = 0;
+
+		float mSelectionRadius = 1.0f;
+		GLubyte mSelectionMask = 255;
 };
 
 #endif // NormalSphereSELECTIONRenderWIDGET_H

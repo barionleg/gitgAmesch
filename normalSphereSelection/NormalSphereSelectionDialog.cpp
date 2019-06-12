@@ -5,6 +5,7 @@
 #include <QSlider>
 #include <list>
 #include <QAbstractButton>
+#include <QRadioButton>
 #include <iostream>
 
 NormalSphereSelectionDialog::NormalSphereSelectionDialog(QWidget *parent) :
@@ -34,7 +35,11 @@ NormalSphereSelectionDialog::NormalSphereSelectionDialog(QWidget *parent) :
 	ui->colorMap_comboBox->addItem(tr("siennatones"));
 	ui->colorMap_comboBox->addItem(tr("hypse_arid"));
 
-	QObject::connect(ui->colorMap_comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index) {this->ui->openGLWidget->setColorMapIndex(index);});
+	connect(ui->colorMap_comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index) {this->ui->openGLWidget->setColorMapIndex(index);});
+	connect(ui->selectionRadius_horizontalSlider, &QSlider::valueChanged, [this](int value) {this->ui->openGLWidget->setSelectionRadius(value);});
+
+	connect(ui->selectionModeSelect_radioButton, &QRadioButton::pressed, [this](){this->ui->openGLWidget->setSelectionMask(255);});
+	connect(ui->selectionModeClear_radioButton, &QRadioButton::pressed, [this](){this->ui->openGLWidget->setSelectionMask(0);});
 
 	ui->colorMap_comboBox->setCurrentIndex(11);
 
