@@ -281,16 +281,11 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	QObject::connect( mMainWindow, SIGNAL(visualizeDistanceToCone()),             this, SLOT(visualizeDistanceToCone())              );
 	// # Other
 	QObject::connect( mMainWindow, SIGNAL(visualizeVertexIndices()),              this, SLOT(visualizeVertexIndices())               );
-	QObject::connect( mMainWindow, SIGNAL(visualizeVertex1RingArea()),            this, SLOT(visualizeVertex1RingArea())             );
-	QObject::connect( mMainWindow, SIGNAL(visualizeVertex1RSumAngles()),          this, SLOT(visualizeVertex1RSumAngles())           );
 	QObject::connect( mMainWindow, SIGNAL(sFuncVert1RingRMin()),                  this, SLOT(funcVert1RingRMin())                    );
 	QObject::connect( mMainWindow, SIGNAL(sFuncVert1RingVolInt()),                this, SLOT(funcVert1RingVolInt())                  );
 	QObject::connect( mMainWindow, SIGNAL(visualizeVertexOctree()),               this, SLOT(visualizeVertexOctree())                );
 	QObject::connect( mMainWindow, SIGNAL(visualizeVertexFaceSphereAngleMax()),   this, SLOT(visualizeVertexFaceSphereAngleMax())    );
 	QObject::connect( mMainWindow, SIGNAL(visualizeVertFaceSphereMeanAngleMax()), this, SLOT(visualizeVertFaceSphereMeanAngleMax())  );
-	QObject::connect( mMainWindow, SIGNAL(sFuncVertDistancesMax()),               this, SLOT(funcVertDistancesMax())                 );
-	// # Faces
-	QObject::connect( mMainWindow, SIGNAL(visualizeFaceSortIndex()),              this, SLOT(visualizeFaceSortIndex())               );
 	// #####################################################################################################################################################
 
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3672,24 +3667,6 @@ void MeshQt::visualizeVertexIndices() {
 	}
 }
 
-void MeshQt::visualizeVertex1RingArea() {
-	//! Applies vertex indices as colors
-	int      vertCount  = 0;
-	Vertex** vertices   = nullptr;
-	double*  funcValues = nullptr;
-	getVert1RingArea( &funcValues, &vertices, &vertCount );
-	if( setVertexFuncValues( vertices, funcValues, vertCount, "Vertex 1-Ring Area" ) ) {
-		setParamIntMeshGL( TEXMAP_CHOICE_FACES, TEXMAP_VERT_FUNCVAL );
-	}
-}
-
-void MeshQt::visualizeVertex1RSumAngles() {
-	//! Visualizes the sum of the angles of the adjacent faces.
-	//! Only the angle at the vertex is added!
-	//! see Mesh::setVertFuncVal1RSumAngles
-	setVertFuncVal1RSumAngles();
-}
-
 //! Compute r_min_i for 1-rings - see Mesh::funcVert1RingRMin
 bool MeshQt::funcVert1RingRMin() {
 	return MeshGL::funcVert1RingRMin();
@@ -3756,15 +3733,6 @@ void MeshQt::visualizeVertFaceSphereMeanAngleMax( double rRadius ) {
 	SHOW_MSGBOX_INFO( "Function values computed", tr( "Took %1 milliseconds." ).arg( timer.elapsed() ) );
 }
 
-//! Compute maximum distances between vertices.
-bool MeshQt::funcVertDistancesMax() {
-	return MeshGL::funcVertDistancesMax();
-}
-
-//! Visualize the current sorting index of the faces.
-void MeshQt::visualizeFaceSortIndex() {
-	MeshGL::setFaceFuncValSortIdx();
-}
 
 // --- Colorramp------------------------------------------------------------------------------------------------------------------------------------------------
 

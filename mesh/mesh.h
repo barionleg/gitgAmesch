@@ -465,7 +465,6 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		// OLD style - Compute function values:
 				//! \todo source revision
 				bool getVertIndices( double** funcValues, Vertex*** vertices, int* vertCount );
-				bool getVert1RingArea( double** funcValues, Vertex*** vertices, int* vertCount );
 				bool getDistanceVerticesToPosition( Vector3D rPos, double* rDistMin, double* rDistMax ); // <- this is not an OLD style function - to be kept!
 				bool getHueValues( double** funcValues, Vertex*** vertices, int* vertCount );
 		// NEW style, Faces - Compute and modify function values:
@@ -489,12 +488,13 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool setVertFuncValMult();
 		virtual bool setVertFuncValMult( double rVal );
 		virtual bool setVertFuncValToOrder();
-				bool setVertFuncValDistanceToCone( bool rAbsDist );
-				bool setVertFuncValDistanceToSphere();
-				bool setVertFuncVal1RSumAngles();
-				bool setVertFuncValOctreeIdx( double rEdgeLen );
-				bool setVertFuncValFaceSphereAngleMax( double rRadius );
-				bool setVertFuncValFaceSphereMeanAngleMax( double rRadius );
+		        bool setVertFuncValDistanceToCone( bool rAbsDist );
+		        bool setVertFuncValDistanceToSphere();
+		        bool setVertFuncVal1RSumAngles();
+		        bool setVertFuncValOctreeIdx( double rEdgeLen );
+		        bool setVertFuncValFaceSphereAngleMax( double rRadius );
+		        bool setVertFuncValFaceSphereMeanAngleMax( double rRadius );
+		        bool setVertFuncVal1RingArea();
 		// NEW style and NEW naming convention:
 		enum eFuncFeatureVecPNormWeigth {
 			FEATURE_VECTOR_PNORM_WEIGTH_LINEAR,
@@ -528,7 +528,6 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		        bool getVertFuncValAverage( double* rAverage );
 		// Partially old stuff:
 		//! \todo source revision
-		virtual bool   setVertexFuncValues(Vertex** vertices, double* values, int verticesNr, const std::string& setName );
 		        bool   getFuncValuesMinMax( double& rMinVal, double& rMaxVal );
 		        bool   getFuncValuesMinMaxQuantil( double rMinQuantil, double rMaxQuantil, double& rMinVal, double& rMaxVal );
 		        bool   getFuncValuesMinMaxInfNanFail( double& rMinVal, double& rMaxVal, int& rInfCount, int& rNanCount, int& rFailCount );
@@ -602,15 +601,15 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool       geodPatchVertSelOrder( std::vector<Vertex*>* rmLabelSeedVerts, bool rWeightFuncVal, bool rGeodDistToFuncVal );
 		        bool       estGeodesicPatchSelPrim();
 		virtual bool       estGeodesicPatchRelabel( std::map<Vertex*,GeodEntry*>* geoDistList );
-				bool       estGeodesicPatchFuncVal( std::map<Vertex*,GeodEntry*>* rGeoDistList, const std::string& rSomeName );
+		        bool       estGeodesicPatchFuncVal( std::map<Vertex*,GeodEntry*>* rGeoDistList );
 		        bool       estGeodesicPatchFuncVal( Vertex* seedVertex, double radius, bool weightFuncVal );
 		        bool       estGeodesicPatchFuncVal( Face* seedFace,     double radius, bool weightFuncVal );
 				bool       estGeodesicPatch( Vertex* seedVertex, double radius, std::map<Vertex*,GeodEntry*>* geoDistList, bool weightFuncVal );
 				bool       estGeodesicPatch( Face* seedFace,     double radius, std::map<Vertex*,GeodEntry*>* geoDistList, bool weightFuncVal );
-		private:
-				bool       estGeodesicPatch( Vertex* seedVertex, double radius, std::map<Vertex*,GeodEntry*>* geoDistList, uint64_t* faceBitArray, int faceNrBlocks, bool weightFuncVal );
-				bool       estGeodesicPatch( Face* seedFace,     double radius, std::map<Vertex*,GeodEntry*>* geoDistList, uint64_t* faceBitArray, int faceNrBlocks, bool weightFuncVal );
-				bool       estGeodesicPatch( std::map<Vertex*,GeodEntry*>* geoDistList, std::deque<EdgeGeodesic*>* frontEdges, double radius, uint64_t* faceBitArray, int faceNrBlocks, bool weightFuncVal );
+	private:
+		        bool       estGeodesicPatch( Vertex* seedVertex, double radius, std::map<Vertex*,GeodEntry*>* geoDistList, uint64_t* faceBitArray, int faceNrBlocks, bool weightFuncVal );
+		        bool       estGeodesicPatch( Face* seedFace,     double radius, std::map<Vertex*,GeodEntry*>* geoDistList, uint64_t* faceBitArray, int faceNrBlocks, bool weightFuncVal );
+		        bool       estGeodesicPatch( std::map<Vertex*,GeodEntry*>* geoDistList, std::deque<EdgeGeodesic*>* frontEdges, double radius, uint64_t* faceBitArray, bool weightFuncVal ); // , int faceNrBlocks not used
 
 		public:
 		// Estimate neighbourhood within a spherical volume --------------------------------------------------------------------------------------------

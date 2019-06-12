@@ -1624,9 +1624,15 @@ bool MeshGL::setVertexFuncValues( Vertex** vertices, double* values, int vertice
 		//! Returns false in case of an error.
 		//! See Mesh::setVertexFuncValues
 
-		if( !Mesh::setVertexFuncValues( vertices, values, verticesNr, setName ) ) {
-				return false;
+	for( int i=0; i<verticesNr; i++ ) {
+		if( vertices[i] == nullptr ) {
+			cerr << "[MeshGL::" << __FUNCTION__ << "] Bad vertex reference (NULL) at pos " << i << "!" << endl;
+			continue;
 		}
+		vertices[i]->setFunctionValue( values[i] );
+	}
+	changedVertFuncVal();
+
 		return true;
 }
 

@@ -1134,7 +1134,7 @@ bool AlmostEqual2sComplement(double A, double B, int maxUlps){
 //calculate angle alpha which is spanned by the 2 lines from the center  to s1 and s2
 double anglearea(double r, Vector3D* s1, Vector3D* s2){
 	//checks to avoid NAN from asin
-	double h = distance(s1, s2) / (2.0*r);
+	double h = distanceVV( s1, s2 ) / (2.0*r);
 	if(h>1.0){
 		if( AlmostEqual2sComplement(h, 1.0, 5)){
 			h = 1.0;
@@ -1145,7 +1145,7 @@ double anglearea(double r, Vector3D* s1, Vector3D* s2){
 			h = -1.0;
 		}
 	}
-        return 2.0 * asin(h);
+	return( 2.0 * asin(h) );
 }
 
 //compute area of circle segment
@@ -1290,9 +1290,9 @@ bool Face::surfaceintegralinvariant( int nradii, double* radii, double* area, Ve
 	Vector3D A = vertA->getPositionVector();
 	Vector3D B = vertB->getPositionVector();
 	Vector3D C = vertC->getPositionVector();
-	double dista = distance(&A, &rseed);
-	double distb = distance(&B, &rseed);
-	double distc = distance(&C, &rseed);
+	double dista = distanceVV( &A, &rseed );
+	double distb = distanceVV( &B, &rseed );
+	double distc = distanceVV( &C, &rseed );
 	double dist1;
 	bool flagexecution=true;
 	int i;
@@ -1356,13 +1356,13 @@ bool Face::surfaceintegralinvariant( int nradii, double* radii, double* area, Ve
 		if( iab==LSI_ONE_INTERSECT_P1 || iab==LSI_ONE_INTERSECT_P2 || iab==LSI_TANGENT_EDGE ) {
 			if( iab==LSI_ONE_INTERSECT_P1 || iab== LSI_TANGENT_EDGE) {
 				pair <Vector3D*, eEdgeNames> sp1 (&s1, EDGE_AB);
-				if (distance(&s1, &A) > DBL_EPSILON) {
+				if( distanceVV( &s1, &A ) > DBL_EPSILON ) {
 					vec.push_back(sp1);
 				}
 			}
 			if( iab==LSI_ONE_INTERSECT_P2 ) {
 				pair <Vector3D*, eEdgeNames> sp1 (&s2, EDGE_AB);
-				if (distance(&s2, &A) > DBL_EPSILON) {
+				if( distanceVV( &s2, &A ) > DBL_EPSILON ) {
 					vec.push_back(sp1);
 				}
 			}
@@ -1372,7 +1372,7 @@ bool Face::surfaceintegralinvariant( int nradii, double* radii, double* area, Ve
 		if( iab==LSI_TWO_INTERSECT ) {
 			pair <Vector3D*, eEdgeNames> sp1 (&s1, EDGE_AB);
 			pair <Vector3D*, eEdgeNames> sp2 (&s2, EDGE_AB);
-			if ( (distance(&s1, &A) > DBL_EPSILON) ){
+			if( ( distanceVV( &s1, &A ) > DBL_EPSILON ) ) {
 				vec.push_back(sp1);
 				vec.push_back(sp2);
 			}
@@ -1395,13 +1395,13 @@ bool Face::surfaceintegralinvariant( int nradii, double* radii, double* area, Ve
 		if( ibc==LSI_ONE_INTERSECT_P1 || ibc==LSI_ONE_INTERSECT_P2 || ibc==LSI_TANGENT_EDGE ) {
 			if( ibc==LSI_ONE_INTERSECT_P1 || ibc == LSI_TANGENT_EDGE) {
 				pair <Vector3D*, eEdgeNames> sp3 (&s3, EDGE_BC);
-				if (distance(&B, &s3) > DBL_EPSILON) {
+				if( distanceVV( &B, &s3 ) > DBL_EPSILON ) {
 					vec.push_back(sp3);
 				}
 			}
 			if( ibc==LSI_ONE_INTERSECT_P2 ) {
 				pair <Vector3D*, eEdgeNames> sp3 (&s4, EDGE_BC);
-				if (distance(&B, &s4) > DBL_EPSILON) {
+				if( distanceVV( &B, &s4 ) > DBL_EPSILON ) {
 					vec.push_back(sp3);
 				}
 			}
@@ -1414,11 +1414,10 @@ bool Face::surfaceintegralinvariant( int nradii, double* radii, double* area, Ve
 		if( ibc==LSI_TWO_INTERSECT ) {
 			pair <Vector3D*, eEdgeNames> sp3 (&s3, EDGE_BC);
 			pair <Vector3D*, eEdgeNames> sp4 (&s4, EDGE_BC);
-			if ((distance(&s3, &B) > DBL_EPSILON) ){
+			if( ( distanceVV( &s3, &B ) > DBL_EPSILON ) ) {
 				vec.push_back(sp3);
 				vec.push_back(sp4);
 			}
-
 			else {
 				vec.push_back(sp4);
 			}
@@ -1434,13 +1433,13 @@ bool Face::surfaceintegralinvariant( int nradii, double* radii, double* area, Ve
 		if( ica==LSI_ONE_INTERSECT_P1 || ica==LSI_ONE_INTERSECT_P2 || ica==LSI_TANGENT_EDGE ) {
 			if( ica==LSI_ONE_INTERSECT_P1 || ica == LSI_TANGENT_EDGE) {
 				pair <Vector3D*, eEdgeNames> sp5 (&s5, EDGE_CA);
-				if (distance(&C, &s5) > DBL_EPSILON) {
+				if( distanceVV( &C, &s5 ) > DBL_EPSILON ) {
 					vec.push_back(sp5);
 				}
 			}
 			if( ica==LSI_ONE_INTERSECT_P2 ) {
 				pair <Vector3D*, eEdgeNames> sp5 (&s6, EDGE_CA);
-				if (distance(&C, &s6) > DBL_EPSILON) {
+				if( distanceVV( &C, &s6 ) > DBL_EPSILON ) {
 					vec.push_back(sp5);
 				}
 			}
@@ -1448,7 +1447,7 @@ bool Face::surfaceintegralinvariant( int nradii, double* radii, double* area, Ve
 		if( ica==LSI_TWO_INTERSECT ) {
 			pair <Vector3D*, eEdgeNames> sp5 (&s5, EDGE_CA);
 			pair <Vector3D*, eEdgeNames> sp6 (&s6, EDGE_CA);
-			if ((distance(&s5, &C) > DBL_EPSILON) ){
+			if( ( distanceVV( &s5, &C ) > DBL_EPSILON) ) {
 				vec.push_back(sp5);
 				vec.push_back(sp6);
 			}
@@ -1497,7 +1496,7 @@ bool Face::surfaceintegralinvariant( int nradii, double* radii, double* area, Ve
 
 		unsigned int j;
 		for( j=1; j<vec.size(); j++ ) {
-			if ( distance(vec[j-1].first, vec[j].first) > DBL_EPSILON ) {
+			if( distanceVV( vec[j-1].first, vec[j].first ) > DBL_EPSILON ) {
 				area[i] += triarea(vec[j-1].first, vec[j].first, &cog);
 				#ifdef DEBUG1
 				cout<<"for triarea: "<<j<<endl;
@@ -1511,7 +1510,7 @@ bool Face::surfaceintegralinvariant( int nradii, double* radii, double* area, Ve
 			}
 		}
 		j=vec.size()-1;
-		if ( distance(vec[0].first, vec[j].first) > DBL_EPSILON ) {
+		if( distanceVV( vec[0].first, vec[j].first ) > DBL_EPSILON ) {
 			area[i] += triarea(vec[0].first, vec[j].first, &cog);
 			if ( vec[0].second !=  vec[j].second ) {
 				area[i] += csecarea(radii[i], vec[0].first, vec[j].first, rseed1);
@@ -1905,15 +1904,15 @@ bool Face::getFuncVal1RingThird( Vertex* rVert1RingCenter, double rNormDist, dou
 	double funcVal1RingCenter;
 	rVert1RingCenter->getFuncValue( &funcVal1RingCenter );
 	if( vertA != rVert1RingCenter ) {
-		funcValA = rNormDist * ( funcValA - funcVal1RingCenter ) / ( distance( rVert1RingCenter, vertA ) );
+		funcValA = rNormDist * ( funcValA - funcVal1RingCenter ) / ( distanceVV( rVert1RingCenter, vertA ) );
 		funcValA += funcVal1RingCenter;
 	}
 	if( vertB != rVert1RingCenter ) {
-		funcValB = rNormDist * ( funcValB - funcVal1RingCenter ) / ( distance( rVert1RingCenter, vertB ) );
+		funcValB = rNormDist * ( funcValB - funcVal1RingCenter ) / ( distanceVV( rVert1RingCenter, vertB ) );
 		funcValB += funcVal1RingCenter;
 	}
 	if( vertC != rVert1RingCenter ) {
-		funcValC = rNormDist * ( funcValC - funcVal1RingCenter ) / ( distance( rVert1RingCenter, vertC ) );
+		funcValC = rNormDist * ( funcValC - funcVal1RingCenter ) / ( distanceVV( rVert1RingCenter, vertC ) );
 		funcValC += funcVal1RingCenter;
 	}
 	(*rFuncVal1RingThird) = ( funcValA + funcValB + funcValC ) / 3.0;
@@ -1961,8 +1960,8 @@ bool Face::get1RingSectorConst(
 	// Law of sines
 	double diameterCircum = rNormDist / sin( beta ); // Constant ratio equal longest edge
 	// Distances for interpolation
-	double lenCenterToA = distance( rVert1RingCenter, r1RingSecPre.mVertOppA );
-	double lenCenterToB = distance( rVert1RingCenter, r1RingSecPre.mVertOppB );
+	double lenCenterToA = distanceVV( rVert1RingCenter, r1RingSecPre.mVertOppA );
+	double lenCenterToB = distanceVV( rVert1RingCenter, r1RingSecPre.mVertOppB );
 	r1RingSecPre.mRatioCA = diameterCircum / lenCenterToA;
 	r1RingSecPre.mRatioCB = diameterCircum / lenCenterToB;
 	// Circle segment, center of gravity - https://de.wikipedia.org/wiki/Geometrischer_Schwerpunkt#Kreisausschnitt

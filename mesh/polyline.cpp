@@ -375,7 +375,7 @@ bool PolyLine::compIntInv( int rVertNr, double rIIRadius, ePolyIntInvDirection r
 		while( (!stopBorder) && (!stopLoop) ) {
 			Vertex* currVert = mEdgeList.at( iCurrSafe )->mVertPoly;
 			Vertex* nextVert = mEdgeList.at( iCurrSafeNext )->mVertPoly;
-			double distSpherical = distance( vertStart,  nextVert );
+			double distSpherical = distanceVV( vertStart,  nextVert );
 			if( distSpherical > rIIRadius ) {
 				// Sphere boundary crossed:
 				Vector3D currPos = currVert->getPositionVector();
@@ -396,8 +396,8 @@ bool PolyLine::compIntInv( int rVertNr, double rIIRadius, ePolyIntInvDirection r
 				stopBorder = true;
 				continue;
 			}
-			//cout << "[PolyLine::" << __FUNCTION__ << "] Adding: " << distance( currVert, nextVert ) << endl;
-			distIntegral += distance( currVert, nextVert );
+			//cout << "[PolyLine::" << __FUNCTION__ << "] Adding: " << distanceVV( currVert, nextVert ) << endl;
+			distIntegral += distanceVV( currVert, nextVert );
 			// Set the next index:
 			iCurrSafe = iCurrSafeNext;
 			iCurrSafeNext = getSafeIndex( iCurrSafeNext+1 );
@@ -424,7 +424,7 @@ bool PolyLine::compIntInv( int rVertNr, double rIIRadius, ePolyIntInvDirection r
 		while( (!stopBorder) && (!stopLoop) ) {
 			Vertex* currVert = mEdgeList.at( iCurrSafe )->mVertPoly;
 			Vertex* nextVert = mEdgeList.at( iCurrSafeNext )->mVertPoly;
-			double distSpherical = distance( vertStart,  nextVert );
+			double distSpherical = distanceVV( vertStart,  nextVert );
 			if( distSpherical > rIIRadius ) {
 				// Sphere boundary crossed:
 				Vector3D currPos = currVert->getPositionVector();
@@ -445,8 +445,8 @@ bool PolyLine::compIntInv( int rVertNr, double rIIRadius, ePolyIntInvDirection r
 				stopBorder = true;
 				continue;
 			}
-			//cout << "[PolyLine::" << __FUNCTION__ << "] Adding: " << distance( currVert, nextVert ) << endl;
-			distIntegral += distance( currVert, nextVert );
+			//cout << "[PolyLine::" << __FUNCTION__ << "] Adding: " << distanceVV( currVert, nextVert ) << endl;
+			distIntegral += distanceVV( currVert, nextVert );
 			// Set the next index:
 			iCurrSafe = iCurrSafeNext;
 			iCurrSafeNext = getSafeIndex( iCurrSafeNext-1 );
@@ -494,7 +494,7 @@ bool PolyLine::compIntInvAngle( int rVertNr, double rIIRadius ) {
 	while( (!stopBorder) && (!stopLoop) ) {
 		Vertex* currVert = mEdgeList.at( iCurrSafe )->mVertPoly;
 		Vertex* nextVert = mEdgeList.at( iCurrSafeNext )->mVertPoly;
-		double distSpherical = distance( vertStart,  nextVert );
+		double distSpherical = distanceVV( vertStart,  nextVert );
 		if( distSpherical > rIIRadius ) {
 			// Sphere boundary crossed:
 			Vector3D currPos = currVert->getPositionVector();
@@ -517,8 +517,8 @@ bool PolyLine::compIntInvAngle( int rVertNr, double rIIRadius ) {
 			stopBorder = true;
 			continue;
 		}
-		//cout << "[PolyLine::" << __FUNCTION__ << "] Adding: " << distance( currVert, nextVert ) << endl;
-		distIntegral += distance( currVert, nextVert );
+		//cout << "[PolyLine::" << __FUNCTION__ << "] Adding: " << distanceVV( currVert, nextVert ) << endl;
+		distIntegral += distanceVV( currVert, nextVert );
 		// Set the next index:
 		iCurrSafe = iCurrSafeNext;
 		iCurrSafeNext = getSafeIndex( iCurrSafeNext+1 );
@@ -543,7 +543,7 @@ bool PolyLine::compIntInvAngle( int rVertNr, double rIIRadius ) {
 	while( (!stopBorder) && (!stopLoop) ) {
 		Vertex* currVert = mEdgeList.at( iCurrSafe )->mVertPoly;
 		Vertex* nextVert = mEdgeList.at( iCurrSafeNext )->mVertPoly;
-		double distSpherical = distance( vertStart,  nextVert );
+		double distSpherical = distanceVV( vertStart,  nextVert );
 		if( distSpherical > rIIRadius ) {
 			// Sphere boundary crossed:
 			Vector3D currPos = currVert->getPositionVector();
@@ -566,8 +566,8 @@ bool PolyLine::compIntInvAngle( int rVertNr, double rIIRadius ) {
 			stopBorder = true;
 			continue;
 		}
-		//cout << "[PolyLine::" << __FUNCTION__ << "] Adding: " << distance( currVert, nextVert ) << endl;
-		distIntegral += distance( currVert, nextVert );
+		//cout << "[PolyLine::" << __FUNCTION__ << "] Adding: " << distanceVV( currVert, nextVert ) << endl;
+		distIntegral += distanceVV( currVert, nextVert );
 		// Set the next index:
 		iCurrSafe = iCurrSafeNext;
 		iCurrSafeNext = getSafeIndex( iCurrSafeNext-1 );

@@ -301,8 +301,6 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		void visualizeDistanceToCone( bool absDist=false );
 		//.
 				void visualizeVertexIndices();
-				void visualizeVertex1RingArea();
-				void visualizeVertex1RSumAngles();
 		virtual bool funcVert1RingRMin();
 		virtual bool funcVert1RingVolInt();
 				void visualizeVertexOctree();
@@ -312,11 +310,6 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 				void visualizeVertexFaceSphereAngleMax( double rRadius );
 				void visualizeVertFaceSphereMeanAngleMax();
 				void visualizeVertFaceSphereMeanAngleMax( double rRadius );
-
-		virtual bool funcVertDistancesMax();
-
-		// --- Colorramp--------------------------------------------------------------------------------------------------------------------------------
-		void visualizeFaceSortIndex();
 
 		// color settings:
 		virtual void selectColor( MeshGLColors::eColorSettings rColorId );

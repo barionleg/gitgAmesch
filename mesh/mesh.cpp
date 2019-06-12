@@ -439,6 +439,18 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			}
 			retVal = setFaceFuncValMarchRadiusIdx( mPrimSelected, radiusStop );
 			} break;
+		case FUNCVAL_VERT_ONE_RING_AREA:
+			retVal = setVertFuncVal1RingArea();
+			break;
+		case FUNCVAL_VERT_ONE_RING_ANGLE_SUM:
+			retVal = setVertFuncVal1RSumAngles();
+			break;
+		case FUNCVAL_VERT_MAX_DISTANCE:
+			retVal = funcVertDistancesMax();
+			break;
+		case FUNCVAL_FACE_SORT_INDEX:
+			retVal = setFaceFuncValSortIdx();
+			break;
 		// Edit
 		case EDIT_REMOVE_SELMFACES:
 			retVal &= removeFacesSelected();
@@ -2345,7 +2357,7 @@ bool Mesh::getSurroundingVerticesInOrder (list<Vertex*> &adjacentVertsInOrder, V
 //groups the current helperList and writes the vertices directly into adjacentVertsInOrder
 bool Mesh::groupListMerge(list<pair<Vertex*, int>> &helperList, list<Vertex*> &adjacentVertsInOrder, bool printDebug) {
 
-	int count = distance(helperList.begin(), helperList.end());
+	int count = std::distance( helperList.begin(), helperList.end() );
 
 	if(printDebug) {
 		cout << "[Mesh::groupListMerge] count: " << count << endl;
@@ -7429,22 +7441,6 @@ bool Mesh::getVertIndices( double** funcValues, Vertex*** vertices, int* vertCou
 	return true;
 }
 
-bool Mesh::getVert1RingArea( double** funcValues, Vertex*** vertices, int* vertCount ) {
-	//! Returns an array with vertex indices as float to be used for OpenGL visualization.
-	//! Returns false in case of an error.
-	*vertices   = new Vertex*[getVertexNr()];
-	*funcValues = new double[getVertexNr()];
-	*vertCount  = getVertexNr();
-
-	Vertex* curVertex;
-	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
-		curVertex = getVertexPos( vertIdx );
-		(*vertices)[vertIdx] = curVertex;
-		(*funcValues)[vertIdx] = static_cast<float>(curVertex->get1RingArea());
-	}
-	return true;
-}
-
 //! Computes the distance of each Vertex to a given position vector and returns the minimum and the maximum.
 bool Mesh::getDistanceVerticesToPosition( Vector3D rPos, double* rDistMin, double* rDistMax ) {
 	(*rDistMin) = +_INFINITE_DBL_;
@@ -7452,7 +7448,7 @@ bool Mesh::getDistanceVerticesToPosition( Vector3D rPos, double* rDistMin, doubl
 	Vertex* currVertex;
 	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
 		currVertex = getVertexPos( vertIdx );
-		double dist = distance( currVertex, &rPos );
+		double dist = distanceVV( currVertex, &rPos );
 		if( dist < (*rDistMin) ) {
 			(*rDistMin) = dist;
 		}
@@ -8052,19 +8048,21 @@ bool Mesh::setVertFuncValDistanceToSphere() {
 	return true;
 }
 
+//! Visualizes the sum of the angles of the adjacent faces.
+//! Only the angle at the vertex is added!
+//! See Vertex::get1RingSumAngles
 bool Mesh::setVertFuncVal1RSumAngles() {
-	//! Visualizes the sum of the angles of the adjacent faces.
-	//! Only the angle at the vertex is added!
-	//! See Vertex::get1RingSumAngles
-	Vertex* currVertex;
-	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
-		currVertex = getVertexPos( vertIdx );
+	showProgressStart( "1-ring angle sum" );
+	uint64_t vertexCount = getVertexNr();
+	for( uint64_t vertIdx=0; vertIdx<vertexCount; vertIdx++ ) {
+		Vertex* currVertex = getVertexPos( vertIdx );
 		double angleSum = currVertex->get1RingSumAngles();
 		currVertex->setFuncValue( angleSum );
+		showProgress( (double)vertIdx/(double)vertexCount, "1-ring angle sum" );
 	}
-
+	showProgressStop( "1-ring angle sum" );
 	changedVertFuncVal();
-	return true;
+	return( true );
 }
 
 bool Mesh::setVertFuncValOctreeIdx( double rEdgeLen ) {
@@ -8170,6 +8168,22 @@ bool Mesh::setVertFuncValFaceSphereMeanAngleMax( double rRadius ) {
 
 	changedVertFuncVal();
 	return true;
+}
+
+//! Compute 1-ring area for all vertices.
+//! @returns false in case of an error. True otherwise
+bool Mesh::setVertFuncVal1RingArea() {
+	showProgressStart( "1-ring area" );
+	uint64_t vertexCount = getVertexNr();
+	for( uint64_t vertIdx=0; vertIdx<vertexCount; vertIdx++ ) {
+		Vertex* curVertex = getVertexPos( vertIdx );
+		double area = curVertex->get1RingArea();
+		curVertex->setFunctionValue( area );
+		showProgress( (double)vertIdx/(double)vertexCount, "1-ring area" );
+	}
+	showProgressStop( "1-ring area" );
+	changedVertFuncVal();
+	return( true );
 }
 
 //! Apply a median or mean filter operation on a vertex's 1-ring neighbourhood.
@@ -8421,18 +8435,21 @@ bool Mesh::funcVert1RingVolInt() {
 //! This implementation has a O(n^2), which is very bad!
 //! \todo Faster implementation, e.g, using BSP (Binary Space Partitioning).
 bool Mesh::funcVertDistancesMax() {
-	string funcName = "Max. distances";
+	std::string funcName = "Max. distances";
 	time_t timeStart = clock();
 	Vertex* currVertex;
 	Vertex* otherVertex;
-	int nrOfVertices = getVertexNr();
+	uint64_t nrOfVertices = getVertexNr();
 	showProgressStart( funcName );
-	for( int vertIdx=0; vertIdx<nrOfVertices; vertIdx++ ) {
+	for( uint64_t vertIdx=0; vertIdx<nrOfVertices; vertIdx++ ) {
 		currVertex = getVertexPos( vertIdx );
 		double dist = 0.0;
-		for( int vertOtherIdx=0; vertOtherIdx<nrOfVertices; vertOtherIdx++ ) {
+		for( uint64_t vertOtherIdx=0; vertOtherIdx<nrOfVertices; vertOtherIdx++ ) {
 			otherVertex = getVertexPos( vertOtherIdx );
-			double currDist = distance( currVertex, otherVertex );
+			if( otherVertex == currVertex ) {
+				continue;
+			}
+			double currDist = distanceVV( currVertex, otherVertex );
 			if( currDist > dist ) {
 				dist = currDist;
 			}
@@ -8440,7 +8457,7 @@ bool Mesh::funcVertDistancesMax() {
 		currVertex->setFuncValue( dist );
 		showProgress( static_cast<double>(vertIdx+1)/static_cast<double>(nrOfVertices), funcName );
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] took " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] took " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << std::endl;
 	showProgressStop( funcName );
 	changedVertFuncVal();
 	return true;
@@ -9034,7 +9051,7 @@ bool Mesh::setVertFuncValDistanceTo( const Vector3D& rPos ) {
 	Vertex* currVertex;
 	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
 		currVertex = getVertexPos( vertIdx );
-		double dist = distance( currVertex, rPos );
+		double dist = distanceVV( currVertex, rPos );
 		currVertex->setFuncValue( dist );
 	}
 
@@ -9145,25 +9162,6 @@ bool Mesh::getVertFuncValAverage( double* rAverage ) {
 }
 
 // --- function values --------------------------------------------------------
-
-bool Mesh::setVertexFuncValues( Vertex** vertices, double* values, int verticesNr,
-                                            const string& setName ) {
-	//! Returns false in case of an error.
-	//! \todo source revision!!!
-
-	// Set function values:
-	for( int i=0; i<verticesNr; i++ ) {
-		if( vertices[i] == nullptr ) {
-			cerr << "[MeshGL::" << __FUNCTION__ << "] Bad vertex reference (NULL) at pos " << i << "!" << endl;
-			continue;
-		}
-		vertices[i]->setFuncValue( values[i] );
-	}
-
-	// store name, e.g. to be shown within the Histogram widget
-	changedVertFuncVal();
-	return true;
-}
 
 //! Returns the minimum of the vertices' function value.
 //!
@@ -11060,11 +11058,11 @@ bool Mesh::geodPatchVertSel( set<Vertex*>* rmLabelSeedVerts,  //!< List of seed 
 	}
 
 	// Start marching:
-	bool retVal = estGeodesicPatch( &geoDistList, &frontEdges, _INFINITE_DBL_, faceBitArray, faceNrBlocks, rWeightFuncVal );
+	bool retVal = estGeodesicPatch( &geoDistList, &frontEdges, _INFINITE_DBL_, faceBitArray, rWeightFuncVal ); // faceNrBlocks not used
 
 	// Write to function values:
 	if( rGeodDistToFuncVal ) {
-		estGeodesicPatchFuncVal( &geoDistList, "Geodesic Distances for a selection of Vertices." );
+		estGeodesicPatchFuncVal( &geoDistList ); // "Geodesic Distances for a selection of Vertices."
 	}
 
 	// Relabel:
@@ -11156,7 +11154,7 @@ bool Mesh::geodPatchVertSelOrder( vector<Vertex*>* rmLabelSeedVerts,    //!< Lis
 			cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: initializing front failed!" << endl;
 		}
 		// Start marching:
-		if( estGeodesicPatch( &geoDistList, &frontEdges, _INFINITE_DBL_, faceBitArray, faceNrBlocks, rWeightFuncVal ) ) {
+		if( estGeodesicPatch( &geoDistList, &frontEdges, _INFINITE_DBL_, faceBitArray, rWeightFuncVal ) ) { // faceNrBlocks not used
 			cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: marching front failed!" << endl;
 		}
 		//frontEdges.clear();
@@ -11164,7 +11162,7 @@ bool Mesh::geodPatchVertSelOrder( vector<Vertex*>* rmLabelSeedVerts,    //!< Lis
 
 	// Write to function values:
 	if( rGeodDistToFuncVal ) {
-		estGeodesicPatchFuncVal( &geoDistList, "Geodesic Distances for a selection of Vertices." );
+		estGeodesicPatchFuncVal( &geoDistList ); // "Geodesic Distances for a selection of Vertices."
 	}
 
 	// Relabel:
@@ -11249,13 +11247,9 @@ bool Mesh::estGeodesicPatchRelabel( map<Vertex*,GeodEntry*>* geoDistList ) {
 
 //! Writes the geodesic distances to the vertices function values.
 //! @returns false in case of an error.
-bool Mesh::estGeodesicPatchFuncVal( map<Vertex*,GeodEntry*>* rGeoDistList, //!< List of computed geodesic distance mapped to the corresponding vertex references.
-                                    const string& rSomeName                       //!< Name of the function - see Mesh::setVertexFuncValues.
-                                  ) {
-	int verticesNr = rGeoDistList->size();
-	Vertex** vertices = new Vertex*[verticesNr];
-	double*  values   = new double[verticesNr];
-
+bool Mesh::estGeodesicPatchFuncVal(
+                map<Vertex*,GeodEntry*>* rGeoDistList
+) {
 	bool     storeAngle = false;
 	getParamFlagMesh( MeshParams::GEODESIC_STORE_DIRECTION, &storeAngle );
 
@@ -11271,16 +11265,13 @@ bool Mesh::estGeodesicPatchFuncVal( map<Vertex*,GeodEntry*>* rGeoDistList, //!< 
 		}
 		(*itVertex).first->setFuncValue( geodValue );
 		//cout << "Vertex " << (*itVertex).first->getIndex() << " d: " << (float)(*(*itVertex).second) << endl;
-		vertices[idxVert] = (*itVertex).first;
-		values[idxVert]   = geodValue;
+		Vertex* currVert = (*itVertex).first;
+		currVert->setFunctionValue( geodValue );
 		idxVert++;
 	}
-	setVertexFuncValues( vertices, values, verticesNr, rSomeName );
 
-	delete[] vertices;
-	delete[] values;
-
-	return true;
+	changedVertFuncVal();
+	return( true );
 }
 
 //! Computes a geodesic patch starting from a single vertex with a given radius and stores it as function value.
@@ -11293,7 +11284,7 @@ bool Mesh::estGeodesicPatchFuncVal( Vertex* seedVertex, double radius, bool weig
 	}
 
 	// Write to function values:
-	estGeodesicPatchFuncVal( &geoDistList, "Geodesic Distances for a selected Vertex." );
+	estGeodesicPatchFuncVal( &geoDistList ); // "Geodesic Distances for a selected Vertex."
 
 	// Free memory:
 	map<Vertex*,GeodEntry*>::iterator itGeod;
@@ -11315,7 +11306,7 @@ bool Mesh::estGeodesicPatchFuncVal( Face* seedFace, double radius, bool weightFu
 	}
 
 	// Write to function values:
-	estGeodesicPatchFuncVal( &geoDistList, "Geodesic Distances for a selected Face." );
+	estGeodesicPatchFuncVal( &geoDistList ); // "Geodesic Distances for a selected Face."
 
 	// Free memory:
 	map<Vertex*,GeodEntry*>::iterator itGeod;
@@ -11377,7 +11368,7 @@ bool Mesh::estGeodesicPatch( Vertex* seedVertex, double radius, map<Vertex*,Geod
 	}
 
 	// Start marching:
-	bool retVal = estGeodesicPatch( geoDistList, &frontEdges, radius, faceBitArray, faceNrBlocks, weightFuncVal );
+	bool retVal = estGeodesicPatch( geoDistList, &frontEdges, radius, faceBitArray, weightFuncVal ); // faceNrBlocks not used
 	return retVal;
 }
 
@@ -11395,7 +11386,7 @@ bool Mesh::estGeodesicPatch( Face* seedFace, double radius, map<Vertex*,GeodEntr
 	}
 
 	// Start marching:
-	bool retVal = estGeodesicPatch( geoDistList, &frontEdges, radius, faceBitArray, faceNrBlocks, weightFuncVal );
+	bool retVal = estGeodesicPatch( geoDistList, &frontEdges, radius, faceBitArray, weightFuncVal ); // faceNrBlocks not used
 	return retVal;
 }
 
@@ -11411,10 +11402,13 @@ bool Mesh::estGeodesicPatch( Face* seedFace, double radius, map<Vertex*,GeodEntr
 bool Mesh::estGeodesicPatch( map<Vertex*,GeodEntry*>* geoDistList,                          //!< already estimated geodesic distances - typically pre-computed for one or more seed primitives.
                              deque<EdgeGeodesic*>*    frontEdges,                           //!< current front - typically pre-computed for one or more seed primitives.
                              double                   radius,                               //!< soft abort criteria - can be set to infinity, because estGeodesicPatch will stop, when no further faces can be visitied.
-                             uint64_t*           faceBitArray,                         //!< bitarray for faces
-                             int                      faceNrBlocks , //!< maximum number of bit-blocks in faceBitArray
+                             uint64_t*                faceBitArray,                         //!< bitarray for faces
+//                             int                      faceNrBlocks,                         //!< maximum number of bit-blocks in faceBitArray
                              bool                     weightFuncVal                         //!< use function values as weights
     ) {
+	// Start and stop are easy, but determining a percentage is not straight forward.
+	showProgressStart( "Geodesic Patches" );
+	showProgress( 0.0, "Geodesic Patches" );
 
 	// Rock'n'roll:
 	bool stopFlagFound = false;
@@ -11617,14 +11611,15 @@ bool Mesh::estGeodesicPatch( map<Vertex*,GeodEntry*>* geoDistList,              
 			    ( ( abs(geodAngleCA) > M_PI/2.0) || (abs(geodAngleCB) > M_PI/2.0)  )
 			) {
 //			if( ( ( geodAngleCA * geodAngleCB )<0 ) && ( ( abs(geodAngleCA) > M_PI/2.0 ) || ( abs(geodAngleCB) > M_PI/2.0 ) ) ) {
-				cerr << "+++geodAngleCA: " << geodAngleCA *180.0/M_PI<< endl;
-				cerr << "+++geodAngleCB: " << geodAngleCB *180.0/M_PI<< endl;
+				// Debuging info regarding bad angles:
+				// std::cerr << "+++geodAngleCA: " << geodAngleCA *180.0/M_PI<< std::endl;
+				// std::cerr << "+++geodAngleCB: " << geodAngleCB *180.0/M_PI<< std::endl;
 				if( geodAngleC < 0 ) {
 					geodAngleC += M_PI;
 				} else {
 					geodAngleC -= M_PI;
 				}
-				cerr << "....geodAngleC: " << geodAngleC *180.0/M_PI<< endl;
+				// std::cerr << "....geodAngleC: " << geodAngleC *180.0/M_PI<< std::endl;
 			} else {
 				geodAngleC = ( geodAngleCA + geodAngleCB ) / 2.0;
 			}
@@ -11642,15 +11637,16 @@ bool Mesh::estGeodesicPatch( map<Vertex*,GeodEntry*>* geoDistList,              
 			//cout << "sqrt( pow( " << vAC << ", 2 ) + pow( " << geodA << ", 2 ) - 2.0 * " << vAC << " * " << geodA << " * cos( " << alpha0 << " + " << alphaJ << " ) );" << endl;
 			//cout << "[Mesh::estGeodesicPatch] geodesic dist (3): "  << geodC << endl;
 		}
-		if( vertA->getIndex() == 5821 ) {
-			cerr << "geodAngleA: " << geodAngleA << " " << geodAngleA*180.0/M_PI << endl;
-			cerr << "+: " << acos((vAC * vAC - geodA * geodA - geodC * geodC) / (-2.0 * geodA * geodC)) *180.0/M_PI<< endl;
-			cerr << "geodAngleB: " << geodAngleB << " " << geodAngleB *180.0/M_PI << endl;
-			cerr << "-: " << acos((vCB * vCB - geodC * geodC - geodB * geodB) / (-2.0 * geodC * geodB)) *180.0/M_PI<< endl;
-			cerr << "-->geodAngleCA: " << geodAngleCA *180.0/M_PI<< endl;
-			cerr << "-->geodAngleCB: " << geodAngleCB *180.0/M_PI<< endl;
-			cerr << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
-		}
+// THIS is testing/debuging code ONLY:
+//		if( vertA->getIndex() == 5821 ) {
+//			cerr << "geodAngleA: " << geodAngleA << " " << geodAngleA*180.0/M_PI << endl;
+//			cerr << "+: " << acos((vAC * vAC - geodA * geodA - geodC * geodC) / (-2.0 * geodA * geodC)) *180.0/M_PI<< endl;
+//			cerr << "geodAngleB: " << geodAngleB << " " << geodAngleB *180.0/M_PI << endl;
+//			cerr << "-: " << acos((vCB * vCB - geodC * geodC - geodB * geodB) / (-2.0 * geodC * geodB)) *180.0/M_PI<< endl;
+//			cerr << "-->geodAngleCA: " << geodAngleCA *180.0/M_PI<< endl;
+//			cerr << "-->geodAngleCB: " << geodAngleCB *180.0/M_PI<< endl;
+//			cerr << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
+//		}
 		if( std::isnan( geodC ) ) {
 			cerr << "[Mesh::" << __FUNCTION__ << "] bad geodesic distance - not a number!" << endl;
 			break;
@@ -11714,17 +11710,19 @@ bool Mesh::estGeodesicPatch( map<Vertex*,GeodEntry*>* geoDistList,              
 		frontEdges->clear();
 	}
 
+	showProgressStop( "Geodesic Patches" );
+
 	if( badAngles[0] > 0 ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: " << badAngles[0] << " Bad angle(s) Alpha +!" << endl;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: " << badAngles[0] << " Bad angle(s) Alpha counted +!" << std::endl;
 	}
 	if( badAngles[1] > 0 ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: " << badAngles[1] << " Bad angle(s) Alpha -!" << endl;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: " << badAngles[1] << " Bad angle(s) Alpha counted -!" << std::endl;
 	}
 	if( badAngles[2] > 0 ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: " << badAngles[2] << " Bad angle(s) Beta +!" << endl;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: " << badAngles[2] << " Bad angle(s) Beta counted +!" << std::endl;
 	}
 	if( badAngles[3] > 0 ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: " << badAngles[3] << " Bad angle(s) Beta -!" << endl;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: " << badAngles[3] << " Bad angle(s) Beta counted -!" << std::endl;
 	}
 
 	return true;

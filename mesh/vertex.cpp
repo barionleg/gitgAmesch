@@ -2257,7 +2257,7 @@ void corrr1d(const double* signal, const int n, const double* pattern, const int
 }
 
 //! Compute the distance between to vertices.
-double distance( const Vertex* rVertA, const Vertex* rVertB ) {
+double distanceVV( const Vertex* rVertA, const Vertex* rVertB ) {
 	double dist;
 	double posB[3];
 	rVertB->copyXYZTo( posB );
@@ -2267,15 +2267,15 @@ double distance( const Vertex* rVertA, const Vertex* rVertB ) {
 }
 
 //! Compute the distance between a vertex and a (position) vector
-double distance( Vertex* rVert, const Vector3D& rPos ) {
+double distanceVV( Vertex* rVert, const Vector3D& rPos ) {
 	return abs3( rVert->getPositionVector() - rPos );
 }
 
 //! Compute the distance between a (position) vector and a vertex
-double distance( Vector3D* rPos, Vertex* rVert ) {
+double distanceVV( Vector3D* rPos, Vertex* rVert ) {
 	return abs3( (*rPos) - rVert->getPositionVector() );
 }
 //! Cimpute distance between two Vector3D
-double distance( Vector3D* rPos1, Vector3D* rPos2 ) {
+double distanceVV( Vector3D* rPos1, Vector3D* rPos2 ) {
 	return abs3( (*rPos1) - (*rPos2) );
 }

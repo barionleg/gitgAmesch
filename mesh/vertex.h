@@ -289,9 +289,9 @@ private:
 
 // GLOBAL Operators ------------------------------------------------------------
 void corrr1d(const double* signal, const int n, const double* pattern, const int m, double* r);
-double distance( const Vertex* rVertA, const Vertex* rVertB );
-double distance( Vertex* rVert, const Vector3D& rPos );
-double distance( Vector3D* rPos, Vertex* rVert  );
-double distance( Vector3D* rPos1, Vector3D* rPos2 );
+double distanceVV( const Vertex* rVertA, const Vertex* rVertB );
+double distanceVV( Vertex* rVert, const Vector3D& rPos );
+double distanceVV( Vector3D* rPos, Vertex* rVert  );
+double distanceVV( Vector3D* rPos1, Vector3D* rPos2 );
 
 #endif
