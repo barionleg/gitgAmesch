@@ -252,6 +252,7 @@ public slots:
 	bool currentViewToDefault();
 
 	void openNormalSphereSelectionDialog();
+	void setCameraRotation(QQuaternion rotationQuat);
 
 signals:
 	void sStatusMessage(QString);                                   //!< Notify (the MainWindow) about status changes.
@@ -267,6 +268,7 @@ signals:
 	void sGuideIDCommon(MeshWidgetParams::eGuideIDCommon);          //!< guide ID for sidebar
 	void sGuideIDSelection(MeshWidgetParams::eGuideIDSelection);    //!< guide ID for sidebar
 
+	void camRotationChanged(Vector3D, Vector3D);                            //!< signal emitted when camera is rotated by mouse
 private:
 	void initializeGL();
 	void initializeVAO();

@@ -2,6 +2,8 @@
 #define NormalSphereSELECTIONDIALOG_H
 
 #include <QDialog>
+#include <QQuaternion>
+#include "vector3d.h"
 
 class QAbstractButton;
 
@@ -21,10 +23,15 @@ class NormalSphereSelectionDialog : public QDialog
 
 		void setMeshNormals(MeshQt* mesh);
 		void selectMeshByNormals();
+
+	signals:
+		void rotationChanged(QQuaternion);
+
 	private slots:
 		void comboButtonBoxClicked(QAbstractButton* button);
-
-
+		void renderWidgetRotationChanged(QQuaternion quat);
+	public slots:
+		void updateRotationExternal(Vector3D camCenter, Vector3D camUp);
 	private:
 		Ui::NormalSphereSelectionDialog *ui;
 

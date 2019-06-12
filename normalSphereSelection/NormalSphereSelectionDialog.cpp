@@ -44,6 +44,14 @@ NormalSphereSelectionDialog::NormalSphereSelectionDialog(QWidget *parent) :
 	ui->colorMap_comboBox->setCurrentIndex(11);
 
 	connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &NormalSphereSelectionDialog::comboButtonBoxClicked);
+
+	connect(ui->openGLWidget, &NormalSphereSelectionRenderWidget::rotationChanged, this, &NormalSphereSelectionDialog::renderWidgetRotationChanged);
+
+	connect(ui->rotationSharing_checkBox, &QRadioButton::toggled,
+			[this](bool enabled){
+									if(enabled) {
+										emit rotationChanged(this->ui->openGLWidget->getRotation());}
+								});
 }
 
 NormalSphereSelectionDialog::~NormalSphereSelectionDialog()
@@ -68,6 +76,7 @@ void NormalSphereSelectionDialog::setMeshNormals(MeshQt* mesh)
 	}
 
 	ui->openGLWidget->setRenderNormals(normalData);
+
 }
 
 void NormalSphereSelectionDialog::selectMeshByNormals()
@@ -107,4 +116,24 @@ void NormalSphereSelectionDialog::comboButtonBoxClicked(QAbstractButton* button)
 
 	else if(button == ui->buttonBox->button(QDialogButtonBox::Reset))
 		ui->openGLWidget->clearSelected();
+}
+
+void NormalSphereSelectionDialog::renderWidgetRotationChanged(QQuaternion quat)
+{
+	if(ui->rotationSharing_checkBox->isChecked())
+	{
+		emit rotationChanged(quat);
+	}
+}
+
+void NormalSphereSelectionDialog::updateRotationExternal(Vector3D camCenter, Vector3D camUp)
+{
+	if(ui->rotationSharing_checkBox->isChecked())
+	{
+		QVector3D target = QVector3D(camCenter.getX(), camCenter.getY(), camCenter.getZ()).normalized();
+
+
+		QQuaternion rotQuat = QQuaternion::fromDirection(target, QVector3D(camUp.getX(), camUp.getY(), camUp.getZ())).conjugated();
+		ui->openGLWidget->setRotation(rotQuat);
+	}
 }

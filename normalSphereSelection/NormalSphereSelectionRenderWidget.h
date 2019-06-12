@@ -36,6 +36,11 @@ class NormalSphereSelectionRenderWidget : public QOpenGLWidget, QOpenGLFunctions
 		GLubyte selectionMask() const;
 		void setSelectionMask(const GLubyte& selectionMask);
 
+		void setRotation(const QQuaternion& rotQuat);
+		QQuaternion getRotation();
+	signals:
+		void rotationChanged(QQuaternion quat);
+
 	protected:
 		void mousePressEvent(QMouseEvent* event) override;
 		void mouseReleaseEvent(QMouseEvent* event) override;

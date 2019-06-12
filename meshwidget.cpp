@@ -4,6 +4,7 @@
 
 // generic Qt includes:
 #include <QFileDialog>
+#include <QQuaternion>
 
 // Qt includes:
 #include "QGMDialogEnterText.h"
@@ -5586,6 +5587,9 @@ bool MeshWidget::rotRollPitchYaw(double rAngle, double pAngle, double yAngle)
 
     mCameraCenter *= yawMat;
     mCameraUp     *= yawMat;
+
+	emit camRotationChanged(mCameraCenter, mCameraUp);
+
     setView();
     //repaint();
     update();
@@ -6450,7 +6454,7 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 	if( ( rEvent->buttons() == Qt::LeftButton ) &&
 		( currMouseMode == MOUSE_MODE_MOVE_LIGHT_FIXED_CAM ) &&
 		( lightEnabled ) &&
-	    ( lightFixedCam )
+		( lightFixedCam )
 	) {
 		double lightAnglePhi;
 		double lightAngleTheta;
@@ -7052,6 +7056,26 @@ void MeshWidget::openNormalSphereSelectionDialog()
 	normalSphereDialog->show();
 
 	normalSphereDialog->setMeshNormals(mMeshVisual);
+
+	connect(this, &MeshWidget::camRotationChanged, normalSphereDialog, &NormalSphereSelectionDialog::updateRotationExternal);
+	connect(normalSphereDialog, &NormalSphereSelectionDialog::rotationChanged, this, &MeshWidget::setCameraRotation);
+}
+
+void MeshWidget::setCameraRotation(QQuaternion rotationQuat)
+{
+	auto distToCamera = (mCameraCenter - mCenterView).getLength3();
+
+	mCameraCenter = Vector3D( 0.0, 0.0, 1.0, 0.0 ) * distToCamera + mCenterView;
+	mCameraUp     = Vector3D( 0.0, 1.0, 0.0, 0.0 );
+
+	Matrix4D rotMat(QMatrix4x4(rotationQuat.toRotationMatrix()).transposed().data());
+
+	mCameraCenter *= rotMat;
+	mCameraUp *= rotMat;
+
+	setView();
+	update();
+
 }
 
 

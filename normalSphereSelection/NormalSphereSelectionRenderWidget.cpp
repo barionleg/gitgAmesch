@@ -228,6 +228,17 @@ void NormalSphereSelectionRenderWidget::setSelectionMask(const GLubyte& selectio
 	mSelectionMask = selectionMask;
 }
 
+void NormalSphereSelectionRenderWidget::setRotation(const QQuaternion& rotQuat)
+{
+	mArcBall.setTransformationQuat(rotQuat);
+	update();
+}
+
+QQuaternion NormalSphereSelectionRenderWidget::getRotation()
+{
+	return mArcBall.getTransformationQuat();
+}
+
 void NormalSphereSelectionRenderWidget::mousePressEvent(QMouseEvent* event)
 {
 	if(event->button() == Qt::MouseButton::LeftButton)
@@ -251,6 +262,9 @@ void NormalSphereSelectionRenderWidget::mouseMoveEvent(QMouseEvent* event)
 	if(event->buttons() & Qt::LeftButton)
 	{
 		mArcBall.drag( getScreenPosNormalized(event->x(), event->y() , mScreenWidth, mScreenHeight ) );
+
+		emit rotationChanged(mArcBall.getTransformationQuat());
+
 		update();
 	}
 	else if(event->buttons() & Qt::RightButton)
