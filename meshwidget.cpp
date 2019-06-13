@@ -5588,8 +5588,6 @@ bool MeshWidget::rotRollPitchYaw(double rAngle, double pAngle, double yAngle)
     mCameraCenter *= yawMat;
     mCameraUp     *= yawMat;
 
-	emit camRotationChanged(mCameraCenter, mCameraUp);
-
     setView();
     //repaint();
     update();
@@ -6586,6 +6584,7 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 
 		//perform Pitch and Yaw. Smoother, since it only makes one update/setview
 		rotRollPitchYaw( 0.0, -dy, -dx );
+		emit camRotationChanged(mCameraCenter, mCameraUp);
 
 		bool showMeshReduced = false;
 		getParamFlagMeshWidget(MeshWidgetParams::ENABLE_SHOW_MESH_REDUCED, &showMeshReduced);
@@ -7063,15 +7062,15 @@ void MeshWidget::openNormalSphereSelectionDialog()
 
 void MeshWidget::setCameraRotation(QQuaternion rotationQuat)
 {
-	auto distToCamera = (mCameraCenter - mCenterView).getLength3();
 
-	QVector3D camCenter = rotationQuat * QVector3D(0.0,0.0,distToCamera);
-	QVector3D up = rotationQuat * QVector3D(0.0,1.0,0.0);
+	auto distToCamera = (mCenterView- mCameraCenter).getLength3();
 
-	mCameraCenter = Vector3D(camCenter.x(), camCenter.y(), camCenter.z());
-	mCameraCenter += mCenterView;
+	QVector3D camCenter = (rotationQuat.conjugated() * QVector3D(0.0,0.0,1.0)).normalized();
+	QVector3D up = (rotationQuat.conjugated() * QVector3D(0.0,1.0,0.0)).normalized();
 
-	mCameraUp = Vector3D(up.x(), up.y(), up.z());
+	mCameraCenter = Vector3D(camCenter.x(), camCenter.y(), camCenter.z(), 0.0) * distToCamera + mCenterView;
+
+	mCameraUp = Vector3D(up.x(), up.y(), up.z(), 0.0);
 
 	setView();
 	update();
@@ -7245,8 +7244,6 @@ void MeshWidget::setView( GLdouble* rOrthoViewPort //!< position and dimension o
 	// distance between camera and the bounding box center
 	// and the camera plane:
 	Vector3D cameraPlaneNormal = mCenterView - mCameraCenter;
-
-	std::cout << cameraPlaneNormal.getLength3() << std::endl;
 
 	cameraPlaneNormal.normalize3();
 	// as cameraView.X/Y/Z = A/B/C of the Hessian Normal Form (HNF), we need D and we know that |cameraView| == 0.0, we get:
