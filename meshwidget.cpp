@@ -6584,7 +6584,7 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 
 		//perform Pitch and Yaw. Smoother, since it only makes one update/setview
 		rotRollPitchYaw( 0.0, -dy, -dx );
-		emit camRotationChanged(mCameraCenter, mCameraUp);
+		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 
 		bool showMeshReduced = false;
 		getParamFlagMeshWidget(MeshWidgetParams::ENABLE_SHOW_MESH_REDUCED, &showMeshReduced);

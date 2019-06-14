@@ -60,7 +60,7 @@ class MeshWidget : public QGLWidget, public MeshWidgetParams, public MeshGLColor
 public:
 	// Constructor and Destructor:
 	MeshWidget( const QGLFormat& format, QWidget* parent );
-	~MeshWidget();
+	~MeshWidget() override;
 
 	bool    getViewPortResolution( double& rRealWidth, double& rRealHeight );
 	bool    getViewPortPixelWorldSize( double& rPixelWidth, double& rPixelHeight );
