@@ -774,6 +774,18 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
+
+	//check if child dialogs exist an close them
+	foreach (QObject* obj, this->children()) {
+		if(obj->isWidgetType())
+		{
+			QWidget* widget = static_cast<QWidget*>(obj);
+			widget->close();
+		}
+	}
+
+
+
 	//emit statusMessage( "Loading Mesh from " + fileName );
 	if( mMeshVisual != nullptr ) {
 		// remove mesh, when one is present:

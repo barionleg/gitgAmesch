@@ -18,7 +18,7 @@ class NormalSphereSelectionRenderWidget : public QOpenGLWidget, QOpenGLFunctions
 		Q_OBJECT
 	public:
 		explicit NormalSphereSelectionRenderWidget(QWidget* parent = nullptr);
-		~NormalSphereSelectionRenderWidget() override = default;
+		~NormalSphereSelectionRenderWidget() override;
 
 		//moves the data from normals to internal data => normals is afterward empty!
 		void setRenderNormals(std::vector<float>& normals);

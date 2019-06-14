@@ -72,6 +72,22 @@ NormalSphereSelectionRenderWidget::NormalSphereSelectionRenderWidget(QWidget* pa
 {
 }
 
+NormalSphereSelectionRenderWidget::~NormalSphereSelectionRenderWidget()
+{
+	makeCurrent();
+
+	mFuncValTexture.destroy();
+	mSelectionTexture.destroy();
+
+	mIcoSphereVAO.destroy();
+
+	mIcosphereBuffer.destroy();
+	mIcosphereDataBuffer.destroy();
+	mIcosphereIndices.destroy();
+
+	mIcoSphereShader.removeAllShaders();
+}
+
 void NormalSphereSelectionRenderWidget::setRenderNormals(std::vector<float>& normals)
 {
 	mNormalUpload = std::move(normals);
