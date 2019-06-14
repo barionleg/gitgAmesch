@@ -423,11 +423,11 @@ void NormalSphereSelectionRenderWidget::paintGL()
 	//glCullFace(GL_BACK);
 	QQuaternion quat = mArcBall.getTransformationQuat();
 
-	QVector3D origin = quat.conjugated() * QVector3D(0.0,0.0, 1.5);
-	QVector3D up = quat.conjugated() * QVector3D(0.0,1.0,0.0);
+	QVector3D origin = quat.conjugated() * QVector3D(0.0f,0.0f, 1.5f);
+	QVector3D up = quat.conjugated() * QVector3D(0.0f,1.0f,0.0f);
 
 	mViewMatrix.setToIdentity();
-	mViewMatrix.lookAt(origin, QVector3D(0.0,0.0,0.0), up);
+	mViewMatrix.lookAt(origin, QVector3D(0.0f,0.0f,0.0f), up);
 
 	mIcoSphereShader.setUniformValue("uModelViewMatrix",mViewMatrix);
 	mIcoSphereShader.setUniformValue("uProjectionMatrix", mProjectionMatrix);
@@ -435,7 +435,7 @@ void NormalSphereSelectionRenderWidget::paintGL()
 	mIcoSphereShader.setUniformValue("uMinData", mMinData);
 	mIcoSphereShader.setUniformValue("uColorMapIndex", static_cast<float>(mColorMapIndex));
 
-	float normalScale = mScaleNormals ? 0.7 : 1.0;
+	float normalScale = mScaleNormals ? 0.7f : 1.0f;
 	mIcoSphereShader.setUniformValue("uNormalScale", normalScale );
 
 	glActiveTexture(GL_TEXTURE0);
