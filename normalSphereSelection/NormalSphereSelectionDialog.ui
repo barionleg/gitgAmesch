@@ -114,6 +114,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QCheckBox" name="normalScaling_checkBox">
+       <property name="text">
+        <string>Scale normals (disables selection)</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="Line" name="line_2">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>

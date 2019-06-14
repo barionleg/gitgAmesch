@@ -52,6 +52,8 @@ NormalSphereSelectionDialog::NormalSphereSelectionDialog(QWidget *parent) :
 									if(enabled) {
 										emit rotationChanged(this->ui->openGLWidget->getRotation());}
 								});
+
+	connect(ui->normalScaling_checkBox, &QCheckBox::stateChanged, [this](int state){this->ui->openGLWidget->setScaleNormals(state != Qt::Unchecked);});
 }
 
 NormalSphereSelectionDialog::~NormalSphereSelectionDialog()

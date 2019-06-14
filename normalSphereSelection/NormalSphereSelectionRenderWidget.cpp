@@ -239,6 +239,12 @@ QQuaternion NormalSphereSelectionRenderWidget::getRotation()
 	return mArcBall.getTransformationQuat();
 }
 
+void NormalSphereSelectionRenderWidget::setScaleNormals(bool enable)
+{
+	mScaleNormals = enable;
+	update();
+}
+
 void NormalSphereSelectionRenderWidget::mousePressEvent(QMouseEvent* event)
 {
 	if(event->button() == Qt::MouseButton::LeftButton)
@@ -246,7 +252,7 @@ void NormalSphereSelectionRenderWidget::mousePressEvent(QMouseEvent* event)
 		mArcBall.beginDrag( getScreenPosNormalized(event->x(), event->y() , mScreenWidth, mScreenHeight ));
 		update();
 	}
-	else if(event->button() == Qt::MouseButton::RightButton)
+	else if(event->button() == Qt::MouseButton::RightButton && !mScaleNormals)
 	{
 		selectAt(event->x(), event->y());
 		update();
@@ -267,7 +273,7 @@ void NormalSphereSelectionRenderWidget::mouseMoveEvent(QMouseEvent* event)
 
 		update();
 	}
-	else if(event->buttons() & Qt::RightButton)
+	else if(event->buttons() & Qt::RightButton && !mScaleNormals)
 	{
 		selectAt(event->x(), event->y());
 		update();
@@ -428,6 +434,9 @@ void NormalSphereSelectionRenderWidget::paintGL()
 	mIcoSphereShader.setUniformValue("uMaxData", static_cast<float>(mIcoSphereTree.getMaxData()));
 	mIcoSphereShader.setUniformValue("uMinData", mMinData);
 	mIcoSphereShader.setUniformValue("uColorMapIndex", static_cast<float>(mColorMapIndex));
+
+	float normalScale = mScaleNormals ? 0.7 : 1.0;
+	mIcoSphereShader.setUniformValue("uNormalScale", normalScale );
 
 	glActiveTexture(GL_TEXTURE0);
 	glEnable(GL_TEXTURE_2D);

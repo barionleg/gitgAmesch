@@ -12,17 +12,16 @@ uniform int uTextureWidth;
 out float data;
 out float selected;
 
-/*
+
 uniform float uMaxData;
 uniform float uMinData = 0.0f;
-*/
+uniform float uNormalScale = 1.0f;
 
 void main(void)
 {
 	data = vData;
 
-	//float scale = clamp((data - uMinData) / (uMaxData - uMinData), 0.0, 1.0) * 0.5 + 0.5;
-	float scale = 1.0f;
+	float scale = clamp((data - uMinData) / (uMaxData - uMinData), 0.0, 1.0) * (1.0 - uNormalScale) +  uNormalScale;
 	ivec2 texCoord = ivec2( mod(gl_VertexID ,uTextureWidth) , gl_VertexID / uTextureWidth );
 
 	selected = texelFetch(uSelectionTexture, texCoord, 0).r;
