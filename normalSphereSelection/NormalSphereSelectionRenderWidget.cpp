@@ -85,7 +85,10 @@ NormalSphereSelectionRenderWidget::~NormalSphereSelectionRenderWidget()
 	mIcosphereDataBuffer.destroy();
 	mIcosphereIndices.destroy();
 
-	mIcoSphereShader.removeAllShaders();
+	mIcoSphereShader->removeAllShaders();
+	delete mIcoSphereShader;
+
+	doneCurrent();
 }
 
 void NormalSphereSelectionRenderWidget::setRenderNormals(std::vector<float>& normals)
@@ -300,17 +303,19 @@ void NormalSphereSelectionRenderWidget::initializeGL()
 {
 	initializeOpenGLFunctions();
 
+	mIcoSphereShader = new QOpenGLShaderProgram;
+
 	glClearColor(1.0f,1.0f,1.0f,0.0f);
 
 	mProjectionMatrix.ortho(-1.0f,1.0f,-1.0f,1.0f,0.0f,2.0f);	//ortho matrix with unit qube for the sphere
 
 	assert(glGetError() == GL_NO_ERROR);
 
-	if(!initShaderProgram(mIcoSphereShader, tr(":GMShaders/normalSphere/IcoshphereShader.vert"), tr(":GMShaders/normalSphere/IcosphereShader.frag")))
+	if(!initShaderProgram(*mIcoSphereShader, tr(":GMShaders/normalSphere/IcoshphereShader.vert"), tr(":GMShaders/normalSphere/IcosphereShader.frag")))
 		assert(false);
 
 	//icosphere buffer
-	mIcoSphereShader.bind();
+	mIcoSphereShader->bind();
 	mIcoSphereVAO.create();
 	mIcoSphereVAO.bind();
 
@@ -328,9 +333,9 @@ void NormalSphereSelectionRenderWidget::initializeGL()
 
 	assert(glGetError() == GL_NO_ERROR);
 
-	auto vertexLoc = mIcoSphereShader.attributeLocation("vPosition");
-	mIcoSphereShader.enableAttributeArray(vertexLoc);
-	mIcoSphereShader.setAttributeBuffer(vertexLoc, GL_FLOAT, 0, 3, 0);
+	auto vertexLoc = mIcoSphereShader->attributeLocation("vPosition");
+	mIcoSphereShader->enableAttributeArray(vertexLoc);
+	mIcoSphereShader->setAttributeBuffer(vertexLoc, GL_FLOAT, 0, 3, 0);
 
 	assert(glGetError() == GL_NO_ERROR);
 
@@ -344,9 +349,9 @@ void NormalSphereSelectionRenderWidget::initializeGL()
 	mIcosphereDataBuffer.allocate(vertexData.size() / 3 * sizeof (float));
 
 	assert(glGetError() == GL_NO_ERROR);
-	vertexLoc = mIcoSphereShader.attributeLocation("vData");
-	mIcoSphereShader.enableAttributeArray(vertexLoc);
-	mIcoSphereShader.setAttributeBuffer(vertexLoc, GL_FLOAT, 0, 1, 0);
+	vertexLoc = mIcoSphereShader->attributeLocation("vData");
+	mIcoSphereShader->enableAttributeArray(vertexLoc);
+	mIcoSphereShader->setAttributeBuffer(vertexLoc, GL_FLOAT, 0, 1, 0);
 
 	assert(glGetError() == GL_NO_ERROR);
 	mIcosphereIndices.create();
@@ -359,7 +364,7 @@ void NormalSphereSelectionRenderWidget::initializeGL()
 	mIcoSphereVAO.release();
 	mIcosphereIndices.release();
 	mIcosphereDataBuffer.release();
-	mIcoSphereShader.release();
+	mIcoSphereShader->release();
 
 	QImage texImage(tr(":/GMShaders/funcvalmapsquare.png"));
 	mFuncValTexture.setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Linear);
@@ -433,7 +438,7 @@ void NormalSphereSelectionRenderWidget::paintGL()
 	}
 
 	assert(glGetError() == GL_NO_ERROR);
-	mIcoSphereShader.bind();
+	mIcoSphereShader->bind();
 	mIcoSphereVAO.bind();
 
 	//glCullFace(GL_BACK);
@@ -445,33 +450,33 @@ void NormalSphereSelectionRenderWidget::paintGL()
 	mViewMatrix.setToIdentity();
 	mViewMatrix.lookAt(origin, QVector3D(0.0f,0.0f,0.0f), up);
 
-	mIcoSphereShader.setUniformValue("uModelViewMatrix",mViewMatrix);
-	mIcoSphereShader.setUniformValue("uProjectionMatrix", mProjectionMatrix);
-	mIcoSphereShader.setUniformValue("uMaxData", static_cast<float>(mIcoSphereTree.getMaxData()));
-	mIcoSphereShader.setUniformValue("uMinData", mMinData);
-	mIcoSphereShader.setUniformValue("uColorMapIndex", static_cast<float>(mColorMapIndex));
+	mIcoSphereShader->setUniformValue("uModelViewMatrix",mViewMatrix);
+	mIcoSphereShader->setUniformValue("uProjectionMatrix", mProjectionMatrix);
+	mIcoSphereShader->setUniformValue("uMaxData", static_cast<float>(mIcoSphereTree.getMaxData()));
+	mIcoSphereShader->setUniformValue("uMinData", mMinData);
+	mIcoSphereShader->setUniformValue("uColorMapIndex", static_cast<float>(mColorMapIndex));
 
 	float normalScale = mScaleNormals ? 0.7f : 1.0f;
-	mIcoSphereShader.setUniformValue("uNormalScale", normalScale );
+	mIcoSphereShader->setUniformValue("uNormalScale", normalScale );
 
 	glActiveTexture(GL_TEXTURE0);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, mFuncValTexture.textureId());
 
-	mIcoSphereShader.setUniformValue("uFuncValTexture", 0);
+	mIcoSphereShader->setUniformValue("uFuncValTexture", 0);
 
 	glActiveTexture(GL_TEXTURE1);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, mSelectionTexture.textureId());
 
-	mIcoSphereShader.setUniformValue("uSelectionTexture", 1);
-	mIcoSphereShader.setUniformValue("uTextureWidth", mSelectionTexture.width());
+	mIcoSphereShader->setUniformValue("uSelectionTexture", 1);
+	mIcoSphereShader->setUniformValue("uTextureWidth", mSelectionTexture.width());
 
 	glDrawElements(GL_TRIANGLES, mIcosphereIndices.size() / sizeof(unsigned int), GL_UNSIGNED_INT, nullptr);
 
 	assert(glGetError() == GL_NO_ERROR);
 
-	mIcoSphereShader.release();
+	mIcoSphereShader->release();
 	mIcoSphereVAO.release();
 
 	glBindTexture(GL_TEXTURE_2D, 0);

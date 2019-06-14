@@ -69,7 +69,9 @@ class NormalSphereSelectionRenderWidget : public QOpenGLWidget, QOpenGLFunctions
 		QOpenGLBuffer mIcosphereDataBuffer;
 		QOpenGLBuffer mIcosphereIndices;
 		QOpenGLVertexArrayObject mIcoSphereVAO;
-		QOpenGLShaderProgram mIcoSphereShader;
+
+		//create QOpenGLShaderprogram on heap, because there is no destroy function and we have to rely on a valid context on destruction
+		QOpenGLShaderProgram* mIcoSphereShader = nullptr;
 
 		bool mUpdateSelectionTexture = false;
 
