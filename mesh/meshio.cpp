@@ -747,15 +747,14 @@ bool MeshIO::readPLY(
 	bool reverseByteOrder  = false;
 	bool endOfHeader       = false; 
 
-	int plyCurrentSection = PLY_SECTION_UNSUPPORTED;
-	int plyElements[PLY_SECTIONS_COUNT];
+	uint64_t plyCurrentSection = PLY_SECTION_UNSUPPORTED;
+	uint64_t plyElements[PLY_SECTIONS_COUNT];
 
 //	for( int i=0; i<PLY_SECTIONS_COUNT; i++ ) {
 //		plyElements[i] = 0;
 //	}
 
-	for(int& plyElement : plyElements)
-	{
+	for( uint64_t& plyElement : plyElements ) {
 		plyElement = 0;
 	}
 
@@ -848,7 +847,7 @@ bool MeshIO::readPLY(
 		// parse element line
 		if( lineToParse.substr( 0, 7 ) == "element" ) {
 			// Vertices
-			if( sscanf( lineToParse.c_str(), "element vertex %i", &plyElements[PLY_VERTEX] ) == 1 ) {
+			if( sscanf( lineToParse.c_str(), "element vertex %lu", &plyElements[PLY_VERTEX] ) == 1 ) {
 				cout << "[MeshIO::" << __FUNCTION__ << "] Vertices: " << plyElements[PLY_VERTEX] << endl;
 				plyCurrentSection = PLY_VERTEX;
 				// allocate memory - assume color per vertex:
@@ -868,12 +867,12 @@ bool MeshIO::readPLY(
 					rVertexProps.at( vertexIdx ).mColorAlp = 255;
 				}
 			// Faces
-			} else if( sscanf( lineToParse.c_str(), "element face %i", &plyElements[PLY_FACE] ) == 1 ) {
+			} else if( sscanf( lineToParse.c_str(), "element face %lu", &plyElements[PLY_FACE] ) == 1 ) {
 				cout << "[MeshIO::" << __FUNCTION__ << "] Faces: " << plyElements[PLY_FACE] << endl;
 				plyCurrentSection = PLY_FACE;
 				// allocate memory:
 				rFaceProps.resize( plyElements[PLY_FACE] );
-			} else if( sscanf( lineToParse.c_str(), "element line %i", &plyElements[PLY_POLYGONAL_LINE] ) == 1 ) {
+			} else if( sscanf( lineToParse.c_str(), "element line %lu", &plyElements[PLY_POLYGONAL_LINE] ) == 1 ) {
 				cout << "[MeshIO::" << __FUNCTION__ << "] Polygonal lines: " << plyElements[PLY_POLYGONAL_LINE] << endl;
 				plyCurrentSection = PLY_POLYGONAL_LINE;
 			// Unsupported
@@ -1003,9 +1002,9 @@ bool MeshIO::readPLY(
 
 	unsigned char listNrChar;
 	uint64_t verticesRead      = 0;
-	int   facesRead         = 0;
-	int   polyLinesRead     = 0;
-	int   unsupportedRead   = 0;
+	uint64_t facesRead         = 0;
+	uint64_t polyLinesRead     = 0;
+	uint64_t unsupportedRead   = 0;
 	char  charProp;
 	long  bytesIgnored = 0;
 	long  extraBytesIgnored = 0;
@@ -1961,7 +1960,7 @@ bool MeshIO::writePLY(
 			filestr << endl;
 		}
 		// --- Faces ----------------------------------------------------------------
-		for( int i=0; i<rFaceProps.size(); i++ ) {
+		for( uint64_t i=0; i<rFaceProps.size(); i++ ) {
 			// PLYs start with ZERO! So no +1 needed (in contrast to OBJ)
 			filestr << "3 ";
 			filestr << rFaceProps[i].mVertIdxA << " ";

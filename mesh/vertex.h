@@ -268,7 +268,7 @@ class Vertex : public Primitive {
 
 		// Debuging:
 		virtual void     dumpInfo(); // ***
-				void     dumpInfoAsDOT( std::string fileSuffix="" );
+		        void     dumpInfoAsDOT( std::string fileSuffix="" );
 
 private:
 		// Position, Normal and Color:
@@ -281,7 +281,7 @@ private:
 		int           mIdx;              //!< Stores the actual index, which may change due to manipulation, while idxOri stores the original index.
 		int           mIdxOri;           //!< Original or first given index. Typically as read from a file.
 		// Labeling:
-		uint64_t mLabelNr;          //!< Number of a label of connected mesh part. Label 0 means background. Default: _PRIMITIVE_NOT_LABLED_
+		uint64_t      mLabelNr;          //!< Number of a label of connected mesh part. Label 0 means background. Default: _PRIMITIVE_NOT_LABLED_
 		// Feature vector:
 		unsigned int  mFeatureVecLen;    //!< Length of the Feature vector (e.g. from multi-scale volume integral)
 		double*       mFeatureVec;       //!< Feature vector (e.g. from multi-scale volume integral)
