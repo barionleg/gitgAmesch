@@ -1,7 +1,7 @@
 #ifndef NormalSphereSELECTIONRenderWIDGET_H
 #define NormalSphereSELECTIONRenderWIDGET_H
 
-#include <QOpenGLWidget>
+#include <QGLWidget>
 #include <QMatrix4x4>
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLBuffer>
@@ -13,7 +13,7 @@
 #include "ArcBall.h"
 #include "IcoSphereTree.h"
 
-class NormalSphereSelectionRenderWidget : public QOpenGLWidget, QOpenGLFunctions_3_3_Core
+class NormalSphereSelectionRenderWidget : public QGLWidget, QOpenGLFunctions_3_3_Core
 {
 		Q_OBJECT
 	public:

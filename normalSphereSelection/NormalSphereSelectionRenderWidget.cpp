@@ -66,7 +66,7 @@ float raySphereIntersect(const QVector3D& r0, const QVector3D& rd)
 
 
 NormalSphereSelectionRenderWidget::NormalSphereSelectionRenderWidget(QWidget* parent)
-	: QOpenGLWidget(parent),  mFuncValTexture(QOpenGLTexture::Target2D), mSelectionTexture(QOpenGLTexture::Target2D),
+	: QGLWidget(parent),  mFuncValTexture(QOpenGLTexture::Target2D), mSelectionTexture(QOpenGLTexture::Target2D),
 	  mIcosphereIndices(QOpenGLBuffer::IndexBuffer),
 	  mIcoSphereTree(6), mSelectionBuffer(0,0)
 {
