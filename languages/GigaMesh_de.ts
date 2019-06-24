@@ -6,7 +6,7 @@
     <message>
         <location filename="../forms/ExternalProgramsDialog.ui" line="26"/>
         <source>External Programs</source>
-        <translation type="unfinished"></translation>
+        <translation>Externe Programme</translation>
     </message>
     <message>
         <location filename="../forms/ExternalProgramsDialog.ui" line="34"/>
@@ -14,52 +14,52 @@
         <location filename="../forms/ExternalProgramsDialog.ui" line="58"/>
         <location filename="../forms/ExternalProgramsDialog.ui" line="85"/>
         <source>...</source>
-        <translation type="unfinished"></translation>
+        <translation>...</translation>
     </message>
     <message>
         <location filename="../forms/ExternalProgramsDialog.ui" line="41"/>
         <source>Inkscape:</source>
-        <translation type="unfinished"></translation>
+        <translation>Inkscape:</translation>
     </message>
     <message>
         <location filename="../forms/ExternalProgramsDialog.ui" line="65"/>
         <source>Pdf viewer:</source>
-        <translation type="unfinished"></translation>
+        <translation>PDF Betrachter:</translation>
     </message>
     <message>
         <location filename="../forms/ExternalProgramsDialog.ui" line="75"/>
         <source>pdflatex:</source>
-        <translation type="unfinished"></translation>
+        <translation>pdflatex:</translation>
     </message>
     <message>
         <location filename="../forms/ExternalProgramsDialog.ui" line="95"/>
         <source>python 3:</source>
-        <translation type="unfinished"></translation>
+        <translation>python 3:</translation>
     </message>
     <message>
         <location filename="../forms/ExternalProgramsDialog.ui" line="106"/>
         <source>Default</source>
-        <translation type="unfinished"></translation>
+        <translation>Standard</translation>
     </message>
     <message>
         <location filename="../ExternalProgramsDialog.cpp" line="112"/>
         <source>Select Inkscape executable</source>
-        <translation type="unfinished"></translation>
+        <translation>Wähle Inkscape exe Datei aus</translation>
     </message>
     <message>
         <location filename="../ExternalProgramsDialog.cpp" line="117"/>
         <source>Select pdflatex executable</source>
-        <translation type="unfinished"></translation>
+        <translation>Wähle pdflatex exe aus</translation>
     </message>
     <message>
         <location filename="../ExternalProgramsDialog.cpp" line="122"/>
         <source>Select a program to view pdf files</source>
-        <translation type="unfinished"></translation>
+        <translation>Wähle ein Programm, um PDF Dateien zu betrachten</translation>
     </message>
     <message>
         <location filename="../ExternalProgramsDialog.cpp" line="127"/>
         <source>Select python3 executable</source>
-        <translation type="unfinished"></translation>
+        <translation>Wähle python3 exe aus</translation>
     </message>
 </context>
 <context>
@@ -67,317 +67,319 @@
     <message>
         <location filename="../forms/mainWin.ui" line="23"/>
         <source>MainWindow</source>
-        <translation type="unfinished"></translation>
+        <translation>Hauptfenster</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="46"/>
         <source>&amp;File</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Datei</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="50"/>
         <source>Export I&amp;mage Stack</source>
-        <translation type="unfinished"></translation>
+        <translation>Exportiere I&amp;mage Stack</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="70"/>
         <source>Export Screens&amp;hots</source>
-        <translation type="unfinished"></translation>
+        <translation>Exportiere Screens&amp;hots</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="95"/>
         <source>Open Recent &amp;Files</source>
-        <translation type="unfinished"></translation>
+        <translation>Öffne &amp;zuletzt verwendete Dateien</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="100"/>
         <source>&amp;Export Polylines</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Exportiere Polylinien</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="108"/>
         <source>Export Screenshots - Parse Directory</source>
-        <translation type="unfinished"></translation>
+        <translation>Exportiere Screenshots - Parse Verzeichnis</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="148"/>
         <source>&amp;Labeling</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Labeling</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="167"/>
         <source>F&amp;unctions</source>
-        <translation type="unfinished"></translation>
+        <translation>F&amp;unktionen</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="171"/>
         <source>&amp;Vertex - Properties</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Vertex - Eigenschaften</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="186"/>
         <source>Feature Vectors - Extra Functions</source>
-        <translation type="unfinished"></translation>
+        <translation>Feature Vectoren - Extra Funktionen</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="204"/>
         <source>Color per Vertex to Function Value</source>
-        <translation type="unfinished"></translation>
+        <translation>Farbe pro Vertex zu Funktionswert</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="214"/>
         <source>Angles to Axis</source>
-        <translation type="unfinished"></translation>
+        <translation>Winkel zu Achse</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="257"/>
         <source>&amp;Edit</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Bearbeiten</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="261"/>
         <source>Function Value - Extra</source>
-        <translation type="unfinished"></translation>
+        <translation>Funktionswert - Extra</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="274"/>
         <source>Cone / Cylinder - Extra</source>
-        <translation type="unfinished"></translation>
+        <translation>Konus / Zylinder - Extra</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="286"/>
         <source>More / Extra</source>
-        <translation type="unfinished"></translation>
+        <translation>Mehr / Extra</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="297"/>
         <source>Transform - Extra</source>
-        <translation type="unfinished"></translation>
+        <translation>Transformation - Extra</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="357"/>
         <source>&amp;View</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Ansicht</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="361"/>
         <source>&amp;Vertices</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Vertexe</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="390"/>
         <source>&amp;Toolbars</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Werkzeugsleisten</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="401"/>
         <source>Normalvector Rendering</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>Nicht die schönste übersetzung...</translatorcomment>
+        <translation>Normalenvektor Rendering</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="413"/>
         <source>Polylines - Render Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Polylinien - Render Einstellungen</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="422"/>
         <source>Rotate - View - by Value (Degree)</source>
-        <translation type="unfinished"></translation>
+        <translation>Rotieren - Ansicht - über Wert (Grad)</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="430"/>
         <source>Rotate - Plane</source>
-        <translation type="unfinished"></translation>
+        <translation>Rotieren - Ebene</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="488"/>
         <source>Select</source>
-        <translation type="unfinished"></translation>
+        <translation>Auswahl</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="492"/>
         <source>Vertices - SelMVerts - &amp;by Value/Type/Index</source>
-        <translation type="unfinished"></translation>
+        <translation>Vertexe - SelMVertes - &amp;über Wert/Typ/Index</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="524"/>
         <source>Vertices - SelMVerts - &amp;Deselect</source>
-        <translation type="unfinished"></translation>
+        <translation>Vertexe - SelmVertes - &amp;Deselektieren</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="530"/>
         <source>Plane - Extra</source>
-        <translation type="unfinished"></translation>
+        <translation>Ebene - Extra</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="540"/>
         <source>Polylines</source>
-        <translation type="unfinished"></translation>
+        <translation>Polylinien</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="554"/>
         <source>Faces - Extra</source>
-        <translation type="unfinished"></translation>
+        <translation>Faces - Extra</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="607"/>
         <source>&amp;Histogram</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Histogramm</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="630"/>
         <source>Sett&amp;ings</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Einstellungen</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="634"/>
         <source>Grids - Extra</source>
-        <translation type="unfinished"></translation>
+        <translation>Gitter - Extra</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="643"/>
         <source>Material Defaults</source>
-        <translation type="unfinished"></translation>
+        <translation>Material Standards</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="702"/>
         <source>Colo&amp;rs</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Farben</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="721"/>
         <source>&amp;Colorramp</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Colorramp</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="725"/>
         <source>Deprecated Colorramps</source>
-        <translation type="unfinished"></translation>
+        <translation>Veraltete Colorramps</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="733"/>
         <source>Hypsometric Tints</source>
-        <translation type="unfinished"></translation>
+        <translation>Hypsometric Tints</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="781"/>
         <source>Info</source>
-        <translation type="unfinished"></translation>
+        <translation>Informationen</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="811"/>
         <source>A&amp;nalyze</source>
-        <translation type="unfinished"></translation>
+        <translation>A&amp;nalysieren</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="815"/>
         <source>Octree</source>
-        <translation type="unfinished"></translation>
+        <translation>Octree</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="880"/>
         <source>toolBar</source>
-        <translation type="unfinished"></translation>
+        <translation>Werkzeugleiste</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="929"/>
         <source>&amp;Open</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Öffnen</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="932"/>
         <source>Ctrl+O</source>
-        <translation type="unfinished"></translation>
+        <translation>Strg+O</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="937"/>
         <source>&amp;Apply TPS-RPM Transformation</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Anwenden TPS-RPM Transformation</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="942"/>
         <source>&amp;MSII Feature Vector - SelVert</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;MSII Feature Vektor - SelVert</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="947"/>
         <source> Import &amp;Color (per Vertex)</source>
-        <translation type="unfinished"></translation>
+        <translation>Importiere &amp;Farben (pro Vertex)</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="952"/>
         <source>&amp;Save as</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Speichere als</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="955"/>
         <source>Ctrl+S</source>
-        <translation type="unfinished"></translation>
+        <translation>Strg+S</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="966"/>
         <source>&amp;Binary</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Binär</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="977"/>
         <source>&amp;GM Extras (Features, Labels, Flags)</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;GM Extras (Features, Labels, Flags)</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="982"/>
         <source>Import Mesh Coordinates From CSV File</source>
-        <translation type="unfinished"></translation>
+        <translation>Importiere Mesh-Koordinaten von CSV Datei</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="987"/>
         <source>&amp;Import Feature Vectors (per Vertex)</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Importiere Feature-Vektoren (pro Vertex)</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="1002"/>
         <source>&amp;Primitive - Vertex - SelVert/SelPrim</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Primitive - Vertex . SelVert/SelPrim</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="1005"/>
         <source>Select single vertex (SelPrim)</source>
-        <translation type="unfinished"></translation>
+        <translation>Selektiere einzelnen Vertex (SelPrim)</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="1026"/>
         <source>Pri&amp;mitive - Face - SelFace/SelPrim</source>
-        <translation type="unfinished"></translation>
+        <translation>Pri&amp;mitive - Face - SelFace/SelPrim</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="1040"/>
         <source>Feature Distance to SelVert (Euclid)</source>
-        <translation type="unfinished"></translation>
+        <translation>Feature Distanz zu SelVert (Euclid)</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="1048"/>
         <source>Feature Vector &amp;Elements - Cut-Off SelVert</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>=&gt; cut-off durch &quot;abschneiden&quot; übersetzen?</translatorcomment>
+        <translation>Feature Vektor &amp;Elemente - Cut-Off SelVert</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="1056"/>
         <source>Feature Elements cut-&amp;off SelFace</source>
-        <translation type="unfinished"></translation>
+        <translation>Feature Elemente cut-&amp;off SelFace</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="1067"/>
         <source>&amp;Orthographic View</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Orthografische Ansicht</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="1075"/>
         <source>Label + &amp;Remove Small Areas</source>
-        <translation type="unfinished"></translation>
+        <translation>Label + &amp;Entferne Kleine Bereiche</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="1080"/>
         <source>&amp;Screenshot (TIFF/PNG)</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Screenshot (TIFF/PNG)</translation>
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="1088"/>
@@ -3927,7 +3929,7 @@ i.e. Do you want to keep the largest hole in the mesh?</source>
     <message>
         <location filename="../meshQt.cpp" line="3966"/>
         <source>&lt;td align=&apos;right&apos;&gt;Vertex&amp;nbsp;A&amp;nbsp;coordinates:&lt;/td&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;td align=&apos;right&apos;&gt;Vertex&amp;nbsp;A&amp;nbsp;Koordinaten:&lt;/td&gt;</translation>
     </message>
     <message>
         <location filename="../meshQt.cpp" line="3968"/>
@@ -4001,7 +4003,7 @@ i.e. Do you want to keep the largest hole in the mesh?</source>
     <message>
         <location filename="../meshwidget.cpp" line="340"/>
         <source>Edit scene size (width height):</source>
-        <translation type="unfinished"></translation>
+        <translation>Editiere Szenengröße (Breite Höhe):</translation>
     </message>
     <message>
         <location filename="../meshwidget.cpp" line="366"/>
@@ -4567,12 +4569,12 @@ i.e. Do you want to keep the largest hole in the mesh?</source>
     <message>
         <location filename="../forms/dialogComboBox.ui" line="20"/>
         <source>Dialog</source>
-        <translation type="unfinished"></translation>
+        <translation>Dialog</translation>
     </message>
     <message>
         <location filename="../forms/dialogComboBox.ui" line="42"/>
         <source>TextLabel</source>
-        <translation type="unfinished"></translation>
+        <translation>TextLabel</translation>
     </message>
 </context>
 <context>
@@ -4580,12 +4582,12 @@ i.e. Do you want to keep the largest hole in the mesh?</source>
     <message>
         <location filename="../QGMDialogConeParam.cpp" line="50"/>
         <source>Use clipboard data</source>
-        <translation type="unfinished"></translation>
+        <translation>Benutze Daten aus der Zwischenablage</translation>
     </message>
     <message>
         <location filename="../QGMDialogConeParam.cpp" line="51"/>
         <source>Do you want to use the values from the clipboard to define a cone?</source>
-        <translation type="unfinished"></translation>
+        <translation>Möchten sie die Daten aus der Zwischenablage benutzen um ein Konus zu definieren?</translation>
     </message>
 </context>
 <context>
@@ -4593,7 +4595,7 @@ i.e. Do you want to keep the largest hole in the mesh?</source>
     <message>
         <location filename="../forms/dialogEnterText.ui" line="14"/>
         <source>Enter Text</source>
-        <translation type="unfinished"></translation>
+        <translation>Text Eingeben</translation>
     </message>
 </context>
 <context>
@@ -4601,35 +4603,35 @@ i.e. Do you want to keep the largest hole in the mesh?</source>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="35"/>
         <source>Sketch Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Sketch Einstellungen</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="59"/>
         <source>Outlines</source>
-        <translation type="unfinished"></translation>
+        <translation>Aussenlinien</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="73"/>
         <location filename="../forms/qgmdialognprsettings.ui" line="268"/>
         <location filename="../forms/qgmdialognprsettings.ui" line="457"/>
         <source>Enabled</source>
-        <translation type="unfinished"></translation>
+        <translation>Aktiviert</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="83"/>
         <source>Size         </source>
-        <translation type="unfinished"></translation>
+        <translation>Größe         </translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="144"/>
         <source>Threshold</source>
-        <translation type="unfinished"></translation>
+        <translation>Schwellwert</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="199"/>
         <location filename="../forms/qgmdialognprsettings.ui" line="374"/>
         <source>Color</source>
-        <translation type="unfinished"></translation>
+        <translation>Farbe</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="245"/>
@@ -4641,171 +4643,172 @@ i.e. Do you want to keep the largest hole in the mesh?</source>
         <location filename="../forms/qgmdialognprsettings.ui" line="706"/>
         <location filename="../forms/qgmdialognprsettings.ui" line="743"/>
         <source>Choose</source>
-        <translation type="unfinished"></translation>
+        <translation>Auswahl</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="257"/>
         <source>Hatches / Dither</source>
-        <translation type="unfinished"></translation>
+        <translation>Schraffuren / Dithering</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="278"/>
         <source>Size </source>
-        <translation type="unfinished"></translation>
+        <translation>Größe </translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="285"/>
         <source>Rotation</source>
-        <translation type="unfinished"></translation>
+        <translation>Rotation</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="322"/>
         <source>Light influence</source>
-        <translation type="unfinished"></translation>
+        <translation>Beinflusst durch Licht</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="429"/>
         <source>Style</source>
-        <translation type="unfinished"></translation>
+        <translation>Stil</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="446"/>
         <source>Toon</source>
-        <translation type="unfinished"></translation>
+        <translation>Toon</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="467"/>
         <source>Enable Specular</source>
-        <translation type="unfinished"></translation>
+        <translation>Aktiviere spekulares Licht</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="477"/>
         <source>&amp;Map color to value</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>nicht die beste Übersetung... Englisher begriff auch nicht ideal...</translatorcomment>
+        <translation>&amp;Weise Farbe einen Wert zu</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="490"/>
         <source>Specular Size</source>
-        <translation type="unfinished"></translation>
+        <translation>Größe spekulares Licht</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="524"/>
         <source>Specular Color</source>
-        <translation type="unfinished"></translation>
+        <translation>Farbe spekulares Licht</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="567"/>
         <source>Diffuse Color +2</source>
-        <translation type="unfinished"></translation>
+        <translation>Farbe diffuses Licht +2</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="604"/>
         <source>Diffuse Color +1</source>
-        <translation type="unfinished"></translation>
+        <translation>Farbe diffuses Licht +1</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="641"/>
         <source>Diffuse Color   0</source>
-        <translation type="unfinished"></translation>
+        <translation>Farbe diffuses Licht   0</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="678"/>
         <source>Diffuse Color  -1</source>
-        <translation type="unfinished"></translation>
+        <translation>Farbe diffuses Licht  -1</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="715"/>
         <source>Diffuse Color  -2</source>
-        <translation type="unfinished"></translation>
+        <translation>Farbe diffuses Licht  -2</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="752"/>
         <source>&amp;Discretize light and color</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Diskretisiere Licht und Farbe</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="762"/>
         <source>Ligthing</source>
-        <translation type="unfinished"></translation>
+        <translation>Lichtwert</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="779"/>
         <source>Hue</source>
-        <translation type="unfinished"></translation>
+        <translation>Farbton</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="796"/>
         <source>Saturation</source>
-        <translation type="unfinished"></translation>
+        <translation>Farbsättigung</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="813"/>
         <source>Value</source>
-        <translation type="unfinished"></translation>
+        <translation>Farbwert</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="833"/>
         <source>Sources</source>
-        <translation type="unfinished"></translation>
+        <translation>Quellen</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="844"/>
         <source>Outlines:</source>
-        <translation type="unfinished"></translation>
+        <translation>Aussenlinien:</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="858"/>
         <source>Geometry</source>
-        <translation type="unfinished"></translation>
+        <translation>Geometrie</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="863"/>
         <location filename="../forms/qgmdialognprsettings.ui" line="890"/>
         <location filename="../forms/qgmdialognprsettings.ui" line="920"/>
         <source>FuncVal</source>
-        <translation type="unfinished"></translation>
+        <translation>Funktionswert</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="871"/>
         <source>Hatches:</source>
-        <translation type="unfinished"></translation>
+        <translation>Schraffuren:</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="885"/>
         <location filename="../forms/qgmdialognprsettings.ui" line="911"/>
         <location filename="../forms/qgmdialognprsettings.ui" line="915"/>
         <source>Light intensity</source>
-        <translation type="unfinished"></translation>
+        <translation>Licht Intensität</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="898"/>
         <source>Toon:</source>
-        <translation type="unfinished"></translation>
+        <translation>Toon:</translation>
     </message>
     <message>
         <location filename="../forms/qgmdialognprsettings.ui" line="934"/>
         <source>Preview</source>
-        <translation type="unfinished"></translation>
+        <translation>Vorschau</translation>
     </message>
     <message>
         <location filename="../QGMDialogNprSettings.cpp" line="72"/>
         <source>Lines</source>
-        <translation type="unfinished"></translation>
+        <translation>Linien</translation>
     </message>
     <message>
         <location filename="../QGMDialogNprSettings.cpp" line="73"/>
         <source>Dots</source>
-        <translation type="unfinished"></translation>
+        <translation>Punkte</translation>
     </message>
     <message>
         <location filename="../QGMDialogNprSettings.cpp" line="74"/>
         <source>Random Dither</source>
-        <translation type="unfinished"></translation>
+        <translation>Zufälliges Dithering</translation>
     </message>
     <message>
         <location filename="../QGMDialogNprSettings.cpp" line="75"/>
         <source>Bayer Dither</source>
-        <translation type="unfinished"></translation>
+        <translation>Bayer Dithering</translation>
     </message>
 </context>
 <context>
@@ -4813,12 +4816,12 @@ i.e. Do you want to keep the largest hole in the mesh?</source>
     <message>
         <location filename="../QGMDialogPlaneParam.cpp" line="27"/>
         <source>Use HNF from clipboard</source>
-        <translation type="unfinished"></translation>
+        <translation>Benutze HNF von Zwischenablage</translation>
     </message>
     <message>
         <location filename="../QGMDialogPlaneParam.cpp" line="27"/>
         <source>Parameters: </source>
-        <translation type="unfinished"></translation>
+        <translation>Paramter: </translation>
     </message>
 </context>
 <context>
@@ -4826,7 +4829,7 @@ i.e. Do you want to keep the largest hole in the mesh?</source>
     <message>
         <location filename="../QGMDialogRuler.cpp" line="146"/>
         <source>Choose the Directory</source>
-        <translation type="unfinished"></translation>
+        <translation>Wähle ein Verzeichnis</translation>
     </message>
 </context>
 <context>
@@ -4834,37 +4837,37 @@ i.e. Do you want to keep the largest hole in the mesh?</source>
     <message>
         <location filename="../forms/QGMDialogSliderHD.ui" line="32"/>
         <source>Dialog</source>
-        <translation type="unfinished"></translation>
+        <translation>Dialog</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogSliderHD.ui" line="67"/>
         <source>Preview</source>
-        <translation type="unfinished"></translation>
+        <translation>Vorschau</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogSliderHD.ui" line="83"/>
         <source>Min:</source>
-        <translation type="unfinished"></translation>
+        <translation>Min:</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogSliderHD.ui" line="113"/>
         <source>Rel:</source>
-        <translation type="unfinished"></translation>
+        <translation>Rel:</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogSliderHD.ui" line="139"/>
         <source>Step:</source>
-        <translation type="unfinished"></translation>
+        <translation>Schritt:</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogSliderHD.ui" line="169"/>
         <source>Abs:</source>
-        <translation type="unfinished"></translation>
+        <translation>Abs:</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogSliderHD.ui" line="195"/>
         <source>Max:</source>
-        <translation type="unfinished"></translation>
+        <translation>Max:</translation>
     </message>
     <message>
         <location filename="../QGMDialogSliderHD.cpp" line="212"/>
@@ -4872,7 +4875,7 @@ i.e. Do you want to keep the largest hole in the mesh?</source>
         <location filename="../QGMDialogSliderHD.cpp" line="275"/>
         <location filename="../QGMDialogSliderHD.cpp" line="276"/>
         <source>%1</source>
-        <translation type="unfinished"></translation>
+        <translation>%1</translation>
     </message>
 </context>
 <context>
@@ -4880,152 +4883,154 @@ i.e. Do you want to keep the largest hole in the mesh?</source>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="14"/>
         <source>Transparency Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Transparenz Einstellungen</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="20"/>
         <source>Choose Transparency-Function:</source>
-        <translation type="unfinished"></translation>
+        <translation>Wähle Transparenz-Funktion:</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="29"/>
         <source>Use vertex-color information for transparency</source>
-        <translation type="unfinished"></translation>
+        <translation>Benutze Vertex Farbinformation für Transparenz</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="35"/>
         <source>&amp;VertexColor</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Vertexfarbe</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="45"/>
         <source>Use Alpha 1 for transparency</source>
-        <translation type="unfinished"></translation>
+        <translation>Benutze Alpha 1 für Transparenz</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="48"/>
         <source>Un&amp;iform</source>
-        <translation type="unfinished"></translation>
+        <translation>Un&amp;iform</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="67"/>
         <source>Interpolate between Alpha 1 and 2 based on the FuncVal</source>
-        <translation type="unfinished"></translation>
+        <translation>Interpoliere basierend auf den Funktionswert zwischen Alpha 1 und 2</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="70"/>
         <source>&amp;FuncVal</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Funktionswert</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="82"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Assign Alpha 2 to each fragment with given LabelNr&lt;/p&gt;&lt;p&gt;Assign Alpha 1 to the rest&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Weise Alpha 2 jedem Fragment mit LabelNr zu&lt;/p&gt;&lt;p&gt;Weise Alpha 1 allen anderen zu&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="88"/>
         <source>&amp;LabelNr</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;LabelNr</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="107"/>
         <source>Interpolate between Alpha 1 and 2 based on angle between View direction and Normal</source>
-        <translation type="unfinished"></translation>
+        <translation>Interpoliere, basierend auf den Winkel zwischen Blickrichtung und Normale, zwischen Alpha 1 und 2</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="110"/>
         <source>An&amp;gle-Based</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Winkel-Basierend</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="120"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Interpolate between Alpha 1 and Alpha 2 depending on the variation of the Normal-z axes. Gamma influences the strength of the effect&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Interpoliere, basierend auf der Veränderung der Z-Achse der Normale, zwischen Alpha 1 und Alpha 2. Gamma beinflusst die Stärke des Effekts&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="123"/>
         <source>&amp;Normal-Variation</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Normalen-Variation</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="137"/>
         <source>Alpha 1:</source>
-        <translation type="unfinished"></translation>
+        <translation>Alpha 1:</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="170"/>
         <source>Alpha 2:</source>
-        <translation type="unfinished"></translation>
+        <translation>Alpha 2:</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="203"/>
         <source>Gamma:</source>
-        <translation type="unfinished"></translation>
+        <translation>Gamma:</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="243"/>
         <source>Num Layers</source>
-        <translation type="unfinished"></translation>
+        <translation>Anzahl Schichten</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="286"/>
         <source>(Caution, using more than 20 Layers is  not recommended)</source>
-        <translation type="unfinished"></translation>
+        <translation>(Achtung, es ist nicht empfehlenswert mehr als 20 Schichten
+zu verwenden)</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="293"/>
         <source>Buffer Type:</source>
-        <translation type="unfinished"></translation>
+        <translation>Buffer Typ:</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="302"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use fixed amount of memory using a weighted blending function&lt;/p&gt;&lt;p&gt;Draws all layers&lt;/p&gt;&lt;p&gt;Fastest but also very inacurate&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Die größe des Speichers ändert sich nicht. Verwendet eine gewichtete Blending-Funktion&lt;/p&gt;&lt;p&gt;Zeichnet alle Schichten&lt;/p&gt;&lt;p&gt;Am schnellsten, aber auch sehr ungenau&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="305"/>
         <source>W&amp;eighted Blend</source>
-        <translation type="unfinished"></translation>
+        <translation>W&amp;eighted Blend</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="321"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use fixed amount of memory per Pixel using Atomic Loops&lt;/p&gt;&lt;p&gt;Draws the nearest k Layers (Num Layers)&lt;/p&gt;&lt;p&gt;Fast but inacurate&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Benötigt eine konstante Speichergröße pro Pixel durch verwendung von Atomic Loops&lt;/p&gt;&lt;p&gt;Zeichnet die ersten k Schichten (Anzahl Schichten)&lt;/p&gt;&lt;p&gt;Schnell aber ungenau&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="324"/>
         <source>Ato&amp;mic Loop</source>
-        <translation type="unfinished"></translation>
+        <translation>Ato&amp;mic Loop</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="334"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use Linked-Lists to store fragments&lt;/p&gt;&lt;p&gt;Slow, but accurate&lt;/p&gt;&lt;p&gt;Caution, when using meshes with very high-depth-complexity&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Benutze Verlinke Listen um Fragmente zu speichern&lt;/p&gt;&lt;p&gt;Langsam, aber genau&lt;/p&gt;&lt;p&gt;Achtung, kann sehr viel Speicher brauchen, falls Meshes mit einer sehr hohen tiefen-komplexität verwendet werden&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="337"/>
         <source>A Buffe&amp;r</source>
-        <translation type="unfinished"></translation>
+        <translation>A Buffe&amp;r</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="351"/>
         <source>Overflow Handling</source>
-        <translation type="unfinished"></translation>
+        <translation>Überlauf Behandlung</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="359"/>
         <source>Discard</source>
-        <translation type="unfinished"></translation>
+        <translation>Verwerfen</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="364"/>
         <source>Weighted Average</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>=&gt; hier ist der originaltext falsch!</translatorcomment>
+        <translation>Weighted Blend</translation>
     </message>
     <message>
         <location filename="../forms/QGMDialogTransparencySettings.ui" line="374"/>
         <source>Preview</source>
-        <translation type="unfinished"></translation>
+        <translation>Vorschau</translation>
     </message>
 </context>
 <context>
@@ -5033,27 +5038,27 @@ i.e. Do you want to keep the largest hole in the mesh?</source>
     <message>
         <location filename="../forms/qgmdockinfo.ui" line="43"/>
         <source>&amp;Information</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Information</translation>
     </message>
     <message>
         <location filename="../forms/qgmdockinfo.ui" line="65"/>
         <source>DONE</source>
-        <translation type="unfinished"></translation>
+        <translation>FERTIG</translation>
     </message>
     <message>
         <location filename="../forms/qgmdockinfo.ui" line="134"/>
         <source>Buildinfo</source>
-        <translation type="unfinished"></translation>
+        <translation>Buildinfo</translation>
     </message>
     <message>
         <location filename="../forms/qgmdockinfo.ui" line="196"/>
         <source>Guide</source>
-        <translation type="unfinished"></translation>
+        <translation>Guide</translation>
     </message>
     <message>
         <location filename="../forms/qgmdockinfo.ui" line="218"/>
         <source>IWR Internal</source>
-        <translation type="unfinished"></translation>
+        <translation>IWR Internal</translation>
     </message>
 </context>
 <context>
