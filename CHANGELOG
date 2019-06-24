@@ -1,4 +1,7 @@
 Current version
++) Minor changes.
+
+Version 190531
 +) Improved rendering of connected components.
 +) More information about faces at borders and vertex normals. See 'Info -> Mesh properties' and CLI 'gigamesh-info'.
 +) New face selection along mesh borders. See 'Select -> Faces extra -> Face - Border - ...'.

@@ -1,24 +1,28 @@
 #include "showprogress.h"
 
-#include<iostream>
-#include<cmath>
+#include <iostream>
+#include <cmath>
 #include <chrono>
 
-using namespace std;
-
-ShowProgress::ShowProgress() {
-	// Nothing to do here.
+ShowProgress::ShowProgress(
+                const std::string& rPrefix
+) {
+	mPrefix = rPrefix;
+	// Append space, when a string is given.
+	if( mPrefix.size() > 0 ) {
+		mPrefix += " ";
+	}
 }
 
 // --- Progressbar ---------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Stub for higher level progress bars, e.g. to open a window.
 void ShowProgress::showProgressStart(
-                const string& rMsg
+                const std::string& rMsg
 ) {
 	mProgressStarted = clock();
 	mLastTimeStamp = static_cast<double>(mProgressStarted);
-	cout << "[Mesh] " << rMsg << " --- Begin." << endl;
+	std::cout << mPrefix << rMsg << " --- Begin." << std::endl;
 }
 
 //! Show progress bar.
@@ -30,7 +34,7 @@ void ShowProgress::showProgressStart(
 //! @returns false, when supressing output and/or function calls (for higher level derivates).
 bool ShowProgress::showProgress(
                 double rVal,
-                const string& rMsg
+                const std::string& rMsg
 ) {
 	// Fetch timestamp from last update.
 	double lastSignal = mLastTimeStamp;
@@ -45,7 +49,7 @@ bool ShowProgress::showProgress(
 	// Compute progress on the console:
 	double timeElapsed = ( mLastTimeStamp - mProgressStarted ) / CLOCKS_PER_SEC;
 	double timeRemaining = round( 10.0 * ( timeElapsed / rVal ) * ( 1.0 - rVal ) ) / 10.0;
-	string timeRemainingUnit = "sec";
+	std::string timeRemainingUnit = "sec";
 	if( timeRemaining > ( 24.0 * 3600.0 ) ) {
 		timeRemaining = round( 10.0 * timeRemaining / ( 24.0 * 3600.0 ) ) / 10.0;
 		timeRemainingUnit = "DAYS";
@@ -55,19 +59,21 @@ bool ShowProgress::showProgress(
 	}
 
 	// Show progress on the console:
-	cout << "[Mesh] " << rMsg << " ";
-	cout << "| " << round( rVal*1000.0 )/10.0 << "% ";
-	cout << "| " << round( timeElapsed*10.0 )/10.0 << " sec ";
-	cout << "elapsed - ";
-	cout << "remaining: " << timeRemaining << " " << timeRemainingUnit;
-	cout << endl;
+	std::cout << mPrefix << rMsg << " ";
+	std::cout << "| " << round( rVal*1000.0 )/10.0 << "% ";
+	std::cout << "| " << round( timeElapsed*10.0 )/10.0 << " sec ";
+	std::cout << "elapsed - ";
+	std::cout << "remaining: " << timeRemaining << " " << timeRemainingUnit;
+	std::cout << std::endl;
 
 	return( true );
 }
 
 //! Stub for higher level progress bars, e.g. to close a window.
 void ShowProgress::showProgressStop(
-                const string& rMsg
+                const std::string& rMsg
 ) {
-	cout << "[Mesh] " << rMsg << " --- Done." << endl;
+	double timeElapsed = ( static_cast<double>(clock()) - mProgressStarted ) / CLOCKS_PER_SEC;
+	std::cout << mPrefix << rMsg << " --- Done."
+	             " Processing took " << timeElapsed << " seconds." << std::endl;
 }

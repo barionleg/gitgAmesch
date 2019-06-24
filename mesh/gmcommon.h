@@ -54,9 +54,9 @@ struct sVertexProperties {
 };
 
 struct sFaceProperties {
-	unsigned long mVertIdxA;
-	unsigned long mVertIdxB;
-	unsigned long mVertIdxC;
+	uint64_t mVertIdxA;
+	uint64_t mVertIdxB;
+	uint64_t mVertIdxC;
 };
 
 #endif

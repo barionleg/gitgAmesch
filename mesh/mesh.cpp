@@ -56,17 +56,33 @@ using namespace std;
 	void* estMultiFaceConnection( faceDataStruct* rFaceData ) {
 		int   threadID = rFaceData->mThreadID;
 		Mesh* myMesh   = rFaceData->mMesh;
-		cout << "[Thread " << threadID+1 << "] START one out of " << NUM_THREADS << " threads." << endl;
+		std::cout << "[Thread " << threadID+1 << "] START one out of " << NUM_THREADS << " threads." << std::endl;
+
+		// Show only for one thread
+		ShowProgress myThreadProgress( "[Thread 1]" );
+		if( threadID == 0 ) {
+			myThreadProgress.showProgressStart( "estMultiFaceConnection" );
+		}
 
 		double areaProc = 0.0;
 		Face* currFace;
-		for( uint64_t faceIdx=threadID; faceIdx<myMesh->getFaceNr(); faceIdx+=NUM_THREADS ) {
+		uint64_t faceCount = myMesh->getFaceNr();
+		for( uint64_t faceIdx=threadID; faceIdx<faceCount; faceIdx+=NUM_THREADS ) {
 			currFace = myMesh->getFacePos( faceIdx );
 			areaProc += currFace->getAreaNormal();
 			currFace->connectToFaces();
+			if( threadID == 0 ) {
+				myThreadProgress.showProgress( (double)faceIdx/(double)faceCount ,
+				                      "estMultiFaceConnection" );
+			}
 		}
+
+		if( threadID == 0 ) {
+			myThreadProgress.showProgressStop( "estMultiFaceConnection" );
+		}
+
 		rFaceData->mAreaProc = areaProc;
-		cout << "[Thread " << threadID+1 << "] Processed area: " << areaProc << "" << endl;
+		std::cout << "[Thread " << threadID+1 << "] Processed area: " << areaProc << "" << std::endl;
 		return nullptr;
 	}
 #endif
@@ -100,7 +116,8 @@ using namespace std;
 	mSpherePointsIdx(0),                    \
 	mSphereRadius(0.0),                     \
 	mCenteredAroundSphere(false),           \
-	mUnrolledAroundSphere(false)
+	mUnrolledAroundSphere(false),           \
+	ShowProgress( "[Mesh]" )
 
 //! Minimalistic constructur initalizing variables and pointers.
 Mesh::Mesh()
@@ -766,21 +783,24 @@ void Mesh::establishStructure(
 
 	Face *myFace;
 	mFaces.resize( rFaceProps.size() );
-	for( int i=0; i<rFaceProps.size(); i++ ) {
+	for( uint64_t i=0; i<rFaceProps.size(); i++ ) {
 		//cout << "Face: " << i << " " << facesMeshed[i*3]-1 << ", " << facesMeshed[i*3+1]-1 << ", " << facesMeshed[i*3+2]-1 << endl;
 		uint64_t vertAIdx = rFaceProps[i].mVertIdxA;
 		uint64_t vertBIdx = rFaceProps[i].mVertIdxB;
 		uint64_t vertCIdx = rFaceProps[i].mVertIdxC;
 		if( vertAIdx >= rVertexProps.size() ) {
-			cerr << "[Mesh::" << __FUNCTION__ << "] Vertex index out of range: " << vertAIdx << " ... ignoring Face!" << endl;
+			std::cerr << "[Mesh::" << __FUNCTION__ << "] Vertex A index out of range: " << vertAIdx <<
+			             " ... ignoring Face #" << i << "!" << std::endl;
 			continue;
 		}
 		if( vertBIdx >= rVertexProps.size() ) {
-			cerr << "[Mesh::" << __FUNCTION__ << "] Vertex index out of range: " << vertBIdx << " ... ignoring Face!" << endl;
+			std::cerr << "[Mesh::" << __FUNCTION__ << "] Vertex B index out of range: " << vertBIdx <<
+			             " ... ignoring Face #" << i << "!" << std::endl;
 			continue;
 		}
 		if( vertCIdx >= rVertexProps.size() ) {
-			cerr << "[Mesh::" << __FUNCTION__ << "] Vertex index out of range: " << vertCIdx << " ... ignoring Face!" << endl;
+			std::cerr << "[Mesh::" << __FUNCTION__ << "] Vertex C index out of range: " << vertCIdx <<
+			             " ... ignoring Face #" << i << "!" << std::endl;
 			continue;
 		}
 		try {
