@@ -129,9 +129,9 @@ void ExternalProgramsDialog::pythonPathChoose()
 
 void ExternalProgramsDialog::defaultPressed()
 {
-	ui->inkscape_lineEdit->setText(tr("inkscape"));
-	ui->pdf_latex_lineEdit->setText(tr("pdflatex"));
-	ui->pdf_viewer_lineEdit->setText(tr("evince"));
-	ui->python_lineEdit->setText(tr("python3"));
+	ui->inkscape_lineEdit->setText("inkscape");
+	ui->pdf_latex_lineEdit->setText("pdflatex");
+	ui->pdf_viewer_lineEdit->setText("evince");
+	ui->python_lineEdit->setText("python3");
 }
 

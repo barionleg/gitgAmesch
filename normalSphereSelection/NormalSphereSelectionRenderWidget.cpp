@@ -311,7 +311,7 @@ void NormalSphereSelectionRenderWidget::initializeGL()
 
 	assert(glGetError() == GL_NO_ERROR);
 
-	if(!initShaderProgram(*mIcoSphereShader, tr(":GMShaders/normalSphere/IcoshphereShader.vert"), tr(":GMShaders/normalSphere/IcosphereShader.frag")))
+	if(!initShaderProgram(*mIcoSphereShader, QString(":GMShaders/normalSphere/IcoshphereShader.vert"), QString(":GMShaders/normalSphere/IcosphereShader.frag")))
 		assert(false);
 
 	//icosphere buffer
@@ -366,7 +366,7 @@ void NormalSphereSelectionRenderWidget::initializeGL()
 	mIcosphereDataBuffer.release();
 	mIcoSphereShader->release();
 
-	QImage texImage(tr(":/GMShaders/funcvalmapsquare.png"));
+	QImage texImage(QString(":/GMShaders/funcvalmapsquare.png"));
 	mFuncValTexture.setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Linear);
 	mFuncValTexture.setWrapMode(QOpenGLTexture::ClampToEdge);
 	mFuncValTexture.setData(texImage.mirrored(), QOpenGLTexture::DontGenerateMipMaps);
