@@ -301,10 +301,7 @@ void NormalSphereSelectionRenderWidget::mouseMoveEvent(QMouseEvent* event)
 
 void NormalSphereSelectionRenderWidget::initializeGL()
 {
-	makeCurrent();
 	initializeOpenGLFunctions();
-
-	std::cout << "Context is shared: " << isSharing() << std::endl;
 
 	mIcoSphereShader = new QOpenGLShaderProgram;
 
@@ -394,12 +391,10 @@ void NormalSphereSelectionRenderWidget::initializeGL()
 	mSelectionTexture.allocateStorage();
 
 	mSelectionTexture.setData(0,QOpenGLTexture::Red,QOpenGLTexture::UInt8, mSelectionBuffer.data());
-	doneCurrent();
 }
 
 void NormalSphereSelectionRenderWidget::resizeGL(int w, int h)
 {
-	makeCurrent();
 	assert(glGetError() == GL_NO_ERROR);
 	glViewport(0,0,w,h);
 	mScreenWidth = w;
@@ -417,12 +412,11 @@ void NormalSphereSelectionRenderWidget::resizeGL(int w, int h)
 
 	mProjectionMatrix.setToIdentity();
 	mProjectionMatrix.ortho(-width,width,-height,height,0.0f,2.0f);	//ortho matrix with unit qube for the sphere
-	doneCurrent();
+
 }
 
 void NormalSphereSelectionRenderWidget::paintGL()
 {
-	makeCurrent();
 	assert(glGetError() == GL_NO_ERROR);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -492,5 +486,4 @@ void NormalSphereSelectionRenderWidget::paintGL()
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_CULL_FACE);
 	assert(glGetError() == GL_NO_ERROR);
-	doneCurrent();
 }
