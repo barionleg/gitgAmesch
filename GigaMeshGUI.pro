@@ -20,6 +20,7 @@
 TEMPLATE = app
 TARGET = gigamesh
 
+TRANSLATIONS = languages/GigaMesh_de.ts
 
 # -------------------------------------------------------------------------------
 # Git info:
