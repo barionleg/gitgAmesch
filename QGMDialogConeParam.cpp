@@ -47,8 +47,8 @@ void QGMDialogConeParam::showEvent( QShowEvent* event ) {
 		Vector3D lowerAxis( x2, y2, z2, 1.0 );
 		bool userAnswer;
 		bool userCancel;
-		SHOW_QUESTION( "Use clipboard data",
-		               "Do you want to use the values from the clipboard to define a cone?"
+		SHOW_QUESTION( tr("Use clipboard data"),
+					   tr("Do you want to use the values from the clipboard to define a cone?") +
 		               "<br /><br />" + currText,
 		               userAnswer, userCancel );
 		if( userCancel ) {
@@ -64,20 +64,20 @@ void QGMDialogConeParam::showEvent( QShowEvent* event ) {
 //! Sets upper and lower axis vector.
 void QGMDialogConeParam::setAxis(const Vector3D &upperAxis, const Vector3D &lowerAxis) {
 
-	x1->setText(tr("%1").arg(upperAxis.getX()));
-	y1->setText(tr("%1").arg(upperAxis.getY()));
-	z1->setText(tr("%1").arg(upperAxis.getZ()));
-	x2->setText(tr("%1").arg(lowerAxis.getX()));
-	y2->setText(tr("%1").arg(lowerAxis.getY()));
-	z2->setText(tr("%1").arg(lowerAxis.getZ()));
+	x1->setText(QString("%1").arg(upperAxis.getX()));
+	y1->setText(QString("%1").arg(upperAxis.getY()));
+	z1->setText(QString("%1").arg(upperAxis.getZ()));
+	x2->setText(QString("%1").arg(lowerAxis.getX()));
+	y2->setText(QString("%1").arg(lowerAxis.getY()));
+	z2->setText(QString("%1").arg(lowerAxis.getZ()));
 
 }
 
 //! Sets upper and lower radius.
 void QGMDialogConeParam::setRadii(double upperRadius, double lowerRadius) {
 
-	this->upperRadius->setText( tr("%1").arg(upperRadius));
-	this->lowerRadius->setText( tr("%1").arg(lowerRadius));
+	this->upperRadius->setText( QString("%1").arg(upperRadius));
+	this->lowerRadius->setText( QString("%1").arg(lowerRadius));
 
 }
 

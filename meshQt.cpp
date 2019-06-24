@@ -349,7 +349,7 @@ MeshQt::~MeshQt() {
 //! Ask the user if the file to be read contains a regular grid - see MeshIO::readFile()
 bool MeshQt::readIsRegularGrid( bool* rIsGrid ) {
 	bool userCancel;
-	SHOW_QUESTION( "Read XYZ file", "Is the content of the file a regular grid (e.g. DTM exported by GIS)?", (*rIsGrid), userCancel );
+	SHOW_QUESTION( tr("Read XYZ file"), tr("Is the content of the file a regular grid (e.g. DTM exported by GIS)?"), (*rIsGrid), userCancel );
 	if( userCancel ) {
 		return false;
 	}
@@ -421,7 +421,7 @@ void MeshQt::showInformation(
 	if( rToClipboard.length() > 0 ) {
 		QClipboard *clipboard = QApplication::clipboard();
 		clipboard->setText( rToClipboard.c_str() );
-		notifyAboutClipboard = "<br /><br />Already copied to clipboard!";
+		notifyAboutClipboard = (QString("<br /><br />") + tr("Already copied to clipboard!")).toStdString();
 	}
 	// Show Messagebox
 	SHOW_MSGBOX_INFO( rHead.c_str(), ( rMsg + notifyAboutClipboard ).c_str() );
@@ -441,7 +441,7 @@ void MeshQt::showWarning( const string& rHead, const string& rMsg ) {
 bool MeshQt::showEnterText( std::string& rSomeStrg, const char* rTitle ) {
 	QGMDialogEnterText dlgEnterTxt;
 	if( rTitle == nullptr ) {
-		dlgEnterTxt.setWindowTitle( "Enter text:" );
+		dlgEnterTxt.setWindowTitle( tr("Enter text:") );
 	} else {
 		dlgEnterTxt.setWindowTitle( rTitle );
 	}
@@ -470,7 +470,7 @@ bool MeshQt::showEnterText(
 ) {
 	QGMDialogEnterText dlgEnterTxt;
 	if( rTitle == nullptr ) {
-		dlgEnterTxt.setWindowTitle( "Enter unsigned integer value:" );
+		dlgEnterTxt.setWindowTitle( tr("Enter unsigned integer value:") );
 	} else {
 		dlgEnterTxt.setWindowTitle( rTitle );
 	}
@@ -503,7 +503,7 @@ bool MeshQt::showEnterText(
 ) {
 	QGMDialogEnterText dlgEnterTxt;
 	if( rTitle == nullptr ) {
-		dlgEnterTxt.setWindowTitle( "Enter one double precision value:" );
+		dlgEnterTxt.setWindowTitle( tr("Enter one double precision value:") );
 	} else {
 		dlgEnterTxt.setWindowTitle( rTitle );
 	}
@@ -525,7 +525,7 @@ bool MeshQt::showEnterText(
 ) {
 	QGMDialogEnterText dlgEnterTxt;
 	if( rTitle == nullptr ) {
-		dlgEnterTxt.setWindowTitle( "Enter integer values:" );
+		dlgEnterTxt.setWindowTitle( tr("Enter integer values:") );
 	} else {
 		dlgEnterTxt.setWindowTitle( rTitle );
 	}
@@ -551,7 +551,7 @@ bool MeshQt::showEnterText(
 ) {
 	QGMDialogEnterText dlgEnterTxt;
 	if( rTitle == nullptr ) {
-		dlgEnterTxt.setWindowTitle( "Enter integer values:" );
+		dlgEnterTxt.setWindowTitle( tr("Enter integer values:") );
 	} else {
 		dlgEnterTxt.setWindowTitle( rTitle );
 	}
@@ -572,7 +572,7 @@ bool MeshQt::showEnterText(
 ) {
 	QGMDialogEnterText dlgEnterTxt;
 	if( rTitle == nullptr ) {
-		dlgEnterTxt.setWindowTitle( "Enter double precision values:" );
+		dlgEnterTxt.setWindowTitle( tr("Enter double precision values:" ));
 	} else {
 		dlgEnterTxt.setWindowTitle( rTitle );
 	}
@@ -593,19 +593,19 @@ bool MeshQt::showEnterText(
 //! Let the user enter a 4x4 matrix i.e. 16 floating point values.
 bool MeshQt::showEnterText( Matrix4D* rMatrix4x4 ) {
 	QGMDialogEnterText dlgEnterTxt;
-	dlgEnterTxt.setWindowTitle( "Enter 4x4 Matrix (16 floating point values)" );
+	dlgEnterTxt.setWindowTitle( tr("Enter 4x4 Matrix (16 floating point values)") );
 	dlgEnterTxt.fetchClipboard();
 	if( dlgEnterTxt.exec() == QDialog::Rejected ) {
 		return false;
 	}
 	vector<double> floatValues;
 	if( !dlgEnterTxt.getText( floatValues ) ) {
-		showWarning( "No matrix entered", "A 4x4 transformation matrix requires 16 floating point values!" );
+		showWarning( tr("No matrix entered").toStdString(), tr("A 4x4 transformation matrix requires 16 floating point values!").toStdString() );
 		cerr << "[MeshQt::" << __FUNCTION__ << "] ERROR: No (proper) floating point values entered!" << endl;
 		return false;
 	}
 	if( floatValues.size() != 16 ) {
-		showWarning( "Wrong number of elements", QString( "A 4x4 transformation matrix requires 16 elements.\n\n%1 were entered!" ).arg( floatValues.size() ).toStdString() );
+		showWarning( tr("Wrong number of elements").toStdString(), tr( "A 4x4 transformation matrix requires 16 elements.\n\n%1 were entered!" ).arg( floatValues.size() ).toStdString() );
 		cerr << "[MeshQt::" << __FUNCTION__ << "] ERROR: Wrong number of elementes entered!" << endl;
 		return false;
 	}
@@ -649,7 +649,7 @@ bool MeshQt::showQuestion( bool* rUserChoice, const string& rHead, const string&
 		userChoice = (*rUserChoice);
 	}
 
-	SHOW_QUESTION( tr( rHead.c_str() ), tr( rMsg.c_str() ), userChoice, userCancel );
+	SHOW_QUESTION( QString( rHead.c_str() ), QString( rMsg.c_str() ), userChoice, userCancel );
 	if( userCancel ) {
 		return false;
 	}
@@ -664,8 +664,8 @@ bool MeshQt::exportPolyLinesCoords() {
 	//! 1. Ask for filename, etc.
 
 	QString filePath = QString( getFileLocation().c_str() );
-	QString fileName = QFileDialog::getSaveFileName( mMainWindow, QObject::tr( "Export polygonal lines as vertex list" ), \
-	                                                 filePath,    QObject::tr( "Polygonal lines ASCII (*.pline)" ) );
+	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Export polygonal lines as vertex list" ), \
+													 filePath,    tr( "Polygonal lines ASCII (*.pline)" ) );
 	if( fileName.length() == 0 ) {
 		return false;
 	}
@@ -673,20 +673,20 @@ bool MeshQt::exportPolyLinesCoords() {
 	bool userCancel;
 	// Ask for vertex normals
 	bool withNormals;
-	SHOW_QUESTION( "Export vertex normals", "Export polylines with vertex normals", withNormals, userCancel );
+	SHOW_QUESTION( tr("Export vertex normals"), tr("Export polylines with vertex normals"), withNormals, userCancel );
 	if( userCancel ) {
 		return false;
 	}
 
 	// Ask for vertex indices
 	bool withVertIdx;
-	SHOW_QUESTION( "Export vertex indices", "Export polylines with indices of the vertices", withVertIdx, userCancel );
+	SHOW_QUESTION( tr("Export vertex indices"), tr("Export polylines with indices of the vertices"), withVertIdx, userCancel );
 	if( userCancel ) {
 		return false;
 	}
 
 	if( !MeshGL::exportPolyLinesCoords( fileName.toStdString(), withNormals, withVertIdx ) ) {
-		SHOW_MSGBOX_CRIT( "Export polylines", "Failed" );
+		SHOW_MSGBOX_CRIT( tr("Export polylines"), tr("Failed") );
 		emit statusMessage( "ERROR: Polylines NOT exported to: " + fileName );
 		return false;
 	}
@@ -698,21 +698,21 @@ bool MeshQt::exportPolyLinesCoords() {
 //! Handle GUI request to export polylines as ASCII file projected to the mesh plane.
 bool MeshQt::exportPolyLinesCoordsProjected() {
 	QString filePath = QString( getFileLocation().c_str() );
-	QString fileName = QFileDialog::getSaveFileName( mMainWindow, QObject::tr( "Export polygonal lines as vertex list" ), \
-													 filePath + getBaseName().c_str() + ".pline", QObject::tr( "Polygonal lines ASCII (*.pline)" ) );
+	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Export polygonal lines as vertex list" ), \
+													 filePath + getBaseName().c_str() + ".pline", tr( "Polygonal lines ASCII (*.pline)" ) );
 	if( fileName.length() == 0 ) {
 		return false;
 	}
 
 	bool withVertIdx;
 	bool userCancel;
-	SHOW_QUESTION( "Export vertex indices", "Export polylines with indices of the vertices", withVertIdx, userCancel );
+	SHOW_QUESTION( tr("Export vertex indices"), tr("Export polylines with indices of the vertices"), withVertIdx, userCancel );
 	if( userCancel ) {
 		return false;
 	}
 
 	if( !MeshGL::exportPolyLinesCoordsProjected( fileName.toStdString(), withVertIdx ) ) {
-		SHOW_MSGBOX_CRIT( "Export polylines", "Failed" );
+		SHOW_MSGBOX_CRIT( tr("Export polylines"), tr("Failed") );
 		emit statusMessage( "ERROR: Polylines NOT exported to: " + fileName );
 		return false;
 	}
@@ -723,13 +723,13 @@ bool MeshQt::exportPolyLinesCoordsProjected() {
 //! Handle GUI request to export the run-length and the function values of (selected) polylines.
 bool MeshQt::exportPolyLinesFuncVals() {
 	QString filePath = QString( getFileLocation().c_str() );
-	QString fileName = QFileDialog::getSaveFileName( mMainWindow, QObject::tr( "Export polygonal lines as vertex list" ), \
-													 filePath + getBaseName().c_str() + ".txt", QObject::tr( "Run-length and function values ASCII (*.txt)" ) );
+	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Export polygonal lines as vertex list" ), \
+													 filePath + getBaseName().c_str() + ".txt", tr( "Run-length and function values ASCII (*.txt)" ) );
 	if( fileName.length() == 0 ) {
 		return false;
 	}
 	if( !MeshGL::exportPolyLinesFuncVals( fileName.toStdString() ) ) {
-		SHOW_MSGBOX_CRIT( "Export polylines", "Failed" );
+		SHOW_MSGBOX_CRIT( tr("Export polylines"), tr("Failed") );
 		emit statusMessage( "ERROR: Polylines NOT exported to: " + fileName );
 		return false;
 	}
@@ -741,22 +741,22 @@ bool MeshQt::exportPolyLinesFuncVals() {
 //! @returns false in case of an error. True otherwise.
 bool MeshQt::exportFuncVals() {
 	QString filePath = QString( getFileLocation().c_str() );
-	QString fileName = QFileDialog::getSaveFileName( mMainWindow, QObject::tr( "Export function values" ), \
+	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Export function values" ), \
 	                                                 filePath + getBaseName().c_str() + "_funcvals.txt", \
-	                                                 QObject::tr( "ASCII text (*.txt)" ) );
+													 tr( "ASCII text (*.txt)" ) );
 	if( fileName.length() == 0 ) {
 		return false;
 	}
 
 	bool withVertIdx;
 	bool userCancel;
-	SHOW_QUESTION( "Export function values", "Export function values with indices of the vertices", withVertIdx, userCancel );
+	SHOW_QUESTION( tr("Export function values"), tr("Export function values with indices of the vertices"), withVertIdx, userCancel );
 	if( userCancel ) {
 		return false;
 	}
 
 	if( !MeshGL::exportFuncVals( fileName.toStdString(), withVertIdx ) ) {
-		SHOW_MSGBOX_CRIT( "Export function values", "Failed" );
+		SHOW_MSGBOX_CRIT( tr("Export function values"), tr("Failed") );
 		emit statusMessage( "ERROR: Function values NOT exported to: " + fileName );
 		return false;
 	}
@@ -767,7 +767,7 @@ bool MeshQt::exportFuncVals() {
 bool MeshQt::exportFaceNormalAngles() {
 	//! Handle GUI request to export normals in spherical coordinates.
 	//! see MeshQt::exportFaceNormalAngles and MeshGL::exportFaceNormalAngles
-	QString fileName = QFileDialog::getSaveFileName( mMainWindow, QObject::tr( "Export Face Normals, Spherical" ), nullptr, QObject::tr( "Face normals, spherical ASCII (*.facen)" ) );
+	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Export Face Normals, Spherical" ), nullptr, tr( "Face normals, spherical ASCII (*.facen)" ) );
 	if( fileName.length() > 0 ) {
 		return exportFaceNormalAngles( fileName.toStdString() );
 	}
@@ -786,7 +786,7 @@ bool MeshQt::exportFaceNormalAngles( string filename ) {
 //! @returns false in case of an error. True otherwise.
 bool MeshQt::changedMesh() {
 	bool retVal = true;
-	// Reset OpneGL:
+	// Reset OpenGL:
 	this->glRemove();
 	this->glPrepare();
 	retVal &= MeshGL::changedMesh();
@@ -803,7 +803,7 @@ bool MeshQt::removeVerticesSelected() {
 	int  oldVertexNr = getVertexNr();
 	int  oldFaceNr   = getFaceNr();
 	bool retVal = MeshGL::removeVerticesSelected();
-	SHOW_MSGBOX_INFO( "Selected primitives removed", tr( "%1 Vertices\n%2 Faces" ).arg( oldVertexNr - getVertexNr() ).arg( oldFaceNr - getFaceNr() ) );
+	SHOW_MSGBOX_INFO( tr("Selected primitives removed"), tr( "%1 Vertices\n%2 Faces" ).arg( oldVertexNr - getVertexNr() ).arg( oldFaceNr - getFaceNr() ) );
 	return retVal;
 }
 
@@ -820,7 +820,7 @@ bool MeshQt::removeUncleanSmallUser() {
 	dlgSlider.setMax( 100.0 - DBL_EPSILON );
 	dlgSlider.setPos( 10.0 );
 	dlgSlider.suppressPreview();
-	dlgSlider.setWindowTitle(  "Maximum label area (relative)" );
+	dlgSlider.setWindowTitle(  tr("Maximum label area (relative)") );
 	if( dlgSlider.exec() == QDialog::Rejected ) {
 		return false;
 	}
@@ -834,15 +834,15 @@ bool MeshQt::removeUncleanSmallUser() {
 	// Optional border erosion
 	bool applyErosion;
 	bool userCancel;
-	SHOW_QUESTION( "Apply border erosion", "Do you want to remove dangling faces along the borders?"
-	                                       "<br /><br />Recommended: YES", applyErosion, userCancel )
+	SHOW_QUESTION( tr("Apply border erosion"), tr("Do you want to remove dangling faces along the borders?") +
+										   QString("<br /><br />") + tr("Recommended: YES"), applyErosion, userCancel )
 	if( userCancel ) {
 		return( false );
 	}
 
 	// Ask if we wan't to store the result, when finished.
 	bool saveFile;
-	SHOW_QUESTION( "Store results", "Do you want to store the result as file?", saveFile, userCancel )
+	SHOW_QUESTION( tr("Store results"), tr("Do you want to store the result as file?"), saveFile, userCancel )
 	if( userCancel ) {
 		return( false );
 	}
@@ -850,14 +850,14 @@ bool MeshQt::removeUncleanSmallUser() {
 	if( saveFile ) {
 		// Show file dialog
 		QString fileLocation = QString( getFileLocation().c_str() );
-		fileName = QFileDialog::getSaveFileName( mMainWindow, QObject::tr( "Save as" ), fileLocation, QObject::tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) );
+		fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as" ), fileLocation, tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) );
 	}
 
 	// Store old mesh size to determine the number of changes
 	uint64_t oldVertexNr = getVertexNr();
 	uint64_t oldFaceNr   = getFaceNr();
 	bool retVal = MeshGL::removeUncleanSmall( percentArea, applyErosion, fileName.toStdString() );
-	SHOW_MSGBOX_INFO( "Primitives removed", tr( "%1 Vertices\n%2 Faces" ).arg( oldVertexNr - getVertexNr() ).arg( oldFaceNr - getFaceNr() ) )
+	SHOW_MSGBOX_INFO( tr("Primitives removed"), tr( "%1 Vertices\n%2 Faces" ).arg( oldVertexNr - getVertexNr() ).arg( oldFaceNr - getFaceNr() ) )
 	return retVal;
 }
 
@@ -878,7 +878,7 @@ bool MeshQt::completeRestore() {
 	dlgSlider.setMax( 100.0 - DBL_EPSILON );
 	dlgSlider.setPos( 10.0 );
 	dlgSlider.suppressPreview();
-	dlgSlider.setWindowTitle(  "Maximum label area (relative)" );
+	dlgSlider.setWindowTitle(  tr("Maximum label area (relative)") );
 	if( dlgSlider.exec() == QDialog::Rejected ) {
 		return( false );
 	}
@@ -892,10 +892,10 @@ bool MeshQt::completeRestore() {
 	// Ask for largest hole to be left out.
 	bool userCancel;
 	bool prevent;
-	SHOW_QUESTION( \
-		"Remove longest polyline -- keep largest hole", \
-		"Do you want to remove the longest polyline, to prevent it from getting filled?\n\ni.e. Do you want to keep the largest hole in the mesh?", \
-		prevent, userCancel \
+	SHOW_QUESTION(
+		tr("Remove longest polyline -- keep largest hole"),
+		tr("Do you want to remove the longest polyline, to prevent it from getting filled?\n\ni.e. Do you want to keep the largest hole in the mesh?"),
+		prevent, userCancel
 	)
 	if( userCancel ) {
 		return( false );
@@ -903,8 +903,8 @@ bool MeshQt::completeRestore() {
 
 	// Optional border erosion
 	bool applyErosion;
-	SHOW_QUESTION( "Apply border erosion", "Do you want to remove dangling faces along the borders?"
-	                                       "<br /><br />Recommended: YES", applyErosion, userCancel )
+	SHOW_QUESTION( tr("Apply border erosion"), tr("Do you want to remove dangling faces along the borders?") +
+										   QString("<br /><br />") + tr("Recommended: YES"), applyErosion, userCancel )
 	if( userCancel ) {
 		return( false );
 	}
@@ -915,7 +915,7 @@ bool MeshQt::completeRestore() {
 
 	// Ask if we wan't to store the result, when finished.
 	bool saveFile;
-	SHOW_QUESTION( "Store results", "Do you want to store the result as file?", saveFile, userCancel )
+	SHOW_QUESTION( tr("Store results"), tr("Do you want to store the result as file?"), saveFile, userCancel )
 	if( userCancel ) {
 		return false;
 	}
@@ -924,15 +924,15 @@ bool MeshQt::completeRestore() {
 		// Show file dialog
 		QString fileLocation = QString( ( getFileLocation() + getBaseName() + "_GMxCF.ply" ).c_str() );
 		fileName = QFileDialog::getSaveFileName( \
-		               mMainWindow, QObject::tr( "Save as" ), \
-		               fileLocation, QObject::tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) \
+					   mMainWindow, tr( "Save as" ), \
+					   fileLocation, tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) \
 		           );
 	}
 
 	// Iterative cleaning is done in the Mesh class.
 	string resultMsg;
 	MeshGL::completeRestore( fileName.toStdString(), percentArea, applyErosion, prevent, maxNrVertices, &resultMsg );
-	SHOW_MSGBOX_INFO( "Complete Restore finished", QString( resultMsg.c_str() ) )
+	SHOW_MSGBOX_INFO( tr("Complete Restore finished"), QString( resultMsg.c_str() ) )
 
 	return true;
 }
@@ -942,20 +942,20 @@ bool MeshQt::completeRestore() {
 //! @returns true in case of an error or user abort. False otherwise.
 bool MeshQt::insertVerticesEnterManual() {
 	QGMDialogEnterText dlgEnterTxt;
-	dlgEnterTxt.setWindowTitle( "Enter triplets of coordinates:" );
+	dlgEnterTxt.setWindowTitle( tr("Enter triplets of coordinates:") );
 	dlgEnterTxt.fetchClipboard();
 	if( dlgEnterTxt.exec() == QDialog::Rejected ) {
 		return false;
 	}
 	vector<double> floatValues;
 	if( !dlgEnterTxt.getText( floatValues ) ) {
-		showWarning( "No coordinates entered", "Inserting vertices requires triplets of floating point values!" );
+		showWarning( tr("No coordinates entered").toStdString(), tr("Inserting vertices requires triplets of floating point values!").toStdString() );
 		cerr << "[MeshQt::" << __FUNCTION__ << "] ERROR: No (proper) floating point values entered!" << endl;
 		return false;
 	}
 	if( floatValues.size() % 3 != 0 ) {
-		showWarning( "Wrong number of elements", \
-		             QString( "Inserting vertices requires triplets of floating point values!\n\n%1 were entered!" ).arg( floatValues.size() ).toStdString() \
+		showWarning( tr("Wrong number of elements").toStdString(),
+					 tr( "Inserting vertices requires triplets of floating point values!\n\n%1 were entered!" ).arg( floatValues.size() ).toStdString()
 		           );
 		cerr << "[MeshQt::" << __FUNCTION__ << "] ERROR: Wrong number of elementes entered!" << endl;
 		return false;
@@ -999,7 +999,7 @@ bool MeshQt::funcValSet() {
 	//! (1/2) Dialog
 	QGMDialogEnterText dlgEnterTextVal;
 	dlgEnterTextVal.setDouble( 0.0 );
-	dlgEnterTextVal.setWindowTitle( "Set function values to:" );
+	dlgEnterTextVal.setWindowTitle( tr("Set function values to:") );
 	QObject::connect( &dlgEnterTextVal, SIGNAL(textEntered(double)), this, SLOT(funcValSet(double)) );
 	if( dlgEnterTextVal.exec() == QDialog::Rejected ) {
 		return false;
@@ -1042,7 +1042,7 @@ bool MeshQt::funcValsAdd() {
 	//! (1/2) User input for MeshGL::funcValsAdd
 	QGMDialogEnterText dlgEnterTextVal;
 	dlgEnterTextVal.setDouble( 0.0 );
-	dlgEnterTextVal.setWindowTitle( "Add constant" );
+	dlgEnterTextVal.setWindowTitle( tr("Add constant") );
 	QObject::connect( &dlgEnterTextVal, SIGNAL(textEntered(double)), this, SLOT(funcValsAdd(double)) );
 	if( dlgEnterTextVal.exec() == QDialog::Rejected ) {
 		return false;
@@ -1135,11 +1135,11 @@ bool MeshQt::unrollAroundCone( bool* rIsCylinderCase ) {
 		if( isnormal( angleCandidate ) || ( angleCandidate == 0.0 ) ) {
 			cout << "[Mesh::" << __FUNCTION__ << "] Angle candidate: " << angleCandidate << " in degree: " << angleCandidate*180.0/M_PI << endl;
 			bool userChoice;
-			if( showQuestion( &userChoice, "Set cutting plane", \
-			                  string( "A primitive was selected, which can be used to define the prime meridian as well as the cutting plane (meridian 180°). Press<br /><br />" ) + \
-			                  string( "YES to use the selection for the prime meridian.<br /><br />" ) + \
-			                  string( "NO to use the selection for the cutting plane.<br /><br />" ) + \
-			                  string( "CANCEL to ignore the selection." ) \
+			if( showQuestion( &userChoice, tr("Set cutting plane").toStdString(),
+							  (tr( "A primitive was selected, which can be used to define the prime meridian as well as the cutting plane (meridian 180°). Press<br /><br />" ) +
+							  tr( "YES to use the selection for the prime meridian.<br /><br />" ) +
+							  tr( "NO to use the selection for the cutting plane.<br /><br />" ) +
+							  tr( "CANCEL to ignore the selection." )).toStdString()
 			   ) ) {
 				if( userChoice ) {
 					// YES for the prime meridian:
@@ -1155,7 +1155,7 @@ bool MeshQt::unrollAroundCone( bool* rIsCylinderCase ) {
 	}
 
 	if( !MeshGL::unrollAroundCone( rIsCylinderCase ) ) {
-		showWarning( "No cone defined", "Use the \"Select\" menu to interactively define a cone." );
+		showWarning( tr("No cone defined").toStdString(), tr("Use the \"Select\" menu to interactively define a cone.").toStdString() );
 		emit statusMessage( "No cone defined. Use the \"Select\" menu to interactively define a cone." );
 		return( false );
 	}
@@ -1171,8 +1171,8 @@ bool MeshQt::unrollAroundCone( bool* rIsCylinderCase ) {
 	// Ask the user to Straighten the arc-shaped cone rollout.
 	if( !(*rIsCylinderCase) ) {
 		bool userChoice;
-		if( showQuestion( &userChoice, "Straighten rollout - Cylinderstyle", \
-		                  "Straighten the arc-shaped rollout?<br /><br />Note: this will increase local distortions of the surface!<br /><br />This function can be called later:<br />'Edit' - 'Cylinder - unroll Mesh'" ) ) {
+		if( showQuestion( &userChoice, tr("Straighten rollout - Cylinderstyle").toStdString(),
+						  tr("Straighten the arc-shaped rollout?<br /><br />Note: this will increase local distortions of the surface!<br /><br />This function can be called later:<br />'Edit' - 'Cylinder - unroll Mesh'" ).toStdString()) ) {
 			if( userChoice ) {
 				setParamFloatMesh( AXIS_PRIMEMERIDIAN, M_PI_2 ); //! \todo this prevents a wrong split and looks like a quick and dirty solution for a possible bug in Mesh::unrollAroundCylinderRadius
 				callFunction( UNROLL_AROUNG_CYLINDER );
@@ -1190,8 +1190,8 @@ bool MeshQt::unrollAroundCone( bool* rIsCylinderCase ) {
 	}
 
 	bool userChoice;
-	if( showQuestion( &userChoice, "Flip rollout", \
-	                  "Do you want to flip the rollout i.e. rotate the mesh by 180°" ) ) {
+	if( showQuestion( &userChoice, tr("Flip rollout").toStdString(), \
+					  tr("Do you want to flip the rollout i.e. rotate the mesh by 180°").toStdString() ) ) {
 		if( userChoice ) {
 			vector<double> rotAngle { M_PI };
 			Matrix4D rotFlip( Matrix4D::INIT_ROTATE_ABOUT_Z, &rotAngle );
@@ -1305,7 +1305,7 @@ bool MeshQt::unrollAroundSphere() {
 		emit statusMessage( "Unroll of the sphere is finished." );
 	} else {
 		emit statusMessage( "No sphere selected. Use \"Select\" menu to select a sphere." );
-		showWarning( "No sphere selected.", "Use \"Select\" menu to select a sphere." );
+		showWarning( tr("No sphere selected.").toStdString(), tr("Use \"Select\" menu to select a sphere.").toStdString() );
 		return( false );
 	}
 
@@ -1321,8 +1321,8 @@ bool MeshQt::unrollAroundSphere() {
 
 	// Ask user to change the orientation in case the rollout is upside-down
 	bool userChoice;
-	if( showQuestion( &userChoice, "Flip rollout", \
-	                  "Do you want to flip the rollout i.e. rotate the mesh by 180°" ) ) {
+	if( showQuestion( &userChoice, tr("Flip rollout").toStdString(),
+					  tr("Do you want to flip the rollout i.e. rotate the mesh by 180°").toStdString() ) ) {
 		if( userChoice ) {
 			vector<double> rotAngle { M_PI };
 			Matrix4D rotFlip( Matrix4D::INIT_ROTATE_ABOUT_Z, &rotAngle );
@@ -1354,7 +1354,7 @@ bool MeshQt::unrollAroundSphere() {
 //! (1/2) Dialog.
 bool MeshQt::datumAddSphere() {
 	QGMDialogEnterText dlgEnterTxt;
-	dlgEnterTxt.setWindowTitle( "Enter a position vector and a radius" );
+	dlgEnterTxt.setWindowTitle( tr("Enter a position vector and a radius") );
 	dlgEnterTxt.fetchClipboard();
 	QObject::connect( &dlgEnterTxt, SIGNAL(textEntered(vector<double>)), this, SLOT(datumAddSphere(vector<double>)) );
 	dlgEnterTxt.exec();
@@ -1371,7 +1371,7 @@ bool MeshQt::datumAddSphere( vector<double> rPosAndRadius ) {
 		return true;
 	}
 	if( rPosAndRadius.size() != 4 ) {
-		SHOW_MSGBOX_WARN( "Enter a position vector and a radius", tr( "Requires 4 values: x, y, z and a radius.\n%1 values given!" ).arg( rPosAndRadius.size() ) );
+		SHOW_MSGBOX_WARN( tr("Enter a position vector and a radius"), tr( "Requires 4 values: x, y, z and a radius.\n%1 values given!" ).arg( rPosAndRadius.size() ) );
 		return false;
 	}
 	Mesh::datumAddSphere( Vector3D( rPosAndRadius[0], rPosAndRadius[1], rPosAndRadius[2], 1.0 ), rPosAndRadius.at(3) );
@@ -1383,7 +1383,7 @@ bool MeshQt::datumAddSphere( vector<double> rPosAndRadius ) {
 //! See MeshGL::applyMeltingSphere
 bool MeshQt::applyMeltingSphere() {
 	QGMDialogEnterText dlgEnterTxt;
-	dlgEnterTxt.setWindowTitle( "Enter radius" );
+	dlgEnterTxt.setWindowTitle( tr("Enter radius") );
 	dlgEnterTxt.setDouble( 1.0 );
 	if( dlgEnterTxt.exec() == QDialog::Rejected ) {
 		return false;
@@ -1406,7 +1406,7 @@ bool MeshQt::applyNormalShift(){
 	//Show QGMDialogEnterText-Window
 	QGMDialogEnterText dlgEnterTextVal;
 	dlgEnterTextVal.setDouble(0.3); // set Default-Value
-	dlgEnterTextVal.setWindowTitle("Set Offset:");
+	dlgEnterTextVal.setWindowTitle(tr("Set Offset:"));
 
 	QObject::connect(&dlgEnterTextVal,SIGNAL(textEntered(double)),this,SLOT(applyNormalShift(double)));
 
@@ -1420,7 +1420,7 @@ bool MeshQt::applyNormalShift(){
 	bool userAnswerYes;
 
 	//Remove Original-Object
-	SHOW_QUESTION( "Do you want to remove the original object?", "", userAnswerYes, userCancel );
+	SHOW_QUESTION( tr("Do you want to remove the original object?"), "", userAnswerYes, userCancel );
 
 	if( userCancel ) {
 		emit statusMessage( "[applyNormalShift] CANCELLED." );
@@ -1429,7 +1429,7 @@ bool MeshQt::applyNormalShift(){
 
 	if( !userAnswerYes ){
 		//Connect original-border-vertices with offset-border-vertices via mesh
-		SHOW_QUESTION( "Do you want to connect original-border-vertices with offset-border-vertices?", "<i>(recommended)</i>", userAnswerYes, userCancel );
+		SHOW_QUESTION( tr("Do you want to connect original-border-vertices with offset-border-vertices?"), tr("<i>(recommended)</i>"), userAnswerYes, userCancel );
 
 		if( userAnswerYes ){
 			MeshGL::applyNormalShiftHelper(false, false, true);
@@ -1446,7 +1446,7 @@ bool MeshQt::applyNormalShift(){
 
 	//---------------------------------------
 	//Do you want to remove duplicate triangles?
-	SHOW_QUESTION( "Do you want to remove duplicate triangles?", "", userAnswerYes, userCancel );
+	SHOW_QUESTION( tr("Do you want to remove duplicate triangles?"), "", userAnswerYes, userCancel );
 
 	if( userAnswerYes ){
 		MeshGL::removeDoubleTriangles();
@@ -1459,7 +1459,7 @@ bool MeshQt::applyNormalShift(){
 
 	//---------------------------------------
 	//Do you want to recalculate the triangle orientation?
-	SHOW_QUESTION( "Do you want to recalculate the triangle orientation?", "<i>(recommended)</i>", userAnswerYes, userCancel );
+	SHOW_QUESTION( tr("Do you want to recalculate the triangle orientation?"), tr("<i>(recommended)</i>"), userAnswerYes, userCancel );
 
 	if( userAnswerYes ){
 		MeshGL::recalculateTriangleOrientation();
@@ -1472,7 +1472,7 @@ bool MeshQt::applyNormalShift(){
 
 	//---------------------------------------
 	//Do you want to fix triangle intersection?
-	SHOW_QUESTION( "Do you want to fix triangle intersection?", "<i>(recommended, but this function may take some time)</i>", userAnswerYes, userCancel );
+	SHOW_QUESTION( tr("Do you want to fix triangle intersection?"), tr("<i>(recommended, but this function may take some time)</i>"), userAnswerYes, userCancel );
 
 	if( userAnswerYes ){
 		cout << "[generateOctree] Start..." << endl;
@@ -1566,7 +1566,7 @@ bool MeshQt::getPlaneVPos() {
 		return false;
 	}
 	QString planeDesc( planeInfo.c_str() );
-	SHOW_MSGBOX_INFO( "Plane Vertices", planeDesc + "\n" + "Already copied to clipboard!" );
+	SHOW_MSGBOX_INFO( tr("Plane Vertices"), planeDesc + "\n" + tr("Already copied to clipboard!") );
 	QClipboard *clipboard = QApplication::clipboard();
 	clipboard->setText( planeDesc.replace( "\n", " " ) );
 	return true;
@@ -1579,9 +1579,9 @@ bool MeshQt::getPlaneHNF() {
 		return false;
 	}
 	QString planeDesc( planeInfo.c_str() );
-	SHOW_MSGBOX_INFO( "Plane HNF", planeDesc + "\n" + "Already copied to clipboard!" );
+	SHOW_MSGBOX_INFO( tr("Plane HNF"), planeDesc + "\n" + tr("Already copied to clipboard!") );
 	QClipboard *clipboard = QApplication::clipboard();
-	clipboard->setText( "GigaMesh HNF  " + planeDesc.replace( "\n", " " ) );
+	clipboard->setText( tr("GigaMesh HNF  ") + planeDesc.replace( "\n", " " ) );
 	return true;
 }
 
@@ -1589,7 +1589,7 @@ bool MeshQt::getPlaneHNF() {
 //! (1) Show dialogbox to enter coordinates as string.
 bool MeshQt::setPlaneVPos() {
 	QGMDialogEnterText dlgEnterTxt;
-	dlgEnterTxt.setWindowTitle( "Enter 3x3 coordinates defining a plane" );
+	dlgEnterTxt.setWindowTitle( tr("Enter 3x3 coordinates defining a plane") );
 	dlgEnterTxt.fetchClipboard();
 	QObject::connect( &dlgEnterTxt, SIGNAL(textEntered(vector<double>)), this, SLOT(setPlaneVPos(vector<double>)) );
 	dlgEnterTxt.exec();
@@ -1649,7 +1649,7 @@ void MeshQt::selectVertFuncValLowerThan() {
 	double maxVal;
 	if( !getFuncValuesMinMax( minVal, maxVal ) ) {
 		QMessageBox msgBox;
-		msgBox.setText( "No function values set." );
+		msgBox.setText( tr("No function values set.") );
 		msgBox.setIcon( QMessageBox::Warning );
 		msgBox.exec();
 		return;
@@ -1673,7 +1673,7 @@ void MeshQt::selectVertFuncValLowerThan() {
 		}
 	}
 	dlgSlider.suppressPreview();
-	dlgSlider.setWindowTitle( "Select vertices with function value lower than" );
+	dlgSlider.setWindowTitle( tr("Select vertices with function value lower than") );
 	//QObject::connect( &dialogSlider, SIGNAL(valuePreview(int,float)),  this, SLOT(setViewParams(int,float)) );
 	//QObject::connect( &dialogSlider, SIGNAL(valueSelected(double)), this, SLOT(selectVertFuncValLowerThan(double)) );
 	if( dlgSlider.exec() == QDialog::Rejected ) {
@@ -1694,7 +1694,7 @@ void MeshQt::selectVertFuncValGreatThan() {
 	double maxVal;
 	if( !getFuncValuesMinMax( minVal, maxVal ) ) {
 		QMessageBox msgBox;
-		msgBox.setText( "No function values set." );
+		msgBox.setText( tr("No function values set.") );
 		msgBox.setIcon( QMessageBox::Warning );
 		msgBox.exec();
 		return;
@@ -1719,7 +1719,7 @@ void MeshQt::selectVertFuncValGreatThan() {
 		}
 	}
 	dlgSlider.suppressPreview();
-	dlgSlider.setWindowTitle( "Select vertices with function value greater than" );
+	dlgSlider.setWindowTitle( tr("Select vertices with function value greater than") );
 	//QObject::connect( &dialogSlider, SIGNAL(valuePreview(int,float)),  this, SLOT(setViewParams(int,float)) );
 	//QObject::connect( &dialogSlider, SIGNAL(valueSelected(double)), this, SLOT(selectVertFuncValGreatThan(double)) );
 	if( dlgSlider.exec() == QDialog::Rejected ) {
@@ -1741,7 +1741,7 @@ bool MeshQt::selectVertNonMaximum() {
     double EPSdot = 0.05;
     QGMDialogEnterText dlgEnterText;
 
-    dlgEnterText.setWindowTitle( "Enter Epsilon for dotproduct." );
+	dlgEnterText.setWindowTitle( tr("Enter Epsilon for dotproduct.") );
     dlgEnterText.setDouble( EPSdot );
     if( dlgEnterText.exec() == QDialog::Rejected ) {
         return false;
@@ -1810,7 +1810,7 @@ bool MeshQt::selectVertDoubleCone() {
 bool MeshQt::selectVertLabelAreaLT() {
 	double areaMax = 10;
 	QGMDialogEnterText dlgEnterText;
-	dlgEnterText.setWindowTitle( "Maximum label area (absolut)" );
+	dlgEnterText.setWindowTitle( tr("Maximum label area (absolut)") );
 	dlgEnterText.setDouble( areaMax );
 	if( dlgEnterText.exec() == QDialog::Rejected ) {
 		return false;
@@ -1828,7 +1828,7 @@ bool MeshQt::selectVertLabelAreaRelativeLT() {
 	mDialogSlider.setPos( 1.0 );
 	//dialogSlider.setPos( getParaSmoothLength() );
 	mDialogSlider.suppressPreview();
-	mDialogSlider.setWindowTitle(  "Maximum label area (relative)" );
+	mDialogSlider.setWindowTitle(  tr("Maximum label area (relative)") );
 	//QObject::connect( &dialogSlider, SIGNAL(valuePreview(int,double)),  this, SLOT(setViewParams(int,double)) );
 	QObject::connect( &mDialogSlider, SIGNAL(valueSelected(double)), this, SLOT(selectVertLabelAreaRelativeLT(double)) );
 	mDialogSlider.show();
@@ -1852,7 +1852,7 @@ bool MeshQt::selectVertFaceMinAngleLT() {
 	mDialogSlider.setPos( 170.0 );
 	//dialogSlider.setPos( getParaSmoothLength() );
 	mDialogSlider.suppressPreview();
-	mDialogSlider.setWindowTitle(  "Minimum angle (degree)" );
+	mDialogSlider.setWindowTitle(  tr("Minimum angle (degree)") );
 	//QObject::connect( &dialogSlider, SIGNAL(valuePreview(int,double)),  this, SLOT(setViewParams(int,double)) );
 	QObject::connect( &mDialogSlider, SIGNAL(valueSelected(double)), this, SLOT(selectVertFaceMinAngleLT(double)) );
 	mDialogSlider.show();
@@ -1876,7 +1876,7 @@ bool MeshQt::selectVertFaceMaxAngleGT() {
 	//dialogSlider.setPos( getParaSmoothLength() );
 	mDialogSlider.suppressPreview();
 	mDialogSlider.setInverted( true );
-	mDialogSlider.setWindowTitle(  "Maximum angle (degree)" );
+	mDialogSlider.setWindowTitle(  tr("Maximum angle (degree)") );
 	//QObject::connect( &dialogSlider, SIGNAL(valuePreview(int,double)),  this, SLOT(setViewParams(int,double)) );
 	QObject::connect( &mDialogSlider, SIGNAL(valueSelected(double)), this, SLOT(selectVertFaceMaxAngleGT(double)) );
 	mDialogSlider.show();
@@ -1927,11 +1927,11 @@ bool MeshQt::selectFaceInSphere() {
 	//! (1/2) Dialog for radius.
 	Primitive* primSel = getPrimitiveSelected();
 	if( ( primSel == nullptr ) || ( primSel->getType() != Primitive::IS_VERTEX ) ) {
-		SHOW_MSGBOX_WARN( "No selection", "No vertex selected." );
+		SHOW_MSGBOX_WARN( tr("No selection"), tr("No vertex selected.") );
 		return false;
 	}
 	QGMDialogEnterText dlgEnterText;
-	dlgEnterText.setWindowTitle( "Enter radius" );
+	dlgEnterText.setWindowTitle( tr("Enter radius") );
 	dlgEnterText.setDouble( 1.0 );
 	QObject::connect( &dlgEnterText, SIGNAL(textEntered(double)), this, SLOT(selectFaceInSphere(double)) );
 	if( dlgEnterText.exec() == QDialog::Accepted ) {
@@ -1947,7 +1947,7 @@ bool MeshQt::selectFaceInSphere( double rRadius ) {
 	cout << "[MeshQt::" << __FUNCTION__ << "]" << endl;
 	Primitive* primSel = getPrimitiveSelected();
 	if( ( primSel == nullptr ) || ( primSel->getType() != Primitive::IS_VERTEX ) ) {
-		SHOW_MSGBOX_WARN( "No selection", "No vertex selected." );
+		SHOW_MSGBOX_WARN( tr("No selection"), tr("No vertex selected.") );
 		return false;
 	}
 	return MeshGL::selectFaceInSphere( static_cast<Vertex*>(primSel), rRadius );
@@ -1960,7 +1960,7 @@ bool MeshQt::selectFaceRandom() {
 	dlgSlider.setMin(   0.0 );
 	dlgSlider.setMax( 100.0 );
 	dlgSlider.setPos(  10.0 );
-	dlgSlider.setWindowTitle( "Set ratio for random selection" );
+	dlgSlider.setWindowTitle( tr("Set ratio for random selection") );
 	dlgSlider.suppressPreview();
 
 	QObject::connect( &dlgSlider, SIGNAL(valueSelected(double)), this, SLOT(selectFaceRandom(double)) );
@@ -1991,7 +1991,7 @@ bool MeshQt::selectPolyRunLenGT() {
 	double currVal;
 	getParamFloatMesh( FUNC_VALUE_THRES, &currVal );
 	QGMDialogEnterText dlgEnterText;
-	dlgEnterText.setWindowTitle( "Select polyline with a minimum length of:" );
+	dlgEnterText.setWindowTitle( tr("Select polyline with a minimum length of:") );
 	dlgEnterText.setDouble( currVal );
 	QObject::connect( &dlgEnterText, SIGNAL(textEntered(double)), this, SLOT(selectPolyRunLenGT(double)) );
 	if( dlgEnterText.exec() == QDialog::Accepted ) {
@@ -2012,7 +2012,7 @@ bool MeshQt::selectPolyRunLenLT() {
 	double currVal;
 	getParamFloatMesh( FUNC_VALUE_THRES, &currVal );
 	QGMDialogEnterText dlgEnterText;
-	dlgEnterText.setWindowTitle( "Select polyline with a maximum length of:" );
+	dlgEnterText.setWindowTitle( tr("Select polyline with a maximum length of:") );
 	dlgEnterText.setDouble( currVal );
 	QObject::connect( &dlgEnterText, SIGNAL(textEntered(double)), this, SLOT(selectPolyRunLenLT(double)) );
 	if( dlgEnterText.exec() == QDialog::Accepted ) {
@@ -2043,7 +2043,7 @@ bool MeshQt::selectPolyShortest() {
 //! Method part 1 of 2 - UI
 bool MeshQt::selectPolyLabelNo() {
 	QGMDialogEnterText dlgEnterText;
-	dlgEnterText.setWindowTitle( "Enter label numbers" );
+	dlgEnterText.setWindowTitle( tr("Enter label numbers") );
 	dlgEnterText.fetchClipboard();
 	QObject::connect( &dlgEnterText, SIGNAL(textEntered(vector<int>)), this, SLOT(selectPolyLabelNo(vector<int>)) );
 	dlgEnterText.exec();
@@ -2074,7 +2074,7 @@ bool MeshQt::selectPoly( vector<QPoint> &rPixelCoords ) {
 	}
 	bool retVal = MeshGL::selectPoly( polyCoords );
 	if( !retVal ) {
-		SHOW_MSGBOX_WARN( "Selection aborted", "ERROR occured: No vertices were selected!" );
+		SHOW_MSGBOX_WARN( tr("Selection aborted"), tr("ERROR occured: No vertices were selected!") );
 	}
 	return retVal;
 }
@@ -2172,12 +2172,12 @@ bool MeshQt::setConeAxis( const Vector3D& rUpper, const Vector3D& rLower ) {
 
 	// Ask what to do next: Selection of a cone for rollouts OR postions for profile lines.
 	bool rUserChoice;
-	string rHead = "Rollout or Profile lines";
-	string rMsg = "Choose the next step:\n\n";
-	rMsg += "YES to continue with the cone selection for rollouts.\n\n";
-	rMsg += "NO to continue with position selection for profile lines.\n\n";
-	rMsg += "CANCEL to keep the current selection mode.";
-	if( !showQuestion( &rUserChoice, rHead, rMsg ) ) {
+	QString rHead = tr("Rollout or Profile lines");
+	QString rMsg = tr("Choose the next step:\n\n");
+	rMsg += tr("YES to continue with the cone selection for rollouts.\n\n");
+	rMsg += tr("NO to continue with position selection for profile lines.\n\n");
+	rMsg += tr("CANCEL to keep the current selection mode.");
+	if( !showQuestion( &rUserChoice, rHead.toStdString(), rMsg.toStdString() ) ) {
 		// User cancel.
 		return( true );
 	}
@@ -2284,7 +2284,7 @@ bool MeshQt::polylinesCurvScale() {
 	double currVal;
 	getParamFloatMeshGL( MeshGLParams::POLYLINE_NORMAL_SCALE, &currVal );
 	QGMDialogEnterText dlgEnterText;
-	dlgEnterText.setWindowTitle( "Scale polyline normals:" );
+	dlgEnterText.setWindowTitle( tr("Scale polyline normals:") );
 	dlgEnterText.setDouble( currVal );
 	if( dlgEnterText.exec() == QDialog::Rejected ) {
 		return false;
@@ -2476,7 +2476,7 @@ void MeshQt::estimateMSIIFeat( ParamsMSII params ) {
 	// Output string for volume descriptor
 	QString volumeDescStr;
 	for( int i=0; i<params.multiscaleRadiiNr; i++ ) {
-		volumeDescStr += tr( "&nbsp;%1" ).arg( voxelFilterResults[i], 0, 'f', 5, '0' );
+		volumeDescStr += QString( "&nbsp;%1" ).arg( voxelFilterResults[i], 0, 'f', 5, '0' );
 	}
 
 	if( params.writeFilterResult ) {
@@ -2527,8 +2527,8 @@ void MeshQt::estimateMSIIFeat( ParamsMSII params ) {
 	QString surfaceDescStrComp;
 	QString surfaceDescStrEst;
 	for( int i=0; i<params.multiscaleRadiiNr; i++ ) {
-		surfaceDescStrComp += tr( "&nbsp;%1" ).arg( surfaceAreasComp[i], 0, 'f', 5, '0' );
-		surfaceDescStrEst  += tr( "&nbsp;%1" ).arg( surfaceAreasEst[i], 0, 'f', 5, '0' );
+		surfaceDescStrComp += QString( "&nbsp;%1" ).arg( surfaceAreasComp[i], 0, 'f', 5, '0' );
+		surfaceDescStrEst  += QString( "&nbsp;%1" ).arg( surfaceAreasEst[i], 0, 'f', 5, '0' );
 	}
 
 	//! \todo source clean-up and proper orientation of the box!
@@ -2594,7 +2594,7 @@ bool MeshQt::geodPatchVertSel() {
 	bool useFuncValsAsWeigth = false;
 	getParamFlagMesh( GEODESIC_USE_FUNCVAL_AS_WEIGHT, &useFuncValsAsWeigth );
 	bool geodDistToFuncVal;
-	SHOW_QUESTION( "Compute Geodesic distance", tr( "Store the geodesic distance as function value per vertex" ), geodDistToFuncVal, userCancel );
+	SHOW_QUESTION( tr("Compute Geodesic distance"), tr( "Store the geodesic distance as function value per vertex" ), geodDistToFuncVal, userCancel );
 	if( userCancel ) {
 		return false;
 	}
@@ -2607,7 +2607,7 @@ bool MeshQt::geodPatchVertSelOrder() {
 	bool useFuncValsAsWeigth = false;
 	getParamFlagMesh( GEODESIC_USE_FUNCVAL_AS_WEIGHT, &useFuncValsAsWeigth );
 	bool geodDistToFuncVal;
-	SHOW_QUESTION( "Compute Geodesic distance", tr( "Store the geodesic distance as function value per vertex" ), geodDistToFuncVal, userCancel );
+	SHOW_QUESTION( tr("Compute Geodesic distance"), tr( "Store the geodesic distance as function value per vertex" ), geodDistToFuncVal, userCancel );
 	if( userCancel ) {
 		return false;
 	}
@@ -2621,9 +2621,9 @@ bool MeshQt::fillPolyLines() {
 	uint64_t holesSkipped;
 	bool retVal = MeshGL::fillPolyLines( holesFilled, holesFail, holesSkipped );
 	if( retVal ) {
-		SHOW_MSGBOX_INFO( "Holes filled", tr( "%1 filled\n%2 failed to fill\n%3 skipped" ).arg( holesFilled ).arg( holesFail ).arg( holesSkipped ) );
+		SHOW_MSGBOX_INFO( tr("Holes filled"), tr( "%1 filled\n%2 failed to fill\n%3 skipped" ).arg( holesFilled ).arg( holesFail ).arg( holesSkipped ) );
 	} else {
-		SHOW_MSGBOX_WARN( "Holes filled - ERROR", tr( "ERROR: libpsalm missing!" ) );
+		SHOW_MSGBOX_WARN( tr("Holes filled - ERROR"), tr( "ERROR: libpsalm missing!" ) );
 	}
 	return retVal;
 }
@@ -2642,9 +2642,9 @@ bool MeshQt::infoPolylinesLength() {
 	std::sort( polyLens.begin(), polyLens.end() );
 	std::reverse( polyLens.begin(), polyLens.end() );
 	for( auto const& currPolyLen: polyLens ) {
-		strPolyLineInfo += tr( "%1<br />" ).arg( currPolyLen );
+		strPolyLineInfo += QString( "%1<br />" ).arg( currPolyLen );
 	}
-	SHOW_MSGBOX_INFO( "Length of the Polylines", strPolyLineInfo );
+	SHOW_MSGBOX_INFO( tr("Length of the Polylines"), strPolyLineInfo );
 	return true;
 }
 
@@ -2672,7 +2672,7 @@ int MeshQt::labelFaces() {
 	int retVal;
 	int nrFaces = 0;
 	QGMDialogEnterText dlgEnterTxt;
-	dlgEnterTxt.setWindowTitle( QString( "Number of faces to remove during labeling" ) );
+	dlgEnterTxt.setWindowTitle( tr( "Number of faces to remove during labeling" ) );
 	dlgEnterTxt.setInt( nrFaces );
 	if( dlgEnterTxt.exec() == QDialog::Rejected ) {
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: user cancel!" << endl;
@@ -2749,7 +2749,7 @@ void MeshQt::advancePolyThres() {
 bool MeshQt::compPolylinesIntInvRunLen() {
 	QGMDialogEnterText dlgEnterTextRadius;
 	dlgEnterTextRadius.fetchClipboard();
-	dlgEnterTextRadius.setWindowTitle( "Radius for Integral Invariant" );
+	dlgEnterTextRadius.setWindowTitle( tr("Radius for Integral Invariant") );
 	if( dlgEnterTextRadius.exec() == QDialog::Rejected ) {
 		return false;
 	}
@@ -2758,12 +2758,12 @@ bool MeshQt::compPolylinesIntInvRunLen() {
 		return false;
 	}
 	QGMDialogComboBox dlgComboBox;
-	dlgComboBox.setTextLabel( QString( "Run-length Integral Invariant Mode" ) );
-	dlgComboBox.setWindowTitle( "Run-length Integral Invariant Mode" );
+	dlgComboBox.setTextLabel( tr( "Run-length Integral Invariant Mode" ) );
+	dlgComboBox.setWindowTitle( tr("Run-length Integral Invariant Mode") );
 	//! \todo IMPROVE setp of the combobox with enumerators.
-	dlgComboBox.addItem( QString( "Both directions" ),    QVariant( static_cast<int>(PolyLine::POLY_INTEGRAL_INV_BOTH) )     );
-	dlgComboBox.addItem( QString( "Forward direction" ),  QVariant( static_cast<int>(PolyLine::POLY_INTEGRAL_INV_FORWARD) )  );
-	dlgComboBox.addItem( QString( "Backward direction" ), QVariant( static_cast<int>(PolyLine::POLY_INTEGRAL_INV_BACKWARD) ) );
+	dlgComboBox.addItem( tr( "Both directions" ),    QVariant( static_cast<int>(PolyLine::POLY_INTEGRAL_INV_BOTH) )     );
+	dlgComboBox.addItem( tr( "Forward direction" ),  QVariant( static_cast<int>(PolyLine::POLY_INTEGRAL_INV_FORWARD) )  );
+	dlgComboBox.addItem( tr( "Backward direction" ), QVariant( static_cast<int>(PolyLine::POLY_INTEGRAL_INV_BACKWARD) ) );
 	if( dlgComboBox.exec() == QDialog::Rejected ) {
 		return false;
 	}
@@ -2777,7 +2777,7 @@ bool MeshQt::compPolylinesIntInvRunLen() {
 bool MeshQt::compPolylinesIntInvAngle() {
 	QGMDialogEnterText dlgEnterTextRadius;
 	dlgEnterTextRadius.fetchClipboard();
-	dlgEnterTextRadius.setWindowTitle( "Radius for Integral Invariant" );
+	dlgEnterTextRadius.setWindowTitle( tr("Radius for Integral Invariant") );
 	if( dlgEnterTextRadius.exec() == QDialog::Rejected ) {
 		return false;
 	}
@@ -2815,10 +2815,10 @@ void MeshQt::createSkeletonLine() {
     //show option to user to choose between the original polylines with possible gaps
     //and the experimental filling of fully occupied triangles (see experimental part of implementation)
     QGMDialogComboBox dlgComboBox;
-    dlgComboBox.setTextLabel( QString( "Connect fully occupied faces? (experimental)" ) );
-    dlgComboBox.setWindowTitle( "Experimental Polyline Repair" );
-    dlgComboBox.addItem( QString( "Keep Original Polyline" ),    QVariant( 0 )     );
-    dlgComboBox.addItem( QString( "Connect Full Faces to Triangles" ),    QVariant( 1 )     );
+	dlgComboBox.setTextLabel( tr( "Connect fully occupied faces? (experimental)" ) );
+	dlgComboBox.setWindowTitle( tr("Experimental Polyline Repair") );
+	dlgComboBox.addItem( tr( "Keep Original Polyline" ),    QVariant( 0 )     );
+	dlgComboBox.addItem( tr( "Connect Full Faces to Triangles" ),    QVariant( 1 )     );
     if( dlgComboBox.exec() == QDialog::Rejected ) {
         return;
     }
@@ -2843,7 +2843,7 @@ void MeshQt::createSkeletonLine() {
 void MeshQt::generateOctree() {
 	// Ask user what kind of octree to be generated.
 	QStringList Element;
-	Element << tr("Vertex") << tr("Face");
+	Element << QString("Vertex") << QString("Face");
 	bool userChoiceValid = false;
 	QString text = QInputDialog::getItem( nullptr, tr("Generate Octree"), tr("Element"), Element, 0, false, &userChoiceValid );
 	if( !userChoiceValid ) {
@@ -2854,13 +2854,13 @@ void MeshQt::generateOctree() {
 	if( text == "Vertex" ) {
 		QGMDialogEnterText dlgenter;
 		dlgenter.setInt( 500 ); //some useful default value should be set here e.g. 500
-		dlgenter.setWindowTitle( "Set maximum number of vertices per cube" );
+		dlgenter.setWindowTitle( tr("Set maximum number of vertices per cube") );
 		if( dlgenter.exec() == QDialog::Accepted ) {
 			int nrVertices;
 			if( dlgenter.getText( &nrVertices ) && ( nrVertices > 0 ) ) {
 				generateOctreeVertex( nrVertices );
 			} else {
-				SHOW_MSGBOX_WARN( "Wrong value", "Wrong value entered!" );
+				SHOW_MSGBOX_WARN( tr("Wrong value"), tr("Wrong value entered!") );
 			}
 		}
 	}
@@ -2868,13 +2868,13 @@ void MeshQt::generateOctree() {
 	if( text == "Face" ) {
 		QGMDialogEnterText dlgenter;
 		dlgenter.setInt( 1000 ); //some useful default value should be set here e.g. 1000
-		dlgenter.setWindowTitle( "Set maximum number of faces per cube" );
+		dlgenter.setWindowTitle( tr("Set maximum number of faces per cube") );
 		if( dlgenter.exec() == QDialog::Accepted ) {
 			int nrVertices;
 			if( dlgenter.getText( &nrVertices ) && ( nrVertices > 0 ) ) {
 				generateOctreeFace( nrVertices );
 			} else {
-				SHOW_MSGBOX_WARN( "Wrong value", "Wrong value entered!" );
+				SHOW_MSGBOX_WARN( tr("Wrong value"), tr("Wrong value entered!") );
 			}
 		}
 	}
@@ -2894,7 +2894,7 @@ void MeshQt::detectselfintersections() {
 	// Sanity check
 	if( mOctreeface == nullptr ) {
 		cerr << "[MeshQt::" << __FUNCTION__ << "] ERROR: No octree for faces defined!" << endl;
-		SHOW_MSGBOX_WARN( "Octree missing", "No octree for faces defined!" );
+		SHOW_MSGBOX_WARN( tr("Octree missing"), tr("No octree for faces defined!") );
 		return;
 	}
 
@@ -2912,7 +2912,7 @@ void MeshQt::drawOctree() {
 	}
 
 	QStringList Element;
-	Element<< tr("Vertex") << tr("Face");
+	Element<< QString("Vertex") << QString("Face");
 	bool ok=false;
 	QString text =  QInputDialog::getItem(nullptr, tr("Draw Octree"),tr("Element"), Element, 0, false, &ok);
 
@@ -2965,7 +2965,7 @@ void MeshQt::deleteOctree() {
 	removeOctreedraw();
 
 	QStringList Element;
-	Element<< tr("Vertex") << tr("Face")<< tr("both");
+	Element<< QString("Vertex") << QString("Face")<< QString("both");
 	bool ok=false;
 	QString text =  QInputDialog::getItem(nullptr, tr("Delete Octree"),tr("Element"), Element, 0, false, &ok);
 
@@ -3028,7 +3028,7 @@ void MeshQt::estimateVolume() {
 	cout << "[MeshQt::" << __FUNCTION__ << "] Volume dz: " << volumeDXYZ[2] << endl;
 	QString msgStr = tr( "<p>The mesh has a volume of %1, %2 and %3 mm3 in respect to the derivatives.</p>" ).arg( volumeDXYZ[0], 10, 'f', 3 ).arg( volumeDXYZ[1], 10, 'f', 3 ).arg( volumeDXYZ[2], 10, 'f', 3 );
 	if( numericError ) {
-		msgStr += "<p><font color=\"red\"><b>A numeric error was encountered. <br />Probably due to zero area faces.</b></font></p>";
+		msgStr += tr("<p><font color=\"red\"><b>A numeric error was encountered. <br />Probably due to zero area faces.</b></font></p>");
 	}
 	SHOW_MSGBOX_INFO( "Volume", msgStr );
 	emit statusMessage( msgStr );
@@ -3047,7 +3047,7 @@ void MeshQt::compVolumePlane() {
 	cout << "[MeshQt::" << __FUNCTION__ << "] Volume neg: " << volumePlaneNeg << endl;
 	QString msgStr = tr( "<p>The mesh has a volume of %1 and %2 mm3 in respect to the plane.</p>" ).arg( volumePlanePos, 10, 'f', 3 ).arg( volumePlaneNeg, 10, 'f', 3 );
 	if( numericError ) {
-		msgStr += "<p><font color=\"red\"><b>A numeric error was encountered. <br />Probably due to zero area faces.</b></font></p>";
+		msgStr += tr("<p><font color=\"red\"><b>A numeric error was encountered. <br />Probably due to zero area faces.</b></font></p>");
 	}
 	SHOW_MSGBOX_INFO( "Volume", msgStr );
 	emit statusMessage( msgStr );
@@ -3057,7 +3057,7 @@ void MeshQt::compVolumePlane() {
 bool MeshQt::getAxisFromCircleCenters() { // <- cancel could be passed up
 	bool userCancel;
 	bool userAnswer;
-	SHOW_QUESTION( "Compute Axis", "Continue with computing an axis using the circle centers?", userAnswer, userCancel );
+	SHOW_QUESTION( tr("Compute Axis"), tr("Continue with computing an axis using the circle centers?"), userAnswer, userCancel );
 	if( userCancel ) {
 		return false;
 	}
@@ -3095,7 +3095,7 @@ bool MeshQt::setParaSmoothLength() {
 	double smoothLength;
 	getParamFloatMesh( Mesh::SMOOTH_LENGTH, &smoothLength );
 	QGMDialogEnterText dlgEnterText;
-	dlgEnterText.setWindowTitle( "Set smooth length to:" );
+	dlgEnterText.setWindowTitle( tr("Set smooth length to:") );
 	dlgEnterText.setDouble( smoothLength );
 	if( dlgEnterText.exec() == QDialog::Rejected ) {
 		return false;
@@ -3230,7 +3230,7 @@ bool MeshQt::setParamFloatMeshGLLimits( MeshGLParams::eParamFlt rParamID, double
 	dlgSlider.setMin( rMinValue );
 	dlgSlider.setMax( rMaxValue );
 	dlgSlider.setPos( currValue );
-	dlgSlider.setWindowTitle( QString( "Floating point parameter %1 [%2,%3]" ).arg( rParamID ).arg( rMinValue ).arg( rMaxValue ) );
+	dlgSlider.setWindowTitle( tr( "Floating point parameter %1 [%2,%3]" ).arg( rParamID ).arg( rMinValue ).arg( rMaxValue ) );
 	//dlgSlider.suppressPreview();
 	QObject::connect( &dlgSlider, &QGMDialogSliderHD::valuePreviewIdFloat, this, &MeshQt::setParamFloatMeshGLSlider );
 	if( dlgSlider.exec() == QDialog::Rejected ) {
@@ -3321,7 +3321,7 @@ bool MeshQt::setParamFloatMeshLimits( MeshParams::eParamFlt rParamID, double rMi
 	dlgSlider.setMax( rMaxValue );
 	dlgSlider.setPos( currValue );
 	dlgSlider.setSteps( steps );
-	dlgSlider.setWindowTitle( QString( "Floating point parameter %1 [%2,%3%4]" ).arg( rParamID ).arg( rMinValue*setFactor ).arg( rMaxValue*setFactor ).arg( unitText ) );
+	dlgSlider.setWindowTitle( tr( "Floating point parameter %1 [%2,%3%4]" ).arg( rParamID ).arg( rMinValue*setFactor ).arg( rMaxValue*setFactor ).arg( unitText ) );
 	//dlgSlider.suppressPreview();
 	QObject::connect( &dlgSlider, &QGMDialogSliderHD::valuePreviewIdFloat, this, &MeshQt::setParamFloatMeshSlider );
 	if( dlgSlider.exec() == QDialog::Rejected ) {
@@ -3359,8 +3359,8 @@ bool MeshQt::callFunctionMesh( MeshParams::eFunctionCall rFunctionID, bool rFlag
 		    {
 			    bool userAnswer;
 				bool userCancel;
-				SHOW_QUESTION( "Adapt View to Rotational Axis", \
-				               "Change the view according to the rotational axis?", userAnswer, userCancel );
+				SHOW_QUESTION( tr("Adapt View to Rotational Axis"),
+							   tr("Change the view according to the rotational axis?"), userAnswer, userCancel );
 				if( userAnswer && !userCancel ) {
 					mMainWindow->actionViewAxisUp->trigger();
 				}
@@ -3440,7 +3440,7 @@ void MeshQt::selectColor( MeshGLColors::eColorSettings rColorId ) {
 	QColorDialog colorDialog( colorTmp );
 	colorDialog.setCurrentColor( colorTmp );
 	colorDialog.setCustomColor( 0, colorBackFaceDefault );
-	colorDialog.setWindowTitle( "Choose color" );
+	colorDialog.setWindowTitle( tr("Choose color") );
 	colorDialog.setOption( QColorDialog::DontUseNativeDialog, false ); // This option appears to be interesting on Mac builds!
 	colorDialog.setOption( QColorDialog::ShowAlphaChannel, true );
 	if( colorDialog.exec() != QDialog::Accepted ) {
@@ -3595,7 +3595,7 @@ void MeshQt::visualizeFeatAutoCorrVert() {
 	Vertex** vertices   = nullptr;
 	double*  funcValues = nullptr;
 	if( !estFeatureAutoCorrelationVertex( &funcValues, &vertices, &vertCount ) ) {
-		SHOW_MSGBOX_CRIT( "Function not available", "ALGLIB library missing." );
+		SHOW_MSGBOX_CRIT( tr("Function not available"), tr("ALGLIB library missing.") );
 		emit statusMessage( "ERROR: Visualization of Auto-Correlation of Vertex Features failed!" );
 		return;
 	}
@@ -3611,7 +3611,7 @@ void MeshQt::visualizeFeatCorrSelectedVert() {
 	Vertex** vertices   = nullptr;
 	double*  funcValues = nullptr;
 	if( !estFeatureCorrelationVertex( getPrimitiveSelected(), &funcValues, &vertices, &vertCount ) ) {
-		SHOW_MSGBOX_CRIT( "Function not available", "ALGLIB library missing." );
+		SHOW_MSGBOX_CRIT( tr("Function not available"), tr("ALGLIB library missing.") );
 		emit statusMessage( "ERROR: Visualization of Correlation of Vertex Features failed!" );
 		return;
 	}
@@ -3626,7 +3626,7 @@ void MeshQt::visualizeFeatCorrSelectedVert() {
 bool MeshQt::setVertFuncValMult() {
 	QGMDialogEnterText dlgEnterTextFeatVec;
 	dlgEnterTextFeatVec.fetchClipboard();
-	dlgEnterTextFeatVec.setWindowTitle( "Scalar value for multplication with the vertices' function values" );
+	dlgEnterTextFeatVec.setWindowTitle( tr("Scalar value for multplication with the vertices' function values") );
 	if( dlgEnterTextFeatVec.exec() == QDialog::Rejected ) {
 		return false;
 	}
@@ -3643,7 +3643,7 @@ void MeshQt::visualizeFeatAutoCorrSelectedVert() {
 	Vertex** vertices   = nullptr;
 	double*  funcValues = nullptr;
 	if( !estFeatureAutoCorrelationVertex( getPrimitiveSelected(), &funcValues, &vertices, &vertCount ) ) {
-		SHOW_MSGBOX_CRIT( "Function not available", "ALGLIB library missing." );
+		SHOW_MSGBOX_CRIT( tr("Function not available"), tr("ALGLIB library missing.") );
 		emit statusMessage( "ERROR: Visualization of Auto-Correlation and Correlation of Vertex Features failed!" );
 		return;
 	}
@@ -3690,7 +3690,7 @@ void MeshQt::visualizeVertexOctree() {
 	//! Visualize vertices related to octree nodes.
 	//! (1/2) Dialog.
 	QGMDialogEnterText dlgEnterText;
-	dlgEnterText.setWindowTitle( "Edge length" );
+	dlgEnterText.setWindowTitle( tr("Edge length") );
 	dlgEnterText.setDouble( 1.0 );
 	QObject::connect( &dlgEnterText, SIGNAL(textEntered(double)), this, SLOT(visualizeVertexOctree(double)) );
 	dlgEnterText.exec();
@@ -3706,7 +3706,7 @@ void MeshQt::visualizeVertexFaceSphereAngleMax() {
 	//! Visualize the maximum face angle to the vertex normal within a spherical neighbourhood.
 	//! (1/2) Dialog.
 	QGMDialogEnterText dlgEnterText;
-	dlgEnterText.setWindowTitle( "Sphere radius" );
+	dlgEnterText.setWindowTitle( tr("Sphere radius") );
 	dlgEnterText.setDouble( 1.0 );
 	QObject::connect( &dlgEnterText, SIGNAL(textEntered(double)), this, SLOT(visualizeVertexFaceSphereAngleMax(double)) );
 	dlgEnterText.exec();
@@ -3719,14 +3719,14 @@ void MeshQt::visualizeVertexFaceSphereAngleMax( double rRadius ) {
 	QElapsedTimer timer;
 	timer.start();
 	setVertFuncValFaceSphereAngleMax( rRadius );
-	SHOW_MSGBOX_INFO( "Function values computed", tr( "Took %1 milliseconds." ).arg( timer.elapsed() ) );
+	SHOW_MSGBOX_INFO( tr("Function values computed"), tr( "Took %1 milliseconds." ).arg( timer.elapsed() ) );
 }
 
 void MeshQt::visualizeVertFaceSphereMeanAngleMax() {
 	//! Visualize the max face angle to the mean normal of the faces within a spherical neighbourhood.
 	//! (1/2) Dialog.
 	QGMDialogEnterText dlgEnterText;
-	dlgEnterText.setWindowTitle( "Sphere radius" );
+	dlgEnterText.setWindowTitle( tr("Sphere radius") );
 	dlgEnterText.setDouble( 1.0 );
 	QObject::connect( &dlgEnterText, SIGNAL(textEntered(double)), this, SLOT(visualizeVertFaceSphereMeanAngleMax(double)) );
 	dlgEnterText.exec();
@@ -3739,7 +3739,7 @@ void MeshQt::visualizeVertFaceSphereMeanAngleMax( double rRadius ) {
 	QElapsedTimer timer;
 	timer.start();
 	setVertFuncValFaceSphereMeanAngleMax( rRadius );
-	SHOW_MSGBOX_INFO( "Function values computed", tr( "Took %1 milliseconds." ).arg( timer.elapsed() ) );
+	SHOW_MSGBOX_INFO( tr("Function values computed"), tr( "Took %1 milliseconds." ).arg( timer.elapsed() ) );
 }
 
 
@@ -3777,7 +3777,7 @@ bool MeshQt::editMetaData() {
 		// Show dialog
 		QGMDialogEnterText dlgEnterTxt;
 		dlgEnterTxt.setText( suggestId );
-		dlgEnterTxt.setWindowTitle( "Model ID" );
+		dlgEnterTxt.setWindowTitle( tr("Model ID") );
 		if( dlgEnterTxt.exec() == QDialog::Rejected ) {
 			cout << "[MeshQt::" << __FUNCTION__ << "] CANCELED by USER!" << endl;
 			return( false );
@@ -3794,8 +3794,8 @@ bool MeshQt::editMetaData() {
 	string modelMaterial = getModelMetaString( META_MODEL_MATERIAL );
 	if( modelMaterial.empty() ) {
 		QGMDialogEnterText dlgEnterTxt;
-		dlgEnterTxt.setText( QString( "original, clay" ) );
-		dlgEnterTxt.setWindowTitle( "Model Material" );
+		dlgEnterTxt.setText( tr( "original, clay" ) );
+		dlgEnterTxt.setWindowTitle( tr("Model Material") );
 		if( dlgEnterTxt.exec() == QDialog::Rejected ) {
 			cout << "[MeshQt::" << __FUNCTION__ << "] CANCELED by USER!" << endl;
 			return( false );
@@ -3845,7 +3845,7 @@ void MeshQt::cuneiformFigureLaTeX() {
 	//! .) Fetch info
 	QClipboard *clipboard = QApplication::clipboard();
 	clipboard->setText( fileContent );
-	SHOW_MSGBOX_INFO( "LaTeX String - Already copied to Clipboard", fileContent );
+	SHOW_MSGBOX_INFO( tr("LaTeX String - Already copied to Clipboard"), fileContent );
 }
 
 //! Print Matlab string for face normals of the selection of faces.
@@ -3854,7 +3854,7 @@ void MeshQt::matlabFaceNormalsSel() {
 	dumpMatlabFaceNormalsSel( &matlabStr );
 	QClipboard *clipboard = QApplication::clipboard();
 	clipboard->setText( QString( matlabStr.c_str() ) );
-	SHOW_MSGBOX_INFO( "Matlab String - Already copied to Clipboard", QString( matlabStr.c_str() ) );
+	SHOW_MSGBOX_INFO( tr("Matlab String - Already copied to Clipboard"), QString( matlabStr.c_str() ) );
 }
 
 // --- Extra menu - Show Information ---------------------------------------------------------------------------------------------------------------------------
@@ -3864,7 +3864,7 @@ void MeshQt::matlabFaceNormalsSel() {
 //! @returns false in case of an error. True otherwise.
 bool MeshQt::showInfoSelectionHTML() {
 	if( mPrimSelected == nullptr ) {
-		SHOW_MSGBOX_WARN( "Information about SelPrim", "Nothing selected!" );
+		SHOW_MSGBOX_WARN( tr("Information about SelPrim"), tr("Nothing selected!") );
 		return true;
 	}
 
@@ -3876,9 +3876,9 @@ bool MeshQt::showInfoSelectionHTML() {
 		mPrimSelected->copyFeatureVecTo( featVec );
 		strFeatVec = tr( "<tr><td>Feature&nbsp;Vector</td><td>" );
 		for( int i=0; i<primFTVecLen; i++ ) {
-			strFeatVec += tr( "%1 " ).arg( featVec[i] );
+			strFeatVec += QString( "%1 " ).arg( featVec[i] );
 		}
-		strFeatVec += tr( "</td><tr>" );
+		strFeatVec += QString( "</td><tr>" );
 
 		delete[] featVec;
 	}
@@ -3904,33 +3904,33 @@ bool MeshQt::showInfoSelectionHTML() {
 		}
 		// Prepare HTML:
 		QString strMsg;
-		strMsg += tr( "<table>" );
-		strMsg += tr( "<tr>" );
+		strMsg += QString( "<table>" );
+		strMsg += QString( "<tr>" );
 		strMsg += tr( "<td>Coordinates:</td><td>%1&nbsp;%2&nbsp;%3</td>" ).arg( vertSel->getX() ).arg( vertSel->getY() ).arg( vertSel->getZ() );
-		strMsg += tr( "</tr><tr>" );
+		strMsg += QString( "</tr><tr>" );
 		strMsg += tr( "<td>Normal (eucl.):</td><td>%1&nbsp;%2&nbsp;%3</td>" ).arg( vertSel->getNormalX() ).arg( vertSel->getNormalY() ).arg( vertSel->getNormalZ() );
-		strMsg += tr( "</tr><tr>" );
+		strMsg += QString( "</tr><tr>" );
 		strMsg += tr( "<td>Normal (sph. degree):</td><td>%1&nbsp;%2&nbsp;%3</td>" ).arg( vertNorm.getSphPhiDeg() ).arg( vertNorm.getSphThetaDeg() ).arg( vertNorm.getSphRadius() );
-		strMsg += tr( "</tr><tr>" );
+		strMsg += QString( "</tr><tr>" );
 		strMsg += tr( "<td>Color (RGBA):</td><td>%1&nbsp;%2&nbsp;%3&nbsp;%4</td>" ).arg( vertSel->getR() ).arg( vertSel->getG() ).arg( vertSel->getB() ).arg( vertSel->getA() );
-		strMsg += tr( "</tr><tr>" );
+		strMsg += QString( "</tr><tr>" );
 		strMsg += tr( "<td>ID&nbsp;ori/curr:</td><td>%1/%2</td>" ).arg( vertSel->getIndex() ).arg( vertSel->getIndexOriginal() );
-		strMsg += tr( "</tr><tr>" );
+		strMsg += QString( "</tr><tr>" );
 		strMsg += tr( "<td>Function&nbsp;value:</td><td>%1</td>" ).arg( vertFuncVal );
-		strMsg += tr( "</tr><tr>" );
+		strMsg += QString( "</tr><tr>" );
 		strMsg += tr( "<td>Label&nbsp;ID:</td><td>%1</td>" ).arg( vertLabel );
-		strMsg += tr( "</tr><tr>" );
+		strMsg += QString( "</tr><tr>" );
 		strMsg += tr( "<td>Flags:</td><td>0x" ) + tr( "%1" ).arg( vertFlags, 0, 16 ).toUpper() + tr( "</td>" );
-		strMsg += tr( "</tr><tr>" );
+		strMsg += QString( "</tr><tr>" );
 		strMsg += tr( "<td></td><td>%1</td>" ).arg( vertFlags, 0, 2 );
-		strMsg += tr( "</tr><tr>" );
+		strMsg += QString( "</tr><tr>" );
 		strMsg += tr( "<td>Dist. to Axis:</td><td>" ) + tr( "%1" ).arg( distanceToAxis ) + tr( "</td>" );
-		strMsg += tr( "</tr><tr>" );
+		strMsg += QString( "</tr><tr>" );
 		strMsg += tr( "<td>Angle to Axis:</td><td>" ) + tr( "%1 %2&deg;" ).arg( angleInAxisCoord ).arg( angleInAxisCoord*180.0/M_PI ) + tr( "</td>" );
-		strMsg += tr( "</tr>" );
+		strMsg += QString( "</tr>" );
 		strMsg += strFeatVec;
-		strMsg += tr( "</table>" );
-		SHOW_MSGBOX_INFO( "Information about SelPrim/SelVert", strMsg );
+		strMsg += QString( "</table>" );
+		SHOW_MSGBOX_INFO( tr("Information about SelPrim/SelVert"), strMsg );
 		return( true );
 	}
 
@@ -3951,106 +3951,106 @@ bool MeshQt::showInfoSelectionHTML() {
 		faceSel->getVertC()->getLabel( labelIdC );
 		// Prepare HTML:
 		QString strMsg;
-                strMsg += tr( "<table style=width:'100%';table-layout:'fixed'>" );
-                strMsg += tr( "<tr><td align='left'>" );
-                strMsg += tr( "<table style=width:100%;table-layout:fixed>" );
-		strMsg += tr( "<tr>" );
-		strMsg += tr( "<td>&nbsp;</td>" );
-		strMsg += tr( "</tr><tr>" );
+				strMsg += QString( "<table style=width:'100%';table-layout:'fixed'>" );
+				strMsg += QString( "<tr><td align='left'>" );
+				strMsg += QString( "<table style=width:100%;table-layout:fixed>" );
+		strMsg += QString( "<tr>" );
+		strMsg += QString( "<td>&nbsp;</td>" );
+		strMsg += QString( "</tr><tr>" );
 		strMsg += tr( "<td align='right'>Vertex&nbsp;indices:</td>" );
-		strMsg += tr( "</tr><tr>" );
+		strMsg += QString( "</tr><tr>" );
 		strMsg += tr( "<td align='right'>Vertex&nbsp;label id:</td>" );
-		strMsg += tr( "</tr><tr>" );
-		strMsg += tr( "<td>&nbsp;</td>" );
-		strMsg += tr( "</tr><tr>" );
+		strMsg += QString( "</tr><tr>" );
+		strMsg += QString( "<td>&nbsp;</td>" );
+		strMsg += QString( "</tr><tr>" );
                 strMsg += tr( "<td align='right'>Vertex&nbsp;A&nbsp;coordinates:</td>" );
-                strMsg += tr( "</tr><tr>" );
+				strMsg += QString( "</tr><tr>" );
                 strMsg += tr( "<td align='right'>Vertex&nbsp;B&nbsp;coordinates:</td>" );
-                strMsg += tr( "</tr><tr>" );
+				strMsg += QString( "</tr><tr>" );
                 strMsg += tr( "<td align='right'>Vertex&nbsp;C&nbsp;coordinates:</td>" );
-		strMsg += tr( "</tr><tr>" );
-		strMsg += tr( "<td>&nbsp;</td>" );
-		strMsg += tr( "</tr><tr>" );
+		strMsg += QString( "</tr><tr>" );
+		strMsg += QString( "<td>&nbsp;</td>" );
+		strMsg += QString( "</tr><tr>" );
                 strMsg += tr( "<td align='right'>Edge&nbsp;lengths:</td>" );
-                strMsg += tr( "</tr><tr>" );
+				strMsg += QString( "</tr><tr>" );
                 strMsg += tr( "<td align='right'>Altitudes:</td>" );
-                strMsg += tr( "</tr><tr>" );
+				strMsg += QString( "</tr><tr>" );
                 strMsg += tr( "<td align='right'>Angles:</td>" );
-		strMsg += tr( "</tr>" );
-                strMsg += tr( "</table></td>" );
+		strMsg += QString( "</tr>" );
+				strMsg += QString( "</table></td>" );
 
-                strMsg += tr( "<td align='right'><table style=width:'100%';table-layout:'auto'>" );
-                strMsg += tr( "<col width='220px'/><col width='220px'/><col width='220px'/>" );
-		strMsg += tr( "<tr><td align='right' style='padding-left:10px'>A</td>"
+				strMsg += QString( "<td align='right'><table style=width:'100%';table-layout:'auto'>" );
+				strMsg += QString( "<col width='220px'/><col width='220px'/><col width='220px'/>" );
+		strMsg += QString( "<tr><td align='right' style='padding-left:10px'>A</td>"
 		                  "<td align='right' style='padding-left:10px'>B</td>"
 		                  "<td align='right' style='padding-left:10px'>C</td></tr>" );
-		strMsg += tr( "<tr><td align='right' style='padding-left:10px'>%1</td>"
+		strMsg += QString( "<tr><td align='right' style='padding-left:10px'>%1</td>"
 		                  "<td align='right' style='padding-left:10px'>%2</td>"
 		                  "<td align='right' style='padding-left:10px'>%3</td></tr>" )
 		                  .arg( faceSel->getVertAIndex() )
 		                  .arg( faceSel->getVertBIndex() )
 		                  .arg( faceSel->getVertCIndex() );
-		strMsg += tr( "<tr><td align='right' style='padding-left:10px'>%1</td>"
+		strMsg += QString( "<tr><td align='right' style='padding-left:10px'>%1</td>"
 		                  "<td align='right' style='padding-left:10px'>%2</td>"
 		                  "<td align='right' style='padding-left:10px'>%3</td></tr>" )
 		                   .arg( labelIdA )
 		                   .arg( labelIdB )
 		                   .arg( labelIdC );
-		strMsg += tr( "<tr><td align='center' style='padding-left:10px'>&nbsp;</td>"
+		strMsg += QString( "<tr><td align='center' style='padding-left:10px'>&nbsp;</td>"
 		                  "<td align='center' style='padding-left:10px'>&nbsp;</td>"
 		                  "<td align='center' style='padding-left:10px'>&nbsp;</td></tr>" );
-                strMsg += tr( "<tr><td align='left' style='padding-left:10px'>X:&nbsp;%1</td>"
+				strMsg += QString( "<tr><td align='left' style='padding-left:10px'>X:&nbsp;%1</td>"
                                     "<td align='center' style='padding-left:10px'>Y:&nbsp;%2</td>"
                                     "<td align='right' style='padding-left:10px'>Z:&nbsp;%3</td></tr>" )
                                     .arg(faceSel->getVertA()->getX())
                                     .arg(faceSel->getVertA()->getY())
                                     .arg(faceSel->getVertA()->getZ());
-                strMsg += tr( "<tr><td align='left' style='padding-left:10px'>X:&nbsp;%1</td>"
+				strMsg += QString( "<tr><td align='left' style='padding-left:10px'>X:&nbsp;%1</td>"
                                     "<td align='center' style='padding-left:10px'>Y:&nbsp;%2</td>"
                                     "<td align='right' style='padding-left:10px'>Z:&nbsp;%3</td></tr>" )
                                     .arg(faceSel->getVertB()->getX())
                                     .arg(faceSel->getVertB()->getY())
                                     .arg(faceSel->getVertB()->getZ());
-                strMsg += tr( "<tr><td align='left' style='padding-left:10px'>X:&nbsp;%1</td>"
+				strMsg += QString( "<tr><td align='left' style='padding-left:10px'>X:&nbsp;%1</td>"
                                     "<td align='center' style='padding-left:10px'>Y:&nbsp;%2</td>"
                                     "<td align='right' style='padding-left:10px'>Z:&nbsp;%3</td></tr>" )
                                     .arg(faceSel->getVertC()->getX())
                                     .arg(faceSel->getVertC()->getY())
                                     .arg(faceSel->getVertC()->getZ());
-		strMsg += tr( "<tr><td align='center' style='padding-left:10px'>&nbsp;</td>"
+		strMsg += QString( "<tr><td align='center' style='padding-left:10px'>&nbsp;</td>"
 		                  "<td align='center' style='padding-left:10px'>&nbsp;</td>"
 		                  "<td align='center' style='padding-left:10px'>&nbsp;</td></tr>" );
-                strMsg += tr( "<tr><td align='left' style='padding-left:10px'>&nbsp;%1</td>"
+				strMsg += QString( "<tr><td align='left' style='padding-left:10px'>&nbsp;%1</td>"
                                     "<td align='center' style='padding-left:10px'>&nbsp;%2</td>"
                                     "<td align='right' style='padding-left:10px'>&nbsp;%3</td></tr>" )
                                     .arg( edgeLens[0] )
                                     .arg( edgeLens[1] )
                                     .arg( edgeLens[2] );
-                strMsg += tr( "<tr><td align='left' style='padding-left:10px'>&nbsp;%1</td>"
+				strMsg += QString( "<tr><td align='left' style='padding-left:10px'>&nbsp;%1</td>"
                                     "<td align='center' style='padding-left:10px'>&nbsp;%2</td>"
                                     "<td align='right' style='padding-left:10px'>&nbsp;%3</td></tr>" )
                                     .arg( altitudes[0] )
                                     .arg( altitudes[1] )
                                     .arg( altitudes[2] );
-                strMsg += tr( "<tr><td align='left' style='padding-left:10px'>&nbsp;%1</td>"
+				strMsg += QString( "<tr><td align='left' style='padding-left:10px'>&nbsp;%1</td>"
                                     "<td align='center' style='padding-left:10px'>&nbsp;%2</td>"
                                     "<td align='right' style='padding-left:10px'>&nbsp;%3</td></tr>" )
                                     .arg( angles[0] )
                                     .arg( angles[1] )
                                     .arg( angles[2] );
-                strMsg += tr( "<tr><td align='left' style='padding-left:10px'>&nbsp;%1&deg;</td>"
+				strMsg += QString( "<tr><td align='left' style='padding-left:10px'>&nbsp;%1&deg;</td>"
                                     "<td align='center' style='padding-left:10px'>&nbsp;%2&deg;</td>"
                                     "<td align='right' style='padding-left:10px'>&nbsp;%3&deg;</td></tr></table></td>" )
                                     .arg( angles[0]*180.0/M_PI )
                                     .arg( angles[1]*180.0/M_PI )
                                     .arg( angles[2]*180.0/M_PI );
-                        strMsg += tr( "</tr>" );
-                        strMsg += tr( "</table>" );
-		SHOW_MSGBOX_INFO( "Information about SelPrim/SelFace", strMsg );
+						strMsg += QString( "</tr>" );
+						strMsg += QString( "</table>" );
+		SHOW_MSGBOX_INFO( tr("Information about SelPrim/SelFace"), strMsg );
 		return( true );
 	}
 
-	SHOW_MSGBOX_WARN( "Information about SelPrim", "Not yet implemented :(" );
+	SHOW_MSGBOX_WARN( tr("Information about SelPrim"), tr("Not yet implemented :(") );
 	return( false );
 }
 
@@ -4237,7 +4237,7 @@ bool MeshQt::showInfoFuncValHTML() {
 	strMsg += "</tr>";
 	strMsg += "</table>\n\n";
 
-	SHOW_MSGBOX_INFO( "FuncVal - Information", QString( strMsg.c_str() ) );
+	SHOW_MSGBOX_INFO( tr("FuncVal - Information"), QString( strMsg.c_str() ) );
 	return( true );
 }
 
@@ -4248,7 +4248,7 @@ bool MeshQt::showInfoAxisHTML() {
 	// Check the presence of an axis
 	bool axisDefined = getConeAxisDefined();
 	if( !axisDefined ) {
-		SHOW_MSGBOX_INFO( "Properties of the axis", "There is no axis defined." );
+		SHOW_MSGBOX_INFO( tr("Properties of the axis"), tr("There is no axis defined.") );
 		return( true );
 	}
 
@@ -4296,7 +4296,7 @@ bool MeshQt::showInfoAxisHTML() {
 
 	strMsg += "<p>Distance to origin: " + to_string( distToOrigin ) + "</p>";
 
-	SHOW_MSGBOX_INFO( "Properties of the axis", QString( strMsg.c_str() ) );
+	SHOW_MSGBOX_INFO( tr("Properties of the axis"), QString( strMsg.c_str() ) );
 	return( true );
 }
 
@@ -4330,11 +4330,11 @@ bool MeshQt::writeFileUserInteract() {
 	fileSuggest += ".ply";
 
 	QStringList filters;
-	filters << "3D-Data (*.ply *.obj)"
-	        << "3D-Data outdated (*.wrl *.txt *.xyz)";
+	filters << tr("3D-Data (*.ply *.obj)")
+			<< tr("3D-Data outdated (*.wrl *.txt *.xyz)");
 
 	QFileDialog dialog( mMainWindow );
-	dialog.setWindowTitle( "Save 3D-model as:" );
+	dialog.setWindowTitle( tr("Save 3D-model as:") );
 	dialog.setOptions( QFileDialog::DontUseNativeDialog ); // without there is no suggested filename - at least using Ubuntu.
 	dialog.setFileMode( QFileDialog::AnyFile );
 	dialog.setAcceptMode( QFileDialog::AcceptSave );

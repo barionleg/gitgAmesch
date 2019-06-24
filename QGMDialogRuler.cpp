@@ -25,7 +25,7 @@ void QGMDialogRuler::setFileName( const QString& fileName ) {
 
 void QGMDialogRuler::setWidth( const double width ) {
 	//! Set width.
-	lineRulerWidth->setText( tr( "%1" ).arg( width ) );
+	lineRulerWidth->setText( QString( "%1" ).arg( width ) );
 }
 
 void QGMDialogRuler::setWidthUnit( const QString& widthUnit ) {
@@ -35,17 +35,17 @@ void QGMDialogRuler::setWidthUnit( const QString& widthUnit ) {
 
 void QGMDialogRuler::setHeight( const double height ) {
 	//! Set height.
-	lineRulerHeight->setText( tr( "%1" ).arg( height ) );
+	lineRulerHeight->setText( QString( "%1" ).arg( height ) );
 }
 
 void QGMDialogRuler::setUnit( const double unit ) {
 	//! Set unit.
-	lineRulerUnit->setText( tr( "%1" ).arg( unit ) );
+	lineRulerUnit->setText( QString( "%1" ).arg( unit ) );
 }
 
 void QGMDialogRuler::setUnitTicks( const double unitTicks ) {
 	//! Set unit tick marks.
-	lineRulerUnitTicks->setText( tr( "%1" ).arg( unitTicks ) );
+	lineRulerUnitTicks->setText( QString( "%1" ).arg( unitTicks ) );
 }
 
 void QGMDialogRuler::accept() {
@@ -143,5 +143,5 @@ void QGMDialogRuler::setFileDirectory()
     fileDialog.setFileMode(QFileDialog::Directory);
     fileDialog.setOption(QFileDialog::ShowDirsOnly);
 
-    _fileDirectory = fileDialog.getExistingDirectory(this, QObject::tr( "Choose the Directory"));
+	_fileDirectory = fileDialog.getExistingDirectory(this, tr( "Choose the Directory"));
 }

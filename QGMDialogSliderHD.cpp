@@ -69,12 +69,12 @@ double QGMDialogSliderHD::setMin( double setMinVal ) {
 		mMinVal = setMinVal;
 	}
 	mValidAbs.setBottom( setMinVal );
-	ui->lineValueMin->setText( tr( "%1" ).arg( setMinVal ) );
+	ui->lineValueMin->setText( QString( "%1" ).arg( setMinVal ) );
 
 	// Compute and show the stepping
 	double steppingSlider = ( ui->horizontalSlider->maximum() - ui->horizontalSlider->minimum() ) / ui->horizontalSlider->singleStep();
 	double steppingAbsolut = ( mMaxVal - mMinVal ) / steppingSlider;
-	ui->lineValueStep->setText( tr( "%1" ).arg( steppingAbsolut ) );
+	ui->lineValueStep->setText( QString( "%1" ).arg( steppingAbsolut ) );
 
 	return( tmpVal );
 }
@@ -90,12 +90,12 @@ double QGMDialogSliderHD::setMax( double setMaxVal ) {
 		mMaxVal = setMaxVal;
 	}
 	mValidAbs.setTop( setMaxVal );
-	ui->lineValueMax->setText( tr( "%1" ).arg( setMaxVal ) );
+	ui->lineValueMax->setText( QString( "%1" ).arg( setMaxVal ) );
 
 	// Compute and show the stepping
 	double steppingSlider = ( ui->horizontalSlider->maximum() - ui->horizontalSlider->minimum() ) / ui->horizontalSlider->singleStep();
 	double steppingAbsolut = ( mMaxVal - mMinVal ) / steppingSlider;
-	ui->lineValueStep->setText( tr( "%1" ).arg( steppingAbsolut ) );
+	ui->lineValueStep->setText( QString( "%1" ).arg( steppingAbsolut ) );
 
 	return( tmpVal );
 }
