@@ -116,7 +116,6 @@ int main( int argc, char *argv[] ) {
 
 	// The main window:
 	QGMMainWindow mainWindow;
-	mainWindow.setTranslator(&translator);
 	mainWindow.show();
 	mainWindow.setupMeshWidget( glFormat );
 	if( hidpi20 ) {

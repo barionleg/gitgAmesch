@@ -2221,7 +2221,7 @@ void QGMMainWindow::loadLanguage(const QString& language)
 
 void QGMMainWindow::createLanguageMenu()
 {
-	auto langGroup = new QActionGroup(menuLanguage);
+	auto langGroup = new QActionGroup(menuLanguages);
 	langGroup->setExclusive(true);
 
 	connect(langGroup, &QActionGroup::triggered, this, &QGMMainWindow::slotChangeLanguage);
@@ -2245,7 +2245,7 @@ void QGMMainWindow::createLanguageMenu()
 		action->setChecked(true);
 		action->setData(locale);
 
-		menuLanguage->addAction(action);
+		menuLanguages->addAction(action);
 		langGroup->addAction(action);
 
 		if(defaultLocale == locale)
