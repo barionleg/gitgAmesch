@@ -11,6 +11,7 @@
 #include <QApplication>
 #include <QGLFormat>
 #include <QMessageBox>
+#include <QTranslator>
 
 // Qt Interface includes:
 #include "QGMMacros.h"
@@ -30,6 +31,14 @@ using namespace std;
 
 int main( int argc, char *argv[] ) {
 	QApplication app( argc, argv );
+
+	/*
+	//Initialize translation:
+	QTranslator translator;
+
+	if(translator.load("GigaMesh_" + QLocale::system().name(), ":/languages"))
+		app.installTranslator(&translator);
+	*/
 
 	// Application settings:
 	app.setOrganizationName( "GigaMesh" );
@@ -107,6 +116,7 @@ int main( int argc, char *argv[] ) {
 
 	// The main window:
 	QGMMainWindow mainWindow;
+	mainWindow.setTranslator(&translator);
 	mainWindow.show();
 	mainWindow.setupMeshWidget( glFormat );
 	if( hidpi20 ) {

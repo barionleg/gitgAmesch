@@ -32,6 +32,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
     : QMainWindow( parent, flags ), QGMMAINWINDOWINITDEFAULTS {
 	setupUi( this );
 
+	createLanguageMenu();
 	//uiMainToolBar.show();
 
 	//adding all menu actions to main window, so that they are not deaktivated in fullscreen-mode
@@ -2189,6 +2190,72 @@ void QGMMainWindow::slotHttpCheckVersion( QNetworkReply* rReply ) {
 	settings.setValue( "lastVersionCheck", qlonglong( timeNow ) );
 }
 
+void QGMMainWindow::slotChangeLanguage(QAction* action)
+{
+	if(action != nullptr)
+	{
+		loadLanguage(action->data().toString());
+	}
+}
+
+void switchTranlator(QTranslator& translator, const QString& fileName, const QString& directory)
+{
+	qApp->removeTranslator(&translator);
+
+	if(translator.load(fileName, directory))
+	{
+		qApp->installTranslator(&translator);
+	}
+}
+
+void QGMMainWindow::loadLanguage(const QString& language)
+{
+	if(mCurrentLanguage != language)
+	{
+		mCurrentLanguage = language;
+
+		switchTranlator(mTranslator, QString("GigaMesh_%1").arg(language), ":/languages");
+
+	}
+}
+
+void QGMMainWindow::createLanguageMenu()
+{
+	auto langGroup = new QActionGroup(menuLanguage);
+	langGroup->setExclusive(true);
+
+	connect(langGroup, &QActionGroup::triggered, this, &QGMMainWindow::slotChangeLanguage);
+
+	QString defaultLocale = QLocale::system().name();
+	defaultLocale.truncate(defaultLocale.lastIndexOf('_'));
+
+	QDir dir(QString(":/languages"));
+	QStringList fileNames = dir.entryList(QStringList("GigaMesh_*.qm"));
+
+	bool localeSet = false;
+
+	for(auto locale : fileNames)
+	{
+		locale.truncate(locale.lastIndexOf('.'));
+		locale.remove(0, locale.indexOf('_') + 1);
+
+		QString lang = QLocale::languageToString(QLocale(locale).language());
+
+		auto action = new QAction(lang, this);
+		action->setChecked(true);
+		action->setData(locale);
+
+		menuLanguage->addAction(action);
+		langGroup->addAction(action);
+
+		if(defaultLocale == locale)
+		{
+			localeSet = true;
+			action->setChecked(true);
+		}
+	}
+}
+
 void QGMMainWindow::openExternalProgramsDialog()
 {
 	if(mMeshWidget == nullptr)
@@ -2350,3 +2417,17 @@ void QGMMainWindow::dropEvent(QDropEvent *e)
 }
 
 //-----------------------------------------------------------------------------------------------------------------
+
+
+void QGMMainWindow::changeEvent(QEvent* event)
+{
+	if(event != nullptr)
+	{
+		switch(event->type()) {
+			case QEvent::LanguageChange:
+				retranslateUi(this);
+				break;
+		}
+	}
+	QMainWindow::changeEvent(event);
+}

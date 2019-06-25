@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>22</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -647,6 +647,11 @@
      <addaction name="actionRenderMetallic"/>
      <addaction name="actionRenderLightShading"/>
     </widget>
+    <widget class="QMenu" name="menuLanguages">
+     <property name="title">
+      <string>Languages</string>
+     </property>
+    </widget>
     <addaction name="actionSetFOV"/>
     <addaction name="separator"/>
     <addaction name="actionProjectPerspective"/>
@@ -696,6 +701,8 @@
     <addaction name="actionDisplay_as_pointcloud_when_moving"/>
     <addaction name="separator"/>
     <addaction name="actionExternal_Programs"/>
+    <addaction name="separator"/>
+    <addaction name="menuLanguages"/>
    </widget>
    <widget class="QMenu" name="menuColors">
     <property name="title">
@@ -4251,54 +4258,9 @@ p, li { white-space: pre-wrap; }
     <string>An&amp;gle to Plane (Slope)</string>
    </property>
   </action>
-  <action name="actiondsda">
-   <property name="text">
-    <string>dsda</string>
-   </property>
-  </action>
   <action name="actionDistanceToCone">
    <property name="text">
     <string>Distance to Cone</string>
-   </property>
-  </action>
-  <action name="actiondsada">
-   <property name="text">
-    <string>dsada</string>
-   </property>
-  </action>
-  <action name="actiondasda">
-   <property name="text">
-    <string>dasda</string>
-   </property>
-  </action>
-  <action name="actionAS">
-   <property name="text">
-    <string>AS</string>
-   </property>
-  </action>
-  <action name="actiondasdas">
-   <property name="text">
-    <string>dasdas</string>
-   </property>
-  </action>
-  <action name="actiondasda_2">
-   <property name="text">
-    <string>dasda</string>
-   </property>
-  </action>
-  <action name="actiondasda_3">
-   <property name="text">
-    <string>dasda</string>
-   </property>
-  </action>
-  <action name="actiondsa">
-   <property name="text">
-    <string>dsa</string>
-   </property>
-  </action>
-  <action name="actiondasda_4">
-   <property name="text">
-    <string>dasda</string>
    </property>
   </action>
   <action name="actionRotPlanePitchUp">

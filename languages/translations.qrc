@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/languages">
+        <file>GigaMesh_de.qm</file>
+        <file>GigaMesh_ja.qm</file>
+        <file>GigaMesh_en.qm</file>
+    </qresource>
+</RCC>
