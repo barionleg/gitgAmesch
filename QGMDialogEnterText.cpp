@@ -372,3 +372,14 @@ void QGMDialogEnterText::accept() {
 	QObject::disconnect();
 	QDialog::accept();
 }
+
+
+void QGMDialogEnterText::changeEvent(QEvent*event)
+{
+	if(event->type() == QEvent::LanguageChange)
+	{
+		retranslateUi(this);
+	}
+
+	QDialog::changeEvent(event);
+}

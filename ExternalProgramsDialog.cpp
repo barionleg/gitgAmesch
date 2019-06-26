@@ -135,3 +135,14 @@ void ExternalProgramsDialog::defaultPressed()
 	ui->python_lineEdit->setText(QString("python3"));
 }
 
+
+
+void ExternalProgramsDialog::changeEvent(QEvent*event)
+{
+	if(event->type() == QEvent::LanguageChange)
+	{
+		ui->retranslateUi(this);
+	}
+
+	QDialog::changeEvent(event);
+}

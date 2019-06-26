@@ -1194,6 +1194,7 @@ bool QGMMainWindow::event( QEvent* rEvent ) {
 	if( rEvent->type() == QEvent::WindowDeactivate ) {
 		emit sSelectMouseModeExtra(false,MeshWidgetParams::MOUSE_MODE_COUNT);
 	}
+
 	return QMainWindow::event(rEvent);
 }
 

@@ -37,6 +37,10 @@ signals:
 
 private:
 	Ui::QGMDockSideBar *ui;
+
+	// QWidget interface
+	protected:
+	virtual void changeEvent(QEvent* event) override;
 };
 
 #endif // QGMDOCKSIDEBAR_H

@@ -15,7 +15,7 @@ class QGMDialogTransparencySettings : public QDialog
     Q_OBJECT
 
 public:
-    explicit QGMDialogTransparencySettings(QWidget *parent = 0);
+	explicit QGMDialogTransparencySettings(QWidget *parent = nullptr);
     ~QGMDialogTransparencySettings();
 
     void init(MeshGL* mesh, bool enableGL4Features);
@@ -66,6 +66,10 @@ private slots:
 
 signals:
     void valuesChanged();
+
+	// QWidget interface
+	protected:
+	virtual void changeEvent(QEvent* event) override;
 
 };
 

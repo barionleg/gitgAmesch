@@ -297,7 +297,17 @@ void QGMDialogTransparencySettings::gammaChanged(double value)
 void QGMDialogTransparencySettings::comboBoxChanged()
 {
     if(ui->checkBox_Preview->isChecked())
-        emitValues();
+		emitValues();
+}
+
+void QGMDialogTransparencySettings::changeEvent(QEvent* event)
+{
+	if(event->type() == QEvent::LanguageChange)
+	{
+		ui->retranslateUi(this);
+	}
+
+	QDialog::changeEvent(event);
 }
 
 void QGMDialogTransparencySettings::emitValues()

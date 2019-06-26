@@ -16,9 +16,6 @@
 // Qt Interface includes:
 #include "ui_dialogComboBox.h"
 
-// Qt includes:
-#include "QGMMacros.h"
-
 //!
 //! \brief Dialog class for simple user input having a CommboBox and a TextLabel.
 //!
@@ -32,7 +29,7 @@ class QGMDialogComboBox : public QDialog, private Ui::QGMDialogComboBox {
     Q_OBJECT
 
 public:
-	explicit QGMDialogComboBox( QWidget *parent = 0, Qt::WindowFlags flags = 0  );
+	explicit QGMDialogComboBox( QWidget *parent = nullptr, Qt::WindowFlags flags = nullptr  );
 	// Setup -----------------------------------------------------------------------------------------------------------------------------------------------
 	void setTextLabel( const QString & rLabelText );
 	void addItem( const QString & text, const QVariant & userData = QVariant() );
@@ -44,6 +41,10 @@ signals:
 
 public slots:
 
+
+	// QWidget interface
+	protected:
+	virtual void changeEvent(QEvent* event) override;
 };
 
 #endif // QGMDIALOGCOMBOBOX_H

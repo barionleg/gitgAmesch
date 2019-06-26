@@ -146,3 +146,14 @@ void QGMDialogPlaneParam::accept() {
 	QObject::disconnect();
 	QDialog::accept();
 }
+
+
+void QGMDialogPlaneParam::changeEvent(QEvent* event)
+{
+	if(event->type() == QEvent::LanguageChange)
+	{
+		retranslateUi(this);
+	}
+
+	QDialog::changeEvent(event);
+}

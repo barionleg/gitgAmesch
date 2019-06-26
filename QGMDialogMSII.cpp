@@ -192,3 +192,14 @@ void QGMDialogMSII::accept() {
 
 	QDialog::accept();
 }
+
+
+void QGMDialogMSII::changeEvent(QEvent*event)
+{
+	if(event->type() == QEvent::LanguageChange)
+	{
+		retranslateUi(this);
+	}
+
+	QDialog::changeEvent(event);
+}

@@ -348,3 +348,14 @@ void showRunTpsRpmScriptDialog(QWidget* parent = nullptr,
 	qRunTpsRpmScriptDialog.exec();
 }
 
+
+
+void QRunTpsRpmScriptDialog::changeEvent(QEvent*event)
+{
+	if(event->type() == QEvent::LanguageChange)
+	{
+		m_qRunTpsRpmScriptDialog->retranslateUi(this);
+	}
+
+	QDialog::changeEvent(event);
+}

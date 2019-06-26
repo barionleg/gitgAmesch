@@ -50,6 +50,10 @@ signals:
 
 private:
     QString _fileDirectory;
+
+	// QWidget interface
+	protected:
+	virtual void changeEvent(QEvent* event) override;
 };
 
 #endif

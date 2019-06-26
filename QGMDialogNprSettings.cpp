@@ -65,8 +65,8 @@ QGMDialogNprSettings::QGMDialogNprSettings(QWidget *parent) :
     connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(exitAccept()));
     connect(ui->buttonBox, SIGNAL(rejected()), this, SLOT(exitReject()));
 
-    m_pColorDialog = new QColorDialog(this);
-    connect(m_pColorDialog, SIGNAL(colorSelected(QColor)), this, SLOT(colorChanged(QColor)));
+	//m_pColorDialog = new QColorDialog(this);
+	//connect(m_pColorDialog, SIGNAL(colorSelected(QColor)), this, SLOT(colorChanged(QColor)));
 
     ui->comboBox_Hatch_Style->blockSignals(true);
     ui->comboBox_Hatch_Style->insertItem(0,tr("Lines"));
@@ -147,7 +147,7 @@ void QGMDialogNprSettings::init(
 
 QGMDialogNprSettings::~QGMDialogNprSettings()
 {
-    delete m_pColorDialog;
+	//delete m_pColorDialog;
     delete ui;
 }
 
@@ -353,49 +353,50 @@ void QGMDialogNprSettings::changeColor()
 {
     m_bColorChanged = false;
     m_pColorRequest = sender();
+	QColorDialog colorDialog;
 
-
+	connect(&colorDialog, SIGNAL(colorSelected(QColor)), this, SLOT(colorChanged(QColor)));
     if(m_pColorRequest == ui->pushButton_Outline_Color)
     {
-        m_pColorDialog->setCurrentColor(ui->lineEdit_Outline_Color->palette().base().color());
+		colorDialog.setCurrentColor(ui->lineEdit_Outline_Color->palette().base().color());
     }
 
     else if(m_pColorRequest == ui->pushButton_Hatch_Color)
     {
-        m_pColorDialog->setCurrentColor(ui->lineEdit_Hatch_Color->palette().base().color());
+		colorDialog.setCurrentColor(ui->lineEdit_Hatch_Color->palette().base().color());
     }
 
     else if(m_pColorRequest == ui->pushButton_Toon_Diff1)
     {
-        m_pColorDialog->setCurrentColor(ui->lineEdit_Toon_Diff1->palette().base().color());
+		colorDialog.setCurrentColor(ui->lineEdit_Toon_Diff1->palette().base().color());
     }
 
     else if(m_pColorRequest == ui->pushButton_Toon_Diff2)
     {
-        m_pColorDialog->setCurrentColor(ui->lineEdit_Toon_Diff2->palette().base().color());
+		colorDialog.setCurrentColor(ui->lineEdit_Toon_Diff2->palette().base().color());
     }
 
     else if(m_pColorRequest == ui->pushButton_Toon_Diff3)
     {
-        m_pColorDialog->setCurrentColor(ui->lineEdit_Toon_Diff3->palette().base().color());
+		colorDialog.setCurrentColor(ui->lineEdit_Toon_Diff3->palette().base().color());
     }
 
     else if(m_pColorRequest == ui->pushButton_Toon_Diff4)
     {
-        m_pColorDialog->setCurrentColor(ui->lineEdit_Toon_Diff4->palette().base().color());
+		colorDialog.setCurrentColor(ui->lineEdit_Toon_Diff4->palette().base().color());
     }
 
     else if(m_pColorRequest == ui->pushButton_Toon_Diff5)
     {
-        m_pColorDialog->setCurrentColor(ui->lineEdit_Toon_Diff5->palette().base().color());
+		colorDialog.setCurrentColor(ui->lineEdit_Toon_Diff5->palette().base().color());
     }
 
     else if(m_pColorRequest == ui->pushButton_Toon_Spec)
     {
-        m_pColorDialog->setCurrentColor(ui->lineEdit_Toon_Spec->palette().base().color());
+		colorDialog.setCurrentColor(ui->lineEdit_Toon_Spec->palette().base().color());
     }
 
-    m_pColorDialog->exec();
+	colorDialog.exec();
 }
 
 void QGMDialogNprSettings::colorChanged(const QColor &color)
@@ -550,4 +551,15 @@ void QGMDialogNprSettings::exitReject()
     resetValues();
     emitValues();
     reject();
+}
+
+
+void QGMDialogNprSettings::changeEvent(QEvent*event)
+{
+	if(event->type() == QEvent::LanguageChange)
+	{
+		ui->retranslateUi(this);
+	}
+
+	QDialog::changeEvent(event);
 }

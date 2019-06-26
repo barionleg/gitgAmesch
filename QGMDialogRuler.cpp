@@ -145,3 +145,14 @@ void QGMDialogRuler::setFileDirectory()
 
 	_fileDirectory = fileDialog.getExistingDirectory(this, tr( "Choose the Directory"));
 }
+
+
+void QGMDialogRuler::changeEvent(QEvent* event)
+{
+	if(event->type() == QEvent::LanguageChange)
+	{
+		retranslateUi(this);
+	}
+
+	QDialog::changeEvent(event);
+}

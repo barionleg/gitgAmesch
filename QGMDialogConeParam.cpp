@@ -191,3 +191,14 @@ void QGMDialogConeParam::copyDataToClipboard() {
 
 	clipboard->setText(newText);
 }
+
+
+void QGMDialogConeParam::changeEvent(QEvent*event)
+{
+	if(event->type() == QEvent::LanguageChange)
+	{
+		retranslateUi(this);
+	}
+
+	QDialog::changeEvent(event);
+}

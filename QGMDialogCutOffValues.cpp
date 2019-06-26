@@ -44,3 +44,13 @@ void QGMDialogCutOffValues::accept() {
 	QObject::disconnect();
 	QDialog::accept();
 }
+
+void QGMDialogCutOffValues::changeEvent(QEvent*event)
+{
+	if(event->type() == QEvent::LanguageChange)
+	{
+		retranslateUi(this);
+	}
+
+	QDialog::changeEvent(event);
+}

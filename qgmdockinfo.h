@@ -51,6 +51,10 @@ private:
 	// Guide related:
 	MeshWidgetParams::eGuideIDCommon    mGuideCommon;      //! Storage for the last/current Selection Guide ID.
 	MeshWidgetParams::eGuideIDSelection mGuideSelection;   //! Storage for the last/current Selection Guide ID in selection mode.
+
+	// QWidget interface
+	protected:
+	virtual void changeEvent(QEvent* event) override;
 };
 
 #endif // QGMDOCKINFO_H

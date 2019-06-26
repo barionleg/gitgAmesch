@@ -57,3 +57,14 @@ void QGMDockView::infoMesh( const MeshGLParams::eInfoMesh rInfoID, const QString
 			break;
 	}
 }
+
+
+void QGMDockView::changeEvent(QEvent*event)
+{
+	if(event->type() == QEvent::LanguageChange)
+	{
+		ui->retranslateUi(this);
+	}
+
+	QDockWidget::changeEvent(event);
+}
