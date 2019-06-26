@@ -139,3 +139,15 @@ void NormalSphereSelectionDialog::updateRotationExternal(Vector3D camCenter, Vec
 		ui->openGLWidget->setRotation(rotQuat);
 	}
 }
+
+
+void NormalSphereSelectionDialog::changeEvent(QEvent* event)
+{
+	switch(event->type())
+	{
+		case QEvent::LanguageChange:
+			ui->retranslateUi(this);
+	}
+
+	QDialog::changeEvent(event);
+}

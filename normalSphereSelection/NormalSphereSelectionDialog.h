@@ -36,6 +36,10 @@ class NormalSphereSelectionDialog : public QDialog
 		Ui::NormalSphereSelectionDialog *ui;
 
 		MeshQt* mMesh;
+
+		// QWidget interface
+	protected:
+		virtual void changeEvent(QEvent* event) override;
 };
 
 #endif // NormalSphereSELECTIONDIALOG_H
