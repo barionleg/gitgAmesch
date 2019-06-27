@@ -242,888 +242,888 @@
     </message>
     <message>
         <location filename="../forms/mainWin.ui" line="652"/>
-        <source>Language</source>
+        <source>Languages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="712"/>
+        <location filename="../forms/mainWin.ui" line="709"/>
         <source>Colo&amp;rs</source>
         <translation>&amp;Farben</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="731"/>
+        <location filename="../forms/mainWin.ui" line="728"/>
         <source>&amp;Colorramp</source>
         <translation>&amp;Colorramp</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="735"/>
+        <location filename="../forms/mainWin.ui" line="732"/>
         <source>Deprecated Colorramps</source>
         <translation>Veraltete Colorramps</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="743"/>
+        <location filename="../forms/mainWin.ui" line="740"/>
         <source>Hypsometric Tints</source>
         <translation>Hypsometric Tints</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="791"/>
+        <location filename="../forms/mainWin.ui" line="788"/>
         <source>Info</source>
         <translation>Informationen</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="821"/>
+        <location filename="../forms/mainWin.ui" line="818"/>
         <source>A&amp;nalyze</source>
         <translation>A&amp;nalysieren</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="825"/>
+        <location filename="../forms/mainWin.ui" line="822"/>
         <source>Octree</source>
         <translation>Octree</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="890"/>
+        <location filename="../forms/mainWin.ui" line="887"/>
         <source>toolBar</source>
         <translation>Werkzeugleiste</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="939"/>
+        <location filename="../forms/mainWin.ui" line="936"/>
         <source>&amp;Open</source>
         <translation>&amp;Öffnen</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="942"/>
+        <location filename="../forms/mainWin.ui" line="939"/>
         <source>Ctrl+O</source>
         <translation>Strg+O</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="947"/>
+        <location filename="../forms/mainWin.ui" line="944"/>
         <source>&amp;Apply TPS-RPM Transformation</source>
         <translation>&amp;Anwenden TPS-RPM Transformation</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="952"/>
+        <location filename="../forms/mainWin.ui" line="949"/>
         <source>&amp;MSII Feature Vector - SelVert</source>
         <translation>&amp;MSII Feature Vektor - SelVert</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="957"/>
+        <location filename="../forms/mainWin.ui" line="954"/>
         <source> Import &amp;Color (per Vertex)</source>
         <translation>Importiere &amp;Farben (pro Vertex)</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="962"/>
+        <location filename="../forms/mainWin.ui" line="959"/>
         <source>&amp;Save as</source>
         <translation>&amp;Speichere als</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="965"/>
+        <location filename="../forms/mainWin.ui" line="962"/>
         <source>Ctrl+S</source>
         <translation>Strg+S</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="976"/>
+        <location filename="../forms/mainWin.ui" line="973"/>
         <source>&amp;Binary</source>
         <translation>&amp;Binär</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="987"/>
+        <location filename="../forms/mainWin.ui" line="984"/>
         <source>&amp;GM Extras (Features, Labels, Flags)</source>
         <translation>&amp;GM Extras (Features, Labels, Flags)</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="992"/>
+        <location filename="../forms/mainWin.ui" line="989"/>
         <source>Import Mesh Coordinates From CSV File</source>
         <translation>Importiere Mesh-Koordinaten von CSV Datei</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="997"/>
+        <location filename="../forms/mainWin.ui" line="994"/>
         <source>&amp;Import Feature Vectors (per Vertex)</source>
         <translation>&amp;Importiere Feature-Vektoren (pro Vertex)</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1012"/>
+        <location filename="../forms/mainWin.ui" line="1009"/>
         <source>&amp;Primitive - Vertex - SelVert/SelPrim</source>
         <translation>&amp;Primitive - Vertex . SelVert/SelPrim</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1015"/>
+        <location filename="../forms/mainWin.ui" line="1012"/>
         <source>Select single vertex (SelPrim)</source>
         <translation>Selektiere einzelnen Vertex (SelPrim)</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1036"/>
+        <location filename="../forms/mainWin.ui" line="1033"/>
         <source>Pri&amp;mitive - Face - SelFace/SelPrim</source>
         <translation>Pri&amp;mitive - Face - SelFace/SelPrim</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1050"/>
+        <location filename="../forms/mainWin.ui" line="1047"/>
         <source>Feature Distance to SelVert (Euclid)</source>
         <translation>Feature Distanz zu SelVert (Euclid)</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1058"/>
+        <location filename="../forms/mainWin.ui" line="1055"/>
         <source>Feature Vector &amp;Elements - Cut-Off SelVert</source>
         <translatorcomment>=&gt; cut-off durch &quot;abschneiden&quot; übersetzen?</translatorcomment>
         <translation>Feature Vektor &amp;Elemente - Cut-Off SelVert</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1066"/>
+        <location filename="../forms/mainWin.ui" line="1063"/>
         <source>Feature Elements cut-&amp;off SelFace</source>
         <translation>Feature Elemente cut-&amp;off SelFace</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1077"/>
+        <location filename="../forms/mainWin.ui" line="1074"/>
         <source>&amp;Orthographic View</source>
         <translation>&amp;Orthografische Ansicht</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1085"/>
+        <location filename="../forms/mainWin.ui" line="1082"/>
         <source>Label + &amp;Remove Small Areas</source>
         <translation>Label + &amp;Entferne Kleine Bereiche</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1090"/>
+        <location filename="../forms/mainWin.ui" line="1087"/>
         <source>&amp;Screenshot (TIFF/PNG)</source>
         <translation>&amp;Screenshot (TIFF/PNG)</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1098"/>
+        <location filename="../forms/mainWin.ui" line="1095"/>
         <source>Video &amp;Frame Size (Fix)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1106"/>
+        <location filename="../forms/mainWin.ui" line="1103"/>
         <source>&amp;360° Circular Orbit Horizontal Axis</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1111"/>
+        <location filename="../forms/mainWin.ui" line="1108"/>
         <source>Scr&amp;eenshot Views (TIFF/PNG)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1119"/>
+        <location filename="../forms/mainWin.ui" line="1116"/>
         <source>&amp;All (Point Cloud)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1134"/>
+        <location filename="../forms/mainWin.ui" line="1131"/>
         <source>&amp;Border</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1137"/>
+        <location filename="../forms/mainWin.ui" line="1134"/>
         <source>Show Border Vertices</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1152"/>
+        <location filename="../forms/mainWin.ui" line="1149"/>
         <source>S&amp;olo</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1167"/>
+        <location filename="../forms/mainWin.ui" line="1164"/>
         <source>Non-&amp;Manifold</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1182"/>
+        <location filename="../forms/mainWin.ui" line="1179"/>
         <source>S&amp;ingular</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1196"/>
+        <location filename="../forms/mainWin.ui" line="1193"/>
         <source>&amp;Faces</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1210"/>
+        <location filename="../forms/mainWin.ui" line="1207"/>
         <source>&amp;Edges</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1221"/>
+        <location filename="../forms/mainWin.ui" line="1218"/>
         <source>All - Monoc&amp;hrome</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1229"/>
+        <location filename="../forms/mainWin.ui" line="1226"/>
         <source>&amp;Unload Feature Vectors</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1234"/>
+        <location filename="../forms/mainWin.ui" line="1231"/>
         <source>&amp;Label - All Vertices / SelMVerts</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1242"/>
+        <location filename="../forms/mainWin.ui" line="1239"/>
         <source>&amp;Solid Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1250"/>
+        <location filename="../forms/mainWin.ui" line="1247"/>
         <source>&amp;Normals - Vertex</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1261"/>
+        <location filename="../forms/mainWin.ui" line="1258"/>
         <source>Normals - Face</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1269"/>
+        <location filename="../forms/mainWin.ui" line="1266"/>
         <source>Polylines from &amp;SelMVerts</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1274"/>
+        <location filename="../forms/mainWin.ui" line="1271"/>
         <source>Unload &amp;3D</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1279"/>
+        <location filename="../forms/mainWin.ui" line="1276"/>
         <source>Label &amp;Borders to Polyline(s)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1287"/>
+        <location filename="../forms/mainWin.ui" line="1284"/>
         <source>&amp;Polylines</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1305"/>
+        <location filename="../forms/mainWin.ui" line="1302"/>
         <source>&amp;Selected (SelMVerts)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1308"/>
+        <location filename="../forms/mainWin.ui" line="1305"/>
         <source>Show Selected Vertices (SelMVerts)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1319"/>
+        <location filename="../forms/mainWin.ui" line="1316"/>
         <source>&amp;Bounding Box</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1322"/>
+        <location filename="../forms/mainWin.ui" line="1319"/>
         <source>F1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1330"/>
+        <location filename="../forms/mainWin.ui" line="1327"/>
         <source>&amp;Background Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1335"/>
+        <location filename="../forms/mainWin.ui" line="1332"/>
         <source>Backface &amp;Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1343"/>
+        <location filename="../forms/mainWin.ui" line="1340"/>
         <source>&amp;Datum - Spheres</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1351"/>
+        <location filename="../forms/mainWin.ui" line="1348"/>
         <source>Datum - Bo&amp;xes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1356"/>
+        <location filename="../forms/mainWin.ui" line="1353"/>
         <source>&amp;Export Polylines (ASCII)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1367"/>
+        <location filename="../forms/mainWin.ui" line="1364"/>
         <source>&amp;Hot (improved)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1375"/>
+        <location filename="../forms/mainWin.ui" line="1372"/>
         <source>HSV (full)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1383"/>
+        <location filename="../forms/mainWin.ui" line="1380"/>
         <source>&amp;Grayscale</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1391"/>
+        <location filename="../forms/mainWin.ui" line="1388"/>
         <source>&amp;Invert</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1399"/>
+        <location filename="../forms/mainWin.ui" line="1396"/>
         <source>Feature Auto Correlation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1407"/>
+        <location filename="../forms/mainWin.ui" line="1404"/>
         <source>Feature C&amp;orrelation to SelVert</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1415"/>
+        <location filename="../forms/mainWin.ui" line="1412"/>
         <source>&amp;Lighting</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1418"/>
+        <location filename="../forms/mainWin.ui" line="1415"/>
         <source>^</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1426"/>
+        <location filename="../forms/mainWin.ui" line="1423"/>
         <source>Mesh Volume (dx,dy,d&amp;z)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1431"/>
+        <location filename="../forms/mainWin.ui" line="1428"/>
         <source>Sp&amp;here Intersect</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1436"/>
+        <location filename="../forms/mainWin.ui" line="1433"/>
         <source>Estimate Bounding Bo&amp;x</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1441"/>
+        <location filename="../forms/mainWin.ui" line="1438"/>
         <source>&amp;Vertex Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1446"/>
+        <location filename="../forms/mainWin.ui" line="1443"/>
         <source>&amp;Distance to Plane</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1454"/>
+        <location filename="../forms/mainWin.ui" line="1451"/>
         <source>H&amp;ypsometric Tint</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1462"/>
-        <location filename="../forms/mainWin.ui" line="2917"/>
+        <location filename="../forms/mainWin.ui" line="1459"/>
+        <location filename="../forms/mainWin.ui" line="2914"/>
         <source>&amp;Logarithmic</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1470"/>
+        <location filename="../forms/mainWin.ui" line="1467"/>
         <source>Vertices - SelMVerts - FuncVal &lt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1475"/>
+        <location filename="../forms/mainWin.ui" line="1472"/>
         <source>Feature Auto + Correlation to SelVert</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1486"/>
+        <location filename="../forms/mainWin.ui" line="1483"/>
         <source>Light Ambient - Set Brightness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1497"/>
+        <location filename="../forms/mainWin.ui" line="1494"/>
         <source>&amp;Material - Shininess</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1508"/>
+        <location filename="../forms/mainWin.ui" line="1505"/>
         <source>Mat&amp;erial - Specular</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1516"/>
+        <location filename="../forms/mainWin.ui" line="1513"/>
         <source>&amp;Datum - Sphere Transp.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1521"/>
+        <location filename="../forms/mainWin.ui" line="1518"/>
         <source>&amp;Vertex - Indices</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1526"/>
+        <location filename="../forms/mainWin.ui" line="1523"/>
         <source>Vertex - &amp;1-Ring Area</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1531"/>
+        <location filename="../forms/mainWin.ui" line="1528"/>
         <source>Lab&amp;el - SelMVerts</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1536"/>
+        <location filename="../forms/mainWin.ui" line="1533"/>
         <source>Label &amp;Polylines - Advance to Threshold</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1541"/>
+        <location filename="../forms/mainWin.ui" line="1538"/>
         <source>Remove - All Polylines</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1546"/>
+        <location filename="../forms/mainWin.ui" line="1543"/>
         <source>Vertices - SelMVerts - FuncVal &gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1551"/>
+        <location filename="../forms/mainWin.ui" line="1548"/>
         <source>Vertices - SelMVerts - NonMa&amp;x</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1556"/>
+        <location filename="../forms/mainWin.ui" line="1553"/>
         <source>Label &amp;FuncVal Minima</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1561"/>
+        <location filename="../forms/mainWin.ui" line="1558"/>
         <source>Label FuncVal &amp;Maxima</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1566"/>
+        <location filename="../forms/mainWin.ui" line="1563"/>
         <source>&amp;Edge Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1571"/>
+        <location filename="../forms/mainWin.ui" line="1568"/>
         <source>Label - &amp;SelMVerts to Seeds</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1579"/>
+        <location filename="../forms/mainWin.ui" line="1576"/>
         <source>&amp;RdGy (Brewer, diverging)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1582"/>
+        <location filename="../forms/mainWin.ui" line="1579"/>
         <source>Red-Gray</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1587"/>
+        <location filename="../forms/mainWin.ui" line="1584"/>
         <source>Screenshot (SVG+&amp;PNG)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1592"/>
+        <location filename="../forms/mainWin.ui" line="1589"/>
         <source>Export Face Norma&amp;l Angles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1600"/>
+        <location filename="../forms/mainWin.ui" line="1597"/>
         <source>Normals - Polyline</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1611"/>
+        <location filename="../forms/mainWin.ui" line="1608"/>
         <source>Normals - Polyline Mean</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1619"/>
+        <location filename="../forms/mainWin.ui" line="1616"/>
         <source>Polylines - &amp;Compute Curvature and Extrema</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1624"/>
+        <location filename="../forms/mainWin.ui" line="1621"/>
         <source>Set &amp;Length for Smoothing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1632"/>
+        <location filename="../forms/mainWin.ui" line="1629"/>
         <source>Polylines with Curvature</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1640"/>
+        <location filename="../forms/mainWin.ui" line="1637"/>
         <source>360° Circular Orbit &amp;Vertical Axis</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1645"/>
+        <location filename="../forms/mainWin.ui" line="1642"/>
         <source>360° Circular Orbit &amp;Normal of SelPrim</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1653"/>
+        <location filename="../forms/mainWin.ui" line="1650"/>
         <source>Polylines &amp;w. Absolute Curvature</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1664"/>
+        <location filename="../forms/mainWin.ui" line="1661"/>
         <source>Plane - Set using &amp;3 Points</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1675"/>
+        <location filename="../forms/mainWin.ui" line="1672"/>
         <source>Polylines from &amp;Isovalue / Functionvalue</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1680"/>
+        <location filename="../forms/mainWin.ui" line="1677"/>
         <source>&amp;Check correctness of Non-Max suppression</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1688"/>
+        <location filename="../forms/mainWin.ui" line="1685"/>
         <source>&amp;Mesh Plane</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1691"/>
+        <location filename="../forms/mainWin.ui" line="1688"/>
         <source>Shift+F1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1699"/>
+        <location filename="../forms/mainWin.ui" line="1696"/>
         <source>&amp;Geodesic Distance to SelPrim (SelVert/SelFace)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1704"/>
+        <location filename="../forms/mainWin.ui" line="1701"/>
         <source>360° Circular Orbit Normal of &amp;Plane</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1712"/>
+        <location filename="../forms/mainWin.ui" line="1709"/>
         <source>Fog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1720"/>
+        <location filename="../forms/mainWin.ui" line="1717"/>
         <source>Sp&amp;herical Stack Camera Orbiting</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1731"/>
+        <location filename="../forms/mainWin.ui" line="1728"/>
         <source>&amp;Camera on Longitudinal Orbit (Vertical Axis)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1736"/>
+        <location filename="../forms/mainWin.ui" line="1733"/>
         <source>&amp;Video Frame Size (Set)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1744"/>
+        <location filename="../forms/mainWin.ui" line="1741"/>
         <source>Sph&amp;erical Stack State No.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1749"/>
+        <location filename="../forms/mainWin.ui" line="1746"/>
         <source>&amp;No Label Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1754"/>
+        <location filename="../forms/mainWin.ui" line="1751"/>
         <source>Screenshot &amp;Ruler</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1762"/>
+        <location filename="../forms/mainWin.ui" line="1759"/>
         <source>Screenshot &amp;Cropping</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1767"/>
+        <location filename="../forms/mainWin.ui" line="1764"/>
         <source>Function Value - &amp;Normalize</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1772"/>
+        <location filename="../forms/mainWin.ui" line="1769"/>
         <source>Funct&amp;ion Value - Set Value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1777"/>
+        <location filename="../forms/mainWin.ui" line="1774"/>
         <source>&amp;Feature Vector Wavelet decomp.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1782"/>
+        <location filename="../forms/mainWin.ui" line="1779"/>
         <source>Function Value - Cut-off</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1787"/>
+        <location filename="../forms/mainWin.ui" line="1784"/>
         <source>&amp;Vertices - SelMVerts - Deselect All</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1799"/>
+        <location filename="../forms/mainWin.ui" line="1796"/>
         <source>Vertices - SelMVerts - &amp;GUI - Pinpoint</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1802"/>
+        <location filename="../forms/mainWin.ui" line="1799"/>
         <source>Select multiple vertices by pinpointing (SelMVerts)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1813"/>
+        <location filename="../forms/mainWin.ui" line="1810"/>
         <source>Geodesic Distance to SelMVerts</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1821"/>
+        <location filename="../forms/mainWin.ui" line="1818"/>
         <source>Lables &amp;Mono</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1829"/>
+        <location filename="../forms/mainWin.ui" line="1826"/>
         <source>&amp;Labels Mono Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1834"/>
+        <location filename="../forms/mainWin.ui" line="1831"/>
         <source>&amp;Polyline Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1839"/>
+        <location filename="../forms/mainWin.ui" line="1836"/>
         <source>Set Intervall (Wavelength)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1844"/>
+        <location filename="../forms/mainWin.ui" line="1841"/>
         <source>Polylines - Set Curvature Scale</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1849"/>
+        <location filename="../forms/mainWin.ui" line="1846"/>
         <source>Remove - SelMVerts</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1854"/>
+        <location filename="../forms/mainWin.ui" line="1851"/>
         <source>&amp;Vertices - Solo</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1859"/>
+        <location filename="../forms/mainWin.ui" line="1856"/>
         <source>Vertices - &amp;Non-manifold</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1864"/>
+        <location filename="../forms/mainWin.ui" line="1861"/>
         <source>Vertices - &amp;Singular</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1869"/>
+        <location filename="../forms/mainWin.ui" line="1866"/>
         <source>Vertices - &amp;Labelarea &lt; Abs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1874"/>
+        <location filename="../forms/mainWin.ui" line="1871"/>
         <source>Ve&amp;rtices - Labelarea &lt; %</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1883"/>
+        <location filename="../forms/mainWin.ui" line="1880"/>
         <source>&amp;Remove - Unclean/Small</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1886"/>
+        <location filename="../forms/mainWin.ui" line="1883"/>
         <source>Removes all unclean and small surface parts</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1891"/>
+        <location filename="../forms/mainWin.ui" line="1888"/>
         <source>Vertices - &amp;Border</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1896"/>
+        <location filename="../forms/mainWin.ui" line="1893"/>
         <source>Vert&amp;ices - Face Maximum Angle &gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1901"/>
+        <location filename="../forms/mainWin.ui" line="1898"/>
         <source>Vertices - Face &amp;Minimum Angle &lt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1906"/>
+        <location filename="../forms/mainWin.ui" line="1903"/>
         <source>Ort&amp;ho Scale (Set DPI)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1909"/>
+        <location filename="../forms/mainWin.ui" line="1906"/>
         <source>Shift+F7</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1914"/>
+        <location filename="../forms/mainWin.ui" line="1911"/>
         <source>&amp;Fill Holes (libpsalm)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1919"/>
+        <location filename="../forms/mainWin.ui" line="1916"/>
         <source>Feature Vector Length (Euclid/&amp;2-Norm)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1924"/>
+        <location filename="../forms/mainWin.ui" line="1921"/>
         <source>&amp;Rotate - Yaw (L/R)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1929"/>
+        <location filename="../forms/mainWin.ui" line="1926"/>
         <source>Rotate - Pitch (&amp;U/D)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1934"/>
+        <location filename="../forms/mainWin.ui" line="1931"/>
         <source>Rotate - Roll</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1939"/>
+        <location filename="../forms/mainWin.ui" line="1936"/>
         <source>LaTeX Snipset for &amp;report/catalog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1944"/>
+        <location filename="../forms/mainWin.ui" line="1941"/>
         <source>Pol&amp;ylines - No Label</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1949"/>
+        <location filename="../forms/mainWin.ui" line="1946"/>
         <source>Remove - SelMPol&amp;ylines</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1954"/>
+        <location filename="../forms/mainWin.ui" line="1951"/>
         <source>Feature Distance to SelVert (Man)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1959"/>
+        <location filename="../forms/mainWin.ui" line="1956"/>
         <source>&amp;Feature Vector Length (Man/1-Norm)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1970"/>
+        <location filename="../forms/mainWin.ui" line="1967"/>
         <source>&amp;Quantil</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1975"/>
+        <location filename="../forms/mainWin.ui" line="1972"/>
         <source>Faces - Stic&amp;ky</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1980"/>
+        <location filename="../forms/mainWin.ui" line="1977"/>
         <source>Remove - SelMFaces</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1985"/>
+        <location filename="../forms/mainWin.ui" line="1982"/>
         <source>Faces - &amp;Non-manifold</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1990"/>
+        <location filename="../forms/mainWin.ui" line="1987"/>
         <source>Feature &amp;Element by Index</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="1998"/>
+        <location filename="../forms/mainWin.ui" line="1995"/>
         <source>&amp;Fixed Range</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2003"/>
+        <location filename="../forms/mainWin.ui" line="2000"/>
         <source>Fi&amp;xed Range - Set Minimum</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2014"/>
+        <location filename="../forms/mainWin.ui" line="2011"/>
         <source>&amp;Smooth Shading</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2025"/>
+        <location filename="../forms/mainWin.ui" line="2022"/>
         <source>&amp;Auto Min/Max</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2030"/>
+        <location filename="../forms/mainWin.ui" line="2027"/>
         <source>Iso&amp;value - Set</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2035"/>
+        <location filename="../forms/mainWin.ui" line="2032"/>
         <source>Polyline - &amp;Longest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2040"/>
+        <location filename="../forms/mainWin.ui" line="2037"/>
         <source>Polylines - R&amp;un Length &gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2045"/>
+        <location filename="../forms/mainWin.ui" line="2042"/>
         <source>Polylines - Run Length &lt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2050"/>
+        <location filename="../forms/mainWin.ui" line="2047"/>
         <source>Plane - Sho&amp;w VPos</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2055"/>
+        <location filename="../forms/mainWin.ui" line="2052"/>
         <source>Plane - Set VPos</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2060"/>
+        <location filename="../forms/mainWin.ui" line="2057"/>
         <source>&amp;Show Camera Position</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2065"/>
+        <location filename="../forms/mainWin.ui" line="2062"/>
         <source>Set Camera Position</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2080"/>
+        <location filename="../forms/mainWin.ui" line="2077"/>
         <source>&amp;Cone</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2083"/>
+        <location filename="../forms/mainWin.ui" line="2080"/>
         <source>Select Cone (Axis and two outer Points)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2094"/>
+        <location filename="../forms/mainWin.ui" line="2091"/>
         <source>Cone - Center Mesh around</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2097"/>
+        <location filename="../forms/mainWin.ui" line="2094"/>
         <source>If a cone has been selected, the given mesh will be centered around it. This means that the cone axis will become the new y axis of the local coodinate system. The mesh will be centered around this axis.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2102"/>
+        <location filename="../forms/mainWin.ui" line="2099"/>
         <source>Cone - &amp;Unroll Mesh</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2105"/>
+        <location filename="../forms/mainWin.ui" line="2102"/>
         <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
@@ -1132,1445 +1132,1445 @@ p, li { white-space: pre-wrap; }
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2114"/>
+        <location filename="../forms/mainWin.ui" line="2111"/>
         <source>&amp;Perspective - Set Field of View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2122"/>
+        <location filename="../forms/mainWin.ui" line="2119"/>
         <source>&amp;Split by Plane (Advanced)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2125"/>
+        <location filename="../forms/mainWin.ui" line="2122"/>
         <source>Splits the mesh by the currently selected plane.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2130"/>
+        <location filename="../forms/mainWin.ui" line="2127"/>
         <source>&amp;Color - Hue to FuncVal</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2142"/>
+        <location filename="../forms/mainWin.ui" line="2139"/>
         <source>&amp;Sphere</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2153"/>
+        <location filename="../forms/mainWin.ui" line="2150"/>
         <source>Sp&amp;here - Center Mesh around</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2158"/>
+        <location filename="../forms/mainWin.ui" line="2155"/>
         <source>Sphere - Unroll Mesh</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2163"/>
+        <location filename="../forms/mainWin.ui" line="2160"/>
         <source>Set &amp;Prime Meridian for Rollouts</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2168"/>
+        <location filename="../forms/mainWin.ui" line="2165"/>
         <source>Vertices - SelMVerts - &amp;Enter Indices</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2173"/>
+        <location filename="../forms/mainWin.ui" line="2170"/>
         <source>Faces - &amp;Zero Area</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2185"/>
+        <location filename="../forms/mainWin.ui" line="2182"/>
         <source>&amp;FuncVal Local Minima</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2200"/>
+        <location filename="../forms/mainWin.ui" line="2197"/>
         <source>F&amp;uncVal Local Maxima</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2208"/>
+        <location filename="../forms/mainWin.ui" line="2205"/>
         <source>Vertices - &amp;FuncVal Local Minimum</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2213"/>
+        <location filename="../forms/mainWin.ui" line="2210"/>
         <source>V&amp;ertices - FuncVal Local Maximum</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2218"/>
+        <location filename="../forms/mainWin.ui" line="2215"/>
         <source>Rotate - View - &amp;Ortho to Plane</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2221"/>
+        <location filename="../forms/mainWin.ui" line="2218"/>
         <source>F8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2226"/>
+        <location filename="../forms/mainWin.ui" line="2223"/>
         <source>Export &amp;Polylines Projected (ASCII)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2234"/>
+        <location filename="../forms/mainWin.ui" line="2231"/>
         <source>HSV (&amp;part)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2242"/>
+        <location filename="../forms/mainWin.ui" line="2239"/>
         <source>&amp;Spectral (Brewer, diverging)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2245"/>
+        <location filename="../forms/mainWin.ui" line="2242"/>
         <source>Spectral (Red-Yellow-Blue)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2253"/>
+        <location filename="../forms/mainWin.ui" line="2250"/>
         <source>RdYlGn (&amp;Brewer, diverging)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2256"/>
+        <location filename="../forms/mainWin.ui" line="2253"/>
         <source>Red-Yellow-Green</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2261"/>
+        <location filename="../forms/mainWin.ui" line="2258"/>
         <source>Q&amp;uantil Min</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2269"/>
+        <location filename="../forms/mainWin.ui" line="2266"/>
         <source>Qua&amp;ntil Max</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2277"/>
+        <location filename="../forms/mainWin.ui" line="2274"/>
         <source>Export Function &amp;Values (FuncVal)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2282"/>
+        <location filename="../forms/mainWin.ui" line="2279"/>
         <source>Distance to &amp;Line (Pos, Dir)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2287"/>
+        <location filename="../forms/mainWin.ui" line="2284"/>
         <source>Apply &amp;4x4 Matrix - All Vertices</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2292"/>
+        <location filename="../forms/mainWin.ui" line="2289"/>
         <source>Verti&amp;ces - Label No.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2297"/>
+        <location filename="../forms/mainWin.ui" line="2294"/>
         <source>App&amp;ly 4x4 Matrix - SelMVerts</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2302"/>
+        <location filename="../forms/mainWin.ui" line="2299"/>
         <source>Faces - &amp;Sort Index</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../forms/mainWin.ui" line="2304"/>
         <location filename="../forms/mainWin.ui" line="2307"/>
-        <location filename="../forms/mainWin.ui" line="2310"/>
         <source>Marching Front with Distance to Seed (SelVert)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2315"/>
+        <location filename="../forms/mainWin.ui" line="2312"/>
         <source>Vertex - &amp;Octree</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2320"/>
+        <location filename="../forms/mainWin.ui" line="2317"/>
         <source>Label - &amp;Vertices w. Equal FuncVal</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2325"/>
+        <location filename="../forms/mainWin.ui" line="2322"/>
         <source>Faces - &amp;In Sphere</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2330"/>
+        <location filename="../forms/mainWin.ui" line="2327"/>
         <source>&amp;Faces - Deselect all</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2335"/>
+        <location filename="../forms/mainWin.ui" line="2332"/>
         <source>&amp;SelMFaces Normals Matlab</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2340"/>
+        <location filename="../forms/mainWin.ui" line="2337"/>
         <source>Vertex - S&amp;phere Angle Max. to Faces</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2345"/>
+        <location filename="../forms/mainWin.ui" line="2342"/>
         <source>Vertex - Sp&amp;here MeanNorm Angle Max</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2350"/>
+        <location filename="../forms/mainWin.ui" line="2347"/>
         <source>&amp;Melting Sphere - All Vertices</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2355"/>
+        <location filename="../forms/mainWin.ui" line="2352"/>
         <source>Vertex - 1-&amp;Ring Sum of Angles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2360"/>
+        <location filename="../forms/mainWin.ui" line="2357"/>
         <source>Dista&amp;nce to SelPrim (COG)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2365"/>
+        <location filename="../forms/mainWin.ui" line="2362"/>
         <source>&amp;Cone - Set Data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2370"/>
+        <location filename="../forms/mainWin.ui" line="2367"/>
         <source>Function Value - Absolute</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2375"/>
+        <location filename="../forms/mainWin.ui" line="2372"/>
         <source>Function Value - Add</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2380"/>
+        <location filename="../forms/mainWin.ui" line="2377"/>
         <source>Mesh Volume (&amp;Plane)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2385"/>
+        <location filename="../forms/mainWin.ui" line="2382"/>
         <source>Plane - Show HNF</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2390"/>
+        <location filename="../forms/mainWin.ui" line="2387"/>
         <source>Plane - Set &amp;HNF</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2395"/>
+        <location filename="../forms/mainWin.ui" line="2392"/>
         <source>Plane - Set HNF by View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2400"/>
+        <location filename="../forms/mainWin.ui" line="2397"/>
         <source>&amp;About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2405"/>
+        <location filename="../forms/mainWin.ui" line="2402"/>
         <source>Polylines from Mesh &amp;Borders</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2410"/>
+        <location filename="../forms/mainWin.ui" line="2407"/>
         <source>Faces - &amp;Random</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2415"/>
+        <location filename="../forms/mainWin.ui" line="2412"/>
         <source>&amp;Spherical Stack Lightsource Orbiting</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2423"/>
+        <location filename="../forms/mainWin.ui" line="2420"/>
         <source>Camera &amp;on Altitudinal Orbit (Horizontal Axis)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2431"/>
+        <location filename="../forms/mainWin.ui" line="2428"/>
         <source>Perspective &amp;View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2440"/>
+        <location filename="../forms/mainWin.ui" line="2437"/>
         <source>&amp;None</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2443"/>
+        <location filename="../forms/mainWin.ui" line="2440"/>
         <source>Hide all vertices</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2451"/>
+        <location filename="../forms/mainWin.ui" line="2448"/>
         <source>Mesh Plane as Clipping Plane</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2454"/>
+        <location filename="../forms/mainWin.ui" line="2451"/>
         <source>F3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2462"/>
+        <location filename="../forms/mainWin.ui" line="2459"/>
         <source>Mesh Plane Flip</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2465"/>
+        <location filename="../forms/mainWin.ui" line="2462"/>
         <source>Shift+F3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2470"/>
+        <location filename="../forms/mainWin.ui" line="2467"/>
         <source>Split &amp;by IsoValue</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2479"/>
+        <location filename="../forms/mainWin.ui" line="2476"/>
         <source>&amp;Reload</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2482"/>
+        <location filename="../forms/mainWin.ui" line="2479"/>
         <source>Ctrl+R</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2487"/>
+        <location filename="../forms/mainWin.ui" line="2484"/>
         <source>Default View and Light</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2490"/>
+        <location filename="../forms/mainWin.ui" line="2487"/>
         <source>F12</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2495"/>
+        <location filename="../forms/mainWin.ui" line="2492"/>
         <source>Default View, Light and &amp;Zoom</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2498"/>
+        <location filename="../forms/mainWin.ui" line="2495"/>
         <source>Shift+F12</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2503"/>
+        <location filename="../forms/mainWin.ui" line="2500"/>
         <source>SelPrim to View Reference</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2506"/>
+        <location filename="../forms/mainWin.ui" line="2503"/>
         <source>F4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2511"/>
+        <location filename="../forms/mainWin.ui" line="2508"/>
         <source>Current View to Default</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2514"/>
+        <location filename="../forms/mainWin.ui" line="2511"/>
         <source>F6</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2522"/>
+        <location filename="../forms/mainWin.ui" line="2519"/>
         <source>&amp;Faces - Backface Culling</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2525"/>
+        <location filename="../forms/mainWin.ui" line="2522"/>
         <source>F5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2536"/>
+        <location filename="../forms/mainWin.ui" line="2533"/>
         <source>&amp;Clipping Thru SelPrim</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2539"/>
+        <location filename="../forms/mainWin.ui" line="2536"/>
         <source>Shift+F4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2547"/>
+        <location filename="../forms/mainWin.ui" line="2544"/>
         <source>&amp;Quit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2550"/>
+        <location filename="../forms/mainWin.ui" line="2547"/>
         <source>Ctrl+Q</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2562"/>
+        <location filename="../forms/mainWin.ui" line="2559"/>
         <source>Light &amp;1 (Object fixed, Parallel)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2565"/>
+        <location filename="../forms/mainWin.ui" line="2562"/>
         <source>1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2580"/>
+        <location filename="../forms/mainWin.ui" line="2577"/>
         <source>Light &amp;2 (Camera fixed, Parallel)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2583"/>
+        <location filename="../forms/mainWin.ui" line="2580"/>
         <source>2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2598"/>
+        <location filename="../forms/mainWin.ui" line="2595"/>
         <source>Light Ambient</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2601"/>
+        <location filename="../forms/mainWin.ui" line="2598"/>
         <source>9</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2609"/>
+        <location filename="../forms/mainWin.ui" line="2606"/>
         <source>Verte&amp;x - 1-Ring r_min</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2614"/>
+        <location filename="../forms/mainWin.ui" line="2611"/>
         <source>Properties of the &amp;SelPrim</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2617"/>
+        <location filename="../forms/mainWin.ui" line="2614"/>
         <source>I</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2622"/>
+        <location filename="../forms/mainWin.ui" line="2619"/>
         <source>&amp;Function Values</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2625"/>
+        <location filename="../forms/mainWin.ui" line="2622"/>
         <source>Shift+I</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2630"/>
+        <location filename="../forms/mainWin.ui" line="2627"/>
         <source>&amp;Datum - Add Sphere</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2635"/>
+        <location filename="../forms/mainWin.ui" line="2632"/>
         <source>&amp;Fullscreen</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2638"/>
+        <location filename="../forms/mainWin.ui" line="2635"/>
         <source>F11</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2649"/>
+        <location filename="../forms/mainWin.ui" line="2646"/>
         <source>&amp;Menu</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2652"/>
+        <location filename="../forms/mainWin.ui" line="2649"/>
         <source>Ctrl+M</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2663"/>
+        <location filename="../forms/mainWin.ui" line="2660"/>
         <source>&amp;Sidebar</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2674"/>
+        <location filename="../forms/mainWin.ui" line="2671"/>
         <source>Stat&amp;usbar</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2683"/>
+        <location filename="../forms/mainWin.ui" line="2680"/>
         <source>&amp;Automatic Mesh Polishing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2688"/>
+        <location filename="../forms/mainWin.ui" line="2685"/>
         <source>Vertex - 1-Ring Volume &amp;Integral</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2693"/>
+        <location filename="../forms/mainWin.ui" line="2690"/>
         <source>Rotate - Plane - &amp;Yaw - Left</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2696"/>
+        <location filename="../forms/mainWin.ui" line="2693"/>
         <source>Shift+Y</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2701"/>
+        <location filename="../forms/mainWin.ui" line="2698"/>
         <source>Rotate - Plane - Yaw - Right</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2704"/>
+        <location filename="../forms/mainWin.ui" line="2701"/>
         <source>Shift+X</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2709"/>
+        <location filename="../forms/mainWin.ui" line="2706"/>
         <source>Rotate - Plane - Pitch - Down</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2712"/>
+        <location filename="../forms/mainWin.ui" line="2709"/>
         <source>Shift+V</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2717"/>
+        <location filename="../forms/mainWin.ui" line="2714"/>
         <source>&amp;Keyboard Shortcuts</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2722"/>
+        <location filename="../forms/mainWin.ui" line="2719"/>
         <source>Length &amp;distribution of the Polylines </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2727"/>
+        <location filename="../forms/mainWin.ui" line="2724"/>
         <source>&amp;Polylines - Compute Int. Inv. - RunLen</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2732"/>
+        <location filename="../forms/mainWin.ui" line="2729"/>
         <source>Pol&amp;ylines - Compute Int. Inv. - Angle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2737"/>
+        <location filename="../forms/mainWin.ui" line="2734"/>
         <source>Generate Octree</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2742"/>
+        <location filename="../forms/mainWin.ui" line="2739"/>
         <source>&amp;Draw Octree</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2747"/>
+        <location filename="../forms/mainWin.ui" line="2744"/>
         <source>&amp;Remove Drawing of Octree</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2752"/>
+        <location filename="../forms/mainWin.ui" line="2749"/>
         <source>Delete &amp;Octree</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2764"/>
+        <location filename="../forms/mainWin.ui" line="2761"/>
         <source>Vertices - SelMVerts - GUI - Lasso</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2767"/>
+        <location filename="../forms/mainWin.ui" line="2764"/>
         <source>Selected multiple vertices with a lasso (SelMVerts)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2781"/>
+        <location filename="../forms/mainWin.ui" line="2778"/>
         <source>Selected (SelMFaces)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2786"/>
+        <location filename="../forms/mainWin.ui" line="2783"/>
         <source>Polylines - Copy &amp;Normal to Vertices</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2791"/>
+        <location filename="../forms/mainWin.ui" line="2788"/>
         <source>Polylines - Label No.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2796"/>
+        <location filename="../forms/mainWin.ui" line="2793"/>
         <source>E&amp;xport Polylines FuncVals</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2801"/>
+        <location filename="../forms/mainWin.ui" line="2798"/>
         <source>Feature Correlation with</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2806"/>
+        <location filename="../forms/mainWin.ui" line="2803"/>
         <source>Label Rendering: Color Shift</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2814"/>
+        <location filename="../forms/mainWin.ui" line="2811"/>
         <source>Geodesic Distance to SelMVerts, ordered</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2819"/>
+        <location filename="../forms/mainWin.ui" line="2816"/>
         <source>Polylines - Not Labeled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2824"/>
+        <location filename="../forms/mainWin.ui" line="2821"/>
         <source>Vertices - SelMVerts - Show Indices</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2829"/>
+        <location filename="../forms/mainWin.ui" line="2826"/>
         <source>&amp;Vertices - No Label</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2834"/>
+        <location filename="../forms/mainWin.ui" line="2831"/>
         <source>Vertices - N&amp;ot Labeled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2839"/>
+        <location filename="../forms/mainWin.ui" line="2836"/>
         <source>Label - SelMVerts t&amp;o Background</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2847"/>
+        <location filename="../forms/mainWin.ui" line="2844"/>
         <source>&amp;Show</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2858"/>
+        <location filename="../forms/mainWin.ui" line="2855"/>
         <source>&amp;Edge Length</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2866"/>
+        <location filename="../forms/mainWin.ui" line="2863"/>
         <source>Feature &amp;Vector Vertex Elements</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2874"/>
+        <location filename="../forms/mainWin.ui" line="2871"/>
         <source>Feature Vector Vertex Elements &amp;Dimension</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2885"/>
+        <location filename="../forms/mainWin.ui" line="2882"/>
         <source>&amp;Function Values Vertex</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2893"/>
+        <location filename="../forms/mainWin.ui" line="2890"/>
         <source>&amp;Angles Faces Minimum</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2901"/>
+        <location filename="../forms/mainWin.ui" line="2898"/>
         <source>Angles Faces &amp;Maximum</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2909"/>
+        <location filename="../forms/mainWin.ui" line="2906"/>
         <source>&amp;Polyline Runlength</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2928"/>
+        <location filename="../forms/mainWin.ui" line="2925"/>
         <source>Scene &amp;RGB Histogram</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2942"/>
+        <location filename="../forms/mainWin.ui" line="2939"/>
         <source>Scene RGB &amp;Histogram logarithmic</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2953"/>
+        <location filename="../forms/mainWin.ui" line="2950"/>
         <source>GigaMesh Logo</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2964"/>
+        <location filename="../forms/mainWin.ui" line="2961"/>
         <source>Keyboard &amp;Layout</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2969"/>
+        <location filename="../forms/mainWin.ui" line="2966"/>
         <source>&amp;Vertex - Apply Normal Shift</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2974"/>
+        <location filename="../forms/mainWin.ui" line="2971"/>
         <source>Detect Self-Intersections</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2979"/>
+        <location filename="../forms/mainWin.ui" line="2976"/>
         <source>Import &amp;Normals (per Vertex)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2984"/>
+        <location filename="../forms/mainWin.ui" line="2981"/>
         <source>Light 1 &amp;Brightness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="2992"/>
+        <location filename="../forms/mainWin.ui" line="2989"/>
         <source>Light 2 Brightness</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3000"/>
+        <location filename="../forms/mainWin.ui" line="2997"/>
         <source>Fog, li&amp;near, distance minimum</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3008"/>
+        <location filename="../forms/mainWin.ui" line="3005"/>
         <source>Fog, linear, distance ma&amp;ximum </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3022"/>
+        <location filename="../forms/mainWin.ui" line="3019"/>
         <source>Isolines</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3030"/>
+        <location filename="../forms/mainWin.ui" line="3027"/>
         <source>Isolines - &amp;Distance</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3038"/>
+        <location filename="../forms/mainWin.ui" line="3035"/>
         <source>Isolines - Offset</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3046"/>
+        <location filename="../forms/mainWin.ui" line="3043"/>
         <source>Isolines - &amp;Width (Pixel)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3054"/>
+        <location filename="../forms/mainWin.ui" line="3051"/>
         <source>L&amp;ight 1 Set Direction Phi</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3062"/>
+        <location filename="../forms/mainWin.ui" line="3059"/>
         <source>Light 1 Set Direction Theta</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3073"/>
+        <location filename="../forms/mainWin.ui" line="3070"/>
         <source>&amp;Rectangular Grid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3081"/>
+        <location filename="../forms/mainWin.ui" line="3078"/>
         <source>Polar Grid: &amp;Circles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3089"/>
+        <location filename="../forms/mainWin.ui" line="3086"/>
         <source>&amp;Polar Grid: Angles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3094"/>
+        <location filename="../forms/mainWin.ui" line="3091"/>
         <source>&amp;Grid shift depth</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3099"/>
+        <location filename="../forms/mainWin.ui" line="3096"/>
         <source>Bounding Box Line Width</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3107"/>
+        <location filename="../forms/mainWin.ui" line="3104"/>
         <source>Repeat Map (Waves)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3115"/>
+        <location filename="../forms/mainWin.ui" line="3112"/>
         <source>&amp;Jet (Octave)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3123"/>
+        <location filename="../forms/mainWin.ui" line="3120"/>
         <source>All - &amp;Color per Vertex</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3131"/>
+        <location filename="../forms/mainWin.ui" line="3128"/>
         <source>All - Function &amp;Value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3139"/>
+        <location filename="../forms/mainWin.ui" line="3136"/>
         <source>All - &amp;Label colors</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3144"/>
+        <location filename="../forms/mainWin.ui" line="3141"/>
         <source>Vertex &amp;FuncVal Local Max Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3149"/>
+        <location filename="../forms/mainWin.ui" line="3146"/>
         <source>Verte&amp;x FuncVal Local Min Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3154"/>
+        <location filename="../forms/mainWin.ui" line="3151"/>
         <source>Normals - &amp;Length (absolute)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3159"/>
+        <location filename="../forms/mainWin.ui" line="3156"/>
         <source>Normals - Width (relative)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3167"/>
+        <location filename="../forms/mainWin.ui" line="3164"/>
         <source>&amp;Cold (improved)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3175"/>
+        <location filename="../forms/mainWin.ui" line="3172"/>
         <source>&amp;Morgenstemning (M. Geissbuehler)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3183"/>
+        <location filename="../forms/mainWin.ui" line="3180"/>
         <source>Shape - Bo&amp;x</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3191"/>
+        <location filename="../forms/mainWin.ui" line="3188"/>
         <source>Shape - &amp;Disc</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3199"/>
+        <location filename="../forms/mainWin.ui" line="3196"/>
         <source>Shape - &amp;Polar Rose</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3207"/>
+        <location filename="../forms/mainWin.ui" line="3204"/>
         <source>Shape - Star, &amp;rounded</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3212"/>
+        <location filename="../forms/mainWin.ui" line="3209"/>
         <source>Polylines - Number &amp;of Vertices</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3224"/>
+        <location filename="../forms/mainWin.ui" line="3221"/>
         <source>S&amp;ynthetic</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3232"/>
+        <location filename="../forms/mainWin.ui" line="3229"/>
         <source>Boundin&amp;g Box (enclosed)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3237"/>
+        <location filename="../forms/mainWin.ui" line="3234"/>
         <source>Polyline - Shortest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3245"/>
+        <location filename="../forms/mainWin.ui" line="3242"/>
         <source>Isolines - Only</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3253"/>
+        <location filename="../forms/mainWin.ui" line="3250"/>
         <source>Isolines - Solid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3258"/>
+        <location filename="../forms/mainWin.ui" line="3255"/>
         <source>Ellipse &amp;Fit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3270"/>
+        <location filename="../forms/mainWin.ui" line="3267"/>
         <source>Positions - SelPrims</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3273"/>
+        <location filename="../forms/mainWin.ui" line="3270"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select positions on the mesh i.e. points within triangles. &lt;/p&gt;&lt;p&gt;These positions cae be used to:&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;measure (euclidean) distances,&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;compute multiple profile lines (axis required!) and &lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;the estimation of a rotational axis.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Note: a mouse-right-click selects the last of a set of positions. For each set a guess of the rotational axis is made, while the axis is averaged using all guesses. Positions within a set are rendered with connecting lines.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3278"/>
+        <location filename="../forms/mainWin.ui" line="3275"/>
         <source>Positions - SelPrims - Deselect All</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3283"/>
+        <location filename="../forms/mainWin.ui" line="3280"/>
         <source>Positions - SelMPrims - &amp;Euclidean Distances</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3291"/>
+        <location filename="../forms/mainWin.ui" line="3288"/>
         <source>&amp;Wireframe</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3300"/>
+        <location filename="../forms/mainWin.ui" line="3297"/>
         <source>Set &amp;Inspection View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3303"/>
+        <location filename="../forms/mainWin.ui" line="3300"/>
         <source>Set Inspection View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3308"/>
+        <location filename="../forms/mainWin.ui" line="3305"/>
         <source>recursive</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3313"/>
+        <location filename="../forms/mainWin.ui" line="3310"/>
         <source>Screenshot &amp;Directory (Legacy)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3318"/>
+        <location filename="../forms/mainWin.ui" line="3315"/>
         <source>Screenshot PNG Directory</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3326"/>
+        <location filename="../forms/mainWin.ui" line="3323"/>
         <source>&amp;Generate Latex File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3334"/>
+        <location filename="../forms/mainWin.ui" line="3331"/>
         <source>Generate &amp;Latex Catalog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3339"/>
+        <location filename="../forms/mainWin.ui" line="3336"/>
         <source>test</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3347"/>
+        <location filename="../forms/mainWin.ui" line="3344"/>
         <source>Sketch &amp;Rendering</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3359"/>
+        <location filename="../forms/mainWin.ui" line="3356"/>
         <source>Transparency</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3362"/>
+        <location filename="../forms/mainWin.ui" line="3359"/>
         <source>Toggle Transparency</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3367"/>
+        <location filename="../forms/mainWin.ui" line="3364"/>
         <source>S&amp;ketch Rendering Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3372"/>
+        <location filename="../forms/mainWin.ui" line="3369"/>
         <source>Transparency Settings</source>
         <translation type="unfinished">Transparenz Einstellungen</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3377"/>
+        <location filename="../forms/mainWin.ui" line="3374"/>
         <source>Feature Distance to SelVert (Cos.Sim.)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3382"/>
+        <location filename="../forms/mainWin.ui" line="3379"/>
         <source>Feature Vector &amp;Bounded Variation (BV)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3387"/>
+        <location filename="../forms/mainWin.ui" line="3384"/>
         <source>Feat&amp;ure Vector Total Variation (TV)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3392"/>
+        <location filename="../forms/mainWin.ui" line="3389"/>
         <source>Feature Distance to SelVert (Tanimoto)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3397"/>
+        <location filename="../forms/mainWin.ui" line="3394"/>
         <source>Feature Distance to SelVert (Normali&amp;zed Euclid)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3405"/>
+        <location filename="../forms/mainWin.ui" line="3402"/>
         <source>Show Over-/Underexposed Areas</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3410"/>
+        <location filename="../forms/mainWin.ui" line="3407"/>
         <source>Overexposure Threshold</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3415"/>
+        <location filename="../forms/mainWin.ui" line="3412"/>
         <source>Underexposure Threshold</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3420"/>
+        <location filename="../forms/mainWin.ui" line="3417"/>
         <source>Vertices - SelMVerts - From SelMFaces</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3425"/>
+        <location filename="../forms/mainWin.ui" line="3422"/>
         <source>Remove - Faces &amp;Zero Area</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3430"/>
+        <location filename="../forms/mainWin.ui" line="3427"/>
         <source>Color - &amp;RGB Average to FuncVal</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3435"/>
+        <location filename="../forms/mainWin.ui" line="3432"/>
         <source>Transform - Apply Scale/S&amp;kew - All Vertices</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3440"/>
+        <location filename="../forms/mainWin.ui" line="3437"/>
         <source>Color - RGB Avg. &amp;weigthed to FuncVal (GIMP)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3445"/>
+        <location filename="../forms/mainWin.ui" line="3442"/>
         <source>Vertex - &amp;Maximum of Distances</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3450"/>
+        <location filename="../forms/mainWin.ui" line="3447"/>
         <source>Color - Saturation removal to FuncVal</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3455"/>
+        <location filename="../forms/mainWin.ui" line="3452"/>
         <source>Color - &amp;HSV Decomp. Brightness to FuncVal</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3460"/>
+        <location filename="../forms/mainWin.ui" line="3457"/>
         <source>Feature Element Ma&amp;x</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3465"/>
+        <location filename="../forms/mainWin.ui" line="3462"/>
         <source>Properties of the &amp;Mesh</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3468"/>
+        <location filename="../forms/mainWin.ui" line="3465"/>
         <source>Ctrl+I</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3473"/>
+        <location filename="../forms/mainWin.ui" line="3470"/>
         <source>Remove - Filled Holes (SelMVerts)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3478"/>
+        <location filename="../forms/mainWin.ui" line="3475"/>
         <source>Faces - with Synthetic Vertices</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3483"/>
+        <location filename="../forms/mainWin.ui" line="3480"/>
         <source>Polylines from RidgePoints (S&amp;keletonline)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3492"/>
+        <location filename="../forms/mainWin.ui" line="3489"/>
         <source>Cone - Set A&amp;xis Central Pixel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3495"/>
+        <location filename="../forms/mainWin.ui" line="3492"/>
         <source>Set the rotational axis using the central pixel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3500"/>
+        <location filename="../forms/mainWin.ui" line="3497"/>
         <source>&amp;Angle based on Cone Axis</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3505"/>
+        <location filename="../forms/mainWin.ui" line="3502"/>
         <source>Vertices - Add manually</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3510"/>
+        <location filename="../forms/mainWin.ui" line="3507"/>
         <source>Positions - SelMPrims - Comp&amp;ute Circle Centers</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3515"/>
+        <location filename="../forms/mainWin.ui" line="3512"/>
         <source>&amp;Axis from Circle Centers</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3520"/>
+        <location filename="../forms/mainWin.ui" line="3517"/>
         <source>Vertices - Circle Center</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3525"/>
+        <location filename="../forms/mainWin.ui" line="3522"/>
         <source>Cylinder - Unroll Mesh</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3530"/>
+        <location filename="../forms/mainWin.ui" line="3527"/>
         <source>Cone - Cover the &amp;whole mesh</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3535"/>
+        <location filename="../forms/mainWin.ui" line="3532"/>
         <source>Cylinder - Set Radius</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3540"/>
+        <location filename="../forms/mainWin.ui" line="3537"/>
         <source>Extrude Polylines</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3545"/>
+        <location filename="../forms/mainWin.ui" line="3542"/>
         <source>Rotate - View - Parallel to Axis</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3548"/>
+        <location filename="../forms/mainWin.ui" line="3545"/>
         <source>Shift+F8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3553"/>
+        <location filename="../forms/mainWin.ui" line="3550"/>
         <source>Function Value - &amp;1-Ring Mean Filter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3558"/>
+        <location filename="../forms/mainWin.ui" line="3555"/>
         <source>Function Value - Multiply</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3563"/>
+        <location filename="../forms/mainWin.ui" line="3560"/>
         <source>Feature Vector Distance - &amp;p-Norm (experimental)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3568"/>
+        <location filename="../forms/mainWin.ui" line="3565"/>
         <source>Feature Element Min</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3573"/>
+        <location filename="../forms/mainWin.ui" line="3570"/>
         <source>Function Value - 1-Rin&amp;g Median Filter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3578"/>
+        <location filename="../forms/mainWin.ui" line="3575"/>
         <source>Isolines - Distance by Number</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3586"/>
+        <location filename="../forms/mainWin.ui" line="3583"/>
         <source>F&amp;unction Values Vertex Local Minima</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3594"/>
+        <location filename="../forms/mainWin.ui" line="3591"/>
         <source>Fu&amp;nction Values Vertex Local Maxima</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3599"/>
+        <location filename="../forms/mainWin.ui" line="3596"/>
         <source>Feature Vector Distance - Mahalanobis inspired (exp.)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3604"/>
+        <location filename="../forms/mainWin.ui" line="3601"/>
         <source>Polylines - &amp;Width</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3609"/>
+        <location filename="../forms/mainWin.ui" line="3606"/>
         <source>Vertices - SelMVerts - Ridges (experimental)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3618"/>
+        <location filename="../forms/mainWin.ui" line="3615"/>
         <source>Material Matted / D&amp;ull</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3621"/>
+        <location filename="../forms/mainWin.ui" line="3618"/>
         <source>For objects made from wood or clay</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3630"/>
+        <location filename="../forms/mainWin.ui" line="3627"/>
         <source>Material Shin&amp;y / Metallic</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3633"/>
+        <location filename="../forms/mainWin.ui" line="3630"/>
         <source>For objects made from metal or other shiny surfaces</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3642"/>
+        <location filename="../forms/mainWin.ui" line="3639"/>
         <source>&amp;Rectangular Raster Grid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3645"/>
+        <location filename="../forms/mainWin.ui" line="3642"/>
         <source>Rectangular Raster Grid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3648"/>
+        <location filename="../forms/mainWin.ui" line="3645"/>
         <source>Ctrl+Shift+F2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3657"/>
+        <location filename="../forms/mainWin.ui" line="3654"/>
         <source>Polar Grid - Lines and Circles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3660"/>
+        <location filename="../forms/mainWin.ui" line="3657"/>
         <source>Polar Grid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3663"/>
+        <location filename="../forms/mainWin.ui" line="3660"/>
         <source>Shift+F2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3675"/>
+        <location filename="../forms/mainWin.ui" line="3672"/>
         <source>Grid: Highlight &amp;Central Pixel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3678"/>
+        <location filename="../forms/mainWin.ui" line="3675"/>
         <source>Additional cross-hair</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3681"/>
+        <location filename="../forms/mainWin.ui" line="3678"/>
         <source>Ctrl+F2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3690"/>
+        <location filename="../forms/mainWin.ui" line="3687"/>
         <source>Grid - None / Toggle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3693"/>
+        <location filename="../forms/mainWin.ui" line="3690"/>
         <source>Disable all grids</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3696"/>
+        <location filename="../forms/mainWin.ui" line="3693"/>
         <source>F2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3705"/>
+        <location filename="../forms/mainWin.ui" line="3702"/>
         <source>Material Default</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3708"/>
+        <location filename="../forms/mainWin.ui" line="3705"/>
         <source>High contrast for e.g. cuneiform tablets</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3713"/>
+        <location filename="../forms/mainWin.ui" line="3710"/>
         <source>Light Vectors Sho&amp;wn</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3716"/>
+        <location filename="../forms/mainWin.ui" line="3713"/>
         <source>Number of directional vectors shown during orientation of the light source(s)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3721"/>
+        <location filename="../forms/mainWin.ui" line="3718"/>
         <source>Vertices - S&amp;ynthetic</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3726"/>
+        <location filename="../forms/mainWin.ui" line="3723"/>
         <source>&amp;Visit Web Site</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3729"/>
+        <location filename="../forms/mainWin.ui" line="3726"/>
         <source>Visit the GigaMesh web page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3734"/>
+        <location filename="../forms/mainWin.ui" line="3731"/>
         <source>Distance to Axis (Pos, Pos)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3739"/>
+        <location filename="../forms/mainWin.ui" line="3736"/>
         <source>Vertices - Recompute Normals</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3747"/>
+        <location filename="../forms/mainWin.ui" line="3744"/>
         <source>Hypsometric &amp;1 (HiRise inspired, exper.)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3750"/>
+        <location filename="../forms/mainWin.ui" line="3747"/>
         <source>Hypsometric 1 (HiRise inspired, exper.)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3758"/>
+        <location filename="../forms/mainWin.ui" line="3755"/>
         <source>Hypsometric &amp;2 (HiRise inspired, exper.)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3761"/>
+        <location filename="../forms/mainWin.ui" line="3758"/>
         <source>Hypsometric 2 (HiRise inspired, exper.)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3766"/>
+        <location filename="../forms/mainWin.ui" line="3763"/>
         <source>Set Prime Meridian - SelPrim</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3771"/>
+        <location filename="../forms/mainWin.ui" line="3768"/>
         <source>Set Meridian for Cutting Rollouts - SelPrim</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../forms/mainWin.ui" line="3773"/>
         <location filename="../forms/mainWin.ui" line="3776"/>
-        <location filename="../forms/mainWin.ui" line="3779"/>
         <source>Distance To Sphere</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../forms/mainWin.ui" line="3784"/>
         <location filename="../forms/mainWin.ui" line="3787"/>
-        <location filename="../forms/mainWin.ui" line="3790"/>
         <source>Parula (Jet replacment)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3795"/>
+        <location filename="../forms/mainWin.ui" line="3792"/>
         <source>Angle to Radial</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3800"/>
+        <location filename="../forms/mainWin.ui" line="3797"/>
         <source>Angle to Radial along Axis</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3805"/>
+        <location filename="../forms/mainWin.ui" line="3802"/>
         <source>Angle to Radial in orthogonal Plane</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3810"/>
+        <location filename="../forms/mainWin.ui" line="3807"/>
         <source>Faces - Self-intersecting</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3815"/>
+        <location filename="../forms/mainWin.ui" line="3812"/>
         <source>Function Value - to &amp;Order</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3823"/>
+        <location filename="../forms/mainWin.ui" line="3820"/>
         <source>Import Function Values (&amp;per Vertex)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3828"/>
+        <location filename="../forms/mainWin.ui" line="3825"/>
         <source>Mesh Axis</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3833"/>
+        <location filename="../forms/mainWin.ui" line="3830"/>
         <source>Plane - Set using Axis and SelPrim</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3842"/>
+        <location filename="../forms/mainWin.ui" line="3839"/>
         <source>Polylines from Plane Intersections</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3851"/>
+        <location filename="../forms/mainWin.ui" line="3848"/>
         <source>E&amp;xport Plane Intersections (SVG)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3862"/>
+        <location filename="../forms/mainWin.ui" line="3859"/>
         <source>&amp;Toolbar</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3865"/>
+        <location filename="../forms/mainWin.ui" line="3862"/>
         <source>Ctrl+Shift+M</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3877"/>
+        <location filename="../forms/mainWin.ui" line="3874"/>
         <source>Flat shading and edges</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3880"/>
+        <location filename="../forms/mainWin.ui" line="3877"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Switch between flat shading with triangle edges rendered and smooth shading without edges. The first option is usefull to inspection details of the mesh in high magnification.&lt;/p&gt;&lt;p&gt;Recommended to be used together with rendering in solid color.&lt;/p&gt;&lt;p&gt;
 &lt;table&gt;
 &lt;tr&gt;
@@ -2583,406 +2583,358 @@ p, li { white-space: pre-wrap; }
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3897"/>
+        <location filename="../forms/mainWin.ui" line="3894"/>
         <source>Polylines from A&amp;xis and Positions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3900"/>
+        <location filename="../forms/mainWin.ui" line="3897"/>
         <source>Compute polylines using an axis and selected positions.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3905"/>
+        <location filename="../forms/mainWin.ui" line="3902"/>
         <source>Properties &amp;of the Axis</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3916"/>
+        <location filename="../forms/mainWin.ui" line="3913"/>
         <source>SVG - Das&amp;hed Axis</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3921"/>
+        <location filename="../forms/mainWin.ui" line="3918"/>
         <source>Feature Vector Elements - 1-Ring Mean Filter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3930"/>
+        <location filename="../forms/mainWin.ui" line="3927"/>
         <source>Ambient Occlusion</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3933"/>
+        <location filename="../forms/mainWin.ui" line="3930"/>
         <source>Compute Ambient Occlusion and store as Function Value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3941"/>
+        <location filename="../forms/mainWin.ui" line="3938"/>
         <source>YlOrBr (Brewer, sequential)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3944"/>
+        <location filename="../forms/mainWin.ui" line="3941"/>
         <source>Yellow-Orange-Brown</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3952"/>
+        <location filename="../forms/mainWin.ui" line="3949"/>
         <source>Copper (Octave)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3955"/>
+        <location filename="../forms/mainWin.ui" line="3952"/>
         <source>Black-Copper</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3963"/>
+        <location filename="../forms/mainWin.ui" line="3960"/>
         <source>Rust (similar Mathematica)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3966"/>
+        <location filename="../forms/mainWin.ui" line="3963"/>
         <source>Black to Dark Brown</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3974"/>
+        <location filename="../forms/mainWin.ui" line="3971"/>
         <source>Sienna (similar Mathematica)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3977"/>
+        <location filename="../forms/mainWin.ui" line="3974"/>
         <source>Siennatones</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3986"/>
+        <location filename="../forms/mainWin.ui" line="3983"/>
         <source>Material Light Shading</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3989"/>
+        <location filename="../forms/mainWin.ui" line="3986"/>
         <source>Strong ambient light to achieve light shading e.g. for terrain data with hypsometric tint or ambient occlusion.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3994"/>
+        <location filename="../forms/mainWin.ui" line="3991"/>
         <source>Vertex - Adjacent &amp;Face Count</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="3997"/>
+        <location filename="../forms/mainWin.ui" line="3994"/>
         <source>Stores the number of adjacent faces as function value.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4006"/>
+        <location filename="../forms/mainWin.ui" line="4003"/>
         <source>Isolines - 10, &amp;Zeroed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4009"/>
+        <location filename="../forms/mainWin.ui" line="4006"/>
         <source>Show 10 Isolines and set their offset to 0.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4014"/>
+        <location filename="../forms/mainWin.ui" line="4011"/>
         <source>&amp;Transform Function Value to RGB</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4019"/>
+        <location filename="../forms/mainWin.ui" line="4016"/>
         <source>&amp;Multiply Color per Vertex with Function Value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4024"/>
+        <location filename="../forms/mainWin.ui" line="4021"/>
         <source>&amp;Normalize Function Values w. Colorramp Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4029"/>
+        <location filename="../forms/mainWin.ui" line="4026"/>
         <source>360° Slow &amp;rotation duration (seconds)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4034"/>
+        <location filename="../forms/mainWin.ui" line="4031"/>
         <source>Export Coordinates Of All Vertices As CSV File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4039"/>
+        <location filename="../forms/mainWin.ui" line="4036"/>
         <source>Export Coordinates of Selected Vertices as CSV File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4044"/>
+        <location filename="../forms/mainWin.ui" line="4041"/>
         <source>Export Coordinates Of Selected Primitives As CSV File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4049"/>
+        <location filename="../forms/mainWin.ui" line="4046"/>
         <source>Import TPS-RPM Transformation Matrix</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4058"/>
+        <location filename="../forms/mainWin.ui" line="4055"/>
         <source>Polylines from multiple FunctionValues</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4067"/>
+        <location filename="../forms/mainWin.ui" line="4064"/>
         <source>V&amp;isit Video Tutorials</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4078"/>
+        <location filename="../forms/mainWin.ui" line="4075"/>
         <source>DPI Suffix for &amp;Ortho Images</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4083"/>
+        <location filename="../forms/mainWin.ui" line="4080"/>
         <source>Label - All</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4088"/>
+        <location filename="../forms/mainWin.ui" line="4085"/>
         <source>Faces - Border - 3 Vertices</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4093"/>
+        <location filename="../forms/mainWin.ui" line="4090"/>
         <source>Remove - Faces Border Erosion</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4101"/>
+        <location filename="../forms/mainWin.ui" line="4098"/>
         <source>Hypsometric Arid (Land only, T. Patterson, B. Jenny)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4106"/>
+        <location filename="../forms/mainWin.ui" line="4103"/>
         <source>Fi&amp;xed Range - Set Maximum</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4111"/>
+        <location filename="../forms/mainWin.ui" line="4108"/>
         <source>Fixed Range - Set Normalized [0-1]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4116"/>
+        <location filename="../forms/mainWin.ui" line="4113"/>
         <source>Screenshot Views (PDF with TEX+PNG)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4127"/>
+        <location filename="../forms/mainWin.ui" line="4124"/>
         <source>Views Six (or eight, when disabled)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4132"/>
+        <location filename="../forms/mainWin.ui" line="4129"/>
         <source>Screenshot Directory Views (PDF with Tex+PNG)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4137"/>
+        <location filename="../forms/mainWin.ui" line="4134"/>
         <source>Split by Plane (Quick)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4142"/>
+        <location filename="../forms/mainWin.ui" line="4139"/>
         <source>Meta-Data Edit: Web Reference</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4147"/>
+        <location filename="../forms/mainWin.ui" line="4144"/>
         <source>Meta-Data Edit: Model Id</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4152"/>
+        <location filename="../forms/mainWin.ui" line="4149"/>
         <source>Meta-Data Edit: Material</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4160"/>
+        <location filename="../forms/mainWin.ui" line="4157"/>
         <source>Faces - GUI Pinpoint</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4165"/>
+        <location filename="../forms/mainWin.ui" line="4162"/>
         <source>Screenshot Directory Views (PNG)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4170"/>
+        <location filename="../forms/mainWin.ui" line="4167"/>
         <source>Screenshot (PDF with TEX+PNG)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4175"/>
+        <location filename="../forms/mainWin.ui" line="4172"/>
         <source>Pin Size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4180"/>
+        <location filename="../forms/mainWin.ui" line="4177"/>
         <source>Pin Line Height</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4191"/>
+        <location filename="../forms/mainWin.ui" line="4188"/>
         <source>Faces - Backface Lighting</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4196"/>
+        <location filename="../forms/mainWin.ui" line="4193"/>
         <source>Pointcloud - Pointsize</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4204"/>
+        <location filename="../forms/mainWin.ui" line="4201"/>
         <source>Show reduced Pointcloud when moving</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4209"/>
+        <location filename="../forms/mainWin.ui" line="4206"/>
         <source>Faces - Invert Orientation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4214"/>
+        <location filename="../forms/mainWin.ui" line="4211"/>
         <source>&amp;Primitive - Vertex - SelVert/SelPrim - Enter Index</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4219"/>
+        <location filename="../forms/mainWin.ui" line="4216"/>
         <source>Vertices - SelMVerts - Invert selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4224"/>
+        <location filename="../forms/mainWin.ui" line="4221"/>
         <source>Vertices - Random</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4229"/>
+        <location filename="../forms/mainWin.ui" line="4226"/>
         <source>Faces - Corners of Voronoi cells of labled vertices</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4234"/>
+        <location filename="../forms/mainWin.ui" line="4231"/>
         <source>Label Properties</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4239"/>
+        <location filename="../forms/mainWin.ui" line="4236"/>
         <source>External Programs</source>
         <translation type="unfinished">Externe Programme</translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4244"/>
+        <location filename="../forms/mainWin.ui" line="4241"/>
         <source>Feature Elements Standard Deviation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4253"/>
+        <location filename="../forms/mainWin.ui" line="4250"/>
         <source>GridCenter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4256"/>
+        <location filename="../forms/mainWin.ui" line="4253"/>
         <source>Sets where the center of the grid is located</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4261"/>
+        <location filename="../forms/mainWin.ui" line="4258"/>
         <source>An&amp;gle to Plane (Slope)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4266"/>
-        <source>dsda</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/mainWin.ui" line="4271"/>
+        <location filename="../forms/mainWin.ui" line="4263"/>
         <source>Distance to Cone</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4276"/>
-        <source>dsada</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/mainWin.ui" line="4281"/>
-        <location filename="../forms/mainWin.ui" line="4296"/>
-        <location filename="../forms/mainWin.ui" line="4301"/>
-        <location filename="../forms/mainWin.ui" line="4311"/>
-        <source>dasda</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/mainWin.ui" line="4286"/>
-        <source>AS</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/mainWin.ui" line="4291"/>
-        <source>dasdas</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/mainWin.ui" line="4306"/>
-        <source>dsa</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/mainWin.ui" line="4316"/>
+        <location filename="../forms/mainWin.ui" line="4268"/>
         <source>Rotate - Plane - Pitch - Up</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4319"/>
+        <location filename="../forms/mainWin.ui" line="4271"/>
         <source>Shift+C</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4324"/>
+        <location filename="../forms/mainWin.ui" line="4276"/>
         <source>Faces - Border - Bridge</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4329"/>
+        <location filename="../forms/mainWin.ui" line="4281"/>
         <source>Faces - Border - Dangling</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4334"/>
+        <location filename="../forms/mainWin.ui" line="4286"/>
         <source>Faces - Border - Bridge Tri-Connection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../forms/mainWin.ui" line="4339"/>
+        <location filename="../forms/mainWin.ui" line="4291"/>
         <source>Faces - with three selected vertices (SelMVerts)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/mainWin.ui" line="4350"/>
-        <source>English</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/mainWin.ui" line="4358"/>
-        <source>Deutsch</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../forms/mainWin.ui" line="4366"/>
-        <source>日本の</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -4890,12 +4842,8 @@ i.e. Do you want to keep the largest hole in the mesh?</source>
         <translation>Max:</translation>
     </message>
     <message>
-        <location filename="../QGMDialogSliderHD.cpp" line="212"/>
-        <location filename="../QGMDialogSliderHD.cpp" line="251"/>
-        <location filename="../QGMDialogSliderHD.cpp" line="275"/>
-        <location filename="../QGMDialogSliderHD.cpp" line="276"/>
         <source>%1</source>
-        <translation>%1</translation>
+        <translation type="vanished">%1</translation>
     </message>
 </context>
 <context>
@@ -5220,102 +5168,102 @@ zu verwenden)</translation>
 <context>
     <name>QGMMainWindow</name>
     <message>
-        <location filename="../QGMMainWindow.cpp" line="369"/>
+        <location filename="../QGMMainWindow.cpp" line="370"/>
         <source>Inkscape error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../QGMMainWindow.cpp" line="369"/>
+        <location filename="../QGMMainWindow.cpp" line="370"/>
         <source>Checking Inkscape for presence and functionality failed!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../QGMMainWindow.cpp" line="398"/>
+        <location filename="../QGMMainWindow.cpp" line="399"/>
         <source>ImageMagick error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../QGMMainWindow.cpp" line="398"/>
+        <location filename="../QGMMainWindow.cpp" line="399"/>
         <source>Checking convert from the ImageMagick for presence and functionality failed!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../QGMMainWindow.cpp" line="1221"/>
+        <location filename="../QGMMainWindow.cpp" line="1211"/>
         <source>Open 3D-Mesh or Point Cloud</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../QGMMainWindow.cpp" line="1223"/>
+        <location filename="../QGMMainWindow.cpp" line="1213"/>
         <source>3D mesh files (*.ply *.PLY *.obj *.OBJ);;Other 3D files (*.txt *.TXT *.xyz *.XYZ)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../QGMMainWindow.cpp" line="1279"/>
+        <location filename="../QGMMainWindow.cpp" line="1269"/>
         <source>Import Function Values (per Vertex)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../QGMMainWindow.cpp" line="1281"/>
+        <location filename="../QGMMainWindow.cpp" line="1271"/>
         <source>ASCII Text (*.mat *.txt)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../QGMMainWindow.cpp" line="1293"/>
+        <location filename="../QGMMainWindow.cpp" line="1283"/>
         <source>Import Texture Map (Color per Vertex)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../QGMMainWindow.cpp" line="1295"/>
+        <location filename="../QGMMainWindow.cpp" line="1285"/>
         <source>Texture maps (*.tex)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../QGMMainWindow.cpp" line="1307"/>
+        <location filename="../QGMMainWindow.cpp" line="1297"/>
         <source>Import Feature Vectors (Vertices)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../QGMMainWindow.cpp" line="1309"/>
+        <location filename="../QGMMainWindow.cpp" line="1299"/>
         <source>Texture maps (*.mat *.txt)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../QGMMainWindow.cpp" line="1321"/>
+        <location filename="../QGMMainWindow.cpp" line="1311"/>
         <source>Import Normal Vectors (Vertices)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../QGMMainWindow.cpp" line="1323"/>
+        <location filename="../QGMMainWindow.cpp" line="1313"/>
         <source>Normal vectors (*.mat *.txt)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../QGMMainWindow.cpp" line="1824"/>
+        <location filename="../QGMMainWindow.cpp" line="1814"/>
         <source>See also keyboard layout for 3D navigation.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../QGMMainWindow.cpp" line="1826"/>
+        <location filename="../QGMMainWindow.cpp" line="1816"/>
         <source>Key(s)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../QGMMainWindow.cpp" line="1826"/>
+        <location filename="../QGMMainWindow.cpp" line="1816"/>
         <source>Action</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../QGMMainWindow.cpp" line="1839"/>
+        <location filename="../QGMMainWindow.cpp" line="1829"/>
         <source>Keyboard Shortcuts (Menu only)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../QGMMainWindow.cpp" line="2186"/>
+        <location filename="../QGMMainWindow.cpp" line="2176"/>
         <source>There is a newer version (%1) of GigaMesh available for download at: &lt;br /&gt;&lt;br /&gt;&lt;a href=&apos;https://gigamesh.eu/download&apos;&gt;https://gigamesh.eu/download&lt;/a&gt; &lt;br /&gt;&lt;br /&gt;The version you are using is&amp;nbsp;%2.&lt;br /&gt;&lt;br /&gt;See the CHANGELOG file within the new package for updates. Additional info is typically provided in our &lt;a href=&apos;https://gigamesh.eu/news&apos;&gt;WebSite&apos;s news section&lt;/a&gt; and in the &lt;a href=&apos;https://gigamesh.eu/researchgate&apos;&gt;ResearchGate project log&lt;/a&gt;.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../QGMMainWindow.cpp" line="2194"/>
+        <location filename="../QGMMainWindow.cpp" line="2184"/>
         <source>NEW Version available</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5762,17 +5710,17 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>main</name>
     <message>
-        <location filename="../main.cpp" line="56"/>
+        <location filename="../main.cpp" line="58"/>
         <source>Load the last file used.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="60"/>
+        <location filename="../main.cpp" line="62"/>
         <source>Assume HiDPI Display scale by a factor of 2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="65"/>
+        <location filename="../main.cpp" line="67"/>
         <source>File with 3D-data.</source>
         <translation type="unfinished"></translation>
     </message>
