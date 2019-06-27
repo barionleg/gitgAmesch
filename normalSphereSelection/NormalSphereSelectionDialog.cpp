@@ -147,6 +147,10 @@ void NormalSphereSelectionDialog::changeEvent(QEvent* event)
 	{
 		case QEvent::LanguageChange:
 			ui->retranslateUi(this);
+			break;
+
+		default:
+			break;
 	}
 
 	QDialog::changeEvent(event);
