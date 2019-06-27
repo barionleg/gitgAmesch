@@ -408,15 +408,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 
 //! Destructor
 QGMMainWindow::~QGMMainWindow() {
-	if( mDockSurface != nullptr ) {
-		delete mDockSurface;
-	}
-	if( mMeshWidget != nullptr ) {
-		delete mMeshWidget;
-	}
-	if( mNetworkManager != nullptr ) {
-		delete( mNetworkManager );
-	}
+
 }
 
 //! Initialization regarding signals to the MeshWidget - ONLY to be called ONCE from the constructor!
