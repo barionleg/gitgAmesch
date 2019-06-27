@@ -164,6 +164,7 @@ MeshWidget::MeshWidget( const QGLFormat &format, QWidget *parent )
 
 //! Desctructor
 MeshWidget::~MeshWidget() {
+	makeCurrent();
 	cout << "[MeshWidget::" << __FUNCTION__ << "] Destructor called." << endl;
 	//! .) removes shaders for rendering the background.
 	
@@ -181,6 +182,7 @@ MeshWidget::~MeshWidget() {
 	delete mShaderGridPolarCircles;
 	delete mShaderGridHighLightCenter;
 	delete mShaderImage;
+	doneCurrent();
 }
 
 //! Returns the resolution of back-plane of the viewport in dots per centimeter.
