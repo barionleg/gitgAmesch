@@ -4841,10 +4841,6 @@ i.e. Do you want to keep the largest hole in the mesh?</source>
         <source>Max:</source>
         <translation>Max:</translation>
     </message>
-    <message>
-        <source>%1</source>
-        <translation type="vanished">%1</translation>
-    </message>
 </context>
 <context>
     <name>QGMDialogTransparencySettings</name>
