@@ -2254,6 +2254,8 @@ void QGMMainWindow::createLanguageMenu()
 		{
 			localeSet = true;
 			action->setChecked(true);
+			//call slot manually, as the menu is created in QGMMainWindow's constructor. remove if it is done elsewhere in the future,
+			//because then it is handled via signal/slots by setChecked
 			slotChangeLanguage(action);
 		}
 	}
