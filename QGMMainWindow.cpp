@@ -2188,6 +2188,8 @@ void QGMMainWindow::slotChangeLanguage(QAction* action)
 	if(action != nullptr)
 	{
 		loadLanguage(action->data().toString());
+		QSettings settings;
+		settings.setValue("language", action->data().toString());
 	}
 }
 
@@ -2219,8 +2221,15 @@ void QGMMainWindow::createLanguageMenu()
 
 	connect(langGroup, &QActionGroup::triggered, this, &QGMMainWindow::slotChangeLanguage);
 
-	QString defaultLocale = QLocale::system().name();
-	defaultLocale.truncate(defaultLocale.lastIndexOf('_'));
+	QSettings settings;
+
+	QString defaultLocale = settings.value("language", QString("")).toString();
+
+	if(defaultLocale.isEmpty())
+	{
+		defaultLocale = QLocale::system().name();
+		defaultLocale.truncate(defaultLocale.lastIndexOf('_'));
+	}
 
 	QDir dir(QString(":/languages"));
 	QStringList fileNames = dir.entryList(QStringList("GigaMesh_*.qm"));
@@ -2235,7 +2244,7 @@ void QGMMainWindow::createLanguageMenu()
 		QString lang = QLocale::languageToString(QLocale(locale).language());
 
 		auto action = new QAction(lang, this);
-		action->setChecked(true);
+		action->setCheckable(true);
 		action->setData(locale);
 
 		menuLanguages->addAction(action);
@@ -2245,6 +2254,7 @@ void QGMMainWindow::createLanguageMenu()
 		{
 			localeSet = true;
 			action->setChecked(true);
+			slotChangeLanguage(action);
 		}
 	}
 }
