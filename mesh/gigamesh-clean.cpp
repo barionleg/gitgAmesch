@@ -49,7 +49,7 @@ bool cleanupGigaMeshData(
 
 	// Prepare filename for output.
 	std::string suffix = fileNameOutSuffix;
-	std::string fileNameOut( std::filesystem::path( fileNameIn ).stem() );
+	std::string fileNameOut( std::filesystem::path( fileNameIn ).stem().string() );
 	if( std::regex_match( fileNameOut, std::regex( ".*_GM[oOxXcCfFpP]*" ) ) ) {
 		// Seems to be already processed, so check for Orientation
 		std::regex rgxGMOrientated( "(.*)(_GM)(o|O)(.*)" );
