@@ -20,12 +20,10 @@
 
 #include "mesh.h"
 
-using namespace std;
-
 bool infoGigaMeshData(
                 const std::string&   rFileNameIn,    //!< Input - filename.
                 MeshInfoData&        rFileInfos,     //!< Output - data properties.
-                bool                 rAbsolutePath   //! Option: display absolute path or stem only.
+                bool                 rAbsolutePath   //!< Option: display absolute path or stem only.
 ) {
 	// Check files using file statistics
 	struct stat stFileInfo;
@@ -59,7 +57,7 @@ void printHelp( const char* rExecName ) {
 	std::cout << "Usage: " << rExecName << " [options] (<file>)" << std::endl;
 	std::cout << "GigaMesh Software Framework INFO 3D-data" << std::endl << std::endl;
 	std::cout << "Provides information about the given meshes." << std::endl << std::endl;
-	std::cout << "Options:" << endl;
+	std::cout << "Options:" << std::endl;
 	std::cout << "  -h, --help                              Displays this help." << std::endl;
 	std::cout << "  -v, --version                           Displays version information." << std::endl << std::endl;
 	std::cout << "  -o, --output-csv-file <file>            Write the collected information to a CSV file. One line per file." << std::endl;
@@ -71,7 +69,7 @@ void printHelp( const char* rExecName ) {
 	std::cout << "  -a, --show-absolute-filename            Show the filename with extenstion and absolute path." << std::endl;
 	std::cout << "                                          If not given only the stem of the filename is printed." << std::endl;
 	std::cout << "                                          Affects all types of output i.e. side car files and tabular." << std::endl;
-	//std::cout << "" << endl;
+	//std::cout << "" << std::endl;
 }
 
 
@@ -84,7 +82,7 @@ int main( int argc, char* argv[] ) {
 	std::string fileNameCSVOut;
 
 	// Default flags
-	bool optReplaceFiles = false;
+	//! \todo integrate bool optReplaceFiles = false;
 	bool optSideCarHTML  = false;
 	bool optAbsolutePath = false;
 
@@ -126,15 +124,15 @@ int main( int argc, char* argv[] ) {
 
 			case 'k': // replaces output files
 				std::cout << "[GigaMesh] Warning: files might be replaced!" << std::endl;
-				optReplaceFiles = true;
+				//! \todo integrate optReplaceFiles = true;
 				break;
 
 			case 'v':
-				std::cout << "GigaMesh Software Framework INFO 3D-data " << VERSION_PACKAGE << endl;
+				std::cout << "GigaMesh Software Framework INFO 3D-data " << VERSION_PACKAGE << std::endl;
 #ifdef THREADS
-				std::cout << "Multi-threading with " << NUM_THREADS << " threads." << endl;
+				std::cout << "Multi-threading with " << NUM_THREADS << " threads." << std::endl;
 #else
-				std::cout << "Single-threading. " << endl;
+				std::cout << "Single-threading. " << std::endl;
 #endif
 				std::exit( EXIT_SUCCESS );
 				break;
@@ -162,7 +160,7 @@ int main( int argc, char* argv[] ) {
 	printBuildInfo();
 
 	// Process given files
-	vector<MeshInfoData> fileInfosAll;
+	std::vector<MeshInfoData> fileInfosAll;
 	unsigned long filesProcessed = 0;
 	for( int nonOptionArgumentCount = optind;
 	     nonOptionArgumentCount < argc; nonOptionArgumentCount++ ) {
@@ -187,8 +185,8 @@ int main( int argc, char* argv[] ) {
 				std::string htmlStr;
 				fileInfoSingle.getMeshInfoHTML( htmlStr );
 				// Write HTML to file.
-				fstream fileStrOutHTML;
-				fileStrOutHTML.open( htmlFileName.c_str(), fstream::out );
+				std::fstream fileStrOutHTML;
+				fileStrOutHTML.open( htmlFileName.c_str(), std::fstream::out );
 				fileStrOutHTML << htmlStr;
 				fileStrOutHTML.close();
 			}
@@ -237,8 +235,8 @@ int main( int argc, char* argv[] ) {
 		std::cout << csvContent << std::endl;
 	} else {
 		// Write HTML to file.
-		fstream fileStrOutCSV;
-		fileStrOutCSV.open( fileNameCSVOut.c_str(), fstream::out );
+		std::fstream fileStrOutCSV;
+		fileStrOutCSV.open( fileNameCSVOut.c_str(), std::fstream::out );
 		if( fileStrOutCSV.is_open() ) {
 			fileStrOutCSV << csvHeaderLine << std::endl;
 			fileStrOutCSV << csvContent;

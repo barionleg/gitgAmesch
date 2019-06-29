@@ -1,5 +1,6 @@
 #include <vector>
 #include <string>
+#include <regex>
 #include <cstdio>
 #include <cstdlib>
 
@@ -23,14 +24,14 @@
 
 #include "mesh.h"
 
-using namespace std;
-
 bool cleanupGigaMeshData(
                 const  std::string& fileNameIn,
                 const  std::string& fileNameOutSuffix,
                 const  std::string& rMaterialWhenEmpty,
                 bool                rMaterialWhenEmptySet,
                 bool                rFileNameAsIdWhenEmpty,
+                std::size_t         rRemoveTrailingChars,
+                bool                rEnforceIdMaterial,
                 double          percentArea = 0.1,
                 bool            applyBorderErosion = true,
                 bool            replaceFiles = false,
@@ -46,6 +47,19 @@ bool cleanupGigaMeshData(
 		return( false );
 	}
 
+	// Prepare filename for output.
+	std::string suffix = fileNameOutSuffix;
+	std::string fileNameOut( std::filesystem::path( fileNameIn ).stem().string() );
+	if( std::regex_match( fileNameOut, std::regex( ".*_GM[oOxXcCfFpP]*" ) ) ) {
+		// Seems to be already processed, so check for Orientation
+		std::regex rgxGMOrientated( "(.*)(_GM)(o|O)(.*)" );
+		if( std::regex_match( fileNameOut, rgxGMOrientated ) ) {
+			suffix.insert( 3, 1, 'O' );
+		}
+		fileNameOut = std::regex_replace( fileNameOut, std::regex("_GM[oOxXcCfFpP]*") , "" );
+	}
+	fileNameOut += suffix + ".ply";
+
 #ifndef WIN32
 	// Check: Input file exists using file statistics
 	struct stat stFileInfo;
@@ -54,9 +68,7 @@ bool cleanupGigaMeshData(
 		return( false );
 	}
 
-	// Check fileprefix for output - when not given use the name of the input file
-	std::string fileNameOut( std::filesystem::path( fileNameIn ).stem() );
-	fileNameOut += fileNameOutSuffix + ".ply";
+	// Check file existance.
 	if( stat( fileNameOut.c_str(), &stFileInfo ) == 0 ) {
 		if(!replaceFiles) {
 			std::cerr << "[GigaMesh] File '" << fileNameOut << "' already exists - SKIPPED!" << std::endl;
@@ -72,9 +84,7 @@ bool cleanupGigaMeshData(
 		return( false );
 	}
 
-	// Check fileprefix for output - when not given use the name of the input file
-	std::string fileNameOut( std::filesystem::path( fileNameIn ).stem().string() );
-	fileNameOut += fileNameOutSuffix + ".ply";
+	// Check file existance.
 	if( _stat64( fileNameOut.c_str(), &stFileInfo ) == 0 ) {
 		if(!replaceFiles) {
 			std::cerr << "[GigaMesh] File '" << fileNameOut << "' already exists - SKIPPED!" << std::endl;
@@ -103,15 +113,20 @@ bool cleanupGigaMeshData(
 	// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	if( rMaterialWhenEmptySet ) {
 		std::string currMat = someMesh.getModelMetaString( MeshIO::META_MODEL_MATERIAL );
-		if( currMat.size() == 0 ) {
+		if( ( currMat.size() == 0 ) || rEnforceIdMaterial ){
 			someMesh.setModelMetaString( MeshIO::META_MODEL_MATERIAL, rMaterialWhenEmpty );
 		}
 	}
 	if( rFileNameAsIdWhenEmpty ) {
 		std::string currModelId = someMesh.getModelMetaString( MeshIO::META_MODEL_ID );
-		if( currModelId.size() == 0 ) {
+		if( ( currModelId.size() == 0 ) || rEnforceIdMaterial ) {
 			currModelId = std::filesystem::path( fileNameInName ).stem().string();
 			std::replace( currModelId.begin(), currModelId.end(), '_', ' ' );
+			// Remove trailing chars
+			if( rRemoveTrailingChars > 0 ) {
+				std::size_t charsRemain = currModelId.size() - rRemoveTrailingChars;
+				currModelId = currModelId.substr( 0, charsRemain );
+			}
 			someMesh.setModelMetaString( MeshIO::META_MODEL_ID, currModelId );
 		}
 	}
@@ -192,31 +207,34 @@ bool cleanupGigaMeshData(
 	someMesh.getMeshInfoData( rFileInfos, true );
 	// Set filename for meta-data
 	std::string fileNameOutMeta( std::filesystem::path( fileNameIn ).stem().string() );
-	fileNameOutMeta += fileNameOutSuffix + ".info-clean.txt";
+	fileNameOutMeta = fileNameOut;
+	fileNameOutMeta.replace( fileNameOutMeta.end()-3, fileNameOutMeta.end(), "info-clean.txt" );
+	//fileNameOutMeta += suffix + ".info-clean.txt";
 	// Open file for meta-data
-	fstream fileStrOutMeta;
-	fileStrOutMeta.open( fileNameOutMeta.c_str(), fstream::out );
+	std::fstream fileStrOutMeta;
+	fileStrOutMeta.open( fileNameOutMeta.c_str(), std::fstream::out );
 #ifdef VERSION_PACKAGE
-	fileStrOutMeta << "[GigaMesh] CLEAN v." << VERSION_PACKAGE << endl;
+	fileStrOutMeta << "[GigaMesh] CLEAN v." << VERSION_PACKAGE << std::endl;
 #else
 	fileStrOutMeta << "[GigaMesh] CLEAN unknown version"< endl;
 #endif
-	fileStrOutMeta << "File Input:                 " << fileNameInName << endl;
-	fileStrOutMeta << "File Output:                " << fileNameOutName << endl;
-	fileStrOutMeta << "Model Id:                   " << rFileInfos.mStrings[MeshInfoData::MODEL_ID] << endl;
-	fileStrOutMeta << "Model Material:             " << rFileInfos.mStrings[MeshInfoData::MODEL_MATERIAL] << endl;
+	fileStrOutMeta << "File Input:                 " << fileNameInName << std::endl;
+	fileStrOutMeta << "File Output:                " << fileNameOutName << std::endl;
+	fileStrOutMeta << "Model Id:                   " << rFileInfos.mStrings[MeshInfoData::MODEL_ID] << std::endl;
+	fileStrOutMeta << "Model Material:             " << rFileInfos.mStrings[MeshInfoData::MODEL_MATERIAL] << std::endl;
 	fileStrOutMeta << "Web-Reference:              " << rFileInfos.mStrings[MeshInfoData::MODEL_WEBREFERENCE] << std::endl;
-	fileStrOutMeta << "Vertex count (in, out):     " << oldVertexNr << ", " << rFileInfos.mCountULong[MeshInfoData::VERTICES_TOTAL] << endl;
-	fileStrOutMeta << "Face count (in, out):       " << oldFaceNr   << ", " << rFileInfos.mCountULong[MeshInfoData::FACES_TOTAL]    << endl;
-	fileStrOutMeta << "Vertex count (diff):        " << ( static_cast<long>(rFileInfos.mCountULong[MeshInfoData::VERTICES_TOTAL]) - static_cast<long>(oldVertexNr) ) << endl;
-	fileStrOutMeta << "Face count (diff):          " << ( static_cast<long>(rFileInfos.mCountULong[MeshInfoData::FACES_TOTAL])    - static_cast<long>(oldFaceNr)   ) << endl;
-	fileStrOutMeta << "Vertices at border (out):   " << rFileInfos.mCountULong[MeshInfoData::VERTICES_BORDER] << endl;
-	fileStrOutMeta << "Vertices synthetic (out):   " << rFileInfos.mCountULong[MeshInfoData::VERTICES_SYNTHETIC] << endl;
-	fileStrOutMeta << "Faces synthetic (out):      " << rFileInfos.mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES] << endl;
+	fileStrOutMeta << "Vertex count (in, out):     " << oldVertexNr << ", " << rFileInfos.mCountULong[MeshInfoData::VERTICES_TOTAL] << std::endl;
+	fileStrOutMeta << "Face count (in, out):       " << oldFaceNr   << ", " << rFileInfos.mCountULong[MeshInfoData::FACES_TOTAL]    << std::endl;
+	fileStrOutMeta << "Vertex count (diff):        " << ( static_cast<long>(rFileInfos.mCountULong[MeshInfoData::VERTICES_TOTAL]) - static_cast<long>(oldVertexNr) ) << std::endl;
+	fileStrOutMeta << "Face count (diff):          " << ( static_cast<long>(rFileInfos.mCountULong[MeshInfoData::FACES_TOTAL])    - static_cast<long>(oldFaceNr)   ) << std::endl;
+	fileStrOutMeta << "Vertices at border (out):   " << rFileInfos.mCountULong[MeshInfoData::VERTICES_BORDER] << std::endl;
+	fileStrOutMeta << "Vertices synthetic (out):   " << rFileInfos.mCountULong[MeshInfoData::VERTICES_SYNTHETIC] << std::endl;
+	fileStrOutMeta << "Faces synthetic (out):      " << rFileInfos.mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES] << std::endl;
 	fileStrOutMeta << "Start time:                 " << std::ctime( &startTime );
 	fileStrOutMeta << "Finish time:                " << std::ctime( &endTime );
-	fileStrOutMeta << "Timespan (sec):             " << time_elapsed << endl;
+	fileStrOutMeta << "Timespan (sec):             " << time_elapsed << std::endl;
 	fileStrOutMeta.close();
+	//! \todo Add number of parallel processors used.
 
 	// Done.
 	//----------------------------------------------------------
@@ -225,39 +243,42 @@ bool cleanupGigaMeshData(
 
 //! Help i.e. usage of paramters.
 void printHelp( const char* rExecName ) {
-	std::cout << "Usage: " << rExecName << " [options] (<file>)" << endl;
-	std::cout << "GigaMesh Software Framework CLEAN 3D-data" << endl << endl;
-	std::cout << "Cleans given meshes. The output file(s) will be namend the same as the input file " << endl;
-	std::cout << "using the suffix GMC[F]:" << endl;
-	std::cout << endl;
-	std::cout << "  GM ... processed with GigaMesh" << endl;
-	std::cout << "  C .... cleaned i.e. faulty parts removed" << endl;
-	std::cout << "  F .... holes filled unless -r is used" << endl;
-	std::cout << endl;
-	std::cout << "Options:" << endl;
-	std::cout << "  -h, --help                              Displays this help." << endl;
-	std::cout << "  -v, --version                           Displays version information." << endl;
-	std::cout << "  -k, --overwrite-existing                Overwrite exisitng files, which is not done by default" << endl;
-	std::cout << "                                          to prevent accidental data loss. If this option is not set" << endl;
-	std::cout << "                                          and the output file exists, the file will be skipped." << endl;
-	std::cout << endl;
-	std::cout << "Options for cleaning and polishing:" << endl;
-	std::cout << "  -r, --remove-only                       No holes are filled. Only corrupt mesh parts are removed." << endl;
-	std::cout << "                                          File suffix is set to GMC. Options -s and -g will have no effect." << endl;
-	std::cout << "  -p, --remove-components-relative SIZE   Remove all connected components i.e. surface parts smaller than" << endl;
-	std::cout << "                                          the given percentage [0.0...1.0]. The default for SIZE is 0.1." << endl;
-	std::cout << "  -l, --keep-largest-component            Keep only the largest connected component." << endl;
-	std::cout << "  -s, --skip-largest-hole                 Do not fill the largest hole. Has no effect, when -r is used." << endl;
-	std::cout << "                                          Typically used for partial 3D-scans, where e.g. the backside is missing." << endl;
-	std::cout << "  -g, --skip-holes-larger SIZE            Holes with more than SIZE vertices are not filled. Has no effect, when -r is used." << endl;
-	std::cout << "                                          Typically used for surface with large holes, which often have a complex shape." << endl;
-	std::cout << "                                          The default for SIZE is 3000. Set 0 (zero) to attempted all holes to be filled." << endl;
-	std::cout << "  -n, --no-border-erosion                 Do not apply border erosion i.e. keep dangling faces along the border." << endl;
-	std::cout << endl;
-	std::cout << "Options to (pre)set the embedded Meta-data:" << endl;
-	std::cout << "  -m, --set-material-when-empty STRING    Set the material to STRING, when empty." << endl;
-	std::cout << "  -i, --set-id-when-empty                 Set the stem of the <file> as id, when empty." << endl;
-	//std::cout << "" << endl;
+	std::cout << "Usage: " << rExecName << " [options] (<file>)" << std::endl;
+	std::cout << "GigaMesh Software Framework CLEAN 3D-data" << std::endl << std::endl;
+	std::cout << "Cleans given meshes. The output file(s) will be namend the same as the input file " << std::endl;
+	std::cout << "using the suffix GMC[F]:" << std::endl;
+	std::cout << std::endl;
+	std::cout << "  GM ... processed with GigaMesh" << std::endl;
+	std::cout << "  C .... cleaned i.e. faulty parts removed" << std::endl;
+	std::cout << "  F .... holes filled unless -r is used" << std::endl;
+	std::cout << std::endl;
+	std::cout << "Options:" << std::endl;
+	std::cout << "  -h, --help                              Displays this help." << std::endl;
+	std::cout << "  -v, --version                           Displays version information." << std::endl;
+	std::cout << "  -k, --overwrite-existing                Overwrite exisitng files, which is not done by default" << std::endl;
+	std::cout << "                                          to prevent accidental data loss. If this option is not set" << std::endl;
+	std::cout << "                                          and the output file exists, the file will be skipped." << std::endl;
+	std::cout << std::endl;
+	std::cout << "Options for cleaning and polishing:" << std::endl;
+	std::cout << "  -r, --remove-only                       No holes are filled. Only corrupt mesh parts are removed." << std::endl;
+	std::cout << "                                          File suffix is set to GMC. Options -s and -g will have no effect." << std::endl;
+	std::cout << "  -p, --remove-components-relative SIZE   Remove all connected components i.e. surface parts smaller than" << std::endl;
+	std::cout << "                                          the given percentage [0.0...1.0]. The default for SIZE is 0.1." << std::endl;
+	std::cout << "  -l, --keep-largest-component            Keep only the largest connected component." << std::endl;
+	std::cout << "  -s, --skip-largest-hole                 Do not fill the largest hole. Has no effect, when -r is used." << std::endl;
+	std::cout << "                                          Typically used for partial 3D-scans, where e.g. the backside is missing." << std::endl;
+	std::cout << "  -g, --skip-holes-larger SIZE            Holes with more than SIZE vertices are not filled. Has no effect, when -r is used." << std::endl;
+	std::cout << "                                          Typically used for surface with large holes, which often have a complex shape." << std::endl;
+	std::cout << "                                          The default for SIZE is 3000. Set 0 (zero) to attempted all holes to be filled." << std::endl;
+	std::cout << "  -n, --no-border-erosion                 Do not apply border erosion i.e. keep dangling faces along the border." << std::endl;
+	std::cout << std::endl;
+	std::cout << "Options to (pre)set the embedded Meta-data:" << std::endl;
+	std::cout << "  -m, --set-material-when-empty STRING    Set the material to STRING, when empty." << std::endl;
+	std::cout << "  -i, --set-id-when-empty                 Set the stem of the <file> as id, when empty." << std::endl;
+	std::cout << "  -j, --set-id-remove-trailing-chars SIZE Remove SIZE trailing characters from the filename stem for the id."<< std::endl;
+	std::cout << "                                          Will be ignored if -i is not used." << std::endl;
+	std::cout << "  -o, --set-material-id-forced            Enforce id and material, even when NOT empty." << std::endl;
+	//std::cout << "" << std::endl;
 }
 
 
@@ -272,6 +293,7 @@ int main( int argc, char* argv[] ) {
 
 	// Default integer parameter
 	unsigned long skipHolesLargerThan = 3000;
+	std::size_t   removeTrailingChars = 0;
 
 	// Default float parameter
 	double percentArea = 0.1;
@@ -284,6 +306,7 @@ int main( int argc, char* argv[] ) {
 	bool applyBorderErosion = true;
 	bool materialWhenEmptySet = false;
 	bool fileNameAsIdWhenEmpty = false;
+	bool enforceIdMaterial     = false;
 
 	// PARSE command line options
 	//--------------------------------------------------------------------------
@@ -297,7 +320,9 @@ int main( int argc, char* argv[] ) {
 		{ "skip-holes-larger",            required_argument, nullptr, 'g' },
 		{ "no-border-erosion",            no_argument,       nullptr, 'n' },
 		{ "set-material-when-empty",      required_argument, nullptr, 'm' },
-		{ "set-id-when-empty",            required_argument, nullptr, 'i' },
+		{ "set-id-when-empty",            no_argument,       nullptr, 'i' },
+		{ "set-id-remove-trailing-chars", required_argument, nullptr, 'j' },
+		{ "set-material-id-forced",       no_argument,       nullptr, 'o' },
 		{ "version",                      no_argument,       nullptr, 'v' },
 		{ "help",                         no_argument,       nullptr, 'h' },
 		{ nullptr, 0, nullptr, 0 }
@@ -306,7 +331,7 @@ int main( int argc, char* argv[] ) {
 	int character = 0;
 	int optionIndex = 0;
 
-	while( ( character = getopt_long_only( argc, argv, ":krp:lsg:nm:ivh",
+	while( ( character = getopt_long_only( argc, argv, ":krp:lsg:nm:ij:ovh",
 	         longOptions, &optionIndex ) ) != -1 ) {
 		switch(character) {
 			case 0:
@@ -359,17 +384,25 @@ int main( int argc, char* argv[] ) {
 				fileNameAsIdWhenEmpty = true;
 				break;
 
+			case 'j':
+				removeTrailingChars = std::stoul( optarg );
+				break;
+
+			case 'o':
+				enforceIdMaterial = true;
+				break;
+
 			case 'v':
-				std::cout << "GigaMesh Software Framework CLEAN 3D-data " << VERSION_PACKAGE << endl;
+				std::cout << "GigaMesh Software Framework CLEAN 3D-data " << VERSION_PACKAGE << std::endl;
 #ifdef THREADS
-				std::cout << "Multi-threading with " << NUM_THREADS << " threads." << endl;
+				std::cout << "Multi-threading with " << NUM_THREADS << " threads." << std::endl;
 #else
-				std::cout << "Single-threading. " << endl;
+				std::cout << "Single-threading. " << std::endl;
 #endif
 #ifdef LIBPSALM
-				std::cout << "Hole filling enabled. POLISH possible." << endl;
+				std::cout << "Hole filling enabled. POLISH possible." << std::endl;
 #else
-				std::cout << "Hole filling disabled. CLEAN only." << endl;
+				std::cout << "Hole filling disabled. CLEAN only." << std::endl;
 #endif
 				std::exit( EXIT_SUCCESS );
 				break;
@@ -414,9 +447,10 @@ int main( int argc, char* argv[] ) {
 
 			if( !cleanupGigaMeshData( nonOptionArgumentString, fileNameOutSuffix,
 			                          materialWhenEmpty, materialWhenEmptySet, fileNameAsIdWhenEmpty,
-			    percentArea, applyBorderErosion, replaceFiles, removeOnlyFlag,
-			    keepLargestComponent, skipLargestHole,
-			    skipHolesLargerThan ) ) {
+			                          removeTrailingChars, enforceIdMaterial, percentArea, applyBorderErosion,
+			                          replaceFiles, removeOnlyFlag,
+			                          keepLargestComponent, skipLargestHole,
+			                          skipHolesLargerThan ) ) {
 				std::cerr << "[GigaMesh] ERROR: cleanupGigaMeshData failed!" << std::endl;
 				std::exit( EXIT_FAILURE );
 			}
