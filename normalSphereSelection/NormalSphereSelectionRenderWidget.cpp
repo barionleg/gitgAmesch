@@ -218,7 +218,7 @@ void NormalSphereSelectionRenderWidget::selectAt(int xCoord, int yCoord)
 
 	else
 	{
-		//TODO: do this in normalized coordinates
+		//TODO: do this in normalized coordinates? Otherwise it depends on the window-size...
 		for(float x = -mSelectionRadius; x < mSelectionRadius; x += 1.0f)
 		{
 			for(float y = -mSelectionRadius; y < mSelectionRadius; y += 1.0f)
