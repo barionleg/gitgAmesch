@@ -1,5 +1,7 @@
 Current version
-+) Minor changes.
++) Bugfix: more robust import i.e. automatically neglect out-of-range vertex indices in faces at load time.
++) CLI gigamesh-clean: Option '-j', '--set-id-remove-trailing-chars' for basic meta-data added. See '--help' for details.
++) CLI gigamesh-clean: Option '-o', '--set-material-id-forced' for basic meta-data added. See '--help' for details.
 
 Version 190531
 +) Improved rendering of connected components.
