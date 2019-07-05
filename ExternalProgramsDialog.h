@@ -48,6 +48,10 @@ class ExternalProgramsDialog : public QDialog
 		void pythonPathChoose();
 
 		void defaultPressed();
+
+		// QWidget interface
+	protected:
+		virtual void changeEvent(QEvent* event) override;
 };
 
 #endif // EXTERNALPROGRAMSDIALOG_H

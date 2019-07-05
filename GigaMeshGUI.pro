@@ -20,6 +20,9 @@
 TEMPLATE = app
 TARGET = gigamesh
 
+TRANSLATIONS = languages/GigaMesh_de.ts \
+			   languages/GigaMesh_ja.ts \
+			   languages/GigaMesh_en.ts
 
 # -------------------------------------------------------------------------------
 # Git info:
@@ -323,6 +326,7 @@ else {
 
 # ---- Resources ----------------------------------------------------------------
 RESOURCES += forms/gigamesh.qrc
+RESOURCES += languages/translations.qrc
 RESOURCES += python-scripts/pythonscripts.qrc
 RESOURCES += latex_report_template/latex_templates.qrc
 RESOURCES += shaders/shaders.qrc

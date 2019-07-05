@@ -67,6 +67,10 @@ private slots:
 signals:
     void valuesChanged();
 
+	// QWidget interface
+	protected:
+	virtual void changeEvent(QEvent* event) override;
+
 };
 
 #endif // QGMDIALOGTRANSPARENCYSETTINGS_H

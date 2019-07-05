@@ -83,6 +83,10 @@ private:
 	int    primitiveIdx;           //!< selected index (already converted from QLineEdit to integer).
 	double radius;                 //!< selected radius (already converted  from QLineEdit to float).
 	int    cubeEdgeLengthInVoxels; //!< selected voxel-cube size (already converted from QLineEdit to integer).
+
+	// QWidget interface
+	protected:
+	virtual void changeEvent(QEvent* event) override;
 };
 
 #endif

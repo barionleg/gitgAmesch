@@ -42,6 +42,10 @@ private:
 
 private slots:
 	void apply();
+
+	// QWidget interface
+	protected:
+	virtual void changeEvent(QEvent* event) override;
 };
 
 #endif // QGMDIALOGCONEPARAM_H

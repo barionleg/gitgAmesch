@@ -2682,7 +2682,7 @@ void Face::connectToFaces() {
 			continue;
 		}
 		bool faceIsConnected = false;
-		bool faceAddedMultipleTimes; //! \todo pass on information
+		bool faceAddedMultipleTimes = false; //! \todo pass on information
 		if( (*itFace)->requiresVertex( vertA ) && (*itFace)->requiresVertex( vertB ) ) {
 			if( FACE_NEIGHBOUR_AB == nullptr ) {
 				FACE_NEIGHBOUR_AB = (*itFace);
@@ -2730,6 +2730,10 @@ void Face::connectToFaces() {
 			setFlag( FLAG_FACE_STICKY );
 			(*itFace)->setFlag( FLAG_FACE_STICKY );
 			//cout << "[Face::" << __FUNCTION__ << "] sticky faces found - sticks on " << neighCount  << " edges." << endl;
+		}
+		if( faceAddedMultipleTimes ) {
+			std::cerr << "[Face::" << __FUNCTION__ << "] ERROR: Face no. " << getIndex()
+			          << " multiple times added!" << std::endl; // pr (*itFace)->getIndex()
 		}
 	}
 	//vertA->getFaces( vertB, &neighbourFaces, this );

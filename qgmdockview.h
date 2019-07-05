@@ -24,6 +24,10 @@ public slots:
 
 private:
 	Ui::QGMDockView *ui;
+
+	// QWidget interface
+	protected:
+	virtual void changeEvent(QEvent* event) override;
 };
 
 #endif // QGMDOCKVIEW_H

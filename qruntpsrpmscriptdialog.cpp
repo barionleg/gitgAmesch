@@ -80,11 +80,11 @@ QRunTpsRpmScriptDialog::~QRunTpsRpmScriptDialog()
 void QRunTpsRpmScriptDialog::meshCoordinatesOriginFileSelectionPushButtonReleased()
 {
 	const QString coordinatesOriginFileName = QFileDialog::getOpenFileName(this,
-	                                                    "Origin primitive positions "
-	                                                    "CSV file used for "
-	                                                    "TPS-RPM transformation",
+														tr("Origin primitive positions "
+														"CSV file used for "
+														"TPS-RPM transformation"),
 	                                                    m_lastOpenedFileDirectory,
-	                                                    "CSV files (*.csv *.mat)" );
+														tr("CSV files (*.csv *.mat)" ));
 
 	if(!coordinatesOriginFileName.isEmpty())
 	{
@@ -116,11 +116,11 @@ void QRunTpsRpmScriptDialog::primitiveCoordinatesOriginFileSelectionPushButtonRe
 {
 
 	const QString positionsOriginFileName = QFileDialog::getOpenFileName(this,
-	                                                    "Origin primitive positions "
-	                                                    "CSV file used for "
-	                                                    "TPS-RPM transformation",
+														tr("Origin primitive positions "
+														"CSV file used for "
+														"TPS-RPM transformation"),
 	                                                    m_lastOpenedFileDirectory,
-	                                                    "CSV files (*.csv *.mat)");
+														tr("CSV files (*.csv *.mat)"));
 
 	if(!positionsOriginFileName.isEmpty())
 	{
@@ -152,11 +152,11 @@ void QRunTpsRpmScriptDialog::primitiveCoordinatesTargetFileSelectionPushButtonRe
 {
 
 	const QString positionsTargetFileName = QFileDialog::getOpenFileName(this,
-	                                                    "Target primitive positions "
+														tr("Target primitive positions "
 	                                                    "CSV file used for "
-	                                                    "TPS-RPM transformation",
+														"TPS-RPM transformation"),
 	                                                    m_lastOpenedFileDirectory,
-	                                                    "CSV files (*.csv *.mat)");
+														tr("CSV files (*.csv *.mat)"));
 
 	if(!positionsTargetFileName.isEmpty())
 	{
@@ -187,11 +187,11 @@ void QRunTpsRpmScriptDialog::primitiveCoordinatesTargetFileSelectionPushButtonRe
 void QRunTpsRpmScriptDialog::meshDataOutputFileSelectionPushButtonReleased()
 {
 	const QString outputFileName = QFileDialog::getSaveFileName(this,
-	                                                    "Output vertex coordinate "
+														tr("Output vertex coordinate "
 	                                                    "CSV file of "
-	                                                    "TPS-RPM transformation",
+														"TPS-RPM transformation"),
 	                                                    m_lastOpenedFileDirectory,
-	                                                    "CSV files (*.csv *.mat)");
+														tr("CSV files (*.csv *.mat)"));
 
 	if(!outputFileName.isEmpty())
 	{
@@ -288,7 +288,7 @@ void QRunTpsRpmScriptDialog::applyTpsRpmTransformation()
 	QString pythonPath = settings.value("Python3_Path", "").toString();
 
 	if(pythonPath.length() == 0)
-		pythonPath = tr("python3");
+		pythonPath = QString("python3");
 
 	runTpsRpmScriptProcess->start(pythonPath,
 	                                tpsRpmScriptArguments);
@@ -348,3 +348,14 @@ void showRunTpsRpmScriptDialog(QWidget* parent = nullptr,
 	qRunTpsRpmScriptDialog.exec();
 }
 
+
+
+void QRunTpsRpmScriptDialog::changeEvent(QEvent*event)
+{
+	if(event->type() == QEvent::LanguageChange)
+	{
+		m_qRunTpsRpmScriptDialog->retranslateUi(this);
+	}
+
+	QDialog::changeEvent(event);
+}

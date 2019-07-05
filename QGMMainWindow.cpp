@@ -32,13 +32,14 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
     : QMainWindow( parent, flags ), QGMMAINWINDOWINITDEFAULTS {
 	setupUi( this );
 
+	createLanguageMenu();
 	//uiMainToolBar.show();
 
 	//adding all menu actions to main window, so that they are not deaktivated in fullscreen-mode
         addActions(this->menubar->actions());
 
 	setWindowIcon( QIcon( _GIGAMESH_LOGO_ ) );
-	setWindowTitle( QObject::tr( "GigaMesh" ) );
+	setWindowTitle( QString( "GigaMesh" ) );
 
 	// +++ Mesh/MeshGL/MeshQT init -> see private method +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	initMeshSignals(); // THIS is the one and only legit place to call this method!!!
@@ -368,7 +369,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QString outInkscape( testRunInkscape.readAllStandardOutput() );
 	cout << "[QGMMainWindow::" << __FUNCTION__ << "] Inkscape check: " << outInkscape.simplified().toStdString().c_str() << endl;
 	if( checkInkscapeFailed ) {
-		SHOW_MSGBOX_WARN_TIMEOUT( "Inkscape error", "Checking Inkscape for presence and functionality failed!", 5000 );
+		SHOW_MSGBOX_WARN_TIMEOUT( tr("Inkscape error"), tr("Checking Inkscape for presence and functionality failed!"), 5000 );
 	}
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
 #ifdef REQUIRE_CONVERT_IMAGEMAGICK_OPTION
@@ -397,7 +398,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 		if( checkInkscapeFailed ) {
 			timerMSec +=  5000;
 		}
-		SHOW_MSGBOX_WARN_TIMEOUT( "ImageMagick error", "Checking convert from the ImageMagick for presence and functionality failed!", timerMSec );
+		SHOW_MSGBOX_WARN_TIMEOUT( tr("ImageMagick error"), tr("Checking convert from the ImageMagick for presence and functionality failed!"), timerMSec );
 	}
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
 #endif
@@ -409,15 +410,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 
 //! Destructor
 QGMMainWindow::~QGMMainWindow() {
-	if( mDockSurface != nullptr ) {
-		delete mDockSurface;
-	}
-	if( mMeshWidget != nullptr ) {
-		delete mMeshWidget;
-	}
-	if( mNetworkManager != nullptr ) {
-		delete( mNetworkManager );
-	}
+
 }
 
 //! Initialization regarding signals to the MeshWidget - ONLY to be called ONCE from the constructor!
@@ -1195,6 +1188,7 @@ bool QGMMainWindow::event( QEvent* rEvent ) {
 	if( rEvent->type() == QEvent::WindowDeactivate ) {
 		emit sSelectMouseModeExtra(false,MeshWidgetParams::MOUSE_MODE_COUNT);
 	}
+
 	return QMainWindow::event(rEvent);
 }
 
@@ -1208,9 +1202,9 @@ bool QGMMainWindow::event( QEvent* rEvent ) {
 void QGMMainWindow::load() {
 	QSettings settings;
 	QString fileName = QFileDialog::getOpenFileName( this,
-	                                                 QObject::tr( "Open 3D-Mesh or Point Cloud" ),
+													 tr( "Open 3D-Mesh or Point Cloud" ),
 	                                                 settings.value( "lastPath" ).toString(),
-	                                                 QObject::tr( "3D mesh files (*.ply *.PLY *.obj *.OBJ);;Other 3D files (*.txt *.TXT *.xyz *.XYZ)" )
+													 tr( "3D mesh files (*.ply *.PLY *.obj *.OBJ);;Other 3D files (*.txt *.TXT *.xyz *.XYZ)" )
 	                                                );
 	if( fileName.size() > 0 ) {
 		emit sFileOpen( fileName );
@@ -1266,9 +1260,9 @@ bool QGMMainWindow::fileOpen( QAction* rFileAction ){
 void QGMMainWindow::menuImportFunctionValues() {
 	QSettings settings;
 	QString fileNames = QFileDialog::getOpenFileName( this,
-	                                                  QObject::tr( "Import Function Values (per Vertex)" ),
+													  tr( "Import Function Values (per Vertex)" ),
 	                                                  settings.value( "lastPath" ).toString(),
-	                                                  QObject::tr( "ASCII Text (*.mat *.txt)" )
+													  tr( "ASCII Text (*.mat *.txt)" )
 	                                                 );
 	if( fileNames.size() > 0 ) {
 		emit sFileImportFunctionValues( fileNames );
@@ -1280,9 +1274,9 @@ void QGMMainWindow::menuImportFunctionValues() {
 void QGMMainWindow::menuImportTexMap() {
 	QSettings settings;
 	QString fileNames = QFileDialog::getOpenFileName( this,
-	                                                  QObject::tr( "Import Texture Map (Color per Vertex)" ),
+													  tr( "Import Texture Map (Color per Vertex)" ),
 	                                                  settings.value( "lastPath" ).toString(),
-	                                                  QObject::tr( "Texture maps (*.tex)" )
+													  tr( "Texture maps (*.tex)" )
 	                                                 );
 	if( fileNames.size() > 0 ) {
 		emit sFileImportTexMap( fileNames );
@@ -1294,9 +1288,9 @@ void QGMMainWindow::menuImportTexMap() {
 void QGMMainWindow::menuImportFeatureVectors() {
 	QSettings settings;
 	QString fileName = QFileDialog::getOpenFileName( this,
-	                                                 QObject::tr( "Import Feature Vectors (Vertices)" ),
+													 tr( "Import Feature Vectors (Vertices)" ),
 	                                                 settings.value( "lastPath" ).toString(),
-	                                                 QObject::tr( "Texture maps (*.mat *.txt)" )
+													 tr( "Texture maps (*.mat *.txt)" )
 	                                                );
 	if( fileName.length() > 0 ) {
 		emit sFileImportFeatureVectors( fileName );
@@ -1308,9 +1302,9 @@ void QGMMainWindow::menuImportFeatureVectors() {
 void QGMMainWindow::menuImportNormalVectors() {
 	QSettings settings;
 	QString fileName = QFileDialog::getOpenFileName( this,
-	                                                 QObject::tr( "Import Normal Vectors (Vertices)" ),
+													 tr( "Import Normal Vectors (Vertices)" ),
 	                                                 settings.value( "lastPath" ).toString(),
-	                                                 QObject::tr( "Normal vectors (*.mat *.txt)" )
+													 tr( "Normal vectors (*.mat *.txt)" )
 	                                                );
 	if( fileName.length() > 0 ) {
 		emit sFileImportNormals( fileName );
@@ -1811,9 +1805,9 @@ void QGMMainWindow::setWidgetSizeFixed( bool rFixed ) {
 void QGMMainWindow::infoKeyShortcuts() {
 	QString infoString;
 	QList<QAction*> allActions = findChildren<QAction*>();
-	infoString = "See also keyboard layout for 3D navigation.<br />";
+	infoString = tr("See also keyboard layout for 3D navigation.") + "<br />";
 	infoString += "<table>";
-	infoString += "<tr><td><b>Key(s)</b></td><td>&nbsp;</td><td><b>Action</b></td></tr>";
+	infoString += "<tr><td><b>" + tr("Key(s)") + "</b></td><td>&nbsp;</td><td><b>" + tr("Action") + "</b></td></tr>";
 	infoString += "<tr><td colspan='3'><hr/></td></tr>";
 	for(QAction*& currAction : allActions) {
 		    QKeySequence shortCutSeq = currAction->shortcut();
@@ -1826,7 +1820,7 @@ void QGMMainWindow::infoKeyShortcuts() {
 		                   "<td align=left>" + actionText.replace( "&", "" ).replace( " ", "&nbsp;" ) + "</td></tr>" );
 	}
 	infoString += "</table>";
-	SHOW_MSGBOX_INFO( "Keyboard Shortcuts (Menu only)", tr( "%1" ).arg( infoString ) );
+	SHOW_MSGBOX_INFO( tr("Keyboard Shortcuts (Menu only)"), QString( "%1" ).arg( infoString ) );
 }
 
 //! Open the GigaMesh Video Tutorials within the browser.
@@ -2173,7 +2167,7 @@ void QGMMainWindow::slotHttpCheckVersion( QNetworkReply* rReply ) {
 	} else {
 		cout << "[QGMMainWindow::" << __FUNCTION__ << "] There is a newer version of GigaMesh available for" << endl;
 		cout << "[QGMMainWindow::" << __FUNCTION__ << "] download at: https://gigamesh.eu/download" << endl;
-		QString msgStr = QString( "There is a newer version (%1) of GigaMesh available for download at: <br /><br />"
+		QString msgStr = tr( "There is a newer version (%1) of GigaMesh available for download at: <br /><br />"
 		                          "<a href='https://gigamesh.eu/download'>https://gigamesh.eu/download</a> <br /><br />"
 		                          "The version you are using is&nbsp;%2.<br /><br />"
 		                          "See the CHANGELOG file within the new package for updates. "
@@ -2181,7 +2175,7 @@ void QGMMainWindow::slotHttpCheckVersion( QNetworkReply* rReply ) {
 		                          "in our <a href='https://gigamesh.eu/news'>WebSite's news section</a> and "
 		                          "in the <a href='https://gigamesh.eu/researchgate'>ResearchGate project log</a>."
 		                        ).arg( versionOnline ).arg( versionCurrent );
-		SHOW_MSGBOX_WARN( "NEW Version available", msgStr.toStdString().c_str() );
+		SHOW_MSGBOX_WARN( tr("NEW Version available"), msgStr.toStdString().c_str() );
 	}
 
 	// Store the current timestamp for the last successful attempt
@@ -2189,6 +2183,84 @@ void QGMMainWindow::slotHttpCheckVersion( QNetworkReply* rReply ) {
 	time( &timeNow );
 	QSettings settings;
 	settings.setValue( "lastVersionCheck", qlonglong( timeNow ) );
+}
+
+void QGMMainWindow::slotChangeLanguage(QAction* action)
+{
+	if(action != nullptr)
+	{
+		loadLanguage(action->data().toString());
+		QSettings settings;
+		settings.setValue("language", action->data().toString());
+	}
+}
+
+void switchTranlator(QTranslator& translator, const QString& fileName, const QString& directory)
+{
+	qApp->removeTranslator(&translator);
+
+	if(translator.load(fileName, directory))
+	{
+		qApp->installTranslator(&translator);
+	}
+}
+
+void QGMMainWindow::loadLanguage(const QString& language)
+{
+	if(mCurrentLanguage != language)
+	{
+		mCurrentLanguage = language;
+
+		switchTranlator(mTranslator, QString("GigaMesh_%1").arg(language), ":/languages");
+
+	}
+}
+
+void QGMMainWindow::createLanguageMenu()
+{
+	auto langGroup = new QActionGroup(menuLanguages);
+	langGroup->setExclusive(true);
+
+	connect(langGroup, &QActionGroup::triggered, this, &QGMMainWindow::slotChangeLanguage);
+
+	QSettings settings;
+
+	QString defaultLocale = settings.value("language", QString("")).toString();
+
+	if(defaultLocale.isEmpty())
+	{
+		defaultLocale = QLocale::system().name();
+		defaultLocale.truncate(defaultLocale.lastIndexOf('_'));
+	}
+
+	QDir dir(QString(":/languages"));
+	QStringList fileNames = dir.entryList(QStringList("GigaMesh_*.qm"));
+
+	bool localeSet = false;
+
+	for(auto locale : fileNames)
+	{
+		locale.truncate(locale.lastIndexOf('.'));
+		locale.remove(0, locale.indexOf('_') + 1);
+
+		QString lang = QLocale::languageToString(QLocale(locale).language());
+
+		auto action = new QAction(lang, this);
+		action->setCheckable(true);
+		action->setData(locale);
+
+		menuLanguages->addAction(action);
+		langGroup->addAction(action);
+
+		if(defaultLocale == locale)
+		{
+			localeSet = true;
+			action->setChecked(true);
+			//call slot manually, as the menu is created in QGMMainWindow's constructor. remove if it is done elsewhere in the future,
+			//because then it is handled via signal/slots by setChecked
+			slotChangeLanguage(action);
+		}
+	}
 }
 
 void QGMMainWindow::openExternalProgramsDialog()
@@ -2352,3 +2424,17 @@ void QGMMainWindow::dropEvent(QDropEvent *e)
 }
 
 //-----------------------------------------------------------------------------------------------------------------
+
+
+void QGMMainWindow::changeEvent(QEvent* event)
+{
+	if(event != nullptr)
+	{
+		switch(event->type()) {
+			case QEvent::LanguageChange:
+				retranslateUi(this);
+				break;
+		}
+	}
+	QMainWindow::changeEvent(event);
+}

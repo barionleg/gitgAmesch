@@ -39,7 +39,7 @@ mesh/meshgeneratefeaturevectors25d
 mesh/meshgeneratefeaturevectors25d_threads
 mesh/gigamesh-featurevectors
 mesh/gigamesh-clean
-mesh/gigamesh-toascii
+mesh/gigamesh-tolegacy
 mesh/gigamesh-info
 
 # Mesh test-files (Linux):

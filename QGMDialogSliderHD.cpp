@@ -69,12 +69,12 @@ double QGMDialogSliderHD::setMin( double setMinVal ) {
 		mMinVal = setMinVal;
 	}
 	mValidAbs.setBottom( setMinVal );
-	ui->lineValueMin->setText( tr( "%1" ).arg( setMinVal ) );
+	ui->lineValueMin->setText( QString( "%1" ).arg( setMinVal ) );
 
 	// Compute and show the stepping
 	double steppingSlider = ( ui->horizontalSlider->maximum() - ui->horizontalSlider->minimum() ) / ui->horizontalSlider->singleStep();
 	double steppingAbsolut = ( mMaxVal - mMinVal ) / steppingSlider;
-	ui->lineValueStep->setText( tr( "%1" ).arg( steppingAbsolut ) );
+	ui->lineValueStep->setText( QString( "%1" ).arg( steppingAbsolut ) );
 
 	return( tmpVal );
 }
@@ -90,12 +90,12 @@ double QGMDialogSliderHD::setMax( double setMaxVal ) {
 		mMaxVal = setMaxVal;
 	}
 	mValidAbs.setTop( setMaxVal );
-	ui->lineValueMax->setText( tr( "%1" ).arg( setMaxVal ) );
+	ui->lineValueMax->setText( QString( "%1" ).arg( setMaxVal ) );
 
 	// Compute and show the stepping
 	double steppingSlider = ( ui->horizontalSlider->maximum() - ui->horizontalSlider->minimum() ) / ui->horizontalSlider->singleStep();
 	double steppingAbsolut = ( mMaxVal - mMinVal ) / steppingSlider;
-	ui->lineValueStep->setText( tr( "%1" ).arg( steppingAbsolut ) );
+	ui->lineValueStep->setText( QString( "%1" ).arg( steppingAbsolut ) );
 
 	return( tmpVal );
 }
@@ -209,7 +209,7 @@ void QGMDialogSliderHD::valueChangedRel( const QString& rValRel ) {
 	if( mLogarithmic ) {
 		valPre = exp( valPre );
 	}
-	ui->lineValueAbs->setText( tr( "%1" ).arg( valPre ) );
+	ui->lineValueAbs->setText( QString( "%1" ).arg( valPre ) );
 	QObject::connect( ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(valueChanged(int))    );
 	QObject::connect( ui->lineValueAbs,     SIGNAL(textEdited(QString)), this, SLOT(valueChangedAbs(QString)) );
 	if( !ui->checkBoxPreview->isChecked() ) {
@@ -248,7 +248,7 @@ void QGMDialogSliderHD::valueChangedAbs( const QString& rValAbs ) {
 	QObject::disconnect( ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(valueChanged(int))    );
 	QObject::disconnect( ui->lineValueRel,     SIGNAL(textEdited(QString)), this, SLOT(valueChangedRel(QString)) );
 	ui->horizontalSlider->setSliderPosition( sliderPos );
-	ui->lineValueRel->setText( tr( "%1" ).arg( valRel ) );
+	ui->lineValueRel->setText( QString( "%1" ).arg( valRel ) );
 	QObject::connect( ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(valueChanged(int))    );
 	QObject::connect( ui->lineValueRel,     SIGNAL(textEdited(QString)), this, SLOT(valueChangedRel(QString)) );
 	// Take care about preview:
@@ -272,8 +272,8 @@ void QGMDialogSliderHD::valueChanged( int sliderPos ) {
 	if( mLogarithmic ) {
 		valPre = exp( valPre );
 	}
-	ui->lineValueAbs->setText( tr( "%1" ).arg( valPre ) );
-	ui->lineValueRel->setText( tr( "%1" ).arg( valRel ) );
+	ui->lineValueAbs->setText( QString( "%1" ).arg( valPre ) );
+	ui->lineValueRel->setText( QString( "%1" ).arg( valRel ) );
 	QSETCOLOR( ui->lineValueRel, 255, 255, 255 );
 	QSETCOLOR( ui->lineValueAbs, 255, 255, 255 );
 	if( !ui->checkBoxPreview->isChecked() ) {
@@ -330,4 +330,15 @@ void QGMDialogSliderHD::reject() {
 	QObject::disconnect();
 
 	QDialog::reject();
+}
+
+
+void QGMDialogSliderHD::changeEvent(QEvent* event)
+{
+	if(event->type() == QEvent::LanguageChange)
+	{
+		ui->retranslateUi(this);
+	}
+
+	QDialog::changeEvent(event);
 }

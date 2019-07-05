@@ -24,7 +24,7 @@ bool QGMDialogPlaneParam::setPlaneHNF( Vector3D rPlaneHNF ) {
 		if( someTokens.count() == 4 ) {
 			bool useClipboard;
 			bool userCancel;
-			SHOW_QUESTION( "Use HNF from clipboard", "Parameters: "+clipBoardStr, useClipboard, userCancel );
+			SHOW_QUESTION( tr("Use HNF from clipboard"), tr("Parameters: ")+clipBoardStr, useClipboard, userCancel );
 			if( userCancel ) {
 				return false;
 			}
@@ -40,10 +40,10 @@ bool QGMDialogPlaneParam::setPlaneHNF( Vector3D rPlaneHNF ) {
 		cerr << "[QGMDialogPlaneParam::" << __FUNCTION__ << "] ERROR: invalid numbers of plane parameters!" << endl;
 	}
 	// Set fields:
-	lineEditA->setText( tr( "%1" ).arg( rPlaneHNF.getX() ) );
-	lineEditB->setText( tr( "%1" ).arg( rPlaneHNF.getY() ) );
-	lineEditC->setText( tr( "%1" ).arg( rPlaneHNF.getZ() ) );
-	lineEditD->setText( tr( "%1" ).arg( rPlaneHNF.getH() ) );
+	lineEditA->setText( QString( "%1" ).arg( rPlaneHNF.getX() ) );
+	lineEditB->setText( QString( "%1" ).arg( rPlaneHNF.getY() ) );
+	lineEditC->setText( QString( "%1" ).arg( rPlaneHNF.getZ() ) );
+	lineEditD->setText( QString( "%1" ).arg( rPlaneHNF.getH() ) );
 	return true;
 }
 
@@ -145,4 +145,15 @@ void QGMDialogPlaneParam::accept() {
 	//! Disconnects all connections - so other other objects can reuse an instance of this class.
 	QObject::disconnect();
 	QDialog::accept();
+}
+
+
+void QGMDialogPlaneParam::changeEvent(QEvent* event)
+{
+	if(event->type() == QEvent::LanguageChange)
+	{
+		retranslateUi(this);
+	}
+
+	QDialog::changeEvent(event);
 }

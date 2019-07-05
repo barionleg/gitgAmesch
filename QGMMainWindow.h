@@ -130,6 +130,20 @@ private slots:
 	// --- Network communication ---------------------------------------------------------------------------------------------------------------------------
 	void slotHttpCheckVersion( QNetworkReply* rReply );
 
+	// --- Language changes ---------------------------------------------------------------------------------------------------------------------------
+	void slotChangeLanguage(QAction* action);
+
+private:
+	//loads a language by the given language shortcut (e.g. de, en)
+	void loadLanguage(const QString& language);
+
+	//creates language menu dynamically by the provided translations in the language resource path
+	void createLanguageMenu();
+	QString mCurrentLanguage;
+	QTranslator mTranslator;
+	QTranslator mTranslatorQt;
+
+private slots:
 	void openExternalProgramsDialog();
 	void openGridPositionDialog();
 private:
@@ -448,6 +462,10 @@ private:
 
 	// Network access e.g. for checking the version number.
 	QNetworkAccessManager* mNetworkManager;          //! manages simple http-request (cf. version number)
+
+	// QWidget interface
+	protected:
+	virtual void changeEvent(QEvent* event) override;
 };
 
 #endif

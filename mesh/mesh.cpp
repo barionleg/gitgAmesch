@@ -783,6 +783,7 @@ void Mesh::establishStructure(
 
 	Face *myFace;
 	mFaces.resize( rFaceProps.size() );
+	uint64_t facesAddedToMesh = 0;
 	for( uint64_t i=0; i<rFaceProps.size(); i++ ) {
 		//cout << "Face: " << i << " " << facesMeshed[i*3]-1 << ", " << facesMeshed[i*3+1]-1 << ", " << facesMeshed[i*3+2]-1 << endl;
 		uint64_t vertAIdx = rFaceProps[i].mVertIdxA;
@@ -790,39 +791,40 @@ void Mesh::establishStructure(
 		uint64_t vertCIdx = rFaceProps[i].mVertIdxC;
 		if( vertAIdx >= rVertexProps.size() ) {
 			std::cerr << "[Mesh::" << __FUNCTION__ << "] Vertex A index out of range: " << vertAIdx <<
-			             " ... ignoring Face #" << i << "!" << std::endl;
+			             " ... ignoring Face no. " << i << "!" << std::endl;
 			continue;
 		}
 		if( vertBIdx >= rVertexProps.size() ) {
 			std::cerr << "[Mesh::" << __FUNCTION__ << "] Vertex B index out of range: " << vertBIdx <<
-			             " ... ignoring Face #" << i << "!" << std::endl;
+			             " ... ignoring Face no. " << i << "!" << std::endl;
 			continue;
 		}
 		if( vertCIdx >= rVertexProps.size() ) {
 			std::cerr << "[Mesh::" << __FUNCTION__ << "] Vertex C index out of range: " << vertCIdx <<
-			             " ... ignoring Face #" << i << "!" << std::endl;
+			             " ... ignoring Face no. " << i << "!" << std::endl;
 			continue;
 		}
+		// Create new face
 		try {
-			myFace = new Face( i,
+			myFace = new Face( facesAddedToMesh,
 			           static_cast<VertexOfFace*>(mVertices[vertAIdx]),
 			           static_cast<VertexOfFace*>(mVertices[vertBIdx]),
 			           static_cast<VertexOfFace*>(mVertices[vertCIdx])
 			         );
 		} catch ( std::bad_alloc& errBadAlloc ) {
-			cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: bad_alloc caught at index " << i << ": " << errBadAlloc.what() << endl;
+			std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: bad_alloc caught at index " << i << ": " << errBadAlloc.what() << std::endl;
 			continue;
 		}
-		//double newFaceArea = myFace->getAreaNormal();
-		//if( newFaceArea <= 0.0 ) {
-		//	cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Face " << i << " has ZERO area (" << vertAIdx << "|" << vertBIdx << "|" << vertCIdx << ")!" << endl;
-		//}
+		// Add face to the list
 		try {
-			mFaces[i] = myFace;
+			mFaces[facesAddedToMesh] = myFace;
 		} catch ( std::bad_alloc& errBadAlloc ) {
-			cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: bad_alloc caught when pushing index " << i << ": " << errBadAlloc.what() << endl;
+			std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: bad_alloc caught when pushing index " << i << ": " << errBadAlloc.what() << std::endl;
 			continue;
 		}
+		// Count sucessfully added faces
+		facesAddedToMesh++;
+
 		// Don't do this as it is extremly slow (approx. >>50x than using the temporary vector:
 		//Face *myFace = new Face( faceIdx, getVertexByIdx(...), getVertexByIdx(...), getVertexByIdx(...) );
 
@@ -831,7 +833,17 @@ void Mesh::establishStructure(
 		//	cout << "[Mesh::" << __FUNCTION__ << "] Faces set: " << mFaces.size() << "(" << (i*100.0/facesMeshedNr) << "%)" << endl;
 		//}
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] Faces set: " << mFaces.size() << "" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Faces set: " << mFaces.size() << "" << std::endl;
+	if( rFaceProps.size() != facesAddedToMesh ) {
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Number of faces created: " <<
+		             facesAddedToMesh << " is smaller than number of faces given " << rFaceProps.size() << std::endl;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "]        Therefore " << rFaceProps.size() - facesAddedToMesh <<
+		             " faces were ignored!" << std::endl;
+		// Shrinking is required:
+		mFaces.resize( facesAddedToMesh );
+		// Inform user
+		showWarning( "Mesh import incomplete", "Not all faces could be imported due to out-of-range indices." );
+	}
 
 	if( rFaceProps.size() == 0 ) {
 		cerr << "[Mesh::" << __FUNCTION__ << "] Point cloud dedected - no further Mesh-setup possible!" << endl;
@@ -841,16 +853,6 @@ void Mesh::establishStructure(
     #ifdef SHOW_MALLOC_STATS
 	    SHOW_MALLOC_STATS( 4 );
     #endif
-
-	//Face* currFace;
-	//for( int faceIdx=0; faceIdx<getFaceNr(); faceIdx++ ) {
-	//	currFace = getFacePos( faceIdx );
-	//	currFace->adjacencyAddFaceToVertices();
-	//}
-
-	//#ifdef SHOW_MALLOC_STATS
-	//	SHOW_MALLOC_STATS( 5 );
-	//#endif
 
 	// Polylines:
 	removePolylinesAll();
