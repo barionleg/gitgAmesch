@@ -172,7 +172,7 @@ Matrix4D::Matrix4D( eCreateMode rMode, const vector<double>* rValues )
 }
 
 //! Constructs a matrix translating the given position into the origin.
-Matrix4D::Matrix4D( Vector3D posVec )
+Matrix4D::Matrix4D( const Vector3D& posVec )
 	: MATRIX4DINITDEFAULTS {
 	x[0] = 1.0; y[1] = 1.0; z[2] = 1.0; h[3] = 1.0;
 	h[0] = -posVec.getX();
@@ -183,7 +183,7 @@ Matrix4D::Matrix4D( Vector3D posVec )
 //! Constructer and initalize with a rotation matrix about an arbitrary axis.
 //!
 //! see: http://inside.mines.edu/~gmurray/ArbitraryAxisRotation/#sec-programming-notes
-Matrix4D::Matrix4D( Vector3D posVec, Vector3D dirVec, double angle )
+Matrix4D::Matrix4D(const Vector3D& posVec, const Vector3D& dirVec, double angle )
 	: MATRIX4DINITDEFAULTS {
 	init( posVec, dirVec, angle );
 }
@@ -483,6 +483,12 @@ double& Matrix4D::get( int idxRow, int idxCol ) {
 	}
 }
 
+double Matrix4D::getX(int idx) const
+{
+	//! Get const value with index idx form the 1st row
+	return x[idx];
+}
+
 // Eventually add additional checks to ensure that idx is within [0...3]
 // May influence performance.
 
@@ -491,14 +497,32 @@ double& Matrix4D::getX( int idx ) {
 	return x[idx];
 }
 
+double Matrix4D::getY(int idx) const
+{
+	//! Get const value with index idx from the 2nd row
+	return y[idx];
+}
+
 double& Matrix4D::getY( int idx ) {
 	//! Get value with index idx from the 2nd row.
 	return y[idx];
 }
 
+double Matrix4D::getZ(int idx) const
+{
+	//! Get const value with index idx from the 3rd row.
+	return z[idx];
+}
+
 double& Matrix4D::getZ( int idx ) {
 	//! Get value with index idx from the 3rd row.
 	return z[idx];
+}
+
+double Matrix4D::getH(int idx) const
+{
+	//! Get const value with index idx from the 4th row.
+	return h[idx];
 }
 
 double& Matrix4D::getH( int idx ) {

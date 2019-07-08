@@ -15,44 +15,44 @@
 //calculates intersection between ray starting at origin and rayDir
 //and triangle described by the vertices t0,t1,t2 . Returns true if the ray intersects the triangle and returns the distance in t
 //note, t can be negative. This means we have a line-intersection, not a ray-intersection
-bool intersectTriangle(const QVector3D& rayOrigin, const QVector3D& rayDir,
-					   const QVector3D& t0, const QVector3D& t1, const QVector3D& t2,
-					   float& t)
+bool intersectTriangle(const Vector3D& rayOrigin, const Vector3D& rayDir,
+					   const Vector3D& t0, const Vector3D& t1, const Vector3D& t2,
+					   double& t)
 {
-	const float eps = 0.000001;
+	const double eps = 0.000001;
 	/* find vectors for two edges sharing vert0 */
-	QVector3D edge1 = t1 - t0;
-	QVector3D edge2 = t2 - t0;
+	Vector3D edge1 = t1 - t0;
+	Vector3D edge2 = t2 - t0;
 
 	/* begin calculating determinant - also used to calculate U parameter */
-	QVector3D pvec = QVector3D::crossProduct(rayDir, edge2);
+	Vector3D pvec = rayDir % edge2;
 
 	/* if determinant is near zero, ray lies in plane of triangle */
-	float det = QVector3D::dotProduct(edge1, pvec);
+	double det = dot3(edge1, pvec);
 
 	if(det > -eps && det < eps)
 		return false;
 
-	float inv_det = 1.0f / det;
+	double inv_det = 1.0 / det;
 
 	/* calculate distance from vert0 to ray origin */
-	QVector3D tvec = rayOrigin - t0;
+	Vector3D tvec = rayOrigin - t0;
 
 	/* calculate U parameter and test bounds */
-	float u = QVector3D::dotProduct(tvec, pvec) * inv_det;
-	if(u < 0.0f || u > 1.0f)
+	double u = dot3(tvec, pvec) * inv_det;
+	if(u < 0.0 || u > 1.0)
 		return false;
 
 	/* prepare to test V parameter */
-	QVector3D qvec = QVector3D::crossProduct(tvec, edge1);
+	Vector3D qvec = tvec % edge1;
 
 	/* calculate V parameter and test bounds */
-	float v = QVector3D::dotProduct(rayDir, qvec) * inv_det;
-	if( v < 0.0f || u + v > 1.0)
+	double v = dot3(rayDir, qvec) * inv_det;
+	if( v < 0.0 || u + v > 1.0)
 		return false;
 
 	/* calculate t, ray intersects triangle */
-	t = QVector3D::dotProduct(edge2, qvec) * inv_det;
+	t = dot3(edge2, qvec) * inv_det;
 
 	return true;
 }
@@ -61,23 +61,23 @@ IcoSphereTree::IcoSphereTree(unsigned int subdivision)
 {
 	mVertices.resize(12);
 	//initialise root icosahedron, t == golden ratio
-	float t = (1.0f + sqrtf(5.0f)) / 2.0f;
+	double t = (1.0f + sqrtf(5.0f)) / 2.0f;
 
 	// create 12 vertices of a icosahedron
-	mVertices[ 0] = (QVector3D(-1.0f,  t, 0.0f).normalized());
-	mVertices[ 1] = (QVector3D( 1.0f,  t, 0.0f).normalized());
-	mVertices[ 2] = (QVector3D(-1.0f, -t, 0.0f).normalized());
-	mVertices[ 3] = (QVector3D( 1.0f, -t, 0.0f).normalized());
+	mVertices[ 0] = normalize3(Vector3D(-1.0,  t, 0.0));
+	mVertices[ 1] = normalize3(Vector3D( 1.0,  t, 0.0));
+	mVertices[ 2] = normalize3(Vector3D(-1.0, -t, 0.0));
+	mVertices[ 3] = normalize3(Vector3D( 1.0, -t, 0.0));
 
-	mVertices[ 4] =(QVector3D( 0.0f, -1.0f,  t).normalized());
-	mVertices[ 5] =(QVector3D( 0.0f,  1.0f,  t).normalized());
-	mVertices[ 6] =(QVector3D( 0.0f, -1.0f, -t).normalized());
-	mVertices[ 7] =(QVector3D( 0.0f,  1.0f, -t).normalized());
+	mVertices[ 4] = normalize3(Vector3D( 0.0, -1.0,  t));
+	mVertices[ 5] = normalize3(Vector3D( 0.0,  1.0,  t));
+	mVertices[ 6] = normalize3(Vector3D( 0.0, -1.0, -t));
+	mVertices[ 7] = normalize3(Vector3D( 0.0,  1.0, -t));
 
-	mVertices[ 8] =(QVector3D( t, 0.0f, -1.0f).normalized());
-	mVertices[ 9] =(QVector3D( t, 0.0f,  1.0f).normalized());
-	mVertices[10] =(QVector3D(-t, 0.0f, -1.0f).normalized());
-	mVertices[11] =(QVector3D(-t, 0.0f,  1.0f).normalized());
+	mVertices[ 8] = normalize3(Vector3D( t, 0.0, -1.0));
+	mVertices[ 9] = normalize3(Vector3D( t, 0.0,  1.0));
+	mVertices[10] = normalize3(Vector3D(-t, 0.0, -1.0));
+	mVertices[11] = normalize3(Vector3D(-t, 0.0,  1.0));
 
 	// 5 faces around point 0
 	mRootFaces[0].setVertIndices(0, 11,  5);
@@ -117,7 +117,7 @@ void IcoSphereTreeFaceNode::setVertIndices(size_t v0, size_t v1, size_t v2)
 	vertexIndices[2] = v2;
 }
 
-size_t getMidPoint(size_t p1, size_t p2, std::vector<QVector3D>& vertices, std::unordered_map<uint64_t, size_t>& cache)
+size_t getMidPoint(size_t p1, size_t p2, std::vector<Vector3D>& vertices, std::unordered_map<uint64_t, size_t>& cache)
 {
 	uint64_t minIndex = std::min(p1, p2);
 	uint64_t maxIndex = std::max(p1, p2);
@@ -129,16 +129,16 @@ size_t getMidPoint(size_t p1, size_t p2, std::vector<QVector3D>& vertices, std::
 		return item->second;
 	}
 
-	QVector3D middle = (vertices[p1] + vertices[p2]) * 0.5f;
+	Vector3D middle = (vertices[p1] + vertices[p2]) * 0.5f;
 	unsigned int retVal = vertices.size();
 
-	vertices.emplace_back(middle.normalized());
+	vertices.emplace_back(normalize3(middle));
 	cache.emplace(std::make_pair(key, retVal));
 
 	return retVal;
 }
 
-void subdivideFaces(std::unordered_map<uint64_t, size_t>& newNodeCache, std::queue<IcoSphereTreeFaceNode*>& faces, std::vector<QVector3D>& vertices)
+void subdivideFaces(std::unordered_map<uint64_t, size_t>& newNodeCache, std::queue<IcoSphereTreeFaceNode*>& faces, std::vector<Vector3D>& vertices)
 {
 	while(!faces.empty())
 	{
@@ -252,26 +252,26 @@ std::vector<float> IcoSphereTree::getVertexData() const
 	auto it = mVertices.begin();
 	for(size_t i = 0; i< retVec.size(); i += 3, ++it)
 	{
-		retVec[i    ] = it->x();
-		retVec[i + 1] = it->y();
-		retVec[i + 2] = it->z();
+		retVec[i    ] = it->getX();
+		retVec[i + 1] = it->getY();
+		retVec[i + 2] = it->getZ();
 	}
 
 	return retVec;
 }
 
-float pointRayDistanceSquared(const QVector3D& origin, const QVector3D& direction, const QVector3D& p)
+double pointRayDistanceSquared(const Vector3D& origin, const Vector3D& direction, const Vector3D& p)
 {
-	return QVector3D::crossProduct(p - origin, direction).lengthSquared();
+	return ((p - origin) % direction).getLength3Squared();
 }
 
-size_t getClosestFaceVertexIndexToRay(const QVector3D& rayOrigin, const QVector3D& rayDirection, const IcoSphereTreeFaceNode* face, const std::vector<QVector3D>& vertices)
+size_t getClosestFaceVertexIndexToRay(const Vector3D& rayOrigin, const Vector3D& rayDirection, const IcoSphereTreeFaceNode* face, const std::vector<Vector3D>& vertices)
 {
 	//find closest vertex of the face to the intersection-point
 	int retIndex = face->vertexIndices[0];
-	float minDistance = pointRayDistanceSquared(rayOrigin, rayDirection, vertices[face->vertexIndices[0]]);
+	double minDistance = pointRayDistanceSquared(rayOrigin, rayDirection, vertices[face->vertexIndices[0]]);
 
-	float distance = pointRayDistanceSquared(rayOrigin, rayDirection, vertices[face->vertexIndices[1]]);
+	double distance = pointRayDistanceSquared(rayOrigin, rayDirection, vertices[face->vertexIndices[1]]);
 
 	if(distance < minDistance)
 	{
@@ -288,15 +288,15 @@ size_t getClosestFaceVertexIndexToRay(const QVector3D& rayOrigin, const QVector3
 	return retIndex;
 }
 
-inline QVector3D getFaceCenter(const IcoSphereTreeFaceNode* face, const std::vector<QVector3D>& vertices)
+inline Vector3D getFaceCenter(const IcoSphereTreeFaceNode* face, const std::vector<Vector3D>& vertices)
 {
 	return (vertices[face->vertexIndices[0]] + vertices[face->vertexIndices[1]] + vertices[face->vertexIndices[2]]) * 0.3;
 }
 
-size_t getVertexIndexClosestToRay(const IcoSphereTreeFaceNode* faceToRefine, const QVector3D& rayOrigin, const QVector3D& rayDirection, const std::vector<QVector3D>& vertices)
+size_t getVertexIndexClosestToRay(const IcoSphereTreeFaceNode* faceToRefine, const Vector3D& rayOrigin, const Vector3D& rayDirection, const std::vector<Vector3D>& vertices)
 {
 	const IcoSphereTreeFaceNode* vertexFace = faceToRefine;
-	float t;
+	double t;
 
 
 	//descent until we have the triangle on the lowest level
@@ -316,15 +316,15 @@ size_t getVertexIndexClosestToRay(const IcoSphereTreeFaceNode* faceToRefine, con
 		//no face collision detected. this may happen, if the ray is on the edge of two faces. in this case, we have to search through the vertices manually by distance...
 		if(!found)
 		{
-			float minDist = std::numeric_limits<float>::max();
+			double minDist = std::numeric_limits<double>::max();
 			IcoSphereTreeFaceNode* candidate = nullptr;
 
 			//check which child shares the closes vertex
 			for(const auto& child : vertexFace->childNodes)
 			{
-				QVector3D center = getFaceCenter(child.get(), vertices);
+				Vector3D center = getFaceCenter(child.get(), vertices);
 
-				float distance = pointRayDistanceSquared(rayOrigin, rayDirection, center);
+				double distance = pointRayDistanceSquared(rayOrigin, rayDirection, center);
 				if(distance < minDist)
 				{
 					minDist = distance;
@@ -338,21 +338,21 @@ size_t getVertexIndexClosestToRay(const IcoSphereTreeFaceNode* faceToRefine, con
 	return getClosestFaceVertexIndexToRay(rayOrigin, rayDirection, vertexFace, vertices);
 }
 
-size_t IcoSphereTree::getNearestVertexIndexAt(const QVector3D& position) const
+size_t IcoSphereTree::getNearestVertexIndexAt(const Vector3D& position) const
 {
 	size_t index = 0;
 
 	//no check if it hits, because the ray is directed into the ico-spheres origin
-	getNearestVertexFromRay(position, (-position).normalized() , index);
+	getNearestVertexFromRay(position, normalize3(-position) , index);
 	return index;
 }
 
-bool IcoSphereTree::getNearestVertexFromRay(const QVector3D& rayOrigin, const QVector3D& rayDirection, size_t& index, bool rayIsLine) const
+bool IcoSphereTree::getNearestVertexFromRay(const Vector3D& rayOrigin, const Vector3D& rayDirection, size_t& index, bool rayIsLine) const
 {
 	//check if ray hits the sphere:
 	//origin of sphere is 0,0,0 , so direction from rayOrigin to sphereOrigin is -rayOrigin
 
-	float distance2 = QVector3D::crossProduct(-rayOrigin, rayDirection).lengthSquared();
+	double distance2 = (-rayOrigin % rayDirection).getLength3Squared();
 
 	//sphere has unit-radius
 	if(distance2 > 1.0)
@@ -360,17 +360,17 @@ bool IcoSphereTree::getNearestVertexFromRay(const QVector3D& rayOrigin, const QV
 
 	//get closest point from ray. then test intersection from that point emitting a ray to the origin
 	//we do this, because the ray might intersect the sphere, but miss the lowest resolution of the icosphere
-	QVector3D newOrigin = QVector3D::dotProduct(rayOrigin, rayDirection) * rayDirection; //(dot(a-p, n) * n) ; p == 0,0,0
-	QVector3D newDir = (-newOrigin).normalized();
+	Vector3D newOrigin = dot3(rayOrigin, rayDirection) * rayDirection; //(dot(a-p, n) * n) ; p == 0,0,0
+	Vector3D newDir = normalize3(-newOrigin);
 	newOrigin -= newDir; //we push the origin out of the sphere. Otherwise it might be inside...
 
 	//check root faces and recusivly refine the closest triangle intersection
 
-	float minDist = std::numeric_limits<float>::max();
+	double minDist = std::numeric_limits<double>::max();
 	const IcoSphereTreeFaceNode* refineFace = nullptr;
 	for(const auto& faceCandidate : mRootFaces)
 	{
-		float distance = 0.0;
+		double distance = 0.0;
 		if(intersectTriangle(newOrigin, newDir, mVertices[faceCandidate.vertexIndices[0]], mVertices[faceCandidate.vertexIndices[1]], mVertices[faceCandidate.vertexIndices[2]],distance))
 		{
 			if(rayIsLine && distance < 0.0)

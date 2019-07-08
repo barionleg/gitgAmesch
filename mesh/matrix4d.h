@@ -62,9 +62,9 @@ class Matrix4D {
 		// Constructors
 		Matrix4D();
 		Matrix4D( int mode, double val=1.0 );
-		Matrix4D( eCreateMode rMode, const std::vector<double>* rValues=NULL );
-		Matrix4D( Vector3D posVec );
-		Matrix4D( Vector3D posVec, Vector3D dirVec, double angle );
+		Matrix4D( eCreateMode rMode, const std::vector<double>* rValues=nullptr );
+		Matrix4D( const Vector3D& posVec );
+		Matrix4D( const Vector3D& posVec, const Vector3D& dirVec, double angle );
 		Matrix4D( const double* rArr4by4 );
 		Matrix4D( const float*  rArr4by4 );
 		Matrix4D( std::vector<double> rVec4by4 );
@@ -82,9 +82,13 @@ class Matrix4D {
 		// Access -- Get values
 		double  get( int idxRow, int idxCol ) const;
 		double& get( int idxRow, int idxCol );
+		double getX( int idx) const;
 		double& getX( int idx );
+		double getY( int idx) const;
 		double& getY( int idx );
+		double getZ(int idx) const;
 		double& getZ( int idx );
+		double getH(int idx) const;
 		double& getH( int idx );
 		double  getSumX();
 		double  getSumY();

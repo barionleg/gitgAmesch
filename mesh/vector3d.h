@@ -51,6 +51,7 @@ class Vector3D {
 		double getZ() const;
 		double getH() const;
 		double getLength3() const;
+		double getLength3Squared() const;
 		double getLength4() const;
 		double getAngleToXinXY();
 		double getAngleToZinYZ();
@@ -77,21 +78,21 @@ class Vector3D {
 		double angleInLineCoord( const Vector3D* rPosTop, const Vector3D* rPosBottom );
 
 		// Operators
-		void operator += (Vector3D addVec);
-		void operator -= (Vector3D addVec);
+		void operator += (const Vector3D& addVec);
+		void operator -= (const Vector3D& addVec);
 		void operator /= (double divVec);
 		void operator *= (double multVec);
-		void operator *= (Matrix4D multMat);
-		bool operator== (Vector3D compVec);
-		bool operator!= (Vector3D compVec);
+		void operator *= (const Matrix4D& multMat);
+		bool operator== (const Vector3D& compVec);
+		bool operator!= (const Vector3D& compVec);
 
 		// Operations
-		Vector3D  projectOnto(Vector3D someVec);
+		Vector3D  projectOnto(const Vector3D& someVec);
 		Vector3D  projectOntoLine( const Vector3D& rVertA, const Vector3D& rVertB );
-		Vector3D& applyTransformation(Matrix4D& transformationMatrix);
+		Vector3D& applyTransformation(const Matrix4D& transformationMatrix);
 
 		// Debuging
-		void dumpInfo( bool forMatlab=false, char* someNameTag=NULL );
+		void dumpInfo( bool forMatlab=false, char* someNameTag=nullptr );
 
 	private:
 		double x; //!< x-coordinate
@@ -102,30 +103,30 @@ class Vector3D {
 
 // GLOBAL Operators ------------------------------------------------------------
 
-Vector3D  operator% ( Vector3D crossVec1, Vector3D crossVec2 );
-Vector3D  operator+ ( Vector3D someVec1, Vector3D someVec2 );
-Vector3D  operator- ( Vector3D someVec );
-Vector3D  operator- ( Vector3D someVec1, Vector3D someVec2 );
-double    operator* ( Vector3D someVec1, Vector3D someVec2 );
-Vector3D  operator* ( Vector3D someVec, Matrix4D someMat );
-Vector3D  operator* ( Matrix4D someMat, Vector3D someVec );
-Vector3D  operator* ( Vector3D someVec, double scalar );
-Vector3D  operator* ( double scalar, Vector3D someVec );
-Vector3D  operator/ ( Vector3D someVec, double scalar );
-Vector3D  operator/ ( double scalar, Vector3D someVec );
-Vector3D  normalize3( Vector3D someVec );
-Vector3D  normalize4( Vector3D someVec );
+Vector3D  operator% ( const Vector3D& crossVec1, const Vector3D& crossVec2 );
+Vector3D  operator+ ( const Vector3D& someVec1, const Vector3D& someVec2 );
+Vector3D  operator- ( const Vector3D& someVec );
+Vector3D  operator- ( const Vector3D& someVec1, const Vector3D& someVec2 );
+double    operator* ( const Vector3D& someVec1, const Vector3D& someVec2 );
+Vector3D  operator* ( const Vector3D& someVec, const Matrix4D& someMat );
+Vector3D  operator* ( const Matrix4D& someMat, const Vector3D& someVec );
+Vector3D  operator* ( const Vector3D& someVec, double scalar );
+Vector3D  operator* ( double scalar, const Vector3D& someVec );
+Vector3D  operator/ ( const Vector3D& someVec, double scalar );
+Vector3D  operator/ ( double scalar, const Vector3D& someVec );
+Vector3D  normalize3( const Vector3D& someVec );
+Vector3D  normalize4( const Vector3D& someVec );
 
-Vector3D  compMult( Vector3D someVec1, Vector3D someVec2 );
+Vector3D  compMult( const Vector3D& someVec1, const Vector3D& someVec2 );
 
-double     dot3( Vector3D someVec1, Vector3D someVec2 );
-double     dot4( Vector3D someVec1, Vector3D someVec2 );
-double     angle( Vector3D vec1, Vector3D vec2 );
-double     angle( Vector3D vec1, Vector3D vec2, Vector3D vecNormal );
+double     dot3( const Vector3D& someVec1, const Vector3D& someVec2 );
+double     dot4( const Vector3D& someVec1, const Vector3D& someVec2 );
+double     angle( const Vector3D& vec1, const Vector3D& vec2 );
+double     angle( const Vector3D& vec1, const Vector3D& vec2, const Vector3D& vecNormal );
 double     angle3( double* vec1, double* vec2 );
 double     angle3ToZ( double* vec );
-double     abs3( Vector3D someVec );
-double     abs4( Vector3D someVec );
+double     abs3( const Vector3D& someVec );
+double     abs4( const Vector3D& someVec );
 
 bool lineLineIntersect( const Vector3D& p1, const Vector3D& p2, const Vector3D& p3, const Vector3D& p4, Vector3D& pa, Vector3D& pb );
 

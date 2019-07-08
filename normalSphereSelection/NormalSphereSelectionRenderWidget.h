@@ -24,7 +24,6 @@ class NormalSphereSelectionRenderWidget : public QOpenGLWidget, QOpenGLFunctions
 		void setRenderNormals(std::vector<float>& normals);
 
 		void setSelected(float nx, float ny, float nz);
-		void setSelected(float nx, float ny, float nz, float radius);
 		void clearSelected();
 		bool isNormalSelected(float nx, float ny, float nz);
 		// QWidget interface

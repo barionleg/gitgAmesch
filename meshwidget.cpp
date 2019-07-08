@@ -7262,7 +7262,7 @@ void MeshWidget::setView( GLdouble* rOrthoViewPort //!< position and dimension o
 	cameraPlaneNormal.normalize3();
 	// as cameraView.X/Y/Z = A/B/C of the Hessian Normal Form (HNF), we need D and we know that |cameraView| == 0.0, we get:
 	// and use HNF to get the distance:
-	float cameraPlaneD = -compMult( mCameraCenter, cameraPlaneNormal ).sum3();
+	double cameraPlaneD = -compMult( mCameraCenter, cameraPlaneNormal ).sum3();
 
 	double     bBoxRadius;
 	Vector3D   bBoxCenter( 0.0f, 0.0f, 0.0f, 1.0 );

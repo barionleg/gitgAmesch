@@ -100,7 +100,7 @@ void NormalSphereSelectionRenderWidget::setRenderNormals(std::vector<float>& nor
 		if(std::isnan(mNormalUpload[i]) || std::isnan(mNormalUpload[i + 1]) || std::isnan(mNormalUpload[i+2]) )
 			continue;
 
-		size_t index = mIcoSphereTree.getNearestVertexIndexAt(QVector3D(mNormalUpload[i], mNormalUpload[i+1], mNormalUpload[i+2]));
+		size_t index = mIcoSphereTree.getNearestVertexIndexAt(Vector3D(mNormalUpload[i], mNormalUpload[i+1], mNormalUpload[i+2]));
 		mIcoSphereTree.incData(index);
 	}
 }
@@ -110,7 +110,7 @@ void NormalSphereSelectionRenderWidget::setSelected(float nx, float ny, float nz
 	if(std::isnan(nx) || std::isnan(ny) || std::isnan(nz))
 		return;
 
-	size_t index = mIcoSphereTree.getNearestVertexIndexAt(QVector3D(nx, ny, nz));
+	size_t index = mIcoSphereTree.getNearestVertexIndexAt(Vector3D(nx, ny, nz));
 
 	if(mSelectionMask != 0)
 		mIcoSphereTree.selectVertex(index);
@@ -140,7 +140,7 @@ bool NormalSphereSelectionRenderWidget::isNormalSelected(float nx, float ny, flo
 	if(std::isnan(nx) || std::isnan(ny) || std::isnan(nz))
 		return false;
 
-	size_t index = mIcoSphereTree.getNearestVertexIndexAt(QVector3D(nx, ny, nz));
+	size_t index = mIcoSphereTree.getNearestVertexIndexAt(Vector3D(nx, ny, nz));
 
 	return mIcoSphereTree.isSelected(index);
 }
