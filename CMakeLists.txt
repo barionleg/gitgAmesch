@@ -76,7 +76,8 @@ set(SOURCES_COMMON mesh/geodentry.cpp
 	mesh/matrix4d.cpp
 	mesh/voxelfilter25d.cpp
 	mesh/meshinfodata.cpp
-	mesh/mesh.cpp)
+	mesh/mesh.cpp
+	normalSphereSelection/IcoSphereTree.cpp)
 
 set(HEADERS_COMMON mesh/geodentry.h
 	mesh/bitflagarray.h
@@ -106,7 +107,8 @@ set(HEADERS_COMMON mesh/geodentry.h
 	mesh/matrix4d.h
 	mesh/voxelfilter25d.h
 	mesh/meshinfodata.h
-	mesh/mesh.h)
+	mesh/mesh.h
+	normalSphereSelection/IcoSphereTree.h)
 
 if(MSVC)
     list(APPEND HEADERS_COMMON mesh/getoptwin.h)

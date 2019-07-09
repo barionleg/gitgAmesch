@@ -1,7 +1,7 @@
 #ifndef ICOSPHERETREE_H
 #define ICOSPHERETREE_H
 
-#include "vector3d.h"
+#include "../mesh/vector3d.h"
 #include <vector>
 #include <memory>
 #include <array>

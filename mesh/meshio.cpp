@@ -21,7 +21,7 @@
 #include <chrono>
 
 #include "primitive.h"
-#include "normalSphereSelection/IcoSphereTree.h"
+#include "../normalSphereSelection/IcoSphereTree.h"
 
 #define uint unsigned int
 #define READ_IN_PROPER_BYTE_ORDER( filestream, target, size, reverse ) { \
