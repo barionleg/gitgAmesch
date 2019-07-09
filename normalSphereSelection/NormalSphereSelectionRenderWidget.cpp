@@ -105,7 +105,7 @@ void NormalSphereSelectionRenderWidget::setRenderNormals(std::vector<float>& nor
 	}
 }
 
-void NormalSphereSelectionRenderWidget::setSelected(float nx, float ny, float nz)
+void NormalSphereSelectionRenderWidget::setSelected(double nx, double ny, double nz)
 {
 	if(std::isnan(nx) || std::isnan(ny) || std::isnan(nz))
 		return;
@@ -135,7 +135,7 @@ void NormalSphereSelectionRenderWidget::clearSelected()
 	update();
 }
 
-bool NormalSphereSelectionRenderWidget::isNormalSelected(float nx, float ny, float nz)
+bool NormalSphereSelectionRenderWidget::isNormalSelected(double nx, double ny, double nz)
 {
 	if(std::isnan(nx) || std::isnan(ny) || std::isnan(nz))
 		return false;
@@ -327,7 +327,7 @@ void NormalSphereSelectionRenderWidget::initializeGL()
 
 	assert(glGetError() == GL_NO_ERROR);
 
-	auto vertexData = mIcoSphereTree.getVertexData();
+	auto vertexData = mIcoSphereTree.getVertices();
 
 	mIcosphereBuffer.allocate(vertexData.data(), vertexData.size() * sizeof (float));
 

@@ -21,6 +21,7 @@
 #include <chrono>
 
 #include "primitive.h"
+#include "normalSphereSelection/IcoSphereTree.h"
 
 #define uint unsigned int
 #define READ_IN_PROPER_BYTE_ORDER( filestream, target, size, reverse ) { \
@@ -2416,6 +2417,49 @@ string MeshIO::getFileLocation() {
 //! Returns the full name and path of the file.
 string MeshIO::getFullName() {
 	return mFileNameFull;
+}
+
+bool MeshIO::writeIcoNormalSphereData(const string& rFilename, const std::vector<sVertexProperties>& rVertexProps, int subdivisions, bool sphereCoordinates)
+{
+
+	fstream filestr;
+	filestr.open( rFilename.c_str(), fstream::out );
+	if( !filestr.is_open() ) {
+		cerr << "[MeshIO] Could not open file: '" << rFilename << "'." << endl;
+		return false;
+	} else {
+		cout << "[MeshIO] File open for writing: '" << rFilename << "'." << endl;
+	}
+
+	IcoSphereTree icoSphereTree(subdivisions);
+
+	for(const auto& vertexProp : rVertexProps)
+	{
+		size_t selIndex = icoSphereTree.getNearestVertexIndexAt(Vector3D(vertexProp.mNormalX, vertexProp.mNormalY, vertexProp.mNormalZ));
+		icoSphereTree.incData(selIndex);
+	}
+
+	std::vector<float> normals = icoSphereTree.getVertices();
+	const std::vector<unsigned int>& normalNums = *icoSphereTree.getVertexDataP();
+
+	for(int i = 0; i<normalNums.size(); ++i)
+	{
+		float* n = &normals[i*3];
+		if(sphereCoordinates)
+		{
+			float theta = acos(n[2]);
+			float phi = atan2(n[1], n[0]);
+
+			filestr << theta << "," << phi << "," << normalNums[i] << "\n";
+		}
+		else
+		{
+			filestr << n[0] << "," << n[1] << "," << n[2] << "," << normalNums[i] << "\n";
+		}
+
+	}
+
+	filestr.close();
 }
 
 // Private -----------------------------------------------------------------

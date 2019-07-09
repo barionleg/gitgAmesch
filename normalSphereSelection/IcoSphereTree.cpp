@@ -245,7 +245,7 @@ std::vector<unsigned int> IcoSphereTree::getFaceIndices(int subdivisionLevel) co
 	return retVec;
 }
 
-std::vector<float> IcoSphereTree::getVertexData() const
+std::vector<float> IcoSphereTree::getVertices() const
 {
 	std::vector<float> retVec(mVertices.size() * 3);
 

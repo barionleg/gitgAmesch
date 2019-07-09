@@ -19,7 +19,7 @@ class IcoSphereTree
 	public:
 		IcoSphereTree(unsigned int subdivision = 0);
 		std::vector<unsigned int> getFaceIndices(int subdivisionLevel = -1) const;
-		[[nodiscard]] std::vector<float> getVertexData() const;
+		[[nodiscard]] std::vector<float> getVertices() const;
 
 		size_t getNearestVertexIndexAt(const Vector3D& position) const;
 

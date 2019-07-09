@@ -23,9 +23,9 @@ class NormalSphereSelectionRenderWidget : public QOpenGLWidget, QOpenGLFunctions
 		//moves the data from normals to internal data => normals is afterward empty!
 		void setRenderNormals(std::vector<float>& normals);
 
-		void setSelected(float nx, float ny, float nz);
+		void setSelected(double nx, double ny, double nz);
 		void clearSelected();
-		bool isNormalSelected(float nx, float ny, float nz);
+		bool isNormalSelected(double nx, double ny, double nz);
 		// QWidget interface
 
 		void setColorMapIndex(unsigned int index);

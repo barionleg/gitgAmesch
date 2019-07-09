@@ -79,6 +79,8 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	//.
 	QObject::connect( actionExportFuncVals,           SIGNAL(triggered()), this,       SIGNAL(exportFuncVals())                 );
 	QObject::connect( actionExportFaceNormalAngles,   SIGNAL(triggered()), this,       SIGNAL(exportFaceNormalAngles())         );
+
+	QObject::connect( actionExport_Normal_Sphere_Data, &QAction::triggered, this,       &QGMMainWindow::exportNormalSphereData);
 	//.
 	QObject::connect( actionSaveStillImages360HLR,    SIGNAL(triggered()), this,       SIGNAL(saveStillImages360HLR())    );
 	QObject::connect( actionSaveStillImages360VUp,    SIGNAL(triggered()), this,       SIGNAL(saveStillImages360VUp())    );

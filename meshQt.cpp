@@ -147,6 +147,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	QObject::connect( mMainWindow, SIGNAL(exportFuncVals()),                 this, SLOT(exportFuncVals())                 );
 	QObject::connect( mMainWindow, SIGNAL(exportFaceNormalAngles()),         this, SLOT(exportFaceNormalAngles())         );
 
+	QObject::connect( mMainWindow, &QGMMainWindow::exportNormalSphereData, this , &MeshQt::exportNormalSphereData);
 	// Edit menu ----------------------------------------------------------------------------------------------------------
 	QObject::connect( mMainWindow, SIGNAL(removeVerticesSelected()),     this, SLOT(removeVerticesSelected()) );
 	QObject::connect( mMainWindow, SIGNAL(removeUncleanSmall()),         this, SLOT(removeUncleanSmallUser()) );
@@ -769,6 +770,46 @@ bool MeshQt::exportFaceNormalAngles( string filename ) {
 	//! Handle GUI request to export normals in spherical coordinates.
 	//! see MeshGL::exportFaceNormalAngles
 	return MeshGL::exportFaceNormalAngles( filename );
+}
+
+void MeshQt::exportNormalSphereData()
+{
+	QString filePath = QString( getFileLocation().c_str() );
+	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Export normal data mapped on IcoSPhere" ), \
+													 filePath,    tr( "CSV file (*.csv)" ) );
+	if( fileName.length() == 0 ) {
+		return;
+	}
+
+	bool userCancel;
+	// Ask for ico-sphere subdivision level
+	QString subdivision = "6";
+
+	SHOW_INPUT_DIALOG( tr("Subdivisions"), tr("Subdivision level of the icosphere"), subdivision, subdivision, userCancel);
+
+	if( userCancel ) {
+		return;
+	}
+
+	// Ask for vertex normals in sphere coordinates
+	bool sphereCoordinates;
+	SHOW_QUESTION( tr("Normals representation"), tr("Export normals in sphere-coordinates?"), sphereCoordinates, userCancel );
+	if( userCancel ) {
+		return;
+	}
+
+	std::vector<sVertexProperties> vertexProps;
+	vertexProps.resize( getVertexNr() );
+
+	uint64_t vertCount = getVertexNr();
+
+	for( uint64_t vertIdx=0; vertIdx<vertCount; vertIdx++ ) {
+		Vertex* curVertex = getVertexPos( vertIdx );
+		curVertex->setIndex( vertIdx );
+		curVertex->copyVertexPropsTo( vertexProps[vertIdx] );
+	}
+
+	writeIcoNormalSphereData(fileName.toStdString(), vertexProps , subdivision.toInt(), sphereCoordinates);
 }
 
 // --- Edit actions ---------------------------------------------------------------------------
@@ -4388,6 +4429,11 @@ bool MeshQt::setFileSaveFlagGMExtras( bool rSetTo ) {
 	setFlagExport( MeshIO::EXPORT_VERT_FTVEC, rSetTo );
 	setFlagExport( MeshIO::EXPORT_POLYLINE,   rSetTo );
 	return rSetTo;
+}
+
+bool MeshQt::writeIcoNormalSphereData(const string& rFilename, const std::vector<sVertexProperties>& rVertexProps, int subdivisions, bool sphereCoordinates)
+{
+	return Mesh::writeIcoNormalSphereData(rFilename, rVertexProps, subdivisions, sphereCoordinates);
 }
 
 // Set Information ------------------------------------------------------------

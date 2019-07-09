@@ -168,6 +168,7 @@ signals:
 	void exportPolyLinesFuncVals();                          //!< triggers the export of run-length and function values of (selected) polylines.
 	//.
 	void exportFaceNormalAngles();                           //!< triggers the export of the faces normals as sphereical angles
+	void exportNormalSphereData();                           //!< triggers the export of the normal sphere data
 	//.
 	void saveStillImages360HLR();                            //!< triggers the generation of still images for a horizontal 360° rotation (left->right).
 	void saveStillImages360VUp();                            //!< triggers the generation of still images for a vertical 360° rotation (upwards).
