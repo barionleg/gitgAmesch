@@ -809,7 +809,7 @@ void MeshQt::exportNormalSphereData()
 		curVertex->copyVertexPropsTo( vertexProps[vertIdx] );
 	}
 
-	writeIcoNormalSphereData(fileName.toStdString(), vertexProps , subdivision.toInt(), sphereCoordinates);
+	MeshIO::writeIcoNormalSphereData(fileName.toStdString(), vertexProps , subdivision.toInt(), sphereCoordinates);
 }
 
 // --- Edit actions ---------------------------------------------------------------------------
@@ -4429,11 +4429,6 @@ bool MeshQt::setFileSaveFlagGMExtras( bool rSetTo ) {
 	setFlagExport( MeshIO::EXPORT_VERT_FTVEC, rSetTo );
 	setFlagExport( MeshIO::EXPORT_POLYLINE,   rSetTo );
 	return rSetTo;
-}
-
-bool MeshQt::writeIcoNormalSphereData(const string& rFilename, const std::vector<sVertexProperties>& rVertexProps, int subdivisions, bool sphereCoordinates)
-{
-	return Mesh::writeIcoNormalSphereData(rFilename, rVertexProps, subdivisions, sphereCoordinates);
 }
 
 // Set Information ------------------------------------------------------------

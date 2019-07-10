@@ -2442,7 +2442,7 @@ bool MeshIO::writeIcoNormalSphereData(const string& rFilename, const std::vector
 	std::vector<float> normals = icoSphereTree.getVertices();
 	const std::vector<unsigned int>& normalNums = *icoSphereTree.getVertexDataP();
 
-	for(int i = 0; i<normalNums.size(); ++i)
+	for(size_t i = 0; i<normalNums.size(); ++i)
 	{
 		float* n = &normals[i*3];
 		if(sphereCoordinates)
@@ -2460,6 +2460,8 @@ bool MeshIO::writeIcoNormalSphereData(const string& rFilename, const std::vector
 	}
 
 	filestr.close();
+
+	return true;
 }
 
 // Private -----------------------------------------------------------------

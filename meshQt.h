@@ -340,7 +340,6 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		virtual bool setFileSaveFlagBinary( bool rSetTo );
 		virtual bool setFileSaveFlagGMExtras( bool rSetTo );
 
-		bool writeIcoNormalSphereData(const std::string& rFilename, const std::vector<sVertexProperties>& rVertexProps, int subdivisions, bool sphereCoordinates) override;
 	// Related to MeshIO
 	//===================
 				bool importTexMapFromFile(const QString& rFileName );
