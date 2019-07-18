@@ -169,8 +169,7 @@ using namespace std;
 				std::chrono::system_clock::time_point tEnd = std::chrono::system_clock::now();
 				//std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>( tEnd - tStart );
 				double time_elapsed = ( std::chrono::duration<double>( tEnd - tStart ) ).count();
-				double time_remaining = ( ( time_elapsed / ( vertexOriIdxInProgress - threadOffset )) *
-				                                                             meshData->meshToAnalyze->getVertexNr());
+				double time_remaining =   (time_elapsed * (1.0/percentDone)) - time_elapsed;
 				std::chrono::system_clock::time_point tFinalEst = tEnd + std::chrono::seconds( static_cast<long>( time_remaining ) );
 				std::time_t ttp = std::chrono::system_clock::to_time_t(tFinalEst);
 
