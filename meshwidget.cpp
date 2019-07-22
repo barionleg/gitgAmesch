@@ -2557,8 +2557,8 @@ bool MeshWidget::screenshotViewsPDFDirectory() {
 		callFunctionMeshWidget( SET_RENDER_LIGHT_SHADING );
 		orthoSetDPI( 600 );
 		// Compute function value and choose grayscale
-		double minFuncValue = -0.12910306806;
-		double maxFuncValue = +0.48764927169;
+		double minFuncValue = -0.12910306806; // Values used for HeiCuBeDa
+		double maxFuncValue = +0.48764927169; // Values used for HeiCuBeDa
 		mMeshVisual->callFunctionMesh( MeshParams::FUNCVAL_FEATUREVECTOR_MAX_ELEMENT, false ); // False has NO influence.
 		mMeshVisual->setParamIntMeshGL( MeshGLParams::GLSL_COLMAP_CHOICE, MeshGLParams::GLSL_COLMAP_GRAYSCALE );
 		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_COLMAP_INVERT, true );
@@ -2573,7 +2573,8 @@ bool MeshWidget::screenshotViewsPDFDirectory() {
 
 		// Create PDF
 		QString prefixStem( string( std::filesystem::path( currFiles.at(i).toStdString() ).stem().string() ).c_str() );
-		screenshotViewsPDF( pathChoosen+'/'+prefixStem+".pdf" );
+		screenshotViewsPDF( pathChoosen+'/'+prefixStem+".pdf" ); // Multiple Sides
+		//screenshotPDF( pathChoosen+'/'+prefixStem+".pdf", true ); // Fromt Sides
 	}
 
 	SHOW_MSGBOX_INFO( "Schreenshots - Views - PDF", "Screenshots have been exported as PDF, LaTeX and PNG." );
@@ -2593,6 +2594,10 @@ bool MeshWidget::screenshotViewsPNGDirectory() {
 	if( !screenshotViewsDirectory( pathChoosen, currFiles ) ) {
 		return( false );
 	}
+
+	//! \todo add User interaction.
+	//double printResDPI = 600.0; // HeiCuBeDa Setting
+	double printResDPI = 1000.0; // ErKon3D Springer LNCS Setting
 
 	bool errorOccured = false;
 	// This could be outsourced
@@ -2617,7 +2622,10 @@ bool MeshWidget::screenshotViewsPNGDirectory() {
 		setParamFlagMeshWidget( EXPORT_SIDE_VIEWS_SIX, false );
 		setParamFlagMeshWidget( LIGHT_ENABLED, true );
 		mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_MONO );
-		orthoSetDPI( 600 );
+		orthoSetDPI( printResDPI );
+		// Turn of vertex sprite rendering -- COPY+PASTE from BELOW!
+		mMeshVisual->callFunctionMeshGL( MeshGLParams::SET_SHOW_VERTICES_NONE, false ); // False has NO influence.
+		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_SELECTION, false );
 
 		// Create PNGs
 		string fileNamePattern;
@@ -2626,8 +2634,14 @@ bool MeshWidget::screenshotViewsPNGDirectory() {
 		bool   useTiled = true;
 		std::vector<std::string> imageFiles;
 		std::vector<double>      imageSizes;
-		screenshotViews( fileNamePattern, ( pathChoosen+"/"+prefixStem+"_SolidColor" ).toStdString(),
-		                 useTiled, imageFiles, imageSizes );
+		// SIDE Views
+		//screenshotViews( fileNamePattern, ( pathChoosen+"/"+prefixStem+"_SolidColor" ).toStdString(),
+		//                 useTiled, imageFiles, imageSizes );
+		// FRONT View
+		double widthReal;  // Dummy var - unused in this context.
+		double heigthReal; // Dummy var - unused in this context.
+		screenshotSingle( ( pathChoosen+"/"+prefixStem+"_SolidColor.png" ),
+		                  useTiled, widthReal, heigthReal );
 
 		//===============================================================================================================
 		// Set properties - HEURISTIC for cuneiform tablets
@@ -2635,10 +2649,13 @@ bool MeshWidget::screenshotViewsPNGDirectory() {
 		// Set ligth and fixed resolution
 		setParamFlagMeshWidget( EXPORT_SIDE_VIEWS_SIX, true );
 		setParamFlagMeshWidget( LIGHT_ENABLED, false );
-		orthoSetDPI( 600 );
+		orthoSetDPI( printResDPI );
 		// Compute function value and choose grayscale
-		double minFuncValue = -0.12910306806;
-		double maxFuncValue = +0.48764927169;
+		//double minFuncValue = -0.12910306806; // Values used for HeiCuBeDa 1%
+		//double maxFuncValue = +0.48764927169; // Values used for HeiCuBeDa 99%
+		double minFuncValue = -0.061743971965; // Values used for ErKon3D Springer LNCS 5%
+		double maxFuncValue = 0.205966176870; // Values used for ErKon3D Springer LNCS 98%
+		//double maxFuncValue = +0.554183392987; // Values used for ErKon3D Springer LNCS
 		mMeshVisual->callFunctionMesh( MeshParams::FUNCVAL_FEATUREVECTOR_MAX_ELEMENT, false ); // False has NO influence.
 		mMeshVisual->setParamIntMeshGL( MeshGLParams::GLSL_COLMAP_CHOICE, MeshGLParams::GLSL_COLMAP_GRAYSCALE );
 		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_COLMAP_INVERT, true );
@@ -2652,11 +2669,21 @@ bool MeshWidget::screenshotViewsPNGDirectory() {
 		//===============================================================================================================
 
 		// Create PNGs
-		screenshotViews( fileNamePattern, ( pathChoosen+"/"+prefixStem ).toStdString(),
-		                 useTiled, imageFiles, imageSizes );
+		// SIDE Views
+		//screenshotViews( fileNamePattern, ( pathChoosen+"/"+prefixStem ).toStdString(),
+		//                 useTiled, imageFiles, imageSizes );
+		// FRONT View
+		screenshotSingle( ( pathChoosen+"/"+prefixStem+".png" ),
+		                  useTiled, widthReal, heigthReal );
+
+		// THIS is really QUICK and DIRTY
+		// Save file with function value and the created color.
+		// stops because of confirmation: mMeshVisual->callFunctionMeshGL( MeshGLParams::TRANSFORM_FUNCTION_VALUES_TO_RGB, false );
+//		mMeshVisual->runFunctionValueToRGBTransformation();
+//		mMeshVisual->writeFile( pathChoosen+"/"+prefixStem+"_FtElMax-as_VertexColor.ply" );
 	}
 
-	SHOW_MSGBOX_INFO( "Schreenshots - Views - PDF", "Screenshots have been exported as PDF, LaTeX and PNG." );
+	SHOW_MSGBOX_INFO( "Schreenshots - Views - PNG", "Screenshots have been exported as PNG." );
 
 	return( !errorOccured );
 }
