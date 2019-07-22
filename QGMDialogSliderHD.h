@@ -68,6 +68,10 @@ class QGMDialogSliderHD : public QDialog
 
 		QDoubleValidator mValidRel; //!< Validator for lineEdit of the relative value.
 		QDoubleValidator mValidAbs; //!< Validator for lineEdit of the absolute value.
+
+		// QWidget interface
+	protected:
+		virtual void changeEvent(QEvent* event) override;
 };
 
 #endif // QGMDIALOGSLIDERHD_H

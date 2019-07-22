@@ -207,3 +207,14 @@ void QGMDockSideBar::updateMeshParamInt( MeshGLParams::eParamInt rParamNr, int r
 			cerr << "[QGMDockSideBar::" << __FUNCTION__ << "] ERROR: unsupported/unimplemented parameter no: " << rParamNr << "!" << endl;
 	}
 }
+
+
+void QGMDockSideBar::changeEvent(QEvent* event)
+{
+	if(event->type() == QEvent::LanguageChange)
+	{
+		ui->retranslateUi(this);
+	}
+
+	QDockWidget::changeEvent(event);
+}

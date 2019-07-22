@@ -99,12 +99,7 @@ void main(void) {
                 oVertex.vertexFuncValTexCoord.s = ( 511.0 * funcValForTexCoords + 0.5 ) / 512.0;
 	} else {
 		float normRange = ( vFuncVal - uFuncValMin ) / ( uFuncValMax - uFuncValMin );
-		if( normRange < 0.0 ) {
-			normRange = 0.0;
-		}
-		if( normRange > 1.0 ) {
-			normRange = 1.0;
-		}
+		normRange = clamp(normRange, 0.0, 1.0);
 		normRange = pow( normRange, uFuncValLogGamma );
                 oVertex.vertexFuncValTexCoord.s = ( 511.0 * normRange ) / 512.0 + 0.5 / 512.0;
 	}

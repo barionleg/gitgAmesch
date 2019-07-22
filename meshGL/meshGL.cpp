@@ -1833,7 +1833,7 @@ bool MeshGL::funcVertAmbientOcclusion( int rResolution, unsigned int rNumberOfDi
 		getParamIntMeshGL(MeshGLParams::DEFAULT_FRAMEBUFFER_ID, &defaultFramebuffer);
 
 		using PglBindFramebuffer = void (*)(GLenum, GLuint);
-		PglBindFramebuffer bindFramebuffer = reinterpret_cast<PglBindFramebuffer>(mOpenGLContext->getProcAddress("glBindframebuffer") );
+		PglBindFramebuffer bindFramebuffer = reinterpret_cast<PglBindFramebuffer>(mOpenGLContext->getProcAddress("glBindFramebuffer") );
 
 		bindFramebuffer(GL_FRAMEBUFFER, defaultFramebuffer);
 
@@ -1951,7 +1951,7 @@ bool MeshGL::funcVertAmbientOcclusionHW( int rDepthBufferRes, int rMaxValueBuffe
 		getParamIntMeshGL(MeshGLParams::DEFAULT_FRAMEBUFFER_ID, &defaultFramebuffer);
 
 		using PglBindFramebuffer = void (*)(GLenum, GLuint);
-		PglBindFramebuffer bindFramebuffer = reinterpret_cast<PglBindFramebuffer>(mOpenGLContext->getProcAddress("glBindframebuffer") );
+		PglBindFramebuffer bindFramebuffer = reinterpret_cast<PglBindFramebuffer>(mOpenGLContext->getProcAddress("glBindFramebuffer") );
 
 		bindFramebuffer(GL_FRAMEBUFFER, defaultFramebuffer);
 

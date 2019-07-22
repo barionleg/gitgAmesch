@@ -17,7 +17,7 @@ class QGMDialogNprSettings : public QDialog
     Q_OBJECT
 
 public:
-    explicit QGMDialogNprSettings(QWidget *parent = 0);
+	explicit QGMDialogNprSettings(QWidget *parent = nullptr);
     ~QGMDialogNprSettings();
 
 	void init( MeshGL* rMesh, MeshGLColors* rRenderColors );
@@ -64,7 +64,7 @@ private:
     QColor m_Diffuse5;
     QColor m_Specular;
 
-    QColorDialog* m_pColorDialog;
+	//QColorDialog* m_pColorDialog;
     QObject* m_pColorRequest;
 
 	MeshGL*         m_meshGL;
@@ -102,6 +102,10 @@ private slots:
 signals:
     void valuesChanged();
 
+
+	// QWidget interface
+	protected:
+	virtual void changeEvent(QEvent* event) override;
 };
 
 #endif // QGMDIALOGNPRSETTINGS_H

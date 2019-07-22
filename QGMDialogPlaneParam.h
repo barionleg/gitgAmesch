@@ -52,6 +52,10 @@ signals:
 	void sSetPlaneHNF(Vector3D);
 	void sSplitByPlane(Vector3D,bool);
 
+
+	// QWidget interface
+	protected:
+	virtual void changeEvent(QEvent* event) override;
 };
 
 #endif

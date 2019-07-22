@@ -14,12 +14,16 @@ class QGMDialogAbout : public QDialog, private Ui::dialogAbout {
     Q_OBJECT
 
 public:
-	QGMDialogAbout( QWidget *parent = 0, Qt::WindowFlags flags = Qt::FramelessWindowHint );
+	QGMDialogAbout( QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::FramelessWindowHint );
 
 signals:
 
 public slots:
 
+
+	// QWidget interface
+	protected:
+	virtual void changeEvent(QEvent* event) override;
 };
 
 #endif // QGMDIALOGABOUT_H

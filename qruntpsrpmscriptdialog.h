@@ -176,6 +176,10 @@ private:
 	bool m_primitiveCoordinatesTargetFileNameValid = false;
 	bool m_meshDataOutputFileNameValid = false;
 
+
+	// QWidget interface
+	protected:
+	virtual void changeEvent(QEvent* event) override;
 };
 
 //! \brief				Convenience function that constructs an

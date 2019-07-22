@@ -80,6 +80,10 @@ signals:
 
 private:
 	int mValueID; //!< Optional ID to identify values to be set, e.g. by MeshGL::setViewParams
+
+	// QWidget interface
+	protected:
+	virtual void changeEvent(QEvent* event) override;
 };
 
 #endif

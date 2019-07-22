@@ -14,7 +14,7 @@ QGMDialogMSII::QGMDialogMSII( QWidget *parent, Qt::WindowFlags flags )
 
 void QGMDialogMSII::setVertex( int vertexID ) {
 	//! Set the form entry for the Vertex ID
-	lineVertex->setText( tr( "%1" ).arg( vertexID ) );
+	lineVertex->setText( QString( "%1" ).arg( vertexID ) );
 }
 
 bool QGMDialogMSII::isOriIndex() {
@@ -191,4 +191,15 @@ void QGMDialogMSII::accept() {
 	QObject::disconnect();
 
 	QDialog::accept();
+}
+
+
+void QGMDialogMSII::changeEvent(QEvent*event)
+{
+	if(event->type() == QEvent::LanguageChange)
+	{
+		retranslateUi(this);
+	}
+
+	QDialog::changeEvent(event);
 }

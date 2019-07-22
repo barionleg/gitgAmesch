@@ -1277,11 +1277,15 @@ bool Mesh::getVertexList( set<Vertex*>* rVertices ) {
 	}
 	//! *) Clears the given vertexVector.
 	rVertices->clear();
+
+	std::copy(mVertices.begin(), mVertices.end(), std::inserter(*rVertices, rVertices->end()));
+	/*
 	//! *) Prepare list of vertices.
 	vector<Vertex*>::iterator itVertex;
 	for( itVertex=mVertices.begin(); itVertex!=mVertices.end(); itVertex++ ) {
 		rVertices->insert( (*itVertex) );
 	}
+	*/
 	cout << "[Mesh::" << __FUNCTION__ << "] make vertex set time: " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
 	return true;
 }
@@ -1293,6 +1297,9 @@ bool Mesh::getVertexList( vector<Vertex*>* rVertices ) {
 	if( rVertices == nullptr ) {
 		return false;
 	}
+
+	*rVertices = mVertices;
+	/*
 	//! *) Clears the given vertexVector.
 	rVertices->clear();
 	//! *) Prepare list of vertices.
@@ -1300,6 +1307,7 @@ bool Mesh::getVertexList( vector<Vertex*>* rVertices ) {
 	for( itVertex=mVertices.begin(); itVertex!=mVertices.end(); itVertex++ ) {
 		rVertices->push_back( (*itVertex) );
 	}
+	*/
 	cout << "[Mesh::" << __FUNCTION__ << "] make vertex vector time: " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
 	return true;
 }

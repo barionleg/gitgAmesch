@@ -278,3 +278,14 @@ void QGMDockInfo::showProgressStopReset() {
 void QGMDockInfo::visibility( bool rVisible ) {
 	emit sShowFlagMeshWidget( MeshWidgetParams::SHOW_GIGAMESH_LOGO_FORCED, not(rVisible) );
 }
+
+
+void QGMDockInfo::changeEvent(QEvent* event)
+{
+	if(event->type() == QEvent::LanguageChange)
+	{
+		ui->retranslateUi(this);
+	}
+
+	QDockWidget::changeEvent(event);
+}

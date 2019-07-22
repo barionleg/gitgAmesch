@@ -20,6 +20,9 @@
 TEMPLATE = app
 TARGET = gigamesh
 
+TRANSLATIONS = languages/GigaMesh_de.ts \
+			   languages/GigaMesh_ja.ts \
+			   languages/GigaMesh_en.ts
 
 # -------------------------------------------------------------------------------
 # Git info:
@@ -323,6 +326,7 @@ else {
 
 # ---- Resources ----------------------------------------------------------------
 RESOURCES += forms/gigamesh.qrc
+RESOURCES += languages/translations.qrc
 RESOURCES += python-scripts/pythonscripts.qrc
 RESOURCES += latex_report_template/latex_templates.qrc
 RESOURCES += shaders/shaders.qrc
@@ -333,7 +337,8 @@ RESOURCES += shaders/shaders.qrc
 FORMS += forms/mainWin.ui \
     forms/qruntpsrpmscriptdialog.ui \
     forms/ExternalProgramsDialog.ui \
-    forms/dialogGridCenterSelect.ui
+    forms/dialogGridCenterSelect.ui \
+    normalSphereSelection/NormalSphereSelectionDialog.ui
 FORMS += forms/qgmdialognprsettings.ui
 FORMS += forms/QGMDialogTransparencySettings.ui
 FORMS += forms/QGMDialogSliderHD.ui
@@ -381,6 +386,10 @@ HEADERS += meshGL/meshGLShader.h \
     QGMDialogNprSettings.h \
     QGMDialogTransparencySettings.h \
         meshGL/PinRenderer.h \
+	normalSphereSelection/ArcBall.h \
+	normalSphereSelection/IcoSphereTree.h \
+	normalSphereSelection/NormalSphereSelectionDialog.h \
+	normalSphereSelection/NormalSphereSelectionRenderWidget.h \
     svg/SvgWriter.h \
     svg/SvgElement.h \
     svg/SvgPath.h \
@@ -398,6 +407,10 @@ SOURCES += mesh/meshinfodata.cpp \
         ExternalProgramsDialog.cpp \
     MeshQtCSVImportExport.cpp \
         meshGL/PinRenderer.cpp \
+	normalSphereSelection/ArcBall.cpp \
+	normalSphereSelection/IcoSphereTree.cpp \
+	normalSphereSelection/NormalSphereSelectionDialog.cpp \
+	normalSphereSelection/NormalSphereSelectionRenderWidget.cpp \
     svg/SvgWriter.cpp \
     svg/SvgPath.cpp \
     svg/SvgImage.cpp \
@@ -628,7 +641,12 @@ OTHER_FILES += shaders/lightingOverlay/overlayLighting_fbopass.frag
 #--- Shaders GLSL sources for pointcloud rendering -------------------------------
 OTHER_FILES += shaders/pointcloud/pointcloud.geom
 OTHER_FILES += shaders/pointcloud/pointcloud.frag
-
+#--- Shaders GLSL sources for pin rendering --------------------------------------
+OTHER_FILES += shaders/vertex_pin.vert
+OTHER_FILES += shaders/vertex_pin.frag
+#--- Shaders GLSL sources for normalSelection rendering --------------------------
+OTHER_FILES += shaders/normalSphere/normalData.vert
+OTHER_FILES += shaders/normalSphere/normalData.frag
 
 #--- LaTeX Templates ------------------------------------------------------------
 OTHER_FILES += forms/latextemplates/test.tex
@@ -684,6 +702,4 @@ OTHER_FILES += deprecated/QGMDialogSlider.cpp   # Outdated and replaced in 02/20
 
 DISTFILES += \
     gigamesh_warp_vertices.py \
-    gigamesh_warp_vertices.py \
-    shaders/vertex_pin.frag \
-    shaders/vertex_pin.vert
+	gigamesh_warp_vertices.py

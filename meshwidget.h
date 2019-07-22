@@ -60,7 +60,7 @@ class MeshWidget : public QGLWidget, public MeshWidgetParams, public MeshGLColor
 public:
 	// Constructor and Destructor:
 	MeshWidget( const QGLFormat& format, QWidget* parent );
-	~MeshWidget();
+	~MeshWidget() override;
 
 	bool    getViewPortResolution( double& rRealWidth, double& rRealHeight );
 	bool    getViewPortPixelWorldSize( double& rPixelWidth, double& rPixelHeight );
@@ -251,6 +251,9 @@ public slots:
 	//.
 	bool currentViewToDefault();
 
+	void openNormalSphereSelectionDialog();
+	void setCameraRotation(QQuaternion rotationQuat);
+
 signals:
 	void sStatusMessage(QString);                                   //!< Notify (the MainWindow) about status changes.
 	void sViewPortInfo(MeshWidgetParams::eViewPortInfo,QString);    //!< Infos emitted by the viewport e.g. for display purposes.
@@ -265,6 +268,7 @@ signals:
 	void sGuideIDCommon(MeshWidgetParams::eGuideIDCommon);          //!< guide ID for sidebar
 	void sGuideIDSelection(MeshWidgetParams::eGuideIDSelection);    //!< guide ID for sidebar
 
+	void camRotationChanged(Vector3D, Vector3D);                            //!< signal emitted when camera is rotated by mouse
 private:
 	void initializeGL();
 	void initializeVAO();

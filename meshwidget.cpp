@@ -4,6 +4,7 @@
 
 // generic Qt includes:
 #include <QFileDialog>
+#include <QQuaternion>
 
 // Qt includes:
 #include "QGMDialogEnterText.h"
@@ -14,6 +15,7 @@
 #include <cctype>
 
 #include "svg/SvgIncludes.h"
+#include "normalSphereSelection/NormalSphereSelectionDialog.h"
 
 //#include <iostream>
 //#include <typeinfo> // see: http://www.cplusplus.com/reference/std/typeinfo/type_info/
@@ -30,7 +32,7 @@ using PglBindVertexArray = void (*)(GLuint);
 // Sets default values - to be used by all contructors!
 // ----------------------------------------------------
 #define MESHWIDGETINITDEFAULTS       \
-	mMeshVisual( NULL ),         \
+	mMeshVisual( nullptr ),         \
 	mFrameCount( 0 ),            \
 	mVAO( _NOT_A_NUMBER_UINT_ )
 
@@ -137,6 +139,7 @@ MeshWidget::MeshWidget( const QGLFormat &format, QWidget *parent )
 
 	// Select menu ----------------------------------------------------------------------------------------------------
 	QObject::connect( mMainWindow, &QGMMainWindow::setPlaneHNFByView,      this, &MeshWidget::setPlaneHNFByView      );
+	QObject::connect( mMainWindow, &QGMMainWindow::sOpenNormalSphereSelectionDialog, this, &MeshWidget::openNormalSphereSelectionDialog);
 	// ----------------------------------------------------------------------------------------------------------------
 
 	// Function calls --------------------------------------------------------------------------------------------------
@@ -164,6 +167,7 @@ MeshWidget::MeshWidget( const QGLFormat &format, QWidget *parent )
 
 //! Desctructor
 MeshWidget::~MeshWidget() {
+	makeCurrent();
 	cout << "[MeshWidget::" << __FUNCTION__ << "] Destructor called." << endl;
 	//! .) removes shaders for rendering the background.
 	
@@ -181,6 +185,7 @@ MeshWidget::~MeshWidget() {
 	delete mShaderGridPolarCircles;
 	delete mShaderGridHighLightCenter;
 	delete mShaderImage;
+	doneCurrent();
 }
 
 //! Returns the resolution of back-plane of the viewport in dots per centimeter.
@@ -337,7 +342,7 @@ bool MeshWidget::setParamIntegerMeshWidget( MeshWidgetParams::eParamInt rParam )
 			getParamIntegerMeshWidget( VIDEO_FRAME_WIDTH,  &paramWidth  );
 			getParamIntegerMeshWidget( VIDEO_FRAME_HEIGHT, &paramHeight );
 			QGMDialogEnterText dlgEnterTxt;
-			dlgEnterTxt.setWindowTitle( QString( "Edit scence size (width height):" ) );
+			dlgEnterTxt.setWindowTitle( tr( "Edit scene size (width height):" ) );
 			dlgEnterTxt.setText( QString( "%1 %2" ).arg( paramWidth ).arg( paramHeight ) );
 			if( dlgEnterTxt.exec() == QDialog::Rejected ) {
 				cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: user cancel!" << endl;
@@ -363,7 +368,7 @@ bool MeshWidget::setParamIntegerMeshWidget( MeshWidgetParams::eParamInt rParam )
 			int paramValue;
 			getParamIntegerMeshWidget( rParam, &paramValue );
 			QGMDialogEnterText dlgEnterTxt;
-			dlgEnterTxt.setWindowTitle( QString( "Edit parameter (%1):" ).arg( rParam ) );
+			dlgEnterTxt.setWindowTitle( tr( "Edit parameter") + QString(" (%1):" ).arg( rParam ) );
 			dlgEnterTxt.setInt( paramValue );
 			if( dlgEnterTxt.exec() == QDialog::Rejected ) {
 				cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: user cancel!" << endl;
@@ -397,7 +402,7 @@ bool MeshWidget::setParamFloatMeshWidget( MeshWidgetParams::eParamFlt rParamID, 
 	dlgSlider.setMin( rMinValue );
 	dlgSlider.setMax( rMaxValue );
 	dlgSlider.setPos( currValue );
-	dlgSlider.setWindowTitle( QString( "Floating point parameter %1 [%1,%2]" ).arg( rParamID ).arg( rMinValue ).arg( rMaxValue ) );
+	dlgSlider.setWindowTitle( tr( "Floating point parameter") + QString(" %1 [%1,%2]" ).arg( rParamID ).arg( rMinValue ).arg( rMaxValue ) );
 	//dlgSlider.suppressPreview();
 	QObject::connect( &dlgSlider, &QGMDialogSliderHD::valuePreviewIdFloat, this, &MeshWidget::setParamFloatMeshWidgetSlider );
 	if( dlgSlider.exec() == QDialog::Rejected ) {
@@ -427,7 +432,7 @@ bool MeshWidget::setParamFloatMeshWidget( MeshWidgetParams::eParamFlt rParamID )
 	QGMDialogEnterText dlgEnterText;
 	dlgEnterText.setID( rParamID );
 	dlgEnterText.setDouble( currValue );
-	dlgEnterText.setWindowTitle( QString( "Floating point parameter %1" ).arg( rParamID ) );
+	dlgEnterText.setWindowTitle( tr( "Floating point parameter") + QString(" %1" ).arg( rParamID ) );
 	//dlgSlider.suppressPreview();
 	//QObject::connect( &dlgSlider, SIGNAL(valuePreview(int,double)),  this, SLOT(setParamFloatMeshWidget(int,double)) );
 	if( dlgEnterText.exec() == QDialog::Rejected ) {
@@ -771,6 +776,18 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
+
+	//check if child dialogs exist an close them
+	foreach (QObject* obj, this->children()) {
+		if(obj->isWidgetType())
+		{
+			QWidget* widget = static_cast<QWidget*>(obj);
+			widget->close();
+		}
+	}
+
+
+
 	//emit statusMessage( "Loading Mesh from " + fileName );
 	if( mMeshVisual != nullptr ) {
 		// remove mesh, when one is present:
@@ -868,7 +885,7 @@ bool MeshWidget::reloadFile() {
 	}
 	bool userReload;
 	bool userCancel;
-	SHOW_QUESTION( "Reload file", "Do you really want to reload this file?", userReload, userCancel );
+	SHOW_QUESTION( tr("Reload file"), tr("Do you really want to reload this file?"), userReload, userCancel );
 	if( ( userCancel ) || not( userReload ) ) {
 		return false;
 	}
@@ -892,7 +909,7 @@ bool MeshWidget::saveStillImagesSettings() {
 		if( showGridRect | showGridPolarLines | showGridPolarCircles ) {
 			bool orthoGridOff;
 			bool userCancel;
-			SHOW_QUESTION( "Rectangular/Polar Grid", "Do you want to turn off the grid?<br /><br />Recommended: YES", orthoGridOff, userCancel );
+			SHOW_QUESTION( tr("Rectangular/Polar Grid"), tr("Do you want to turn off the grid?") + QString("<br /><br />") + tr("Recommended: YES"), orthoGridOff, userCancel );
 			if( userCancel ) {
 				return false;
 			}
@@ -909,7 +926,7 @@ bool MeshWidget::saveStillImagesSettings() {
 	if( cropScreenshots ) {
 		bool croppingOff;
 		bool userCancel;
-		SHOW_QUESTION( "Cropping of screenshots", "Do you want to turn off cropping?<br /><br />Recommended: YES", croppingOff, userCancel );
+		SHOW_QUESTION( tr("Cropping of screenshots"), tr("Do you want to turn off cropping?")+ QString("<br /><br />") + tr("Recommended: YES"), croppingOff, userCancel );
 		if( userCancel ) {
 			return false;
 		}
@@ -932,7 +949,7 @@ void MeshWidget::saveStillImages360( Vector3D rotCenter, Vector3D rotAxis ) {
 	//! .) Ask for tiled rendering
 	bool useTiled;
 	bool userCancel;
-	SHOW_QUESTION( "Tiled rendering", "Do you want to use tiled rendering?<br /><br />Typically: NO", useTiled, userCancel );
+	SHOW_QUESTION( tr("Tiled rendering"), tr("Do you want to use tiled rendering?") + QString("<br /><br />") + tr("Typically: NO"), useTiled, userCancel );
 	if( userCancel ) {
 		return;
 	}
@@ -1048,9 +1065,9 @@ void MeshWidget::sphericalImagesLight() {
 	string fileNamePattern;
 	getParamStringMeshWidget( FILENAME_EXPORT_VR, &fileNamePattern );
 	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
-	QString fileName = QFileDialog::getSaveFileName( mMainWindow, QObject::tr( "Save as - Using a pattern for spherical images" ), \
+	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as - Using a pattern for spherical images" ), \
 	                                                 filePath + QString( fileNamePattern.c_str() ), \
-	                                                 QObject::tr( "Image (*.png *.tiff *.tif)" ),
+													 tr( "Image (*.png *.tiff *.tif)" ),
 	                                                 nullptr, 
 	                                                 QFileDialog::DontUseNativeDialog  ); // Native dialog won't show patterns anymore on recent versions of Qt+Linux.
 	if( fileName == nullptr ) {
@@ -1064,7 +1081,7 @@ void MeshWidget::sphericalImagesLight() {
 void MeshWidget::sphericalImagesLight( const QString& rFileName ) {
 	bool userCancel;
 	bool useTiled;
-	SHOW_QUESTION( "Tiled rendering", "Do you want to use tiled rendering?<br /><br />Typically: NO", useTiled, userCancel );
+	SHOW_QUESTION( tr("Tiled rendering"), tr("Do you want to use tiled rendering?") + QString("<br /><br />") + tr("Typically: NO"), useTiled, userCancel );
 	if( userCancel ) {
 		return;
 	}
@@ -1138,16 +1155,16 @@ void MeshWidget::sphericalImagesLight( const QString& rFileName, const bool rUse
 	}
 	QString obj2vrPattern = "'" + fileNameWithoutPath + "'";
 	obj2vrPattern.replace( QString( "%05i_%05i_%02i" ), QString( "'+fill(column,5,'0')+'_'+fill(row,5,'0')+'_'+fill(state,2,'0')+'" ) );
-	SHOW_MSGBOX_INFO( "Spherical image stack saved", 
-	                  tr( "<table>" ) +
-	                  tr( "<tr><td>Images:  </td><td align='right'> %1 / %2</td></tr>" ).arg( imageCount ).arg( colIdx*rowIdx ) +
-	                  tr( "<tr><td>Columns: </td><td align='right'> %1</td></tr>" ).arg( colIdx ) +
-	                  tr( "<tr><td>Rows:    </td><td align='right'> %1</td></tr>" ).arg( rowIdx ) +
-	                  tr( "<tr><td>State:   </td><td align='right'> %1</td></tr>" ).arg( stateNr ) +
-	                  tr( "<tr><td>Path:    </td><td align='right'> %1</td></tr>" ).arg( pathFromFileName ) +
-	                  tr( "<tr><td>Pattern: </td><td align='right'> %1</td></tr>" ).arg( fileNameWithoutPath ) +
-	                  tr( "<tr><td><b>Pattern&nbsp;(O2VR):</b></td><td align='right'><b><nobr>%1</nobr></b></td></tr>" ).arg( obj2vrPattern ) +
-	                  tr( "</table>" )
+	SHOW_MSGBOX_INFO( tr("Spherical image stack saved"),
+					  QString( "<table>" ) +
+					  QString( "<tr><td>") + tr("Images:")  + QString("</td><td align='right'> %1 / %2</td></tr>" ).arg( imageCount ).arg( colIdx*rowIdx ) +
+					  QString( "<tr><td>") + tr("Columns:") + QString("</td><td align='right'> %1</td></tr>" ).arg( colIdx ) +
+					  QString( "<tr><td>") + tr("Rows:")    + QString("</td><td align='right'> %1</td></tr>" ).arg( rowIdx ) +
+					  QString( "<tr><td>") + tr("State:")   + QString("</td><td align='right'> %1</td></tr>" ).arg( stateNr ) +
+					  QString( "<tr><td>") + tr("Path:")    + QString("</td><td align='right'> %1</td></tr>" ).arg( pathFromFileName ) +
+					  QString( "<tr><td>") + tr("Pattern:") + QString("</td><td align='right'> %1</td></tr>" ).arg( fileNameWithoutPath ) +
+					  QString( "<tr><td><b>") + tr("Pattern&nbsp;(O2VR):") + QString("</b></td><td align='right'><b><nobr>%1</nobr></b></td></tr>" ).arg( obj2vrPattern ) +
+					  QString( "</table>" )
 	                );
 	// Copy the pattern directly to the clipboard:
 	QClipboard *clipboard = QApplication::clipboard();
@@ -1165,9 +1182,9 @@ void MeshWidget::sphericalImages() {
 	string fileNamePattern;
 	getParamStringMeshWidget( FILENAME_EXPORT_VR, &fileNamePattern );
 	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
-	QString fileName = QFileDialog::getSaveFileName( mMainWindow, QObject::tr( "Save as - Using a pattern for spherical images" ), \
+	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as - Using a pattern for spherical images" ), \
 	                                                 filePath + QString( fileNamePattern.c_str() ), \
-	                                                 QObject::tr( "Image (*.png *.tiff *.tif)" ),
+													 tr( "Image (*.png *.tiff *.tif)" ),
 	                                                 nullptr, 
 	                                                 QFileDialog::DontUseNativeDialog  ); // Native dialog won't show patterns anymore on recent versions of Qt+Linux.
 	if( fileName == nullptr ) {
@@ -1181,7 +1198,7 @@ void MeshWidget::sphericalImages() {
 void MeshWidget::sphericalImages( const QString& rFileName ) {
 	bool userCancel;
 	bool useTiled;
-	SHOW_QUESTION( "Tiled rendering", "Do you want to use tiled rendering?<br /><br />Typically: NO", useTiled, userCancel );
+	SHOW_QUESTION( tr("Tiled rendering"), tr("Do you want to use tiled rendering?)") + QString("<br /><br />") + tr("Typically: NO"), useTiled, userCancel );
 	if( userCancel ) {
 		return;
 	}
@@ -1279,17 +1296,17 @@ void MeshWidget::sphericalImages( const QString& rFileName, const bool rUseTiled
 	}
 	QString obj2vrPattern = "'" + fileNameWithoutPath + "'";
 	obj2vrPattern.replace( QString( "%05i_%05i_%02i" ), QString( "'+fill(column,5,'0')+'_'+fill(row,5,'0')+'_'+fill(state,2,'0')+'" ) );
-	SHOW_MSGBOX_INFO( "Spherical image stack saved", 
-	                  tr( "<table>" ) +
-	                  tr( "<tr><td>Images:  </td><td align='right'> %1 / %2</td></tr>" ).arg( imageCount ).arg( colIdx*rowIdx ) +
-	                  tr( "<tr><td>Axis:  </td><td align='right'> %1</td></tr>" ).arg( axisUsed ) +
-	                  tr( "<tr><td>Columns: </td><td align='right'> %1</td></tr>" ).arg( colIdx ) +
-	                  tr( "<tr><td>Rows:    </td><td align='right'> %1</td></tr>" ).arg( rowIdx ) +
-	                  tr( "<tr><td>State:   </td><td align='right'> %1</td></tr>" ).arg( stateNr ) +
-	                  tr( "<tr><td>Path:    </td><td align='right'> %1</td></tr>" ).arg( pathFromFileName ) +
-	                  tr( "<tr><td>Pattern: </td><td align='right'> %1</td></tr>" ).arg( fileNameWithoutPath ) +
-	                  tr( "<tr><td><b>Pattern&nbsp;(O2VR):</b></td><td align='right'><b><nobr>%1</nobr></b></td></tr>" ).arg( obj2vrPattern ) +
-	                  tr( "</table>" )
+	SHOW_MSGBOX_INFO( tr("Spherical image stack saved"),
+					  QString( "<table>" ) +
+					  QString( "<tr><td>") + tr("Images:")  + QString("</td><td align='right'> %1 / %2</td></tr>" ).arg( imageCount ).arg( colIdx*rowIdx ) +
+					  QString( "<tr><td>") + tr("Axis:")    + QString("</td><td align='right'> %1</td></tr>" ).arg( axisUsed ) +
+					  QString( "<tr><td>") + tr("Columns:") + QString("</td><td align='right'> %1</td></tr>" ).arg( colIdx ) +
+					  QString( "<tr><td>") + tr("Rows:")    + QString("</td><td align='right'> %1</td></tr>" ).arg( rowIdx ) +
+					  QString( "<tr><td>") + tr("State:")   + QString("</td><td align='right'> %1</td></tr>" ).arg( stateNr ) +
+					  QString( "<tr><td>") + tr("Path:")    + QString("</td><td align='right'> %1</td></tr>" ).arg( pathFromFileName ) +
+					  QString( "<tr><td>") + tr("Pattern:") + QString("</td><td align='right'> %1</td></tr>" ).arg( fileNameWithoutPath ) +
+					  QString( "<tr><td><b>") + tr("Pattern&nbsp;(O2VR):") + QString("</b></td><td align='right'><b><nobr>%1</nobr></b></td></tr>" ).arg( obj2vrPattern ) +
+					  QString( "</table>" )
 	                );
 	// Copy the pattern directly to the clipboard:
 	QClipboard *clipboard = QApplication::clipboard();
@@ -1306,7 +1323,7 @@ bool MeshWidget::sphericalImagesStateNr() {
 	int stateNr;
 	getParamIntegerMeshWidget( STATE_NUMBER, &stateNr );
 	QGMDialogEnterText dlgEnterText;
-	dlgEnterText.setWindowTitle( "Enter state number (integer)" );
+	dlgEnterText.setWindowTitle( tr("Enter state number (integer)") );
 	dlgEnterText.setID( STATE_NUMBER );
 	dlgEnterText.setInt( stateNr );
 	//QObject::connect( &dlgEnterText, SIGNAL(textEntered(int,int)), this, SLOT(setParamIntegerMeshWidget(int,int)) );
@@ -1518,7 +1535,7 @@ void MeshWidget::initializeShader( const QString& rFileName, QOpenGLShaderProgra
 		QString linkMsgs = (*rShaderProgram)->log();
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: linking shader program (Background): " << linkMsgs.toStdString() << endl;
 		linkMsgs = linkMsgs.left( linkMsgs.indexOf( "***" ) );
-		SHOW_MSGBOX_CRIT( "GLSL Error" , linkMsgs )
+		SHOW_MSGBOX_CRIT( tr("GLSL Error") , linkMsgs )
 	} else {
 		cout << "[MeshWidget::" << __FUNCTION__ << "] Linking shader program (Background) successfull." << endl;
 	}
@@ -1588,7 +1605,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         getParamStringMeshWidget( FILENAME_EXPORT_VIEWS, &fileNamePattern );
         // important name change !!!!
 		fileNamePattern.insert( fileNamePattern.find_last_of('.'), to_string(k) + suffix.toStdString() );
-		QString fileName = filePath + QObject::tr( fileNamePattern.c_str() );
+		QString fileName = filePath + tr( fileNamePattern.c_str() );
 		if( fileName == nullptr ) {
 			return QStringList();
 		}
@@ -1606,7 +1623,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
 
 		getViewPortPixelWorldSize( mmPerPixel_Width, mmPerPixel_Height );
 
-		QString strDPI = tr( "_%1DPI" ).arg( round( 25.4/mmPerPixel_Width ) );
+		QString strDPI = QString( "_%1DPI" ).arg( round( 25.4/mmPerPixel_Width ) );
 
 		mmPerPixel_Width = ( mmPerPixel_Width + mmPerPixel_Height ) / 2.0;
 
@@ -1744,7 +1761,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         //cout << "[MeshQt::" << __FUNCTION__ << "] File: " << fileContent.toStdString() << endl;
 
         QString keyDataTableRow = QString() + "__OBJECT_ID__ &" + "\r\n"
-                                + "$\\numprint{__BOUNDING_BOX_WIDTH__} \\times \\numprint{__BOUNDING_BOX_HEIGHT__} \\times \\numprint{__BOUNDING_BOX_THICK__}$ &" + "\r\n"
+								+ "$\\numprint{__BOUNDING_BOX_WIDTH__} \\times \\numprint{__BOUNDING_BOX_HEIGHT__} \\times \\numprint{__BOUNDING_BOX_THICK__}$ &" + "\r\n"
                                 + "$\\numprint{__VERTEX_COUNT__}$ &" + "\r\n"
                                 + "$\\numprint{__FACE_COUNT__}$ &" + "\r\n"
                                 + "$\\numprint{__AREA_TOTAL__}$ &" + "\r\n"
@@ -1757,7 +1774,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
 		for(pair<string, string>& replacmentString : replacmentStrings) {
 			string placeHolder = replacmentString.first;
 			string content = replacmentString.second;
-            if( content == "" ) {
+			if( content.empty() ) {
                 content = "0";
             }
 			fileContent.replace( QString::fromStdString( placeHolder ), QString::fromStdString( content ) );
@@ -1807,7 +1824,7 @@ void MeshWidget::generateLatexFile() {
 	// get the path chosen by the user
 	QSettings settings;
 	QString lastPath = settings.value( "lastPath" ).toString();
-	QStringList fileNames = QFileDialog::getOpenFileNames( mMainWindow, "Select Source File(s)", lastPath, "Meshes (*.ply *.obj)", nullptr, QFileDialog::DontUseNativeDialog );
+	QStringList fileNames = QFileDialog::getOpenFileNames( mMainWindow, tr("Select Source File(s)"), lastPath, tr("Meshes") + QString( "(*.ply *.obj)"), nullptr, QFileDialog::DontUseNativeDialog );
 
     if( fileNames.isEmpty() ) {
         return;
@@ -1816,7 +1833,7 @@ void MeshWidget::generateLatexFile() {
     bool userCancel;
 
     QString suffix;
-    SHOW_INPUT_DIALOG( "Your suffix", "Enter your suffix if wished. (Example: _p1)", "", suffix, userCancel );
+	SHOW_INPUT_DIALOG( tr("Your suffix"), tr("Enter your suffix if wished. (Example: _p1)"), "", suffix, userCancel );
     if( userCancel ) {
         return;
     }
@@ -1824,7 +1841,7 @@ void MeshWidget::generateLatexFile() {
     bool rUseTiled = true;
 
     QString paperProperties = "2.0, 2.0, 2.0, 2.0, 21.0, 29.7";
-    SHOW_INPUT_DIALOG( "Your Paper Properties", "Enter your properties here [in cm]. (left, right, top, bottom, paperwidth, paperheight)", paperProperties, paperProperties, userCancel );
+	SHOW_INPUT_DIALOG( tr("Your Paper Properties"), tr("Enter your properties here [in cm]. (left, right, top, bottom, paperwidth, paperheight)"), paperProperties, paperProperties, userCancel );
     if( userCancel ) {
         return;
     }
@@ -1841,7 +1858,7 @@ void MeshWidget::generateLatexFile() {
     }
 
     QString dpiFactor = "1.0";
-    SHOW_INPUT_DIALOG( "Zoom factor", "Enter your zoom factor here.", dpiFactor, dpiFactor, userCancel );
+	SHOW_INPUT_DIALOG( tr("Zoom factor"), tr("Enter your zoom factor here."), dpiFactor, dpiFactor, userCancel );
     if( userCancel ) {
         return;
     }
@@ -1850,7 +1867,7 @@ void MeshWidget::generateLatexFile() {
 
     bool generateMainFile;
 
-    SHOW_QUESTION( "Latex Main File", "Do you want to generate a main file for those pages?", generateMainFile, userCancel );
+	SHOW_QUESTION( tr("Latex Main File"), tr("Do you want to generate a main file for those pages?"), generateMainFile, userCancel );
     if( userCancel ) {
         return;
     }
@@ -1870,7 +1887,7 @@ void MeshWidget::generateLatexFile() {
         colorOptions.append( "Vertex Labels" );
 
         QString rColor;
-        SHOW_DIALOG_COMBO_BOX( "Object Color", "Which coloring do you want to use?", colorOptions, rColor, userCancel );
+		SHOW_DIALOG_COMBO_BOX( tr("Object Color"), tr("Which coloring do you want to use?"), colorOptions, rColor, userCancel );
         if( userCancel ) {
             return;
         }
@@ -1885,7 +1902,7 @@ void MeshWidget::generateLatexFile() {
         templates.append( "single-view" );
 
         QString rTemplate;
-        SHOW_DIALOG_COMBO_BOX( "Template", "Which template do you want to use?", templates, rTemplate, userCancel );
+		SHOW_DIALOG_COMBO_BOX( tr("Template"), tr("Which template do you want to use?"), templates, rTemplate, userCancel );
         if( userCancel ) {
             return;
         }
@@ -1893,7 +1910,7 @@ void MeshWidget::generateLatexFile() {
         tempCombination.append(rTemplate);
 
         bool useLight;
-        SHOW_QUESTION( "Light", "Do you want to use light?", useLight, userCancel );
+		SHOW_QUESTION( tr("Light"), tr("Do you want to use light?"), useLight, userCancel );
         if( userCancel ) {
             return;
         }
@@ -1903,20 +1920,20 @@ void MeshWidget::generateLatexFile() {
 
         pageCombinations.append(tempCombination);
 
-        SHOW_QUESTION( "Additional Pages", "Do you want to include an additional (color, template, light) combination?", additionalCombinations, userCancel );
+		SHOW_QUESTION( tr("Additional Pages"), tr("Do you want to include an additional (color, template, light) combination?"), additionalCombinations, userCancel );
         if( userCancel ) {
             return;
         }
 
     }
 
-    QString combinationList = "These are your combinations:\r\n\r\n";
+	QString combinationList = tr("These are your combinations:") + QString("\r\n\r\n");
 	for(const QStringList& pageCombination : pageCombinations) {
 		combinationList += pageCombination.at(0) + ", " + pageCombination.at(1) + ", " + pageCombination.at(2) + "\r\n";
     }
 
     bool userContinue;
-    SHOW_QUESTION( "Do you want to continue?", combinationList, userContinue, userCancel );
+	SHOW_QUESTION( tr("Do you want to continue?"), combinationList, userContinue, userCancel );
     if( userCancel || !userContinue ) {
         return;
     }
@@ -2004,7 +2021,7 @@ void MeshWidget::generateLatexFile() {
     outfile2 << latexKeyDataTableFileContent.toStdString() << endl;
     outfile2.close();
 
-    SHOW_MSGBOX_INFO( "Finished", "Your page generation has finished." );
+	SHOW_MSGBOX_INFO( tr("Finished"), tr("Your page generation has finished.") );
 }
 
 
@@ -2056,7 +2073,7 @@ void MeshWidget::generateLatexCatalog() {
 	// get the path chosen by the user
 	QSettings settings;
 	QString lastPath = settings.value( "lastPath" ).toString();
-	QString path = QFileDialog::getExistingDirectory( mMainWindow, QObject::tr( "Choose the Directory" ), lastPath );
+	QString path = QFileDialog::getExistingDirectory( mMainWindow, tr( "Choose the Directory" ), lastPath );
 
     if( path.isEmpty() ) {
         return;
@@ -2077,13 +2094,13 @@ void MeshWidget::generateLatexCatalog() {
     bool userCancel;
 
     QString suffix;
-    SHOW_INPUT_DIALOG( "Your suffix", "Enter your suffix if wished. (Example: _p1)", "", suffix, userCancel );
+	SHOW_INPUT_DIALOG( tr("Your suffix"), tr("Enter your suffix if wished. (Example: _p1)"), "", suffix, userCancel );
     if( userCancel ) {
         return;
     }
 
     bool useRecursion;
-    SHOW_QUESTION( "Recursion", "Do you want to use recursion?", useRecursion, userCancel );
+	SHOW_QUESTION( tr("Recursion"), tr("Do you want to use recursion?"), useRecursion, userCancel );
     if( userCancel ) {
         return;
     }
@@ -2091,7 +2108,7 @@ void MeshWidget::generateLatexCatalog() {
     bool rUseTiled = true;
 
     QString paperProperties = "2.0, 2.0, 2.0, 2.0, 21.0, 29.7";
-    SHOW_INPUT_DIALOG( "Your Paper Properties", "Enter your properties here [in cm]. (left, right, top, bottom, paperwidth, paperheight)", paperProperties, paperProperties, userCancel );
+	SHOW_INPUT_DIALOG( tr("Your Paper Properties"), tr("Enter your properties here [in cm]. (left, right, top, bottom, paperwidth, paperheight)"), paperProperties, paperProperties, userCancel );
     if( userCancel ) {
         return;
     }
@@ -2108,7 +2125,7 @@ void MeshWidget::generateLatexCatalog() {
     }
 
     QString dpiFactor = "1.0";
-    SHOW_INPUT_DIALOG( "Zoom factor", "Enter your zoom factor here.", dpiFactor, dpiFactor, userCancel );
+	SHOW_INPUT_DIALOG( tr("Zoom factor"), tr("Enter your zoom factor here."), dpiFactor, dpiFactor, userCancel );
     if( userCancel ) {
         return;
     }
@@ -2130,7 +2147,7 @@ void MeshWidget::generateLatexCatalog() {
         colorOptions.append( "Vertex Labels" );
 
         QString rColor;
-        SHOW_DIALOG_COMBO_BOX( "Object Color", "Which coloring do you want to use?", colorOptions, rColor, userCancel );
+		SHOW_DIALOG_COMBO_BOX( tr("Object Color"), tr("Which coloring do you want to use?"), colorOptions, rColor, userCancel );
         if( userCancel ) {
             return;
         }
@@ -2145,7 +2162,7 @@ void MeshWidget::generateLatexCatalog() {
         templates.append( "single-view" );
 
         QString rTemplate;
-        SHOW_DIALOG_COMBO_BOX( "Template", "Which template do you want to use?", templates, rTemplate, userCancel );
+		SHOW_DIALOG_COMBO_BOX( tr("Template"), tr("Which template do you want to use?"), templates, rTemplate, userCancel );
         if( userCancel ) {
             return;
         }
@@ -2153,7 +2170,7 @@ void MeshWidget::generateLatexCatalog() {
         tempCombination.append(rTemplate);
 
         bool useLight;
-        SHOW_QUESTION( "Light", "Do you want to use light?", useLight, userCancel );
+		SHOW_QUESTION( tr("Light"), tr("Do you want to use light?"), useLight, userCancel );
         if( userCancel ) {
             return;
         }
@@ -2163,20 +2180,20 @@ void MeshWidget::generateLatexCatalog() {
 
         pageCombinations.append(tempCombination);
 
-        SHOW_QUESTION( "Additional Pages", "Do you want to include an additional (color, template, light) combination?", additionalCombinations, userCancel );
+		SHOW_QUESTION( tr("Additional Pages"), tr("Do you want to include an additional (color, template, light) combination?"), additionalCombinations, userCancel );
         if( userCancel ) {
             return;
         }
 
     }
 
-    QString combinationList = "These are your combinations:\r\n\r\n";
+	QString combinationList = tr("These are your combinations:") + QString("\r\n\r\n");
 	for(const QStringList& pageCombination : pageCombinations) {
 		combinationList += pageCombination.at(0) + ", " + pageCombination.at(1) + ", " + pageCombination.at(2) + "\r\n";
     }
 
     bool userContinue;
-    SHOW_QUESTION( "Do you want to continue?", combinationList, userContinue, userCancel );
+	SHOW_QUESTION( tr("Do you want to continue?"), combinationList, userContinue, userCancel );
     if( userCancel || !userContinue ) {
         return;
     }
@@ -2257,7 +2274,7 @@ void MeshWidget::generateLatexCatalog() {
     outfile2 << latexKeyDataTableFileContent.toStdString() << endl;
     outfile2.close();
 
-    SHOW_MSGBOX_INFO( "Finished", "Your catalog generation has finished." );
+	SHOW_MSGBOX_INFO( tr("Finished"), tr("Your catalog generation has finished.") );
 }
 
 QStringList MeshWidget::screenshotDirectory(const bool rUseTiled, const QString& rColor, const int depth,
@@ -2313,7 +2330,7 @@ QStringList MeshWidget::screenshotDirectory(const bool rUseTiled, const QString&
             string fileNamePattern;
             getParamStringMeshWidget( FILENAME_EXPORT_VIEWS, &fileNamePattern );
 			fileNamePattern.insert( fileNamePattern.find_last_of('.'), suffix.toStdString() );
-			QString fileName = filePath + QObject::tr( fileNamePattern.c_str() );
+			QString fileName = filePath + QString( fileNamePattern.c_str() );
 			if( fileName == nullptr ) {
 				return QStringList();
 			}
@@ -2371,7 +2388,7 @@ QStringList MeshWidget::screenshotDirectory(const bool rUseTiled, const QString&
             // filePath should be equal to path path+'/'+files.at(i)
             QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
 
-            QString fileName = filePath + QObject::tr( fileNamePattern.c_str() );
+			QString fileName = filePath + QString( fileNamePattern.c_str() );
 
             if( fileName == nullptr ) {
                 return QStringList();
@@ -2398,7 +2415,7 @@ void MeshWidget::screenshotDirectory() {
     #endif
 
     // get the path chosen by the user
-    QString path = QFileDialog::getExistingDirectory( mMainWindow, QObject::tr( "Choose the Directory" ) );
+	QString path = QFileDialog::getExistingDirectory( mMainWindow, tr( "Choose the Directory" ) );
 
     if( path.isEmpty() ) {
         return;
@@ -2423,19 +2440,19 @@ void MeshWidget::screenshotDirectory() {
     modeOptions.append( "multible views" );
 
     QString rMode;
-    SHOW_DIALOG_COMBO_BOX( "Views", "Which kind of views do you want to generate?", modeOptions, rMode, userCancel );
+	SHOW_DIALOG_COMBO_BOX( tr("Views"), tr("Which kind of views do you want to generate?"), modeOptions, rMode, userCancel );
     if( userCancel ) {
         return;
     }
 
     bool useRecursion;
-    SHOW_QUESTION( "Recursion", "Do you want to use recursion?", useRecursion, userCancel );
+	SHOW_QUESTION( tr("Recursion"), tr("Do you want to use recursion?"), useRecursion, userCancel );
     if( userCancel ) {
         return;
     }
 
     bool rUseTiled;
-/*    SHOW_QUESTION( "Tiled rendering", "Do you want to use tiled rendering?", rUseTiled, userCancel );
+/*    SHOW_QUESTION( tr("Tiled rendering"), tr("Do you want to use tiled rendering?"), rUseTiled, userCancel );
     if( userCancel ) {
         return;
     }
@@ -2452,13 +2469,13 @@ void MeshWidget::screenshotDirectory() {
     colorOptions.append( "Vertex Labels" );
 
     QString rColor;
-    SHOW_DIALOG_COMBO_BOX( "Object Color", "Which coloring do you want to use?", colorOptions, rColor, userCancel );
+	SHOW_DIALOG_COMBO_BOX( tr("Object Color"), tr("Which coloring do you want to use?"), colorOptions, rColor, userCancel );
     if( userCancel ) {
         return;
     }
 
     QString suffix;
-    SHOW_INPUT_DIALOG( "Your suffix (Example: _project1)", "Enter your suffix for your files here.", "", suffix, userCancel );
+	SHOW_INPUT_DIALOG( tr("Your suffix (Example: _project1)"), tr("Enter your suffix for your files here."), "", suffix, userCancel );
     if( userCancel ) {
         return;
     }
@@ -2494,7 +2511,7 @@ bool MeshWidget::screenshotViewsDirectory(
                 QStringList&   rCurrFiles        //!< List of files.
 ) {
 	QString pathChoosen = QFileDialog::getExistingDirectory( mMainWindow,
-	                                                         QObject::tr( "Choose the Directory" ) );
+															 tr( "Choose the Directory" ) );
 
 	if( pathChoosen.isEmpty() ) { // User cancel.
 		cout << "[MeshWidget::" << __FUNCTION__ << "] User canceled!" << endl;
@@ -2577,7 +2594,7 @@ bool MeshWidget::screenshotViewsPDFDirectory() {
 		//screenshotPDF( pathChoosen+'/'+prefixStem+".pdf", true ); // Fromt Sides
 	}
 
-	SHOW_MSGBOX_INFO( "Schreenshots - Views - PDF", "Screenshots have been exported as PDF, LaTeX and PNG." );
+	SHOW_MSGBOX_INFO( tr("Schreenshots - Views - PDF"), tr("Screenshots have been exported as PDF, LaTeX and PNG.") );
 
 	return( !errorOccured );
 }
@@ -2683,7 +2700,7 @@ bool MeshWidget::screenshotViewsPNGDirectory() {
 //		mMeshVisual->writeFile( pathChoosen+"/"+prefixStem+"_FtElMax-as_VertexColor.ply" );
 	}
 
-	SHOW_MSGBOX_INFO( "Schreenshots - Views - PNG", "Screenshots have been exported as PNG." );
+	SHOW_MSGBOX_INFO( tr("Schreenshots - Views - PDF"), tr("Screenshots have been exported as PDF, LaTeX and PNG.") );
 
 	return( !errorOccured );
 }
@@ -2703,9 +2720,9 @@ bool MeshWidget::screenshotViewsPDFUser() {
 	QString filePath = QString( mMeshVisual->getFileLocation().c_str() ) + "/";
 	std::cout << "[MeshWidget::" << __FUNCTION__ << "] filePath:        " << filePath.toStdString() << std::endl;
 	//qDebug() << filePath + QString( fileNamePattern.c_str() );
-	QString fileName = QFileDialog::getSaveFileName( mMainWindow, QObject::tr( "Save as - Using a pattern for side, top and bottom views" ), \
+	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as - Using a pattern for side, top and bottom views" ), \
 	                                                 filePath + "/" + filePrefix + ".pdf",
-	                                                 QObject::tr( "Document (*.pdf)" ),
+													 tr( "Document (*.pdf)" ),
 	                                                 nullptr,
 	                                                 QFileDialog::DontUseNativeDialog  ); // Native dialog won't show patterns anymore on recent versions of Qt+Linux.
 	// User cancel
@@ -2801,9 +2818,9 @@ bool MeshWidget::screenshotViewsPDF( const QString& rFileName ) {
 	if( !fileLatexIn.open( QIODevice::ReadOnly ) ) {
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Template could not be opened!" << endl;
 		return( false );
-	} else {
-		latexTemplate = fileLatexIn.readAll();
 	}
+
+	latexTemplate = fileLatexIn.readAll();
 	fileLatexIn.close();
 
 	// Fetch strings with information for the table
@@ -2880,7 +2897,7 @@ bool MeshWidget::screenshotPDFMake(
 	QString outPDFLaTeX( runPDFLaTeX.readAllStandardOutput() );
 	cout << "[QGMMainWindow::" << __FUNCTION__ << "] PDFLaTeX check: " << outPDFLaTeX.simplified().toStdString().c_str() << endl;
 	if( checkPDFLaTeXFailed ) {
-		SHOW_MSGBOX_WARN_TIMEOUT( "PDFLaTeX error", "pdflatex failed to compile the PDF!", 5000 );
+		SHOW_MSGBOX_WARN_TIMEOUT( tr("PDFLaTeX error"), tr("pdflatex failed to compile the PDF!"), 5000 );
 		return( false );
 	}
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2905,9 +2922,9 @@ void MeshWidget::screenshotViews() {
 	cout << "[MeshWidget::" << __FUNCTION__ << "] fileNamePattern: " << fileNamePattern << endl;
 	cout << "[MeshWidget::" << __FUNCTION__ << "] filePath:        " << filePath.toStdString() << endl;
 	//qDebug() << filePath + QString( fileNamePattern.c_str() );
-	QString fileName = QFileDialog::getSaveFileName( mMainWindow, QObject::tr( "Save as - Using a pattern for side, top and bottom views" ), \
-	                                                 filePath + "/" + QObject::tr( fileNamePattern.c_str() ),
-	                                                 QObject::tr( "Image (*.png *.tiff *.tif)" ),
+	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as - Using a pattern for side, top and bottom views" ), \
+													 filePath + "/" + QString( fileNamePattern.c_str() ),
+													 tr( "Image (*.png *.tiff *.tif)" ),
 	                                                 nullptr, 
 	                                                 QFileDialog::DontUseNativeDialog  ); // Native dialog won't show patterns anymore on recent versions of Qt+Linux.
 
@@ -2928,8 +2945,8 @@ void MeshWidget::screenshotViews( const QString& rFileName ) {
 	bool useTiled = false;
 	{
 		bool userCancel;
-		SHOW_QUESTION( "Tiled rendering",
-		               "Do you want to use tiled rendering?",
+		SHOW_QUESTION( tr("Tiled rendering"),
+					   tr("Do you want to use tiled rendering?"),
 		               useTiled, userCancel );
 		if( userCancel ) {
 			return;
@@ -2944,8 +2961,8 @@ void MeshWidget::screenshotViews( const QString& rFileName ) {
 	if( histogramShown || histogramScenceShown ) {
 		bool userCancel;
 		bool discardHistograms = true;
-		SHOW_QUESTION( "Histogram(s) shown",
-		               "Do you want to discard the histogram(s) for the screenshot?<br /><br />Recommended: YES",
+		SHOW_QUESTION( tr("Histogram(s) shown"),
+					   tr("Do you want to discard the histogram(s) for the screenshot?<br /><br />Recommended: YES"),
 		               discardHistograms, userCancel );
 		if( userCancel ) {
 			return;
@@ -3160,10 +3177,10 @@ bool MeshWidget::screenshotSingle() {
 	QString fileSuggest = QString( mMeshVisual->getBaseName().c_str() ) + ".png";
 
 	QStringList filters;
-	filters << "Image (*.png *.tiff *.tif)";
+	filters << tr("Image (*.png *.tiff *.tif)");
 
 	QFileDialog dialog( mMainWindow );
-	dialog.setWindowTitle( "Save screenshot as:" );
+	dialog.setWindowTitle( tr("Save screenshot as:") );
 	dialog.setOptions( QFileDialog::DontUseNativeDialog ); // without there is no suggested filename - at least using Ubuntu.
 	dialog.setFileMode( QFileDialog::AnyFile );
 	dialog.setAcceptMode( QFileDialog::AcceptSave );
@@ -3192,7 +3209,7 @@ bool MeshWidget::screenshotSingle( const QString& rFileName ) {
 	bool useTiled = false;
 	{
 		bool userCancel;
-		SHOW_QUESTION( "Tiled rendering", "Do you want to use tiled rendering?", useTiled, userCancel );
+		SHOW_QUESTION( tr("Tiled rendering"), tr("Do you want to use tiled rendering?"), useTiled, userCancel );
 		if( userCancel ) {
 			return( false );
 		}
@@ -3206,8 +3223,8 @@ bool MeshWidget::screenshotSingle( const QString& rFileName ) {
 	if( histogramShown || histogramScenceShown ) {
 		bool userCancel;
 		bool discardHistograms = true;
-		SHOW_QUESTION( "Histogram(s) shown",
-		               "Do you want to discard the histogram(s) for the screenshot?<br /><br />Recommended: YES",
+		SHOW_QUESTION( tr("Histogram(s) shown"),
+					   tr("Do you want to discard the histogram(s) for the screenshot?") + QString("<br /><br />") + tr("Recommended: YES"),
 		               discardHistograms, userCancel );
 		if( userCancel ) {
 			return( false );
@@ -3323,9 +3340,9 @@ bool MeshWidget::screenshotPDFUser() {
 	QString filePath = QString( mMeshVisual->getFileLocation().c_str() ) + "/";
 	std::cout << "[MeshWidget::" << __FUNCTION__ << "] filePath:        " << filePath.toStdString() << std::endl;
 	//qDebug() << filePath + QString( fileNamePattern.c_str() );
-	QString fileName = QFileDialog::getSaveFileName( mMainWindow, QObject::tr( "Save as - Using a pattern for side, top and bottom views" ), \
+	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as - Using a pattern for side, top and bottom views" ), \
 	                                                 filePath + "/" + filePrefix + ".pdf",
-	                                                 QObject::tr( "Document (*.pdf)" ),
+													 tr( "Document (*.pdf)" ),
 	                                                 nullptr,
 	                                                 QFileDialog::DontUseNativeDialog  ); // Native dialog won't show patterns anymore on recent versions of Qt+Linux.
 	// User cancel
@@ -3337,7 +3354,7 @@ bool MeshWidget::screenshotPDFUser() {
 	bool useTiled = false;
 	{
 		bool userCancel;
-		SHOW_QUESTION( "Tiled rendering", "Do you want to use tiled rendering?\n\nRecommended: YES", useTiled, userCancel );
+		SHOW_QUESTION( tr("Tiled rendering"), tr("Do you want to use tiled rendering?") + QString("\n\n") + tr("Recommended: YES"), useTiled, userCancel );
 		if( userCancel ) {
 			return( false );
 		}
@@ -3431,9 +3448,9 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled )
 	if( !fileLatexOut.open( QIODevice::WriteOnly ) ) {
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: LaTeX file could not be opened!" << endl;
 		return( false );
-	} else {
-		fileLatexOut.write( latexTemplate.toStdString().data() );
 	}
+
+	fileLatexOut.write( latexTemplate.toStdString().data() );
 	fileLatexOut.close();
 
 	// Compile and show LaTeX file.
@@ -3875,18 +3892,18 @@ bool MeshWidget::showViewMatrix() {
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
 	QString viewMatrixClip;
-	viewMatrixClip += tr("%1 ").arg( mCenterView.getX() );
-	viewMatrixClip += tr("%1 ").arg( mCenterView.getY() );
-	viewMatrixClip += tr("%1  ").arg( mCenterView.getZ() );
-	viewMatrixClip += tr("%1 ").arg( mCameraCenter.getX() );
-	viewMatrixClip += tr("%1 ").arg( mCameraCenter.getY() );
-	viewMatrixClip += tr("%1  ").arg( mCameraCenter.getZ() );
-	viewMatrixClip += tr("%1 ").arg( mCameraUp.getX() );
-	viewMatrixClip += tr("%1 ").arg( mCameraUp.getY() );
-	viewMatrixClip += tr("%1  ").arg( mCameraUp.getZ() );
+	viewMatrixClip += QString("%1 ").arg( mCenterView.getX() );
+	viewMatrixClip += QString("%1 ").arg( mCenterView.getY() );
+	viewMatrixClip += QString("%1  ").arg( mCenterView.getZ() );
+	viewMatrixClip += QString("%1 ").arg( mCameraCenter.getX() );
+	viewMatrixClip += QString("%1 ").arg( mCameraCenter.getY() );
+	viewMatrixClip += QString("%1  ").arg( mCameraCenter.getZ() );
+	viewMatrixClip += QString("%1 ").arg( mCameraUp.getX() );
+	viewMatrixClip += QString("%1 ").arg( mCameraUp.getY() );
+	viewMatrixClip += QString("%1  ").arg( mCameraUp.getZ() );
 	if( mParamFlag[ORTHO_MODE] ) {
-		viewMatrixClip += tr("%1  ").arg( mParamFlt[ORTHO_SHIFT_HORI] );
-		viewMatrixClip += tr("%1  ").arg( mParamFlt[ORTHO_SHIFT_VERT] );
+		viewMatrixClip += QString("%1  ").arg( mParamFlt[ORTHO_SHIFT_HORI] );
+		viewMatrixClip += QString("%1  ").arg( mParamFlt[ORTHO_SHIFT_VERT] );
 	}
 
 	QClipboard *clipboard = QApplication::clipboard();
@@ -3894,30 +3911,30 @@ bool MeshWidget::showViewMatrix() {
 
 	//! \todo use "GL_MODELVIEW_MATRIX" instead of mCenterView/mCameraCenter/mCameraUp
 	QString viewMatrixInfo = "<table><tr>";
-	viewMatrixInfo += tr( "<td>View&nbsp;center:</td>" );
-	viewMatrixInfo += tr("<td>&nbsp;%1</td>").arg( mCenterView.getX() );
-	viewMatrixInfo += tr("<td>&nbsp;%1</td>").arg( mCenterView.getY() );
-	viewMatrixInfo += tr("<td>&nbsp;%1</td>").arg( mCenterView.getZ() );
+	viewMatrixInfo += QString( "<td>") + tr("View&nbsp;center:") + QString("</td>" );
+	viewMatrixInfo += QString("<td>&nbsp;%1</td>").arg( mCenterView.getX() );
+	viewMatrixInfo += QString("<td>&nbsp;%1</td>").arg( mCenterView.getY() );
+	viewMatrixInfo += QString("<td>&nbsp;%1</td>").arg( mCenterView.getZ() );
 	viewMatrixInfo += "</tr><tr>";
-	viewMatrixInfo += tr( "<td>Camera&nbsp;center:</td>" );
-	viewMatrixInfo += tr("<td>&nbsp;%1</td>").arg( mCameraCenter.getX() );
-	viewMatrixInfo += tr("<td>&nbsp;%1</td>").arg( mCameraCenter.getY() );
-	viewMatrixInfo += tr("<td>&nbsp;%1</td>").arg( mCameraCenter.getZ() );
+	viewMatrixInfo += QString( "<td>") + tr("Camera&nbsp;center:") + QString("</td>" );
+	viewMatrixInfo += QString("<td>&nbsp;%1</td>").arg( mCameraCenter.getX() );
+	viewMatrixInfo += QString("<td>&nbsp;%1</td>").arg( mCameraCenter.getY() );
+	viewMatrixInfo += QString("<td>&nbsp;%1</td>").arg( mCameraCenter.getZ() );
 	viewMatrixInfo += "</tr><tr>";
-	viewMatrixInfo += tr( "<td>Camera&nbsp;UP:</td>" );
-	viewMatrixInfo += tr("<td>&nbsp;%1</td>").arg( mCameraUp.getX() );
-	viewMatrixInfo += tr("<td>&nbsp;%1</td>").arg( mCameraUp.getY() );
-	viewMatrixInfo += tr("<td>&nbsp;%1</td>").arg( mCameraUp.getZ() );
+	viewMatrixInfo += QString( "<td>") + tr("Camera&nbsp;UP:") + QString("</td>" );
+	viewMatrixInfo += QString("<td>&nbsp;%1</td>").arg( mCameraUp.getX() );
+	viewMatrixInfo += QString("<td>&nbsp;%1</td>").arg( mCameraUp.getY() );
+	viewMatrixInfo += QString("<td>&nbsp;%1</td>").arg( mCameraUp.getZ() );
 	if( mParamFlag[ORTHO_MODE] ) {
 		viewMatrixInfo += "</tr><tr>";
-		viewMatrixInfo += tr( "<td>Shift&nbsp;Hori/Vert:</td>" );
-		viewMatrixInfo += tr("<td>&nbsp;%1</td>").arg( mParamFlt[ORTHO_SHIFT_HORI] );
-		viewMatrixInfo += tr("<td>&nbsp;%1</td>").arg( mParamFlt[ORTHO_SHIFT_VERT] );
-		viewMatrixInfo += tr("<td></td>");
+		viewMatrixInfo += QString( "<td>")+ tr("Shift&nbsp;Hori/Vert:") + QString("</td>" );
+		viewMatrixInfo += QString("<td>&nbsp;%1</td>").arg( mParamFlt[ORTHO_SHIFT_HORI] );
+		viewMatrixInfo += QString("<td>&nbsp;%1</td>").arg( mParamFlt[ORTHO_SHIFT_VERT] );
+		viewMatrixInfo += QString("<td></td>");
 	}
 	viewMatrixInfo += "</tr></table>";
 
-	SHOW_MSGBOX_INFO( "View Matrix", viewMatrixInfo + "\nAlready copied to clipboard!" );
+	SHOW_MSGBOX_INFO( tr("View Matrix"), viewMatrixInfo + QString("\n") + tr("Already copied to clipboard!") );
 	return true;
 }
 
@@ -3930,7 +3947,7 @@ bool MeshWidget::setViewMatrix() {
 	QString clipBoardStr = clipboard->text( QClipboard::Clipboard );
 
 	QGMDialogEnterText dlgEnterTxt;
-	dlgEnterTxt.setWindowTitle( "Enter camera vectors (9/11 values)" );
+	dlgEnterTxt.setWindowTitle( tr("Enter camera vectors (9/11 values)") );
 	dlgEnterTxt.setText( clipBoardStr );
 	if( dlgEnterTxt.exec() == QDialog::Rejected ) {
 		return false;
@@ -4051,7 +4068,7 @@ bool MeshWidget::orthoSetDPI() {
 	dotsPerInch = ( 25.4/pixelWidth + 25.4/pixelHeight ) / 2.0; // "pseudo-average"
 
 	QGMDialogEnterText dlgEnterText;
-	dlgEnterText.setWindowTitle( "Set Dots Per Inch (DPI)" );
+	dlgEnterText.setWindowTitle( tr("Set Dots Per Inch (DPI)") );
 	dlgEnterText.setDouble( dotsPerInch );
 
 	if( dlgEnterText.exec() == QDialog::Rejected ) {
@@ -4099,34 +4116,34 @@ bool MeshWidget::screenshotSVG() {
 #endif
 	// 0.) Sanity check
 	if( mMeshVisual == nullptr ) {
-		SHOW_MSGBOX_CRIT( "ERROR", "No mesh present." );
+		SHOW_MSGBOX_CRIT( tr("ERROR"), tr("No mesh present.") );
 		return false;
 	}
 
 	//! 1.) Ask for the filename
 	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
-	QString fileName = QFileDialog::getSaveFileName( mMainWindow, QObject::tr( "Save screenshot as" ), \
+	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save screenshot as" ), \
 	                                                 filePath + QString( mMeshVisual->getBaseName().c_str() ) + ".svg", \
-	                                                 QObject::tr( "Scaleable Vector Graphic (*.svg)" ) );
+													 tr( "Scaleable Vector Graphic (*.svg)" ) );
 	if( fileName == nullptr ) { // Cancel pressed
-		SHOW_MSGBOX_WARN( "User abort", "No files saved." );
+		SHOW_MSGBOX_WARN( tr("User abort"), tr("No files saved.") );
 		return false;
 	}
 
 	// Optional:
 	QString fileNamePNG = fileName.left( fileName.lastIndexOf( "." ) ) + ".png";
-	fileNamePNG = QFileDialog::getSaveFileName( mMainWindow, QObject::tr( "Save screenshot as" ), \
-	                                            fileNamePNG, QObject::tr( "Portable Network Graphics (*.png)" ) );
+	fileNamePNG = QFileDialog::getSaveFileName( mMainWindow, tr( "Save screenshot as" ), \
+												fileNamePNG, tr( "Portable Network Graphics (*.png)" ) );
 
 	bool retVal = screenshotSVG( fileName, fileNamePNG );
 	if( retVal ) {
 		if( fileNamePNG.length() > 0 ) {
-			SHOW_MSGBOX_INFO( "Files saved", "PNG and SVG" );
+			SHOW_MSGBOX_INFO( tr("Files saved"), tr("PNG and SVG") );
 		} else {
-			SHOW_MSGBOX_INFO( "File saved", "SVG only" );
+			SHOW_MSGBOX_INFO( tr("File saved"), tr("SVG only") );
 		}
 	} else {
-		SHOW_MSGBOX_CRIT( "ERROR", "Could not save file(s)." );
+		SHOW_MSGBOX_CRIT( tr("ERROR"), tr("Could not save file(s).") );
 	}
 	return retVal;
 }
@@ -4683,7 +4700,7 @@ bool MeshWidget::screenshotSVG( const QString& rFileName, const QString& rFileNa
 bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 	// 0.) Sanity check
 	if( mMeshVisual == nullptr ) {
-		SHOW_MSGBOX_CRIT( "ERROR", "No mesh present." );
+		SHOW_MSGBOX_CRIT( tr("ERROR"), tr("No mesh present.") );
 		return( false );
 	}
 
@@ -4691,7 +4708,7 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 	//     Note: this part also checks for qualified polylines.
 	double Xmin, Ymin, Zmin, Xmax, Ymax, Zmax;
 	if( !mMeshVisual->getPolyLineBoundingBoxFromAll( &Xmin, &Ymin, &Zmin, &Xmax, &Ymax, &Zmax, true ) ) {
-		SHOW_MSGBOX_WARN_TIMEOUT( "Warning", "No qualified polylines i.e. intersections by planes present.", 5000 );
+		SHOW_MSGBOX_WARN_TIMEOUT( tr("Warning"), tr("No qualified polylines i.e. intersections by planes present."), 5000 );
 		cout << "[MeshWidget::" << __FUNCTION__ << "] No qualified polylines found." << endl;
 		return( false );
 	}
@@ -4702,11 +4719,11 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 	// 2.) Ask for the filename
 	QString baseName = QString( mMeshVisual->getBaseName().c_str() );
 	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
-	QString fileName = QFileDialog::getSaveFileName( mMainWindow, QObject::tr( "Save intersections as" ), \
+	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save intersections as" ), \
 	                                                 filePath + baseName + "_profiles.svg", \
-	                                                 QObject::tr( "Scaleable Vector Graphic (*.svg)" ) );
+													 tr( "Scaleable Vector Graphic (*.svg)" ) );
 	if( fileName == nullptr ) { // Cancel pressed
-		SHOW_MSGBOX_WARN( "User abort", "No files saved." );
+		SHOW_MSGBOX_WARN( tr("User abort"), tr("No files saved.") );
 		return( false );
 	}
 
@@ -5017,9 +5034,9 @@ void MeshWidget::screenshotRuler() {
 	if( !mParamFlag[ORTHO_MODE] ) {
 		QMessageBox msgBox;
 		msgBox.setWindowIcon( QIcon( _GIGAMESH_LOGO_ ) );
-		msgBox.setText( "Not possible in perspective projection mode." );
+		msgBox.setText( tr("Not possible in perspective projection mode.") );
 		msgBox.setIcon( QMessageBox::Warning );
-		msgBox.setInformativeText( "Do you want to change to orthographic projection?" );
+		msgBox.setInformativeText( tr("Do you want to change to orthographic projection?") );
 		msgBox.setStandardButtons( QMessageBox::Yes | QMessageBox::No );
 		int ret = msgBox.exec();
 		if( ret == QMessageBox::Yes ) {
@@ -5041,7 +5058,7 @@ void MeshWidget::screenshotRuler() {
 	QString dpiString = "";
 	if( pixelWorldSizeSet ) {
 		resolutionDPI = round( 25.4/pixelWidth );
-		dpiString = tr("_%1DPI").arg(resolutionDPI);
+		dpiString = QString("_%1DPI").arg(resolutionDPI);
 	}
 
 	sprintf( buffer, fileNamePattern.c_str(), mMeshVisual->getBaseName().c_str(), dpiString.toStdString().c_str() );
@@ -5086,7 +5103,7 @@ bool MeshWidget::screenshotTiledPNG(
 	if( !mParamFlag[ORTHO_MODE] ) {
 		//! \todo Tiled rendering for perspective rendering.
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Tiled rendering NOT implemented for perspective view!" << endl;
-		SHOW_MSGBOX_WARN_TIMEOUT( "Not implemented", "Tiled rendering is not available for perspective views.", 5000 );
+		SHOW_MSGBOX_WARN_TIMEOUT( tr("Not implemented"), tr("Tiled rendering is not available for perspective views."), 5000 );
 		return false;
 	}
 
@@ -5238,9 +5255,9 @@ bool MeshWidget::screenshotTiledPNG(
 				// Prepate filename
 				QString rFileNameSubImage( rFileName );
 				if( ( extSeperator != -1 ) && ( pixelWorldSizeSet ) ) {
-					QString strDPI = tr( "_%2_%1." ).arg( subImageX ).arg( subImageY );
+					QString strDPI = QString( "_%2_%1." ).arg( subImageX ).arg( subImageY );
 					if( appendDPItoFilename ) {
-						strDPI += tr( "_%1DPI" ).arg( resolutionDPI );
+						strDPI += QString( "_%1DPI" ).arg( resolutionDPI );
 					}
 					rFileNameSubImage.replace( extSeperator, 1, strDPI );
 				}
@@ -5257,7 +5274,7 @@ bool MeshWidget::screenshotTiledPNG(
 		}
 	} else {
 		if( appendDPItoFilename && ( extSeperator != -1 ) && ( pixelWorldSizeSet ) ) {
-			QString strDPI = tr( "_%1DPI." ).arg( resolutionDPI );
+			QString strDPI = QString( "_%1DPI." ).arg( resolutionDPI );
 			rFileName.replace( extSeperator, 1, strDPI );
 		}
 		if( !writePNG( rFileName.toStdString(), imWidth, imHeight, imRGBA, dotsPerMeterWidth, dotsPerMeterHeight ) ) {
@@ -5512,7 +5529,7 @@ bool MeshWidget::cropRGBAbyAlpha(
 bool MeshWidget::rotYaw() {
 	double rotAngle;
 	QGMDialogEnterText dlgEnterText;
-	dlgEnterText.setWindowTitle( "Yaw angle (degree)" );
+	dlgEnterText.setWindowTitle( tr("Yaw angle (degree)") );
 	dlgEnterText.setDouble( 0.5f );
 	if( dlgEnterText.exec() == QDialog::Rejected ) {
 		return false;
@@ -5527,7 +5544,7 @@ bool MeshWidget::rotYaw() {
 bool MeshWidget::rotPitch() {
 	double rotAngle;
 	QGMDialogEnterText dlgEnterText;
-	dlgEnterText.setWindowTitle( "Pitch angle (degree)" );
+	dlgEnterText.setWindowTitle( tr("Pitch angle (degree)") );
 	dlgEnterText.setDouble( 0.5f );
 	if( dlgEnterText.exec() == QDialog::Rejected ) {
 		return false;
@@ -5542,7 +5559,7 @@ bool MeshWidget::rotPitch() {
 bool MeshWidget::rotRoll() {
 	double rotAngle;
 	QGMDialogEnterText dlgEnterText;
-	dlgEnterText.setWindowTitle( "Roll angle (degree)" );
+	dlgEnterText.setWindowTitle( tr("Roll angle (degree)") );
 	dlgEnterText.setDouble( 0.5f );
 	if( dlgEnterText.exec() == QDialog::Rejected ) {
 		return false;
@@ -5611,6 +5628,7 @@ bool MeshWidget::rotRollPitchYaw(double rAngle, double pAngle, double yAngle)
 
     mCameraCenter *= yawMat;
     mCameraUp     *= yawMat;
+
     setView();
     //repaint();
     update();
@@ -6475,7 +6493,7 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 	if( ( rEvent->buttons() == Qt::LeftButton ) &&
 		( currMouseMode == MOUSE_MODE_MOVE_LIGHT_FIXED_CAM ) &&
 		( lightEnabled ) &&
-	    ( lightFixedCam )
+		( lightFixedCam )
 	) {
 		double lightAnglePhi;
 		double lightAngleTheta;
@@ -6607,6 +6625,7 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 
 		//perform Pitch and Yaw. Smoother, since it only makes one update/setview
 		rotRollPitchYaw( 0.0, -dy, -dx );
+		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 
 		bool showMeshReduced = false;
 		getParamFlagMeshWidget(MeshWidgetParams::ENABLE_SHOW_MESH_REDUCED, &showMeshReduced);
@@ -7034,29 +7053,69 @@ bool MeshWidget::currentViewToDefault() {
 	QString clipBoardText;
 	QString msgboxText = "<html>\n";
 	//for( int i=0; i<16; i++ ) {
-	//	msgboxText += tr( " %1" ).arg( transArr[i] );
+	//	msgboxText += QString( " %1" ).arg( transArr[i] );
 	//}
 	msgboxText += "<table>";
-	msgboxText += "<th><td colspan\"4\"><b>Transformation matrix</b></td></th>";
+	msgboxText += QString("<th><td colspan\"4\"><b>")+ tr("Transformation matrix") + QString("</b></td></th>");
 	for( int i=0; i<4; i++ ) {
 		msgboxText += "<tr>\n";
 		for( int j=0; j<4; j++ ) {
-			clipBoardText += tr( "%1 " ).arg( transMat(i,j) );
-			msgboxText += "<td align=\"right\">" + tr( "%1 " ).arg( transMat(i,j) ) + "</td>";
+			clipBoardText += QString( "%1 " ).arg( transMat(i,j) );
+			msgboxText += "<td align=\"right\">" + QString( "%1 " ).arg( transMat(i,j) ) + "</td>";
 		}
 		clipBoardText += "\n";
 		msgboxText += "</tr>\n";
 	}
 	msgboxText += "</table><br /><br />";
-	msgboxText += "... already copied to the clipboard.";	
+	msgboxText += tr("... already copied to the clipboard.");
 	msgboxText += "</html>\n";
 
 	QClipboard *clipboard = QApplication::clipboard();
 	clipboard->setText( clipBoardText );
 	mMeshVisual->setParamFlagMesh( MeshParams::FILE_TRANSFORMATION_APPLIED, true );
-	SHOW_MSGBOX_INFO_SAVE( "Object transformed", msgboxText, mMeshVisual, &MeshQt::writeFileUserInteract );
+	SHOW_MSGBOX_INFO_SAVE( tr("Object transformed"), msgboxText, mMeshVisual, &MeshQt::writeFileUserInteract );
 
 	return( retVal );
+}
+
+void MeshWidget::openNormalSphereSelectionDialog()
+{
+	auto dialog = this->findChild<QDialog*>(tr("NormalSphereSelectionDialog"));
+
+	//avoid multiple instances of the dialog
+	if(dialog != nullptr)
+	{
+		return;
+	}
+
+	auto normalSphereDialog = new NormalSphereSelectionDialog(this);
+
+	normalSphereDialog->setAttribute(Qt::WA_DeleteOnClose);
+	normalSphereDialog->setWindowFlags( normalSphereDialog->windowFlags() | Qt::Tool);
+
+	normalSphereDialog->show();
+
+	normalSphereDialog->setMeshNormals(mMeshVisual);
+
+	connect(this, &MeshWidget::camRotationChanged, normalSphereDialog, &NormalSphereSelectionDialog::updateRotationExternal);
+	connect(normalSphereDialog, &NormalSphereSelectionDialog::rotationChanged, this, &MeshWidget::setCameraRotation);
+}
+
+void MeshWidget::setCameraRotation(QQuaternion rotationQuat)
+{
+
+	auto distToCamera = (mCenterView- mCameraCenter).getLength3();
+
+	QVector3D camCenter = (rotationQuat.conjugated() * QVector3D(0.0,0.0,1.0)).normalized();
+	QVector3D up = (rotationQuat.conjugated() * QVector3D(0.0,1.0,0.0)).normalized();
+
+	mCameraCenter = Vector3D(camCenter.x(), camCenter.y(), camCenter.z(), 0.0) * distToCamera + mCenterView;
+
+	mCameraUp = Vector3D(up.x(), up.y(), up.z(), 0.0);
+
+	setView();
+	update();
+
 }
 
 
@@ -7226,10 +7285,11 @@ void MeshWidget::setView( GLdouble* rOrthoViewPort //!< position and dimension o
 	// distance between camera and the bounding box center
 	// and the camera plane:
 	Vector3D cameraPlaneNormal = mCenterView - mCameraCenter;
+
 	cameraPlaneNormal.normalize3();
 	// as cameraView.X/Y/Z = A/B/C of the Hessian Normal Form (HNF), we need D and we know that |cameraView| == 0.0, we get:
 	// and use HNF to get the distance:
-	float cameraPlaneD = -compMult( mCameraCenter, cameraPlaneNormal ).sum3();
+	double cameraPlaneD = -compMult( mCameraCenter, cameraPlaneNormal ).sum3();
 
 	double     bBoxRadius;
 	Vector3D   bBoxCenter( 0.0f, 0.0f, 0.0f, 1.0 );

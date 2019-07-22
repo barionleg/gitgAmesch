@@ -80,7 +80,7 @@ void QGMDialogTransparencySettings::resetValues()
     }
 
     ui->checkBox_Preview->blockSignals(true);
-    ui->checkBox_Preview->setChecked(false);
+	//ui->checkBox_Preview->setChecked(false);
 
     ui->doubleSpinBox_uniform->setValue(m_transVal);
     ui->horizontalSlider_uniform->setValue((m_transVal - ui->doubleSpinBox_uniform->minimum()) / ui->doubleSpinBox_uniform->singleStep());
@@ -297,7 +297,17 @@ void QGMDialogTransparencySettings::gammaChanged(double value)
 void QGMDialogTransparencySettings::comboBoxChanged()
 {
     if(ui->checkBox_Preview->isChecked())
-        emitValues();
+		emitValues();
+}
+
+void QGMDialogTransparencySettings::changeEvent(QEvent* event)
+{
+	if(event->type() == QEvent::LanguageChange)
+	{
+		ui->retranslateUi(this);
+	}
+
+	QDialog::changeEvent(event);
 }
 
 void QGMDialogTransparencySettings::emitValues()

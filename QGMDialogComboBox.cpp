@@ -1,5 +1,8 @@
 #include "QGMDialogComboBox.h"
 
+// Qt includes:
+#include "QGMMacros.h"
+
 //! Constructor
 QGMDialogComboBox::QGMDialogComboBox( QWidget *parent, Qt::WindowFlags flags ) :
     QDialog( parent, flags ) {
@@ -24,4 +27,15 @@ QVariant QGMDialogComboBox::getSelectedItem() {
 	int index = mComboBox->currentIndex();
 	QVariant userData = mComboBox->itemData ( index );
 	return userData;
+}
+
+
+void QGMDialogComboBox::changeEvent(QEvent* event)
+{
+	if(event->type() == QEvent::LanguageChange)
+	{
+		retranslateUi(this);
+	}
+
+	QDialog::changeEvent(event);
 }

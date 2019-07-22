@@ -87,6 +87,7 @@ class MeshIO : public MeshSeedExt {
 		virtual std::string getFileLocation();
 		virtual std::string getFullName();
 
+		virtual bool writeIcoNormalSphereData(const std::string& rFilename, const std::vector<sVertexProperties>& rVertexProps, int subdivisions, bool sphereCoordinates = false);
 	private:
 		enum ePlySections {
 			PLY_VERTEX,

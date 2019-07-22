@@ -154,6 +154,12 @@ double Vector3D::getLength3() const {
 	return sqrt( pow( x, 2 ) + pow( y, 2 ) + pow( z, 2 ) );
 }
 
+double Vector3D::getLength3Squared() const
+{
+	//! Returns the squared length of the inhomogenous Vector3D.
+	return x * x + y * y + z * z;
+}
+
 double Vector3D::getLength4() const {
 	//! Returns the length of the homogenous Vector3D.
 	return sqrt( pow( x, 2 ) + pow( y, 2 ) + pow( z, 2 ) + pow( h, 2 ) );
@@ -413,7 +419,7 @@ double Vector3D::angleInLineCoord( const Vector3D* rPosTop, const Vector3D* rPos
 
 // Operators -------------------------------------------------------------------
 
-void Vector3D::operator+= (Vector3D addVec) {
+void Vector3D::operator+= (const Vector3D& addVec) {
 	//! Adds another Vector3D to this one.
 	x += addVec.x;
 	y += addVec.y;
@@ -421,7 +427,7 @@ void Vector3D::operator+= (Vector3D addVec) {
 	h += addVec.h;
 }
 
-void Vector3D::operator-= (Vector3D addVec) {
+void Vector3D::operator-= (const Vector3D& addVec) {
 	//! Subtracts another Vector3D to this one.
 	x -= addVec.x;
 	y -= addVec.y;
@@ -445,7 +451,7 @@ void Vector3D::operator*= (double multVec) {
 	h *= multVec;
 }
 
-void Vector3D::operator *= (Matrix4D multMat) {
+void Vector3D::operator *= (const Matrix4D& multMat) {
 	//! Multiplies the (homogenous!) Vector3D with a Matrix4D.
 	//!
 	//! see: http://www.mathworks.com/access/helpdesk/help/techdoc/ref/mtimes.html
@@ -484,12 +490,12 @@ void Vector3D::operator *= (Matrix4D multMat) {
 */
 }
 
-bool Vector3D::operator!= (Vector3D compVec) {
+bool Vector3D::operator!= (const Vector3D& compVec) {
 	//! Compares another Vector3D with this one.
 	return (compVec.getX() != x || compVec.getY() != y || compVec.getZ() != z);
 }
 
-bool Vector3D::operator== (Vector3D compVec) {
+bool Vector3D::operator== (const Vector3D& compVec) {
 	//! Compares another Vector3D with this one.
 	return (compVec.getX() == x && compVec.getY() == y && compVec.getZ() == z);
 }
@@ -509,7 +515,7 @@ void Vector3D::dumpInfo( bool forMatlab, char* someNameTag ) {
 
 // GLOBAL Operators ------------------------------------------------------------
 
-Vector3D operator% ( Vector3D crossVec1, Vector3D crossVec2 ) {
+Vector3D operator% ( const Vector3D& crossVec1, const Vector3D& crossVec2 ) {
 	//! Cross product between two vectors.
 	Vector3D crossProd;
 	crossProd.setX( crossVec1.getY() * crossVec2.getZ() - crossVec1.getZ() * crossVec2.getY() );
@@ -519,7 +525,7 @@ Vector3D operator% ( Vector3D crossVec1, Vector3D crossVec2 ) {
 	return crossProd;
 }
 
-Vector3D  operator+ ( Vector3D someVec1, Vector3D someVec2 ) {
+Vector3D  operator+ ( const Vector3D& someVec1, const Vector3D& someVec2 ) {
 	//! Adds two vectors.
 	Vector3D vecAdd;
 	vecAdd.setX( someVec1.getX()+someVec2.getX() );
@@ -529,7 +535,7 @@ Vector3D  operator+ ( Vector3D someVec1, Vector3D someVec2 ) {
 	return vecAdd;
 }
 
-Vector3D  operator- ( Vector3D someVec ) {
+Vector3D  operator- ( const Vector3D& someVec ) {
 	//! Reverse vector.
 	Vector3D vecNegative( someVec );
 	vecNegative.setX( -vecNegative.getX() );
@@ -539,7 +545,7 @@ Vector3D  operator- ( Vector3D someVec ) {
 	return vecNegative;
 }
 
-Vector3D  operator- ( Vector3D someVec1, Vector3D someVec2 ) {
+Vector3D  operator- ( const Vector3D& someVec1, const Vector3D& someVec2 ) {
 	//! Substracts two vectors.
 	Vector3D vecSubstract;
 	vecSubstract.setX( someVec1.getX()-someVec2.getX() );
@@ -553,14 +559,14 @@ Vector3D  operator- ( Vector3D someVec1, Vector3D someVec2 ) {
 //! Scalar product (or inner product) of the homogenous vector.
 //! Attention: for the 3D inner product the 4th coordinate ("h" or "w") has to be zero. See Vector3D::setH().
 //! @returns scalar.
-double operator* ( Vector3D someVec1, Vector3D someVec2 ) {
-	return someVec1.getX() * someVec2.getX() + \
-	       someVec1.getY() * someVec2.getY() + \
-	       someVec1.getZ() * someVec2.getZ() + \
+double operator* ( const Vector3D& someVec1, const Vector3D& someVec2 ) {
+	return someVec1.getX() * someVec2.getX() +
+		   someVec1.getY() * someVec2.getY() +
+		   someVec1.getZ() * someVec2.getZ() +
 	       someVec1.getH() * someVec2.getH();
 }
 
-Vector3D operator* ( Vector3D someVec, Matrix4D someMat ) {
+Vector3D operator* ( const Vector3D& someVec, const Matrix4D& someMat ) {
 	//! Apply with Matrix4D, which is typically a transformation matrix.
 	//! \todo this is not enterly correct as it works only for a transposed vector and than the result is different as this operation is not commutative 
 	Vector3D vecToMult( someVec );
@@ -568,38 +574,38 @@ Vector3D operator* ( Vector3D someVec, Matrix4D someMat ) {
 	return vecToMult;
 }
 
-Vector3D operator* ( Matrix4D someMat, Vector3D someVec ) {
+Vector3D operator* ( const Matrix4D& someMat, const Vector3D& someVec ) {
 	//! Apply with Matrix4D, which is typically a transformation matrix.
 	Vector3D vecToMult( someVec );
 	vecToMult *= someMat;
 	return vecToMult;
 }
 
-Vector3D  operator* ( Vector3D someVec, double scalar ) {
+Vector3D  operator* ( const Vector3D& someVec, double scalar ) {
 	//! Multiplication with a scalar.
 	Vector3D vecToMult( someVec );
 	vecToMult *= scalar;
 	return vecToMult;
 }
 
-Vector3D  operator* ( double scalar, Vector3D someVec ) {
+Vector3D  operator* ( double scalar, const Vector3D& someVec ) {
 	//! Multiplication with a scalar.
 	return someVec * scalar;
 }
 
-Vector3D  operator/ ( Vector3D someVec, double scalar ) {
+Vector3D  operator/ ( const Vector3D& someVec, double scalar ) {
 	//! Division by a scalar.
 	Vector3D vecToMult( someVec );
 	vecToMult /= scalar;
 	return vecToMult;
 }
 
-Vector3D  operator/ ( double scalar, Vector3D someVec ) {
+Vector3D  operator/ ( double scalar, const Vector3D& someVec ) {
 	//! Division by a scalar.
 	return someVec / scalar;
 }
 
-Vector3D normalize3( Vector3D someVec ) {
+Vector3D normalize3(const Vector3D& someVec ) {
 	//! Normalizes of the homogenous vector using Vector3D::getLength3.
 	//! The 4. element stay unmodified.
 	Vector3D normVec;
@@ -611,7 +617,7 @@ Vector3D normalize3( Vector3D someVec ) {
 	return normVec;
 }
 
-Vector3D normalize4( Vector3D someVec ) {
+Vector3D normalize4(const Vector3D& someVec ) {
 	//! Normalizes of the homogenous vector using Vector3D::getLength4.
 	Vector3D normVec;
 	double    len4 = someVec.getLength4();
@@ -622,7 +628,7 @@ Vector3D normalize4( Vector3D someVec ) {
 	return normVec;
 }
 
-Vector3D compMult( Vector3D someVec1, Vector3D someVec2 ) {
+Vector3D compMult( const Vector3D& someVec1, const Vector3D& someVec2 ) {
 	//! Multiplication of components (Matlab equivalent to .* )
 	Vector3D resVec;
 	resVec.setX( someVec1.getX() * someVec2.getX() );
@@ -632,7 +638,7 @@ Vector3D compMult( Vector3D someVec1, Vector3D someVec2 ) {
 	return resVec;	
 }
 
-double dot3( Vector3D someVec1, Vector3D someVec2 ) {
+double dot3( const Vector3D& someVec1, const Vector3D& someVec2 ) {
 	//! dot-product for the inhomogenous vector - see: http://en.wikipedia.org/wiki/Dot_product
 	double dotProd = 0.0;
 	dotProd += someVec1.getX() * someVec2.getX();
@@ -641,7 +647,7 @@ double dot3( Vector3D someVec1, Vector3D someVec2 ) {
 	return dotProd;
 }
 
-double  dot4( Vector3D someVec1, Vector3D someVec2 ) {
+double  dot4( const Vector3D& someVec1, const Vector3D& someVec2 ) {
 	//! dot-product for the homogenous vector - see: http://en.wikipedia.org/wiki/Dot_product
 	double dotProd = 0.0;
 	dotProd += someVec1.getX() * someVec2.getX();
@@ -651,7 +657,7 @@ double  dot4( Vector3D someVec1, Vector3D someVec2 ) {
 	return dotProd;
 }
 
-double angle( Vector3D vec1, Vector3D vec2 ) {
+double angle( const Vector3D& vec1, const Vector3D& vec2 ) {
 	//! Unsigned Angle (in radiant) between two inhomogenous vectors.
 	double numerator   = vec1.getX() * vec2.getX() + vec1.getY() * vec2.getY() + vec1.getZ() * vec2.getZ();
 	double denominator = vec1.getLength3() * vec2.getLength3();
@@ -669,7 +675,7 @@ double angle( Vector3D vec1, Vector3D vec2 ) {
 	return lambda;
 }
 
-double angle( Vector3D vec1, Vector3D vec2, Vector3D vecNormal ) {
+double angle( const Vector3D& vec1, const Vector3D& vec2, const Vector3D& vecNormal ) {
 	//! Signed Angle (in radiant) between two inhomogenous vectors.
 	//! \todo: test if the sign is correct (or has to be inverted!)
 	double lambda = angle( vec1, vec2 );
@@ -694,13 +700,13 @@ double angle3ToZ( double* vec ) {
 	return acos( vec[2] / sqrt( pow( vec[0], 2 ) + pow( vec[1], 2 ) + pow( vec[2], 2 ) ) );
 }
 
-double abs3( Vector3D someVec ) {
+double abs3( const Vector3D& someVec ) {
 	//! Length of the inhomogenous vector (ignoring the 4. element).
 	//! Returns the same value as Vector3D::getLength3.
 	return someVec.getLength3();
 }
 
-double abs4( Vector3D someVec ) {
+double abs4( const Vector3D& someVec ) {
 	//! Length of the homogenous vector.
 	//! Returns the same value as Vector3D::getLength4.
 	return someVec.getLength4();
@@ -708,7 +714,7 @@ double abs4( Vector3D someVec ) {
 
 //! Projects the current vector onto the other vector and returns the result.
 //! The current vector is _not_ changed by this operation.
-Vector3D Vector3D::projectOnto(Vector3D someVec)
+Vector3D Vector3D::projectOnto(const Vector3D& someVec)
 {
 	double someVecLenSquared = someVec.getLength3() * someVec.getLength3();
 	return(dot3(*this, someVec)*someVec/someVecLenSquared);
@@ -752,7 +758,7 @@ Vector3D Vector3D::projectOntoLine( const Vector3D& rVertA, const Vector3D& rVer
 
 //! Applies a transformation matrix to the current vector. The vector data
 //! is irreversibly changed by this operation.
-Vector3D& Vector3D::applyTransformation(Matrix4D &transformationMatrix) {
+Vector3D& Vector3D::applyTransformation(const Matrix4D &transformationMatrix) {
 	(*this) = (*this) * transformationMatrix;
 	return(*this);
 }

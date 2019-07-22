@@ -130,6 +130,20 @@ private slots:
 	// --- Network communication ---------------------------------------------------------------------------------------------------------------------------
 	void slotHttpCheckVersion( QNetworkReply* rReply );
 
+	// --- Language changes ---------------------------------------------------------------------------------------------------------------------------
+	void slotChangeLanguage(QAction* action);
+
+private:
+	//loads a language by the given language shortcut (e.g. de, en)
+	void loadLanguage(const QString& language);
+
+	//creates language menu dynamically by the provided translations in the language resource path
+	void createLanguageMenu();
+	QString mCurrentLanguage;
+	QTranslator mTranslator;
+	QTranslator mTranslatorQt;
+
+private slots:
 	void openExternalProgramsDialog();
 	void openGridPositionDialog();
 private:
@@ -154,6 +168,7 @@ signals:
 	void exportPolyLinesFuncVals();                          //!< triggers the export of run-length and function values of (selected) polylines.
 	//.
 	void exportFaceNormalAngles();                           //!< triggers the export of the faces normals as sphereical angles
+	void exportNormalSphereData();                           //!< triggers the export of the normal sphere data
 	//.
 	void saveStillImages360HLR();                            //!< triggers the generation of still images for a horizontal 360° rotation (left->right).
 	void saveStillImages360VUp();                            //!< triggers the generation of still images for a vertical 360° rotation (upwards).
@@ -399,6 +414,8 @@ signals:
 	void sShowTransparencySettings();
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
 
+	void sOpenNormalSphereSelectionDialog();
+
 private:
 	// Specialized UI class:
 	MeshWidget*                       mMeshWidget;                    //!< QWidget for OpenGL
@@ -446,6 +463,10 @@ private:
 
 	// Network access e.g. for checking the version number.
 	QNetworkAccessManager* mNetworkManager;          //! manages simple http-request (cf. version number)
+
+	// QWidget interface
+	protected:
+	virtual void changeEvent(QEvent* event) override;
 };
 
 #endif

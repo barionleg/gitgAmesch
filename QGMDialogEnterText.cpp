@@ -55,17 +55,17 @@ void QGMDialogEnterText::fetchClipboard() {
 
 void QGMDialogEnterText::setDouble( double rValue ) {
 	//! Convert rValue to a string used for the text field.
-	someText->setText( tr( "%1" ).arg( rValue ) );
+	someText->setText( QString( "%1" ).arg( rValue ) );
 }
 
 void QGMDialogEnterText::setInt( int rValue ) {
 	//! Convert rValue to a string used for the text field.
-	someText->setText( tr( "%1" ).arg( rValue ) );
+	someText->setText( QString( "%1" ).arg( rValue ) );
 }
 
 void QGMDialogEnterText::setuInt( unsigned int rValue ) {
 	//! Convert rValue to a string used for the text field.
-	someText->setText( tr( "%1" ).arg( rValue ) );
+	someText->setText( QString( "%1" ).arg( rValue ) );
 }
 
 // --- Retrieve entered information ----------------------------------------------------------------------------------------------------------------------------
@@ -371,4 +371,15 @@ void QGMDialogEnterText::accept() {
 	//! Disconnects all connections - so other other objects can reuse an instance of this class.
 	QObject::disconnect();
 	QDialog::accept();
+}
+
+
+void QGMDialogEnterText::changeEvent(QEvent*event)
+{
+	if(event->type() == QEvent::LanguageChange)
+	{
+		retranslateUi(this);
+	}
+
+	QDialog::changeEvent(event);
 }

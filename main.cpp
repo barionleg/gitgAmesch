@@ -11,6 +11,7 @@
 #include <QApplication>
 #include <QGLFormat>
 #include <QMessageBox>
+#include <QTranslator>
 
 // Qt Interface includes:
 #include "QGMMacros.h"
@@ -30,6 +31,14 @@ using namespace std;
 
 int main( int argc, char *argv[] ) {
 	QApplication app( argc, argv );
+
+	/*
+	//Initialize translation:
+	QTranslator translator;
+
+	if(translator.load("GigaMesh_" + QLocale::system().name(), ":/languages"))
+		app.installTranslator(&translator);
+	*/
 
 	// Application settings:
 	app.setOrganizationName( "GigaMesh" );
@@ -95,9 +104,9 @@ int main( int argc, char *argv[] ) {
 	}
 	// Specify an OpenGL 3.2 format using the Core profile.
 	// That is, no old-school fixed pipeline functionality
-    QGLFormat glFormat; //QGLFormat is deprecated...
+	QGLFormat glFormat; //QGLFormat is deprecated...
 	//! \todo QSurfaceFormat is the replacment for the deprecated QGLFormat
-	if(glFormat.openGLVersionFlags() & QGLFormat::OpenGL_Version_4_3)
+	if(QGLFormat::openGLVersionFlags() & QGLFormat::OpenGL_Version_4_3)
 		glFormat.setVersion( 4, 3 );        //Higher Version needed to handle transparency in shader. Revert to 3.3 if it breaks core functionalities...
 	else
 		glFormat.setVersion( 3, 3 );                   // The version has to be larger than 3.3 due to geometry shaders and other usefull stuff.

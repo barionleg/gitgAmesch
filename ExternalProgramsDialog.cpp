@@ -129,9 +129,16 @@ void ExternalProgramsDialog::pythonPathChoose()
 
 void ExternalProgramsDialog::defaultPressed()
 {
-	ui->inkscape_lineEdit->setText(tr("inkscape"));
-	ui->pdf_latex_lineEdit->setText(tr("pdflatex"));
-	ui->pdf_viewer_lineEdit->setText(tr("evince"));
-	ui->python_lineEdit->setText(tr("python3"));
 }
 
+
+
+void ExternalProgramsDialog::changeEvent(QEvent*event)
+{
+	if(event->type() == QEvent::LanguageChange)
+	{
+		ui->retranslateUi(this);
+	}
+
+	QDialog::changeEvent(event);
+}

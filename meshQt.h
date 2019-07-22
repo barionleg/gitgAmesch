@@ -23,11 +23,9 @@
 #include "QGMDialogMSII.h"
 #include "QGMDialogConeParam.h"
 #include "QGMDialogPlaneParam.h"
-#include "QGMDialogTransparencySettings.h"
 #include "MeshQtCSVImportExport.h"
 
 class QGMMainWindow;
-class QGMDialogNprSettings;
 
 //!
 //! \brief Qt extension for the Mesh class. (Layer 2)
@@ -112,6 +110,7 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		virtual bool   exportFaceNormalAngles();
 		virtual bool   exportFaceNormalAngles( std::string filename );
 
+				void exportNormalSphereData();
 		// edit actions:
 		virtual bool   changedMesh();
 		virtual bool   removeVerticesSelected();
@@ -328,10 +327,8 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		virtual bool showInfoAxisHTML();
 
 		// Shader
-                void showNPRSettings();
-                void NPRSettingsChanged();
-                void showTransparencySettings();
-                void TransparencySettingsChanged();
+	void showNPRSettings();
+	void showTransparencySettings();
 
 	// Overloaded from MeshIO
 	//============================
@@ -383,8 +380,6 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		//! \todo source revision by removing dialogSlider and dialogConeParam as class members.
 		QGMDialogSliderHD     mDialogSlider;       //!< Multi-purpose QDialog with a slider and a preview checkbox.
 		QGMDialogConeParam    mDialogConeParam;    //!< QDialog for cone parameters.
-		QGMDialogNprSettings* mDialogNprSetting;   //!< QDialog for setting NPR parameters
-        QGMDialogTransparencySettings mDialogTransparencySettings;  //!< QDialog for Transparency-Settings
 };
 
 #endif
