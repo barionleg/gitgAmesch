@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -510,6 +510,7 @@
      <addaction name="actionSelVertFaceMaxAngleGT"/>
      <addaction name="separator"/>
      <addaction name="actionSelVertLabelNo"/>
+     <addaction name="actionSelVertLabelBackGrd"/>
      <addaction name="actionSelVertLabeledNot"/>
      <addaction name="separator"/>
      <addaction name="actionSelVertNonMax"/>
@@ -4307,6 +4308,11 @@ p, li { white-space: pre-wrap; }
   <action name="actionExport_Normal_Sphere_Data">
    <property name="text">
     <string>Export Normal-Sphere Data</string>
+   </property>
+  </action>
+  <action name="actionSelVertLabelBackGrd">
+   <property name="text">
+    <string>Vertices - Labeled Background</string>
    </property>
   </action>
  </widget>

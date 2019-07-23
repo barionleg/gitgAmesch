@@ -299,6 +299,9 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 		case SELMVERTS_LABEL_IDS:
 			retVal = selectVertLabelNo();
 			break;
+		case SELMVERTS_LABEL_BACKGROUND:
+			retVal = selectVertLabelBackGrd();
+			break;
 		case SELMVERTS_FROMSELMFACES:
 			retVal = selectVertFromFaces();
 			break;
@@ -2188,6 +2191,14 @@ bool Mesh::selectVertLabelNo() {
 	}
 
 	bool retVal = selectVertLabelNo( selectedLabelIds );
+	return( retVal );
+}
+
+//! Adds all vertices with being labeled as background (0) to the selection - see getVertLabelBackGrd().
+//! @returns true, when vertices were added.
+bool Mesh::selectVertLabelBackGrd() {
+	bool retVal = getVertLabelBackGrd( mSelectedMVerts );
+	selectedMVertsChanged();
 	return( retVal );
 }
 
@@ -10354,7 +10365,20 @@ bool Mesh::getVertLabelNo(
 	return true;
 }
 
+//! Adds vertices, which are labeled background, to a given set.
+//! @returns false in case of an error. True otherwise.
+bool Mesh::getVertLabelBackGrd( std::set<Vertex*>& rSomeVerts ) {
+	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
+		Vertex* currVertex = getVertexPos( vertIdx );
+		if( currVertex->isLabelBackGround() ) {
+			rSomeVerts.insert( currVertex );
+		}
+	}
+	return( true );
+}
+
 //! Adds vertices, which are not labeled and not background, to a given set.
+//! @returns false in case of an error. True otherwise.
 bool Mesh::getVertLabeledNot( set<Vertex*>* rSomeVerts ) {
 	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
 		Vertex* currVertex = getVertexPos( vertIdx );

@@ -1011,6 +1011,7 @@ void QGMMainWindow::initMeshSignals() {
 	actionSelVertFlagCircleCenter->setProperty(                   "gmMeshFunctionCall", MeshParams::SELMVERTS_FLAG_CIRCLE_CENTER                 );
 	actionSelVertInvert->setProperty(                             "gmMeshFunctionCall", MeshParams::SELMVERTS_INVERT                             );
 	actionSelVertLabelNo->setProperty(                            "gmMeshFunctionCall", MeshParams::SELMVERTS_LABEL_IDS                          );
+	actionSelVertLabelBackGrd->setProperty(                       "gmMeshFunctionCall", MeshParams::SELMVERTS_LABEL_BACKGROUND                   );
 	actionSelVertFromSelMFaces->setProperty(                      "gmMeshFunctionCall", MeshParams::SELMVERTS_FROMSELMFACES                      );
 	actionSelVertRidges->setProperty(                             "gmMeshFunctionCall", MeshParams::SELMVERTS_RIDGES                             );
 	actionSelVertsByIdxShow->setProperty(                         "gmMeshFunctionCall", MeshParams::SELMVERTS_SHOW_INDICES                       );

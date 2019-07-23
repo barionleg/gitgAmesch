@@ -230,6 +230,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool   selectVertFaceMinAngleLT( double rMaxAngle );
 		virtual bool   selectVertFaceMaxAngleGT( double rMinAngle );
 		virtual bool   selectVertLabelNo();
+		        bool   selectVertLabelBackGrd();
 		virtual bool   selectVertLabelNo( std::set<long>& rLabelNrs );
 		virtual bool   selVertLabeledNot();
 		virtual bool   selVertByFlag( ePrimitiveFlags rFlag );
@@ -391,6 +392,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool         getVertFaceMinAngleLT( double rMaxAngle, std::set<Vertex*>* rSomeVerts );
 				bool         getVertFaceMaxAngleGT( double rMinAngle, std::set<Vertex*>* rSomeVerts );
 				bool         getVertLabelNo( std::set<long>& rLabelNrs, std::set<Vertex*>* rSomeVerts );
+				bool         getVertLabelBackGrd( std::set<Vertex*>& rSomeVerts );
 				bool         getVertLabeledNot( std::set<Vertex*>* rSomeVerts );
 				bool         getVertWithFlag( std::set<Vertex*>* rSomeVerts, ePrimitiveFlags rFlag );
 				bool         getVertInverted( std::set<Vertex*>& rSomeVerts );

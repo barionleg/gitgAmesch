@@ -67,6 +67,7 @@ class MeshParams {
 			SELMVERTS_FLAG_CIRCLE_CENTER,              //!< Call selection of vertices tagged as circle center.
 			SELMVERTS_INVERT,                          //!< Call to invert the selction of (multiple) vertices (SelMVert).
 			SELMVERTS_LABEL_IDS,                       //!< Select vertices using label ids.
+			SELMVERTS_LABEL_BACKGROUND,                //!< Select vertices being labeled as background.
 			SELMVERTS_FROMSELMFACES,                   //!< Call selection of vertices belonging to selected faces (SelMFaces).
 			SELMVERTS_RIDGES,                          //!< Select ridge points along Faces edges.
 			SELMVERTS_SHOW_INDICES,                    //!< Show the indices of the selected vertices.
