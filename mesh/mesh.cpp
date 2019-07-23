@@ -638,7 +638,7 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			retVal = Mesh::labelVertices( mVertices, mLabelSeedVerts );
 		    } break;
 		case LABELING_LABEL_SELMVERTS:
-			retVal = Mesh::labelSelectedVertices();
+			retVal = Mesh::labelSelectedVerticesUser();
 			break;
 		case REFRESH_SELECTION_DISPLAY:
 			selectedMVertsChanged();
@@ -6505,22 +6505,40 @@ void Mesh::labelSelectionToSeeds() {
 }
 
 //! Labels the selection of multiple vertices (SelMVerts).
-//! Wrapping method typically used by gigamesh-clean.
+//! Non-interactive Wrapping method used by gigamesh-clean!
 //!
-//! @returns false in case of an error or warning. true otherwise.
-bool Mesh::labelSelectedVertices() {
+//! @returns false in case of an error, warning or user cancel. true otherwise.
+bool Mesh::labelSelectedVerticesBackGrd() {
+	if( mSelectedMVerts.size() == 0 ) {
+		// Nothing to do.
+		return( false );
+	}
+	return labelSelectedVertices( mSelectedMVerts, true );
+}
+
+//! Labels the selection of multiple vertices (SelMVerts).
+//!
+//! @returns false in case of an error, warning or user cancel. true otherwise.
+bool Mesh::labelSelectedVerticesUser() {
 	if( mSelectedMVerts.size() == 0 ) {
 		showWarning( "Labeling of selected vertices", "No vertices selected i.e. SelMVerts is empty. No labeling performed." );
 		return( false );
 	}
-	return labelSelectedVertices( mSelectedMVerts );
+	bool setNotSelectedtoBackGrd = true;
+	if( !showQuestion( &setNotSelectedtoBackGrd, "Vertices NOT selected",
+	                   "Keep the labels of the vertices, which are NOT selected?" ) ) {
+		// User cancel
+		return( false );
+	}
+	return labelSelectedVertices( mSelectedMVerts, not( setNotSelectedtoBackGrd ) );
 }
 
 //! Labels a given set of vertices.
 //!
 //! @returns false in case of an error or warning. true otherwise.
 bool Mesh::labelSelectedVertices(
-        set<Vertex*>& rSelectedVertices //!< Selection to be labeled.
+                set<Vertex*>& rSelectedVertices, //!< Selection to be labeled.
+                bool rSetNotSelectedtoBackGrd    //!< Set the vertices, which are not selected as background.
 ) {
 	// check if there is something to label:
 	if( rSelectedVertices.size() == 0 ) {
@@ -6529,7 +6547,9 @@ bool Mesh::labelSelectedVertices(
 	}
 	cout << "[Mesh::" << __FUNCTION__ << "] Vertices selected: " << rSelectedVertices.size() << endl;
 	// first we reset the label and set all NOT to be labled.
-	labelVerticesBackground();
+	if( rSetNotSelectedtoBackGrd ) {
+		labelVerticesBackground();
+	}
 	// set areas to become labled:
 	set<Vertex*> selectedVerticesVector;
 	set<Vertex*>::iterator itVertex;
@@ -9560,7 +9580,7 @@ bool Mesh::removeSyntheticComponents( set<Vertex*>* rVerticesSeeds ) {
 		return false;
 	}
 	cout << "[Mesh::" << __FUNCTION__ << "] Synthetic: " << verticesSynthetic.size() << endl;
-	if( !labelSelectedVertices( verticesSynthetic ) ) {
+	if( !labelSelectedVertices( verticesSynthetic, true ) ) {
 		cout << "[Mesh::" << __FUNCTION__ << "] ERROR: Labeling failed." << endl;
 		return false;
 	}

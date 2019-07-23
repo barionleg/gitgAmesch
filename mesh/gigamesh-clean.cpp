@@ -184,7 +184,7 @@ bool cleanupGigaMeshData(
 		// Prepare for editing holes i.e. false-positiv filled connected components
 		//-------------------------------------------------------------------------
 		someMesh.selVertByFlag( Primitive::FLAG_SYNTHETIC );
-		someMesh.labelSelectedVertices();
+		someMesh.labelSelectedVerticesBackGrd();
 	}
 
 	std::chrono::system_clock::time_point tEnd = std::chrono::system_clock::now();
@@ -218,6 +218,12 @@ bool cleanupGigaMeshData(
 #else
 	fileStrOutMeta << "[GigaMesh] CLEAN unknown version"< endl;
 #endif
+#ifdef THREADS
+	fileStrOutMeta << "Threads (fixed):            " << NUM_THREADS << std::endl;
+#else
+	fileStrOutMeta << "Threads (fixed):            single" << std::endl;
+#endif
+	fileStrOutMeta << "Threads (dynamic):          " << std::thread::hardware_concurrency() - 1 << std::endl;
 	fileStrOutMeta << "File Input:                 " << fileNameInName << std::endl;
 	fileStrOutMeta << "File Output:                " << fileNameOutName << std::endl;
 	fileStrOutMeta << "Model Id:                   " << rFileInfos.mStrings[MeshInfoData::MODEL_ID] << std::endl;
@@ -234,7 +240,6 @@ bool cleanupGigaMeshData(
 	fileStrOutMeta << "Finish time:                " << std::ctime( &endTime );
 	fileStrOutMeta << "Timespan (sec):             " << time_elapsed << std::endl;
 	fileStrOutMeta.close();
-	//! \todo Add number of parallel processors used.
 
 	// Done.
 	//----------------------------------------------------------
@@ -395,10 +400,11 @@ int main( int argc, char* argv[] ) {
 			case 'v':
 				std::cout << "GigaMesh Software Framework CLEAN 3D-data " << VERSION_PACKAGE << std::endl;
 #ifdef THREADS
-				std::cout << "Multi-threading with " << NUM_THREADS << " threads." << std::endl;
+				std::cout << "Multi-threading with " << NUM_THREADS << " (fixed) threads." << std::endl;
 #else
 				std::cout << "Single-threading. " << std::endl;
 #endif
+				std::cout << "Multi-threading with " << std::thread::hardware_concurrency() - 1 << " (dynamic) threads." << std::endl;
 #ifdef LIBPSALM
 				std::cout << "Hole filling enabled. POLISH possible." << std::endl;
 #else

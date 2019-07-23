@@ -437,8 +437,9 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool labelVertices( const std::vector<Vertex*>& rVerticesToLabel, std::set<Vertex*>& rVerticesSeeds );
 		virtual bool labelVertices( const std::set<Vertex*>&    rVerticesToLabel, std::set<Vertex*>& rVerticesSeeds );
 		virtual void labelSelectionToSeeds();
-		virtual bool labelSelectedVertices();
-		virtual bool labelSelectedVertices( std::set<Vertex *>& rSelectedVertices );
+			bool labelSelectedVerticesBackGrd();
+		        bool labelSelectedVerticesUser();
+		        bool labelSelectedVertices( std::set<Vertex *>& rSelectedVertices, bool rSetNotSelectedtoBackGrd );
 		virtual bool labelVerticesEqualFV();
 		virtual bool labelSelMVertsToBack();
 

@@ -34,7 +34,8 @@ GMESHOBJECTS = geodentry.o bitflagarray.o primitive.o vertex.o vertexofface.o fa
                edgegeodesic.o marchingfront.o \
                meshio.o meshseedext.o mesh_params.o \
                vector3d.o matrix4d.o voxelfilter25d.o \
-               meshinfodata.o
+               meshinfodata.o \
+               ../normalSphereSelection/IcoSphereTree.o
 GMESHHEADERS = gmcommon.h geodentry.h bitflagarray.h primitive.h vertex.h vertexofface.h face.h sphere.h rectbox.h line.h \
                showprogress.h userinteraction.h printbuildinfo.h \
                polyline.h polyedge.h plane.h \
@@ -44,7 +45,8 @@ GMESHHEADERS = gmcommon.h geodentry.h bitflagarray.h primitive.h vertex.h vertex
                edgegeodesic.h marchingfront.h \
                meshio.h meshseedext.h mesh_params.h \
                vector3d.h matrix4d.h voxelfilter25d.h \
-               meshinfodata.h
+               meshinfodata.h \
+               ../normalSphereSelection/IcoSphereTree.h
 
 TIFFLIB = -ltiff
 
