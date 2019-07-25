@@ -237,6 +237,12 @@ void NormalSphereSelectionRenderWidget::selectAt(int xCoord, int yCoord)
 	}
 }
 
+void NormalSphereSelectionRenderWidget::setInvertFuncVal(bool invertFuncVal)
+{
+	mInvertFuncVal = invertFuncVal;
+	update();
+}
+
 GLubyte NormalSphereSelectionRenderWidget::selectionMask() const
 {
 	return mSelectionMask;
@@ -455,6 +461,7 @@ void NormalSphereSelectionRenderWidget::paintGL()
 	mIcoSphereShader->setUniformValue("uMaxData", static_cast<float>(mIcoSphereTree.getMaxData()));
 	mIcoSphereShader->setUniformValue("uMinData", mMinData);
 	mIcoSphereShader->setUniformValue("uColorMapIndex", static_cast<float>(mColorMapIndex));
+	mIcoSphereShader->setUniformValue("invertFuncVal", mInvertFuncVal);
 
 	float normalScale = mScaleNormals ? 0.7f : 1.0f;
 	mIcoSphereShader->setUniformValue("uNormalScale", normalScale );

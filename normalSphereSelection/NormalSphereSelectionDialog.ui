@@ -30,6 +30,13 @@
       <widget class="QComboBox" name="colorMap_comboBox"/>
      </item>
      <item>
+      <widget class="QCheckBox" name="checkBox_invertColorMap">
+       <property name="text">
+        <string>Invert</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="Line" name="line">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
