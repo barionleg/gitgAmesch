@@ -916,6 +916,7 @@
    <addaction name="actionBackGroundGridPolar"/>
    <addaction name="actionGridCenter"/>
    <addaction name="separator"/>
+   <addaction name="actionShowInfoMesh"/>
    <addaction name="actionViewActivateInspectionOptions"/>
    <addaction name="actionViewVerticesNone"/>
    <addaction name="actionViewVerticesBorder"/>
@@ -3462,8 +3463,15 @@ p, li { white-space: pre-wrap; }
    </property>
   </action>
   <action name="actionShowInfoMesh">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_mesh_information.svg</normaloff>:/GMToolBar/gigamesh_icon_mesh_information.svg</iconset>
+   </property>
    <property name="text">
     <string>Properties of the &amp;Mesh</string>
+   </property>
+   <property name="toolTip">
+    <string>Show the properties of the mesh including indicators for its quality.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
@@ -4216,6 +4224,10 @@ p, li { white-space: pre-wrap; }
    </property>
   </action>
   <action name="actionSelVertInvert">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_vertices_selected_invert.svg</normaloff>:/GMToolBar/gigamesh_icon_vertices_selected_invert.svg</iconset>
+   </property>
    <property name="text">
     <string>Vertices - SelMVerts - Invert selection</string>
    </property>

@@ -34,13 +34,22 @@ class QGMDialogEnterText : public QDialog, private Ui::QGMDialogEnterText {
 public:
 	// Constructor and Destructor:
 	QGMDialogEnterText( QWidget *parent = nullptr, Qt::WindowFlags flags = nullptr );
+
+	enum eStringCheck {
+		CHECK_DOUBLE_MULTIPLE,
+		CHECK_DOUBLE,
+		CHECK_INTEGER_MULTIPLE,
+		CHECK_INTEGER_UNSIGNED,
+		CHECK_NONE
+	};
+
 	// Setup -----------------------------------------------------------------------------------------------------------------------------------------------
 	void setID( int rID );
 	void setText( const std::string& rText );
 	void setText( const QString& rText );
 	void setText( const std::set<long>& rValues );
 	void setText( std::vector<double>& rValues );
-	void fetchClipboard();
+	void fetchClipboard( eStringCheck rExpectedType );
 	void setDouble( double rValue );
 	void setInt( int rValue );
 	void setuInt( unsigned int rValue );
@@ -55,6 +64,7 @@ public:
 	bool getText( std::set<long>&      rSet    );
 	bool getText( std::vector<long>&   rVector );
 	bool getText( std::vector<double>& rVector );
+	bool checkAndConvertTextVecDouble( const QString& rEnteredText, std::vector<double>* rValuesReturn=nullptr );
 
 public slots:
 	void accept();

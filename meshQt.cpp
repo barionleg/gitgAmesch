@@ -440,7 +440,7 @@ bool MeshQt::showEnterText( std::string& rSomeStrg, const char* rTitle ) {
 
 	// Check if a string was given. If not fetch the clipboard.
 	if( rSomeStrg.size() == 0 ) {
-		dlgEnterTxt.fetchClipboard();
+		dlgEnterTxt.fetchClipboard( QGMDialogEnterText::CHECK_NONE );
 	} else {
 		dlgEnterTxt.setText( rSomeStrg );
 	}
@@ -473,7 +473,7 @@ bool MeshQt::showEnterText(
 	bool isULong;
 	clipBoardStr.toULong( &isULong );
 	if( isULong ) {
-		dlgEnterTxt.fetchClipboard();
+		dlgEnterTxt.fetchClipboard( QGMDialogEnterText::CHECK_INTEGER_UNSIGNED );
 	} else {
 		dlgEnterTxt.setText( QString::number( rULongInt ) );
 	}
@@ -524,7 +524,7 @@ bool MeshQt::showEnterText(
 	if( rIntegers.size() > 0 ) {
 		dlgEnterTxt.setText( rIntegers );
 	} else {
-		dlgEnterTxt.fetchClipboard();
+		dlgEnterTxt.fetchClipboard( QGMDialogEnterText::CHECK_INTEGER_MULTIPLE );
 	}
 	if( dlgEnterTxt.exec() == QDialog::Rejected ) {
 		return false;
@@ -547,7 +547,7 @@ bool MeshQt::showEnterText(
 	} else {
 		dlgEnterTxt.setWindowTitle( rTitle );
 	}
-	dlgEnterTxt.fetchClipboard();
+	dlgEnterTxt.fetchClipboard( QGMDialogEnterText::CHECK_INTEGER_MULTIPLE );
 	if( dlgEnterTxt.exec() == QDialog::Rejected ) {
 		return false;
 	}
@@ -571,7 +571,7 @@ bool MeshQt::showEnterText(
 	if( rDoubles.size() > 0 ) {
 		dlgEnterTxt.setText( rDoubles );
 	} else {
-		dlgEnterTxt.fetchClipboard();
+		dlgEnterTxt.fetchClipboard( QGMDialogEnterText::CHECK_DOUBLE_MULTIPLE );
 	}
 	if( dlgEnterTxt.exec() == QDialog::Rejected ) {
 		return false;
@@ -586,7 +586,7 @@ bool MeshQt::showEnterText(
 bool MeshQt::showEnterText( Matrix4D* rMatrix4x4 ) {
 	QGMDialogEnterText dlgEnterTxt;
 	dlgEnterTxt.setWindowTitle( tr("Enter 4x4 Matrix (16 floating point values)") );
-	dlgEnterTxt.fetchClipboard();
+	dlgEnterTxt.fetchClipboard( QGMDialogEnterText::CHECK_DOUBLE_MULTIPLE );
 	if( dlgEnterTxt.exec() == QDialog::Rejected ) {
 		return false;
 	}
@@ -975,7 +975,7 @@ bool MeshQt::completeRestore() {
 bool MeshQt::insertVerticesEnterManual() {
 	QGMDialogEnterText dlgEnterTxt;
 	dlgEnterTxt.setWindowTitle( tr("Enter triplets of coordinates:") );
-	dlgEnterTxt.fetchClipboard();
+	dlgEnterTxt.fetchClipboard( QGMDialogEnterText::CHECK_DOUBLE_MULTIPLE );
 	if( dlgEnterTxt.exec() == QDialog::Rejected ) {
 		return false;
 	}
@@ -1387,7 +1387,7 @@ bool MeshQt::unrollAroundSphere() {
 bool MeshQt::datumAddSphere() {
 	QGMDialogEnterText dlgEnterTxt;
 	dlgEnterTxt.setWindowTitle( tr("Enter a position vector and a radius") );
-	dlgEnterTxt.fetchClipboard();
+	dlgEnterTxt.fetchClipboard( QGMDialogEnterText::CHECK_DOUBLE_MULTIPLE );
 	QObject::connect( &dlgEnterTxt, SIGNAL(textEntered(vector<double>)), this, SLOT(datumAddSphere(vector<double>)) );
 	dlgEnterTxt.exec();
 	return true;
@@ -1622,7 +1622,7 @@ bool MeshQt::getPlaneHNF() {
 bool MeshQt::setPlaneVPos() {
 	QGMDialogEnterText dlgEnterTxt;
 	dlgEnterTxt.setWindowTitle( tr("Enter 3x3 coordinates defining a plane") );
-	dlgEnterTxt.fetchClipboard();
+	dlgEnterTxt.fetchClipboard( QGMDialogEnterText::CHECK_DOUBLE_MULTIPLE );
 	QObject::connect( &dlgEnterTxt, SIGNAL(textEntered(vector<double>)), this, SLOT(setPlaneVPos(vector<double>)) );
 	dlgEnterTxt.exec();
 	return true;
@@ -2076,7 +2076,7 @@ bool MeshQt::selectPolyShortest() {
 bool MeshQt::selectPolyLabelNo() {
 	QGMDialogEnterText dlgEnterText;
 	dlgEnterText.setWindowTitle( tr("Enter label numbers") );
-	dlgEnterText.fetchClipboard();
+	dlgEnterText.fetchClipboard( QGMDialogEnterText::CHECK_INTEGER_MULTIPLE );
 	QObject::connect( &dlgEnterText, SIGNAL(textEntered(vector<int>)), this, SLOT(selectPolyLabelNo(vector<int>)) );
 	dlgEnterText.exec();
 	return true;
@@ -2780,7 +2780,7 @@ void MeshQt::advancePolyThres() {
 //! See MeshGL::compPolylinesIntInvRunLen()
 bool MeshQt::compPolylinesIntInvRunLen() {
 	QGMDialogEnterText dlgEnterTextRadius;
-	dlgEnterTextRadius.fetchClipboard();
+	dlgEnterTextRadius.fetchClipboard( QGMDialogEnterText::CHECK_DOUBLE );
 	dlgEnterTextRadius.setWindowTitle( tr("Radius for Integral Invariant") );
 	if( dlgEnterTextRadius.exec() == QDialog::Rejected ) {
 		return false;
@@ -2808,7 +2808,7 @@ bool MeshQt::compPolylinesIntInvRunLen() {
 //! See MeshGL::compPolylinesIntInvAngle()
 bool MeshQt::compPolylinesIntInvAngle() {
 	QGMDialogEnterText dlgEnterTextRadius;
-	dlgEnterTextRadius.fetchClipboard();
+	dlgEnterTextRadius.fetchClipboard( QGMDialogEnterText::CHECK_DOUBLE );
 	dlgEnterTextRadius.setWindowTitle( tr("Radius for Integral Invariant") );
 	if( dlgEnterTextRadius.exec() == QDialog::Rejected ) {
 		return false;
@@ -3657,7 +3657,7 @@ void MeshQt::visualizeFeatCorrSelectedVert() {
 //! See MeshGL::setVertFuncValMult
 bool MeshQt::setVertFuncValMult() {
 	QGMDialogEnterText dlgEnterTextFeatVec;
-	dlgEnterTextFeatVec.fetchClipboard();
+	dlgEnterTextFeatVec.fetchClipboard( QGMDialogEnterText::CHECK_DOUBLE );
 	dlgEnterTextFeatVec.setWindowTitle( tr("Scalar value for multplication with the vertices' function values") );
 	if( dlgEnterTextFeatVec.exec() == QDialog::Rejected ) {
 		return false;

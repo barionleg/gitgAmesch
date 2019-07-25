@@ -509,8 +509,8 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			retVal = applyTransformationToWholeMesh( valuesMatrix4x4 );
 			} break;
 		case APPLY_TRANSMAT_ALL_SCALE: {
-			vector<double> valuesScaleSkew;
-			if( !showEnterText( valuesScaleSkew, "Homogeneous transformation matrix (4x4 values)" ) ) {
+			std::vector<double> valuesScaleSkew;
+			if( !showEnterText( valuesScaleSkew, "One value for uniform scale. Three values for skewed scaling:" ) ) {
 				break;
 			}
 			if( valuesScaleSkew.size() == 1 ) {
@@ -523,7 +523,7 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 				retVal = applyTransformationToWholeMesh( valuesMatrix4x4 );
 				break;
 			}
-			cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Bad number of values given. Expecting one or three, but "<< valuesScaleSkew.size() << " were given!" << endl;
+			std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Bad number of values given. Expecting one or three values, but "<< valuesScaleSkew.size() << " were given!" << std::endl;
 			retVal = false;
 		    } break;
 		case APPLY_TRANSMAT_SELMVERT: {
@@ -15765,6 +15765,9 @@ bool Mesh::getMeshInfoData(
 		currFace->hasSyntheticVertex( synthVerticesNr );
 		if( synthVerticesNr >= 3 ) {
 			rMeshInfos.mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES]++;
+		}
+		if( currFace->getFlag( FLAG_SELECTED ) ) {
+			rMeshInfos.mCountULong[MeshInfoData::FACES_SELECTED]++;
 		}
 		showProgress( static_cast<double>( faceIdx+getVertexNr() )/progressSteps, "Mesh information" );
 	}

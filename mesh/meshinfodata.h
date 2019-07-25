@@ -51,6 +51,7 @@ class MeshInfoData {
 			FACES_STICKY,
 			FACES_ZEROAREA,
 			FACES_INVERTED,
+			FACES_SELECTED,
 			FACES_WITH_SYNTH_VERTICES,     //!< Number of faces having only synthetic vertices i.e. all three vertices are synthetic.
 			ULONG_COUNT,                   //!< Number of elements.
 		};
