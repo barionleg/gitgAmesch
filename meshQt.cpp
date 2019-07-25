@@ -237,8 +237,6 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	QObject::connect( mMainWindow, SIGNAL(setLengthSmooth()),                            this, SLOT(setParaSmoothLength())               );
 	QObject::connect( mMainWindow, SIGNAL(sPolylinesCopyNormalToVertices()),             this, SLOT(setPolylinesNormalToVert())          );
 	//.
-    QObject::connect( mMainWindow, SIGNAL(featureLineExtraction()),                      this, SLOT(featureLineExtraction())             );
-	//.
 	QObject::connect( mMainWindow, SIGNAL(estimateMSIIFeat()),                           this, SLOT(estimateMSIIFeat())                  );
 	//.
 	QObject::connect( mMainWindow, SIGNAL(sGeodPatchVertSel()),                          this, SLOT(geodPatchVertSel())                  );
@@ -2830,15 +2828,6 @@ void MeshQt::getPolylineExtrema() {
 bool MeshQt::setPolylinesNormalToVert() {
 	bool retVal = MeshGL::setPolylinesNormalToVert();
 	return retVal;
-}
-
-
-// Compute an isoline. See MeshGL::isolineToPolyline()   //TODO add doxygen !
-bool MeshQt::featureLineExtraction() {
-    double isoValue;
-    getParamFloatMesh( MeshParams::FUNC_VALUE_THRES, &isoValue );
-    bool retVal = MeshGL::featureLineExtraction( isoValue );
-    return retVal;
 }
 
 //! Compute skeleton lines based on extracted ridge point vertices.

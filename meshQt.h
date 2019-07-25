@@ -245,7 +245,6 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		virtual void getPolylineExtrema();
 		virtual bool setPolylinesNormalToVert();
 		//.
-		virtual bool featureLineExtraction();
 		        void createSkeletonLine();
 		//.
 		        void estimateMSIIFeat();
