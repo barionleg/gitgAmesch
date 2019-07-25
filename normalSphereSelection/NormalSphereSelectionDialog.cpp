@@ -54,6 +54,8 @@ NormalSphereSelectionDialog::NormalSphereSelectionDialog(QWidget *parent) :
 								});
 
 	connect(ui->normalScaling_checkBox, &QCheckBox::stateChanged, [this](int state){this->ui->openGLWidget->setScaleNormals(state != Qt::Unchecked);});
+
+	connect(ui->checkBox_invertColorMap, &QCheckBox::stateChanged, [this](int state){this->ui->openGLWidget->setInvertFuncVal(state != Qt::Unchecked);});
 }
 
 NormalSphereSelectionDialog::~NormalSphereSelectionDialog()

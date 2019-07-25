@@ -61,10 +61,6 @@
         <file>vertex_pin.vert</file>
         <file>pointcloud/pointcloud.geom</file>
         <file>pointcloud/pointcloud.frag</file>
-        <file>normalSphere/SelectionRadius.frag</file>
-        <file>normalSphere/SelectionRadius.vert</file>
-        <file>normalSphere/ScreenQuadSphere.frag</file>
-        <file>normalSphere/ScreenQuadSphere.vert</file>
         <file>normalSphere/IcoshphereShader.vert</file>
         <file>normalSphere/IcosphereShader.frag</file>
     </qresource>

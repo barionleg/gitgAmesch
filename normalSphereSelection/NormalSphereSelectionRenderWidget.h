@@ -39,6 +39,8 @@ class NormalSphereSelectionRenderWidget : public QOpenGLWidget, QOpenGLFunctions
 		QQuaternion getRotation();
 
 		void setScaleNormals(bool enable);
+		void setInvertFuncVal(bool invertFuncVal);
+
 	signals:
 		void rotationChanged(QQuaternion quat);
 
@@ -90,6 +92,7 @@ class NormalSphereSelectionRenderWidget : public QOpenGLWidget, QOpenGLFunctions
 		float mSelectionRadius = 1.0f;
 		GLubyte mSelectionMask = 255;
 		bool mScaleNormals = false;
+		bool mInvertFuncVal = false;
 };
 
 #endif // NormalSphereSELECTIONRenderWIDGET_H

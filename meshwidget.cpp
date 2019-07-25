@@ -6682,36 +6682,44 @@ void MeshWidget::keyPressEvent( QKeyEvent *rEvent ) {
 	//! A/D: rotate left/right
 	if( rEvent->key() == Qt::Key_A ) {
 		rEvent->modifiers() & Qt::ShiftModifier ? rotPlaneYaw( +moveAngle ) : rotYaw( +moveAngle );
+		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 		return;
 	}
 	if( rEvent->key() == Qt::Key_D ) {
 		rEvent->modifiers() & Qt::ShiftModifier ? rotPlaneYaw( -moveAngle ) : rotYaw( -moveAngle );
+		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 		return;
 	}
 	//! W/S: rotate up/down
 	if( rEvent->key() == Qt::Key_W ) {
 		rEvent->modifiers() & Qt::ShiftModifier ? rotPlanePitch( +moveAngle ) : rotPitch( +moveAngle );
+		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 		return;
 	}
 	if( rEvent->key() == Qt::Key_S ) {
 		rEvent->modifiers() & Qt::ShiftModifier ? rotPlanePitch( -moveAngle ) : rotPitch( -moveAngle );
+		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 		return;
 	}
 	//! Q/E,R camera roll counterclockwise/clockwise
 	if( rEvent->key() == Qt::Key_Q ) {
 		rEvent->modifiers() & Qt::ShiftModifier ? rotPlaneRoll( +moveAngle ) : rotRoll( +moveAngle );
+		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 		return;
 	}
 	if( rEvent->key() == Qt::Key_E ) {
 		rEvent->modifiers() & Qt::ShiftModifier ? rotPlaneRoll( -moveAngle ) : rotRoll( -moveAngle );
+		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 		return;
 	}
 	if( rEvent->key() == Qt::Key_R ) { // Half step i.e. half degree roll clockwise
 		rEvent->modifiers() & Qt::ShiftModifier ? rotPlaneRoll( -moveAngle/2.0 ) : rotRoll( -moveAngle/2.0 );
+		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 		return;
 	}
 	if( rEvent->key() == Qt::Key_T ) { // 1/10 degree roll clockwise
 		rEvent->modifiers() & Qt::ShiftModifier ? rotPlaneRoll( -moveAngle/10.0 ) : rotRoll( -moveAngle/10.0 );
+		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 		return;
 	}
 
@@ -6734,28 +6742,34 @@ void MeshWidget::keyPressEvent( QKeyEvent *rEvent ) {
 	//! Y/X rotate left/right about 90°
 	if( rEvent->key() == Qt::Key_Y ) {
 		rotYaw( +90.0 );
+		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 		return;
 	}
 	if( rEvent->key() == Qt::Key_X ) {
 		rotYaw( -90.0 );
+		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 		return;
 	}
 	//! C/V rotate up/down about 90°
 	if( rEvent->key() == Qt::Key_C ) {
 		rotPitch( +90.0 );
+		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 		return;
 	}
 	if( rEvent->key() == Qt::Key_V ) {
 		rotPitch( -90.0 );
+		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 		return;
 	}
 	//! B/N camera roll clockwise/counterclockwise
 	if( rEvent->key() == Qt::Key_B ) {
 		rotRoll( +90.0 );
+		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 		return;
 	}
 	if( rEvent->key() == Qt::Key_N ) {
 		rotRoll( -90.0 );
+		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 		return;
 	}
 
