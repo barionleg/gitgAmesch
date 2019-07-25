@@ -1,0 +1,40 @@
+# Simple pyramid (Konkav+Konvex)
+#===========================================================
+# Remember: the central point has to be on the surface
+# otherwise the integration of the surface make no sense.
+# In particular this means the vertex no. 13 has to have z=0.
+#===========================================================
+# Outer vertices:
+v 0     0 256
+v 0   256 256
+v 0   512 256
+v 256 512 256
+v 512 512 256
+v 512 256 256
+v 512   0 256
+v 256   0 256
+# Inner vertices:
+v 128 128 -128
+v 128 384 -128
+v 384 384 -128
+v 384 128 -128
+# Point on surface (and tip of the pyramid)
+v 256 256 0
+# Outer triangles:
+f  1  2  9
+f  2 10  9
+f  2  3 10
+f  3  4 10
+f  4 11 10
+f  4  5 11
+f  5  6 11
+f  6 12 11
+f  6  7 12
+f  7  8 12
+f  8  9 12
+f  8  1 9
+# Inner triangles:
+f  9 10 13
+f 10 11 13
+f 11 12 13
+f 12 9  13

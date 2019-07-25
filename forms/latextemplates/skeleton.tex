@@ -1,0 +1,37 @@
+\documentclass{scrartcl}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{numprint}
+\npdecimalsign{.}
+%\npthousandsep{,}
+\usepackage{siunitx}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+
+\usepackage[__LEFT__, __RIGHT__, __TOP__, __BOTTOM__, a4paper, includefoot, heightrounded]{geometry}
+% TODO: TABELLENGROESSE AN FORMAT ANPASSEN
+%\newcommand{\picturewidth} {0.3\textwidth}
+%\newcommand{\pictureheight}{0.2\textheight}
+%\newcommand{\picturewidthvessol} {0.24\textwidth}
+%\newcommand{\pictureheightvessol}{0.25\textheight}
+\newcommand{\scaling} {0.20}
+
+%\pdfimageresolution=300 default is 72
+
+\begin{document}
+\tableofcontents
+\thispagestyle{empty}
+\newpage
+
+__INCLUDE__
+
+__KEYDATATABLE__
+
+\end{document}

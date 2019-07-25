@@ -1,0 +1,128 @@
+#==========================================================================
+# Makefile for GigaMesh @ commandline @ Windows -- see make_win.bat !!!
+#-------------------------------------------------------------------------
+# Contact: Hubert Mara <hubert.mara@iwr.uni-heidelberg.de>
+#==========================================================================
+BUILDINFO  = -DCOMP_USER=\"$(CURRENT_USER)\" \
+			 -DCOMP_DATE=\"$(CURRENT_DATE)\" \
+			 -DCOMP_GITHEAD=\"$(GIT_COMMIT)\" \
+			 -DCOMP_EDIT=\""IWR Internal"\"
+			 #-DCOMP_EDIT=\""IWR.build: AO Jena"\"
+			 #-DCOMP_EDIT=\"Jean-Francois\ Hullo\"
+			 #-DCOMP_EDIT=\"Uni\ Wurzburg\"
+			 #-DCOMP_EDIT=\"IWR\ PHd\ CCK\"
+BUILDINFO += -DNUM_THREADS=4
+BUILDINFO += -DGIGAMESH_PUBLIC_METHODS_ONLY=\"true\"
+#==========================================================================
+CC           = gcc
+CXX          = g++
+CFLAGS       = -Wall -W -c ${BUILDINFO} -std=c++0x
+GMESHOBJECTS = geodentry.o bitflagarray.o primitive.o vertex.o vertexofface.o face.o sphere.o rectbox.o line.o \
+			   polyline.o polyedge.o plane.o \
+			   triangularprism.o cube.o \
+			   triangle/triangle.o triangle/triangleTriangleIntersection.o \
+			   edgegeodesic.o marchingfront.o \
+			   meshio.o meshseed.o meshseedext.o mesh_params.o \
+			   vector3d.o matrix4d.o voxelfilter25d.o
+GMESHHEADERS = gmcommon.h geodentry.h bitflagarray.h primitive.h vertex.h vertexofface.h face.h sphere.h rectbox.h line.h \
+			   polyline.h polyedge.h plane.h \
+			   triangularprism.h cube.h \
+			   triangle/triangle.h triangle/triangleTriangleIntersection.h \
+			   octree.h octnode.h \
+			   edgegeodesic.h marchingfront.h \
+			   meshio.h meshseed.h meshseedext.h mesh_params.h \
+			   vector3d.h matrix4d.h voxelfilter25d.h
+#TIFFLIB = -ltiff
+
+all: mesh \
+	 meshgeneratefeaturevectors \
+	 meshgeneratefeaturevectors25d \
+	 matrix4d vector3d image2d voxelcuboid face
+
+mesh: $(GMESHOBJECTS) $(GMESHHEADERS) vector3d.h octree.h octnode.h mesh.o mesh_main.o voxelcuboid.o image2d.o Makefile
+	$(CXX) $(TIFFLIB) -o mesh $(GMESHOBJECTS) mesh.o mesh_main.o voxelcuboid.o image2d.o
+
+meshgeneratefeaturevectors: $(GMESHOBJECTS) $(GMESHHEADERS) mesh.o mesh_threads.o meshgeneratefeaturevectors.o voxelcuboid.o image2d.o
+	$(CXX) $(TIFFLIB)          -o meshgeneratefeaturevectors            $(GMESHOBJECTS) meshgeneratefeaturevectors.o            image2d.o mesh.o         voxelcuboid.o
+	$(CXX) $(TIFFLIB) -pthread -o meshgeneratefeaturevectors_threads    $(GMESHOBJECTS) meshgeneratefeaturevectors_threads.o    image2d.o mesh_threads.o voxelcuboid.o
+
+meshgeneratefeaturevectors25d: $(GMESHOBJECTS) $(GMESHHEADERS) mesh.o mesh_threads.o meshgeneratefeaturevectors25d.o image2d.o
+	$(CXX) $(TIFFLIB)          -o meshgeneratefeaturevectors25d         $(GMESHOBJECTS) meshgeneratefeaturevectors25d.o         image2d.o mesh.o
+	$(CXX) $(TIFFLIB) -pthread -o meshgeneratefeaturevectors25d_threads $(GMESHOBJECTS) meshgeneratefeaturevectors25d_threads.o image2d.o mesh_threads.o
+
+meshgeneratefeaturevectors.o: meshgeneratefeaturevectors.c
+	$(CXX) -I. -I.. -I../voxel           $(CFLAGS) meshgeneratefeaturevectors.c -o meshgeneratefeaturevectors.o
+	$(CXX) -I. -I.. -I../voxel -DTHREADS $(CFLAGS) meshgeneratefeaturevectors.c -o meshgeneratefeaturevectors_threads.o
+
+meshgeneratefeaturevectors25d.o: meshgeneratefeaturevectors25d.cpp
+	$(CXX) -I. -I..           $(CFLAGS) meshgeneratefeaturevectors25d.cpp -o meshgeneratefeaturevectors25d.o
+	$(CXX) -I. -I.. -DTHREADS $(CFLAGS) meshgeneratefeaturevectors25d.cpp -o meshgeneratefeaturevectors25d_threads.o
+
+mesh.o: mesh.h mesh.cpp
+	$(CXX) -I. -I.. -I../voxel $(CFLAGS) mesh.cpp -o mesh.o
+
+mesh_threads.o: mesh.h mesh.cpp
+	$(CXX) -I. -I.. -I../voxel -DTHREADS $(CFLAGS) mesh.cpp -o mesh_threads.o
+
+mesh_main.o: mesh.o mesh_main.c
+	$(CXX) -I. -I.. -I../voxel $(CFLAGS) mesh_main.c -o mesh_main.o
+
+.c.o:
+	$(CC) $(CFLAGS) $< -o $@
+
+.cpp.o:
+	$(CXX) $(CFLAGS) $< -o $@
+
+#--- vectors and matrices ------------------------------------------------------------------
+
+matrix4d: matrix4d.o matrix4d_main.o vector3d.o vector3d.h matrix4d.h
+	$(CXX) -o matrix4d matrix4d.o matrix4d_main.o vector3d.o
+
+face:   face.o face_main.o vertex.o vertexofface.o primitive.o plane.o vector3d.o matrix4d.o geodentry.o edgegeodesic.o bitflagarray.o line.o \
+		edgegeodesic.h geodentry.h face.h vertex.h vertexofface.h primitive.h plane.h vector3d.h matrix4d.h bitflagarray.h line.h
+	$(CXX) -o face face.o face_main.o vertex.o vertexofface.o primitive.o plane.o vector3d.o matrix4d.o geodentry.o edgegeodesic.o bitflagarray.o line.o
+
+vector3d: matrix4d.o vector3d.o vector3d_main.o vector3d.h matrix4d.h
+	$(CXX) -o vector3d vector3d.o vector3d_main.o matrix4d.o
+
+matrix4d_main.o:
+	$(CXX) $(CFLAGS) matrix4d_main.c -o matrix4d_main.o
+
+vector3d_main.o:
+	$(CXX) $(CFLAGS) vector3d_main.c -o vector3d_main.o
+
+face_main.o:
+	$(CXX) $(CFLAGS) face_main.c -o face_main.o
+
+#--- voxels ------------------------------------------------------------------
+
+voxelcuboid: voxelcuboid_main.o voxelcuboid.o image2d.o vector3d.o matrix4d.o
+	$(CXX) $(TIFFLIB) -I. -I.. -I../voxel -o voxelcuboid voxelcuboid_main.o voxelcuboid.o image2d.o vector3d.o matrix4d.o
+
+voxelcuboid_main.o:
+	$(CXX) -I. -I.. -I../voxel $(CFLAGS) ../voxel/voxelcuboid_main.c -o voxelcuboid_main.o
+
+voxelcuboid.o:
+	$(CXX) -I. -I../voxel $(CFLAGS) ../voxel/voxelcuboid.cpp -o voxelcuboid.o
+
+#--- images ------------------------------------------------------------------
+
+image2d: image2d.o image2d_main.o
+	$(CXX) $(TIFFLIB) -o image2d image2d.o image2d_main.o
+
+image2d_main.o:
+	$(CXX) -I. -I.. $(CFLAGS) ../image2d_main.c -o image2d_main.o
+
+image2d.o:
+	$(CXX) -I. -I.. $(CFLAGS) ../image2d.cpp -o image2d.o
+
+#--- CLEAN ------------------------------------------------------------------
+
+clean:
+	del *.o *.a *.linkinfo a.out *~
+	del triangle\*.o
+	del image2d.exe matrix4d.exe mesh.exe vector3d.exe voxelcuboid.exe
+	del meshgeneratefeaturevectors.exe
+	del meshgeneratefeaturevectors_threads.exe
+	del meshgeneratefeaturevectors25d.exe
+	del meshgeneratefeaturevectors25d_threads.exe

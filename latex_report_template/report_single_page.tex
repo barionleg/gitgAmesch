@@ -1,0 +1,82 @@
+\documentclass[a4paper,hidelinks]{article}
+	% General document formatting
+	\usepackage[margin=20mm]{geometry}
+	\usepackage[parfill]{parskip}
+	\usepackage[utf8]{inputenc}
+
+	\usepackage{graphicx}     % For inclusions of images
+	\usepackage{caption}       % Figure caption without number
+	\usepackage{numprint}   % Number formatting
+
+	\usepackage[pdftex,
+	                           pdfauthor={},
+	                           pdftitle={VAT 11403 rendered with GigaMesh},
+	                           pdfsubject={Side-Views of VAT 11403},
+	                           pdfkeywords={3D, visualization},
+	                           pdfproducer={GigaMesh Software Framework},
+	                           pdfcreator={pdflatex}]{hyperref}
+	\hypersetup{frenchlinks=true}
+
+	\def\figurescale{1.5}   % default scale 1:1
+	\def\figureprefix{figs/VAT_11403_GM_orient_Gray}
+
+	\usepackage{titleps}    % Header and footer
+	\newpagestyle{ruled}{
+		\sethead{}{PlaceForLink \hfill VAT 11403}{}\headrule
+		\setfoot{}{Rendered with \url{https://gigamesh.eu} \hfill Scale $1.5:1$}{}\footrule
+	}
+	\pagestyle{ruled}
+
+\begin{document}
+	%\section*{VAT 11403}
+	\pagenumbering{gobble} % Turn off page number
+
+	\vspace*{\fill}
+	\begin{figure*}[!ht]
+		\begin{center}
+		\begin{tabular}{ccc}
+			&   % empty
+			\includegraphics[scale=\figurescale]{{\figureprefix_01_ha_top}}        &
+			\\  % empty
+			\includegraphics[scale=\figurescale]{{\figureprefix_02_ha_left}}       &
+			\includegraphics[scale=\figurescale]{{\figureprefix_03_ha_front}}      &
+			\includegraphics[scale=\figurescale]{{\figureprefix_04_ha_right}}      \\
+			&   % empty
+			\includegraphics[scale=\figurescale]{{\figureprefix_05_ha_bottom}}     &
+			\\  % empty
+			&   % ignore: \includegraphics[scale=\figurescale]{{\figureprefix_06_ha_back_left}}  &
+			\includegraphics[scale=\figurescale]{{\figureprefix_07_ha_back}}       &
+			\\  % ignore: \includegraphics[scale=\figurescale]{{\figureprefix_08_ha_back_right}} \\
+		\end{tabular}
+ 		%\caption*{VAT 11403}
+ 		%\label{VAT_11403}
+		\end{center}
+	\end{figure*}
+	\vspace*{\fill}
+
+	\begin{center}
+		\begin{tabular}{cc}
+			\begin{tabular}{|l|r|}
+				\hline
+				Max.~dim.       & $\numprint{2.5} \times \numprint{1.7} \times \numprint{1.2} \,cm$ \\
+				\hline
+				Vertices        & $\numprint{89345}$ \\
+				Faces           & $\numprint{178686}$ \\
+				\hline
+				Material        & \multicolumn{1}{l|}{clay, original} \\
+				\hline
+			\end{tabular}
+			\begin{tabular}{|l|r|}
+				\hline
+				Surface,~acq.   & $\numprint{1046}\,mm^2$ \\
+				\hline
+				Res.,~avg       & $\numprint{85}\,mm^{-2}$ \\
+				                & $\numprint{235}\,DPI$ \\
+				\hline
+				Volume,~est.    & $\numprint{2}\,cm^3$ \\
+				\hline
+			\end{tabular}
+		\end{tabular}
+	\end{center}
+
+\end{document}

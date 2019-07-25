@@ -1,0 +1,15 @@
+# Simple pyramid (Konkav)
+#===========================================================
+# Remember: the central point has to be on the surface
+# otherwise the integration of the surface make no sense.
+# In particular this means the vertex no. 1 has to have z=0.
+#===========================================================
+v 256 256    0
+v   0   0  256
+v   0 512  256
+v 512 512  256
+v 512   0  256
+f 1 2 3
+f 1 3 4
+f 1 4 5
+f 1 5 2
