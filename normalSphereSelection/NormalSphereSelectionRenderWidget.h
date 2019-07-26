@@ -41,6 +41,8 @@ class NormalSphereSelectionRenderWidget : public QOpenGLWidget, QOpenGLFunctions
 		void setScaleNormals(bool enable);
 		void setInvertFuncVal(bool invertFuncVal);
 
+		void setUpperQuantil(float upperQuantil);
+
 	signals:
 		void rotationChanged(QQuaternion quat);
 
@@ -74,25 +76,29 @@ class NormalSphereSelectionRenderWidget : public QOpenGLWidget, QOpenGLFunctions
 		//create QOpenGLShaderprogram on heap, because there is no destroy function and we have to rely on a valid context on destruction
 		QOpenGLShaderProgram* mIcoSphereShader = nullptr;
 
-		bool mUpdateSelectionTexture = false;
-
 		std::vector<float> mNormalUpload;
 		std::vector<GLubyte> mSelectionBuffer;
 
+		IcoSphereTree mIcoSphereTree;
 		ArcBall mArcBall;
+
 
 		int mScreenWidth = 0;
 		int mScreenHeight = 0;
-
-		IcoSphereTree mIcoSphereTree;
-		float mMinData = 0.0f;
-
 		unsigned int mColorMapIndex = 0;
 
+
+		float mMinData = 0.0f;
+
+
+
 		float mSelectionRadius = 1.0f;
-		GLubyte mSelectionMask = 255;
+		float mUpperQuantil = 1.0f;
+
 		bool mScaleNormals = false;
 		bool mInvertFuncVal = false;
+		bool mUpdateSelectionTexture = false;
+		GLubyte mSelectionMask = 255;
 };
 
 #endif // NormalSphereSELECTIONRenderWIDGET_H

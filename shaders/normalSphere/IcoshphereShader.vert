@@ -17,11 +17,24 @@ uniform float uMaxData;
 uniform float uMinData = 0.0f;
 uniform float uNormalScale = 1.0f;
 
+//uniform bool invertFuncVal = false;
+uniform float uUpperQuantil = 1.0f;
+
 void main(void)
 {
 	data = vData;
 
-	float scale = clamp((data - uMinData) / (uMaxData - uMinData), 0.0, 1.0) * (1.0 - uNormalScale) +  uNormalScale;
+	float funcVal = clamp((data - uMinData) / (uMaxData - uMinData), 0.0, 1.0);
+	funcVal = clamp(funcVal / uUpperQuantil, 0.0, 1.0);
+
+	/*
+	if(invertFuncVal)
+		funcVal = 1.0 - funcVal;
+	*/
+
+	float scale = funcVal * (1.0 - uNormalScale) +  uNormalScale;
+
+
 	ivec2 texCoord = ivec2( mod(gl_VertexID ,uTextureWidth) , gl_VertexID / uTextureWidth );
 
 	selected = texelFetch(uSelectionTexture, texCoord, 0).r;
