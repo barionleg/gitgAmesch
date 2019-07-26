@@ -2413,6 +2413,17 @@ bool MeshGL::setParamIntMeshGL( MeshGLParams::eParamInt rParamID, int rValue ) {
 		if( !MeshGLParams::setParamIntMeshGL( rParamID, rValue ) ) {
 				return false;
 		}
+
+		//remove textured buffer if not needed
+		if(rParamID == MeshGLParams::SHADER_CHOICE)
+		{
+			if(rValue != SHADER_TEXTURED)
+			{
+				if(mVertBufObjs[VBUFF_VERTICES_TEXTURED])
+					vboRemoveBuffer(VBUFF_VERTICES_TEXTURED, __FUNCTION__);
+			}
+		}
+
 		return true;
 }
 

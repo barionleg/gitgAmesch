@@ -3782,7 +3782,6 @@ void MeshGLShader::vboPaintTextured()
 		mTexturedMeshRenderer.setUpVertexBuffer(*mVertBufObjs[VBUFF_VERTICES_TEXTURED]);
 	}
 
-
 	QMatrix4x4 pmvMatrix( mMatModelView[0], mMatModelView[4], mMatModelView[8],  mMatModelView[12],
 						  mMatModelView[1], mMatModelView[5], mMatModelView[9],  mMatModelView[13],
 						  mMatModelView[2], mMatModelView[6], mMatModelView[10], mMatModelView[14],
