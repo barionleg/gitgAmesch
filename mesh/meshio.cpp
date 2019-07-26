@@ -123,6 +123,8 @@ bool MeshIO::readFile(
 
 	mModelMetaData = reader->getModelMetaDataRef();
 
+	mExportFlags[EXPORT_TEXTURE_COORDINATES]= !(mModelMetaData.getModelMetaString(ModelMetaData::META_TEXTUREFILE).empty());
+
 	// Store filename with absolute path.
 	mFileNameFull = std::filesystem::absolute( rFileName ).string();
 	cout << "[MeshIO::" << __FUNCTION__ << "] File - Absolute:    " << mFileNameFull << endl;

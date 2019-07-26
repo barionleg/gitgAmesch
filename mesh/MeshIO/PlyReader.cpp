@@ -9,24 +9,6 @@
 
 using uint = unsigned int;
 
-/*
-#define READ_IN_PROPER_BYTE_ORDER( filestream, target, size, reverse ) { \
-	if( not( reverse ) || ( (size) == 1 ) ) { \
-		(filestream).read( reinterpret_cast<char*>(target), (size) ); \
-	} else { \
-		char* tmpBufRev = new char[size]; \
-		char* tmpBuf = new char[size]; \
-		(filestream).read( tmpBufRev, size ); \
-		for( int i=0; i<(size); i++ ) { \
-			tmpBuf[i] = tmpBufRev[(size)-1-i]; \
-		} \
-		memcpy( target, tmpBuf, size ); \
-		delete[] tmpBufRev; \
-		delete[] tmpBuf; \
-	} \
-}
-*/
-
 template <class T>
 void READ_IN_PROPER_BYTE_ORDER(std::fstream& filestream, T target, size_t size, bool reverse)
 {
