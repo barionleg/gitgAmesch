@@ -9,11 +9,14 @@ uniform float uMaxData;
 uniform float uMinData = 0.0f;
 uniform bool invertFuncVal = false;
 
+uniform float uUpperQuantil = 1.0f;
+
 out vec4 fragColor;
 
 void main(void)
 {
 	float funcVal = clamp((data - uMinData) / (uMaxData - uMinData), 0.0, 1.0);
+	funcVal = clamp(funcVal / uUpperQuantil, 0.0, 1.0);
 
 	if(invertFuncVal)
 		funcVal = 1.0 - funcVal;

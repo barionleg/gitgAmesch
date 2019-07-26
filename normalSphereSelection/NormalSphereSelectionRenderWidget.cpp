@@ -237,6 +237,12 @@ void NormalSphereSelectionRenderWidget::selectAt(int xCoord, int yCoord)
 	}
 }
 
+void NormalSphereSelectionRenderWidget::setUpperQuantil(float upperQuantil)
+{
+	mUpperQuantil = upperQuantil;
+	update();
+}
+
 void NormalSphereSelectionRenderWidget::setInvertFuncVal(bool invertFuncVal)
 {
 	mInvertFuncVal = invertFuncVal;
@@ -462,6 +468,7 @@ void NormalSphereSelectionRenderWidget::paintGL()
 	mIcoSphereShader->setUniformValue("uMinData", mMinData);
 	mIcoSphereShader->setUniformValue("uColorMapIndex", static_cast<float>(mColorMapIndex));
 	mIcoSphereShader->setUniformValue("invertFuncVal", mInvertFuncVal);
+	mIcoSphereShader->setUniformValue("uUpperQuantil", mUpperQuantil);
 
 	float normalScale = mScaleNormals ? 0.7f : 1.0f;
 	mIcoSphereShader->setUniformValue("uNormalScale", normalScale );

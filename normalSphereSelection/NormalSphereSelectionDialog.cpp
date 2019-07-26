@@ -56,6 +56,28 @@ NormalSphereSelectionDialog::NormalSphereSelectionDialog(QWidget *parent) :
 	connect(ui->normalScaling_checkBox, &QCheckBox::stateChanged, [this](int state){this->ui->openGLWidget->setScaleNormals(state != Qt::Unchecked);});
 
 	connect(ui->checkBox_invertColorMap, &QCheckBox::stateChanged, [this](int state){this->ui->openGLWidget->setInvertFuncVal(state != Qt::Unchecked);});
+
+	connect(ui->quantil_horizontalSlider, &QSlider::valueChanged,
+			[this](int value)
+			{
+				float maxVal = this->ui->quantil_horizontalSlider->maximum();
+				float valFloat = value / maxVal;
+				ui->quantil_doubleSpinBox->blockSignals(true);
+				ui->quantil_doubleSpinBox->setValue(valFloat);
+				ui->quantil_doubleSpinBox->blockSignals(false);
+				ui->openGLWidget->setUpperQuantil(valFloat);
+			}
+	);
+
+	connect(ui->quantil_doubleSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+			[this](double value)
+			{
+				ui->quantil_horizontalSlider->blockSignals(true);
+				ui->openGLWidget->setUpperQuantil(value);
+				ui->quantil_horizontalSlider->setValue(value * ui->quantil_horizontalSlider->maximum());
+				ui->quantil_horizontalSlider->blockSignals(false);
+			}
+	);
 }
 
 NormalSphereSelectionDialog::~NormalSphereSelectionDialog()
