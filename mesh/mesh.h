@@ -453,7 +453,6 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool isolineToPolyline();
 		virtual bool isolineToPolyline( double rIsoValue, Plane* rPlaneIntersect=nullptr );
 		virtual bool extrudePolylines();
-        virtual bool featureLineExtraction( double rIsoValue );
 				bool labelVertSurface( uint64_t& rlabelsNr, double** rArea );
 				bool labelFacesVert( std::set<Face*>** rLabelFaces, uint64_t& rlabelsNr );
 		// -- Polylines --------------------------------------------------------------------------------------------------------------------------------

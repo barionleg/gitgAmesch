@@ -2429,7 +2429,7 @@ void QGMMainWindow::dropEvent(QDropEvent *e)
 
 //-----------------------------------------------------------------------------------------------------------------
 
-
+//! Overwritten for the multi-language interface.
 void QGMMainWindow::changeEvent(QEvent* event)
 {
 	if(event != nullptr)
@@ -2437,6 +2437,8 @@ void QGMMainWindow::changeEvent(QEvent* event)
 		switch(event->type()) {
 			case QEvent::LanguageChange:
 				retranslateUi(this);
+				break;
+			default: // Do nothing - required. Otherwise many warnings will occur at compile time.
 				break;
 		}
 	}

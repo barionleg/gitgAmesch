@@ -47,10 +47,21 @@ void QGMDialogEnterText::setText( vector<double>& rValues ) {
 }
 
 //! Fetch text from the clipboard.
-void QGMDialogEnterText::fetchClipboard() {
+void QGMDialogEnterText::fetchClipboard(
+                eStringCheck rExpectedType
+) {
 	QClipboard *clipboard = QApplication::clipboard();
 	QString clipBoardStr = clipboard->text( QClipboard::Clipboard );
-	someText->setText( clipBoardStr );
+	switch( rExpectedType ) {
+		case CHECK_DOUBLE_MULTIPLE:
+			if( checkAndConvertTextVecDouble( clipBoardStr ) ){
+				someText->setText( clipBoardStr );
+			}
+			break;
+		default:
+			someText->setText( clipBoardStr );
+			break;
+	}
 }
 
 void QGMDialogEnterText::setDouble( double rValue ) {
@@ -202,8 +213,26 @@ bool QGMDialogEnterText::getText(
 bool QGMDialogEnterText::getText(
                 vector<double>& rVector   //!< Vector to retreive the user supplied values. Will be cleared!
 ) {
+	if( !checkAndConvertTextVecDouble( someText->text(), &rVector ) ) {
+		std::cout << "[QGMDialogEnterText::" << __FUNCTION__ << "] Warning: invalid values entered!" << std::endl;
+		return( false );
+	}
+	return( true );
+}
+
+//! Check and optionally convert the entered text to a std::vector<double>.
+//!
+//! Ranges given by colons are supported, e.g:
+//! 3:7 will add 3, 4, 5, 6 and 7
+//! 4:-0.5:2 will add 4, 3.5, 3, 2.5 and 2
+//!
+//! @returns false in case of an error or invalid text. True otherwise.
+bool QGMDialogEnterText::checkAndConvertTextVecDouble(
+                const QString&          rEnteredText,
+                std::vector<double>*   rValuesReturn
+) {
 	bool            someTokensAreNoDouble = false;
-	QStringList     someTokens  = someText->text().simplified().split( " ", QString::SkipEmptyParts );
+	QStringList     someTokens  = rEnteredText.simplified().split( " ", QString::SkipEmptyParts );
 	int             someTokenNr = someTokens.size();
 	vector<double>  someTokenDouble;
 	for( int i=0; i<someTokenNr; i++ ) {
@@ -248,40 +277,39 @@ bool QGMDialogEnterText::getText(
 				}
 			} else {
 				// Otherwise
-				cout << "[QGMDialogEnterText::" << __FUNCTION__ << "] Warning unspecified number of colon(s): " << countColons << endl;
+				std::cout << "[QGMDialogEnterText::" << __FUNCTION__ << "] Warning unspecified number of colon(s): " << countColons << std::endl;
 				someTokensAreNoDouble = true;
 				continue;
 			}
-			cout << "[QGMDialogEnterText::" << __FUNCTION__ << "] Range entered from " << rangeStart << " to " << rangeStop << " with stepping " << rangeStep << endl;
-			cout << "[QGMDialogEnterText::" << __FUNCTION__ << "] ";
+			std::cout << "[QGMDialogEnterText::" << __FUNCTION__ << "] Range entered from " << rangeStart << " to " << rangeStop << " with stepping " << rangeStep << std::endl;
+			std::cout << "[QGMDialogEnterText::" << __FUNCTION__ << "] ";
 
 			//https://wiki.sei.cmu.edu/confluence/display/c/FLP30-C.+Do+not+use+floating-point+variables+as+loop+counters
 
 			if( rangeStart < rangeStop ) {
 				for( double insertValue=rangeStart; insertValue<=rangeStop; insertValue+=rangeStep ) {
-					cout << insertValue << " ";
+					std::cout << insertValue << " ";
 					someTokenDouble.push_back( insertValue );
 				}
 			} else {
 				for( double insertValue=rangeStart; insertValue>=rangeStop; insertValue+=rangeStep ) {
-					cout << insertValue << " ";
+					std::cout << insertValue << " ";
 					someTokenDouble.push_back( insertValue );
 				}
 			}
-			cout << endl;
+			std::cout << std::endl;
 			continue; // We already have pushed the values.
 		}
 		someTokenDouble.push_back( tmpDouble );
 	}
 	if( !someTokensAreNoDouble ) {
-		rVector.swap( someTokenDouble );
-		return true;
+		if( rValuesReturn != nullptr ) {
+			rValuesReturn->swap( someTokenDouble );
+		}
+		return( true );
 	}
-	cout << "[QGMDialogEnterText::" << __FUNCTION__ << "] Warning: invalid values entered!" << endl;
-	return false;
+	return( false );
 }
-
-
 
 // --- SLOTS ---------------------------------------------------------------------------------------------------------------------------------------------------
 

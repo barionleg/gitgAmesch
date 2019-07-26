@@ -300,7 +300,6 @@ signals:
 	void setLengthSmooth();                                  //!< trigger input form for paramter Mesh::smoothLength
 	void sPolylinesCopyNormalToVertices();                   //!< trigger the copying the polylines' normals to their vertices.
 	//.
-    void featureLineExtraction();                            //!< trigger the extraction of a featureline.
     void nonMaxCorrCheck();                                  //!< trigger check of Non-Maximum Suppression correctness ....
 	//.
 	void sLabelFindFuncValMinima();                          //!< trigger search for minima within labels.

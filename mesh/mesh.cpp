@@ -509,8 +509,8 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			retVal = applyTransformationToWholeMesh( valuesMatrix4x4 );
 			} break;
 		case APPLY_TRANSMAT_ALL_SCALE: {
-			vector<double> valuesScaleSkew;
-			if( !showEnterText( valuesScaleSkew, "Homogeneous transformation matrix (4x4 values)" ) ) {
+			std::vector<double> valuesScaleSkew;
+			if( !showEnterText( valuesScaleSkew, "One value for uniform scale. Three values for skewed scaling:" ) ) {
 				break;
 			}
 			if( valuesScaleSkew.size() == 1 ) {
@@ -523,7 +523,7 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 				retVal = applyTransformationToWholeMesh( valuesMatrix4x4 );
 				break;
 			}
-			cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Bad number of values given. Expecting one or three, but "<< valuesScaleSkew.size() << " were given!" << endl;
+			std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Bad number of values given. Expecting one or three values, but "<< valuesScaleSkew.size() << " were given!" << std::endl;
 			retVal = false;
 		    } break;
 		case APPLY_TRANSMAT_SELMVERT: {
@@ -6989,159 +6989,6 @@ bool Mesh::extrudePolylines() {
 	insertVertices( &verticesToAppend );
 
 	return retVal;
-}
-
-// work in progress  //TODO Add Doxygen !
-bool Mesh::featureLineExtraction( double rIsoValue ) {
-	// Fetch label normals first.
-	vector<Vector3D> labelCenters;
-	vector<Vector3D> labelNormals;
-	estLabelNormalSizeCenterVert( &labelCenters, &labelNormals );
-	vector<Vector3D>::iterator itLabelCenters;
-	for( itLabelCenters=labelCenters.begin(); itLabelCenters!=labelCenters.end(); itLabelCenters++ ) {
-		Vector3D labelCenter = (*itLabelCenters);
-		cout << "[Mesh::" << __FUNCTION__ << "] vertex count: " << labelCenter.getH() << endl;
-		labelCenter.dumpInfo();
-		labelCenter /= labelCenter.getH();
-		(*itLabelCenters) = labelCenter;
-	}
-	vector<Vector3D>::iterator itLabelNormals;
-	for( itLabelNormals=labelNormals.begin(); itLabelNormals!=labelNormals.end(); itLabelNormals++ ) {
-		cout << "[Mesh::" << __FUNCTION__ << "] label area: " << (*itLabelNormals).getLength3() << endl;
-		//(*itLabelNormals).normalize3();
-	}
-
-	// Bit array:
-	uint64_t* facesVisitedBitArray;
-	int faceBlocksNr = getBitArrayFaces( &facesVisitedBitArray );
-
-	for( int i=0; i<faceBlocksNr; i++ ) {
-		if( facesVisitedBitArray[i] == 0xFFFFFFFF ) {
-			// whole block visited.
-			continue;
-		}
-		for( uint64_t j=0; j<64; j++ ) {
-			uint64_t currentBit = static_cast<uint64_t>(1) << j;
-			if( facesVisitedBitArray[i] & currentBit ) {
-				// face already visited.
-				continue;
-			}
-			// skip unused bits within the last block:
-			if( ( i==faceBlocksNr-1 ) && ( i*64+j >= getFaceNr() ) ) {
-				break;
-			}
-			//cout << "[Mesh::isolineToPolyline] Check Face in Block No. " << i << " Bit No. " << j << endl;
-			Face* checkFace = getFacePos( i*64+j );
-			if( !checkFace->isOnFuncValIsoLine( rIsoValue ) ) {
-				// when the face is not along the isoline, we mark it visited and move on:
-				facesVisitedBitArray[i] |= currentBit;
-				continue;
-			}
-			// store reference for our starting point
-			Face*     checkFaceFirst = checkFace;
-			//
-			bool isLabelLabelBorder;
-			int  labelFromBorder = -1;
-			bool isLabelBorder = checkFaceFirst->vertLabelLabelBorder( &isLabelLabelBorder, &labelFromBorder );
-			if( isLabelBorder ) {
-				if( isLabelLabelBorder ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] is on a label-label border." << endl;
-				} else {
-					cout << "[Mesh::" << __FUNCTION__ << "] is on a nolabel-label border. labelFromBorder: " << labelFromBorder << endl;
-				}
-			} else {
-				cout << "[Mesh::" << __FUNCTION__ << "] is NOT on a label related border." << endl;
-			}
-
-			//cout << "[Mesh::" << __FUNCTION__ << "] Trace Face in Block No. " << i << " Bit No. " << j << endl;
-			PolyLine* isoLine;
-			if( isLabelBorder && !isLabelLabelBorder ) {
-				isoLine = new PolyLine( labelCenters.at( labelFromBorder ), labelNormals.at( labelFromBorder ), labelFromBorder );
-			} else {
-				isoLine = new PolyLine();
-			}
-			Vector3D  isoPoint;
-			Face*     nextFace = nullptr;
-			uint64_t  bitOffset;
-			uint64_t  bitNr;
-
-			// Trace in forward direction:
-			//----------------------------
-			// Fetch first point ...
-			checkFaceFirst->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, true );
-			// ... add to polyline with normal ....
-			Vector3D normalPos = checkFaceFirst->getNormal( true );
-			isoLine->addFront( isoPoint, normalPos, checkFaceFirst );
-			// ... and set visited.
-			checkFaceFirst->getIndexOffsetBit( &bitOffset, &bitNr );
-			facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
-
-			checkFace = nextFace;
-			while( checkFace != nullptr ) {
-				checkFace->getIndexOffsetBit( &bitOffset, &bitNr );
-				//cout << "[Mesh::" << __FUNCTION__ << "] Face in Block No. " << bitOffset << " Bit No. " << bitNr << endl;
-				// check if we have been there to prevent infinite loops:
-				if( facesVisitedBitArray[bitOffset] & static_cast<uint64_t>(1)<<bitNr ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] closed polyline (forward)." << endl;
-					break;
-				}
-				// get the point ...
-				checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, true );
-				// ... add to polyline with normal ...
-				normalPos = checkFace->getNormal( true );
-				isoLine->addFront( isoPoint, normalPos, checkFace );
-				// ... and set visited ...
-				facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
-				// .... move on:
-				checkFace = nextFace;
-				// for debuging:
-				if( nextFace == nullptr ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] open polyline (forward)." << endl;
-				}
-			}
-
-			// Trace in backward direction:
-			//------------------------------
-			checkFaceFirst->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, false );
-			// ... add to polyline with normal ....
-			normalPos = checkFaceFirst->getNormal( true );
-			isoLine->addBack( isoPoint, normalPos, checkFaceFirst );
-
-			// Trace in opposite direction
-			checkFace = nextFace;
-			while( checkFace != nullptr ) {
-				checkFace->getIndexOffsetBit( &bitOffset, &bitNr );
-				//cout << "[Mesh::isolineToPolyline] Face in Block No. " << bitOffset << " Bit No. " << bitNr << endl;
-				// check if we have been there to prevent infinite loops:
-				if( facesVisitedBitArray[bitOffset] & static_cast<uint64_t>(1)<<bitNr ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] closed polyline (backward)." << endl;
-					break;
-				}
-				// get the point ...
-				if( !checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, false ) ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] unknown problem." << endl;
-				}
-				// ... add to polyline with normal ...
-				normalPos = checkFace->getNormal( true );
-				isoLine->addBack( isoPoint, normalPos, checkFace );
-				// ... and set visited ...
-				facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
-				// .... move on:
-				checkFace = nextFace;
-				// for debuging:
-				if( nextFace == nullptr ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] open polyline (backward)." << endl;
-				}
-			}
-			// Add vertices of the polyline:
-			isoLine->addVerticesTo( &mVertices );
-			// Add polyline:
-			mPolyLines.push_back( isoLine );
-		}
-	}
-	polyLinesChanged();
-	delete facesVisitedBitArray;
-	return true;
 }
 
 bool Mesh::labelVertSurface( uint64_t& rlabelsNr, double** rArea ) {
@@ -15766,6 +15613,9 @@ bool Mesh::getMeshInfoData(
 		currFace->hasSyntheticVertex( synthVerticesNr );
 		if( synthVerticesNr >= 3 ) {
 			rMeshInfos.mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES]++;
+		}
+		if( currFace->getFlag( FLAG_SELECTED ) ) {
+			rMeshInfos.mCountULong[MeshInfoData::FACES_SELECTED]++;
 		}
 		showProgress( static_cast<double>( faceIdx+getVertexNr() )/progressSteps, "Mesh information" );
 	}

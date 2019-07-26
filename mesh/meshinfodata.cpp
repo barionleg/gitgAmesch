@@ -46,6 +46,7 @@ MeshInfoData::MeshInfoData() {
 	mCountULongName[FACES_STICKY] = "Sticky faces";
 	mCountULongName[FACES_ZEROAREA] = "Faces with zero area";
 	mCountULongName[FACES_INVERTED] = "Inverted Faces";
+	mCountULongName[FACES_SELECTED] = "Selected Faces";
 	mCountULongName[FACES_WITH_SYNTH_VERTICES] = "Faces with synthetic vertices";
 
 	// Double names
@@ -223,10 +224,12 @@ bool MeshInfoData::getMeshInfoHTML(
 	infoStr += "<tr><td>Zero&ensp;area:</td><td align=\"right\">"                              + std::to_string( this->mCountULong[MeshInfoData::FACES_ZEROAREA] )                + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_ZEROAREA].str()              + "&#37;</td></tr>\n";
 	infoStr += "<tr><td>Border:</td><td align=\"right\">"                                      + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER] )                  + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER].str()                + "&#37;</td></tr>\n";
 	infoStr += "<tr><td>...&nbsp;3&nbsp;Vertices&nbsp;(3V):</td><td align=\"right\">"          + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER_THREE_VERTICES] )   + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER_THREE_VERTICES].str() + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>...&nbsp;Bridge&nbsp;triconn.&nbsp;(3V0E):</td><td align=\"right\">"   + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER_BRDIGE_TRICONN] )   + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER_BRDIGE_TRICONN].str() + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>...&nbsp;Bridge&nbsp;(3V1E):</td><td align=\"right\">"                 + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER_BRDIGE] )           + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER_BRDIGE].str()         + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>...&nbsp;Dangling&nbsp;(3V2E):</td><td align=\"right\">"               + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER_DANGLING] )         + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER_DANGLING].str()       + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>...&nbsp;3&nbsp;Edges&nbsp;(Solo,3E):</td><td align=\"right\">"        + std::to_string( this->mCountULong[MeshInfoData::FACES_SOLO] )                    + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_SOLO].str()                  + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>&nbsp;&nbsp;&nbsp;...&nbsp;Bridge&nbsp;triconn.&nbsp;(3V0E):</td><td align=\"right\">"   + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER_BRDIGE_TRICONN] )   + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER_BRDIGE_TRICONN].str() + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>&nbsp;&nbsp;&nbsp;...&nbsp;Bridge&nbsp;(3V1E):</td><td align=\"right\">"                 + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER_BRDIGE] )           + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER_BRDIGE].str()         + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>&nbsp;&nbsp;&nbsp;...&nbsp;Dangling&nbsp;(3V2E):</td><td align=\"right\">"               + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER_DANGLING] )         + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER_DANGLING].str()       + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>&nbsp;&nbsp;&nbsp;...&nbsp;3&nbsp;Edges&nbsp;(Solo,3E):</td><td align=\"right\">"        + std::to_string( this->mCountULong[MeshInfoData::FACES_SOLO] )                    + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_SOLO].str()                  + "&#37;</td></tr>\n";
+	//infoStr += "<tr><td></td><td></td><td></td></tr>\n"; // Empty line
+	infoStr += "<tr><td>Selected:</td><td align=\"right\">"                                    + std::to_string( this->mCountULong[MeshInfoData::FACES_SELECTED] )                + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_SELECTED].str()              + "&#37;</td></tr>\n";
 	infoStr += "</table>\n";
 
 	// Outer table - End

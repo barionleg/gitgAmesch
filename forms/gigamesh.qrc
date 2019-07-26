@@ -71,6 +71,8 @@
         <file>gigamesh_icon_visit_video_tutorials.svg</file>
         <file>gigamesh_icon_vertices_select_multiple_faces.svg</file>
         <file>gigamesh_icon_background_center_location.svg</file>
+        <file>gigamesh_icon_vertices_selected_invert.svg</file>
+        <file>gigamesh_icon_mesh_information.svg</file>
     </qresource>
     <qresource prefix="/GMToolTipImages">
         <file>tooltips/rendering_flat_smooth_egde_on.png</file>
