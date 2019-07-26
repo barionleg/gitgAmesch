@@ -15,8 +15,9 @@ class TexturedMeshRenderer
 		TexturedMeshRenderer();
 		~TexturedMeshRenderer();
 
-		bool init(QOpenGLBuffer& vertexBuffer, const std::string& textureName);
-		void render(const QMatrix4x4 &projectionMatrix, const QMatrix4x4 &modelViewMatrix, QOpenGLBuffer& vertexBuffer, unsigned int numVertices);
+		bool init(const std::string& textureName);
+		void render(const QMatrix4x4 &projectionMatrix, const QMatrix4x4 &modelViewMatrix, unsigned int numVertices);
+		void setUpVertexBuffer(QOpenGLBuffer& vertexBuffer);
 		void destroy();
 
 		struct TexturedMeshVertex {

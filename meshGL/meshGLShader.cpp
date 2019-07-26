@@ -3762,17 +3762,25 @@ void MeshGLShader::vboPaintNPR() {
 void MeshGLShader::vboPaintTextured()
 {
 
-	vboPrepareVerticesStripedTextured();
-
 	if(!mTexturedMeshRenderer.isInitialized())
 	{
 		std::string textureFile = getFileLocation() + "/" + getModelMetaString(ModelMetaData::META_TEXTUREFILE);
 		if(textureFile.empty()) //menu entry should be disabled in this case.
 			return;
 
-		mTexturedMeshRenderer.init(*mVertBufObjs[VBUFF_VERTICES_TEXTURED], textureFile);
+		mTexturedMeshRenderer.init(textureFile);
 	}
 
+	if(mVertBufObjs[VBUFF_VERTICES_TEXTURED] == nullptr)
+	{
+		vboPrepareVerticesStripedTextured();
+		mTexturedMeshRenderer.setUpVertexBuffer(*mVertBufObjs[VBUFF_VERTICES_TEXTURED]);
+	}
+	else if(!mVertBufObjs[VBUFF_VERTICES_TEXTURED]->isCreated())
+	{
+		vboPrepareVerticesStripedTextured();
+		mTexturedMeshRenderer.setUpVertexBuffer(*mVertBufObjs[VBUFF_VERTICES_TEXTURED]);
+	}
 
 
 	QMatrix4x4 pmvMatrix( mMatModelView[0], mMatModelView[4], mMatModelView[8],  mMatModelView[12],
@@ -3784,7 +3792,7 @@ void MeshGLShader::vboPaintTextured()
 						  mMatProjection[2], mMatProjection[6], mMatProjection[10], mMatProjection[14],
 						  mMatProjection[3], mMatProjection[7], mMatProjection[11], mMatProjection[15] );
 
-	mTexturedMeshRenderer.render(ppvMatrix, pmvMatrix, *mVertBufObjs[VBUFF_VERTICES_TEXTURED], getFaceNr() * 3);
+	mTexturedMeshRenderer.render(ppvMatrix, pmvMatrix, getFaceNr() * 3);
 
 }
 
