@@ -849,7 +849,7 @@ void Mesh::establishStructure(
 		showWarning( "Mesh import incomplete", "Not all faces could be imported due to out-of-range indices." );
 	}
 
-	if( rFaceProps.size() == 0 ) {
+	if( rFaceProps.empty() ) {
 		cerr << "[Mesh::" << __FUNCTION__ << "] Point cloud dedected - no further Mesh-setup possible!" << endl;
 		return;
 	}
@@ -13467,10 +13467,19 @@ void Mesh::flipTriangle( int index //!< input: Face-Index
 
 	if(FaceOptA->getNormal() == currFaceNormal){
 		//if FaceOptA has the same orientation like the currentFace -> then use FaceOptB (with a different orientation)
+		auto uvs = currentFace->getUVs();
+
+		//swap uvs of Vert1 and Vert2
+		std::swap(uvs[0],uvs[4]);
+		std::swap(uvs[1], uvs[5]);
+		FaceOptB->setUVs(uvs);
+
 		this->mFaces.insert(this->mFaces.begin()+index+1, FaceOptB);
 		delete (FaceOptA);
 	}else if(FaceOptB->getNormal() == currFaceNormal){
 		//if FaceOptB has the same orientation like the currentFace -> then use FaceOptA (with a different orientation)
+
+		FaceOptA->setUVs( currentFace->getUVs() );
 		this->mFaces.insert(this->mFaces.begin()+index+1, FaceOptA);
 		delete (FaceOptB);
 	}

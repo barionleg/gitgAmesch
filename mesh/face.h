@@ -256,13 +256,17 @@ class Face : public Primitive {
 				void setUVs(const std::array<float, 6>& uVs);
 
 	private:
-				// Vertices - Connectivity:
-				VertexOfFace* vertA;            //!< reference to index of Vertex A
+		// Vertices - Connectivity:
+		VertexOfFace* vertA;            //!< reference to index of Vertex A
 		VertexOfFace* vertB;            //!< reference to index of Vertex B
 		VertexOfFace* vertC;            //!< reference to index of Vertex C
+
 		// Normal
 		double  mNormalXYZ[3];    //!< Normal vector for the face - has to be initalized.
+
+		// UV-Coordinates
 		std::array<float,6>   mUVs;          //!< UV coordinates of the three vertices of the face
+
 		// Indexing - required for bit arrays and to be maintained properly!
 		unsigned int mIndex;      //!< Stores the actual index, which may change due to manipulation, while idxOri stores the original index.
 		// Function Value:
