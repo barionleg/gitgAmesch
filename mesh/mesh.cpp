@@ -3614,7 +3614,6 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 			}
 		}
 
-
 		// required for reconnecting the _new_ faces created by
 		// the splitting procedure
 		std::set<Face*> adjacentAndNewFaces;
@@ -3729,7 +3728,7 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 					}
 				}
 
-				else
+				else if(sideY == 0)
 				{
 					std::cerr << "[Mesh::" << __FUNCTION__ << "] Handling vertex _on_ plane" << std::endl;
 
