@@ -3572,7 +3572,7 @@ bool Mesh::splitByIsoLine( double rIsoVal, bool duplicateVertices, bool noRedraw
 
 bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std::function<double(VertexOfFace*)>& signedDistanceFunction, const std::function<void(VertexOfFace*, VertexOfFace*, Vector3D&)>& getIntersectionVector, bool duplicateVertices, bool noRedraw, Vector3D rUniformOffset)
 {
-	// TODO: Should become a unique function
+	// TODO: Should become a unique function <--- is this TODO still relevant?
 	Vertex* currVertex;
 	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
 		currVertex = getVertexPos( vertIdx );
@@ -3581,9 +3581,8 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 
 	// If `duplicateVertices` is set, the vertex position will be
 	// changed by this vector
-	Vector3D vecOffset = rUniformOffset; //1000.0*numeric_limits<double>::epsilon()*planeHNF;
+	Vector3D vecOffset = rUniformOffset;
 	vecOffset.setH( 1.0 );
-	cout << vecOffset << endl;
 
 	// Work with _all_ faces of the mesh and populate selected faces
 		// with _all_ faces that actually intersect the plane
@@ -3640,6 +3639,12 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 											  static_cast<VertexOfFace*>(face->getVertC()),
 											  static_cast<VertexOfFace*>(face->getVertA()) };
 
+			auto uvs = face->getUVs();
+
+			//x index of the current uv-coordinate
+			size_t uvX = 2;
+			size_t uvY = 0;
+
 			VertexOfFace* vertX  = static_cast<VertexOfFace*>(face->getVertA());
 			VertexOfFace* vertY = nullptr;
 
@@ -3684,74 +3689,48 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 				averageColor[1] = static_cast<unsigned char>(0.5*(vertX->getG() + vertY->getG()));
 				averageColor[2] = static_cast<unsigned char>(0.5*(vertX->getB() + vertY->getB()));
 
-				// second vertex is in front of plane...
-				if(sideY > 0) {
-					// ...but first vertex is behind plane
-					if(sideX <= 0) {
-						getIntersectionVector(vertX, vertY, vecIntersection);
+				//the vertices are on the other sides
+				if(sideY != sideX && sideY != 0)
+				{
+					getIntersectionVector(vertX, vertY, vecIntersection);
 
-						if(duplicateVertices) {
-							if(!vertIntersection1 && !vertIntersection2) {
-								vertIntersection1 = new VertexOfFace(vecIntersection + vecOffset);
-								vertIntersection2 = new VertexOfFace(vecIntersection - vecOffset);
+					if(duplicateVertices) {
+						if(!vertIntersection1 && !vertIntersection2) {
+							vertIntersection1 = new VertexOfFace(vecIntersection + vecOffset);
+							vertIntersection2 = new VertexOfFace(vecIntersection - vecOffset);
 
-								edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection2);
-							}
-
-							front.push_back(vertIntersection1);
-							back.push_back( vertIntersection2);
+							edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection2);
 						}
-						else {
-							// Vertex at intersection may have already been found;
-							// do _not_ create vertex twice
-							if(!vertIntersection1) {
-								vertIntersection1 = new VertexOfFace(vecIntersection);
-								edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection1);
-							}
 
-							front.push_back(vertIntersection1);
-							back.push_back( vertIntersection1);
+						front.push_back(vertIntersection1);
+						back.push_back( vertIntersection2);
+					}
+					else {
+						// Vertex at intersection may have already been found;
+						// do _not_ create vertex twice
+						if(!vertIntersection1) {
+							vertIntersection1 = new VertexOfFace(vecIntersection);
+							edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection1);
 						}
+
+						front.push_back(vertIntersection1);
+						back.push_back( vertIntersection1);
 					}
 
-					front.push_back(vertY);
-				}
-
-				// second vertex is behind plane...
-				else if(sideY < 0) {
-					// ..but first vertex is in front of plane
-					if(sideX >= 0) {
-						getIntersectionVector(vertX, vertY, vecIntersection);
-
-						if(duplicateVertices) {
-							if(!vertIntersection1 && !vertIntersection2) {
-								vertIntersection1 = new VertexOfFace(vecIntersection + vecOffset);
-								vertIntersection2 = new VertexOfFace(vecIntersection - vecOffset);
-
-								edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection2);
-							}
-
-							front.push_back(vertIntersection1);
-							back.push_back( vertIntersection2);
-						}
-						else {
-							// Vertex at intersection may have already been found;
-							// do _not_ create vertex twice
-							if(!vertIntersection1) {
-								vertIntersection1 = new VertexOfFace(vecIntersection);
-								edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection1);
-							}
-
-							front.push_back(vertIntersection1);
-							back.push_back( vertIntersection1);
-						}
+					//y is in front
+					if(sideY > 0)
+					{
+						front.push_back(vertY);
 					}
-
-					back.push_back(vertY);
+					//y is in back
+					else
+					{
+						back.push_back(vertY);
+					}
 				}
 
-				else {
-
+				else
+				{
 					std::cerr << "[Mesh::" << __FUNCTION__ << "] Handling vertex _on_ plane" << std::endl;
 
 					// slightly shift vertex; variable names are not entirely correct, but will not
@@ -3782,6 +3761,8 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 				}
 
 				vertX = vertY;
+				uvX = uvY;
+				uvY += 2;
 				sideX = sideY;
 			}
 
