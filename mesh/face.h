@@ -237,7 +237,7 @@ class Face : public Primitive {
 				Vertex* advanceInSphere( Vertex* fromVert, double* sphereCenter, double radius, uint64_t* bitArrayVisited, std::set<Vertex*>* nextArray );
 
 		// plane
-		        bool intersectsPlane(Vector3D* planeHNF);
+				bool intersectsPlane(const Vector3D* planeHNF);
 		        bool intersectsFace( const Face* face2 ) const;
 
 		// rasterization / voxelization => volume integral

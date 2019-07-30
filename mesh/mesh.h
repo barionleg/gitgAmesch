@@ -289,6 +289,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool   applyTransfromToPlane( Matrix4D rTransMat );
 		virtual bool   splitByPlane( Vector3D planeHNF, bool duplicateVertices = false, bool noRedraw = false );
 		virtual bool   splitByIsoLine( double rIsoVal, bool duplicateVertices = false, bool noRedraw = false, Vector3D rUniformOffset=Vector3D( 0.0, 0.0, 0.0, 0.0 ) );
+		virtual bool   splitMesh(const std::function<bool(Face*)>& intersectTest, const std::function<double(VertexOfFace*)>& signedDistanceFunction, const std::function<void(VertexOfFace*, VertexOfFace*, Vector3D&)>& getIntersectionVector, bool duplicateVertices = false, bool noRedraw = false, Vector3D rUniformOffset=Vector3D( 0.0, 0.0, 0.0, 0.0 ));
 	private:
 		virtual bool   triangulateSplitFace(std::vector<VertexOfFace*>& faceVertices, std::set<Face*>* newFaces = nullptr);
 

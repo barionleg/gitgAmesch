@@ -3947,7 +3947,7 @@ void Face::rasterViewFromZ( double *rasterArray, //!< array to write z-values
 // Plane functions ---------------------------------------------------------------------------------------------
 
 //! Checks whether the face intersects a plane given in HNF.
-bool Face::intersectsPlane(Vector3D *planeHNF) {
+bool Face::intersectsPlane(const Vector3D *planeHNF) {
 
 	bool sign1 = (dot3(vertA->getPositionVector(), *planeHNF) + planeHNF->getH() > 0);
 	bool sign2 = (dot3(vertB->getPositionVector(), *planeHNF) + planeHNF->getH() > 0);

@@ -3525,252 +3525,23 @@ bool Mesh::applyTransfromToPlane( Matrix4D rTransMat ) {
 //! @param noRedraw If set, does not force a redraw after each splitting
 //!        operation. Increases speed.
 bool Mesh::splitByPlane( Vector3D planeHNF, bool duplicateVertices, bool noRedraw ) {
-	//cout << __FUNCTION__ << endl;
-	//cout << planeHNF << endl;
+
 	Plane cutPlane( &planeHNF );
-	//Vector3D tmp;
-	//cutPlane.getPlaneHNF( &tmp );
-	//cout << tmp << endl;
 
 	//! \todo sanity checks for plane, because the following is deprecated:
 	//if(!isPlanePosCSet()) {
 	//	return(false);
 	//}
 
-	// TODO: Should become a unique function
-	Vertex* currVertex;
-	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
-		currVertex = getVertexPos( vertIdx );
-		currVertex->setIndex( vertIdx );
-	}
+	auto interSectFun = [&planeHNF](Face* face) { return face->intersectsPlane(&planeHNF);};
 
-	// If `duplicateVertices` is set, the vertex position will be
-	// changed by this vector
-	Vector3D vecOffset = 1000.0*numeric_limits<double>::epsilon()*planeHNF;
-	vecOffset.setH( 1.0 );
-	cout << vecOffset << endl;
+	auto distFun = [&planeHNF](VertexOfFace* vertex) { return vertex->estDistanceToPlane(&planeHNF);};
 
-	// Work with _all_ faces of the mesh and populate selected faces
-	// with _all_ faces that actually intersect the plane
-	Face* currFace = nullptr;
-	if(mFacesSelected.size() == 0) {
-		// select all faces that are to be deleted afterwards -- they are not required anymore
-		// as they will be replaced by the faces created by the splitting procedure
-		for( uint64_t faceIdx = 0; faceIdx < getFaceNr(); faceIdx++ ) {
-			currFace = getFacePos(faceIdx);
-			if(currFace->intersectsPlane(&planeHNF)) {
-				mFacesSelected.insert(currFace);
-			}
-		}
-	}
-	else {
-		// remove all non-intersecting faces from the preselected faces; this step is necessary
-		// because the code below does not actually check for an intersection
-		for(std::set<Face*>::iterator faceIt = mFacesSelected.begin(); faceIt != mFacesSelected.end();) {
-			if(!(*faceIt)->intersectsPlane(&planeHNF)) {
-				mFacesSelected.erase(faceIt++);
-			}
-			else {
-				faceIt++;
-			}
-		}
-	}
+	auto getIntersectionVectorFun = [&cutPlane]( VertexOfFace* vertX, VertexOfFace* vertY, Vector3D& rVecIntersection)  {
+		cutPlane.getIntersectionFacePlaneLinePos(vertX->getPositionVector(), vertY->getPositionVector(), rVecIntersection);
+	};
 
-	// required for reconnecting the _new_ faces created by
-	// the splitting procedure
-	std::set<Face*> adjacentAndNewFaces;
-
-	// store edges for which an intersection vertex has already
-	// been created
-	std::map< std::pair<int, int>, std::pair<VertexOfFace*, VertexOfFace*> > edgeMap;
-
-	for(Face* face : mFacesSelected) {
-
-		// Classify face vertices with respect to the plane; split face into
-		// `front` part and `back` part
-
-		std::vector<VertexOfFace*> front;
-		std::vector<VertexOfFace*> back;
-
-		// required so that we may loop over the vertices
-
-		Vertex* vertsToCheck[3] = {face->getVertB(),
-		                           face->getVertC(),
-		                           face->getVertA()};
-
-		VertexOfFace* vertX  = static_cast<VertexOfFace*>(face->getVertA());
-		VertexOfFace* vertY;
-
-		double sideX = vertX->estDistanceToPlane(&planeHNF);
-		double sideY;
-
-		Vector3D vecIntersection;
-		for(Vertex*& vertex : vertsToCheck) {
-
-			// These vertices store the position of the points _on_ the plane. If `duplicateVertices`
-			// is set to true, `vertIntersection2` will contain a slightly offset version of
-			// `vertIntersection1`. Else, this parameter will _not_ be used.
-			VertexOfFace* vertIntersection1 = nullptr;
-			VertexOfFace* vertIntersection2 = nullptr;
-
-			// required for reconnecting the faces later on
-			vertex->getFaces(&adjacentAndNewFaces);
-
-			vertY = static_cast<VertexOfFace*>(vertex);
-			sideY = vertY->estDistanceToPlane(&planeHNF);
-
-			// Check whether edge exists; if this is the case, use the stored vertex as
-			// the intersection vertex and do _not_ store the vertex twice.
-
-			bool edgeExists = false;
-
-			int id1 = vertX->getIndex();
-			int id2 = vertY->getIndex();
-			if(id1 > id2) {
-				std::swap(id1, id2);
-			}
-
-			std::map< std::pair<int, int>, std::pair<VertexOfFace*, VertexOfFace*> >::iterator edgeIt;
-			if((edgeIt = edgeMap.find(std::make_pair(id1, id2))) != edgeMap.end()) {
-				vertIntersection1 = edgeIt->second.first; // Cool notation ;)
-				vertIntersection2 = edgeIt->second.second;
-				edgeExists = true;
-			}
-
-			Vector3D positionX = vertX->getPositionVector();
-			Vector3D positionY = vertY->getPositionVector();
-
-			unsigned char averageColor[3];
-			averageColor[0] = static_cast<unsigned char>(0.5*(vertX->getR() + vertY->getR()));
-			averageColor[1] = static_cast<unsigned char>(0.5*(vertX->getG() + vertY->getG()));
-			averageColor[2] = static_cast<unsigned char>(0.5*(vertX->getB() + vertY->getB()));
-
-			// second vertex is in front of plane...
-			if(sideY > 0) {
-				// ...but first vertex is behind plane
-				if(sideX <= 0) {
-					cutPlane.getIntersectionFacePlaneLinePos( positionX, positionY, vecIntersection );
-
-					if(duplicateVertices) {
-						if(!vertIntersection1 && !vertIntersection2) {
-							vertIntersection1 = new VertexOfFace(vecIntersection + vecOffset);
-							vertIntersection2 = new VertexOfFace(vecIntersection - vecOffset);
-
-							edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection2);
-						}
-
-						front.push_back(vertIntersection1);
-						back.push_back( vertIntersection2);
-					}
-					else {
-						// Vertex at intersection may have already been found;
-						// do _not_ create vertex twice
-						if(!vertIntersection1) {
-							vertIntersection1 = new VertexOfFace(vecIntersection);
-							edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection1);
-						}
-
-						front.push_back(vertIntersection1);
-						back.push_back( vertIntersection1);
-					}
-				}
-
-				front.push_back(vertY);
-			}
-
-			// second vertex is behind plane...
-			else if(sideY < 0) {
-				// ..but first vertex is in front of plane
-				if(sideX >= 0) {
-					cutPlane.getIntersectionFacePlaneLinePos( positionX, positionY, vecIntersection );
-
-					if(duplicateVertices) {
-						if(!vertIntersection1 && !vertIntersection2) {
-							vertIntersection1 = new VertexOfFace(vecIntersection + vecOffset);
-							vertIntersection2 = new VertexOfFace(vecIntersection - vecOffset);
-
-							edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection2);
-						}
-
-						front.push_back(vertIntersection1);
-						back.push_back( vertIntersection2);
-					}
-					else {
-						// Vertex at intersection may have already been found;
-						// do _not_ create vertex twice
-						if(!vertIntersection1) {
-							vertIntersection1 = new VertexOfFace(vecIntersection);
-							edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection1);
-						}
-
-						front.push_back(vertIntersection1);
-						back.push_back( vertIntersection1);
-					}
-				}
-
-				back.push_back(vertY);
-			}
-
-			else {
-
-				std::cerr << "[Mesh::" << __FUNCTION__ << "] Handling vertex _on_ plane" << std::endl;
-
-				// slightly shift vertex; variable names are not entirely correct, but will not
-				// be changed as code afterwards depends on it
-				if(duplicateVertices) {
-					vertIntersection1 = new VertexOfFace(vertY->getPositionVector() + vecOffset);
-					vertIntersection2 = new VertexOfFace(vertY->getPositionVector() - vecOffset);
-
-					front.push_back(vertIntersection1);
-					back.push_back(vertIntersection2);
-				}
-				// if no duplicates are required, store vertex in _both_ sets
-				else {
-					front.push_back(vertY);
-					back.push_back(vertY);
-				}
-			}
-
-			// Set attributes for new vertices
-
-			if(vertIntersection1 && !edgeExists) {
-				vertIntersection1->setRGB(averageColor[0], averageColor[1], averageColor[2]);
-				mVertices.push_back(vertIntersection1);
-			}
-			if(vertIntersection2 && !edgeExists) {
-				vertIntersection2->setRGB(averageColor[0], averageColor[1], averageColor[2]);
-				mVertices.push_back(vertIntersection2);
-			}
-
-			vertX = vertY;
-			sideX = sideY;
-		}
-
-		triangulateSplitFace(front, &adjacentAndNewFaces);
-		triangulateSplitFace(back,  &adjacentAndNewFaces);
-	}
-
-	for(Face* faceIt : mFacesSelected) {
-		adjacentAndNewFaces.erase(faceIt);
-	}
-
-	if(noRedraw) {
-		Mesh::removeFacesSelected();
-	}
-	else {
-		this->removeFacesSelected();
-	}
-
-	// Re-establish mesh
-	for(Face* adjacentAndNewFace : adjacentAndNewFaces) {
-		adjacentAndNewFace->reconnectToFaces();
-	}
-
-	// Apply other nessary methods
-	bool retVal = true;
-	retVal &= changedMesh();
-
-	return( retVal );
+	return splitMesh( interSectFun, distFun, getIntersectionVectorFun, duplicateVertices, noRedraw, 1000.0*numeric_limits<double>::epsilon() * planeHNF);
 }
 
 //! Splits the mesh using a threshold (Iso Value) for the vertice's function value.
@@ -3783,6 +3554,24 @@ bool Mesh::splitByPlane( Vector3D planeHNF, bool duplicateVertices, bool noRedra
 //! @param noRedraw If set, does not force a redraw after each splitting
 //!        operation. Increases speed.
 bool Mesh::splitByIsoLine( double rIsoVal, bool duplicateVertices, bool noRedraw, Vector3D rUniformOffset ) {
+
+	auto intersectFun = [rIsoVal](Face* face) { return face->isOnFuncValIsoLine( rIsoVal);};
+
+	auto distFun = [rIsoVal](VertexOfFace* vertex) {
+		double retVal;
+		vertex->getFuncValue(&retVal);
+		return retVal - rIsoVal;
+	};
+
+	auto getIntersectionVectorFun = [rIsoVal, this] (VertexOfFace* vertX, VertexOfFace* vertY, Vector3D& rVecIntersection)  {
+		this->getPointOnIsoLine(&rVecIntersection, vertX, vertY, rIsoVal);
+	};
+
+	return splitMesh(intersectFun, distFun, getIntersectionVectorFun, duplicateVertices, noRedraw, rUniformOffset);
+}
+
+bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std::function<double(VertexOfFace*)>& signedDistanceFunction, const std::function<void(VertexOfFace*, VertexOfFace*, Vector3D&)>& getIntersectionVector, bool duplicateVertices, bool noRedraw, Vector3D rUniformOffset)
+{
 	// TODO: Should become a unique function
 	Vertex* currVertex;
 	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
@@ -3794,236 +3583,232 @@ bool Mesh::splitByIsoLine( double rIsoVal, bool duplicateVertices, bool noRedraw
 	// changed by this vector
 	Vector3D vecOffset = rUniformOffset; //1000.0*numeric_limits<double>::epsilon()*planeHNF;
 	vecOffset.setH( 1.0 );
-	//cout << vecOffset << endl;
+	cout << vecOffset << endl;
 
 	// Work with _all_ faces of the mesh and populate selected faces
-	// with _all_ faces that actually intersect the plane
-	Face* currFace = nullptr;
-	if( mFacesSelected.size() == 0 ) {
-		cout << "[Mesh::" << __FUNCTION__ << "] Processing ALL faces." << endl;
-		// select all faces that are to be deleted afterwards -- they are not required anymore
-		// as they will be replaced by the faces created by the splitting procedure
-		for( uint64_t faceIdx = 0; faceIdx < getFaceNr(); faceIdx++ ) {
-			currFace = getFacePos( faceIdx );
-			if( currFace->isOnFuncValIsoLine( rIsoVal ) ) {
-				mFacesSelected.insert( currFace );
+		// with _all_ faces that actually intersect the plane
+		Face* currFace = nullptr;
+		if( mFacesSelected.size() == 0 ) {
+			cout << "[Mesh::" << __FUNCTION__ << "] Processing ALL faces." << endl;
+			// select all faces that are to be deleted afterwards -- they are not required anymore
+			// as they will be replaced by the faces created by the splitting procedure
+			for( uint64_t faceIdx = 0; faceIdx < getFaceNr(); faceIdx++ ) {
+				currFace = getFacePos(faceIdx);
+				if(intersectTest(currFace))
+				{
+					mFacesSelected.insert( currFace );
+				}
 			}
 		}
-	}
-	else {
-		cout << "[Mesh::" << __FUNCTION__ << "] Processing only selected faces: " << mFacesSelected.size() << endl;
-		// remove all non-intersecting faces from the preselected faces; this step is necessary
-		// because the code below does not actually check for an intersection
-		for( std::set<Face*>::iterator faceIt = mFacesSelected.begin(); faceIt != mFacesSelected.end(); ) {
-			if(!(*faceIt)->isOnFuncValIsoLine( rIsoVal )) {
-				mFacesSelected.erase( faceIt++ );
-			}
-			else {
-				faceIt++;
-			}
-		}
-	}
-
-	// required for reconnecting the _new_ faces created by
-	// the splitting procedure
-	std::set<Face*> adjacentAndNewFaces;
-
-	// store edges for which an intersection vertex has already
-	// been created
-	std::map< std::pair<int, int>, std::pair<VertexOfFace*, VertexOfFace*> > edgeMap;
-
-	cout << "[Mesh::" << __FUNCTION__ << "] Remaining faces: " << mFacesSelected.size() << endl;
-	for(Face* face : mFacesSelected) {
-
-		// Classify face vertices with respect to the plane; split face into
-		// `front` part and `back` part
-
-		std::vector<VertexOfFace*> front;
-		std::vector<VertexOfFace*> back;
-
-		// required so that we may loop over the vertices
-
-		VertexOfFace* vertsToCheck[3] = { static_cast<VertexOfFace*>(face->getVertB()),
-		                                  static_cast<VertexOfFace*>(face->getVertC()),
-		                                  static_cast<VertexOfFace*>(face->getVertA()) };
-
-		VertexOfFace* vertX  = static_cast<VertexOfFace*>(face->getVertA());
-		VertexOfFace* vertY;
-
-		double sideX;
-		double sideY;
-		vertX->getFuncValue( &sideX );
-		sideX -= rIsoVal;
-
-		Vector3D vecIntersection;
-		for(VertexOfFace*& vertexOfFace : vertsToCheck) {
-
-			// These vertices store the position of the points _on_ the plane. If `duplicateVertices`
-			// is set to true, `vertIntersection2` will contain a slightly offset version of
-			// `vertIntersection1`. Else, this parameter will _not_ be used.
-			VertexOfFace* vertIntersection1 = nullptr;
-			VertexOfFace* vertIntersection2 = nullptr;
-
-			// required for reconnecting the faces later on
-			vertexOfFace->getFaces(&adjacentAndNewFaces);
-
-			vertY = vertexOfFace;
-			vertY->getFuncValue( &sideY );
-			sideY -= rIsoVal;
-
-			// Check whether edge exists; if this is the case, use the stored vertex as
-			// the intersection vertex and do _not_ store the vertex twice.
-
-			bool edgeExists = false;
-
-			int id1 = vertX->getIndex();
-			int id2 = vertY->getIndex();
-			if(id1 > id2) {
-				std::swap(id1, id2);
-			}
-
-			std::map< std::pair<int, int>, std::pair<VertexOfFace*, VertexOfFace*> >::iterator edgeIt;
-			if((edgeIt = edgeMap.find(std::make_pair(id1, id2))) != edgeMap.end()) {
-				vertIntersection1 = edgeIt->second.first; // Cool notation ;)
-				vertIntersection2 = edgeIt->second.second;
-				edgeExists = true;
-			}
-
-			unsigned char averageColor[3];
-			averageColor[0] = static_cast<unsigned char>(0.5*(vertX->getR() + vertY->getR()));
-			averageColor[1] = static_cast<unsigned char>(0.5*(vertX->getG() + vertY->getG()));
-			averageColor[2] = static_cast<unsigned char>(0.5*(vertX->getB() + vertY->getB()));
-
-			// second vertex is in front of plane...
-			if(sideY > 0) {
-				// ...but first vertex is behind plane
-				if(sideX <= 0) {
-					if( !getPointOnIsoLine( &vecIntersection, vertX, vertY, rIsoVal ) ) {
-						cerr << "[Mesh::" << __FUNCTION__ << "] ERROR during getPointOnIsoLine(1)!" << endl;
-					}
-
-					if(duplicateVertices) {
-						if(!vertIntersection1 && !vertIntersection2) {
-							vertIntersection1 = new VertexOfFace(vecIntersection + vecOffset);
-							vertIntersection2 = new VertexOfFace(vecIntersection - vecOffset);
-
-							edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection2);
-						}
-
-						front.push_back(vertIntersection1);
-						back.push_back( vertIntersection2);
-					}
-					else {
-						// Vertex at intersection may have already been found;
-						// do _not_ create vertex twice
-						if(!vertIntersection1) {
-							vertIntersection1 = new VertexOfFace(vecIntersection);
-							edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection1);
-						}
-
-						front.push_back(vertIntersection1);
-						back.push_back( vertIntersection1);
-					}
+		else {
+			cout << "[Mesh::" << __FUNCTION__ << "] Processing only selected faces: " << mFacesSelected.size() << endl;
+			// remove all non-intersecting faces from the preselected faces; this step is necessary
+			// because the code below does not actually check for an intersection
+			for(std::set<Face*>::iterator faceIt = mFacesSelected.begin(); faceIt != mFacesSelected.end();) {
+				if(!intersectTest(*faceIt))
+				{
+					mFacesSelected.erase( faceIt++ );
 				}
-
-				front.push_back(vertY);
-			}
-
-			// second vertex is behind plane...
-			else if(sideY < 0) {
-				// ..but first vertex is in front of plane
-				if(sideX >= 0) {
-					if( !getPointOnIsoLine( &vecIntersection, vertX, vertY, rIsoVal ) ) {
-						cerr << "[Mesh::" << __FUNCTION__ << "] ERROR during getPointOnIsoLine(2)!" << endl;
-					}
-
-					if(duplicateVertices) {
-						if(!vertIntersection1 && !vertIntersection2) {
-							vertIntersection1 = new VertexOfFace(vecIntersection + vecOffset);
-							vertIntersection2 = new VertexOfFace(vecIntersection - vecOffset);
-
-							edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection2);
-						}
-
-						front.push_back(vertIntersection1);
-						back.push_back( vertIntersection2);
-					}
-					else {
-						// Vertex at intersection may have already been found;
-						// do _not_ create vertex twice
-						if(!vertIntersection1) {
-							vertIntersection1 = new VertexOfFace(vecIntersection);
-							edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection1);
-						}
-
-						front.push_back(vertIntersection1);
-						back.push_back( vertIntersection1);
-					}
-				}
-
-				back.push_back(vertY);
-			}
-
-			else {
-
-				std::cerr << "[Mesh::" << __FUNCTION__ << "] Handling vertex _on_ plane" << std::endl;
-
-				// slightly shift vertex; variable names are not entirely correct, but will not
-				// be changed as code afterwards depends on it
-				if(duplicateVertices) {
-					vertIntersection1 = new VertexOfFace(vertY->getPositionVector() + vecOffset);
-					vertIntersection2 = new VertexOfFace(vertY->getPositionVector() - vecOffset);
-
-					front.push_back(vertIntersection1);
-					back.push_back(vertIntersection2);
-				}
-				// if no duplicates are required, store vertex in _both_ sets
 				else {
+					faceIt++;
+				}
+			}
+		}
+
+
+		// required for reconnecting the _new_ faces created by
+		// the splitting procedure
+		std::set<Face*> adjacentAndNewFaces;
+
+		// store edges for which an intersection vertex has already
+		// been created
+		std::map< std::pair<int, int>, std::pair<VertexOfFace*, VertexOfFace*> > edgeMap;
+
+		cout << "[Mesh::" << __FUNCTION__ << "] Remaining faces: " << mFacesSelected.size() << endl;
+		for(Face* face : mFacesSelected) {
+
+			// Classify face vertices with respect to the plane; split face into
+			// `front` part and `back` part
+
+			std::vector<VertexOfFace*> front;
+			std::vector<VertexOfFace*> back;
+			front.reserve(4);
+			back.reserve(4);
+
+			// required so that we may loop over the vertices
+			VertexOfFace* vertsToCheck[3] = { static_cast<VertexOfFace*>(face->getVertB()),
+											  static_cast<VertexOfFace*>(face->getVertC()),
+											  static_cast<VertexOfFace*>(face->getVertA()) };
+
+			VertexOfFace* vertX  = static_cast<VertexOfFace*>(face->getVertA());
+			VertexOfFace* vertY = nullptr;
+
+			double sideX = signedDistanceFunction(vertX);
+			double sideY;
+
+			Vector3D vecIntersection;
+			for(VertexOfFace*& vertexOfFace : vertsToCheck) {
+
+				// These vertices store the position of the points _on_ the plane. If `duplicateVertices`
+				// is set to true, `vertIntersection2` will contain a slightly offset version of
+				// `vertIntersection1`. Else, this parameter will _not_ be used.
+				VertexOfFace* vertIntersection1 = nullptr;
+				VertexOfFace* vertIntersection2 = nullptr;
+
+				// required for reconnecting the faces later on
+				vertexOfFace->getFaces(&adjacentAndNewFaces);
+
+				sideY = signedDistanceFunction(vertexOfFace);
+
+				// Check whether edge exists; if this is the case, use the stored vertex as
+				// the intersection vertex and do _not_ store the vertex twice.
+
+				bool edgeExists = false;
+
+				int id1 = vertX->getIndex();
+				int id2 = vertY->getIndex();
+				if(id1 > id2) {
+					std::swap(id1, id2);
+				}
+
+				std::map< std::pair<int, int>, std::pair<VertexOfFace*, VertexOfFace*> >::iterator edgeIt;
+				if((edgeIt = edgeMap.find(std::make_pair(id1, id2))) != edgeMap.end()) {
+					vertIntersection1 = edgeIt->second.first; // Cool notation ;)
+					vertIntersection2 = edgeIt->second.second;
+					edgeExists = true;
+				}
+
+				unsigned char averageColor[3];
+				averageColor[0] = static_cast<unsigned char>(0.5*(vertX->getR() + vertY->getR()));
+				averageColor[1] = static_cast<unsigned char>(0.5*(vertX->getG() + vertY->getG()));
+				averageColor[2] = static_cast<unsigned char>(0.5*(vertX->getB() + vertY->getB()));
+
+				// second vertex is in front of plane...
+				if(sideY > 0) {
+					// ...but first vertex is behind plane
+					if(sideX <= 0) {
+						getIntersectionVector(vertX, vertY, vecIntersection);
+
+						if(duplicateVertices) {
+							if(!vertIntersection1 && !vertIntersection2) {
+								vertIntersection1 = new VertexOfFace(vecIntersection + vecOffset);
+								vertIntersection2 = new VertexOfFace(vecIntersection - vecOffset);
+
+								edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection2);
+							}
+
+							front.push_back(vertIntersection1);
+							back.push_back( vertIntersection2);
+						}
+						else {
+							// Vertex at intersection may have already been found;
+							// do _not_ create vertex twice
+							if(!vertIntersection1) {
+								vertIntersection1 = new VertexOfFace(vecIntersection);
+								edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection1);
+							}
+
+							front.push_back(vertIntersection1);
+							back.push_back( vertIntersection1);
+						}
+					}
+
 					front.push_back(vertY);
+				}
+
+				// second vertex is behind plane...
+				else if(sideY < 0) {
+					// ..but first vertex is in front of plane
+					if(sideX >= 0) {
+						getIntersectionVector(vertX, vertY, vecIntersection);
+
+						if(duplicateVertices) {
+							if(!vertIntersection1 && !vertIntersection2) {
+								vertIntersection1 = new VertexOfFace(vecIntersection + vecOffset);
+								vertIntersection2 = new VertexOfFace(vecIntersection - vecOffset);
+
+								edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection2);
+							}
+
+							front.push_back(vertIntersection1);
+							back.push_back( vertIntersection2);
+						}
+						else {
+							// Vertex at intersection may have already been found;
+							// do _not_ create vertex twice
+							if(!vertIntersection1) {
+								vertIntersection1 = new VertexOfFace(vecIntersection);
+								edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection1);
+							}
+
+							front.push_back(vertIntersection1);
+							back.push_back( vertIntersection1);
+						}
+					}
+
 					back.push_back(vertY);
 				}
+
+				else {
+
+					std::cerr << "[Mesh::" << __FUNCTION__ << "] Handling vertex _on_ plane" << std::endl;
+
+					// slightly shift vertex; variable names are not entirely correct, but will not
+					// be changed as code afterwards depends on it
+					if(duplicateVertices) {
+						vertIntersection1 = new VertexOfFace(vertY->getPositionVector() + vecOffset);
+						vertIntersection2 = new VertexOfFace(vertY->getPositionVector() - vecOffset);
+
+						front.push_back(vertIntersection1);
+						back.push_back(vertIntersection2);
+					}
+					// if no duplicates are required, store vertex in _both_ sets
+					else {
+						front.push_back(vertY);
+						back.push_back(vertY);
+					}
+				}
+
+				// Set attributes for new vertices
+
+				if(vertIntersection1 && !edgeExists) {
+					vertIntersection1->setRGB(averageColor[0], averageColor[1], averageColor[2]);
+					mVertices.push_back(vertIntersection1);
+				}
+				if(vertIntersection2 && !edgeExists) {
+					vertIntersection2->setRGB(averageColor[0], averageColor[1], averageColor[2]);
+					mVertices.push_back(vertIntersection2);
+				}
+
+				vertX = vertY;
+				sideX = sideY;
 			}
 
-			// Set attributes for new vertices
-
-			if(vertIntersection1 && !edgeExists) {
-				vertIntersection1->setRGB(averageColor[0], averageColor[1], averageColor[2]);
-				mVertices.push_back(vertIntersection1);
-			}
-			if(vertIntersection2 && !edgeExists) {
-				vertIntersection2->setRGB(averageColor[0], averageColor[1], averageColor[2]);
-				mVertices.push_back(vertIntersection2);
-			}
-
-			vertX = vertY;
-			sideX = sideY;
+			triangulateSplitFace(front, &adjacentAndNewFaces);
+			triangulateSplitFace(back,  &adjacentAndNewFaces);
 		}
 
-		triangulateSplitFace(front, &adjacentAndNewFaces);
-		triangulateSplitFace(back,  &adjacentAndNewFaces);
-	}
+		for(Face* face : mFacesSelected) {
+			adjacentAndNewFaces.erase(face);
+		}
 
-	for(Face* face : mFacesSelected) {
-		adjacentAndNewFaces.erase(face);
-	}
+		if(noRedraw) {
+			Mesh::removeFacesSelected();
+		}
+		else {
+			this->removeFacesSelected();
+		}
 
-	if(noRedraw) {
-		Mesh::removeFacesSelected();
-	}
-	else {
-		this->removeFacesSelected();
-	}
+		// Re-establish mesh
+		for(Face* adjacentAndNewFace : adjacentAndNewFaces) {
+			adjacentAndNewFace->reconnectToFaces();
+		}
 
-	// Re-establish mesh
-	for(Face* adjacentAndNewFace : adjacentAndNewFaces) {
-		adjacentAndNewFace->reconnectToFaces();
-	}
+		// Apply other nessary methods
+		bool retVal = true;
+		retVal &= changedMesh();
 
-	// Apply other nessary methods
-	bool retVal = true;
-	retVal &= changedMesh();
-
-	return( retVal );
+		return( retVal );
 }
 
 //! Triangulates a face that has been split by a plane. The new faces are then inserted into a
