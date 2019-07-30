@@ -3658,6 +3658,7 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 				// required for reconnecting the faces later on
 				vertexOfFace->getFaces(&adjacentAndNewFaces);
 
+				vertY = vertexOfFace;
 				sideY = signedDistanceFunction(vertexOfFace);
 
 				// Check whether edge exists; if this is the case, use the stored vertex as
