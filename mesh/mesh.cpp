@@ -3709,44 +3709,47 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 				averageColor[1] = static_cast<unsigned char>(0.5*(vertX->getG() + vertY->getG()));
 				averageColor[2] = static_cast<unsigned char>(0.5*(vertX->getB() + vertY->getB()));
 
+
 				//the vertices are on the other sides
-				if( ( (sideY > 0) != (sideX > 0) ) && sideY != 0)
+				if( sideY != 0)
 				{
-					getIntersectionVector(vertX, vertY, vecIntersection);
+					if(sideY > 0 != sideX > 0)
+					{
+						getIntersectionVector(vertX, vertY, vecIntersection);
 
-					if(duplicateVertices) {
-						if(!vertIntersection1 && !vertIntersection2) {
-							vertIntersection1 = new VertexOfFace(vecIntersection + vecOffset);
-							vertIntersection2 = new VertexOfFace(vecIntersection - vecOffset);
+						if(duplicateVertices) {
+							if(!vertIntersection1 && !vertIntersection2) {
+								vertIntersection1 = new VertexOfFace(vecIntersection + vecOffset);
+								vertIntersection2 = new VertexOfFace(vecIntersection - vecOffset);
 
-							edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection2);
+								edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection2);
+							}
+
+							front.push_back(vertIntersection1);
+							back.push_back( vertIntersection2);
+						}
+						else {
+							// Vertex at intersection may have already been found;
+							// do _not_ create vertex twice
+							if(!vertIntersection1) {
+								vertIntersection1 = new VertexOfFace(vecIntersection);
+								edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection1);
+							}
+
+							front.push_back(vertIntersection1);
+							back.push_back( vertIntersection1);
 						}
 
-						front.push_back(vertIntersection1);
-						back.push_back( vertIntersection2);
+						//push interpolated uvs to front and back
+						float relDist = getRelativeDistance(vertY, vertX, &vecIntersection);
+						float s;
+						float t;
+
+						linearInterpolateUV(uvs[uvY], uvs[uvY + 1], uvs[uvX], uvs[uvX + 1], relDist, s, t);
+
+						frontUVs.push_back(s); frontUVs.push_back(t);
+						backUVs.push_back( s); backUVs.push_back( t);
 					}
-					else {
-						// Vertex at intersection may have already been found;
-						// do _not_ create vertex twice
-						if(!vertIntersection1) {
-							vertIntersection1 = new VertexOfFace(vecIntersection);
-							edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection1);
-						}
-
-						front.push_back(vertIntersection1);
-						back.push_back( vertIntersection1);
-					}
-
-					//push interpolated uvs to front and back
-					float relDist = getRelativeDistance(vertY, vertX, &vecIntersection);
-					float s;
-					float t;
-
-					linearInterpolateUV(uvs[uvY], uvs[uvY + 1], uvs[uvX], uvs[uvX + 1], relDist, s, t);
-
-					frontUVs.push_back(s); frontUVs.push_back(t);
-					backUVs.push_back( s); backUVs.push_back( t);
-
 					//y is in front
 					if(sideY > 0)
 					{
@@ -3761,7 +3764,7 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 					}
 				}
 
-				else if(sideY == 0)
+				else
 				{
 					std::cerr << "[Mesh::" << __FUNCTION__ << "] Handling vertex _on_ plane" << std::endl;
 
