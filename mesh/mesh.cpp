@@ -3570,6 +3570,9 @@ bool Mesh::splitByIsoLine( double rIsoVal, bool duplicateVertices, bool noRedraw
 	return splitMesh(intersectFun, distFun, getIntersectionVectorFun, duplicateVertices, noRedraw, rUniformOffset);
 }
 
+//----------------------------------
+//helper functions for splitMesh
+//returns relatve distance between vertA and vect in relation to the distance between vertA and vertB
 double getRelativeDistance(VertexOfFace* vertA, VertexOfFace* vertB, Vector3D* vect)
 {
 	Vector3D a;
@@ -3585,6 +3588,8 @@ void linearInterpolateUV(float s1, float t1, float s2, float t2, float factor, f
 	sOut = (1.0f - factor) * s1 + factor * s2;
 	tOut = (1.0f - factor) * t1 + factor * t2;
 }
+//----------------------------------
+
 
 bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std::function<double(VertexOfFace*)>& signedDistanceFunction, const std::function<void(VertexOfFace*, VertexOfFace*, Vector3D&)>& getIntersectionVector, bool duplicateVertices, bool noRedraw, Vector3D rUniformOffset)
 {

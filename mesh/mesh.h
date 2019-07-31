@@ -19,6 +19,7 @@ extern "C"
 #include <map>
 #include <list>
 #include <set>
+#include <functional>
 
 #include "bitflagarray.h"
 #include "vertex.h"

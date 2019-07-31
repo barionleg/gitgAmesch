@@ -17,7 +17,7 @@ class VertexOfFace : public Vertex {
 		// Value access:
 		virtual bool     estNormalAvgAdjacentFaces(); // ***
 		virtual double   get1RingArea(); // ***
-		virtual uint64_t    get1RingFaceCount() const; // ***
+		virtual uint64_t get1RingFaceCount() const; // ***
 		virtual double   get1RingSumAngles(); // ***
 
 		// Fetch sphere:
