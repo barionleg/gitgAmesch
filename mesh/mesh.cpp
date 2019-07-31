@@ -3662,8 +3662,8 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 			auto uvs = face->getUVs();
 
 			//x index of the current uv-coordinate
-			size_t uvX = 2;
-			size_t uvY = 0;
+			size_t uvX = 0;
+			size_t uvY = 2;
 
 			VertexOfFace* vertX  = static_cast<VertexOfFace*>(face->getVertA());
 			VertexOfFace* vertY = nullptr;
@@ -3801,7 +3801,7 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 
 				vertX = vertY;
 				uvX = uvY;
-				uvY += 2;
+				uvY = (uvY + 2) % 6;
 				sideX = sideY;
 			}
 
