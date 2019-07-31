@@ -3650,7 +3650,7 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 			back.reserve(4);
 
 			std::vector<float> frontUVs;
-			frontUVs.resize(8);
+			frontUVs.reserve(8);
 			std::vector<float> backUVs;
 			backUVs.reserve(8);
 
@@ -3710,7 +3710,7 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 				averageColor[2] = static_cast<unsigned char>(0.5*(vertX->getB() + vertY->getB()));
 
 				//the vertices are on the other sides
-				if(sideY != sideX && sideY != 0)
+				if( ( (sideY > 0) != (sideX > 0) ) && sideY != 0)
 				{
 					getIntersectionVector(vertX, vertY, vecIntersection);
 
@@ -3737,17 +3737,6 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 						back.push_back( vertIntersection1);
 					}
 
-					//y is in front
-					if(sideY > 0)
-					{
-						front.push_back(vertY);
-					}
-					//y is in back
-					else
-					{
-						back.push_back(vertY);
-					}
-
 					//push interpolated uvs to front and back
 					float relDist = getRelativeDistance(vertY, vertX, &vecIntersection);
 					float s;
@@ -3758,9 +3747,18 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 					frontUVs.push_back(s); frontUVs.push_back(t);
 					backUVs.push_back( s); backUVs.push_back( t);
 
-					//push y uvs to front and back
-					frontUVs.push_back(uvs[uvY]); frontUVs.push_back(uvs[uvY + 1]);
-					backUVs.push_back( uvs[uvY]); backUVs.push_back( uvs[uvY + 1]);
+					//y is in front
+					if(sideY > 0)
+					{
+						front.push_back(vertY);
+						frontUVs.push_back(uvs[uvY]); frontUVs.push_back(uvs[uvY + 1]);
+					}
+					//y is in back
+					else
+					{
+						back.push_back(vertY);
+						backUVs.push_back( uvs[uvY]); backUVs.push_back( uvs[uvY + 1]);
+					}
 				}
 
 				else if(sideY == 0)
@@ -3848,7 +3846,7 @@ bool Mesh::triangulateSplitFace(std::vector<VertexOfFace*>& faceVertices, std::s
 	{
 		if(faceVertices.size() * 2 != newUVS->size())
 		{
-			std::cerr << "[Mesh::" << __FUNCTION__ << "] The number of UV's does not match with the number of vertices." << std::endl;
+			std::cerr << "[Mesh::" << __FUNCTION__ << "] The number of UV's does not match with the number of vertices * 2: " << newUVS->size() << " vs " << faceVertices.size() << std::endl;
 			return false;
 		}
 	}
