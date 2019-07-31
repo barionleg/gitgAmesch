@@ -3570,6 +3570,22 @@ bool Mesh::splitByIsoLine( double rIsoVal, bool duplicateVertices, bool noRedraw
 	return splitMesh(intersectFun, distFun, getIntersectionVectorFun, duplicateVertices, noRedraw, rUniformOffset);
 }
 
+double getRelativeDistance(VertexOfFace* vertA, VertexOfFace* vertB, Vector3D* vect)
+{
+	Vector3D a;
+	vertA->getPositionVector(&a);
+	Vector3D b;
+	vertB->getPositionVector(&b);
+
+	return (*vect - a).getLength3() / (b - a).getLength3();
+}
+
+void linearInterpolateUV(float s1, float t1, float s2, float t2, float factor, float& sOut, float& tOut)
+{
+	sOut = (1.0f - factor) * s1 + factor * s2;
+	tOut = (1.0f - factor) * t1 + factor * t2;
+}
+
 bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std::function<double(VertexOfFace*)>& signedDistanceFunction, const std::function<void(VertexOfFace*, VertexOfFace*, Vector3D&)>& getIntersectionVector, bool duplicateVertices, bool noRedraw, Vector3D rUniformOffset)
 {
 	// TODO: Should become a unique function <--- is this TODO still relevant?
@@ -3632,6 +3648,11 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 			std::vector<VertexOfFace*> back;
 			front.reserve(4);
 			back.reserve(4);
+
+			std::vector<float> frontUVs;
+			frontUVs.resize(8);
+			std::vector<float> backUVs;
+			backUVs.reserve(8);
 
 			// required so that we may loop over the vertices
 			VertexOfFace* vertsToCheck[3] = { static_cast<VertexOfFace*>(face->getVertB()),
@@ -3726,6 +3747,20 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 					{
 						back.push_back(vertY);
 					}
+
+					//push interpolated uvs to front and back
+					float relDist = getRelativeDistance(vertY, vertX, &vecIntersection);
+					float s;
+					float t;
+
+					linearInterpolateUV(uvs[uvY], uvs[uvY + 1], uvs[uvX], uvs[uvX + 1], relDist, s, t);
+
+					frontUVs.push_back(s); frontUVs.push_back(t);
+					backUVs.push_back( s); backUVs.push_back( t);
+
+					//push y uvs to front and back
+					frontUVs.push_back(uvs[uvY]); frontUVs.push_back(uvs[uvY + 1]);
+					backUVs.push_back( uvs[uvY]); backUVs.push_back( uvs[uvY + 1]);
 				}
 
 				else if(sideY == 0)
@@ -3746,6 +3781,10 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 						front.push_back(vertY);
 						back.push_back(vertY);
 					}
+
+					//push uvs of y to front and back
+					frontUVs.push_back(uvs[uvY]); frontUVs.push_back(uvs[uvY + 1]);
+					backUVs.push_back(uvs[uvY]); backUVs.push_back(uvs[uvY + 1]);
 				}
 
 				// Set attributes for new vertices
@@ -3765,8 +3804,8 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 				sideX = sideY;
 			}
 
-			triangulateSplitFace(front, &adjacentAndNewFaces);
-			triangulateSplitFace(back,  &adjacentAndNewFaces);
+			triangulateSplitFace(front, &adjacentAndNewFaces, &frontUVs);
+			triangulateSplitFace(back,  &adjacentAndNewFaces, &backUVs);
 		}
 
 		for(Face* face : mFacesSelected) {
@@ -3796,13 +3835,22 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 //! set if the parameter is not NULL.
 //! @warning This function assumes that points are added to the vector of vertices in the correct
 //! order. There is no way for this function to determine/change the order.
-bool Mesh::triangulateSplitFace(std::vector<VertexOfFace*>& faceVertices, std::set<Face*>* newFaces) {
+bool Mesh::triangulateSplitFace(std::vector<VertexOfFace*>& faceVertices, std::set<Face*>* newFaces, std::vector<float>* newUVS) {
 
 	size_t n = faceVertices.size();
 	if(n != 3 && n !=4) {
 		std::cerr << "[Mesh::" << __FUNCTION__ << "] Encountered result of non-triangular split. Unable to triangulate. n=" << n
 		          << std::endl;
 		return(false);
+	}
+
+	if(newUVS)
+	{
+		if(faceVertices.size() * 2 != newUVS->size())
+		{
+			std::cerr << "[Mesh::" << __FUNCTION__ << "] The number of UV's does not match with the number of vertices." << std::endl;
+			return false;
+		}
 	}
 
 	int faceId = getFaceNr();
@@ -3812,12 +3860,29 @@ bool Mesh::triangulateSplitFace(std::vector<VertexOfFace*>& faceVertices, std::s
 
 	// this face is created in any case
 	newFace1 = new Face(faceId, faceVertices[0], faceVertices[1], faceVertices[2]);
+	if(newUVS)
+	{
+		std::array<float,6> uvs;
+		for(int i = 0; i<6; ++i)
+			uvs[i] = (*newUVS)[i];
+
+		newFace1->setUVs(uvs);
+	}
+
 	mFaces.push_back(newFace1);
 
 	// this face can only be created if four points are the result of
 	// the splitting plane operation
 	if(n == 4) {
 		newFace2 = new Face(faceId + 1, faceVertices[2], faceVertices[3], faceVertices[0]);
+		if(newUVS)
+		{
+			std::array<float,6> uvs;
+			for(int i = 0; i<6; ++i)
+				uvs[i] = (*newUVS)[(4 + i) % 8];
+
+			newFace2->setUVs(uvs);
+		}
 		mFaces.push_back(newFace2);
 	}
 
