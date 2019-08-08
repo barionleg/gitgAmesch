@@ -3787,7 +3787,7 @@ void MeshQt::visualizeDistanceToCone( bool rAbsDist ) {
 bool MeshQt::editMetaData() {
 
 	//! .) Edit Model ID.
-	string modelID = getModelMetaString( ModelMetaData::META_MODEL_ID );
+	string modelID = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
 	if( modelID.empty() ) {
 		// Prepare suggestion
 		QString suggestId( getBaseName().c_str() );
@@ -3808,11 +3808,11 @@ bool MeshQt::editMetaData() {
 			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: bad input (1)!" << endl;
 			return false;
 		}
-		setModelMetaString( ModelMetaData::META_MODEL_ID, newModelId.toStdString() );
+		getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_ID, newModelId.toStdString() );
 	}
 
 	//! .) Edit Model Material.
-	string modelMaterial = getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
+	string modelMaterial = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
 	if( modelMaterial.empty() ) {
 		QGMDialogEnterText dlgEnterTxt;
 		dlgEnterTxt.setText( tr( "original, clay" ) );
@@ -3826,7 +3826,7 @@ bool MeshQt::editMetaData() {
 			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: bad input (1)!" << endl;
 			return false;
 		}
-		setModelMetaString( ModelMetaData::META_MODEL_MATERIAL, newMaterial.toStdString() );
+		getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_MATERIAL, newMaterial.toStdString() );
 	}
 
 	return( true );

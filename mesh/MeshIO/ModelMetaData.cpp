@@ -77,3 +77,13 @@ bool ModelMetaData::clearModelMetaStrings() {
 	// Done.
 	return( true );
 }
+
+bool ModelMetaData::hasTextureCoordinates() const
+{
+	return mHasTextureCoordinates;
+}
+
+void ModelMetaData::setHasTextureCoordinates(bool hasTextureCoordinates)
+{
+	mHasTextureCoordinates = hasTextureCoordinates;
+}

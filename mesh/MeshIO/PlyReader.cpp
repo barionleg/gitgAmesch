@@ -249,6 +249,7 @@ bool PlyReader::readFile(const std::string& rFilename,
 				propertyType = PLY_LIST_VERTEX_INDICES;
 			} else if(strcmp( propName, "texcoord") == 0) {
 				propertyType = PLY_LIST_TEXCOORDS;
+				getModelMetaDataRef().setHasTextureCoordinates(true);
 			} else {
 				propertyType = PLY_LIST_IGNORE;
 			}
@@ -326,7 +327,7 @@ bool PlyReader::readFile(const std::string& rFilename,
 				break;
 			case PLY_POLYGONAL_LINE:
 			case PLY_VERTEX:
-				if(propertyType == PLY_VERTEX_TEXCOORD_S || PLY_VERTEX_TEXCOORD_T)
+				if(propertyType == PLY_VERTEX_TEXCOORD_S || propertyType == PLY_VERTEX_TEXCOORD_T)
 				{
 					hasVertexTexCoords = true;
 				}
@@ -371,6 +372,7 @@ bool PlyReader::readFile(const std::string& rFilename,
 	std::vector<float> vertexTextureCoordinates;
 	if(hasVertexTexCoords)
 	{
+		getModelMetaDataRef().setHasTextureCoordinates(true);
 		vertexTextureCoordinates.resize(rVertexProps.size() * 2);
 	}
 	//---------------------------------- PARSE ASCII FILES----------------------------------------------------------------

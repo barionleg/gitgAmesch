@@ -25,9 +25,13 @@ class ModelMetaData
 		bool         getModelMetaStringId( const std::string& rModelMetaStringName, eMetaStrings& rMetaStrID );
 		bool         clearModelMetaStrings();
 
+		bool hasTextureCoordinates() const;
+		void setHasTextureCoordinates(bool hasTextureCoordinates);
+
 	private:
 		std::array<std::string, META_STRINGS_COUNT> mMetaDataStrings;         //!< Meta-Data contents
 		std::array<std::string, META_STRINGS_COUNT> mMetaDataStringNames;     //!< Meta-Data names
+		bool mHasTextureCoordinates = false;                                  //!< Stores if the mesh has texture-coordinates
 };
 
 #endif // MODELMETADATA_H

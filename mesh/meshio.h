@@ -53,11 +53,7 @@ class MeshIO : public MeshSeedExt {
 			                std::vector<sVertexProperties>& rVertexProps,
 			                std::vector<sFaceProperties>& rFaceProps );
 
-		bool         setModelMetaString( ModelMetaData::eMetaStrings rMetaStrID, const std::string& rModelMeta );
-		std::string  getModelMetaString( ModelMetaData::eMetaStrings rMetaStrID );
-		bool         getModelMetaStringName( ModelMetaData::eMetaStrings rMetaStrID, std::string& rModelMetaStringName );
-		bool         getModelMetaStringId( const std::string& rModelMetaStringName, ModelMetaData::eMetaStrings& rMetaStrID );
-		bool         clearModelMetaStrings();
+		ModelMetaData& getModelMetaDataRef();
 
 		// Provide Information:
 		virtual std::string getFileExtension();

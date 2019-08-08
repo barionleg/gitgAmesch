@@ -875,7 +875,29 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 
 	cout << "[MeshWidget::" << __FUNCTION__ << "] Done." << endl;
 
-	emit loadedMeshIsTextured( !(mMeshVisual->getModelMetaString(ModelMetaData::META_TEXTUREFILE).empty()) );
+	//check if the mesh is textured
+	if(mMeshVisual->getModelMetaDataRef().hasTextureCoordinates() && mMeshVisual->getModelMetaDataRef().getModelMetaString(ModelMetaData::META_TEXTUREFILE).empty())
+	{
+		bool userLoad = false;
+		bool userCancel = false;
+		SHOW_QUESTION( tr("Load texture file"), tr("No valid texturefile found for the loaded Mesh. Do you want to select a texturefile manually?"), userLoad, userCancel );
+
+		if(userLoad && !userCancel)
+		{
+			QImageReader reader;
+			auto imgFiles = reader.supportedImageFormats();
+			QString supportedImages;
+			for(const auto& imgType : imgFiles)
+			{
+				supportedImages += QString("*." + imgType + " ");
+			}
+
+			auto fileName = QFileDialog::getOpenFileName(this, tr("Open texture"), mMeshVisual->getFileLocation().c_str(), tr("Images") + "(" + supportedImages + ")");
+			mMeshVisual->getModelMetaDataRef().setModelMetaString(ModelMetaData::META_TEXTUREFILE, fileName.toStdString());
+		}
+	}
+
+	emit loadedMeshIsTextured( !(mMeshVisual->getModelMetaDataRef().getModelMetaString(ModelMetaData::META_TEXTUREFILE).empty()) );
 
 	return( true );
 }
@@ -1643,7 +1665,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         tempFileName.replace(".", mainPath);
 
 		//! .) Fetch strings and their values. (For the pictures)
-		QString title = QString( mMeshVisual->getModelMetaString( ModelMetaData::META_MODEL_ID ).c_str() );
+		QString title = QString( mMeshVisual->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID ).c_str() );
 		title = title.replace( QString("-"), QString("\\protect\\-") );
 		title = title.replace( QString("_"), QString("\\protect\\_") );
 		string titleString = title.toStdString();

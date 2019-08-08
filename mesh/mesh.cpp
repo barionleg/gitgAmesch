@@ -665,21 +665,21 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			cuneiformFigureLaTeX();
 			break;
 		case METADATA_EDIT_MODEL_ID: {
-			string metaData = getModelMetaString( ModelMetaData::META_MODEL_ID );
+			string metaData = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
 			if( showEnterText( metaData, "Edit the Id of the model" ) ) {
-				setModelMetaString( ModelMetaData::META_MODEL_ID, metaData );
+				getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_ID, metaData );
 			}
 			} break;
 		case METADATA_EDIT_MODEL_MATERIAL: {
-			string metaData = getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
+			string metaData = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
 			if( showEnterText( metaData, "Edit the material of the object" ) ) {
-				setModelMetaString( ModelMetaData::META_MODEL_MATERIAL, metaData );
+				getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_MATERIAL, metaData );
 			}
 			} break;
 		case METADATA_EDIT_REFERENCE_WEB: {
-			string metaData = getModelMetaString( ModelMetaData::META_REFERENCE_WEB );
+			string metaData = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_REFERENCE_WEB );
 			if( showEnterText( metaData, "Edit web reference of the model" ) ) {
-				setModelMetaString( ModelMetaData::META_REFERENCE_WEB, metaData );
+				getModelMetaDataRef().setModelMetaString( ModelMetaData::META_REFERENCE_WEB, metaData );
 			}
 			} break;
 		case ELLIPSENFIT_EXPERIMENTAL:
@@ -15191,11 +15191,11 @@ bool Mesh::latexFetchFigureInfos( vector<pair<string,string>>* rStrings ) {
 	rStrings->push_back( pair<string,string>( string( "__FACE_COUNT__"  ),  to_string( getFaceNr()   ) ) ); //! __FACE_COUNT__
 
 	//! Meta-data:
-	rStrings->push_back( pair<string,string>( string( "__OBJECT_ID__" ),       getModelMetaString( ModelMetaData::META_MODEL_ID ) )       ); //! __OBJECT_ID__
-	rStrings->push_back( pair<string,string>( string( "__OBJECT_MATERIAL__" ), getModelMetaString( ModelMetaData::META_MODEL_MATERIAL ) ) ); //! __OBJECT_MATERIAL__
+	rStrings->push_back( pair<string,string>( string( "__OBJECT_ID__" ),       getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID ) )       ); //! __OBJECT_ID__
+	rStrings->push_back( pair<string,string>( string( "__OBJECT_MATERIAL__" ), getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL ) ) ); //! __OBJECT_MATERIAL__
 	// Adapt web-reference
 	//! \todo extend for multiple links.
-	std::string strWebRef = getModelMetaString( ModelMetaData::META_REFERENCE_WEB );
+	std::string strWebRef = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_REFERENCE_WEB );
 	if( strWebRef.size() == 0 ) { // When empty
 		rStrings->push_back( pair<string,string>( string( "__WEB_REFERENCE__" ), "" ) ); //! __WEB_REFERENCE__ when empty
 	} else { //! \todo check if there is at least one properly formatted web-reference.
@@ -15321,9 +15321,9 @@ bool Mesh::getMeshInfoData(
 	} else {
 		rMeshInfos.mStrings[MeshInfoData::FILENAME]       = this->getBaseName();
 	}
-	rMeshInfos.mStrings[MeshInfoData::MODEL_ID]           = this->getModelMetaString( ModelMetaData::META_MODEL_ID );
-	rMeshInfos.mStrings[MeshInfoData::MODEL_MATERIAL]     = this->getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
-	rMeshInfos.mStrings[MeshInfoData::MODEL_WEBREFERENCE] = this->getModelMetaString( ModelMetaData::META_REFERENCE_WEB );
+	rMeshInfos.mStrings[MeshInfoData::MODEL_ID]           = this->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
+	rMeshInfos.mStrings[MeshInfoData::MODEL_MATERIAL]     = this->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
+	rMeshInfos.mStrings[MeshInfoData::MODEL_WEBREFERENCE] = this->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_REFERENCE_WEB );
 
 	// Primitive count
 	rMeshInfos.mCountULong[MeshInfoData::VERTICES_TOTAL] = this->getVertexNr();

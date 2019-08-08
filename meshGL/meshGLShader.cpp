@@ -3764,7 +3764,7 @@ void MeshGLShader::vboPaintTextured()
 
 	if(!mTexturedMeshRenderer.isInitialized())
 	{
-		std::string textureFile = getFileLocation() + "/" + getModelMetaString(ModelMetaData::META_TEXTUREFILE);
+		std::string textureFile = getModelMetaDataRef().getModelMetaString(ModelMetaData::META_TEXTUREFILE);
 		if(textureFile.empty()) //menu entry should be disabled in this case.
 			return;
 

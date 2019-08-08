@@ -52,7 +52,7 @@ MeshIO::MeshIO()
 	}
 
 	// Initialize strings holding meta-data
-	if( !clearModelMetaStrings() ) {
+	if( !mModelMetaData.clearModelMetaStrings() ) {
 		std::cerr << "[MeshIO::" << __FUNCTION__ << "] ERROR: clearModelMetaStrings failed!" << std::endl;
 	}
 
@@ -122,6 +122,18 @@ bool MeshIO::readFile(
 	}
 
 	mModelMetaData = reader->getModelMetaDataRef();
+
+	if(!mModelMetaData.getModelMetaString(ModelMetaData::META_TEXTUREFILE).empty())
+	{
+		std::filesystem::path texturePath(mModelMetaData.getModelMetaString(ModelMetaData::META_TEXTUREFILE));
+		if(texturePath.is_relative())
+		{
+			auto prevPath = std::filesystem::current_path();
+			std::filesystem::current_path(std::filesystem::absolute(rFileName).parent_path());
+			mModelMetaData.setModelMetaString(ModelMetaData::META_TEXTUREFILE, std::filesystem::absolute( mModelMetaData.getModelMetaString(ModelMetaData::META_TEXTUREFILE)).string());
+			std::filesystem::current_path(prevPath);
+		}
+	}
 
 	mExportFlags[EXPORT_TEXTURE_COORDINATES]= !(mModelMetaData.getModelMetaString(ModelMetaData::META_TEXTUREFILE).empty());
 
@@ -341,48 +353,9 @@ bool MeshIO::writeFile(
 	return false;
 }
 
-// Meta-Data Strings -----------------------------------------------------------
-
-//! Set Meta-Data as strings.
-//! @returns false in case of an error. True otherwise.
-bool MeshIO::setModelMetaString(
-				ModelMetaData::eMetaStrings       rMetaStrID,        //!< Id of the meta-data string.
-                const std::string& rModelMeta         //!< Meta-data content as string.
-) {
-	return mModelMetaData.setModelMetaString(rMetaStrID, rModelMeta);
-}
-
-//! Get Meta-Data as strings.
-//! @returns nullptr case of an error.
-std::string MeshIO::getModelMetaString(
-				ModelMetaData::eMetaStrings rMetaStrID               //!< Id of the meta-data string.
-) {
-	return mModelMetaData.getModelMetaString(rMetaStrID);
-
-}
-
-//! Fetch the name of the Meta-Data strings using an Id.
-//! @returns false in case of an error. True otherwise.
-bool MeshIO::getModelMetaStringName(
-				ModelMetaData::eMetaStrings rMetaStrID,                   //!< Id of the meta-data string.
-                std::string& rModelMetaStringName          //!< Name as string of the meta-data string.
-) {
-	return mModelMetaData.getModelMetaStringName(rMetaStrID, rModelMetaStringName);
-}
-
-//! Fetch the Id of the Meta-Data strings using its name as string.
-//! @returns false in case of an error or no Id found. True otherwise.
-bool MeshIO::getModelMetaStringId(
-                const std::string& rModelMetaStringName,   //!< Id of the meta-data string.
-				ModelMetaData::eMetaStrings& rMetaStrID                   //!< Name as string of the meta-data string.
-) {
-	return mModelMetaData.getModelMetaStringId(rModelMetaStringName, rMetaStrID);
-}
-
-//! Clear and reset meta-data.
-//! @returns false in case of an error or no Id found. True otherwise.
-bool MeshIO::clearModelMetaStrings() {
-	return mModelMetaData.clearModelMetaStrings();
+ModelMetaData& MeshIO::getModelMetaDataRef()
+{
+	return mModelMetaData;
 }
 
 // Provide Information ---------------------------------------------------------
