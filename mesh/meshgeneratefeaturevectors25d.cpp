@@ -460,9 +460,9 @@ int main( int argc, char *argv[] ) {
 	areaAcq = round( areaAcq );
 	double volDXYZ[3]{0.0, 0.0, 0.0};
 	someMesh.estimateVolumeDivergence( volDXYZ );
-	string modelID = someMesh.getModelMetaString( ModelMetaData::META_MODEL_ID );
-	string modelMat = someMesh.getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
-	string modelWebRef = someMesh.getModelMetaString( ModelMetaData::META_REFERENCE_WEB );
+	string modelID = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
+	string modelMat = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
+	string modelWebRef = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_REFERENCE_WEB );
 	// Write data to console
 #ifdef VERSION_PACKAGE
 	cout << "[GigaMesh] Version:         " << VERSION_PACKAGE << endl;

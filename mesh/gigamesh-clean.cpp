@@ -112,13 +112,13 @@ bool cleanupGigaMeshData(
 	// Meta-data options:
 	// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	if( rMaterialWhenEmptySet ) {
-		std::string currMat = someMesh.getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
+		std::string currMat = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
 		if( ( currMat.size() == 0 ) || rEnforceIdMaterial ){
-			someMesh.setModelMetaString( ModelMetaData::META_MODEL_MATERIAL, rMaterialWhenEmpty );
+			someMesh.getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_MATERIAL, rMaterialWhenEmpty );
 		}
 	}
 	if( rFileNameAsIdWhenEmpty ) {
-		std::string currModelId = someMesh.getModelMetaString( ModelMetaData::META_MODEL_ID );
+		std::string currModelId = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
 		if( ( currModelId.size() == 0 ) || rEnforceIdMaterial ) {
 			currModelId = std::filesystem::path( fileNameInName ).stem().string();
 			std::replace( currModelId.begin(), currModelId.end(), '_', ' ' );
@@ -127,7 +127,7 @@ bool cleanupGigaMeshData(
 				std::size_t charsRemain = currModelId.size() - rRemoveTrailingChars;
 				currModelId = currModelId.substr( 0, charsRemain );
 			}
-			someMesh.setModelMetaString( ModelMetaData::META_MODEL_ID, currModelId );
+			someMesh.getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_ID, currModelId );
 		}
 	}
 

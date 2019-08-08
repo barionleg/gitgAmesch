@@ -110,8 +110,8 @@ bool convertMeshData(
 	areaAcq = round( areaAcq );
 	double volDXYZ[3];
 	someMesh.estimateVolumeDivergence( volDXYZ );
-	string modelID  = someMesh.getModelMetaString( ModelMetaData::META_MODEL_ID );
-	string modelMat = someMesh.getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
+	string modelID  = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
+	string modelMat = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
 	// Write data to file
 	cout << "[GigaMesh] Model ID:        " << modelID << endl;
 	cout << "[GigaMesh] Material:        " << modelMat << endl;
