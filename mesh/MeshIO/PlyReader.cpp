@@ -18,7 +18,7 @@ void READ_IN_PROPER_BYTE_ORDER(std::fstream& filestream, T target, size_t size, 
 		char* tmpBufRev = new char[size];
 		char* tmpBuf = new char[size];
 		(filestream).read( tmpBufRev, size );
-		for( int i=0; i<(size); i++ ) {
+		for( size_t i=0; i<(size); i++ ) {
 			tmpBuf[i] = tmpBufRev[(size)-1-i];
 		}
 		memcpy( target, tmpBuf, size );
@@ -36,6 +36,9 @@ struct plyContainer {
 
 ePlyPropertySize plyParseTypeStr( char* propType );
 
+/*
+ * Helper class to set and restore locale in RAII fashion
+ */
 class LocaleGuard {
 	public:
 		LocaleGuard() {mOldLocale = std::setlocale(LC_NUMERIC, nullptr); std::setlocale(LC_NUMERIC, "C");}
@@ -45,9 +48,19 @@ class LocaleGuard {
 		std::string mOldLocale;
 };
 
-PlyReader::PlyReader()
+void copyVertexTexCoordsToFaces(const std::vector<float>& vertexTextureCoordinates, std::vector<sFaceProperties>& rFaceProps)
 {
+	for(auto & prop : rFaceProps)
+	{
+		prop.textureCoordinates[0] = vertexTextureCoordinates[prop.mVertIdxA * 2];
+		prop.textureCoordinates[1] = vertexTextureCoordinates[prop.mVertIdxA * 2 + 1];
 
+		prop.textureCoordinates[2] = vertexTextureCoordinates[prop.mVertIdxB * 2];
+		prop.textureCoordinates[3] = vertexTextureCoordinates[prop.mVertIdxB * 2 + 1];
+
+		prop.textureCoordinates[4] = vertexTextureCoordinates[prop.mVertIdxC * 2];
+		prop.textureCoordinates[5] = vertexTextureCoordinates[prop.mVertIdxC * 2 + 1];
+	}
 }
 
 //! Read binary PLY (as exported from Breuckmann OPTOCAT, which we will face
@@ -70,7 +83,7 @@ bool PlyReader::readFile(const std::string& rFilename,
 	int     linesComment = 0;
 	bool    readASCII = false;
 
-	LocaleGuard guard;
+	const LocaleGuard guard;
 
 	int timeStart = clock(); // for performance mesurement
 
@@ -81,8 +94,9 @@ bool PlyReader::readFile(const std::string& rFilename,
 		return false;
 	}
 
-	bool reverseByteOrder  = false;
-	bool endOfHeader       = false;
+	bool reverseByteOrder   = false;
+	bool endOfHeader        = false;
+	bool hasVertexTexCoords = false;
 
 	uint64_t plyCurrentSection = PLY_SECTION_UNSUPPORTED;
 	uint64_t plyElements[PLY_SECTIONS_COUNT];
@@ -215,6 +229,7 @@ bool PlyReader::readFile(const std::string& rFilename,
 		int  propertyDataType          = PLY_SIZE_UNDEF;
 		int  propertyListCountDataType = PLY_SIZE_UNDEF;
 		int  propertyListDataType      = PLY_SIZE_UNDEF;
+
 		if( lineToParse.substr( 0, 13 ) == "property list" ) {
 			// e.g: property list uint8 float vertex_features
 			propertyParsed = true;
@@ -311,6 +326,10 @@ bool PlyReader::readFile(const std::string& rFilename,
 				break;
 			case PLY_POLYGONAL_LINE:
 			case PLY_VERTEX:
+				if(propertyType == PLY_VERTEX_TEXCOORD_S || PLY_VERTEX_TEXCOORD_T)
+				{
+					hasVertexTexCoords = true;
+				}
 			case PLY_FACE:
 				sectionProps[plyCurrentSection].propertyType.push_back( propertyType );
 				sectionProps[plyCurrentSection].propertyDataType.push_back( propertyDataType );
@@ -349,6 +368,11 @@ bool PlyReader::readFile(const std::string& rFilename,
 	std::vector<int>::iterator plyPropListCountSize;
 	std::vector<int>::iterator plyPropListSize;
 
+	std::vector<float> vertexTextureCoordinates;
+	if(hasVertexTexCoords)
+	{
+		vertexTextureCoordinates.resize(rVertexProps.size() * 2);
+	}
 	//---------------------------------- PARSE ASCII FILES----------------------------------------------------------------
 
 	if( readASCII ) {
@@ -399,10 +423,12 @@ bool PlyReader::readFile(const std::string& rFilename,
 						rVertexProps[ verticesRead ].mNormalZ = atof(lineElement.c_str() );
 						break;
 					case PLY_VERTEX_TEXCOORD_S:
-						//! \todo vertex texturecoordinates
+						if(!vertexTextureCoordinates.empty())
+							vertexTextureCoordinates[ verticesRead * 2] = atof(lineElement.c_str());
 						break;
 					case PLY_VERTEX_TEXCOORD_T:
-						//! \todo vertex texturecoordinates
+						if(!vertexTextureCoordinates.empty())
+							vertexTextureCoordinates[ verticesRead * 2 + 1] = atof(lineElement.c_str());
 						break;
 					case PLY_FLAGS:
 						rVertexProps[ verticesRead ].mFlags = static_cast<unsigned long>(atoi( lineElement.c_str() ));
@@ -537,6 +563,12 @@ bool PlyReader::readFile(const std::string& rFilename,
 		//! \todo ASCII: add support for polylines.
 		//! \todo ASCII: add support for unsupported lines.
 		filestr.close();
+
+		if(hasVertexTexCoords && !vertexTextureCoordinates.empty())
+		{
+			copyVertexTexCoordsToFaces(vertexTextureCoordinates, rFaceProps);
+		}
+
 		return( true );
 	}
 
@@ -892,6 +924,11 @@ bool PlyReader::readFile(const std::string& rFilename,
 	}
 
 	filestr.close();
+
+	if(hasVertexTexCoords && !vertexTextureCoordinates.empty())
+	{
+		copyVertexTexCoordsToFaces(vertexTextureCoordinates, rFaceProps);
+	}
 
 	std::cout << "[PlyReader::" << __FUNCTION__ << "] PLY comment lines: " << linesComment << std::endl;
 	std::cout << "[PlyReader::" << __FUNCTION__ << "] PLY ignored:       " << bytesIgnored << " Byte. (one is OK as it is the EOF byte) " << std::endl;
