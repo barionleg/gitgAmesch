@@ -5,12 +5,130 @@
 #include <iterator>
 #include <algorithm>
 #include <clocale>
+#include <list>
 
 using namespace std;
 
-ObjReader::ObjReader()
+//tokens 0 : "f" tag for face, 1 ... n-1: obj face triple v1/vt1/vn1 ...
+//----------------------------
+// Allowed variants in OBJ:
+//----------------------------
+// f v1 v2 v3 ...
+// f v1/vt1 v2/vt2 v3/vt3 ...
+// f v1//vn1 v2//vn2 v3//vn3 ...
+// f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3 ....
+bool parseFaceProperty(const std::vector<std::string>& tokens, int& faceIdx, std::vector<sFaceProperties>& rFaceProps, const std::vector<float>& textureCoordinates)
 {
+	std::list<int> vertIndices;
+	std::list<int> texCoordIndices;
+	std::list<int> normalIndices;
 
+	for( size_t i = 1; i<tokens.size(); ++i)
+	{
+		std::stringstream tokenStream(tokens[i]);
+		int target = 0;
+		int index;
+		while(!tokenStream.eof())
+		{
+			tokenStream >> index >> std::ws;
+			vertIndices.push_back(index - 1);
+			if(tokenStream.peek() == '/')	//check for first '/' => there are textureCoordinates/normals
+			{
+				tokenStream.get();
+				if(tokenStream.peek() == '/') //check if immediate '/' => no texturecoordinates
+				{
+					texCoordIndices.push_back(-1);
+					tokenStream.get();
+					tokenStream >> index >> std::ws;
+					normalIndices.push_back(index - 1);
+				}
+				else	//we have texturecoordinates
+				{
+					tokenStream >> index >> std::ws;
+					texCoordIndices.push_back(index - 1);
+
+					if(tokenStream.peek() == '/') //we have normals
+					{
+						tokenStream.get();
+						tokenStream >> index >> std::ws;
+						normalIndices.push_back(index - 1);
+					}
+					else
+					{
+						normalIndices.push_back(-1);
+					}
+				}
+			}
+			else //no texture-coordinates or normals
+			{
+				texCoordIndices.push_back(-1);
+				normalIndices.push_back(-1);
+			}
+		}
+	}
+
+	if(vertIndices.size() < 3)
+		return false;
+
+	auto vertIt = vertIndices.begin();
+	auto texIt = texCoordIndices.begin();
+	auto normalIt = normalIndices.begin();
+
+	int idxFirst = *vertIt++;
+	int idxPrev  = *vertIt++;
+
+	float uvXFirst = 0.0;
+	float uvYFirst = 0.0;
+
+	if(*texIt >= 0)
+	{
+		uvXFirst = textureCoordinates[*texIt * 2];
+		uvYFirst = textureCoordinates[*texIt * 2 + 1];
+	}
+
+	++texIt;
+
+	float uvXPrev = 0.0;
+	float uvYPrev = 0.0;
+
+	if(*texIt >= 0)
+	{
+		uvXPrev = textureCoordinates[*texIt * 2];
+		uvYPrev = textureCoordinates[*texIt * 2 + 1];
+	}
+
+	++texIt;
+
+	//TODO: use normals if present;
+	++normalIt; ++normalIt;
+
+	while(vertIt != vertIndices.end())
+	{
+		rFaceProps[faceIdx].mVertIdxA = idxFirst;
+		rFaceProps[faceIdx].mVertIdxB = idxPrev;
+		idxPrev = *vertIt++;
+		rFaceProps[faceIdx].mVertIdxC = idxPrev;
+
+		rFaceProps[faceIdx].textureCoordinates[0] = uvXFirst;
+		rFaceProps[faceIdx].textureCoordinates[1] = uvYFirst;
+		rFaceProps[faceIdx].textureCoordinates[2] = uvXPrev;
+		rFaceProps[faceIdx].textureCoordinates[3] = uvYPrev;
+
+		if(*texIt >= 0)
+		{
+			uvXPrev = textureCoordinates[*texIt * 2];
+			uvYPrev = textureCoordinates[*texIt * 2 + 1];
+		}
+
+		rFaceProps[faceIdx].textureCoordinates[4] = uvXPrev;
+		rFaceProps[faceIdx].textureCoordinates[5] = uvYPrev;
+
+		++texIt;
+		++normalIt;
+		++faceIdx;
+	}
+
+	return true;
 }
 
 //! Reads an plain-text Alias Wavefront OBJ file.
@@ -193,8 +311,10 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 	rVertexProps.resize( obj_verticesTotal );
 	rFaceProps.resize( objFacesTotal );
 
-	std::vector<float> textureCoordinates(objTexCoordsTotal * 2);	//temporaroy buffer for s t coordinates
+	std::vector<float> textureCoordinates(objTexCoordsTotal * 2);	//temporary buffer for s t coordinates
 	size_t texCoordIndex = 0;
+
+	MeshReader::getModelMetaDataRef().setHasTextureCoordinates(objTexCoordsTotal > 0);
 
 	// init vertex coordinates and function value
 	for( size_t i=0; i<obj_verticesTotal; i++ ) {
@@ -229,7 +349,7 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 		}
 		istringstream iss( someLine );
 		vector<string> tokens{ istream_iterator<string>{iss}, istream_iterator<string>{} };
-		if( tokens.size() == 0 ) {
+		if( tokens.empty() ) {
 			// cerr << "[ObjReader::" << __FUNCTION__ << "] ERROR: in line( " << lineNr-1 << " ) of length " << someLine.length() << "\n";
 			continue; // Essentially an empty lines with just a \cr.
 		}
@@ -273,52 +393,11 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 			}
 			vertexIdx++;
 		} else if( firstToken == "f" ) { // faces i.e. triangles, quadtriangles and trianglestrips
-			auto faceCount = tokens.size()-3;
-			if( faceCount > 0 ) {
-				int idxFirst = stoi( tokens.at( 1 ) )-1; // GigaMesh indices from 0 - while OBJ starts indexing with 1
-				int idxPrev  = stoi( tokens.at( 2 ) )-1; // GigaMesh indices from 0 - while OBJ starts indexing with 1
-				for( int i=0; i<faceCount; i++ ) {
-					rFaceProps[faceIdx].mVertIdxA = idxFirst;
-					rFaceProps[faceIdx].mVertIdxB = idxPrev;
-					idxPrev = stoi( tokens.at( 3+i ) )-1; // GigaMesh indices from 0 - while OBJ starts indexing with 1
-					rFaceProps[faceIdx].mVertIdxC = idxPrev;
-					//cout << "[ObjReader::" << __FUNCTION__ << "] Face: " << facesMeshed[faceIdx*3] << " " << facesMeshed[faceIdx*3+1] << " " << facesMeshed[faceIdx*3+2] << "\n";
-					faceIdx++;
-				}
-				//----------------------------
-				// Set normal references and texture coordinates
-				//----------------------------
-				// Allowed variants in OBJ:
-				//----------------------------
-				// f v1 v2 v3 ...
-				// f v1/vt1 v2/vt2 v3/vt3 ...
-				// f v1//vn1 v2//vn2 v3//vn3 ...
-				// f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3 ....
-				//cout << "[ObjReader::" << __FUNCTION__ << "] Line: " << someLine << "\n";
-				for( int i=0; i<faceCount+2; i++ ) {
-					const string& currentToken = tokens.at( i );
-					size_t lastSlash  = currentToken.find_last_of( '/' );
-					size_t firstSlash = currentToken.find_first_of( '/' );
-					if( lastSlash != string::npos ) {
-						//int textureIdx;
-						if( lastSlash == firstSlash ) { // f v1/vt1 v2/vt2 v3/vt3 ...
-							cerr << "[ObjReader::" << __FUNCTION__ << "] ERROR: f v1/vt1 v2/vt2 v3/vt3 ... not implemented!\n";
-						}
-						if( lastSlash == firstSlash+1 ) { // f v1//vn1 v2//vn2 v3//vn3 ...
-							string normalIdxStr = currentToken.substr( lastSlash+1 );
-							int normalIdx = stoi( normalIdxStr )-1;
-							// addVertNormalIdx( vertIdx, normalIdx );
-							//cout << "[ObjReader::" << __FUNCTION__ << "] Normal idx: " << normalIdx << " <- " << vertIdx << "\n";
-						} else { // f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3 ....
-							cerr << "[ObjReader::" << __FUNCTION__ << "] ERROR: f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3 ... not implemented!\n";
-						}
-					}
-				}
-			} else {
-				cerr << "[ObjReader::" << __FUNCTION__ << "] ERROR: Wrong face count: " << faceCount << "!"  << "\n";
-				cerr << "[ObjReader::" << __FUNCTION__ << "] ERROR: " << someLine << "\n";
+			if(!parseFaceProperty(tokens, faceIdx, rFaceProps, textureCoordinates))
+			{
 				continue;
 			}
+
 		} else if( firstToken == "vn" ) { // Vertex normals
 			if( tokens.size() != 4 ) {
 				cerr << "[ObjReader::" << __FUNCTION__ << "] ERROR: Wrong token count: " << tokens.size() << "!"  << "\n";

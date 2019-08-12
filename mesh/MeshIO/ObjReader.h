@@ -7,7 +7,7 @@
 class ObjReader : public MeshReader
 {
 	public:
-		ObjReader();
+		ObjReader() = default;
 		~ObjReader() override = default;
 		bool readFile( const std::string& rFilename, std::vector<sVertexProperties>& rVertexProps, std::vector<sFaceProperties>& rFaceProps, MeshSeedExt& rMeshSeed ) override;
 };
