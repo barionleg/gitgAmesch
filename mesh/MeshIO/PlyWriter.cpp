@@ -2,6 +2,7 @@
 #include <fstream>
 #include <chrono>
 #include <locale>
+#include <filesystem>
 #include "../primitive.h"
 #include "PlyEnums.h"
 
@@ -107,6 +108,14 @@ bool PlyWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 		}
 		string metaName;
 		if( MeshWriter::getModelMetaDataRef().getModelMetaStringName( metaId, metaName ) ) {
+			if(metaId == ModelMetaData::META_TEXTUREFILE)
+			{
+				auto prevPath = std::filesystem::current_path();
+				std::filesystem::current_path(std::filesystem::absolute(rFilename).parent_path());
+				metaStr = std::filesystem::relative(metaStr).string();
+				std::filesystem::current_path(prevPath);
+			}
+
 			filestr << "comment " << metaName << " " << metaStr << endl;
 		}
 	}

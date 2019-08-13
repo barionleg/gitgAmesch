@@ -56,7 +56,7 @@ MeshIO::MeshIO()
 		std::cerr << "[MeshIO::" << __FUNCTION__ << "] ERROR: clearModelMetaStrings failed!" << std::endl;
 	}
 
-	mExportFlags[EXPORT_TEXTURE_COORDINATES] = true;	//! \todo remove this, and set it elsewhere (e.g. based on if the mesh has actual texture-coordinates or not)
+	//mExportFlags[EXPORT_TEXTURE_COORDINATES] = true;	//! \todo remove this, and set it elsewhere (e.g. based on if the mesh has actual texture-coordinates or not)
 }
 
 //! Destructor
@@ -135,7 +135,7 @@ bool MeshIO::readFile(
 		}
 	}
 
-	mExportFlags[EXPORT_TEXTURE_COORDINATES]= !(mModelMetaData.getModelMetaString(ModelMetaData::META_TEXTUREFILE).empty());
+	mExportFlags[EXPORT_TEXTURE_COORDINATES]= mModelMetaData.hasTextureCoordinates();
 
 	// Store filename with absolute path.
 	mFileNameFull = std::filesystem::absolute( rFileName ).string();
