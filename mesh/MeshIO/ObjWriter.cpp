@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <locale>
+#include <filesystem>
 
 using namespace std;
 
@@ -78,6 +79,15 @@ bool ObjWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 		}
 		string metaName;
 		if( MeshWriter::getModelMetaDataRef().getModelMetaStringName( metaId, metaName ) ) {
+
+			if(metaId == ModelMetaData::META_TEXTUREFILE)
+			{
+				auto prevPath = std::filesystem::current_path();
+				std::filesystem::current_path(std::filesystem::absolute(rFilename).parent_path());
+				metaStr = std::filesystem::relative(metaStr).string();
+				std::filesystem::current_path(prevPath);
+			}
+
 			filestr << "# " << metaName << " " << metaStr << endl;
 		}
 	}
@@ -97,6 +107,23 @@ bool ObjWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 		filestr << "\n";
 	}
 
+	if(mExportTextureCoordinates)
+	{
+		filestr << "#===============================================================================" << endl;
+		filestr << "# TextureCoordinates: " << endl;
+		filestr << "#-------------------------------------------------------------------------------" << endl;
+
+		for(const auto& faceProp : rFaceProps)
+		{
+			for(int i = 0; i<3; ++i)
+			{
+				filestr << "vt ";
+				filestr << faceProp.textureCoordinates[i * 2    ] << " ";
+				filestr << faceProp.textureCoordinates[i * 2 + 1] << "\n";
+			}
+		}
+	}
+
 	filestr << "#-------------------------------------------------------------------------------" << endl;
 	filestr << "# Faces: " << endl;
 	filestr << "#-------------------------------------------------------------------------------" << endl;
@@ -104,12 +131,25 @@ bool ObjWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 	if( rFaceProps.size() == 0 ) {
 		filestr << "# NONE present i.e. point cloud" << endl;
 	}
+
+	unsigned int texIndex = 1;
 	for(const auto & rFaceProp : rFaceProps) {
 		// OBJs start with ONE!
 		filestr << "f ";
-		filestr << rFaceProp.mVertIdxA+1 << " ";
-		filestr << rFaceProp.mVertIdxB+1 << " ";
-		filestr << rFaceProp.mVertIdxC+1 << "\n";
+
+		if(mExportTextureCoordinates)
+		{
+			filestr << rFaceProp.mVertIdxA + 1 << "/" << texIndex++ << " ";
+			filestr << rFaceProp.mVertIdxB + 1 << "/" << texIndex++ << " ";
+			filestr << rFaceProp.mVertIdxC + 1 << "/" << texIndex++ << "\n";
+		}
+
+		else
+		{
+			filestr << rFaceProp.mVertIdxA+1 << " ";
+			filestr << rFaceProp.mVertIdxB+1 << " ";
+			filestr << rFaceProp.mVertIdxC+1 << "\n";
+		}
 	}
 
 	filestr << "#-------------------------------------------------------------------------------" << endl;
