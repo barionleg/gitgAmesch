@@ -16,7 +16,7 @@ class MeshIO : public MeshSeedExt {
 
 	public:
 		MeshIO();
-		~MeshIO();
+		~MeshIO() = default;
 
 		//! Simple struct for parsing and passing points and vectors in R3
 		struct grVector3ID {
@@ -35,6 +35,7 @@ class MeshIO : public MeshSeedExt {
 			EXPORT_VERT_FTVEC,  //!< Feature vector per vertex, when present.
 			EXPORT_POLYLINE,    //!< Export polylines.
 			EXPORT_TEXTURE_COORDINATES, //!< Export per face texture coordinates
+			EXPORT_TEXTURE_FILE,//!< Save texture file next to mesh
 			EXPORT_FLAG_COUNT   //!< Number of flags available for export.
 		};
 

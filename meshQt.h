@@ -338,6 +338,7 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		// Set flags:
 		virtual bool setFileSaveFlagBinary( bool rSetTo );
 		virtual bool setFileSaveFlagGMExtras( bool rSetTo );
+		virtual bool setFileSaveFlagExportTextures( bool setTo );
 
 	// Related to MeshIO
 	//===================

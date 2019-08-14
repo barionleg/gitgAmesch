@@ -139,6 +139,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	//.
 	QObject::connect( mMainWindow, SIGNAL(sFileSaveFlagBinary(bool)),          this, SLOT(setFileSaveFlagBinary(bool))      );
 	QObject::connect( mMainWindow, SIGNAL(sFileSaveFlagGMExtras(bool)),        this, SLOT(setFileSaveFlagGMExtras(bool))    );
+	QObject::connect( mMainWindow, SIGNAL(setFileSaveFlagExportTextures(bool)),this, SLOT(setFileSaveFlagExportTextures(bool)));
 	//.
 	QObject::connect( mMainWindow, SIGNAL(exportPolyLinesCoords()),          this, SLOT(exportPolyLinesCoords())          );
 	QObject::connect( mMainWindow, SIGNAL(exportPolyLinesCoordsProjected()), this, SLOT(exportPolyLinesCoordsProjected()) );
@@ -4418,6 +4419,12 @@ bool MeshQt::setFileSaveFlagGMExtras( bool rSetTo ) {
 	setFlagExport( MeshIO::EXPORT_VERT_FTVEC, rSetTo );
 	setFlagExport( MeshIO::EXPORT_POLYLINE,   rSetTo );
 	return rSetTo;
+}
+
+bool MeshQt::setFileSaveFlagExportTextures(bool setTo)
+{
+	setFlagExport( MeshIO::EXPORT_TEXTURE_FILE, setTo);
+	return setTo;
 }
 
 // Set Information ------------------------------------------------------------

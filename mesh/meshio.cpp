@@ -55,13 +55,6 @@ MeshIO::MeshIO()
 	if( !mModelMetaData.clearModelMetaStrings() ) {
 		std::cerr << "[MeshIO::" << __FUNCTION__ << "] ERROR: clearModelMetaStrings failed!" << std::endl;
 	}
-
-	//mExportFlags[EXPORT_TEXTURE_COORDINATES] = true;	//! \todo remove this, and set it elsewhere (e.g. based on if the mesh has actual texture-coordinates or not)
-}
-
-//! Destructor
-MeshIO::~MeshIO() {
-
 }
 
 // READ ------------------------------------------------------------------------
@@ -327,9 +320,17 @@ bool MeshIO::writeFile(
 		writer = std::make_unique<PlyWriter>();
 	}
 
+	std::string textureFile = mModelMetaData.getModelMetaString(ModelMetaData::META_TEXTUREFILE);
+
 	if(writer != nullptr)
 	{
 		writer->setModelMetaData(mModelMetaData);
+
+		if(mExportFlags[EXPORT_TEXTURE_FILE] && !textureFile.empty())
+		{
+			std::string targetPath = std::filesystem::path(rFileName).parent_path().string() + "/" + std::filesystem::path(textureFile).filename().string();
+			writer->getModelMetaDataRef().setModelMetaString(ModelMetaData::META_TEXTUREFILE, targetPath);
+		}
 
 		writer->setIsBigEndian(mSystemIsBigEndian);
 		writer->setExportBinary(mExportFlags[EXPORT_BINARY]);
@@ -344,13 +345,28 @@ bool MeshIO::writeFile(
 		fileWriteOk = writer->writeFile(rFileName, rVertexProps, rFaceProps, *this);
 	}
 
-	if( fileWriteOk ) {
-		mFileNameFull = rFileName;
-		return true;
+	if( !fileWriteOk ) {
+		cerr << "[MeshIO::" << __FUNCTION__ << "] Unknown extension/type '" << fileExtension << "' specified!" << endl;
+		return false;
 	}
-	cerr << "[MeshIO::" << __FUNCTION__ << "] Unknown extension/type '" << fileExtension << "' specified!" << endl;
 
-	return false;
+	mFileNameFull = rFileName;
+
+	if(mExportFlags[EXPORT_TEXTURE_FILE] && !textureFile.empty())
+	{
+		auto texTargetFolder = std::filesystem::absolute(rFileName).parent_path();
+
+		try {
+			std::filesystem::copy(textureFile, texTargetFolder);
+		} catch (const std::filesystem::filesystem_error e) {
+			std::cerr << e.what() << " (target file may already exist)\n";
+		}
+
+		std::string targetPath = std::filesystem::path(rFileName).parent_path().string() + "/" + std::filesystem::path(textureFile).filename().string();
+		mModelMetaData.setModelMetaString(ModelMetaData::META_TEXTUREFILE, targetPath);
+	}
+
+	return true;
 }
 
 ModelMetaData& MeshIO::getModelMetaDataRef()

@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>22</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -118,6 +118,7 @@
     <addaction name="actionFileSaveAs"/>
     <addaction name="actionSaveFlagBinary"/>
     <addaction name="actionSaveFlagGMExtras"/>
+    <addaction name="actionSaveFlagTextureExport"/>
     <addaction name="separator"/>
     <addaction name="actionImportVertexCoordinatesFromCSV"/>
     <addaction name="actionImportFeatureVectors"/>
@@ -4325,6 +4326,17 @@ p, li { white-space: pre-wrap; }
   <action name="actionSelVertLabelBackGrd">
    <property name="text">
     <string>Vertices - Labeled Background</string>
+   </property>
+  </action>
+  <action name="actionSaveFlagTextureExport">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Save Texture along Mesh</string>
    </property>
   </action>
  </widget>

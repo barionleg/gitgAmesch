@@ -161,6 +161,7 @@ signals:
 	void sFileImportNormals( QString );                      //!< passes a filename for import of a file with normal vectors to MeshQt::importNormalVectorsFile
 	void sFileSaveFlagBinary( bool );                        //!< passed down to MeshIO. However this has to be revised.
 	void sFileSaveFlagGMExtras( bool );                      //!< passed down to MeshIO. However this has to be revised.
+	void sFileSaveFlagExportTexture( bool );                 //!< passed down to MeshIO. This probably also needs to be revised.
 	void exportFuncVals();                                   //!< signal MeshQt to export the function values.
 	//.
 	void exportPolyLinesCoords();                            //!< Triggers the export of polyline coordinates (3D).
