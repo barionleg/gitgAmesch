@@ -15,8 +15,21 @@ class TexturedMeshRenderer
 		TexturedMeshRenderer();
 		~TexturedMeshRenderer();
 
+		struct LightInfo
+		{
+				QVector4D fixedCamDiffuse;
+				QVector4D fixedCamSpecular;
+				QVector4D fixedWorldDiffuse;
+				QVector4D fixedWorldSpecular;
+				QVector4D ambient;
+				QVector3D lightDirFixedCam;
+				QVector3D lightDirFixedWorld;
+				double shininess = 1.0;
+				bool lightEnabled = false;
+		};
+
 		bool init(const std::string& textureName);
-		void render(const QMatrix4x4 &projectionMatrix, const QMatrix4x4 &modelViewMatrix, unsigned int numVertices);
+		void render(const QMatrix4x4 &projectionMatrix, const QMatrix4x4 &modelViewMatrix, unsigned int numVertices, const LightInfo& lightInfo);
 		void setUpVertexBuffer(QOpenGLBuffer& vertexBuffer);
 		void destroy();
 

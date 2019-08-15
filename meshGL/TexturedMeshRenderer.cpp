@@ -75,7 +75,7 @@ void TexturedMeshRenderer::setUpVertexBuffer(QOpenGLBuffer& vertexBuffer)
 	mGL.glBindVertexArray(prevVAO);
 }
 
-void TexturedMeshRenderer::render(const QMatrix4x4& projectionMatrix, const QMatrix4x4& modelViewMatrix, unsigned int numVertices)
+void TexturedMeshRenderer::render(const QMatrix4x4& projectionMatrix, const QMatrix4x4& modelViewMatrix, unsigned int numVertices, const LightInfo& lightInfo)
 {
 	if(!mIsInitialized)
 		return;
@@ -93,7 +93,15 @@ void TexturedMeshRenderer::render(const QMatrix4x4& projectionMatrix, const QMat
 	mShader->setUniformValue("projectionMat", projectionMatrix);
 
 	mShader->setUniformValue("uTexture", 0);
-	mShader->setUniformValue("uLightWorld", QVector3D(0.0,0.0,0.0));
+	mShader->setUniformValue("uLightDirectionFixedCamera", lightInfo.lightDirFixedCam  );
+	mShader->setUniformValue("uLightDirectionFixedWorld" , lightInfo.lightDirFixedWorld);
+	mShader->setUniformValue("uLightEnabled"             , lightInfo.lightEnabled      );
+	mShader->setUniformValue("FixedCam_DiffuseProduct"   , lightInfo.fixedCamDiffuse   );
+	mShader->setUniformValue("FixedCam_SpecularProduct"  , lightInfo.fixedCamSpecular  );
+	mShader->setUniformValue("FixedWorld_DiffuseProduct" , lightInfo.fixedWorldDiffuse );
+	mShader->setUniformValue("FixedWorld_SpecularProduct", lightInfo.fixedWorldSpecular);
+	mShader->setUniformValue("AmbientProduct"            , lightInfo.ambient           );
+	mShader->setUniformValue("Shininess"                 , static_cast<GLfloat>(lightInfo.shininess));
 
 	mGL.glActiveTexture(GL_TEXTURE0);
 	PRINT_OPENGL_ERROR("active texture");

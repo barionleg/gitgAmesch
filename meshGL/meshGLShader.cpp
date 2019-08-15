@@ -3791,7 +3791,73 @@ void MeshGLShader::vboPaintTextured()
 						  mMatProjection[2], mMatProjection[6], mMatProjection[10], mMatProjection[14],
 						  mMatProjection[3], mMatProjection[7], mMatProjection[11], mMatProjection[15] );
 
-	mTexturedMeshRenderer.render(ppvMatrix, pmvMatrix, getFaceNr() * 3);
+	TexturedMeshRenderer::LightInfo lightInfo;
+	mWidgetParams->getParamFlagMeshWidget( MeshWidgetParams::LIGHT_ENABLED, &lightInfo.lightEnabled);
+
+	//Copy and paste from shaderSetLocationBasicLight
+	if(lightInfo.lightEnabled)
+	{
+		mWidgetParams->getParamFloatMeshWidget( MeshWidgetParams::MATERIAL_SHININESS, &lightInfo.shininess);
+
+		double materialSpecular;
+		mWidgetParams->getParamFloatMeshWidget( MeshWidgetParams::MATERIAL_SPECULAR, &materialSpecular);
+
+		// Material AND light -- directional -- fixed to camera
+		//------------------------------------------------------------------------------------------------------------------------------------------------------
+		bool lightFixedCam;
+		mWidgetParams->getParamFlagMeshWidget( MeshWidgetParams::LIGHT_FIXED_CAM, &lightFixedCam );
+		if( lightFixedCam ) {
+			double lightFixedCamPhi;
+			double lightFixedCamTheta;
+			mWidgetParams->getParamFloatMeshWidget( MeshWidgetParams::LIGHT_FIXED_CAM_ANGLE_PHI,   &lightFixedCamPhi   );
+			mWidgetParams->getParamFloatMeshWidget( MeshWidgetParams::LIGHT_FIXED_CAM_ANGLE_THETA, &lightFixedCamTheta );
+			Vector3D lightDirCamAngles( lightFixedCamPhi, lightFixedCamTheta, false );
+			QVector3D lightDirCam( lightDirCamAngles.getX(), lightDirCamAngles.getY(), lightDirCamAngles.getZ() );
+			lightInfo.lightDirFixedCam = lightDirCam;
+
+			double lightFixedCamBright = 0.0F;
+			mWidgetParams->getParamFloatMeshWidget( MeshWidgetParams::LIGHT_FIXED_CAM_INTENSITY, &lightFixedCamBright );
+			lightInfo.fixedCamDiffuse = QVector4D(1.0F,1.0F,1.0F,1.0F) * lightFixedCamBright;
+			lightInfo.fixedCamSpecular = lightInfo.fixedCamDiffuse * materialSpecular;
+		}
+		lightInfo.fixedCamDiffuse.setW( 1.0F );
+		lightInfo.fixedCamSpecular.setW( 1.0F );
+		//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+		// Material AND light -- directional -- fixed to world/object
+		//------------------------------------------------------------------------------------------------------------------------------------------------------
+		bool lightFixedWorld;
+		mWidgetParams->getParamFlagMeshWidget( MeshWidgetParams::LIGHT_FIXED_WORLD, &lightFixedWorld );
+		if( lightFixedWorld ) {
+			double lightFixedWorldPhi;
+			double lightFixedWorldTheta;
+			mWidgetParams->getParamFloatMeshWidget( MeshWidgetParams::LIGHT_FIXED_WORLD_ANGLE_PHI,   &lightFixedWorldPhi   );
+			mWidgetParams->getParamFloatMeshWidget( MeshWidgetParams::LIGHT_FIXED_WORLD_ANGLE_THETA, &lightFixedWorldTheta );
+			Vector3D lightDirWorldAngles( lightFixedWorldPhi, lightFixedWorldTheta, false );
+			QVector3D lightDirWorld( lightDirWorldAngles.getX(), lightDirWorldAngles.getY(), lightDirWorldAngles.getZ() );
+			lightInfo.lightDirFixedWorld = lightDirWorld;
+
+			double lightFixedWorldBright = 0.0f;
+			mWidgetParams->getParamFloatMeshWidget( MeshWidgetParams::LIGHT_FIXED_WORLD_INTENSITY, &lightFixedWorldBright );
+			lightInfo.fixedWorldDiffuse = QVector4D(1.0F,1.0F,1.0F,1.0F) * lightFixedWorldBright;
+			lightInfo.fixedWorldSpecular = lightInfo.fixedWorldDiffuse * materialSpecular;
+		}
+		lightInfo.fixedWorldDiffuse.setW(1.0F);
+		lightInfo.fixedWorldSpecular.setW(1.0F);
+		//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+		// Light -- ambient
+		bool lightAmbient;
+		mWidgetParams->getParamFlagMeshWidget( MeshWidgetParams::LIGHT_AMBIENT, &lightAmbient );
+		if( lightAmbient ) { // Ambient on => fetch brightness.
+			double lightAmbientAmount;
+			mWidgetParams->getParamFloatMeshWidget( MeshWidgetParams::AMBIENT_LIGHT, &lightAmbientAmount );
+			lightInfo.ambient = QVector4D(1.0F,1.0F,1.0F,1.0F) * lightAmbientAmount;
+		}
+		lightInfo.ambient.setW( 1.0f );
+	}
+
+	mTexturedMeshRenderer.render(ppvMatrix, pmvMatrix, getFaceNr() * 3, lightInfo);
 
 }
 
