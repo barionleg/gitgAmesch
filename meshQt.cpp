@@ -139,7 +139,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	//.
 	QObject::connect( mMainWindow, SIGNAL(sFileSaveFlagBinary(bool)),          this, SLOT(setFileSaveFlagBinary(bool))      );
 	QObject::connect( mMainWindow, SIGNAL(sFileSaveFlagGMExtras(bool)),        this, SLOT(setFileSaveFlagGMExtras(bool))    );
-	QObject::connect( mMainWindow, SIGNAL(setFileSaveFlagExportTextures(bool)),this, SLOT(setFileSaveFlagExportTextures(bool)));
+	QObject::connect( mMainWindow, SIGNAL(sFileSaveFlagExportTexture(bool)),this, SLOT(setFileSaveFlagExportTextures(bool)));
 	//.
 	QObject::connect( mMainWindow, SIGNAL(exportPolyLinesCoords()),          this, SLOT(exportPolyLinesCoords())          );
 	QObject::connect( mMainWindow, SIGNAL(exportPolyLinesCoordsProjected()), this, SLOT(exportPolyLinesCoordsProjected()) );

@@ -15,6 +15,12 @@ class TexturedMeshRenderer
 		TexturedMeshRenderer();
 		~TexturedMeshRenderer();
 
+		TexturedMeshRenderer(const TexturedMeshRenderer& other) = delete;
+		TexturedMeshRenderer(const TexturedMeshRenderer&& other) = delete;
+
+		TexturedMeshRenderer& operator=(const TexturedMeshRenderer& other) = delete;
+		TexturedMeshRenderer& operator=(const TexturedMeshRenderer&& other) = delete;
+
 		struct LightInfo
 		{
 				QVector4D fixedCamDiffuse;
