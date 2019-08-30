@@ -1,8 +1,17 @@
 Current version
++) New: Selection by normal vectors. See "Select -> Vertices Normal Sphere". Attention: unstable in Windows!
++) New: The normal sphere can be exported as CSV. See "File -> Export Normal Sphere Data".
++) New: Preparations for multi-language user interface. See "Settings -> Languages". Currently English only.
++) New: Toolbar button for "Mesh information", which also shows more details about the grid.
++) New: Selection of background label. See "Select -> Select Vertices by Value/Type/Index -> Vertics - Labeled Background".
++) Improved: Removal of dangling faces during clean/polish became less aggressive and preserves "bridges".
++) Bugfix: Ambient Occlusion crash in the Windows build.
 +) Bugfix: more robust import i.e. automatically neglect out-of-range vertex indices in faces at load time.
-+) Selection of background label. See "Select -> Select Vertices by Value/Type/Index -> Vertics - Labeled Background".
++) Bugfix: estimated time finished (ETF) was overestimated in gigamesh-featurevectors (CLI).
 +) CLI gigamesh-clean: Option '-j', '--set-id-remove-trailing-chars' for basic meta-data added. See '--help' for details.
 +) CLI gigamesh-clean: Option '-o', '--set-material-id-forced' for basic meta-data added. See '--help' for details.
+-) Known rare bug: Rollouts sometimes generate faces with out-of-range vertex indices, which prevent an import in other 3D tools and older GigaMesh versions.
+o) Workaround for the rollout bug: Reload file with GigaMesh and save (again).
 
 Version 190531
 +) Improved rendering of connected components.
