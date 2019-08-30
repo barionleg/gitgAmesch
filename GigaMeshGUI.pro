@@ -382,6 +382,7 @@ HEADERS += meshGL/meshGLShader.h \
 	mesh/MeshIO/MeshReader.h \
 	mesh/MeshIO/MeshWriter.h \
 	mesh/MeshIO/ModelMetaData.h \
+	mesh/MeshIO/MtlParser.h \
 	mesh/MeshIO/ObjReader.h \
 	mesh/MeshIO/ObjWriter.h \
 	mesh/MeshIO/PlyEnums.h \
@@ -423,6 +424,7 @@ SOURCES += mesh/meshinfodata.cpp \
 	mesh/MeshIO/MeshReader.cpp \
 	mesh/MeshIO/MeshWriter.cpp \
 	mesh/MeshIO/ModelMetaData.cpp \
+	mesh/MeshIO/MtlParser.cpp \
 	mesh/MeshIO/ObjReader.cpp \
 	mesh/MeshIO/ObjWriter.cpp \
 	mesh/MeshIO/PlyReader.cpp \

@@ -12,7 +12,7 @@ using uint = unsigned int;
 template <class T>
 void READ_IN_PROPER_BYTE_ORDER(std::fstream& filestream, T target, size_t size, bool reverse)
 {
-	if( not( reverse ) || ( (size) == 1 ) ) {
+	if( !reverse || ( size == 1 ) ) {
 		(filestream).read( reinterpret_cast<char*>(target), (size) );
 	} else {
 		char* tmpBufRev = new char[size];
@@ -305,6 +305,8 @@ bool PlyReader::readFile(const std::string& rFilename,
 				propertyType = PLY_VERTEX_TEXCOORD_S;
 			} else if (strcmp( propName, "t") == 0) {
 				propertyType = PLY_VERTEX_TEXCOORD_T;
+			} else if (strcmp (propName, "texnumber") == 0) {
+				propertyType = PLY_FACE_TEXNUMBER;
 			} else {
 				std::cerr << "[PlyReader::" << __FUNCTION__ << "] unknown property '" << propName << "' in header!" << std::endl;
 				std::cerr << "[PlyReader::" << __FUNCTION__ << "] Line: " << lineToParse << std::endl;
@@ -553,6 +555,10 @@ bool PlyReader::readFile(const std::string& rFilename,
 								rFaceProps[facesRead].textureCoordinates[j] = static_cast<float>(atof(tokens[++i].c_str()));
 							}
 						} break;
+					case PLY_FACE_TEXNUMBER:
+							rFaceProps[facesRead].textureId = atoi(lineElement.c_str());
+							++i;
+						break;
 					default:
 						// Read but ignore
 						std::cerr << "[PlyReader::" << __FUNCTION__ << "] ERROR: Unknown property in face section " << currProperty << " !" << std::endl;
@@ -798,6 +804,10 @@ bool PlyReader::readFile(const std::string& rFilename,
 								rFaceProps[facesRead].textureCoordinates[j] = texCoord;
 							}
 						}
+						break;
+					case PLY_FACE_TEXNUMBER:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &someInt, (*plyPropSize), reverseByteOrder);
+						rFaceProps[facesRead].textureId = static_cast<unsigned char>(someInt);
 						break;
 					case PLY_LIST_FEATURE_VECTOR:
 					case PLY_LIST_IGNORE:

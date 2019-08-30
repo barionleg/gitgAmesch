@@ -55,11 +55,12 @@ struct sVertexProperties {
 };
 
 struct sFaceProperties {
-	uint64_t mVertIdxA;
-	uint64_t mVertIdxB;
-	uint64_t mVertIdxC;
+	uint64_t mVertIdxA = 0;
+	uint64_t mVertIdxB = 0;
+	uint64_t mVertIdxC = 0;
 
-	std::array<float,6> textureCoordinates;
+	std::array<float,6> textureCoordinates = {0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F};
+	unsigned char textureId = 0;
 };
 
 #endif

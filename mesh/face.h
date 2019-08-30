@@ -255,6 +255,9 @@ class Face : public Primitive {
 				[[nodiscard]] std::array<float, 6> getUVs() const;
 				void setUVs(const std::array<float, 6>& uVs);
 
+				[[nodiscard]] unsigned char getTextureId() const;
+				void setTextureId(unsigned char textureId);
+
 	private:
 		// Vertices - Connectivity:
 		VertexOfFace* vertA;            //!< reference to index of Vertex A
@@ -266,6 +269,9 @@ class Face : public Primitive {
 
 		// UV-Coordinates
 		std::array<float,6>   mUVs;          //!< UV coordinates of the three vertices of the face
+
+		// Texture-Id
+		unsigned char mTextureId = 0;        //!< id of the texture-file assiciated to this face
 
 		// Indexing - required for bit arrays and to be maintained properly!
 		unsigned int mIndex;      //!< Stores the actual index, which may change due to manipulation, while idxOri stores the original index.

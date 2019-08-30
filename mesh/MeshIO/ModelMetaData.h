@@ -3,6 +3,7 @@
 
 #include <string>
 #include <array>
+#include <vector>
 
 class ModelMetaData
 {
@@ -31,6 +32,8 @@ class ModelMetaData
 	private:
 		std::array<std::string, META_STRINGS_COUNT> mMetaDataStrings;         //!< Meta-Data contents
 		std::array<std::string, META_STRINGS_COUNT> mMetaDataStringNames;     //!< Meta-Data names
+
+		std::vector<std::string> mTextureFiles;                               //!< Stores referenced texture-files
 		bool mHasTextureCoordinates = false;                                  //!< Stores if the mesh has texture-coordinates
 };
 

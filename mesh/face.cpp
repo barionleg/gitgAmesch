@@ -4316,3 +4316,13 @@ void Face::setUVs(const std::array<float, 6>& uVs)
 {
 	mUVs = uVs;
 }
+
+unsigned char Face::getTextureId() const
+{
+    return mTextureId;
+}
+
+void Face::setTextureId(unsigned char textureId)
+{
+    mTextureId = textureId;
+}

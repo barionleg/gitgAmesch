@@ -30,6 +30,7 @@ enum ePlyProperties {
 	PLY_LIST_FEATURE_VECTOR,
 	PLY_LIST_VERTEX_INDICES,
 	PLY_LIST_TEXCOORDS,	//meshlab style texture coordinates
+	PLY_FACE_TEXNUMBER, //meshlab style texture-id for faces
 	PLY_PROPERTIES_COUNT
 };
 
