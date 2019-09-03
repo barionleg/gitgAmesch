@@ -39,7 +39,6 @@ bool parseFaceProperty(const std::vector<std::string>& tokens, int& faceIdx, std
 	for( size_t i = 1; i<tokens.size(); ++i)
 	{
 		std::stringstream tokenStream(tokens[i]);
-		int target = 0;
 		int index;
 		while(!tokenStream.eof())
 		{
@@ -173,7 +172,8 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 	unsigned int  obj_commentsTotal         = 0;
 
 	// for performance measurement:
-	int timeStart, timeStop;
+	int timeStart;
+	int timeStop;
 
 	// functionality:
 	ifstream fp( rFilename.c_str() );
@@ -182,9 +182,9 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 		std::setlocale( LC_NUMERIC, oldLocale );
 
 		return false;
-	} else {
-		cout << "[ObjReader::" << __FUNCTION__ << "] File opened: '" << rFilename << "'.\n";
 	}
+
+	cout << "[ObjReader::" << __FUNCTION__ << "] File opened: '" << rFilename << "'.\n";
 
 	std::filesystem::path prevRootPath = std::filesystem::current_path();
 	std::filesystem::current_path(std::filesystem::path(rFilename).parent_path());
@@ -459,8 +459,8 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 
 			// addNormal( stod( tokens.at( 1 ) ), stod( tokens.at( 2 ) ), stod( tokens.at( 3 ) ) );
 		} else if( firstToken == "l" ) { // Polygonal lines
-			vector<int>* somePolyLinesIndices = new vector<int>;
-			for( unsigned int i=1; i<tokens.size(); i++ ) { //! \todo test the import of polylines from OBJs.
+			auto somePolyLinesIndices = new vector<int>;
+			for( size_t i=1; i<tokens.size(); i++ ) { //! \todo test the import of polylines from OBJs.
 				int vertIndex = stoi( tokens.at( i ) )-1; // OBJs start with ONE, while GigaMesh's indices start wit ZERO
 				somePolyLinesIndices->push_back( vertIndex );
 			}

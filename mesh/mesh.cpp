@@ -819,6 +819,7 @@ void Mesh::establishStructure(
 			continue;
 		}
 		myFace->setUVs(rFaceProps[i].textureCoordinates);
+		myFace->setTextureId(rFaceProps[i].textureId);
 		// Add face to the list
 		try {
 			mFaces[facesAddedToMesh] = myFace;
