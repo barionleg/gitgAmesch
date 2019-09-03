@@ -33,6 +33,7 @@ enum class MtlToken {
 	BUMP,
 	COMMENT,
 	TR,
+	KE,			//Ke is an extension for PBR rendering. Exported by Blender
 	UNKNOWN
 };
 
@@ -78,6 +79,8 @@ MtlToken toToken(const std::string& s)
 		return MtlToken::BUMP;
 	if (s == "Tr")
 		return MtlToken::TR;
+	if( s == "Ke")
+		return MtlToken::KE;
 
 	return MtlToken::UNKNOWN;
 }
@@ -289,6 +292,8 @@ bool MtlParser::parseFile(const std::string& fileName)
 					currentMaterial->d = 1.0F - tr;
 				}
 					break;
+				case MtlToken::KE:
+					break;	//ignore KE
 				case MtlToken::UNKNOWN:
 					std::cerr << "Unknown MTL token in line " << lineNum << " : " << stringToken << "\n";
 					break;

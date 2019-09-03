@@ -6,6 +6,9 @@
 #include <algorithm>
 #include <clocale>
 #include <list>
+#include <filesystem>
+
+#include "MtlParser.h"
 
 using namespace std;
 
@@ -17,11 +20,21 @@ using namespace std;
 // f v1/vt1 v2/vt2 v3/vt3 ...
 // f v1//vn1 v2//vn2 v3//vn3 ...
 // f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3 ....
-bool parseFaceProperty(const std::vector<std::string>& tokens, int& faceIdx, std::vector<sFaceProperties>& rFaceProps, const std::vector<float>& textureCoordinates)
+bool parseFaceProperty(const std::vector<std::string>& tokens, int& faceIdx, std::vector<sFaceProperties>& rFaceProps, const std::vector<float>& textureCoordinates, MtlMaterial* material, std::unordered_map<std::string, unsigned char>& textureToIdMap)
 {
 	std::list<int> vertIndices;
 	std::list<int> texCoordIndices;
 	std::list<int> normalIndices;
+
+	unsigned char textureId = 0;
+
+	if(material != nullptr)
+	{
+		if(!material->map_Kd.empty())
+		{
+			textureId = textureToIdMap[material->map_Kd];
+		}
+	}
 
 	for( size_t i = 1; i<tokens.size(); ++i)
 	{
@@ -123,6 +136,7 @@ bool parseFaceProperty(const std::vector<std::string>& tokens, int& faceIdx, std
 		rFaceProps[faceIdx].textureCoordinates[4] = uvXPrev;
 		rFaceProps[faceIdx].textureCoordinates[5] = uvYPrev;
 
+		rFaceProps[faceIdx].textureId = textureId;
 		++texIt;
 		++normalIt;
 		++faceIdx;
@@ -146,6 +160,8 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 	string line;
 	string linePrefix;
 
+	std::unordered_map<std::string, MtlMaterial> materials;
+
 	// Counters for .OBJ elements and lines:
 	unsigned int  obj_linesTotal            = 0;
 	unsigned int  obj_linesIgnoredTotal     = 0;
@@ -164,10 +180,14 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 	if( !fp.is_open() ) {
 		cerr << "[ObjReader::" << __FUNCTION__ << "] Could not open file: '" << rFilename << "'.\n";
 		std::setlocale( LC_NUMERIC, oldLocale );
+
 		return false;
 	} else {
 		cout << "[ObjReader::" << __FUNCTION__ << "] File opened: '" << rFilename << "'.\n";
 	}
+
+	std::filesystem::path prevRootPath = std::filesystem::current_path();
+	std::filesystem::current_path(std::filesystem::path(rFilename).parent_path());
 
 	// determine the amount of data by parsing the data for a start:
 	while( fp.good() ) {
@@ -268,7 +288,7 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 		} else if( linePrefix == "lod" ) {        // level of detail
 			obj_linesUnsupportedTotal++;
 		} else if( linePrefix == "usemtl" ) {     // material name
-			obj_linesUnsupportedTotal++;
+			//obj_linesUnsupportedTotal++;
 		} else if( linePrefix == "mtlib" ) {      // material library
 			obj_linesUnsupportedTotal++;
 		} else if( linePrefix == "shadow_obj" ) { // shadow casting
@@ -279,6 +299,23 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 			obj_linesUnsupportedTotal++;
 		} else if( linePrefix == "stech" ) {      // surface approximation technique
 			obj_linesUnsupportedTotal++;
+		} else if( linePrefix == "mtllib") {      // mtl libs. Parse directy, to have all materials before using them guarenteed.
+			{
+				std::string fileName;
+				fp >> fileName;
+
+				std::filesystem::path filePath(fileName);
+
+				if(filePath.is_relative())
+				{
+					fileName = std::filesystem::absolute(filePath).string();
+				}
+
+				MtlParser parser;
+				parser.parseFile(fileName);
+
+				materials.insert(parser.getMaterialsRef().begin(), parser.getMaterialsRef().end());
+			}
 		} else
 		// Comments ----------------------------------------------------------------------------
 		if(  linePrefix == "#" ) {                 // comments
@@ -315,6 +352,21 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 	size_t texCoordIndex = 0;
 
 	MeshReader::getModelMetaDataRef().setHasTextureCoordinates(objTexCoordsTotal > 0);
+
+	std::unordered_map<std::string, unsigned char> textureToIdMap;
+	unsigned char texId = 0;
+	for(const auto & material : materials)
+	{
+		if(!(material.second.map_Kd.empty()) )
+		{
+			if(textureToIdMap.find(material.second.map_Kd) == textureToIdMap.end())
+			{
+				textureToIdMap[material.second.map_Kd] = texId++;
+			}
+		}
+	}
+
+	MtlMaterial* currentMaterial = nullptr;
 
 	// init vertex coordinates and function value
 	for( size_t i=0; i<obj_verticesTotal; i++ ) {
@@ -393,7 +445,7 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 			}
 			vertexIdx++;
 		} else if( firstToken == "f" ) { // faces i.e. triangles, quadtriangles and trianglestrips
-			if(!parseFaceProperty(tokens, faceIdx, rFaceProps, textureCoordinates))
+			if(!parseFaceProperty(tokens, faceIdx, rFaceProps, textureCoordinates, currentMaterial, textureToIdMap))
 			{
 				continue;
 			}
@@ -423,6 +475,13 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 				textureCoordinates[texCoordIndex++] = stof( tokens.at(1));
 				textureCoordinates[texCoordIndex++] = stof( tokens.at(2));
 			}
+		} else if ( firstToken == "usemtl")
+		{
+			if(tokens.size() != 2)
+			{
+				continue;
+			}
+			currentMaterial = &materials[tokens[1]];
 		} else {
 			cerr << "[ObjReader::" << __FUNCTION__ << "] ERROR: line ignored: " << someLine << "\n";
 		}
@@ -432,6 +491,6 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 	timeStop  = clock();
 	cout << "[ObjReader::" << __FUNCTION__ << "] fetch data from file:       " << static_cast<float>( timeStop - timeStart ) / CLOCKS_PER_SEC << " seconds."  << "\n";
 	std::setlocale( LC_NUMERIC, oldLocale );
-
+	std::filesystem::current_path(prevRootPath);
 	return true;
 }
