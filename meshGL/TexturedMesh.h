@@ -30,6 +30,8 @@ class TexturedMesh
 		//Needs to be called with a valid OpenGLContext
 		void destroy();
 
+		bool isCreated();
+
 	private:
 		void generateBuffers(const std::map<unsigned char, std::list<Face*> >& faces);
 		std::map<unsigned char, std::list<QOpenGLBuffer>> mVertexBuffers;
