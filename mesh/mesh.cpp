@@ -21,7 +21,7 @@
 #else
 #include <unistd.h> // gethostname, getlogin_r
 #endif
-#include <limits.h>
+#include <climits>
 
 #ifdef MACXPORT
     #include <sys/malloc.h> // mac os x
@@ -1406,13 +1406,19 @@ bool Mesh::getFaceList( vector<Face*>* rFaces ) {
 	if( rFaces == nullptr ) {
 		return false;
 	}
+
+	*rFaces = mFaces;
+	/*
 	//! *) Clears the given vertexVector.
 	rFaces->clear();
+	rFaces->reserve(mFaces.size());
+
 	//! *) Prepare list of vertices.
 	vector<Face*>::iterator itFace;
 	for( itFace=mFaces.begin(); itFace!=mFaces.end(); itFace++ ) {
 		rFaces->push_back( (*itFace) );
 	}
+	*/
 	cout << "[Mesh::" << __FUNCTION__ << "] make vertex vector time: " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
 	return true;
 }

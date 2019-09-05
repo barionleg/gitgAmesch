@@ -353,15 +353,14 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 
 	MeshReader::getModelMetaDataRef().setHasTextureCoordinates(objTexCoordsTotal > 0);
 
-	std::unordered_map<std::string, unsigned char> textureToIdMap;
-	unsigned char texId = 0;
+	std::unordered_map<std::string, TextureHandle> textureToIdMap;
 	for(const auto & material : materials)
 	{
 		if(!(material.second.map_Kd.empty()) )
 		{
 			if(textureToIdMap.find(material.second.map_Kd) == textureToIdMap.end())
 			{
-				textureToIdMap[material.second.map_Kd] = texId++;
+				textureToIdMap[material.second.map_Kd] = MeshReader::getModelMetaDataRef().addTextureName(material.second.map_Kd);
 			}
 		}
 	}

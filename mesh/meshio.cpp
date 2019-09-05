@@ -116,19 +116,25 @@ bool MeshIO::readFile(
 
 	mModelMetaData = reader->getModelMetaDataRef();
 
-	if(!mModelMetaData.getModelMetaString(ModelMetaData::META_TEXTUREFILE).empty())
+	if(mModelMetaData.hasTextureFiles())
 	{
+		auto prevPath = std::filesystem::current_path();
+		std::filesystem::current_path(std::filesystem::absolute(rFileName).parent_path());
+
 		std::filesystem::path texturePath(mModelMetaData.getModelMetaString(ModelMetaData::META_TEXTUREFILE));
-		if(texturePath.is_relative())
+
+		for(auto& textureFileString : mModelMetaData.getTexturefilesRef())
 		{
-			auto prevPath = std::filesystem::current_path();
-			std::filesystem::current_path(std::filesystem::absolute(rFileName).parent_path());
-			mModelMetaData.setModelMetaString(ModelMetaData::META_TEXTUREFILE, std::filesystem::absolute( mModelMetaData.getModelMetaString(ModelMetaData::META_TEXTUREFILE)).string());
-			std::filesystem::current_path(prevPath);
+			std::filesystem::path texturePath(textureFileString);
+			if(texturePath.is_relative())
+			{
+				textureFileString = std::filesystem::absolute(texturePath).string();
+			}
 		}
+		std::filesystem::current_path(prevPath);
 	}
 
-	mExportFlags[EXPORT_TEXTURE_COORDINATES]= mModelMetaData.hasTextureCoordinates();
+	mExportFlags[EXPORT_TEXTURE_COORDINATES] = mModelMetaData.hasTextureCoordinates();
 
 	// Store filename with absolute path.
 	mFileNameFull = std::filesystem::absolute( rFileName ).string();

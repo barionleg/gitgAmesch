@@ -876,7 +876,7 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 	cout << "[MeshWidget::" << __FUNCTION__ << "] Done." << endl;
 
 	//check if the mesh is textured
-	if(mMeshVisual->getModelMetaDataRef().hasTextureCoordinates() && mMeshVisual->getModelMetaDataRef().getModelMetaString(ModelMetaData::META_TEXTUREFILE).empty())
+	if(mMeshVisual->getModelMetaDataRef().hasTextureCoordinates() && !mMeshVisual->getModelMetaDataRef().hasTextureFiles())
 	{
 		bool userLoad = false;
 		bool userCancel = false;
@@ -884,8 +884,7 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 
 		if(userLoad && !userCancel)
 		{
-			QImageReader reader;
-			auto imgFiles = reader.supportedImageFormats();
+			auto imgFiles = QImageReader::supportedImageFormats();
 			QString supportedImages;
 			for(const auto& imgType : imgFiles)
 			{
@@ -897,7 +896,7 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 		}
 	}
 
-	emit loadedMeshIsTextured( !(mMeshVisual->getModelMetaDataRef().getModelMetaString(ModelMetaData::META_TEXTUREFILE).empty()) );
+	emit loadedMeshIsTextured( mMeshVisual->getModelMetaDataRef().hasTextureCoordinates() && mMeshVisual->getModelMetaDataRef().hasTextureFiles() );
 
 	return( true );
 }

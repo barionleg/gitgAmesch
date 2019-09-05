@@ -146,8 +146,17 @@ bool PlyReader::readFile(const std::string& rFilename,
 				uint64_t preMetaLen = 9 + possibleMetaDataName.size(); // 7 for 'comment' plus 2x space.
 				std::string metaContent = lineToParseOri.substr( preMetaLen );
 				std::cout << "[PlyReader::" << __FUNCTION__ << "] Meta-Data: " << possibleMetaDataName << " (" << foundMetaId << ") = " << metaContent << std::endl;
-				if( !MeshReader::getModelMetaDataRef().setModelMetaString( foundMetaId, metaContent ) ) {
-					std::cerr << "[PlyReader::" << __FUNCTION__ << "] ERROR: Meta-Data not set!" << std::endl;
+
+				if( foundMetaId == ModelMetaData::META_TEXTUREFILE)
+				{
+					MeshReader::getModelMetaDataRef().addTextureName(metaContent);
+				}
+
+				else
+				{
+					if( !MeshReader::getModelMetaDataRef().setModelMetaString( foundMetaId, metaContent ) ) {
+						std::cerr << "[PlyReader::" << __FUNCTION__ << "] ERROR: Meta-Data not set!" << std::endl;
+					}
 				}
 			}
 			continue;

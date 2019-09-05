@@ -5,6 +5,8 @@
 #include <array>
 #include <vector>
 
+using TextureHandle = unsigned char;
+
 class ModelMetaData
 {
 	public:
@@ -26,8 +28,14 @@ class ModelMetaData
 		bool         getModelMetaStringId( const std::string& rModelMetaStringName, eMetaStrings& rMetaStrID );
 		bool         clearModelMetaStrings();
 
-		bool hasTextureCoordinates() const;
+		[[nodiscard]] bool hasTextureCoordinates() const;
 		void setHasTextureCoordinates(bool hasTextureCoordinates);
+
+
+		TextureHandle addTextureName(const std::string& textureName);
+		[[nodiscard]] std::string getTextureName(TextureHandle id) const;
+		[[nodiscard]] bool hasTextureFiles() const;
+		std::vector<std::string>& getTexturefilesRef();
 
 	private:
 		std::array<std::string, META_STRINGS_COUNT> mMetaDataStrings;         //!< Meta-Data contents

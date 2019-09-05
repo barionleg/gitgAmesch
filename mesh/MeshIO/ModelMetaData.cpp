@@ -87,3 +87,33 @@ void ModelMetaData::setHasTextureCoordinates(bool hasTextureCoordinates)
 {
 	mHasTextureCoordinates = hasTextureCoordinates;
 }
+
+TextureHandle ModelMetaData::addTextureName(const std::string& textureName)
+{
+	for(size_t i = 0; i<mTextureFiles.size(); ++i)
+	{
+		if(mTextureFiles[i] == textureName)
+			return i;
+	}
+
+	mTextureFiles.push_back(textureName);
+	return mTextureFiles.size() - 1;
+}
+
+std::string ModelMetaData::getTextureName(TextureHandle id) const
+{
+	if(id < mTextureFiles.size())
+		return mTextureFiles[id];
+
+	return "";
+}
+
+bool ModelMetaData::hasTextureFiles() const
+{
+	return !mTextureFiles.empty();
+}
+
+std::vector<std::string>& ModelMetaData::getTexturefilesRef()
+{
+	return mTextureFiles;
+}

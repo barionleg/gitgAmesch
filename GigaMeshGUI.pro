@@ -393,6 +393,7 @@ HEADERS += meshGL/meshGLShader.h \
 	mesh/MeshIO/TxtWriter.h \
 	mesh/MeshIO/VRMLWriter.h \
 	meshGL/PinGeometry.h \
+	meshGL/TexturedMesh.h \
 	meshGL/TexturedMeshRenderer.h \
     meshGL/meshGL_params.h \
     mesh/triangle/triangleTriangleIntersection.h \
@@ -434,6 +435,7 @@ SOURCES += mesh/meshinfodata.cpp \
 	mesh/MeshIO/TxtWriter.cpp \
 	mesh/MeshIO/VRMLWriter.cpp \
         meshGL/PinRenderer.cpp \
+	meshGL/TexturedMesh.cpp \
 	meshGL/TexturedMeshRenderer.cpp \
 	normalSphereSelection/ArcBall.cpp \
 	normalSphereSelection/IcoSphereTree.cpp \
