@@ -88,7 +88,8 @@ set(SOURCES_COMMON mesh/geodentry.cpp
 	mesh/MeshIO/RegularGridTxtReader.cpp
 	mesh/MeshIO/TxtReader.cpp
 	mesh/MeshIO/TxtWriter.cpp
-	mesh/MeshIO/VRMLWriter.cpp)
+	mesh/MeshIO/VRMLWriter.cpp
+	mesh/MeshIO/MtlParser.cpp)
 
 set(HEADERS_COMMON mesh/geodentry.h
 	mesh/bitflagarray.h
@@ -131,7 +132,8 @@ set(HEADERS_COMMON mesh/geodentry.h
 	mesh/MeshIO/TxtReader.h
 	mesh/MeshIO/TxtWriter.h
 	mesh/MeshIO/VRMLWriter.h
-	mesh/MeshIO/PlyEnums.h)
+	mesh/MeshIO/PlyEnums.h
+	mesh/MeshIO/MtlParser.h)
 
 if(MSVC)
     list(APPEND HEADERS_COMMON mesh/getoptwin.h)
