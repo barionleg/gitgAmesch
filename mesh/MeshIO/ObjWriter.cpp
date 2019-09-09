@@ -82,15 +82,25 @@ bool ObjWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 
 			if(metaId == ModelMetaData::META_TEXTUREFILE)
 			{
-				auto prevPath = std::filesystem::current_path();
-				std::filesystem::current_path(std::filesystem::absolute(rFilename).parent_path());
-				metaStr = std::filesystem::relative(metaStr).string();
-				std::filesystem::current_path(prevPath);
+				continue;  //Export files from getTexturefilesRef instead.
 			}
 
 			filestr << "# " << metaName << " " << metaStr << endl;
 		}
 	}
+
+	//save textures as comments => TODO: save MTL-file instead
+	if(!MeshWriter::getModelMetaDataRef().getTexturefilesRef().empty())
+	{
+		for(const auto& texName : MeshWriter::getModelMetaDataRef().getTexturefilesRef())
+		{
+			auto prevPath = std::filesystem::current_path();
+			std::filesystem::current_path(std::filesystem::absolute(rFilename).parent_path());
+			filestr << "# TextureFile " << std::filesystem::relative(texName).string();
+			std::filesystem::current_path(prevPath);
+		}
+	}
+
 	filestr << "#===============================================================================" << endl;
 	filestr << "# Vertices: " << endl;
 	filestr << "#-------------------------------------------------------------------------------" << endl;

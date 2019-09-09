@@ -110,16 +110,23 @@ bool PlyWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 		if( MeshWriter::getModelMetaDataRef().getModelMetaStringName( metaId, metaName ) ) {
 			if(metaId == ModelMetaData::META_TEXTUREFILE)
 			{
-				auto prevPath = std::filesystem::current_path();
-				std::filesystem::current_path(std::filesystem::absolute(rFilename).parent_path());
-				metaStr = std::filesystem::relative(metaStr).string();
-				std::filesystem::current_path(prevPath);
+				continue;	//we use the textures stored in getTexturefilesRef instead
 			}
 
-			filestr << "comment " << metaName << " " << metaStr << endl;
+			filestr << "comment " << metaName << " " << metaStr << "\n";
 		}
 	}
 
+	if(!MeshWriter::getModelMetaDataRef().getTexturefilesRef().empty())
+	{
+		for(const auto& texName : MeshWriter::getModelMetaDataRef().getTexturefilesRef())
+		{
+			auto prevPath = std::filesystem::current_path();
+			std::filesystem::current_path(std::filesystem::absolute(rFilename).parent_path());
+			filestr << "comment TextureFile " << std::filesystem::relative(texName).string();
+			std::filesystem::current_path(prevPath);
+		}
+	}
 	filestr << "comment +-------------------------------------------------------------------------------+\n";
 
 	filestr << "element vertex " << rVertexProps.size() << "\n";
