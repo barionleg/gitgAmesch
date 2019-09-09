@@ -8,6 +8,7 @@
 #include <QOpenGLShaderProgram>
 #include <QMatrix4x4>
 #include <string>
+#include "TexturedMesh.h"
 
 class TexturedMeshRenderer
 {
@@ -34,9 +35,9 @@ class TexturedMeshRenderer
 				bool lightEnabled = false;
 		};
 
-		bool init(const std::string& textureName);
-		void render(const QMatrix4x4 &projectionMatrix, const QMatrix4x4 &modelViewMatrix, unsigned int numVertices, const LightInfo& lightInfo);
-		void setUpVertexBuffer(QOpenGLBuffer& vertexBuffer);
+		bool init(const std::vector<std::string>& textureNames);
+		void render(const QMatrix4x4 &projectionMatrix, const QMatrix4x4 &modelViewMatrix, TexturedMesh& texturedMesh, const LightInfo& lightInfo);
+
 		void destroy();
 
 		struct TexturedMeshVertex {
@@ -49,12 +50,13 @@ class TexturedMeshRenderer
 
 	private:
 
+		void setUpVertexBuffer(QOpenGLBuffer& vertexBuffer);
 		bool initShader();
 		bool mIsInitialized = false;
 
 		QOpenGLVertexArrayObject mVAO;
 		QOpenGLShaderProgram* mShader = nullptr;
-		QOpenGLTexture mTexture;
+		std::vector<QOpenGLTexture*> mTextures;
 		QOpenGLFunctions_3_3_Core mGL;
 };
 

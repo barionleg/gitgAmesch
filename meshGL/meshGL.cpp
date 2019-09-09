@@ -290,7 +290,12 @@ bool MeshGL::applyMeltingSphere( double rRadius, double rRel ) {
 bool MeshGL::resetVertexNormals() {
 		bool retVal = Mesh::resetVertexNormals();
 		vboRemoveBuffer( VBUFF_VERTICES_STRIPED,         __FUNCTION__ );
-		vboRemoveBuffer( VBUFF_VERTICES_TEXTURED,        __FUNCTION__ );
+		if(mMeshTextured != nullptr)
+		{
+			delete mMeshTextured;
+			mMeshTextured = nullptr;
+		}
+
 		return( retVal );
 }
 
@@ -322,7 +327,13 @@ bool MeshGL::assignImportedTexture( int              rLineCount,
 #endif
 		bool retVal = Mesh::assignImportedTexture( rLineCount, rRefToPrimitves, rTexMap );
 		vboRemoveBuffer( VBUFF_VERTICES_STRIPED, __FUNCTION__ );
-		vboRemoveBuffer( VBUFF_VERTICES_TEXTURED, __FUNCTION__ );
+
+		if(mMeshTextured != nullptr)
+		{
+			delete mMeshTextured;
+			mMeshTextured = nullptr;
+		}
+
 		return retVal;
 }
 
@@ -333,7 +344,13 @@ bool MeshGL::assignImportedNormalsToVertices( vector<MeshIO::grVector3ID>* rNorm
 #endif
 		bool retVal = Mesh::assignImportedNormalsToVertices( rNormals );
 		vboRemoveBuffer( VBUFF_VERTICES_STRIPED, __FUNCTION__ );
-		vboRemoveBuffer( VBUFF_VERTICES_TEXTURED, __FUNCTION__ );
+
+		if(mMeshTextured != nullptr)
+		{
+			delete mMeshTextured;
+			mMeshTextured = nullptr;
+		}
+
 		return retVal;
 }
 
@@ -2314,6 +2331,12 @@ void MeshGL::glRemove() {
 		for( int i=0; i<VBUFF_COUNT; i++ ) {
 				vboRemoveBuffer( static_cast<eVertBufObjs>(i), __FUNCTION__ );
 		}
+
+		if(mMeshTextured != nullptr)
+		{
+			delete mMeshTextured;
+			mMeshTextured = nullptr;
+		}
 #ifdef OPENGL_VBO_SHOW_MEMORY_USAGE
 		mVboMemoryUsage = 0;
 		cout << "[MeshGL::" << __FUNCTION__ << "] VBOs deleted." << endl;
@@ -2419,8 +2442,11 @@ bool MeshGL::setParamIntMeshGL( MeshGLParams::eParamInt rParamID, int rValue ) {
 		{
 			if(rValue != SHADER_TEXTURED)
 			{
-				if(mVertBufObjs[VBUFF_VERTICES_TEXTURED])
-					vboRemoveBuffer(VBUFF_VERTICES_TEXTURED, __FUNCTION__);
+				if(mMeshTextured != nullptr)
+				{
+					delete mMeshTextured;
+					mMeshTextured = nullptr;
+				}
 			}
 		}
 
@@ -3244,49 +3270,6 @@ bool MeshGL::vboPrepareVerticesStriped() {
 		cout << "[MeshGL::" << __FUNCTION__ << "] Time Vertices: " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
 
 		return noError;
-}
-
-//! Prepare
-bool MeshGL::vboPrepareVerticesStripedTextured()
-{
-	bool noError = true;
-
-	if( mVertBufObjs[VBUFF_VERTICES_TEXTURED] == nullptr) {
-		mVertBufObjs[VBUFF_VERTICES_TEXTURED] = new QOpenGLBuffer( QOpenGLBuffer::VertexBuffer );
-	}
-
-	if( mVertBufObjs[VBUFF_VERTICES_TEXTURED]->isCreated() ) {
-		return true;
-	}
-
-	std::vector<grVertexTextured> vertices(getFaceNr() * 3);
-
-	int vertLoc = 0;
-	for(uint64_t i = 0; i<getFaceNr(); ++i)
-	{
-		auto face = getFacePos(i);
-		std::array<Vertex*,3> faceVertices{face->getVertA(), face->getVertB(), face->getVertC()};
-		auto uvs = face->getUVs();
-
-		//copy vertices to local structure
-		for(size_t j = 0; j<3; ++j)
-		{
-			vertices[vertLoc].uv[0] = uvs[j*2];
-			vertices[vertLoc].uv[1] = uvs[j*2 + 1];
-			vertices[vertLoc].position[0] = faceVertices[j]->getX();
-			vertices[vertLoc].position[1] = faceVertices[j]->getY();
-			vertices[vertLoc].position[2] = faceVertices[j]->getZ();
-
-			vertices[vertLoc].normal[0] = faceVertices[j]->getNormalX();
-			vertices[vertLoc].normal[1] = faceVertices[j]->getNormalY();
-			vertices[vertLoc].normal[2] = faceVertices[j]->getNormalZ();
-
-			++vertLoc;
-		}
-	}
-
-	vboAddBuffer( sizeof(grVertexTextured) * vertices.size(), vertices.data(), QOpenGLBuffer::StaticDraw, VBUFF_VERTICES_TEXTURED, __FUNCTION__);
-	return noError;
 }
 
 //! Fetch one vertex into a strided array.

@@ -6,7 +6,7 @@
 
 #include "glmacros.h"
 
-TexturedMeshRenderer::TexturedMeshRenderer() : mTexture(QOpenGLTexture::Target2D)
+TexturedMeshRenderer::TexturedMeshRenderer()
 {
 
 }
@@ -20,7 +20,7 @@ TexturedMeshRenderer::~TexturedMeshRenderer()
 	}
 }
 
-bool TexturedMeshRenderer::init(const std::string& textureName)
+bool TexturedMeshRenderer::init(const std::vector<std::string>& textureNames)
 {
 	if(mIsInitialized)
 		return true;
@@ -41,22 +41,23 @@ bool TexturedMeshRenderer::init(const std::string& textureName)
 
 	mGL.glBindVertexArray(prevVAO);
 
+	mTextures.resize(textureNames.size());
 
-	QImage texImage(textureName.c_str());
-	mTexture.setData(texImage.mirrored(), QOpenGLTexture::GenerateMipMaps);
+	for(size_t i = 0; i<textureNames.size(); ++i)
+	{
+		QImage texImage(textureNames[i].c_str());
+		mTextures[i] = new QOpenGLTexture(QOpenGLTexture::Target2D);
+		mTextures[i]->setData(texImage.mirrored(), QOpenGLTexture::GenerateMipMaps);
+	}
 
 	mIsInitialized = true;
 	return true;
 }
 
+//assumes that vao and shader of the TexturedMesh Renderer is bound
+//should only be called from render
 void TexturedMeshRenderer::setUpVertexBuffer(QOpenGLBuffer& vertexBuffer)
 {
-	GLint prevVAO;
-	mGL.glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &prevVAO);
-
-	mShader->bind();
-	mVAO.bind();
-
 	vertexBuffer.bind();
 
 	mShader->setAttributeBuffer( "vPosition", GL_FLOAT, offsetof(TexturedMeshVertex, pos), 3, sizeof(TexturedMeshVertex) );
@@ -67,15 +68,9 @@ void TexturedMeshRenderer::setUpVertexBuffer(QOpenGLBuffer& vertexBuffer)
 
 	mShader->setAttributeBuffer( "vUV", GL_FLOAT, offsetof(TexturedMeshVertex, uv), 2 , sizeof(TexturedMeshVertex) );
 	mShader->enableAttributeArray( "vUV" );
-
-	mVAO.release();
-	vertexBuffer.release();
-	mShader->release();
-
-	mGL.glBindVertexArray(prevVAO);
 }
 
-void TexturedMeshRenderer::render(const QMatrix4x4& projectionMatrix, const QMatrix4x4& modelViewMatrix, unsigned int numVertices, const LightInfo& lightInfo)
+void TexturedMeshRenderer::render(const QMatrix4x4& projectionMatrix, const QMatrix4x4& modelViewMatrix, TexturedMesh& texturedMesh, const LightInfo& lightInfo)
 {
 	if(!mIsInitialized)
 		return;
@@ -105,13 +100,29 @@ void TexturedMeshRenderer::render(const QMatrix4x4& projectionMatrix, const QMat
 
 	mGL.glActiveTexture(GL_TEXTURE0);
 	PRINT_OPENGL_ERROR("active texture");
-	mGL.glBindTexture(GL_TEXTURE_2D, mTexture.textureId());
-	PRINT_OPENGL_ERROR("bind texture");
 
-	mGL.glDrawArrays(GL_TRIANGLES, 0, numVertices);
+	unsigned int elementSize = TexturedMesh::getVertexElementSize();
+
+	for(auto& bufferPair : texturedMesh.getVertexBuffers())
+	{
+		if(bufferPair.first > mTextures.size())
+			continue;
+
+		//bind textureid of bufferPair 1
+		mGL.glBindTexture(GL_TEXTURE_2D, mTextures[bufferPair.first]->textureId());
+
+		for(auto& buffer : bufferPair.second)
+		{
+			setUpVertexBuffer(buffer);
+			mGL.glDrawArrays(GL_TRIANGLES, 0, buffer.size() / elementSize);
+		}
+
+		mTextures[bufferPair.first]->release();
+	}
+
+	//mGL.glDrawArrays(GL_TRIANGLES, 0, numVertices);
 
 	PRINT_OPENGL_ERROR("draw Arrays");
-	mTexture.release();
 	mVAO.release();
 	mShader->release();
 
@@ -126,7 +137,13 @@ void TexturedMeshRenderer::destroy()
 
 	mVAO.destroy();
 
-	mTexture.destroy();
+	for(auto& texture : mTextures)
+	{
+		texture->destroy();
+		delete texture;
+	}
+
+	mTextures.clear();
 
 	delete mShader;
 }

@@ -481,7 +481,12 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 				continue;
 			}
 			currentMaterial = &materials[tokens[1]];
-		} else {
+		}
+		else if (firstToken == "mtllib")
+		{
+			//ignore, mtllib is handled in first parsing run
+		}
+		else {
 			cerr << "[ObjReader::" << __FUNCTION__ << "] ERROR: line ignored: " << someLine << "\n";
 		}
 	}

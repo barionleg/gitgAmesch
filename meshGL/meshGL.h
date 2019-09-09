@@ -5,6 +5,8 @@
 #include "meshGL_params.h"
 #include "meshglcolors.h"
 
+#include "TexturedMesh.h"
+
 // OpenGL stuff
 //#define GL_GLEXT_PROTOTYPES
 #ifdef MACXPORT
@@ -152,11 +154,12 @@ protected:
 		VBUFF_VERTICES_POLYLINES,       //!< Vertex data to be used to render polylines with a geometry shader.                           (VertexBuffer)
         VBUFF_POLYLINES,                //!< Index buffer for polylines.                                                                 (ELementbuffer)
         VBUFF_SCREEN_QUAD,              //!< Simple Quad to render full-screen buffers, e.g. NPR or transparency                          (VertexBuffer)
-		VBUFF_VERTICES_TEXTURED,        //!< Vertex data striped for textures: position, normal, uv.                                      (VertexBuffer)
 		VBUFF_COUNT                     //!< Number of VBO arrays.                                                                    (NO buffer at all)
 	};
 	GLuint          mVAO;                      //!< Vertex Array Object - has to be created!
 	QOpenGLBuffer*  mVertBufObjs[VBUFF_COUNT]; //!< Array of Vertex Buffer Objects (within the VAO).
+
+	TexturedMesh* mMeshTextured = nullptr;               //!< Class holding the vertex-buffers for a mesh with multiple textures
 #ifdef OPENGL_VBO_SHOW_MEMORY_USAGE
 	long   mVboMemoryUsage; //!< Memory usage for resources analysis and debugging.
 #endif
@@ -189,7 +192,6 @@ private:
 protected:
 	        bool vboPreparePolylines();
 	        bool vboPrepareVerticesStriped();
-			bool vboPrepareVerticesStripedTextured();
 	        bool vboPrepareVerticesStripedFetchVertex( Vertex* rVertex, grVertexStripeElment* rWriteTo );
 	        bool vboPrepareDoubleCone();
 	        bool vboPrepareVerticesWithFlag( unsigned int rFlagNr, eVertBufObjs rBufferID );

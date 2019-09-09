@@ -3764,22 +3764,18 @@ void MeshGLShader::vboPaintTextured()
 
 	if(!mTexturedMeshRenderer.isInitialized())
 	{
-		std::string textureFile = getModelMetaDataRef().getModelMetaString(ModelMetaData::META_TEXTUREFILE);
-		if(textureFile.empty()) //menu entry should be disabled in this case.
+		if(getModelMetaDataRef().getTexturefilesRef().empty()) //menu entry should be disabled in this case.
 			return;
 
-		mTexturedMeshRenderer.init(textureFile);
+		mTexturedMeshRenderer.init(getModelMetaDataRef().getTexturefilesRef());
 	}
 
-	if(mVertBufObjs[VBUFF_VERTICES_TEXTURED] == nullptr)
+	if(mMeshTextured == nullptr)
 	{
-		vboPrepareVerticesStripedTextured();
-		mTexturedMeshRenderer.setUpVertexBuffer(*mVertBufObjs[VBUFF_VERTICES_TEXTURED]);
-	}
-	else if(!mVertBufObjs[VBUFF_VERTICES_TEXTURED]->isCreated())
-	{
-		vboPrepareVerticesStripedTextured();
-		mTexturedMeshRenderer.setUpVertexBuffer(*mVertBufObjs[VBUFF_VERTICES_TEXTURED]);
+		PglBindVertexArray glBindVertexArray = reinterpret_cast<PglBindVertexArray>(mOpenGLContext->getProcAddress( "glBindVertexArray" ));
+		glBindVertexArray( mVAO );
+		mMeshTextured = new TexturedMesh();
+		mMeshTextured->establishStructure(this);
 	}
 
 	QMatrix4x4 pmvMatrix( mMatModelView[0], mMatModelView[4], mMatModelView[8],  mMatModelView[12],
@@ -3857,7 +3853,8 @@ void MeshGLShader::vboPaintTextured()
 		lightInfo.ambient.setW( 1.0f );
 	}
 
-	mTexturedMeshRenderer.render(ppvMatrix, pmvMatrix, getFaceNr() * 3, lightInfo);
+	PRINT_OPENGL_ERROR("unknown error");
+	mTexturedMeshRenderer.render(ppvMatrix, pmvMatrix, *mMeshTextured, lightInfo);
 
 }
 

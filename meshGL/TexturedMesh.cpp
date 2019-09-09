@@ -3,6 +3,7 @@
 #include "../mesh/mesh.h"
 
 #include <limits>
+#include "glmacros.h"
 
 struct TexturedVertex {
 		float pos[3];
@@ -17,6 +18,9 @@ TexturedMesh::~TexturedMesh()
 
 void TexturedMesh::establishStructure(Mesh* mesh)
 {
+	if(isCreated())
+		return;
+
 	std::map< unsigned char, std::list<Face*> > facePerMat;
 
 	{
@@ -31,6 +35,7 @@ void TexturedMesh::establishStructure(Mesh* mesh)
 	}
 
 	generateBuffers(facePerMat);
+	PRINT_OPENGL_ERROR("Error creating buffers");
 }
 
 void TexturedMesh::destroy()
@@ -49,9 +54,19 @@ void TexturedMesh::destroy()
 	mVertexBuffers.clear();
 }
 
-bool TexturedMesh::isCreated()
+bool TexturedMesh::isCreated() const
 {
 	return !mVertexBuffers.empty();
+}
+
+std::map<unsigned char, std::list<QOpenGLBuffer> >& TexturedMesh::getVertexBuffers()
+{
+	return mVertexBuffers;
+}
+
+unsigned int TexturedMesh::getVertexElementSize()
+{
+	return sizeof(TexturedVertex);
 }
 
 void TexturedMesh::generateBuffers(const std::map<unsigned char, std::list<Face*> >& faces)
@@ -87,13 +102,14 @@ void TexturedMesh::generateBuffers(const std::map<unsigned char, std::list<Face*
 
 				++vertLoc;
 			}
-
-			mVertexBuffers[texId].push_back(QOpenGLBuffer());
-			auto vertBuf = mVertexBuffers[texId].back();
-
-			vertBuf.create();
-			vertBuf.setUsagePattern(QOpenGLBuffer::StaticDraw);
-			vertBuf.allocate(vertices.data(), vertices.size() * sizeof (TexturedVertex));
 		}
+
+		mVertexBuffers[texId].push_back(QOpenGLBuffer());
+		auto vertBuf = mVertexBuffers[texId].back();
+
+		vertBuf.create();
+		vertBuf.setUsagePattern(QOpenGLBuffer::StaticDraw);
+		vertBuf.bind();
+		vertBuf.allocate(vertices.data(), vertices.size() * sizeof (TexturedVertex));
 	}
 }
