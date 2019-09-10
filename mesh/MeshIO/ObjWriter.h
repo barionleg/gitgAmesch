@@ -6,7 +6,7 @@
 class ObjWriter : public MeshWriter
 {
 	public:
-		ObjWriter();
+		ObjWriter() = default;
 
 		// MeshWriter interface
 	public:

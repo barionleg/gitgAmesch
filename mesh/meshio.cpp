@@ -326,16 +326,17 @@ bool MeshIO::writeFile(
 		writer = std::make_unique<PlyWriter>();
 	}
 
-	std::string textureFile = mModelMetaData.getModelMetaString(ModelMetaData::META_TEXTUREFILE);
-
 	if(writer != nullptr)
 	{
 		writer->setModelMetaData(mModelMetaData);
 
-		if(mExportFlags[EXPORT_TEXTURE_FILE] && !textureFile.empty())
+		if(mExportFlags[EXPORT_TEXTURE_FILE] && mModelMetaData.hasTextureFiles())
 		{
-			std::string targetPath = std::filesystem::path(rFileName).parent_path().string() + "/" + std::filesystem::path(textureFile).filename().string();
-			writer->getModelMetaDataRef().setModelMetaString(ModelMetaData::META_TEXTUREFILE, targetPath);
+			for(size_t i = 0; i<mModelMetaData.getTexturefilesRef().size(); ++i)
+			{
+				std::string targetPath = std::filesystem::path(rFileName).parent_path().string() + "/" + std::filesystem::path(mModelMetaData.getTexturefilesRef()[i]).filename().string();
+				writer->getModelMetaDataRef().getTexturefilesRef()[i] = targetPath;
+			}
 		}
 
 		writer->setIsBigEndian(mSystemIsBigEndian);
@@ -358,18 +359,22 @@ bool MeshIO::writeFile(
 
 	mFileNameFull = rFileName;
 
-	if(mExportFlags[EXPORT_TEXTURE_FILE] && !textureFile.empty())
+	if(mExportFlags[EXPORT_TEXTURE_FILE] && mModelMetaData.hasTextureFiles())
 	{
 		auto texTargetFolder = std::filesystem::absolute(rFileName).parent_path();
 
-		try {
-			std::filesystem::copy(textureFile, texTargetFolder);
-		} catch (const std::filesystem::filesystem_error e) {
-			std::cerr << e.what() << " (target file may already exist)\n";
-		}
+		size_t texId = 0;
+		for(const auto& textureFile : mModelMetaData.getTexturefilesRef())
+		{
+			try {
+				std::filesystem::copy(textureFile, texTargetFolder);
+			} catch (const std::filesystem::filesystem_error& e) {
+				std::cerr << e.what() << " (target file may already exist)\n";
+			}
 
-		std::string targetPath = std::filesystem::path(rFileName).parent_path().string() + "/" + std::filesystem::path(textureFile).filename().string();
-		mModelMetaData.setModelMetaString(ModelMetaData::META_TEXTUREFILE, targetPath);
+			std::string targetPath = std::filesystem::path(rFileName).parent_path().string() + "/" + std::filesystem::path(textureFile).filename().string();
+			mModelMetaData.getTexturefilesRef()[texId++] = targetPath;
+		}
 	}
 
 	return true;
