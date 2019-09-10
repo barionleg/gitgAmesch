@@ -3817,8 +3817,8 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 				sideX = sideY;
 			}
 
-			triangulateSplitFace(front, &adjacentAndNewFaces, &frontUVs);
-			triangulateSplitFace(back,  &adjacentAndNewFaces, &backUVs);
+			triangulateSplitFace(front, &adjacentAndNewFaces, &frontUVs, face->getTextureId());
+			triangulateSplitFace(back,  &adjacentAndNewFaces, &backUVs, face->getTextureId());
 		}
 
 		for(Face* face : mFacesSelected) {
@@ -3848,7 +3848,7 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 //! set if the parameter is not NULL.
 //! @warning This function assumes that points are added to the vector of vertices in the correct
 //! order. There is no way for this function to determine/change the order.
-bool Mesh::triangulateSplitFace(std::vector<VertexOfFace*>& faceVertices, std::set<Face*>* newFaces, std::vector<float>* newUVS) {
+bool Mesh::triangulateSplitFace(std::vector<VertexOfFace*>& faceVertices, std::set<Face*>* newFaces, std::vector<float>* newUVS, unsigned char textureID) {
 
 	size_t n = faceVertices.size();
 	if(n != 3 && n !=4) {
@@ -3880,6 +3880,7 @@ bool Mesh::triangulateSplitFace(std::vector<VertexOfFace*>& faceVertices, std::s
 			uvs[i] = (*newUVS)[i];
 
 		newFace1->setUVs(uvs);
+		newFace1->setTextureId(textureID);
 	}
 
 	mFaces.push_back(newFace1);
@@ -3895,6 +3896,7 @@ bool Mesh::triangulateSplitFace(std::vector<VertexOfFace*>& faceVertices, std::s
 				uvs[i] = (*newUVS)[(4 + i) % 8];
 
 			newFace2->setUVs(uvs);
+			newFace2->setTextureId(textureID);
 		}
 		mFaces.push_back(newFace2);
 	}
