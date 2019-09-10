@@ -28,6 +28,9 @@ void writeMTL(const std::vector<std::string>& textureFiles, const std::string& f
 	for(const auto& textureFile : textureFiles)
 	{
 		filestr << "newmtl Material_" << std::to_string(texId++) << '\n';
+		filestr << "Kd 1.0 1.0 1.0\n";
+		filestr << "d 1.0\n";
+		filestr << "illum 1\n";
 		filestr << "map_Kd " << std::filesystem::relative(textureFile).string() << "\n\n";
 	}
 
