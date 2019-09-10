@@ -25,6 +25,8 @@ bool PlyWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 	using namespace std::chrono;
 	high_resolution_clock::time_point tStart, tEnd;
 
+
+	bool exportTextureId = MeshWriter::getModelMetaDataRef().getTexturefilesRef().size() > 1;
 	// Measure total time:
 	tStart = high_resolution_clock::now();
 	cout << "[PlyWriter::" << __FUNCTION__ << "] ------------------------------------------------------------\n";
@@ -123,7 +125,7 @@ bool PlyWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 		{
 			auto prevPath = std::filesystem::current_path();
 			std::filesystem::current_path(std::filesystem::absolute(rFilename).parent_path());
-			filestr << "comment TextureFile " << std::filesystem::relative(texName).string();
+			filestr << "comment TextureFile " << std::filesystem::relative(texName).string() << "\n";
 			std::filesystem::current_path(prevPath);
 		}
 	}
@@ -170,6 +172,10 @@ bool PlyWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 		if(mExportTextureCoordinates)
 		{
 			filestr << "property list uchar float texcoord\n";
+		}
+		if(exportTextureId)
+		{
+			filestr << "property int texnumber\n";
 		}
 	}
 
@@ -252,6 +258,10 @@ bool PlyWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 				{
 					filestr << " " << texCoord;
 				}
+			}
+			if(exportTextureId)
+			{
+				filestr << " " << static_cast<unsigned short>(rFaceProp.textureId);
 			}
 			filestr << "\n";
 		}
@@ -352,6 +362,11 @@ bool PlyWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 						{
 							filestr.write( reinterpret_cast<char*>(&texCoord), PLY_FLOAT32);
 						}
+					}
+					if(exportTextureId)
+					{
+						int texID = rFaceProp.textureId;
+						filestr.write( reinterpret_cast<char*>(&texID), PLY_INT32);
 					}
 				}
 				high_resolution_clock::time_point tEndFaces = high_resolution_clock::now();

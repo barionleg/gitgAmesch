@@ -96,7 +96,7 @@ bool ObjWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 		{
 			auto prevPath = std::filesystem::current_path();
 			std::filesystem::current_path(std::filesystem::absolute(rFilename).parent_path());
-			filestr << "# TextureFile " << std::filesystem::relative(texName).string();
+			filestr << "# TextureFile " << std::filesystem::relative(texName).string() << "\n";
 			std::filesystem::current_path(prevPath);
 		}
 	}

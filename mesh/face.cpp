@@ -176,6 +176,7 @@ bool Face::copyFacePropsTo( sFaceProperties& faceProps ) const {
 	faceProps.mVertIdxC = vertC->getIndex();
 
 	faceProps.textureCoordinates = mUVs;
+	faceProps.textureId = mTextureId;
 
 	return( true );
 }
