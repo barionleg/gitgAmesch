@@ -71,17 +71,20 @@ unsigned int TexturedMesh::getVertexElementSize()
 
 void TexturedMesh::generateBuffers(const std::map<unsigned char, std::list<Face*> >& faces)
 {
-	constexpr auto maxVerticesPerBuffer = std::numeric_limits<int>::max() / (3 * sizeof(TexturedVertex));
+	constexpr auto maxFacesPerBuffer = std::numeric_limits<int>::max() / (3 * sizeof(TexturedVertex));
 	for(const auto& faceList : faces)
 	{
 		int texId = faceList.first;
 
 		//the size of a single buffer may exceed maxInt. In this case we need to split it up into multiple smaller ones
-		unsigned char buffersPerTexture = faceList.second.size() / maxVerticesPerBuffer + 1;
+		unsigned char buffersPerTexture = std::ceil(static_cast<double>(faceList.second.size()) / static_cast<double>(maxFacesPerBuffer));
+		int facesPerBuffer = faceList.second.size() / buffersPerTexture;
+		int remainder = faceList.second.size() % buffersPerTexture;
 
-		std::vector<TexturedVertex> vertices(faceList.second.size() * 3);
-		size_t vertLoc = 0;
-		//!TODO: handle mesh-splitting if buffersPerTexture is > 1
+		std::vector<TexturedVertex> vertices((facesPerBuffer + 1) * 3);
+		int vertLoc = 0;
+		int facesAdded = 0;
+
 		for(const auto& face : faceList.second)
 		{
 			std::array<Vertex*,3> faceVertices{face->getVertA(), face->getVertB(), face->getVertC()};
@@ -102,6 +105,24 @@ void TexturedMesh::generateBuffers(const std::map<unsigned char, std::list<Face*
 
 				++vertLoc;
 			}
+
+			++facesAdded;
+
+			if(facesAdded >= (facesPerBuffer + (remainder > 0)) )
+			{
+				mVertexBuffers[texId].push_back(QOpenGLBuffer());
+				auto vertBuf = mVertexBuffers[texId].back();
+
+				vertBuf.create();
+				vertBuf.setUsagePattern(QOpenGLBuffer::StaticDraw);
+				vertBuf.bind();
+				vertBuf.allocate(vertices.data(), vertLoc * sizeof (TexturedVertex));
+
+				vertLoc = 0;
+				facesAdded = 0;
+				if(remainder > 0)
+					--remainder;
+			}
 		}
 
 		mVertexBuffers[texId].push_back(QOpenGLBuffer());
@@ -110,6 +131,6 @@ void TexturedMesh::generateBuffers(const std::map<unsigned char, std::list<Face*
 		vertBuf.create();
 		vertBuf.setUsagePattern(QOpenGLBuffer::StaticDraw);
 		vertBuf.bind();
-		vertBuf.allocate(vertices.data(), vertices.size() * sizeof (TexturedVertex));
+		vertBuf.allocate(vertices.data(), vertLoc * sizeof (TexturedVertex));
 	}
 }
