@@ -30,7 +30,7 @@ class TexturedMesh
 		//Needs to be called with a valid OpenGLContext
 		void destroy();
 
-		bool isCreated() const;
+		[[nodiscard]] bool isCreated() const;
 
 		std::map<unsigned char, std::list<QOpenGLBuffer>>& getVertexBuffers();
 

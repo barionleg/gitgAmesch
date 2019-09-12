@@ -13,7 +13,7 @@
 class TexturedMeshRenderer
 {
 	public:
-		TexturedMeshRenderer();
+		TexturedMeshRenderer() = default;
 		~TexturedMeshRenderer();
 
 		TexturedMeshRenderer(const TexturedMeshRenderer& other) = delete;

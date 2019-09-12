@@ -6,17 +6,11 @@
 
 #include "glmacros.h"
 
-TexturedMeshRenderer::TexturedMeshRenderer()
-{
-
-}
-
 TexturedMeshRenderer::~TexturedMeshRenderer()
 {
 	if(mIsInitialized)
 	{
 		destroy();
-		mIsInitialized = false;
 	}
 }
 
@@ -134,6 +128,8 @@ void TexturedMeshRenderer::render(const QMatrix4x4& projectionMatrix, const QMat
 void TexturedMeshRenderer::destroy()
 {
 	mShader->removeAllShaders();
+	delete mShader;
+	mShader = nullptr;
 
 	mVAO.destroy();
 
@@ -144,8 +140,7 @@ void TexturedMeshRenderer::destroy()
 	}
 
 	mTextures.clear();
-
-	delete mShader;
+	mIsInitialized = false;
 }
 
 bool TexturedMeshRenderer::initShader()
