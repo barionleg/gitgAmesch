@@ -471,6 +471,15 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 		case FUNCVAL_FACE_SORT_INDEX:
 			retVal = setFaceFuncValSortIdx();
 			break;
+		case FUNCVAL_SPHERE_SURFACE_LENGTH:
+			retVal = funcVertSphereSurfaceLength();
+			break;
+		case FUNCVAL_SPHERE_VOLUME_AREA:
+			retVal = funcVertSphereVolumeArea();
+			break;
+		case FUNCVAL_SPHERE_SURFACE_NUMBER_OF_COMPONENTS:
+			retVal = funcVertSphereSurfaceNumberOfComponents();
+			break;
 		// Edit
 		case EDIT_REMOVE_SELMFACES:
 			retVal &= removeFacesSelected();
@@ -8814,6 +8823,46 @@ bool Mesh::funcVertAddLight( Matrix4D &rTransformMat, unsigned int rArrayWidth, 
 	return true;
 }
 
+//! Sets the function value of every vertex to the normalized arc length of the intersection of a local part of the mesh surface with a sphere with the vertex as its center
+//! Asks for the sphere's radius
+//! The normalization factor is 1/r where r is the sphere's radius
+//! @returns False in case of an error. True otherwise.
+bool Mesh::funcVertSphereSurfaceLength() {
+#ifdef LIBSPHERICAL_INTERSECTION
+	cerr << "[Mesh::" << __FUNCTION__ << "] Not implemented!" << endl;
+	return false;
+#else
+	cerr << "[Mesh::" << __FUNCTION__ << "] Functionality missing!" << endl;
+	return false;
+#endif
+}
+
+//! Sets the function value of every vertex to the normalized areea of the intersection of a local part of the mesh volume with a sphere with the vertex as its center
+//! Asks for the sphere's radius
+//! The normalization factor is 1/(r^2) where r is the sphere's radius
+//! @returns False in case of an error. True otherwise.
+bool Mesh::funcVertSphereVolumeArea() {
+#ifdef LIBSPHERICAL_INTERSECTION
+	cerr << "[Mesh::" << __FUNCTION__ << "] Not implemented!" << endl;
+	return false;
+#else
+	cerr << "[Mesh::" << __FUNCTION__ << "] Functionality missing!" << endl;
+	return false;
+#endif
+}
+
+//! Sets the function value of every vertex to the number of components of the intersection of a local part of the mesh surface with a sphere with the vertex as its center
+//! Asks for the sphere's radius
+//! @returns False in case of an error. True otherwise.
+bool Mesh::funcVertSphereSurfaceNumberOfComponents() {
+#ifdef LIBSPHERICAL_INTERSECTION
+	cerr << "[Mesh::" << __FUNCTION__ << "] Not implemented!" << endl;
+	return false;
+#else
+	cerr << "[Mesh::" << __FUNCTION__ << "] Functionality missing!" << endl;
+	return false;
+#endif
+}
 
 //! Compute the correlation of the vertices feature vector and store it as their function value.
 bool Mesh::setVertFuncValCorrTo( vector<double>* rFeatVector ) {

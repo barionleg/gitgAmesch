@@ -115,6 +115,9 @@ class MeshParams {
 			FUNCVAL_VERT_ONE_RING_ANGLE_SUM,           //!< Compute the sum of all adjacent face angles within a 1-ring for all vertices.
 			FUNCVAL_VERT_MAX_DISTANCE,                 //!< tba
 			FUNCVAL_FACE_SORT_INDEX,                   //!< Sort index to face function value.
+			FUNCVAL_SPHERE_SURFACE_LENGTH,             //!< Compute a normalized arc length of the intersection of a local part of the mesh surface with a sphere
+			FUNCVAL_SPHERE_VOLUME_AREA,                //!< Compute a normalized area of the intersection of a local part of the mesh volume with a sphere
+			FUNCVAL_SPHERE_SURFACE_NUMBER_OF_COMPONENTS,//!< Compute the number of components of the intersection of a local part of the mesh surface with a sphere
 			EDIT_REMOVE_SELMFACES,                     //!< Remove selected faces (SelMFace).
 			EDIT_REMOVE_FACESZERO,                     //!< Call to remove face with zero area.
 			EDIT_REMOVE_FACES_BORDER_EROSION,          //!< Call to remove faces having three border vertices iterativly.

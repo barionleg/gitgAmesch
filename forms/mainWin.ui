@@ -220,6 +220,14 @@
      <addaction name="actionFuncValAxisAngleToRadial"/>
      <addaction name="actionFuncValOrthogonalAxisAngleToRaial"/>
     </widget>
+    <widget class="QMenu" name="menuSpherical_Intersection">
+     <property name="title">
+      <string>Spherical Intersection</string>
+     </property>
+     <addaction name="actionSphereSurfaceLength"/>
+     <addaction name="actionSphereVolumeArea"/>
+     <addaction name="actionSphereSurfaceNumberOfComponents"/>
+    </widget>
     <addaction name="actionFeatLengthMan"/>
     <addaction name="actionFeatLengthEuc"/>
     <addaction name="separator"/>
@@ -252,6 +260,7 @@
     <addaction name="menuColorPerVertexToFunctionValue"/>
     <addaction name="separator"/>
     <addaction name="actionAmbientOcclusion"/>
+    <addaction name="menuSpherical_Intersection"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -4325,6 +4334,21 @@ p, li { white-space: pre-wrap; }
   <action name="actionSelVertLabelBackGrd">
    <property name="text">
     <string>Vertices - Labeled Background</string>
+   </property>
+  </action>
+  <action name="actionSphereSurfaceLength">
+   <property name="text">
+    <string>Sphere Surface Length</string>
+   </property>
+  </action>
+  <action name="actionSphereVolumeArea">
+   <property name="text">
+    <string>Sphere Volume Area</string>
+   </property>
+  </action>
+  <action name="actionSphereSurfaceNumberOfComponents">
+   <property name="text">
+    <string>Sphere Surface Number of Components</string>
    </property>
   </action>
  </widget>

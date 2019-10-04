@@ -518,6 +518,9 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool funcVertFeatureVecElementByIndex( unsigned int rElementNr );
 		virtual bool funcVertDistanceToPlane( Vector3D rPlaneHNF, bool rAbsDist, bool rSilent=false );
 				bool funcVertAddLight(Matrix4D &rTransformMat, unsigned int rArrayWidth, unsigned int rArrayHeight, const std::vector<float>& rDepths, float rZTolerance );
+				bool funcVertSphereSurfaceLength();
+				bool funcVertSphereVolumeArea();
+				bool funcVertSphereSurfaceNumberOfComponents();
 		// Again some old style function value calls:
 		        bool setVertFuncValCorrTo( std::vector<double>* rFeatVector );
 		        bool setVertFuncValDistanceToSelPrim();

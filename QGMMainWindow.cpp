@@ -1060,6 +1060,9 @@ void QGMMainWindow::initMeshSignals() {
 	actionVisVert1RSumAngles->setProperty(                        "gmMeshFunctionCall", MeshParams::FUNCVAL_VERT_ONE_RING_ANGLE_SUM              );
 	actionFuncVertDistancesMax->setProperty(                      "gmMeshFunctionCall", MeshParams::FUNCVAL_VERT_MAX_DISTANCE                    );
 	actionVisFaceSortIndex->setProperty(                          "gmMeshFunctionCall", MeshParams::FUNCVAL_FACE_SORT_INDEX                      );
+	actionSphereSurfaceLength->setProperty(                       "gmMeshFunctionCall", MeshParams::FUNCVAL_SPHERE_SURFACE_LENGTH                );
+	actionSphereVolumeArea->setProperty(                          "gmMeshFunctionCall", MeshParams::FUNCVAL_SPHERE_VOLUME_AREA                   );
+	actionSphereSurfaceNumberOfComponents->setProperty(           "gmMeshFunctionCall", MeshParams::FUNCVAL_SPHERE_SURFACE_NUMBER_OF_COMPONENTS  );
 	actionAmbientOcclusion->setProperty(                          "gmMeshGLFunctionCall", MeshGLParams::FUNCVAL_AMBIENT_OCCLUSION                );
 	// ... Mesh editing ......................................................................................................................................
 	actionRemoveFacesSelected->setProperty(                       "gmMeshFunctionCall", MeshParams::EDIT_REMOVE_SELMFACES                        );
