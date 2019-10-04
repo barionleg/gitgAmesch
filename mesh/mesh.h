@@ -46,6 +46,14 @@ extern "C"
 	#include "cudamesh.h"
 #endif
 
+#ifdef LIBSPHERICAL_INTERSECTION
+	#include "spherical_intersection/include/algorithm/component_count.h"
+	#include "spherical_intersection/include/algorithm/sphere_surface_msii.h"
+	#include "spherical_intersection/include/algorithm/sphere_volume_msii.h"
+	#include "spherical_intersection/include/graph.h"
+	#include "spherical_intersection/include/mesh.h"
+#endif
+
 #include "meshinfodata.h"
 #include "meshio.h"
 #include "mesh_params.h"

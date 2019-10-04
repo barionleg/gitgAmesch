@@ -8823,14 +8823,197 @@ bool Mesh::funcVertAddLight( Matrix4D &rTransformMat, unsigned int rArrayWidth, 
 	return true;
 }
 
+#ifdef LIBSPHERICAL_INTERSECTION
+namespace {
+//! Converts a Mesh to a spherical_intersecton::Mesh
+//! @param original the given Mesh
+//! @returns The spherical_intersection::Mesh
+spherical_intersection::Mesh convertMesh( Mesh &original ) {
+	spherical_intersection::Mesh converted;
+
+	// add all vertices
+	auto vertexCount = original.getVertexNr();
+	for( uint64_t vertexIndex = 0; vertexIndex < vertexCount; vertexIndex++ ) {
+		const auto *vertex = original.getVertexPos( vertexIndex );
+		spherical_intersection::math3d::Vector location{vertex->getX(), vertex->getY(), vertex-> getZ()};
+		converted.add_vertex(location);
+	}
+
+	// add all faces
+	const auto &convertedVertices = converted.get_vertices();
+	auto faceCount = original.getFaceNr();
+	for ( uint64_t faceIndex = 0; faceIndex < faceCount; faceIndex++ ) {
+		auto *face = original.getFacePos( faceIndex );
+		const auto &convertedVertex0 = convertedVertices[face->getVertAIndex()];
+		const auto &convertedVertex1 = convertedVertices[face->getVertBIndex()];
+		const auto &convertedVertex2 = convertedVertices[face->getVertCIndex()];
+		converted.add_triangle(convertedVertex0, convertedVertex1, convertedVertex2);
+	}
+
+	return converted;
+}
+#ifdef THREADS
+//! Calculates the results obtained from applying a given algorithm to all vertices of a given spherical_intersection::Mesh
+//! @param mesh the given spherical_intersection::mesh
+//! @param algorithm the given algorithm
+//! @param threadCount number of worker threads used
+//! @param maximumBatchSize maximum number of vertices processed before updating the progress
+//! @param notifyAboutProgress a function that is occasionally called with the faction of processed vertices as its argument
+//! @returns The calculation results where the i-th result is the result corresponding to the i-th vertex
+vector<double> calculateSphericalIntersectionFuncfValues(
+	const spherical_intersection::Mesh &mesh,
+	function<double(const spherical_intersection::Mesh::Vertex &)> algorithm,
+	const size_t threadCount,
+	const size_t maximumBatchSize,
+	function<void(double)> notifyAboutProgress
+) {
+	// prepare multithreaded calculation
+	auto vertexCount = mesh.get_vertices().size();
+	size_t startIndex = 0;
+	vector<double> results(vertexCount);
+	auto setResults = [&mesh, &algorithm, &results](size_t startIndex, size_t count) {
+		for( size_t vertexIndex = startIndex; vertexIndex < startIndex+count; vertexIndex++ ) {
+			const auto &vertex = mesh.get_vertices()[vertexIndex];
+			results[vertexIndex] = algorithm(vertex);
+		}
+	};
+
+	// calculate results
+	while (startIndex < vertexCount) {
+		auto batchSize = min(vertexCount-startIndex, maximumBatchSize);
+		auto threadLoad = batchSize / threadCount;
+		auto lastThreadLoad = batchSize - (threadCount -1 ) * threadLoad;
+		vector<thread> threads;
+		threads.reserve(threadCount);
+		for( size_t threadIndex = 0; threadIndex < threadCount - 1; threadIndex++ ) {
+			threads.emplace_back(setResults, startIndex, threadLoad);
+			startIndex += threadLoad;
+		}
+		threads.emplace_back(setResults, startIndex, lastThreadLoad);
+		startIndex += lastThreadLoad;
+		for (auto &thread : threads) {
+			thread.join();
+		}
+		notifyAboutProgress( static_cast<double>(startIndex+1)/vertexCount );
+	}
+
+	return results;
+}
+#else
+//! Calculates the results obtained from applying a given algorithm to all vertices of a given spherical_intersection::Mesh
+//! @param mesh the given spherical_intersection::mesh
+//! @param algorithm the given algorithm
+//! @param notifyAboutProgress a function that is occasionally called with the faction of processed vertices as its argument
+//! @returns The calculation results where the i-th result is the result corresponding to the i-th vertex
+vector<double> calculateSphericalIntersectionFuncValues(
+	const spherical_intersection::Mesh &mesh,
+	function<double(const spherical_intersection::Mesh::Vertex &)> algorithm,
+	function<void(double)> notifyAboutProgress
+) {
+	auto vertexCount = mesh.get_vertices().size();
+	vector<double> results(vertexCount);
+
+	// calculate results
+	for( size_t vertexIndex = 0; vertexIndex < vertexCount; vertexIndex++ ) {
+		const auto &vertex = convertedMesh.get_vertices()[vertexIndex];
+		results[vertexIndex] = algorithm(vertex);
+		notifyAboutProgress( static_cast<double>(vertexIndex+1)/vertexCount );
+	}
+
+	return results;
+}
+#endif
+//! Assigns the i-th given values to the i-th vertex of the given mesh for every suitable i
+//! @param mesh the given mesh
+//! @param values the given values
+//! @returns False in case of an error. True otherwise.
+bool applyFuncValues( Mesh &mesh, vector<double> values ) {
+	for( size_t vertexIndex = 0; vertexIndex < min(mesh.getVertexNr(), values.size()); vertexIndex++ ) {
+		if ( !mesh.getVertexPos( vertexIndex )->setFuncValue( values[vertexIndex] ) ) {
+			return false;
+		}
+	}
+	return true;
+}
+}
+#endif
+
 //! Sets the function value of every vertex to the normalized arc length of the intersection of a local part of the mesh surface with a sphere with the vertex as its center
 //! Asks for the sphere's radius
 //! The normalization factor is 1/r where r is the sphere's radius
 //! @returns False in case of an error. True otherwise.
 bool Mesh::funcVertSphereSurfaceLength() {
 #ifdef LIBSPHERICAL_INTERSECTION
-	cerr << "[Mesh::" << __FUNCTION__ << "] Not implemented!" << endl;
-	return false;
+#ifdef THREADS
+	vector<double> parameters(3,0);
+	parameters[0] = 0.1;
+	parameters[1] = 7;
+	parameters[2] = 1000;
+
+	if( !showEnterText( parameters, "Radius, thread count and maximum batch size (3 values)" ) ) {
+		return false;
+	}
+	if( parameters.size() != 3 ) {
+		cerr << "[MeshGL::" << __FUNCTION__ << "] Wrong number of elements (" << parameters.size() << ") given. 3 expected!" << endl;
+		return false;
+	}
+	if ( parameters[0] <= 0 ) {
+		cerr << "[Mesh::" << __FUNCTION__ << "] Radius has to be > 0 (given radius: " << parameters[0] << ")" << endl;
+		return false;
+	}
+	if ( parameters[1] <= 0 ) {
+		cerr << "[Mesh::" << __FUNCTION__ << "] Thread count has to be > 0 (given thread count: " << parameters[0] << ")" << endl;
+		return false;
+	}
+	if ( parameters[2] <= 0 ) {
+		cerr << "[Mesh::" << __FUNCTION__ << "] Maximum batch size has to be > 0 (given maximum batch size: " << parameters[0] << ")" << endl;
+		return false;
+	}
+
+	// fetch values
+	auto radius = parameters[0];
+	auto threadCount = static_cast<size_t>(parameters[1]);
+	auto maximumBatchSize = static_cast<size_t>(parameters[2]);
+#else
+	vector<double> parameters(1,1);
+	if( !showEnterText( parameters, "Radius (1 value)" ) ) {
+		return false;
+	}
+	if( parameters.size() != 1 ) {
+		cerr << "[MeshGL::" << __FUNCTION__ << "] Wrong number of elements (" << parameters.size() << ") given. 1 expected!" << endl;
+		return false;
+	}
+	if ( parameters[0] <= 0 ) {
+		cerr << "[Mesh::" << __FUNCTION__ << "] Radius has to be > 0 (given radius: " << parameters[0] << ")" << endl;
+		return false;
+	}
+
+	// fetch value
+	auto radius = parameters[0];
+#endif
+	auto convertedMesh = convertMesh(*this);
+	string funcName = "Sphere Surface Length";
+	auto notifyAboutProgress = [&funcName, this](double value){
+		this->showProgress(value, funcName);
+	};
+	auto algorithm = [&radius](const spherical_intersection::Mesh::Vertex &vertex) {
+		spherical_intersection::math3d::Sphere sphere{vertex.get_location(), radius};
+		spherical_intersection::Graph graph{vertex, sphere};
+		return spherical_intersection::algorithm::get_sphere_surface_length(graph);
+	};
+	showProgressStart( funcName );
+#ifdef THREADS
+	auto values = calculateSphericalIntersectionFuncfValues(convertedMesh, algorithm, threadCount, maximumBatchSize, notifyAboutProgress);
+#else
+	auto values = calculateSphericalIntersectionFuncfValues(convertedMesh, algorithm, notifyAboutProgress);
+#endif
+	showProgressStop( funcName );
+	if ( !applyFuncValues(*this, values) ) {
+		return false;
+	}
+
+	changedVertFuncVal();
+	return true;
 #else
 	cerr << "[Mesh::" << __FUNCTION__ << "] Functionality missing!" << endl;
 	return false;
@@ -8843,8 +9026,76 @@ bool Mesh::funcVertSphereSurfaceLength() {
 //! @returns False in case of an error. True otherwise.
 bool Mesh::funcVertSphereVolumeArea() {
 #ifdef LIBSPHERICAL_INTERSECTION
-	cerr << "[Mesh::" << __FUNCTION__ << "] Not implemented!" << endl;
-	return false;
+#ifdef THREADS
+	vector<double> parameters(3,0);
+	parameters[0] = 0.1;
+	parameters[1] = 7;
+	parameters[2] = 1000;
+
+	if( !showEnterText( parameters, "Radius, thread count and maximum batch size (3 values)" ) ) {
+		return false;
+	}
+	if( parameters.size() != 3 ) {
+		cerr << "[MeshGL::" << __FUNCTION__ << "] Wrong number of elements (" << parameters.size() << ") given. 3 expected!" << endl;
+		return false;
+	}
+	if ( parameters[0] <= 0 ) {
+		cerr << "[Mesh::" << __FUNCTION__ << "] Radius has to be > 0 (given radius: " << parameters[0] << ")" << endl;
+		return false;
+	}
+	if ( parameters[1] <= 0 ) {
+		cerr << "[Mesh::" << __FUNCTION__ << "] Thread count has to be > 0 (given thread count: " << parameters[0] << ")" << endl;
+		return false;
+	}
+	if ( parameters[2] <= 0 ) {
+		cerr << "[Mesh::" << __FUNCTION__ << "] Maximum batch size has to be > 0 (given maximum batch size: " << parameters[0] << ")" << endl;
+		return false;
+	}
+
+	// fetch values
+	auto radius = parameters[0];
+	auto threadCount = static_cast<size_t>(parameters[1]);
+	auto maximumBatchSize = static_cast<size_t>(parameters[2]);
+#else
+	vector<double> parameters(1,1);
+	if( !showEnterText( parameters, "Radius (1 value)" ) ) {
+		return false;
+	}
+	if( parameters.size() != 1 ) {
+		cerr << "[MeshGL::" << __FUNCTION__ << "] Wrong number of elements (" << parameters.size() << ") given. 1 expected!" << endl;
+		return false;
+	}
+	if ( parameters[0] <= 0 ) {
+		cerr << "[Mesh::" << __FUNCTION__ << "] Radius has to be > 0 (given radius: " << parameters[0] << ")" << endl;
+		return false;
+	}
+
+	// fetch value
+	auto radius = parameters[0];
+#endif
+	auto convertedMesh = convertMesh(*this);
+	string funcName = "Sphere Volume Area";
+	auto notifyAboutProgress = [&funcName, this](double value){
+		this->showProgress(value, funcName);
+	};
+	auto algorithm = [&radius](const spherical_intersection::Mesh::Vertex &vertex) {
+		spherical_intersection::math3d::Sphere sphere{vertex.get_location(), radius};
+		spherical_intersection::Graph graph{vertex, sphere};
+		return spherical_intersection::algorithm::get_sphere_volume_area(graph);
+	};
+	showProgressStart( funcName );
+#ifdef THREADS
+	auto values = calculateSphericalIntersectionFuncfValues(convertedMesh, algorithm, threadCount, maximumBatchSize, notifyAboutProgress);
+#else
+	auto values = calculateSphericalIntersectionFuncfValues(convertedMesh, algorithm, notifyAboutProgress);
+#endif
+	showProgressStop( funcName );
+	if ( !applyFuncValues(*this, values) ) {
+		return false;
+	}
+
+	changedVertFuncVal();
+	return true;
 #else
 	cerr << "[Mesh::" << __FUNCTION__ << "] Functionality missing!" << endl;
 	return false;
@@ -8856,8 +9107,76 @@ bool Mesh::funcVertSphereVolumeArea() {
 //! @returns False in case of an error. True otherwise.
 bool Mesh::funcVertSphereSurfaceNumberOfComponents() {
 #ifdef LIBSPHERICAL_INTERSECTION
-	cerr << "[Mesh::" << __FUNCTION__ << "] Not implemented!" << endl;
-	return false;
+#ifdef THREADS
+	vector<double> parameters(3,0);
+	parameters[0] = 0.1;
+	parameters[1] = 7;
+	parameters[2] = 1000;
+
+	if( !showEnterText( parameters, "Radius, thread count and maximum batch size (3 values)" ) ) {
+		return false;
+	}
+	if( parameters.size() != 3 ) {
+		cerr << "[MeshGL::" << __FUNCTION__ << "] Wrong number of elements (" << parameters.size() << ") given. 3 expected!" << endl;
+		return false;
+	}
+	if ( parameters[0] <= 0 ) {
+		cerr << "[Mesh::" << __FUNCTION__ << "] Radius has to be > 0 (given radius: " << parameters[0] << ")" << endl;
+		return false;
+	}
+	if ( parameters[1] <= 0 ) {
+		cerr << "[Mesh::" << __FUNCTION__ << "] Thread count has to be > 0 (given thread count: " << parameters[0] << ")" << endl;
+		return false;
+	}
+	if ( parameters[2] <= 0 ) {
+		cerr << "[Mesh::" << __FUNCTION__ << "] Maximum batch size has to be > 0 (given maximum batch size: " << parameters[0] << ")" << endl;
+		return false;
+	}
+
+	// fetch values
+	auto radius = parameters[0];
+	auto threadCount = static_cast<size_t>(parameters[1]);
+	auto maximumBatchSize = static_cast<size_t>(parameters[2]);
+#else
+	vector<double> parameters(1,1);
+	if( !showEnterText( parameters, "Radius (1 value)" ) ) {
+		return false;
+	}
+	if( parameters.size() != 1 ) {
+		cerr << "[MeshGL::" << __FUNCTION__ << "] Wrong number of elements (" << parameters.size() << ") given. 1 expected!" << endl;
+		return false;
+	}
+	if ( parameters[0] <= 0 ) {
+		cerr << "[Mesh::" << __FUNCTION__ << "] Radius has to be > 0 (given radius: " << parameters[0] << ")" << endl;
+		return false;
+	}
+
+	// fetch value
+	auto radius = parameters[0];
+#endif
+	auto convertedMesh = convertMesh(*this);
+	string funcName = "Sphere Surface Number of Components";
+	auto notifyAboutProgress = [&funcName, this](double value){
+		this->showProgress(value, funcName);
+	};
+	auto algorithm = [&radius](const spherical_intersection::Mesh::Vertex &vertex) {
+		spherical_intersection::math3d::Sphere sphere{vertex.get_location(), radius};
+		spherical_intersection::Graph graph{vertex, sphere};
+		return spherical_intersection::algorithm::get_component_count(graph);
+	};
+	showProgressStart( funcName );
+#ifdef THREADS
+	auto values = calculateSphericalIntersectionFuncfValues(convertedMesh, algorithm, threadCount, maximumBatchSize, notifyAboutProgress);
+#else
+	auto values = calculateSphericalIntersectionFuncfValues(convertedMesh, algorithm, notifyAboutProgress);
+#endif
+	showProgressStop( funcName );
+	if ( !applyFuncValues(*this, values) ) {
+		return false;
+	}
+
+	changedVertFuncVal();
+	return true;
 #else
 	cerr << "[Mesh::" << __FUNCTION__ << "] Functionality missing!" << endl;
 	return false;
