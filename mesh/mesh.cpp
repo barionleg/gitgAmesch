@@ -8860,7 +8860,7 @@ spherical_intersection::Mesh convertMesh( Mesh &original ) {
 //! @param maximumBatchSize maximum number of vertices processed before updating the progress
 //! @param notifyAboutProgress a function that is occasionally called with the faction of processed vertices as its argument
 //! @returns The calculation results where the i-th result is the result corresponding to the i-th vertex
-vector<double> calculateSphericalIntersectionFuncfValues(
+vector<double> calculateSphericalIntersectionFuncValues(
 	const spherical_intersection::Mesh &mesh,
 	function<double(const spherical_intersection::Mesh::Vertex &)> algorithm,
 	const size_t threadCount,
@@ -8915,7 +8915,7 @@ vector<double> calculateSphericalIntersectionFuncValues(
 
 	// calculate results
 	for( size_t vertexIndex = 0; vertexIndex < vertexCount; vertexIndex++ ) {
-		const auto &vertex = convertedMesh.get_vertices()[vertexIndex];
+		const auto &vertex = mesh.get_vertices()[vertexIndex];
 		results[vertexIndex] = algorithm(vertex);
 		notifyAboutProgress( static_cast<double>(vertexIndex+1)/vertexCount );
 	}
@@ -9003,9 +9003,9 @@ bool Mesh::funcVertSphereSurfaceLength() {
 	};
 	showProgressStart( funcName );
 #ifdef THREADS
-	auto values = calculateSphericalIntersectionFuncfValues(convertedMesh, algorithm, threadCount, maximumBatchSize, notifyAboutProgress);
+	auto values = calculateSphericalIntersectionFuncValues(convertedMesh, algorithm, threadCount, maximumBatchSize, notifyAboutProgress);
 #else
-	auto values = calculateSphericalIntersectionFuncfValues(convertedMesh, algorithm, notifyAboutProgress);
+	auto values = calculateSphericalIntersectionFuncValues(convertedMesh, algorithm, notifyAboutProgress);
 #endif
 	showProgressStop( funcName );
 	if ( !applyFuncValues(*this, values) ) {
@@ -9085,9 +9085,9 @@ bool Mesh::funcVertSphereVolumeArea() {
 	};
 	showProgressStart( funcName );
 #ifdef THREADS
-	auto values = calculateSphericalIntersectionFuncfValues(convertedMesh, algorithm, threadCount, maximumBatchSize, notifyAboutProgress);
+	auto values = calculateSphericalIntersectionFuncValues(convertedMesh, algorithm, threadCount, maximumBatchSize, notifyAboutProgress);
 #else
-	auto values = calculateSphericalIntersectionFuncfValues(convertedMesh, algorithm, notifyAboutProgress);
+	auto values = calculateSphericalIntersectionFuncValues(convertedMesh, algorithm, notifyAboutProgress);
 #endif
 	showProgressStop( funcName );
 	if ( !applyFuncValues(*this, values) ) {
@@ -9166,9 +9166,9 @@ bool Mesh::funcVertSphereSurfaceNumberOfComponents() {
 	};
 	showProgressStart( funcName );
 #ifdef THREADS
-	auto values = calculateSphericalIntersectionFuncfValues(convertedMesh, algorithm, threadCount, maximumBatchSize, notifyAboutProgress);
+	auto values = calculateSphericalIntersectionFuncValues(convertedMesh, algorithm, threadCount, maximumBatchSize, notifyAboutProgress);
 #else
-	auto values = calculateSphericalIntersectionFuncfValues(convertedMesh, algorithm, notifyAboutProgress);
+	auto values = calculateSphericalIntersectionFuncValues(convertedMesh, algorithm, notifyAboutProgress);
 #endif
 	showProgressStop( funcName );
 	if ( !applyFuncValues(*this, values) ) {
