@@ -11,11 +11,11 @@ class Sphere;
 class Graph;
 
 namespace algorithm {
-//! @brief Computes the area of the
+//! @brief Computes a normalized area of the
 //! intersection of the mesh's volume and the sphere that define the
-//! intersection that is represented by the given graph relative to the sphere's
-//! radius squared if the graph contains at least one cycle. Deletes the graph's
-//! arcs in any case.
+//! intersection that is represented by the given graph if the graph contains at
+//! least one cycle. The normalization factor is 1/(r^2) where r is the sphere's
+//! radius. Deletes the graph's arcs in any case.
 //! @param graph reference to the Graph representing the intersection.
 //! @return The area if the graph contains at least one cycle.
 //! std::numeric_limits<double>::is_NaN() otherwise.
