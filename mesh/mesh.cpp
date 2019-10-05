@@ -8975,7 +8975,7 @@ bool Mesh::funcVertSphereSurfaceLength() {
 	auto threadCount = static_cast<size_t>(parameters[1]);
 	auto maximumBatchSize = static_cast<size_t>(parameters[2]);
 #else
-	vector<double> parameters(1,1);
+	vector<double> parameters(1,0.1);
 	if( !showEnterText( parameters, "Radius (1 value)" ) ) {
 		return false;
 	}
@@ -9057,7 +9057,7 @@ bool Mesh::funcVertSphereVolumeArea() {
 	auto threadCount = static_cast<size_t>(parameters[1]);
 	auto maximumBatchSize = static_cast<size_t>(parameters[2]);
 #else
-	vector<double> parameters(1,1);
+	vector<double> parameters(1,0.1);
 	if( !showEnterText( parameters, "Radius (1 value)" ) ) {
 		return false;
 	}
@@ -9138,7 +9138,7 @@ bool Mesh::funcVertSphereSurfaceNumberOfComponents() {
 	auto threadCount = static_cast<size_t>(parameters[1]);
 	auto maximumBatchSize = static_cast<size_t>(parameters[2]);
 #else
-	vector<double> parameters(1,1);
+	vector<double> parameters(1,0.1);
 	if( !showEnterText( parameters, "Radius (1 value)" ) ) {
 		return false;
 	}
