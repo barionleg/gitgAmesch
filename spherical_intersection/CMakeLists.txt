@@ -12,6 +12,10 @@ src/algorithm/sphere_volume_msii.cpp
 src/algorithm/sphere_surface_msii.cpp
 src/algorithm/component_count.cpp)
 target_include_directories(spherical_intersection PRIVATE include)
+if (NOT CMAKE_BUILD_TYPE)
+	message(STATUS "Using default build type: Release")
+	set(CMAKE_BUILD_TYPE Release)
+endif() 
 set(DEBUG_OPTIONS "-g;-Wall;-Wextra;-pedantic")
 set(RELEASE_OPTIONS "-O3")
 target_compile_options(spherical_intersection PRIVATE "$<$<CONFIG:Debug>:${DEBUG_OPTIONS}>")
