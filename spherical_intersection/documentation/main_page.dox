@@ -63,12 +63,12 @@ int main() {
 
 	std::cout << "length: " << sphere_surface_length << "\n" << std::endl;
 
-	// compute the relative area of the sphere volume intersection
+	// compute the area of the sphere volume intersection
 	// represented by the graph
-	auto relative_sphere_volume_area =
+	auto sphere_volume_area =
 	    algorithm::get_sphere_volume_area(graph);
 
-	std::cout << "area: " << relative_sphere_volume_area << "\n"
+	std::cout << "area: " << sphere_volume_area << "\n"
 		  << std::endl;
 
 	// recreate the graph
@@ -87,7 +87,7 @@ directed multigraph 0x613f857aab36 as successor lists:
 1 (1-0, 0): [0, 2, 1] 2
 2 (0-2, 0): [0, 3, 2] 0
 
-length: 0.471239
+length: 4.71239
 
 area: 0.125
 
