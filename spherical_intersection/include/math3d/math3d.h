@@ -191,7 +191,7 @@ inline Vector operator*(double factor, const Vector &v) {
 //! The vector is expected to be nonzero.
 //! @param v the vector.
 //! @return The normal vector parallel to v.
-inline Vector normalize(const Vector &v, double tolerance = 0) {
+inline Vector normalize(const Vector &v) {
 	double inverse_factor = std::sqrt(norm2(v));
 	assert(inverse_factor != 0);
 	return (1 / inverse_factor) * v;
