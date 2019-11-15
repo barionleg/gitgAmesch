@@ -16,6 +16,7 @@
 #include "algorithm/component_count.h"
 #include "algorithm/sphere_surface_msii.h"
 #include "algorithm/sphere_volume_msii.h"
+#include "algorithm/sphere_intersections_msii.h"
 #include "graph.h"
 #include "mesh.h"
 #include "timer.h"
@@ -33,7 +34,7 @@ bool input_format_is_set = false;
 double radius;
 bool radius_is_set = false;
 
-std::function<double(spherical_intersection::Graph &)> algorithm;
+std::function<std::vector<double>(spherical_intersection::Graph &)> algorithm;
 bool algorithm_is_set = false;
 
 std::string output_path;
@@ -72,35 +73,24 @@ void set_parser_up(Input_Parser &input_parser) {
 	input_parser.add_value(radius, "-radius", "Sets the sphere radius.",
 			       &radius_is_set);
 
-	std::function<std::function<double(spherical_intersection::Graph &)>(
+	std::function<std::function<std::vector<double>(spherical_intersection::Graph &)>(
 	    const std::string &string)>
 	    algorithm_conversion = [](const std::string &algorithm_name)
-	    -> std::function<double(spherical_intersection::Graph &)> {
-		if (algorithm_name == "sphere_surface") {
+	    -> std::function<std::vector<double>(spherical_intersection::Graph &)> {
+		if (algorithm_name == "sphere_intersections") {
 			return
-			    [](spherical_intersection::Graph &graph) -> double {
+			    [](spherical_intersection::Graph &graph) -> std::vector<double> {
 				    return spherical_intersection::algorithm::
-					get_sphere_surface_length(graph);
-			    };
-		} else if (algorithm_name == "sphere_volume") {
-			return
-			    [](spherical_intersection::Graph &graph) -> double {
-				    return spherical_intersection::algorithm::
-					get_sphere_volume_area(graph);
-			    };
-		} else if (algorithm_name == "components") {
-			return
-			    [](spherical_intersection::Graph &graph) -> double {
-				    return spherical_intersection::algorithm::
-					get_component_count(graph);
+					get_sphere_intersections(graph);
 			    };
 		} else {
 			throw std::invalid_argument("Unknown algorithm given.");
 		}
 	};
+
 	input_parser.add_value(algorithm, "-algorithm",
 			       "Sets the algorithm. Possible values: "
-			       "components, sphere_volume, sphere_surface",
+			       "sphere_intersections",
 			       &algorithm_is_set, algorithm_conversion);
 
 	input_parser.add_value(
@@ -161,13 +151,13 @@ bool arguments_are_valid() {
 	return result;
 }
 
-std::vector<double> compute_all_values(
+std::vector<std::vector<double>> compute_all_values(
     const spherical_intersection::Mesh &mesh, double radius,
-    std::function<double(spherical_intersection::Graph &graph)> algorithm,
+    std::function<std::vector<double>(spherical_intersection::Graph &graph)> algorithm,
     std::size_t thread_count) {
 	const auto &vertices = mesh.get_vertices();
 	std::size_t vertex_count = vertices.size();
-	std::vector<double> values(vertex_count);
+	std::vector<std::vector<double>> values(vertex_count);
 	auto set_range = [&vertices, &values, &algorithm, &radius](
 			     std::size_t start_index, std::size_t amount) {
 		for (std::size_t index = start_index;
@@ -219,6 +209,26 @@ std::vector<double> compute_all_values(
 }
 } // namespace
 
+
+bool save_features(std::string output_path, std::vector<std::vector<double>> &features){
+	std::ofstream file;
+	file.open(output_path);
+
+	for (int numbOfVertices = 0;numbOfVertices<features.size();numbOfVertices++)
+	{
+		for (int numbOfFeatures = 0; numbOfFeatures != features[numbOfVertices].size(); numbOfFeatures+=3)
+		{
+
+			file << numbOfVertices << " " << numbOfFeatures/3 << " " << features[numbOfVertices][0+numbOfFeatures] << " "
+			     << features[numbOfVertices][1+numbOfFeatures] << " " << features[numbOfVertices][2+numbOfFeatures] << "\n";
+		}
+	}
+
+	file.close();
+	return true;
+}
+
+
 int main(int argc, char *argv[]) {
 	Input_Parser input_parser;
 	set_parser_up(input_parser);
@@ -227,6 +237,10 @@ int main(int argc, char *argv[]) {
 
 	if (help_is_requested) {
 		std::cout << input_parser.get_help() << std::endl;
+		std::cout << "Example shell command:" << std::endl;
+		std::cout << "./profiles -format obj -algorithm sphere_intersections -max_load 100 -radius 1 -threads 2 " << std::endl;
+		std::cout << "-input /export/home/mspankus/Documents/project/scripts/Data/sample1.obj " << std::endl;
+		std::cout << "-output /export/home/mspankus/Documents/project/scripts/Data/processedSample1.obj  " << std::endl;
 	}
 
 	if (!args_are_valid) {
@@ -273,8 +287,7 @@ int main(int argc, char *argv[]) {
 		  << " vertices per second" << std::endl;
 
 	std::cout << "Exporting values... " << std::flush;
-	object_io::ply::save_ply(output_path, object_information, values,
-				 object_io::ply::Format::binary_little_endian);
+	bool saveSuccess = save_features(output_path,values);
 	std::cout << "Done!" << std::endl;
 
 	return 0;

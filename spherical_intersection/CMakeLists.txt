@@ -9,6 +9,7 @@ src/graph_geometry.cpp
 src/graph_visualization.cpp
 src/mesh.cpp
 src/algorithm/sphere_volume_msii.cpp
+src/algorithm/sphere_intersections_msii.cpp
 src/algorithm/sphere_surface_msii.cpp
 src/algorithm/component_count.cpp)
 target_include_directories(spherical_intersection PRIVATE include)

@@ -3,6 +3,7 @@
 
 #include <cstddef>
 
+
 namespace spherical_intersection {
 namespace math3d {
 class Sphere;
