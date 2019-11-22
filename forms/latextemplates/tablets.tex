@@ -1,0 +1,141 @@
+\def\tabletscale{1}                 % default scale 1:1
+\newcommand{\tabletfnname}[1]{#1}   % prefix of the tablets filename
+
+\newcommand{\tabletfatcross}[4]{
+	% CDLI fat cross (6 Views)
+	% Parameter 1: Caption
+	% Parameter 2: Prefix filename
+	% Parameter 3: Scale
+	% Parameter 4: fig::id
+	\def\tabletscale{#3}
+	\renewcommand{\tabletfnname}[1]{VAT_11403_GM_orient_#2_color}
+	\vspace*{\fill}
+	\begin{figure}[!h]
+		\begin{center}
+		\begin{tabular}{ccc}
+			&   % empty
+			\includegraphics[scale=\tabletscale]{__01_HA_TOP__}        &
+			\\  % empty
+			\includegraphics[scale=\tabletscale]{__02_Ha_LEFT__}       &
+			\includegraphics[scale=\tabletscale]{__03_HA_FRONT__}      &
+			\includegraphics[scale=\tabletscale]{__04_ha_RIGHT__}      \\
+			&   % empty
+			\includegraphics[scale=\tabletscale]{__05_HA_BOTTOM__}     &
+			\\  % empty
+			&   % ignore: \includegraphics[scale=\tabletscale]{#2_06_ha_back_left}  &
+			\includegraphics[scale=\tabletscale]{__07_HA_BACK__}       &
+			\\  % ignore: \includegraphics[scale=\tabletscale]{#2_08_ha_back_right} \\
+		\end{tabular}
+		\caption{#1}
+		\label{#4}
+		\end{center}
+	\end{figure}
+	\vspace*{\fill}
+}
+
+\newcommand{\tabletfatcrossinv}[4]{
+	% CDLI fat cross (6 Views) INVERTED
+	% Parameter 1: Caption
+	% Parameter 2: Prefix filename
+	% Parameter 3: Scale
+	% Parameter 4: fig::id
+	\def\tabletscale{#3}
+	\renewcommand{\tabletfnname}[1]{VAT_11403_GM_orient_#2_color}
+	\vspace*{\fill}
+	\begin{figure}[!h]
+		\begin{center}
+		\begin{tabular}{ccc}
+			&   % ignore: \includegraphics[scale=\tabletscale]{#2_02_ha_left}       &
+			\includegraphics[scale=\tabletscale]{_03_ha_front}      &
+			\\  % ignore: \includegraphics[scale=\tabletscale]{#2_04_ha_right}      \\
+			&   % empty
+			\includegraphics[scale=\tabletscale]{_05_ha_bottom}     &
+			\\  % empty
+			\includegraphics[scale=\tabletscale]{_06_ha_back_left}  &
+			\includegraphics[scale=\tabletscale]{_07_ha_back}       &
+			\includegraphics[scale=\tabletscale]{_08_ha_back_right} \\
+			&   % empty
+			\includegraphics[scale=\tabletscale]{_01_ha_top}        &
+			\\  % empty
+		\end{tabular}
+		\caption{#1}
+		\label{#4}
+		\end{center}
+	\end{figure}
+	\vspace*{\fill}
+}
+
+\newcommand{\tabletpatfatcross}[4]{
+	% patriarchal fat cross (8 Views)
+	% Parameter 1: Caption
+	% Parameter 2: Prefix filename
+	% Parameter 3: Scale
+	% Parameter 4: fig::id
+	\def\tabletscale{#3}
+	\renewcommand{\tabletfnname}[1]{VAT_11403_GM_orient_#2_color}
+	\vspace*{\fill}
+	\begin{figure}[!h]
+		\begin{center}
+		\begin{tabular}{ccc}
+			&   % empty
+			\includegraphics[scale=\tabletscale]{_01_ha_top}        &
+			\\  % empty
+			\includegraphics[scale=\tabletscale]{_02_ha_left}       &
+			\includegraphics[scale=\tabletscale]{_03_ha_front}      &
+			\includegraphics[scale=\tabletscale]{_04_ha_right}      \\
+			&   % empty
+			\includegraphics[scale=\tabletscale]{_05_ha_bottom}     &
+			\\  % empty
+			\includegraphics[scale=\tabletscale]{_06_ha_back_left}  &
+			\includegraphics[scale=\tabletscale]{_07_ha_back}       &
+			\includegraphics[scale=\tabletscale]{_08_ha_back_right} \\
+		\end{tabular}
+		\caption{#1}
+		\label{#4}
+		\end{center}
+	\end{figure}
+	\vspace*{\fill}
+}
+
+\newcommand{\tabletfatcrosssideway}[4]{
+	% CDLI fat cross (6 Views) sideways using images rotated 90° counter-clockwise
+	% Parameter 1: Caption
+	% Parameter 2: Prefix filename
+	% Parameter 3: Scale
+	% Parameter 4: fig::id
+	\def\tabletscale{#3}
+	\renewcommand{\tabletfnname}[1]{VAT_11403_GM_orient_#2_color}
+	\vspace*{\fill}
+	\begin{figure}[!h]
+		\begin{center}
+		\begin{tabular}{ccc}
+			&   % empty
+			\includegraphics[scale=\tabletscale]{_07_ha_back}        &
+			\\  % empty
+			& % ignore \includegraphics[scale=\tabletscale]{#2_06_ha_back_left}       &
+			\includegraphics[scale=\tabletscale]{_04_ha_right}      &
+			\\ % ignore \includegraphics[scale=\tabletscale]{#2_08_ha_back_right}      \\
+			\includegraphics[scale=\tabletscale]{_01_ha_top}  &
+			\includegraphics[scale=\tabletscale]{_03_ha_front}       &
+			\includegraphics[scale=\tabletscale]{_05_ha_bottom} \\
+			&   % empty
+			\includegraphics[scale=\tabletscale]{_02_ha_left}     &
+			\\  % empty
+		\end{tabular}
+		\caption{#1}
+		\label{#4}
+		\end{center}
+	\end{figure}
+	\vspace*{\fill}
+}
+
+\newcommand{\duplexensureevenpage}{
+ 	\ifx\noduplex\undefined
+		\checkoddpage
+		\ifoddpage
+			\newpage
+			\phantom{Intenionally left blank for duplex printing}
+			\clearpage
+		\fi
+ 	\fi
+}

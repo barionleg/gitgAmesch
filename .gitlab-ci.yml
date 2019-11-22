@@ -1,0 +1,151 @@
+stages:
+  - build
+
+windows:
+  # Use created image for mxe
+  image: ffeldman/bionic-mxe-gcc9:latest
+  stage: build
+  # install the necessary build tools when needed
+  before_script:
+   #- apt update && apt -y install cmake libtiff5-dev #make autoconf g++ git cmake unzip
+   #- apt -y install qtbase5-dev libcairo2-dev libtiff5-dev g++-8 sudo
+  script:
+ #   - git checkout windows
+    - export PATH="/mxe/usr/bin:$PATH"
+    - export PATH="/mxe/usr/x86_64-w64-mingw32.static/qt5/bin:$PATH"
+    - export QT_SELECT=qt5
+    # build libpsalm
+    - cd external/libpsalmBoostless
+    - mkdir build
+    - cd build
+    - /mxe/usr/bin/x86_64-w64-mingw32.static-cmake ..
+    - /mxe/usr/bin/x86_64-w64-mingw32.static-cmake --build . --config Release
+    - cp libpsalm.a ../
+    # go back and build alglib
+    - cd ../../
+    - unzip alglib-2.6.0.cpp.zip
+    - mv cpp alglib
+    - cd alglib
+#    - chmod u+x build
+#    - ./build gcc "-pipe -std=c++17 -O2 -ftree-loop-vectorize -Wall -Wextra -Wpedantic -Werror=format-security -D_GLIBC_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fpie -fstack-protector-strong"
+# we build it manually using gcc => see the build script of alglib
+    - cp src/* _tmp
+    - cd _tmp
+    - x86_64-w64-mingw32.static-gcc -I. -L. -c -pipe -std=c++17 -O2 -ftree-loop-vectorize -Wall -Wextra -Wpedantic -Werror=format-security -D_GLIBC_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fpie *.cpp
+    - x86_64-w64-mingw32.static-ar -rc libalglib.a *.o
+    - cp libalglib.a ../out
+    - cp ../src/*.h ../out
+    - rm -f *
+    - cd ..
+    # Build mesh parts.
+    - cd ../..
+    - mkdir meshBuild
+    - cd meshBuild
+    - /mxe/usr/bin/x86_64-w64-mingw32.static-cmake ..
+    - /mxe/usr/bin/x86_64-w64-mingw32.static-cmake --build . --config Release
+    - cd ..
+    - /mxe/usr/x86_64-w64-mingw32.static/qt5/bin/qmake
+    - make -j
+
+  artifacts:
+    name: "gigamesh_windows"
+    paths:
+      - release/gigamesh.exe
+      - meshBuild/gigamesh-featurevectors.exe
+      - meshBuild/gigamesh-tolegacy.exe
+      - meshBuild/gigamesh-clean.exe
+      - meshBuild/gigamesh-info.exe
+      - meshBuild/gigamesh-borders.exe
+    expire_in: 4 hours
+   
+ubuntu bionic:
+  # Use ubuntu 18.04 LTS
+  image: ubuntu:bionic
+  stage: build
+  # install the necessary build tools when needed
+  before_script: 
+   - apt update && apt -y install make autoconf g++ git cmake unzip
+   - apt -y install qtbase5-dev libcairo2-dev libtiff5-dev g++-8 sudo
+  script:
+    # Make sure g++-8, gcc-8 is default
+    - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 10
+    - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 10
+    - export QT_SELECT=qt5
+    # build libpsalm
+    - cd external/libpsalmBoostless
+    - mkdir build
+    - cd build
+    - cmake ..
+    - cmake --build . --config Release
+    - cp libpsalm.a ../
+    # go back and build alglib
+    - cd ../../
+    - unzip alglib-2.6.0.cpp.zip
+    - mv cpp alglib
+    - cd alglib
+    - chmod u+x build
+    - ./build gcc "-pipe -std=c++17 -O2 -ftree-loop-vectorize -Wall -Wextra -Wpedantic -Werror=format-security -D_GLIBC_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fpie -fstack-protector-strong"
+    - cd ../..
+    - mkdir meshBuild
+    - cd meshBuild
+    - cmake ..
+    - cmake --build . --config Release
+    - cd ..
+    - qmake
+    - make -j
+
+  artifacts:
+    name: "gigamesh_bionic"
+    paths:
+      - gigamesh
+      - meshBuild/gigamesh-featurevectors
+      - meshBuild/gigamesh-tolegacy
+      - meshBuild/gigamesh-clean
+      - meshBuild/gigamesh-info
+      - meshBuild/gigamesh-borders
+    expire_in: 4 hours
+    
+manjaro arch:
+  # Use latest manjaro release
+  image: archlinux/base
+  stage: build
+  # install the necessary build tools when needed
+  before_script: 
+   - pacman -Sy
+   - pacman -S gcc glibc cmake boost unzip qtcreator make cairo git --noconfirm
+  script:
+    - export QT_SELECT=qt5
+    # build libpsalm
+    - cd external/libpsalmBoostless
+    - mkdir build
+    - cd build
+    - cmake ..
+    - cmake --build . --config Release
+    - cp libpsalm.a ../
+    # go back and build alglib
+    - cd ../../
+    - unzip alglib-2.6.0.cpp.zip
+    - mv cpp alglib
+    - cd alglib
+    - chmod u+x build
+    - ./build gcc "-pipe -std=c++17 -O2 -ftree-loop-vectorize -Wall -Wextra -Wpedantic -Werror=format-security -D_GLIBC_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fpie -fstack-protector-strong"
+    # Build mesh parts.
+    - cd ../..
+    - mkdir meshBuild
+    - cd meshBuild
+    - cmake ..
+    - cmake --build . --config Release
+    - cd ..
+    - qmake
+    - make -j
+  artifacts:
+    name: "gigamesh_arch_manjaro"
+    paths:
+      - gigamesh
+      - meshBuild/gigamesh-featurevectors
+      - meshBuild/gigamesh-tolegacy
+      - meshBuild/gigamesh-clean
+      - meshBuild/gigamesh-info
+      - meshBuild/gigamesh-borders
+    expire_in: 4 hours
+  
