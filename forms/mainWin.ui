@@ -126,6 +126,7 @@
     <addaction name="actionImportNormals"/>
     <addaction name="actionImportTexMap"/>
     <addaction name="separator"/>
+    <addaction name="actionExportFeatureVectors"/>
     <addaction name="actionExportFuncVals"/>
     <addaction name="separator"/>
     <addaction name="actionExportCoordinatesOfAllVerticesAsCSV"/>
@@ -4343,6 +4344,11 @@ p, li { white-space: pre-wrap; }
   <action name="actionFaces_Normal_Sphere">
    <property name="text">
     <string>Normal-Sphere - Faces</string>
+   </property>
+  </action>
+  <action name="actionExportFeatureVectors">
+   <property name="text">
+    <string>Export Feature Vectors (per Vertex)</string>
    </property>
   </action>
  </widget>

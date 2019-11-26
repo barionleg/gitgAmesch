@@ -350,6 +350,7 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		virtual bool importFeatureVectors(const QString& rFileName );
 		virtual bool importFunctionValues(const QString& rFileName );
 
+		virtual bool exportFeatureVectors();
 
 	signals:
 		void updateGL();                             //!< requests an update from the MeshWidget.

@@ -134,6 +134,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	QObject::connect( mMainWindow, &QGMMainWindow::sFileImportFunctionValues, this, &MeshQt::importFunctionValues );
 	// Old Qt Style connections:
 	QObject::connect( mMainWindow, SIGNAL(sFileImportFeatureVectors(QString)), this, SLOT(importFeatureVectors(QString)) );
+	QObject::connect( mMainWindow, SIGNAL(sExportFeatureVectors()), this, SLOT(exportFeatureVectors()) );
 	QObject::connect( mMainWindow, SIGNAL(sFileImportTexMap(QString)),         this, SLOT(importTexMapFromFile(QString)) );
 	QObject::connect( mMainWindow, SIGNAL(sFileImportNormals(QString)),        this, SLOT(importNormalVectorsFile(QString)) );
 	//.
@@ -733,7 +734,7 @@ bool MeshQt::exportPolyLinesFuncVals() {
 bool MeshQt::exportFuncVals() {
 	QString filePath = QString( getFileLocation().c_str() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Export function values" ), \
-	                                                 filePath + getBaseName().c_str() + "_funcvals.txt", \
+													 filePath + "/" + getBaseName().c_str() + "_funcvals.txt", \
 													 tr( "ASCII text (*.txt)" ) );
 	if( fileName.length() == 0 ) {
 		return false;
@@ -746,7 +747,7 @@ bool MeshQt::exportFuncVals() {
 		return false;
 	}
 
-	if( !MeshGL::exportFuncVals( fileName.toStdString(), withVertIdx ) ) {
+	if( !Mesh::exportFuncVals( fileName.toStdString(), withVertIdx ) ) {
 		SHOW_MSGBOX_CRIT( tr("Export function values"), tr("Failed") );
 		emit statusMessage( "ERROR: Function values NOT exported to: " + fileName );
 		return false;
@@ -4496,7 +4497,7 @@ bool MeshQt::importNormalVectorsFile( const QString& rFileName ) {
 //! @returns false in case of an error. True otherwise.
 bool MeshQt::importFeatureVectors( const QString& rFileName ) {
 	emit statusMessage( "Importing feature vectors from " + rFileName );
-	if( !MeshGL::importFeatureVectorsFromFile( rFileName.toStdString() ) ) {
+	if( !Mesh::importFeatureVectorsFromFile( rFileName.toStdString() ) ) {
 		emit statusMessage( "ERROR - Reading file " + rFileName );
 		return( false );
 	}
@@ -4521,6 +4522,29 @@ bool MeshQt::importFunctionValues( const QString& rFileName ) {
 	emit statusMessage( "Feature vectors assigned and imported from " + rFileName );
 	return( true );
 	*/
+}
+
+//! Export feature vectors and emit statusMessage
+bool MeshQt::exportFeatureVectors()
+{
+	QString filePath = QString( getFileLocation().c_str()) ;
+
+	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Export feature vectors" ), \
+													 filePath + "/" + getBaseName().c_str() + "_featureVectors.txt", \
+													 tr( "Feature Vectors (*.txt *.mat)" ) );
+	if( fileName.length() == 0 ) {
+		return false;
+	}
+
+	emit statusMessage( "Exporting feature vectors to " + fileName);
+
+	if( !Mesh::exportFeatureVectors( fileName.toStdString() ) ) {
+		emit statusMessage( "ERROR - Writing file " + fileName );
+		return( false );
+	}
+
+	emit statusMessage( "Feature vectors exported to " + fileName);
+	return true;
 }
 
 //! Display the dialog for NPR settings.

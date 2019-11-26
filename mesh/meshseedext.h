@@ -39,8 +39,7 @@ class MeshSeedExt {
 		virtual void clear();
 
 		// Import / Export - Feature Vectors
-		virtual bool importFeatureVectors( const std::string& rFileName, const uint64_t rNrVerticesMax, std::vector<double>& rFeatureVecs, uint64_t& rMaxFeatVecLen, bool rVertexIdInFirstCol );
-		virtual bool exportFeatureVectors( const std::string& rFilename );
+		virtual bool importFeatureVectors( const std::string& rFileName, uint64_t rNrVerticesMax, std::vector<double>& rFeatureVecs, uint64_t& rMaxFeatVecLen, bool rVertexIdInFirstCol );
 
 		// Feature std::vectors - STUB to be overloaded by Mesh
 		virtual uint64_t getFeatureVecLenMax( int rPrimitiveType );

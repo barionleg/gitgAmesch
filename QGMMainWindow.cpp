@@ -72,6 +72,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	//.
 	QObject::connect( actionImportTexMap,             SIGNAL(triggered()), this,       SLOT(menuImportTexMap())          );
 	QObject::connect( actionImportFeatureVectors,     SIGNAL(triggered()), this,       SLOT(menuImportFeatureVectors())  );
+	QObject::connect( actionExportFeatureVectors,     SIGNAL(triggered()), this,       SIGNAL(sExportFeatureVectors())  );
 	QObject::connect( actionImportNormals,            SIGNAL(triggered()), this,       SLOT(menuImportNormalVectors())   );
 	//.
 	QObject::connect( actionExportPolylines,          SIGNAL(triggered()), this,       SIGNAL(exportPolyLinesCoords())          );
@@ -1296,7 +1297,7 @@ void QGMMainWindow::menuImportFeatureVectors() {
 	QString fileName = QFileDialog::getOpenFileName( this,
 													 tr( "Import Feature Vectors (Vertices)" ),
 	                                                 settings.value( "lastPath" ).toString(),
-													 tr( "Texture maps (*.mat *.txt)" )
+													 tr( "Feature vectors (*.mat *.txt)" )
 	                                                );
 	if( fileName.length() > 0 ) {
 		emit sFileImportFeatureVectors( fileName );
