@@ -3829,7 +3829,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionImportFunctionValues">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>Import Function Values (&amp;per Vertex)</string>

@@ -15108,6 +15108,92 @@ bool Mesh::exportFuncVals( string rFileName, bool rWithVertIdx ) {
 	return true;
 }
 
+bool Mesh::importFuncValsFromFile(const string& rFileName, bool withVertIdx)
+{
+	ifstream filestr(rFileName);
+
+	filestr.imbue(std::locale("C"));
+
+	if(!filestr.is_open())
+	{
+		LOG::error() << "[Mesh::" << __FUNCTION__ << "] Could not open file: '" << rFileName << "'.\n";
+		return false;
+	}
+
+	auto numVerts = getVertexNr();
+	std::string line;
+	double funcVal;
+
+	//importing with index
+	if(withVertIdx)
+	{
+		uint64_t currIndex = 0;
+		while(std::getline(filestr, line))
+		{
+			if(!line.empty())
+			{
+				if(line[0] == '#')
+				{
+					continue;
+				}
+
+				std::stringstream lineStream(line);
+				if(!(lineStream >> currIndex >> funcVal))
+				{
+					LOG::warn() << "[Mesh::" << __FUNCTION__ << "] File: '" << rFileName << "' contains invalid values!\n";
+					continue;
+				}
+
+				if(currIndex < numVerts)
+				{
+					mVertices[currIndex]->setFuncValue(funcVal);
+				}
+				else
+				{
+					LOG::warn() << "[Mesh::" << __FUNCTION__ << "] warning: function value out of range: " << currIndex << "\n";
+				}
+			}
+		}
+	}
+	//importing without index
+	else
+	{
+		uint64_t currIndex = 0;
+		while(std::getline(filestr, line))
+		{
+			if(!line.empty())
+			{
+				if(line[0] == '#')
+				{
+					continue;
+				}
+
+				if(currIndex > numVerts)
+				{
+					LOG::warn() << "[Mesh::" << __FUNCTION__ << "] warning: function value out of range: " << currIndex - 1 << "\n";
+					break;
+				}
+				try {
+					funcVal = std::stod(line);
+				}
+				catch (std::exception& e)
+				{
+					LOG::warn() << "[Mesh::" << __FUNCTION__ << "] File: '" << rFileName << "' contains invalid values!\n";
+					mVertices[currIndex++]->setFuncValue(0);
+					continue;
+				}
+
+				mVertices[currIndex++]->setFuncValue(funcVal);
+			}
+		}
+	}
+
+	filestr.close();
+
+	changedVertFuncVal();
+	return true;
+}
+
 //! Exports the faces normals as sphereical coordinates as ASCII file in the format:
 //! Face Number Phi Theta Radius
 //! File extension: .facen

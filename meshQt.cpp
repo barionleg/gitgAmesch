@@ -4510,18 +4510,24 @@ bool MeshQt::importFeatureVectors( const QString& rFileName ) {
 //! See ...
 //! @returns false in case of an error. True otherwise.
 bool MeshQt::importFunctionValues( const QString& rFileName ) {
-	cerr << "[MeshQt::" << __FUNCTION__ << "] ERROR: not yet implemented!" << endl;
-	return( false );
-	/*
+
 	emit statusMessage( "Importing feature vectors from " + rFileName );
-	if( !MeshGL::importFeatureVectorsFromFile( rFileName.toStdString() ) ) {
+
+	// Ask for vertex index within the first colum
+	bool hasVertexIndex = true;
+	if( !showQuestion( &hasVertexIndex, "First Column", "Does the first column contain the vertex index?<br /><br />"
+					   "Recommendation: YES for files computed with gigamesh-featurevectors" ) ) {
+		std::cout << "[Mesh::" << __FUNCTION__ << "] User cancled." << std::endl;
+		return( false );
+	}
+
+	if( !Mesh::importFuncValsFromFile( rFileName.toStdString(), hasVertexIndex ) ) {
 		emit statusMessage( "ERROR - Reading file " + rFileName );
 		return( false );
 	}
 	emit primitiveSelected( mPrimSelected );
 	emit statusMessage( "Feature vectors assigned and imported from " + rFileName );
 	return( true );
-	*/
 }
 
 //! Export feature vectors and emit statusMessage

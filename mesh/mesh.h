@@ -694,6 +694,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool exportPolyLinesCoordsProjected( std::string rFileName, bool rWithVertIdx, double rAngleRot=0.0 );
 				bool exportPolyLinesFuncVals( std::string rFileName );
 				bool exportFuncVals( std::string rFileName, bool rWithVertIdx );
+				bool importFuncValsFromFile( const std::string& rFileName, bool withVertIdx );
 		virtual bool exportFaceNormalAngles( std::string filename );
 
 		// Extra menu
