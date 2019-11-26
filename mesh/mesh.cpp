@@ -1157,6 +1157,8 @@ bool Mesh::importFeatureVectorsFromFile(
 	return( true );
 }
 
+//! Exports feature vectors to a file
+//! @returns false in case of an error or user cancel
 bool Mesh::exportFeatureVectors(const string& rFileName)
 {
 	// Ask for vertex index within the first colum
@@ -15108,6 +15110,10 @@ bool Mesh::exportFuncVals( string rFileName, bool rWithVertIdx ) {
 	return true;
 }
 
+//! Imports function values of the vertices
+//! File extension: .txt or .mat
+//! assumes that the files are either single column with the functionValue, or double column with index + functionValue
+//! lines starting with # are treated as comments
 bool Mesh::importFuncValsFromFile(const string& rFileName, bool withVertIdx)
 {
 	ifstream filestr(rFileName);
