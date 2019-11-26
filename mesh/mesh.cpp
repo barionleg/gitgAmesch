@@ -1200,29 +1200,21 @@ bool Mesh::exportFeatureVectors(const string& rFileName)
 	filestr << "# | Timestamp:  " << timeInfoStr << endl;
 	filestr << "# +-------------------------------------------------------------------------------+" << endl;
 
-	if(hasVertexIndex)
+	uint64_t currIndex = 0;
+	for(const auto currVert : mVertices)
 	{
-		for(unsigned int i = 0, currIndex = 0; i<mFeatureVecVertices.size(); i += mFeatureVecVerticesLen, ++currIndex)
+		auto vecSize = currVert->getFeatureVectorLen();
+		if(hasVertexIndex)
 		{
-			filestr << currIndex;
-			for(unsigned int j = i; j< i + mFeatureVecVerticesLen; ++j)
-			{
-				filestr << " " << mFeatureVecVertices[j];
-			}
-			filestr << "\n";
+			filestr << (currIndex++) << " ";
 		}
-	}
-	else
-	{
-		for(unsigned int i = 0; i<mFeatureVecVertices.size(); i += mFeatureVecVerticesLen)
-		{
-			filestr << mFeatureVecVertices[i];
 
-			for(unsigned int j = i+1; j < i + mFeatureVecVerticesLen; ++j)
-			{
-				filestr << " " << mFeatureVecVertices[j];
-			}
-			filestr << "\n";
+		for(int i = 0; i<vecSize; ++i)
+		{
+			double elem;
+			currVert->getFeatureElement(i, &elem);
+			filestr << elem;
+			filestr << (i == vecSize - 1 ? "\n" : " ");
 		}
 	}
 

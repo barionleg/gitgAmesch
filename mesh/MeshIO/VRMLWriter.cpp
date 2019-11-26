@@ -69,4 +69,5 @@ bool VRMLWriter::writeFile(const std::string& rFilename, const std::vector<sVert
 	filestr.close();
 
 	cout << "[VRMLWriter] VRML written to: " << rFilename << "\n";
+	return true;
 }
