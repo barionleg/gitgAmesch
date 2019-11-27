@@ -8759,6 +8759,25 @@ bool Mesh::funcVertAddLight( Matrix4D &rTransformMat, unsigned int rArrayWidth, 
 	return true;
 }
 
+//! Copies the function value from each vertex to the nth component of its feature vector
+//! @param dim the component of the feature vector, where the function value is written to. If dim > featureVecSize, then the vector gets padded with zeros to fit dim
+//! @returns False in case of an error
+bool Mesh::funcValToFeatureVector(unsigned int dim)
+{
+	for(auto pVertex : mVertices)
+	{
+		if(dim >= pVertex->getFeatureVectorLen())
+		{
+			pVertex->resizeFeatureVector(dim + 1);
+		}
+		double funcVal;
+		pVertex->getFuncValue(&funcVal);
+		pVertex->setFeatureElement(dim, funcVal);
+	}
+
+	return true;
+}
+
 
 //! Compute the correlation of the vertices feature vector and store it as their function value.
 bool Mesh::setVertFuncValCorrTo( vector<double>* rFeatVector ) {

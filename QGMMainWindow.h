@@ -336,7 +336,7 @@ signals:
 	// #####################################################################################################################################################
 	// # FUNCTION VALUE
 	// #####################################################################################################################################################
-	// # Feature Vector reöated
+	// # Feature Vector related
 	void sFuncVertFeatLengthEuc();                           //!< Visualize the length of the feature vector using euclidean metric.
 	void sFuncVertFeatLengthMan();                           //!< Visualize the length of the feature vector using manhattan metric.
 	void sFuncVertFeatBVFunc();                              //!< Visualize the Bounded Variation (BV) the feature vectors.
@@ -349,6 +349,7 @@ signals:
 	void sFuncVertFeatCorrSelVert();                         //!< Visualize Correlation to a selected Vertex using OpenGL.
 	void sFuncVertFeatAutoCorrVert();                        //!< Visualize Auto Correlation of Vertices features using OpenGL.
 	void sFuncVertFeatAutoCorrSelVert();                     //!< Visualize Auto-Correlation and Correlation to a selected Vertex using OpenGL.
+	void sFuncValToFeatureVector();                          //!< Assign function value to Nth feature vector component
 	// # Distance to plane, line, selected primitive and cone
 	void visualizeDistanceToPlane();                         //!< triggers the plane distance estimation.
 	void visualizeDistanceToCone();                          //!< triggers distance to cone estimation (if cone has been selected)

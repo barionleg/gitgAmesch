@@ -249,8 +249,10 @@ class Vertex : public Primitive {
 				                             const std::vector<double>* rWeightNum=nullptr, const std::vector<double>* rWeightDenom=nullptr );
 		// Other feature vector related functions
 		virtual bool         getFeatureElement( unsigned int rElementNr, double* rElementValue );
+		virtual bool         setFeatureElement( unsigned int elementNr, double value);
 		virtual unsigned int getFeatureVectorLen();
-		        int      cutOffFeatureElements( double rMinVal, double rMaxVal, bool rSetToNotANumber );
+				int          cutOffFeatureElements( double rMinVal, double rMaxVal, bool rSetToNotANumber );
+		virtual void         resizeFeatureVector(unsigned int size);
 		// Feature vector smoothing:
 		virtual bool     getFeatureVecMedianOneRing( std::vector<double>& rMedianValues, double rMinDist );
 		virtual bool     getFeatureVecMeanOneRing(   std::vector<double>& rMeanValues,   double rMinDist );

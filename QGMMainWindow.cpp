@@ -272,6 +272,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionFeatCorrelationSelectedVert,    SIGNAL(triggered()),   this,       SIGNAL(sFuncVertFeatCorrSelVert())             ); // <- NEW naming convention based on new menu structure!
 	QObject::connect( actionFeatAutoCorrelationVert,        SIGNAL(triggered()),   this,       SIGNAL(sFuncVertFeatAutoCorrVert())            ); // <- NEW naming convention based on new menu structure!
 	QObject::connect( actionFeatAutoSelectedVertCorr,       SIGNAL(triggered()),   this,       SIGNAL(sFuncVertFeatAutoCorrSelVert())         ); // <- NEW naming convention based on new menu structure!
+	QObject::connect( actionFuncValToFeatureVector,         SIGNAL(triggered()),   this,       SIGNAL(sFuncValToFeatureVector())              );
 	//! \todo Rename regarding new menu structure.
 	// # Distance to plane, line, selected primitive and cone
 	QObject::connect( actionDistanceToPlane,                SIGNAL(triggered()),   this,       SIGNAL(visualizeDistanceToPlane())             ); // <- OLD

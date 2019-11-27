@@ -201,6 +201,8 @@
      <addaction name="separator"/>
      <addaction name="actionFuncValFeatureVecPNorm"/>
      <addaction name="actionFuncValFeatureVecMahalanobis"/>
+     <addaction name="separator"/>
+     <addaction name="actionFuncValToFeatureVector"/>
     </widget>
     <widget class="QMenu" name="menuColorPerVertexToFunctionValue">
      <property name="title">
@@ -4349,6 +4351,11 @@ p, li { white-space: pre-wrap; }
   <action name="actionExportFeatureVectors">
    <property name="text">
     <string>Export Feature Vectors (per Vertex)</string>
+   </property>
+  </action>
+  <action name="actionFuncValToFeatureVector">
+   <property name="text">
+    <string>Function Value to Feature Vector</string>
    </property>
   </action>
  </widget>

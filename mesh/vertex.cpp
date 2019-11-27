@@ -1951,6 +1951,19 @@ bool Vertex::getFeatureElement( unsigned int rElementNr, double* rElementValue )
 	return true;
 }
 
+//! Sets an element of the feature vector to value.
+//! @param elementNr the element to be set
+//! @param value the value to set the element to
+//! @returns false, if elementNr is out of range
+bool Vertex::setFeatureElement(unsigned int elementNr, double value)
+{
+	if(elementNr >= mFeatureVecLen)
+		return false;
+
+	mFeatureVec[elementNr] = value;
+	return true;
+}
+
 //! @returns the length of the feature vector.
 unsigned int Vertex::getFeatureVectorLen() {
 	return mFeatureVecLen;
@@ -1983,6 +1996,27 @@ int Vertex::cutOffFeatureElements( double rMinVal, double rMaxVal, bool rSetToNo
 		}
 	}
 	return elementsChanged;
+}
+
+//! resizes the feature-vector of the vertex to fit size
+//! @param size the new size. If size is smaller than the current size, elements get cut. Otherwise, the vector is padded with zeros
+void Vertex::resizeFeatureVector(unsigned int size)
+{
+	if(size == mFeatureVecLen)
+		return;
+
+	double* oldVec = mFeatureVec;
+	unsigned int oldlen = mFeatureVecLen;
+	mFeatureVec = new double[size];
+	mFeatureVecLen = size;
+
+	//copy data
+	for(int i = 0; i<mFeatureVecLen; ++i)
+	{
+		mFeatureVec[i] = i < oldlen ? oldVec[i] : 0.0;
+	}
+
+	delete[] oldVec;
 }
 
 

@@ -161,6 +161,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	QObject::connect( mMainWindow, SIGNAL(funcValsNormalize()),          this, SLOT(funcValsNormalize())      );
 	QObject::connect( mMainWindow, SIGNAL(funcValsAbs()),                this, SLOT(funcValsAbs())            );
 	QObject::connect( mMainWindow, SIGNAL(funcValsAdd()),                this, SLOT(funcValsAdd())            );
+	QObject::connect( mMainWindow, SIGNAL(sFuncValToFeatureVector()),    this, SLOT(funcValsToFeatureVector()));
 	//.
 	QObject::connect( mMainWindow, SIGNAL(setConeData()),                this, SLOT(setConeData()));
 	QObject::connect( mMainWindow, SIGNAL(centerAroundCone()),           this, SLOT(centerAroundCone()));
@@ -1085,6 +1086,17 @@ bool MeshQt::funcValsAdd() {
 bool MeshQt::funcValsAdd( double rVal ) {
 	//! (2/2) Execute - see Mesh::setVertFuncValAdd
 	return setVertFuncValAdd( rVal );
+}
+
+bool MeshQt::funcValsToFeatureVector()
+{
+	QGMDialogEnterText dlgEnterTextVal;
+	dlgEnterTextVal.setInt(0);
+	dlgEnterTextVal.setWindowTitle( tr("Set dimension (warning, resizes feature vectors if necessary!)") );
+
+	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int dim) {this->funcValToFeatureVector(dim);});
+
+	return dlgEnterTextVal.exec() == QDialog::Accepted;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
