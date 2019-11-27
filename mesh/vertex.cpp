@@ -2013,7 +2013,7 @@ void Vertex::resizeFeatureVector(unsigned int size)
 	//copy data
 	for(int i = 0; i<mFeatureVecLen; ++i)
 	{
-		mFeatureVec[i] = i < oldlen ? oldVec[i] : 0.0;
+		mFeatureVec[i] = i < oldlen ? oldVec[i] : _NOT_A_NUMBER_DBL_;
 	}
 
 	delete[] oldVec;
