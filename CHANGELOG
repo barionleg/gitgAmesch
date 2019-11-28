@@ -1,5 +1,20 @@
 Current version
++) New: Face selection by normal vectors. See "Select -> Normal-Sphere Faces".
++) New: Support for textured ply and obj files
++) New: Basic support for obj-mtl files. Currently, only reading of map_Kd is used to parse textures.
++) New: Setting of log verbosity by command line ("--log-level [0-4]")
++) New: Border extraction (CLI)
++) New: Feature vector export "File -> Export Feature Vectors (per Vertex)"
++) New: Function Value import "File -> Import Function Values (per Vertex)"
++) New: Mapping function values to feature-vector elements "Functions -> Feature Vectors - Extra Functions -> Function Value to Feature Vector"
 +) Improved: The function value of SelPrim can be chosen by the user, when executing "Analyze -> Polylines from &Isovalue / Functionvalue".
++) Improved: Reduced Point-Cloud rendering now works with all Render-Passes
++) Improved: Logging performance should now be better in various places
++) Bugfix: fixed exporting differnt DPI values for x and y when exporting screenshots
++) Bugfix: Slider dialogs are now emitting exact values
++) Bugfix: Inconsistent behaviours of Slider dialogs regarding the factor property
++) Bugfix: Fixed a bug when exporting ASCII plys with polylines
++) Bugfix: Suggested filename for exporting function values is now correct
 
 Version 190805
 +) New: Selection by normal vectors. See "Select -> Vertices Normal Sphere". Attention: unstable in Windows!
