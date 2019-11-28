@@ -27,7 +27,7 @@ bool PinRenderer::init()
 
 	mGL.initializeOpenGLFunctions();
 
-	if(!mShaderPins->isLinked())
+	if(!mShaderPins)
 	{
 		if(!initializeShader())
 		{
@@ -58,6 +58,7 @@ void PinRenderer::destroy()
 	mAllocatedBufferSize = 0;
 
 	delete mShaderPins;
+	mShaderPins = nullptr;
 }
 
 void PinRenderer::render(std::vector<PinVertex> &pinPoints, const QMatrix4x4& projectionMatrix, const QMatrix4x4& modelViewMatrix, float pinSize)
