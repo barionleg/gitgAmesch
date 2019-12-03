@@ -6773,17 +6773,20 @@ bool Mesh::isolineToPolyline(
 			continue;
 		}
 		for( uint64_t j=0; j<64; j++ ) {
+			const uint64_t currFaceIndex = i*64+j;
+
+			// skip unused bits within the last block:
+			if( ( i==faceBlocksNr-1 ) && ( currFaceIndex >= getFaceNr() ) ) {
+				break;
+			}
+
 			uint64_t currentBit = static_cast<uint64_t>(1) << j;
 			if( facesVisitedBitArray[i] & currentBit ) {
 				// face already visited.
 				continue;
 			}
-			// skip unused bits within the last block:
-			if( ( i==faceBlocksNr-1 ) && ( i*64+j >= getFaceNr() ) ) {
-				break;
-			}
 			//cout << "[Mesh::isolineToPolyline] Check Face in Block No. " << i << " Bit No. " << j << endl;
-			Face* checkFace = getFacePos( i*64+j );
+			Face* checkFace = getFacePos( currFaceIndex );
 			if( !checkFace->isOnFuncValIsoLine( rIsoValue ) ) {
 				// when the face is not along the isoline, we mark it visited and move on:
 				facesVisitedBitArray[i] |= currentBit;

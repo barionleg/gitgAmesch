@@ -11,6 +11,8 @@
 #include "edgegeodesic.h"
 #include "plane.h"
 
+#include "../logging/Logging.h"
+
 #define FACE_NEIGHBOUR_AB mNeighbourFaces[0]
 #define FACE_NEIGHBOUR_BC mNeighbourFaces[1]
 #define FACE_NEIGHBOUR_CA mNeighbourFaces[2]
@@ -2320,6 +2322,12 @@ bool Face::isOnFuncValIsoLine( double isoThres ) {
 	return false;
 }
 
+//! Get next point to trace IsoLine
+//! @param Isoline function value
+//! @param isoPoint return value of the next point on the Polyline
+//! @param faceNext return value of the next face to check. May be nullptr if there is no singular next face
+//! @param searchForward determines the search direction
+//! @return true, if a valid next point was found. false otherwise
 bool Face::getFuncValIsoPoint( double    isoThres,
 	                       Vector3D* isoPoint,
 	                       Face**    faceNext,
@@ -2335,19 +2343,58 @@ bool Face::getFuncValIsoPoint( double    isoThres,
 	funcValA -= isoThres;
 	funcValB -= isoThres;
 	funcValC -= isoThres;
-	//cout << "[Face::getFuncValIsoPoint] funcValA: " << funcValA << " funcValB: " << funcValB << " funcValC: " << funcValC << endl;
-	// Check if funcValue is ZERO - then we can return exactly the vertex the isoline hit.
-	if( funcValA == 0.0 ) {
-		cerr << "[Face::getFuncValIsoPoint] funcValA: " << funcValA << " funcValB: " << funcValB << " funcValC: " << funcValC << endl;
+
+	*faceNext = nullptr;
+
+	//cases, where only the isoline touches the face in one or all points
+	if((funcValA == 0.0 && funcValB == 0.0 && funcValC == 0.0) && //case all points are on isoValue
+	   (funcValA == 0.0 && funcValB * funcValC > 0.0)          && //case A is on, but B and C have same sign
+	   (funcValB == 0.0 && funcValC * funcValA > 0.0)          && //case B is on, but C and A have same sign
+	   (funcValC == 0.0 && funcValA * funcValB > 0.0)             //case C is on, but A and B have same sign
+	  )
+	{
+		LOG::debug() << "[Face::" << __FUNCTION__ << "] Isoline only touches face! Ignore this one.\n";
 		return false;
 	}
-	if( funcValB == 0.0 ) {
-		cerr << "[Face::getFuncValIsoPoint] funcValA: " << funcValA << " funcValB: " << funcValB << " funcValC: " << funcValC << endl;
-		return false;
+
+	//helper function to handle the cases, where one or two vertices are on the isovalue
+	auto selectPointAndFace = [isoPoint, faceNext, this] (VertexOfFace* A, VertexOfFace* B, VertexOfFace* C, double fValB, double fValC, Face* nextFace, bool searchForward) -> bool {
+		if(searchForward)
+		{
+			isoPoint->set(A->getPositionVector());
+			if(fValB != 0.0 && fValC != 0.0)	//if the other point is on a edge, we know the next face to check
+				*faceNext = nextFace;
+			return true;
+		}
+
+		//backwards search cases
+		if(fValB == 0.0)
+		{
+			isoPoint->set(B->getPositionVector());
+			return true;
+		}
+		if(fValC == 0.0)
+		{
+			isoPoint->set(C->getPositionVector());
+			return true;
+		}
+
+		return this->getPointOnWeightedLine(isoPoint, B, C, 0.0, fValB, fValC);
+	};
+
+	if( funcValA == 0.0)
+	{
+		return selectPointAndFace(vertA, vertB, vertC, funcValB, funcValC, FACE_NEIGHBOUR_BC, searchForward);
 	}
-	if( funcValC == 0.0 ) {
-		cerr << "[Face::getFuncValIsoPoint] funcValA: " << funcValA << " funcValB: " << funcValB << " funcValC: " << funcValC << endl;
-		return false;
+
+	if( funcValB == 0.0)
+	{
+		return selectPointAndFace(vertB, vertC, vertA, funcValC, funcValA, FACE_NEIGHBOUR_CA, searchForward);
+	}
+
+	if( funcValC == 0.0)
+	{
+		return selectPointAndFace(vertC, vertA, vertB, funcValA, funcValB, FACE_NEIGHBOUR_AB, !searchForward); //we need to invert searchForward here, because the AB-edge is the forwardintersection in this case, not the point
 	}
 
 	// Find the edge not intersected by the isoline:
@@ -2378,7 +2425,7 @@ bool Face::getFuncValIsoPoint( double    isoThres,
 	}
 
 	// we should never reach this point, when the face is on the isoline
-	cerr << "[Face::" << __FUNCTION__ << "] ERROR: Face NOT on an isoline!" << endl;
+	LOG::debug() << "[Face::" << __FUNCTION__ << "] ERROR: Face NOT on an isoline!\n";
 	return false;
 }
 
