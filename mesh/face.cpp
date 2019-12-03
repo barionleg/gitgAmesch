@@ -2327,11 +2327,13 @@ bool Face::isOnFuncValIsoLine( double isoThres ) {
 //! @param isoPoint return value of the next point on the Polyline
 //! @param faceNext return value of the next face to check. May be nullptr if there is no singular next face
 //! @param searchForward determines the search direction
+//! @param faceVisited If Isoline is on an edge, we set faceVisited to the other face on the edge to avoid duplicated polylines
 //! @return true, if a valid next point was found. false otherwise
 bool Face::getFuncValIsoPoint( double    isoThres,
 	                       Vector3D* isoPoint,
 	                       Face**    faceNext,
-	                       bool      searchForward
+						   bool      searchForward,
+						   Face**    faceVisited
 ) {
 	//! Estimates the centroid shifted by function values - returned as isoPoint.
 	double funcValA = _NOT_A_NUMBER_DBL_;
@@ -2344,7 +2346,8 @@ bool Face::getFuncValIsoPoint( double    isoThres,
 	funcValB -= isoThres;
 	funcValC -= isoThres;
 
-	*faceNext = nullptr;
+	*faceNext    = nullptr;
+	*faceVisited = nullptr;
 
 	//cases, where only the isoline touches the face in one or all points
 	if((funcValA == 0.0 && funcValB == 0.0 && funcValC == 0.0) && //case all points are on isoValue
@@ -2358,12 +2361,12 @@ bool Face::getFuncValIsoPoint( double    isoThres,
 	}
 
 	//helper function to handle the cases, where one or two vertices are on the isovalue
-	auto selectPointAndFace = [isoPoint, faceNext, this] (VertexOfFace* A, VertexOfFace* B, VertexOfFace* C, double fValB, double fValC, Face* nextFace, bool searchForward) -> bool {
+	auto selectPointAndFace = [isoPoint, faceNext, faceVisited, this] (VertexOfFace* A, VertexOfFace* B, VertexOfFace* C, double fValB, double fValC, Face* nextFaceBC, Face* visitFaceAB, Face* visitFaceAC, bool searchForward) -> bool {
 		if(searchForward)
 		{
 			isoPoint->set(A->getPositionVector());
 			if(fValB != 0.0 && fValC != 0.0)	//if the other point is on a edge, we know the next face to check
-				*faceNext = nextFace;
+				*faceNext = nextFaceBC;
 			return true;
 		}
 
@@ -2371,11 +2374,13 @@ bool Face::getFuncValIsoPoint( double    isoThres,
 		if(fValB == 0.0)
 		{
 			isoPoint->set(B->getPositionVector());
+			*faceVisited = visitFaceAB;
 			return true;
 		}
 		if(fValC == 0.0)
 		{
 			isoPoint->set(C->getPositionVector());
+			*faceVisited = visitFaceAC;
 			return true;
 		}
 
@@ -2384,17 +2389,17 @@ bool Face::getFuncValIsoPoint( double    isoThres,
 
 	if( funcValA == 0.0)
 	{
-		return selectPointAndFace(vertA, vertB, vertC, funcValB, funcValC, FACE_NEIGHBOUR_BC, searchForward);
+		return selectPointAndFace(vertA, vertB, vertC, funcValB, funcValC, FACE_NEIGHBOUR_BC, FACE_NEIGHBOUR_AB, FACE_NEIGHBOUR_CA, searchForward);
 	}
 
 	if( funcValB == 0.0)
 	{
-		return selectPointAndFace(vertB, vertC, vertA, funcValC, funcValA, FACE_NEIGHBOUR_CA, searchForward);
+		return selectPointAndFace(vertB, vertC, vertA, funcValC, funcValA, FACE_NEIGHBOUR_CA, FACE_NEIGHBOUR_BC, FACE_NEIGHBOUR_AB, searchForward);
 	}
 
 	if( funcValC == 0.0)
 	{
-		return selectPointAndFace(vertC, vertA, vertB, funcValA, funcValB, FACE_NEIGHBOUR_AB, !searchForward); //we need to invert searchForward here, because the AB-edge is the forwardintersection in this case, not the point
+		return selectPointAndFace(vertC, vertA, vertB, funcValA, funcValB, FACE_NEIGHBOUR_AB, FACE_NEIGHBOUR_CA, FACE_NEIGHBOUR_BC, !searchForward); //we need to invert searchForward here, because the AB-edge is the forwardintersection in this case, not the point
 	}
 
 	// Find the edge not intersected by the isoline:

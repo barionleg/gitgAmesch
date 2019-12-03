@@ -6824,13 +6824,14 @@ bool Mesh::isolineToPolyline(
 			}
 			Vector3D  isoPoint;
 			Face*     nextFace = nullptr;
+			Face*     excludeFace = nullptr;
 			uint64_t  bitOffset;
 			uint64_t  bitNr;
 
 			// Trace in forward direction:
 			//----------------------------
 			// Fetch first point ...
-			checkFaceFirst->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, true );
+			checkFaceFirst->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, true, &excludeFace );
 			// ... add to polyline with normal ....
 			Vector3D normalPos = checkFaceFirst->getNormal( true );
 			isoLine->addFront( isoPoint, normalPos, checkFaceFirst );
@@ -6848,7 +6849,7 @@ bool Mesh::isolineToPolyline(
 					break;
 				}
 				// get the point ...
-				checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, true );
+				checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, true, &excludeFace );
 				// ... add to polyline with normal ...
 				normalPos = checkFace->getNormal( true );
 				isoLine->addFront( isoPoint, normalPos, checkFace );
@@ -6864,7 +6865,7 @@ bool Mesh::isolineToPolyline(
 
 			// Trace in backward direction:
 			//------------------------------
-			checkFaceFirst->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, false );
+			checkFaceFirst->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, false, &excludeFace );
 			// ... add to polyline with normal ....
 			normalPos = checkFaceFirst->getNormal( true );
 			isoLine->addBack( isoPoint, normalPos, checkFaceFirst );
@@ -6880,7 +6881,7 @@ bool Mesh::isolineToPolyline(
 					break;
 				}
 				// get the point ...
-				if( !checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, false ) ) {
+				if( !checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, false, &excludeFace ) ) {
 					LOG::warn() << "[Mesh::" << __FUNCTION__ << "] unknown problem.\n";
 				}
 				// ... add to polyline with normal ...
