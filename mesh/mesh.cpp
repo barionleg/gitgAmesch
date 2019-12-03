@@ -6768,7 +6768,7 @@ bool Mesh::isolineToPolyline(
 	uint64_t  faceBlocksNr = getBitArrayFaces( &facesVisitedBitArray );
 
 	for( uint64_t i=0; i<faceBlocksNr; i++ ) {
-		if( facesVisitedBitArray[i] == 0xFFFFFFFF ) {
+		if( facesVisitedBitArray[i] == 0xFFFFFFFFFFFFFFFF ) {
 			// whole block visited.
 			continue;
 		}
