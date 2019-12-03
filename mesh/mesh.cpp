@@ -3039,7 +3039,7 @@ bool Mesh::selectFaceInSphere( Vertex* rSeed, double rRadius ) {
 	int vertNrLongs = getBitArrayVerts( &vertBitArrayVisited );
 	// Allocate the bit arrays for faces:
 	uint64_t* faceBitArrayVisited;
-	int faceNrLongs = getBitArrayFaces( &faceBitArrayVisited );
+	uint64_t faceNrLongs = getBitArrayFaces( &faceBitArrayVisited );
 	if( !fetchSphereBitArray( rSeed, &facesInSphere, rRadius,  vertNrLongs, vertBitArrayVisited, faceNrLongs, faceBitArrayVisited ) ) {
 		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: fetchSphereBitArray failed!" << endl;
 		return false;
@@ -6750,25 +6750,25 @@ bool Mesh::isolineToPolyline(
 	vector<Vector3D> labelNormals;
 	estLabelNormalSizeCenterVert( &labelCenters, &labelNormals );
 	vector<Vector3D>::iterator itLabelCenters;
-	for( itLabelCenters=labelCenters.begin(); itLabelCenters!=labelCenters.end(); itLabelCenters++ ) {
-		Vector3D labelCenter = (*itLabelCenters);
-		cout << "[Mesh::" << __FUNCTION__ << "] vertex count: " << labelCenter.getH() << endl;
-		labelCenter.dumpInfo();
+	for( auto& labelCenter : labelCenters) {
+		//LOG::debug() << "[Mesh::" << __FUNCTION__ << "] vertex count: " << labelCenter.getH() << "\n";
+		//labelCenter.dumpInfo();
 		labelCenter /= labelCenter.getH();
-		(*itLabelCenters) = labelCenter;
 	}
-	vector<Vector3D>::iterator itLabelNormals;
-	for( itLabelNormals=labelNormals.begin(); itLabelNormals!=labelNormals.end(); itLabelNormals++ ) {
-		cout << "[Mesh::" << __FUNCTION__ << "] label area: " << (*itLabelNormals).getLength3() << endl;
-		//(*itLabelNormals).normalize3();
+
+	/*
+	for( const auto& labelNormal : labelNormals) {
+		cout << "[Mesh::" << __FUNCTION__ << "] label area: " << labelNormal.getLength3() << endl;
+		//labelNormal.normalize3();
 	}
+	*/
 
 	// Bit array:
 	uint64_t* facesVisitedBitArray;
 	uint64_t  faceBlocksNr = getBitArrayFaces( &facesVisitedBitArray );
 
 	for( uint64_t i=0; i<faceBlocksNr; i++ ) {
-		if( facesVisitedBitArray[i] == 0xFFFFFFFF ) {
+		if( facesVisitedBitArray[i] == 0xFFFFFFFFFFFFFFFF ) {
 			// whole block visited.
 			continue;
 		}
@@ -6797,12 +6797,12 @@ bool Mesh::isolineToPolyline(
 			bool isLabelBorder = checkFaceFirst->vertLabelLabelBorder( &isLabelLabelBorder, &labelFromBorder );
 			if( isLabelBorder ) {
 				if( isLabelLabelBorder ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] is on a label-label border." << endl;
+					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] is on a label-label border.\n";
 				} else {
-					cout << "[Mesh::" << __FUNCTION__ << "] is on a nolabel-label border. labelFromBorder: " << labelFromBorder << endl;
+					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] is on a nolabel-label border. labelFromBorder: " << labelFromBorder << "\n";
 				}
 			} else {
-				cout << "[Mesh::" << __FUNCTION__ << "] is NOT on a label related border." << endl;
+				LOG::debug() << "[Mesh::" << __FUNCTION__ << "] is NOT on a label related border.\n";
 			}
 
 			//cout << "[Mesh::" << __FUNCTION__ << "] Trace Face in Block No. " << i << " Bit No. " << j << endl;
@@ -6841,7 +6841,7 @@ bool Mesh::isolineToPolyline(
 				//cout << "[Mesh::" << __FUNCTION__ << "] Face in Block No. " << bitOffset << " Bit No. " << bitNr << endl;
 				// check if we have been there to prevent infinite loops:
 				if( facesVisitedBitArray[bitOffset] & static_cast<uint64_t>(1)<<bitNr ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] closed polyline (forward)." << endl;
+					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] closed polyline (forward).\n";
 					break;
 				}
 				// get the point ...
@@ -6855,7 +6855,7 @@ bool Mesh::isolineToPolyline(
 				checkFace = nextFace;
 				// for debuging:
 				if( nextFace == nullptr ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] open polyline (forward)." << endl;
+					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] open polyline (forward).\n";
 				}
 			}
 
@@ -6873,12 +6873,12 @@ bool Mesh::isolineToPolyline(
 				//cout << "[Mesh::" << __FUNCTION__ << "] Face in Block No. " << bitOffset << " Bit No. " << bitNr << endl;
 				// check if we have been there to prevent infinite loops:
 				if( facesVisitedBitArray[bitOffset] & static_cast<uint64_t>(1)<<bitNr ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] closed polyline (backward)." << endl;
+					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] closed polyline (backward).\n";
 					break;
 				}
 				// get the point ...
 				if( !checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, false ) ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] unknown problem." << endl;
+					LOG::warn() << "[Mesh::" << __FUNCTION__ << "] unknown problem.\n";
 				}
 				// ... add to polyline with normal ...
 				normalPos = checkFace->getNormal( true );
@@ -6889,7 +6889,7 @@ bool Mesh::isolineToPolyline(
 				checkFace = nextFace;
 				// for debuging:
 				if( nextFace == nullptr ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] open polyline (backward)." << endl;
+					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] open polyline (backward).\n";
 				}
 			}
 			// Add vertices of the polyline:
@@ -9233,7 +9233,7 @@ bool Mesh::changedMesh() {
 //! Removes multiple Vertices from the vertexList. It will also (has to)
 //! remove Faces which are defined by the Vertices.
 bool Mesh::removeVertices( set<Vertex*>* verticesToRemove ) {
-	if( verticesToRemove->size() == 0 ) {
+	if( verticesToRemove->empty() ) {
 		cout << "[Mesh::" << __FUNCTION__ << "] Nothing to do - no vertices given." << endl;
 		return false;
 	}
@@ -9246,9 +9246,12 @@ bool Mesh::removeVertices( set<Vertex*>* verticesToRemove ) {
 	// to remove a vertex, we have to determine the faces it belongs to and
 	// then remove these faces - otherwise we will screw-up our meshs
 	// internal references!
-	for ( itVertexRm=verticesToRemove->begin(); itVertexRm != verticesToRemove->end(); itVertexRm++ ) {
-		(*itVertexRm)->getFaces( &facesToRemove );
+
+	for(auto vertToRemove : *verticesToRemove)
+	{
+		vertToRemove->getFaces( &facesToRemove);
 	}
+
 	removeFaces( &facesToRemove );
 	facesToRemove.clear();
 	cout << "[Mesh::" << __FUNCTION__ << "] " << facesBefore-getFaceNr() << " Faces removed." << endl;
@@ -9441,7 +9444,7 @@ bool Mesh::removeFaces( set<Face*>* facesToRemove ) {
 		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: NULL pointer given!" << endl;
 		return false;
 	}
-	if( ( facesToRemove->size() == 0 ) || ( mFaces.size() == 0 ) ) {
+	if( facesToRemove->empty() || mFaces.empty() ) {
 		// nothing to do.
 		return false;
 	}

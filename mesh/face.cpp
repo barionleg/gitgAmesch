@@ -2355,7 +2355,7 @@ bool Face::getFuncValIsoPoint( double    isoThres,
 
 	if( ( funcValA * funcValB ) < 0.0 ) {
 		isForwardIntersect = ( funcValA < funcValB );
-		if( !( searchForward ^ isForwardIntersect ) ) {
+		if( searchForward == isForwardIntersect ) {
 			(*faceNext) = FACE_NEIGHBOUR_AB;
 			return getPointOnWeightedLine( isoPoint, vertA, vertB, 0.0, funcValA, funcValB );
 		}
@@ -2363,7 +2363,7 @@ bool Face::getFuncValIsoPoint( double    isoThres,
 
 	if( ( funcValB * funcValC ) < 0.0 ) {
 		isForwardIntersect = ( funcValB < funcValC );
-		if( !( searchForward ^ isForwardIntersect ) ) {
+		if( searchForward == isForwardIntersect ) {
 			(*faceNext) = FACE_NEIGHBOUR_BC;
 			return getPointOnWeightedLine( isoPoint, vertB, vertC, 0.0, funcValB, funcValC );
 		}
@@ -2371,7 +2371,7 @@ bool Face::getFuncValIsoPoint( double    isoThres,
 
 	if( ( funcValC * funcValA ) < 0.0 ) {
 		isForwardIntersect = ( funcValC < funcValA );
-		if( !( searchForward ^ isForwardIntersect ) ) {
+		if(  searchForward == isForwardIntersect ) {
 			(*faceNext) = FACE_NEIGHBOUR_CA;
 			return getPointOnWeightedLine( isoPoint, vertC, vertA, 0.0, funcValC, funcValA );
 		}

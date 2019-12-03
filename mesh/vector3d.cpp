@@ -99,7 +99,7 @@ void Vector3D::set( Vector3D* vecToCopy ) {
 	h = vecToCopy->getH();
 }
 
-void Vector3D::set( Vector3D vecToCopy ) {
+void Vector3D::set(const Vector3D& vecToCopy ) {
 	//! Use coordinates from given Vector3D.
 	x = vecToCopy.getX();
 	y = vecToCopy.getY();
