@@ -6831,13 +6831,17 @@ bool Mesh::isolineToPolyline(
 			// Trace in forward direction:
 			//----------------------------
 			// Fetch first point ...
-			checkFaceFirst->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, true, &excludeFace );
+			// ... set visited ...
+			checkFaceFirst->getIndexOffsetBit( &bitOffset, &bitNr );
+			facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
+			if(!checkFaceFirst->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, true, &excludeFace ))
+			{
+					continue; //skip face, because it only touches the isoLine on its vertices
+			}
+
 			// ... add to polyline with normal ....
 			Vector3D normalPos = checkFaceFirst->getNormal( true );
 			isoLine->addFront( isoPoint, normalPos, checkFaceFirst );
-			// ... and set visited.
-			checkFaceFirst->getIndexOffsetBit( &bitOffset, &bitNr );
-			facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
 
 			checkFace = nextFace;
 			while( checkFace != nullptr ) {

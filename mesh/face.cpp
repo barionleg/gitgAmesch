@@ -2370,7 +2370,7 @@ bool Face::getFuncValIsoPoint( double    isoThres,
 			return true;
 		}
 
-		//backwards search cases
+		//backwards search cases, other point is on vertex
 		if(fValB == 0.0)
 		{
 			isoPoint->set(B->getPositionVector());
@@ -2384,6 +2384,7 @@ bool Face::getFuncValIsoPoint( double    isoThres,
 			return true;
 		}
 
+		//backwards search case, other point is on edge
 		return this->getPointOnWeightedLine(isoPoint, B, C, 0.0, fValB, fValC);
 	};
 
