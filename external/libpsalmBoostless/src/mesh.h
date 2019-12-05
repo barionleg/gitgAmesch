@@ -81,7 +81,8 @@ class mesh
 		size_t num_edges() const;
 		edge* get_edge(size_t i);
 
-		bool relax_edge(edge* e);
+		bool relax_edge(edge* e, double threshHold = std::numeric_limits<double>::epsilon() * 5.0); // Why we used a factor of 5 times epsilon is left as an easy
+		// exercise to the reader
 
 		face* add_face(std::vector<vertex*> vertices, bool ignore_orientation_warning = false);
 		face* add_face(vertex* v1, vertex* v2, vertex* v3, bool ignore_orientation_warning = false);
