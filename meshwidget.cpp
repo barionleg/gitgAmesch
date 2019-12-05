@@ -3752,13 +3752,14 @@ bool MeshWidget::fetchFrameBuffer(
 	*/
 
 	unsigned char* imArrayGL;
-	int w,h;
+	int w;
+	int h;
 	imArrayGL = offscreenBuffer->getColorTexture(w, h);
 	float* pixelZBuffer = nullptr;
 
 	*rImWidth = w;
 	*rImHeight = h;
-
+	*rImArray = new unsigned char[w*h*3];
 	// Set the crop size to the image size. Otherwise the values are invalid, when there is nothing to crop.
 	int xMin = 0;
 	int xMax = (*rImWidth)-1;
@@ -3830,7 +3831,7 @@ bool MeshWidget::screenshotTIFF( const string& rFileName , OffscreenBuffer* offs
 
 	int imWidth;
 	int imHeight;
-	unsigned char* imArray;
+	unsigned char* imArray = nullptr;
 	fetchFrameBuffer( &imArray, &imWidth, &imHeight, mParamFlag[CROP_SCREENSHOTS], offscreenBuffer );
 #ifdef LIBTIFF
 	Image2D frameBufIm;
