@@ -2767,7 +2767,7 @@ bool MeshWidget::screenshotViewsPDFUser() {
 		return( false );
 	}
 	QString filePrefix = mMeshVisual->getBaseName().c_str();
-	QString filePath = QString( mMeshVisual->getFileLocation().c_str() ) + "/";
+	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
 	std::cout << "[MeshWidget::" << __FUNCTION__ << "] filePath:        " << filePath.toStdString() << std::endl;
 	//qDebug() << filePath + QString( fileNamePattern.c_str() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as - Using a pattern for side, top and bottom views" ), \
@@ -3387,7 +3387,7 @@ bool MeshWidget::screenshotPDFUser() {
 		return( false );
 	}
 	QString filePrefix = mMeshVisual->getBaseName().c_str();
-	QString filePath = QString( mMeshVisual->getFileLocation().c_str() ) + "/";
+	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
 	std::cout << "[MeshWidget::" << __FUNCTION__ << "] filePath:        " << filePath.toStdString() << std::endl;
 	//qDebug() << filePath + QString( fileNamePattern.c_str() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as - Using a pattern for side, top and bottom views" ), \
@@ -4940,13 +4940,11 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 		vector<double> screenCoords;    // Coordinates in drawing/SVG space.
 		currPoly->getVertexCoordsInPlane( &polyCoords, true );
 		screenCoords.reserve( polyCoords.size()*2 );
-		vector<Vector3D>::iterator vertexPos;
-		for( vertexPos=polyCoords.begin(); vertexPos != polyCoords.end(); vertexPos++ ) {
-			// vertexPos->dumpInfo();
-			screenCoords.push_back( (+vertexPos->getX()-rOffsetX) * mParamFlt[SVG_SCALE] );
-			screenCoords.push_back( (-vertexPos->getY()+rOffsetY) * mParamFlt[SVG_SCALE] );
+		for(const auto& vertexPos : polyCoords)
+		{
+			screenCoords.push_back( (+vertexPos.getX()-rOffsetX) * mParamFlt[SVG_SCALE] );
+			screenCoords.push_back( (-vertexPos.getY()+rOffsetY) * mParamFlt[SVG_SCALE] );
 		}
-
 		// Draw using the projected coordinates
 		svgLine->moveTo( screenCoords[0], screenCoords[1] );
 		for( int j=1; j<polyLen; j++ ) {
