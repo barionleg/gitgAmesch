@@ -14,9 +14,11 @@ Current version
 +) Bugfix: Slider dialogs are now emitting exact values
 +) Bugfix: Inconsistent behaviours of Slider dialogs regarding the factor property
 +) Bugfix: Fixed a bug when exporting ASCII plys with polylines
-+) Bugfix: Suggested filename for exporting function values is now correct
++) Bugfix: Suggested filename and path is now fixed. In some cases, the parent-folder was not separated from the filename by '/'
 +) Bugfix: Fixed crash in Exporting Image Stacks
 +) Bugfix: Polylines from Isolines: fixed cases, where the Isoline is only touching the triangles
++) Bugfix: Fixed potential endless loop when filling holes with lippsalm
++) Bugfix: Fixed SVG-Export of Plane intersections, where the mesh is not centered at the origin
 
 Version 190805
 +) New: Selection by normal vectors. See "Select -> Vertices Normal Sphere". Attention: unstable in Windows!

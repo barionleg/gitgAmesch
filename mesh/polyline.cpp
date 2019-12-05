@@ -1237,13 +1237,6 @@ bool PolyLine::getBoundingBox(
 	Matrix4D matBaseChange( Matrix4D::INIT_IDENTITY );
 	if( rProjectToPlane ) { // Optional
 		mPlaneUsed->getChangeOfBasisTrans( &matBaseChange, rProjectToPlaneUsingAxis );
-		if( rProjectToPlaneUsingAxis ) {
-			// Adding x=0 ensures that the axis can be drawn.
-			// Z will be zero anyway due to the projection onto the plane
-			// The Y extend of the axis will be determined automatically during the SVG export.
-			*rMinX = 0.0;
-			*rMaxX = 0.0;
-		}
 	}
 
 	// Iteration
