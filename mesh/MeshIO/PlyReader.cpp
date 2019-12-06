@@ -14,12 +14,12 @@ using uint = unsigned int;
 template <class T>
 void READ_IN_PROPER_BYTE_ORDER(std::fstream& filestream, T target, size_t size, bool reverse)
 {
-	(filestream).read( reinterpret_cast<char*>(target), (size) );
+	auto data = reinterpret_cast<char*>(target);
+	(filestream).read(data , (size) );
 
 	if(reverse && size != 1)
 	{
-		auto reversePtr = reinterpret_cast<unsigned char*>(target);
-		std::reverse(reversePtr, reversePtr + size);
+		std::reverse(data, data + size);
 	}
 }
 
