@@ -19,6 +19,7 @@ Current version
 +) Bugfix: Polylines from Isolines: fixed cases, where the Isoline is only touching the triangles
 +) Bugfix: Fixed potential endless loop when filling holes with lippsalm
 +) Bugfix: Fixed SVG-Export of Plane intersections, where the mesh is not centered at the origin
++) Bugfix: Polylines in meshes are now shown after loading the file. However, the vertices of the polylines are still marked as solo vertices.
 
 Version 190805
 +) New: Selection by normal vectors. See "Select -> Vertices Normal Sphere". Attention: unstable in Windows!
