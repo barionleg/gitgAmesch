@@ -723,16 +723,14 @@ void Mesh::establishStructure(
     #endif
 
 	// Prepare array for faces:
-	vector<Face*>::iterator itFace;
-	for( itFace = mFaces.begin(); itFace != mFaces.end(); itFace++ ) {
-		delete (*itFace);
+	for(auto & face : mFaces) {
+		delete face;
 	}
 	mFaces.clear();
 
 	// Prepare array for vertices:
-	vector<Vertex*>::iterator itVertex;
-	for( itVertex=mVertices.begin(); itVertex!=mVertices.end(); itVertex++ ) {
-		delete (*itVertex);
+	for(auto & vertex : mVertices) {
+		delete vertex;
 	}
 	mVertices.clear();
 

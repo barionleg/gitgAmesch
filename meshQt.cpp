@@ -321,7 +321,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	//! \bug Emitting inside constructor has no effect
 		emit showFlagState( MeshGL::SHOW_POLYLINES, false );
 	}
-
+	polyLinesChanged();
 	// Erase any previous selection:
 	//! \bug Emitting inside constructor has no effect
 	emit primitiveSelected( nullptr );
