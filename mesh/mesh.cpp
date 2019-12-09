@@ -12212,12 +12212,11 @@ bool Mesh::fetchSphereArea( Vertex*        rSeedPosition,  //!< Position of the 
 		rAreas[i] = 0.0;
 	}
 	// Parse all faces
-	vector<Face*>::iterator itFace;
-	for( itFace=rFacesInSphere->begin(); itFace!=rFacesInSphere->end(); itFace++ ) {
-		//bool Face::surfaceintegralinvariant( int nradii, double* radii, double* area, Vertex* rseed1 )
-		Face* currFace = (*itFace);
-		currFace->surfaceintegralinvariant( rRadiiNr, rRadii, rAreas, rSeedPosition );
+	for(auto& face : *rFacesInSphere)
+	{
+		face->surfaceintegralinvariant( rRadiiNr, rRadii, rAreas, rSeedPosition);
 	}
+
 	// Normalize areas by circle area to ]0.0,+inf) - 1.0 means the size of circle disc of a great circle, which can be flat.
 	for( unsigned int i=0; i<rRadiiNr; i++ ) {
 		rAreas[i] /= M_PI * rRadii[i] * rRadii[i];
