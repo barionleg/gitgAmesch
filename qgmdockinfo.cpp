@@ -24,6 +24,9 @@ QGMDockInfo::QGMDockInfo( QWidget *parent ) :
 	ui->comboBoxMouseMode->addItem( "Move Light 2 FixCam",   QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_CAM   ) );
 	ui->comboBoxMouseMode->addItem( "Selection",           QVariant( MeshWidgetParams::MOUSE_MODE_SELECT                 ) );
 
+	int selIndex = ui->comboBoxMouseMode->findData( QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_CAMERA ) );
+	ui->comboBoxMouseMode->setCurrentIndex(selIndex);
+
 	// initalize guide:
 	ui->labelGuide->setVisible( false );
 

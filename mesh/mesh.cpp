@@ -9609,8 +9609,8 @@ bool Mesh::completeRestore(
 	uint64_t holesFilled = 0;
 	uint64_t holesFail = 0;
 	uint64_t holesSkipped = 0;
-	long oldVertexNr;
-	long oldFaceNr;
+	uint64_t oldVertexNr;
+	uint64_t oldFaceNr;
 	bool retVal = true;
 
 	do {
