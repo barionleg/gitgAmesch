@@ -194,7 +194,7 @@ void IcoSphereTree::subdivide(unsigned int subdivisions)
 		subdivideFaces(newVertexCache, faces, mVertices);
 	}
 
-	mVertexData = std::vector<unsigned int>(mVertices.size(), 0);
+	mVertexData = std::vector<double>(mVertices.size(), 0);
 
 }
 
@@ -414,15 +414,16 @@ bool IcoSphereTree::isSelected(size_t index)
 	return mSelectedVertices.find(index) != mSelectedVertices.end();
 }
 
-void IcoSphereTree::incData(size_t index)
+void IcoSphereTree::incData(size_t index, double value)
 {
 	if(index > mVertexData.size())
 		return;
 
-	mMaxData = std::max(mMaxData, ++mVertexData[index]);	//increment mVertexData, update maxData
+	mVertexData[index] += value;
+	mMaxData = std::max(mMaxData, mVertexData[index]);	//increment mVertexData, update maxData
 }
 
-unsigned int IcoSphereTree::getMaxData() const
+double IcoSphereTree::getMaxData() const
 {
 	return mMaxData;
 }

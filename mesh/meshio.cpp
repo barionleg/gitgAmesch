@@ -423,7 +423,7 @@ string MeshIO::getFullName() {
 	return mFileNameFull;
 }
 
-bool MeshIO::writeIcoNormalSphereData(const string& rFilename, const std::vector<sVertexProperties>& rVertexProps, int subdivisions, bool sphereCoordinates)
+bool MeshIO::writeIcoNormalSphereData(const string& rFilename, const std::list<sVertexProperties>& rVertexProps, int subdivisions, bool sphereCoordinates)
 {
 	fstream filestr;
 	filestr.imbue(std::locale("C"));
@@ -437,12 +437,15 @@ bool MeshIO::writeIcoNormalSphereData(const string& rFilename, const std::vector
 
 	for(const auto& vertexProp : rVertexProps)
 	{
-		size_t selIndex = icoSphereTree.getNearestVertexIndexAt(Vector3D(vertexProp.mNormalX, vertexProp.mNormalY, vertexProp.mNormalZ));
-		icoSphereTree.incData(selIndex);
+		Vector3D normal(vertexProp.mNormalX, vertexProp.mNormalY, vertexProp.mNormalZ);
+		auto incSize = normal.normalize3();
+
+		size_t selIndex = icoSphereTree.getNearestVertexIndexAt(normal);
+		icoSphereTree.incData(selIndex, incSize);
 	}
 
 	std::vector<float> normals = icoSphereTree.getVertices();
-	const std::vector<unsigned int>& normalNums = *icoSphereTree.getVertexDataP();
+	const std::vector<double>& normalNums = *icoSphereTree.getVertexDataP();
 
 	for(size_t i = 0; i<normalNums.size(); ++i)
 	{

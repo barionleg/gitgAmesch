@@ -35,20 +35,20 @@ class IcoSphereTree
 		void clearSelection();
 		bool isSelected(size_t index);
 
-		void incData(size_t index);
-		unsigned int getMaxData() const;
+		void incData(size_t index, double value = 1.0);
+		double getMaxData() const;
 
-		std::vector<unsigned int>* getVertexDataP() { return &mVertexData;}
+		std::vector<double>* getVertexDataP() { return &mVertexData;}
 
 	private:
 		void subdivide(unsigned int subdivisions = 1);
 
 		std::array<IcoSphereTreeFaceNode, 20> mRootFaces;
 		std::vector<Vector3D> mVertices;
-		std::vector<unsigned int> mVertexData;	//function-value associated to this bucket => num normals in this bucket
+		std::vector<double> mVertexData;	//function-value associated to this bucket => num normals in this bucket
 		std::unordered_set<size_t> mSelectedVertices;
 
-		unsigned int mMaxData = 0;
+		double mMaxData = 0;
 };
 
 #endif // ICOSPHERETREE_H

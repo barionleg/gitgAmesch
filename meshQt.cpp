@@ -792,6 +792,12 @@ void MeshQt::exportNormalSphereData()
 		return;
 	}
 
+	bool exportFaceNormals = false;
+	SHOW_QUESTION( tr("Normal selection"), tr("Export face normals (yes) or vertex normals (no)"), exportFaceNormals, userCancel);
+	if(userCancel) {
+		return;
+	}
+
 	// Ask for vertex normals in sphere coordinates
 	bool sphereCoordinates;
 	SHOW_QUESTION( tr("Normals representation"), tr("Export normals in sphere-coordinates?"), sphereCoordinates, userCancel );
@@ -799,15 +805,41 @@ void MeshQt::exportNormalSphereData()
 		return;
 	}
 
-	std::vector<sVertexProperties> vertexProps;
-	vertexProps.resize( getVertexNr() );
+	std::list<sVertexProperties> vertexProps;
 
-	uint64_t vertCount = getVertexNr();
+	auto fAddNormal = [&vertexProps](const Vector3D& normal) -> void {
+		if( std::isnan(normal.getX()) || std::isnan(normal.getY()) || std::isnan(normal.getZ()) )
+		{
+			return;
+		}
+		sVertexProperties prop;
+		prop.mNormalX = normal.getX();
+		prop.mNormalY = normal.getY();
+		prop.mNormalZ = normal.getZ();
 
-	for( uint64_t vertIdx=0; vertIdx<vertCount; vertIdx++ ) {
-		Vertex* curVertex = getVertexPos( vertIdx );
-		curVertex->setIndex( vertIdx );
-		curVertex->copyVertexPropsTo( vertexProps[vertIdx] );
+		vertexProps.emplace_back(prop);
+	};
+
+	if(exportFaceNormals)
+	{
+		auto faceCount = getFaceNr();
+
+		for( uint64_t faceIdx = 0; faceIdx < faceCount; ++faceIdx)
+		{
+			Face* currFace = getFacePos( faceIdx );
+			auto normal = currFace->getNormal(false);
+			fAddNormal(normal);
+		}
+	}
+	else
+	{
+		auto vertCount = getVertexNr();
+
+		for( uint64_t vertIdx=0; vertIdx<vertCount; vertIdx++ ) {
+			Vertex* currVertex = getVertexPos( vertIdx );
+			auto normal = currVertex->getNormal(false);
+			fAddNormal(normal);
+		}
 	}
 
 	MeshIO::writeIcoNormalSphereData(fileName.toStdString(), vertexProps , subdivision.toInt(), sphereCoordinates);

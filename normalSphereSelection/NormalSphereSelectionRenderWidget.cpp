@@ -101,8 +101,12 @@ void NormalSphereSelectionRenderWidget::setRenderNormals(std::vector<float>& nor
 		if(std::isnan(mNormalUpload[i]) || std::isnan(mNormalUpload[i + 1]) || std::isnan(mNormalUpload[i+2]) )
 			continue;
 
-		size_t index = mIcoSphereTree.getNearestVertexIndexAt(Vector3D(mNormalUpload[i], mNormalUpload[i+1], mNormalUpload[i+2]));
-		mIcoSphereTree.incData(index);
+		Vector3D normal(mNormalUpload[i], mNormalUpload[i+1], mNormalUpload[i+2]);
+
+		auto incSize = normal.normalize3();
+
+		size_t index = mIcoSphereTree.getNearestVertexIndexAt(normal);
+		mIcoSphereTree.incData(index, incSize);
 	}
 }
 
@@ -158,11 +162,11 @@ void NormalSphereSelectionRenderWidget::refreshNormals()
 
 	std::vector<float> dataBuffer;
 
-	float minData = *(std::min_element(icoData->begin(), icoData->end()));
-	float maxData = mIcoSphereTree.getMaxData();
+	double minData = *(std::min_element(icoData->begin(), icoData->end()));
+	double maxData = mIcoSphereTree.getMaxData();
 
 	std::transform(icoData->begin(), icoData->end(), std::back_inserter(dataBuffer),
-				   [minData, maxData](float data) -> float {return (data - minData) / (maxData - minData);}
+				   [minData, maxData](double data) -> float {return (data - minData) / (maxData - minData);}
 	);
 
 	mIcosphereDataBuffer.bind();
