@@ -825,9 +825,9 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 	bool readOk;
 
 	mMeshVisual = new MeshQt( fileName, readOk,
-	                          mMatModelView.constData(), mMatProjection.constData(), \
-	                          static_cast<MeshWidgetParams*>(this), static_cast<MeshGLColors*>(this), \
-	                          mMainWindow, context() \
+							  mMatModelView.constData(), mMatProjection.constData(),
+							  static_cast<MeshWidgetParams*>(this), static_cast<MeshGLColors*>(this),
+							  mMainWindow, context()
 	                         );
 
 	if( not( readOk ) ) {

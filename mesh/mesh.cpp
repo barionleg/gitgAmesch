@@ -3853,17 +3853,17 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 						vertIntersection2 = new VertexOfFace(vertY->getPositionVector() - vecOffset);
 
 						front.push_back(vertIntersection1);
-						back.push_back(vertIntersection2);
+						back. push_back(vertIntersection2);
 					}
 					// if no duplicates are required, store vertex in _both_ sets
 					else {
 						front.push_back(vertY);
-						back.push_back(vertY);
+						back. push_back(vertY);
 					}
 
 					//push uvs of y to front and back
 					frontUVs.push_back(uvs[uvY]); frontUVs.push_back(uvs[uvY + 1]);
-					backUVs.push_back(uvs[uvY]); backUVs.push_back(uvs[uvY + 1]);
+					backUVs. push_back(uvs[uvY]); backUVs. push_back(uvs[uvY + 1]);
 				}
 
 				// Set attributes for new vertices
@@ -3884,7 +3884,7 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 			}
 
 			triangulateSplitFace(front, &adjacentAndNewFaces, &frontUVs, face->getTextureId());
-			triangulateSplitFace(back,  &adjacentAndNewFaces, &backUVs, face->getTextureId());
+			triangulateSplitFace(back , &adjacentAndNewFaces, &backUVs , face->getTextureId());
 		}
 
 		for(Face* face : mFacesSelected) {
