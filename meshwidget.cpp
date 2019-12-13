@@ -1003,6 +1003,9 @@ void MeshWidget::saveStillImages360( Vector3D rotCenter, Vector3D rotAxis ) {
 		return;
 	}
 
+	if(savePath[savePath.length() - 1] != '/')
+		savePath.push_back('/');
+
 	if( !saveStillImagesSettings() ) {
 		return;
 	}
@@ -1014,9 +1017,6 @@ void MeshWidget::saveStillImages360( Vector3D rotCenter, Vector3D rotAxis ) {
 	if( userCancel ) {
 		return;
 	}
-
-	if(savePath.back() != '/')
-		savePath.push_back('/');
 
 	//! .) Estimate angles using VIDEO_SLOW_STARTSTOP, VIDEO_FRAMES_PER_SEC and VIDEO_DURATION
 	float* stepAngles;
