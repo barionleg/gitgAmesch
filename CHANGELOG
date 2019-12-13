@@ -12,6 +12,7 @@ Current version
 +) Improved: Reduced Point-Cloud rendering now works with all Render-Passes
 +) Improved: Logging performance should now be better in various places
 +) Improved: NormalSpheres now consider Area (length) of the normals
++  Improved: Exporting image stack allows the user now to select a folder
 +) Bugfix: fixed exporting differnt DPI values for x and y when exporting screenshots
 +) Bugfix: Slider dialogs are now emitting exact values
 +) Bugfix: Inconsistent behaviours of Slider dialogs regarding the factor property
