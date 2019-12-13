@@ -992,6 +992,17 @@ void MeshWidget::saveStillImages360( Vector3D rotCenter, Vector3D rotAxis ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
+
+	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
+	QString savePath = QFileDialog::getExistingDirectory(mMainWindow, tr( "Folder for image stack" ),
+													 filePath);
+
+	if(savePath.length() == 0)
+	{
+		std::cout << "[MeshWidget::" << __FUNCTION__ << "] user abort\n";
+		return;
+	}
+
 	if( !saveStillImagesSettings() ) {
 		return;
 	}
@@ -1003,17 +1014,21 @@ void MeshWidget::saveStillImages360( Vector3D rotCenter, Vector3D rotAxis ) {
 	if( userCancel ) {
 		return;
 	}
+
+	if(savePath.back() != '/')
+		savePath.push_back('/');
+
 	//! .) Estimate angles using VIDEO_SLOW_STARTSTOP, VIDEO_FRAMES_PER_SEC and VIDEO_DURATION
 	float* stepAngles;
 	int    stepAnglesNr;
 	saveStillImages360Angles( &stepAngles, &stepAnglesNr );
-	char buffer[255];
 	//! .) Save sequence of still images
 	for( int i=0; i<stepAnglesNr; i++ ) {
 		rotArbitAxis( rotCenter, rotAxis, stepAngles[i]*180.0/M_PI );
-		sprintf( buffer, "gigamesh_still_image_%05i.tiff", i );
+
+		QString fileName = QString("%1gigamesh_still_image_%2.tiff").arg(savePath).arg(i,5,10,QChar('0'));
 		double realWidth, realHeigth;
-		screenshotSingle( buffer, useTiled, realWidth, realHeigth );
+		screenshotSingle( fileName, useTiled, realWidth, realHeigth );
 	}
 	delete[] stepAngles;
 }
