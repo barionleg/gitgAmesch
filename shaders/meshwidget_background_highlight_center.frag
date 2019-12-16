@@ -34,7 +34,7 @@ vec4 gridLineColor( float funcVal, float funcValDelta, vec4 outputColor, grGridS
 		return outputColor;
 	}
 
-	float gridModIsoDist = funcVal + rSettings.mGridOffset - rSettings.mGridDist*floor( ( funcVal + rSettings.mGridOffset ) / rSettings.mGridDist ); // Not working: modf( abs( vertexFuncVal ), isoDist );
+	float gridModIsoDist = mod(funcVal + rSettings.mGridOffset, rSettings.mGridDist);
 	float gridRemainder = rSettings.mGridDist -gridModIsoDist;
 	float gridLinePixelWidthHalf = rSettings.mGridLinePixelWidth/2.0;
 	if( gridRemainder < funcValDelta*(gridLinePixelWidthHalf-1.0) ) {

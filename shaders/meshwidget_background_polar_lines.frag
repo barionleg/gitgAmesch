@@ -35,7 +35,7 @@ vec4 gridLineColorPolar( float gridPhi, float gridRadius, float gridDeltaRadius,
 	//	return outputColor;
 	//}
 
-	float gridDistAngleMod = gridPhi + rSettings.mGridOffset - rSettings.mGridDist*floor( ( gridPhi + rSettings.mGridOffset ) / rSettings.mGridDist ); // Not working: modf( abs( vertexFuncVal ), isoDist );
+	float gridDistAngleMod = mod(gridPhi + rSettings.mGridOffset, rSettings.mGridDist);
 	float gridRemainder = sin( rSettings.mGridDist- gridDistAngleMod )*gridRadius;
 	float gridLinePixelWidthHalf = rSettings.mGridLinePixelWidth/2.0;
 	if( gridRemainder < gridDeltaRadius*(gridLinePixelWidthHalf-1.0) ) {
