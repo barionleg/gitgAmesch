@@ -5946,7 +5946,7 @@ void MeshWidget::paintEvent( QPaintEvent *rEvent ) {
 	if( showGridPolarCircles ) {
 		paintBackgroundShader( &mShaderGridPolarCircles );
 	}
-	if( ( showGridRect | showGridPolarLines | showGridPolarCircles ) & showGridHighLightCenter ) {
+	if( ( showGridRect || showGridPolarLines || showGridPolarCircles ) && showGridHighLightCenter ) {
 		paintBackgroundShader( &mShaderGridHighLightCenter );
 	}
 
@@ -6081,6 +6081,10 @@ bool MeshWidget::paintBackgroundShader( QOpenGLShaderProgram** rShaderProgram ) 
 	(*rShaderProgram)->setUniformValue( "uDepthPos", static_cast<GLfloat>(gridShiftDepth)   );
 	(*rShaderProgram)->setUniformValue( "uScaleX",   static_cast<GLfloat>(realWidth/2.0)  );
 	(*rShaderProgram)->setUniformValue( "uScaleY",   static_cast<GLfloat>(realHeight/2.0) );
+
+	bool gridCenterFront;
+	getParamFlagMeshWidget( SHOW_GRID_HIGHLIGHTCENTER_FRONT, &gridCenterFront);
+	(*rShaderProgram)->setUniformValue( "uHighlightDepth", (gridCenterFront ? 0.0F : 0.999F ));
 
 	double xOffset = 0.0;
 	double yOffset = 0.0;

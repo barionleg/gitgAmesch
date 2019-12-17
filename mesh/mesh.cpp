@@ -12572,14 +12572,31 @@ bool Mesh::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool 
 		return true;
 	}
 
+	showProgressStart("Apply Transformation");
+	showProgress(0.0, "Apply Transformation");
+
 	//! .) Apply transformation matrix for each of the given vertices.
 	unsigned int errCtr = 0;
+	double percentDone = 0.0;
+	const unsigned int progressStep = rSomeVerts->size() / 10;
+	unsigned int count = 0;
 	float timeStart = clock();
 	for( auto const& currVertex: (*rSomeVerts) ) {
 		if( !(currVertex->applyTransfrom( &rTrans )) ) {
 			errCtr++;
 		}
+
+		++count;
+		if(count >= progressStep)
+		{
+			count = 0;
+			percentDone += 0.1;
+			showProgress(percentDone, "Apply Transformation");
+		}
 	}
+
+	showProgress(1.0, "Apply Transformation");
+
 	cout << "[Mesh::" << __FUNCTION__ << "] time: " << ( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
 	if( errCtr > 0 ) {
 		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: applyTransfrom failed " << errCtr << " times!" << endl;
@@ -12626,6 +12643,7 @@ bool Mesh::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool 
 		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: writing transformation matrix to: " << transMatFName << "!" << endl;
 	}
 
+	showProgressStop("Apply Transformation");
 	return ( errCtr == 0 );
 }
 

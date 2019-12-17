@@ -14,6 +14,7 @@ uniform float uGridWidth4 =  3.2;        // Width of grid line no.  IV
 uniform vec4  uLineColor4 = vec4(  71.0/255.0,  11.0/255.0,   6.0/255.0, 1.0 );  // Line no.  IV - Hex: 470b06ff (RGBA)
 uniform vec4  uLineColor5 = vec4( 215.0/255.0, 215.0/255.0,   0.0/255.0, 1.0 );  // Line no.  IV - Hex: ffff00ff (RGBA)
 //=============================================
+uniform float uHighlightDepth = 0.0;
 
 in vec2  gridPos;              // Interpolated position of the grid i.e. pixel coordinates converted to world coordinates
 //in vec4  ecPosition;         // Interpolated position of the fragment in eye coordinates.
@@ -77,7 +78,7 @@ void main(void) {
 	rectGridSettings.mGridMinSpace       = 8.0;
 
 	// Highlight central pixel
-	gl_FragDepth = gl_FragCoord.z * 0.999; // See: https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/gl_FragDepth.xhtml AND http://www.txutxi.com/?p=182
+	gl_FragDepth = gl_FragCoord.z * uHighlightDepth;
 
 	// Line No. IV - extra cross-hair
 	rectGridSettings.mGridDist           = uGridSpace4;

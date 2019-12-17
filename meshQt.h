@@ -218,6 +218,7 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		virtual bool   getPlanePosToSet( int* rPosID );
 		virtual bool   setPlanePos( Vector3D* rSomePos );
 		virtual bool   applyTransfromToPlane( Matrix4D transMat );
+		virtual bool   applyTransformation( Matrix4D rTrans, std::set<Vertex*>* rSomeVerts, bool rResetNormals = true );
 
 		// Selection - Cone:
 		virtual bool       setConeAxis( const Vector3D& rUpper, const Vector3D& rLower );

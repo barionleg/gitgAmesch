@@ -2231,6 +2231,15 @@ bool MeshQt::applyTransfromToPlane( Matrix4D transMat ) {
 	return true;
 }
 
+bool MeshQt::applyTransformation(Matrix4D rTrans, std::set<Vertex*>* rSomeVerts, bool rResetNormals)
+{
+	bool retValue = MeshGL::applyTransformation(rTrans, rSomeVerts, rResetNormals);
+
+	emit sDefaultViewLightZoom();
+
+	return retValue;
+}
+
 // Selection - Cone ------------------------------------------------------------
 
 //! Overloaded function; will call Mesh::setConeAxis() and emit a signal to

@@ -429,6 +429,7 @@ void QGMMainWindow::initMeshWidgetSignals() {
 	// Add flag IDs for mMeshWidget class to menu actions:
 	actionGridRectangular->setProperty(           "gmMeshWidgetFlag",       MeshWidgetParams::SHOW_GRID_RECTANGULAR );
 	actionGridHighlightCenter->setProperty(       "gmMeshWidgetFlag",       MeshWidgetParams::SHOW_GRID_HIGHLIGHTCENTER );
+	actionGrid_Center_Cross_in_front->setProperty("gmMeshWidgetFlag",       MeshWidgetParams::SHOW_GRID_HIGHLIGHTCENTER_FRONT);
 	actionGridPolarLines->setProperty(            "gmMeshWidgetFlag",       MeshWidgetParams::SHOW_GRID_POLAR_LINES );
 	actionGridPolarCircles->setProperty(          "gmMeshWidgetFlag",       MeshWidgetParams::SHOW_GRID_POLAR_CIRCLES );
 	actionHistShow->setProperty(                  "gmMeshWidgetFlag",       MeshWidgetParams::SHOW_HISTOGRAM );
@@ -1943,6 +1944,8 @@ void QGMMainWindow::updateWidgetShowFlag(MeshWidgetParams::eParamFlag rFlag, boo
 	case MeshWidgetParams::SHOW_GRID_POLAR_LINES:
 		break;
 	case MeshWidgetParams::SHOW_GRID_POLAR_CIRCLES:
+		break;
+	case MeshWidgetParams::SHOW_GRID_HIGHLIGHTCENTER_FRONT:
 		break;
 	case MeshWidgetParams::SHOW_HISTOGRAM:
 		break;

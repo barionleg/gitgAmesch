@@ -672,6 +672,7 @@
     <addaction name="actionBackGroundGridRaster"/>
     <addaction name="actionBackGroundGridPolar"/>
     <addaction name="actionGridHighlightCenter"/>
+    <addaction name="actionGrid_Center_Cross_in_front"/>
     <addaction name="actionGridShiftDepth"/>
     <addaction name="menuGridsExtra"/>
     <addaction name="separator"/>
@@ -4356,6 +4357,14 @@ p, li { white-space: pre-wrap; }
   <action name="actionFuncValToFeatureVector">
    <property name="text">
     <string>Function Value to Feature Vector</string>
+   </property>
+  </action>
+  <action name="actionGrid_Center_Cross_in_front">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Grid: Center Cross in front</string>
    </property>
   </action>
  </widget>
