@@ -900,14 +900,14 @@ bool MeshQt::removeUncleanSmallUser() {
 	bool applyErosion;
 	bool userCancel;
 	SHOW_QUESTION( tr("Apply border erosion"), tr("Do you want to remove dangling faces along the borders?") +
-										   QString("<br /><br />") + tr("Recommended: YES"), applyErosion, userCancel )
+										   QString("<br /><br />") + tr("Recommended: YES"), applyErosion, userCancel );
 	if( userCancel ) {
 		return( false );
 	}
 
 	// Ask if we wan't to store the result, when finished.
 	bool saveFile;
-	SHOW_QUESTION( tr("Store results"), tr("Do you want to store the result as file?"), saveFile, userCancel )
+	SHOW_QUESTION( tr("Store results"), tr("Do you want to store the result as file?"), saveFile, userCancel );
 	if( userCancel ) {
 		return( false );
 	}
@@ -922,7 +922,7 @@ bool MeshQt::removeUncleanSmallUser() {
 	uint64_t oldVertexNr = getVertexNr();
 	uint64_t oldFaceNr   = getFaceNr();
 	bool retVal = MeshGL::removeUncleanSmall( percentArea, applyErosion, fileName.toStdString() );
-	SHOW_MSGBOX_INFO( tr("Primitives removed"), tr( "%1 Vertices\n%2 Faces" ).arg( oldVertexNr - getVertexNr() ).arg( oldFaceNr - getFaceNr() ) )
+	SHOW_MSGBOX_INFO( tr("Primitives removed"), tr( "%1 Vertices\n%2 Faces" ).arg( oldVertexNr - getVertexNr() ).arg( oldFaceNr - getFaceNr() ) );
 	return retVal;
 }
 
@@ -961,7 +961,7 @@ bool MeshQt::completeRestore() {
 		tr("Remove longest polyline -- keep largest hole"),
 		tr("Do you want to remove the longest polyline, to prevent it from getting filled?\n\ni.e. Do you want to keep the largest hole in the mesh?"),
 		prevent, userCancel
-	)
+	);
 	if( userCancel ) {
 		return( false );
 	}
@@ -969,7 +969,7 @@ bool MeshQt::completeRestore() {
 	// Optional border erosion
 	bool applyErosion;
 	SHOW_QUESTION( tr("Apply border erosion"), tr("Do you want to remove dangling faces along the borders?") +
-										   QString("<br /><br />") + tr("Recommended: YES"), applyErosion, userCancel )
+										   QString("<br /><br />") + tr("Recommended: YES"), applyErosion, userCancel );
 	if( userCancel ) {
 		return( false );
 	}
@@ -980,7 +980,7 @@ bool MeshQt::completeRestore() {
 
 	// Ask if we wan't to store the result, when finished.
 	bool saveFile;
-	SHOW_QUESTION( tr("Store results"), tr("Do you want to store the result as file?"), saveFile, userCancel )
+	SHOW_QUESTION( tr("Store results"), tr("Do you want to store the result as file?"), saveFile, userCancel );
 	if( userCancel ) {
 		return false;
 	}
@@ -997,7 +997,7 @@ bool MeshQt::completeRestore() {
 	// Iterative cleaning is done in the Mesh class.
 	string resultMsg;
 	MeshGL::completeRestore( fileName.toStdString(), percentArea, applyErosion, prevent, maxNrVertices, &resultMsg );
-	SHOW_MSGBOX_INFO( tr("Complete Restore finished"), QString( resultMsg.c_str() ) )
+	SHOW_MSGBOX_INFO( tr("Complete Restore finished"), QString( resultMsg.c_str() ) );
 
 	return true;
 }

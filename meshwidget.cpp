@@ -847,13 +847,15 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 	QObject::connect( mMeshVisual, &MeshQt::sDefaultViewLightZoom,           this,        &MeshWidget::defaultViewLightZoom     );
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
 
+	// cheks mesh for problems and fix them
+	checkMeshSanity();
+
 	// Guess some initial distance for fog:
 	double minDist;
 	double maxDist;
 
 	double bboxLength = mMeshVisual->getBoundingBoxRadius() * 2.0;
 
-	double centerDistance = mMeshVisual->getBoundingBoxCenter().getLength3();
 	setParamFloatMeshWidget( FOG_LINEAR_START, bboxLength  * 0.75);
 	setParamFloatMeshWidget( FOG_LINEAR_END,   bboxLength  * 1.75);
 
@@ -1600,7 +1602,7 @@ void MeshWidget::initializeShader( const QString& rFileName, QOpenGLShaderProgra
 		QString linkMsgs = (*rShaderProgram)->log();
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: linking shader program (Background): " << linkMsgs.toStdString() << endl;
 		linkMsgs = linkMsgs.left( linkMsgs.indexOf( "***" ) );
-		SHOW_MSGBOX_CRIT( tr("GLSL Error") , linkMsgs )
+		SHOW_MSGBOX_CRIT( tr("GLSL Error") , linkMsgs );
 	} else {
 		cout << "[MeshWidget::" << __FUNCTION__ << "] Linking shader program (Background) successfull." << endl;
 	}
@@ -6221,6 +6223,47 @@ bool MeshWidget::paintRasterImage( eTextureMaps rTexMap, int rPixelX, int rPixel
 	PRINT_OPENGL_ERROR( "glBindVertexArray( 0 )" );	
 	someBuffer.destroy();
 	return true;
+}
+
+void MeshWidget::checkMeshSanity()
+{
+	const auto meshSize = mMeshVisual->getBoundingBoxRadius();
+	const auto meshCenterDistance = mMeshVisual->getBoundingBoxCenter().getLength3();
+
+	if(meshCenterDistance > 1000000.0)
+	{
+		bool move = false;
+		bool cancel = false;
+		SHOW_QUESTION(tr("Center Mesh"), tr("The mesh is very far off center (distance: %1mm). This may cause numeric problems. Would you like to move the mesh to the origin?").arg(meshCenterDistance),
+					  move, cancel);
+
+		if(!cancel && move)
+		{
+			const auto transVector = mMeshVisual->getBoundingBoxCenter();
+
+			Matrix4D transMat(transVector);
+
+			mMeshVisual->applyTransformationToWholeMesh(transMat);
+
+			SHOW_MSGBOX_INFO(tr("Transfrom Vector"), tr("To move the mesh back to its original position, you can translate it back by the following vector:\n(%1, %2, %3)").
+							 arg(transVector.getX()).
+							 arg(transVector.getY()).
+							 arg(transVector.getZ()));
+		}
+	}
+
+	if(meshSize < 1.0)
+	{
+		bool rescale = false;
+		bool cancel = false;
+		SHOW_QUESTION(tr("Rescale Mesh"), tr("The mesh appears to be unusually small (radius: %1mm). Would you like to scale the Mesh up?").arg(meshSize), rescale, cancel);
+
+		if(!cancel && rescale)
+		{
+			mMeshVisual->callFunction(MeshParams::APPLY_TRANSMAT_ALL_SCALE);
+		}
+	}
+
 }
 
 //! Paint the selected volume (prisms defined by polgonal selection).

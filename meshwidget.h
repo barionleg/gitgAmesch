@@ -369,6 +369,9 @@ private:
 	bool paintBackgroundShader( QOpenGLShaderProgram** rShaderProgram );
 	bool paintRasterImage( eTextureMaps rTexMap, int rPixelX, int rPixelY, int rPixelWidth, int rPixelHeight );
     //------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	//! Checkes if mesh might cause problems. E.g. too small or georeferenced (far away from origin)
+	void checkMeshSanity();
 };
 
 #endif // MESHWIDGET_H

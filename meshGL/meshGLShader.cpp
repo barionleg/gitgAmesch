@@ -852,7 +852,7 @@ bool MeshGLShader::shaderLink( QOpenGLShaderProgram** rShaderProgram, //!< Point
 							  ) {
 
 	if( (*rShaderProgram) != nullptr ) {
-		SHOW_MSGBOX_CRIT( QString( "GLSL Error (" + rName + ")" ), "Shader program (" + rName + ") already exists!" )
+		SHOW_MSGBOX_CRIT( QString( "GLSL Error (" + rName + ")" ), "Shader program (" + rName + ") already exists!" );
 		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: shader program (" << rName.toStdString() << ") already exists!" << endl;
 		return false;
 	}
@@ -863,7 +863,7 @@ bool MeshGLShader::shaderLink( QOpenGLShaderProgram** rShaderProgram, //!< Point
 		QString linkMsgs = (*rShaderProgram)->log();
 		linkMsgs = linkMsgs.left( linkMsgs.indexOf( "***" ) );
 		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: compiling shader program (" << rName.toStdString() << "/vert): " << linkMsgs.toStdString() << endl;
-		SHOW_MSGBOX_CRIT( QString( "GLSL Error (" + rName + "/vert)" ), linkMsgs )
+		SHOW_MSGBOX_CRIT( QString( "GLSL Error (" + rName + "/vert)" ), linkMsgs );
 		return false;
 	}
 	// Geometry shader is optional:
@@ -872,7 +872,7 @@ bool MeshGLShader::shaderLink( QOpenGLShaderProgram** rShaderProgram, //!< Point
 			QString linkMsgs = (*rShaderProgram)->log();
 			linkMsgs = linkMsgs.left( linkMsgs.indexOf( "***" ) );
 			cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: compiling shader program (" << rName.toStdString() << "/geom): " << linkMsgs.toStdString() << endl;
-			SHOW_MSGBOX_CRIT( QString( "GLSL Error (" + rName + "/geom)" ), linkMsgs )
+			SHOW_MSGBOX_CRIT( QString( "GLSL Error (" + rName + "/geom)" ), linkMsgs );
 			return false;
 		}
 	}
@@ -881,7 +881,7 @@ bool MeshGLShader::shaderLink( QOpenGLShaderProgram** rShaderProgram, //!< Point
 		QString linkMsgs = (*rShaderProgram)->log();
 		linkMsgs = linkMsgs.left( linkMsgs.indexOf( "***" ) );
 		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: compiling shader program (" << rName.toStdString() << "/frag): " << linkMsgs.toStdString() << endl;
-		SHOW_MSGBOX_CRIT( QString( "GLSL Error (" + rName + "/frag)" ), linkMsgs )
+		SHOW_MSGBOX_CRIT( QString( "GLSL Error (" + rName + "/frag)" ), linkMsgs );
 		return false;
 	}
 
@@ -891,7 +891,7 @@ bool MeshGLShader::shaderLink( QOpenGLShaderProgram** rShaderProgram, //!< Point
 		QString linkMsgs = (*rShaderProgram)->log();
 		linkMsgs = linkMsgs.left( linkMsgs.indexOf( "***" ) );
 		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: linking shader program (" << rName.toStdString() << "): " << linkMsgs.toStdString() << endl;
-		SHOW_MSGBOX_CRIT( QString( "GLSL Error" ), linkMsgs )
+		SHOW_MSGBOX_CRIT( QString( "GLSL Error" ), linkMsgs );
 		return false;
 	} else {
 		cout << "[MeshGLShader::" << __FUNCTION__ << "] Linking shader program (" << rName.toStdString() << ") successfull." << endl;
