@@ -6230,6 +6230,7 @@ void MeshWidget::checkMeshSanity()
 	const auto meshSize = mMeshVisual->getBoundingBoxRadius();
 	const auto meshCenterDistance = mMeshVisual->getBoundingBoxCenter().getLength3();
 
+	//! TODO: find out resonable value
 	if(meshCenterDistance > 1000000.0)
 	{
 		bool move = false;
@@ -6252,6 +6253,7 @@ void MeshWidget::checkMeshSanity()
 		}
 	}
 
+	//! TODO: find out resonable value
 	if(meshSize < 1.0)
 	{
 		bool rescale = false;

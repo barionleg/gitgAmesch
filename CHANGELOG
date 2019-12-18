@@ -9,6 +9,7 @@ Current version
 +) New: Function Value import "File -> Import Function Values (per Vertex)"
 +) New: Mapping function values to feature-vector elements "Functions -> Feature Vectors - Extra Functions -> Function Value to Feature Vector"
 +) New: Added the option to show the whole centerview highlight in front of the mesh
++) New: Added sanity checks when loading a mesh. Warnings show up now, if the mesh is either too small, or too far away from the origin
 +) Improved: The function value of SelPrim can be chosen by the user, when executing "Analyze -> Polylines from &Isovalue / Functionvalue".
 +) Improved: Reduced Point-Cloud rendering now works with all Render-Passes
 +) Improved: Logging performance should now be better in various places
