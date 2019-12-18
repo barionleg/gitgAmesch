@@ -3,6 +3,8 @@
 
 #include <QMessageBox>
 #include <QInputDialog>
+#include <QPushButton>
+#include <QTimer>
 #include "QGMDialogComboBox.h"
 
 //! Helpfull stuff to prevent copy & paste for changing the GUI. 
@@ -26,18 +28,19 @@ inline void SHOW_MSGBOX_INFO( const QString& rTextShort, const QString& rTextLon
 	msgBox.exec();
 }
 
-#define SHOW_MSGBOX_INFO_SAVE( rTextShort, rTextLong, rTargetObject, rTargetSlot ) {            \
-	QMessageBox msgBox;                                                                     \
-	msgBox.setWindowIcon( QIcon( _GIGAMESH_LOGO_ ) );                                       \
-	msgBox.setWindowTitle( rTextShort );                                                    \
-	msgBox.setText( rTextShort );                                                           \
-	msgBox.setIcon( QMessageBox::Information );                                             \
-	msgBox.setInformativeText( rTextLong );                                                 \
-	msgBox.setStandardButtons( QMessageBox::Ok );                                           \
-	QPushButton* saveButtonPtr = msgBox.addButton( QMessageBox::Save );                     \
-	QObject::connect( saveButtonPtr, &QPushButton::clicked, rTargetObject, rTargetSlot );   \
-	msgBox.exec();                                                                          \
-};
+template<class T, class U>
+inline void SHOW_MSGBOX_INFO_SAVE( const QString& rTextShort, const QString& rTextLong, const T& rTargetObject, const U& rTargetSlot ) {
+	QMessageBox msgBox;
+	msgBox.setWindowIcon( QIcon( _GIGAMESH_LOGO_ ) );
+	msgBox.setWindowTitle( rTextShort );
+	msgBox.setText( rTextShort );
+	msgBox.setIcon( QMessageBox::Information );
+	msgBox.setInformativeText( rTextLong );
+	msgBox.setStandardButtons( QMessageBox::Ok );
+	QPushButton* saveButtonPtr = msgBox.addButton( QMessageBox::Save );
+	QObject::connect( saveButtonPtr, &QPushButton::clicked, rTargetObject, rTargetSlot );
+	msgBox.exec();
+}
 
 inline void SHOW_MSGBOX_WARN( const QString& rTextShort, const QString& rTextLong ) {
 	QMessageBox msgBox;
@@ -50,18 +53,19 @@ inline void SHOW_MSGBOX_WARN( const QString& rTextShort, const QString& rTextLon
 	msgBox.exec();
 }
 
-#define SHOW_MSGBOX_WARN_TIMEOUT( rTextShort, rTextLong, rTimeOut ) {  \
-	QMessageBox *msgBox = new QMessageBox;                         \
-	msgBox->setAttribute( Qt::WA_DeleteOnClose, true );            \
-	msgBox->setWindowIcon( QIcon( _GIGAMESH_LOGO_ ) );             \
-	msgBox->setWindowTitle( rTextShort );                          \
-	msgBox->setText( rTextShort );                                 \
-	msgBox->setIcon( QMessageBox::Warning );                       \
-	msgBox->setInformativeText( rTextLong );                       \
-	msgBox->setStandardButtons( QMessageBox::Ok );                 \
-	msgBox->show();                                                \
-	QTimer::singleShot( rTimeOut, msgBox, SLOT(close()) );         \
-};
+//!TODO: this Macro/function leaks memory, because msgBox is never deleted
+inline void SHOW_MSGBOX_WARN_TIMEOUT( const QString& rTextShort, const QString& rTextLong, int rTimeOut ) {
+	QMessageBox *msgBox = new QMessageBox;
+	msgBox->setAttribute( Qt::WA_DeleteOnClose, true );
+	msgBox->setWindowIcon( QIcon( _GIGAMESH_LOGO_ ) );
+	msgBox->setWindowTitle( rTextShort );
+	msgBox->setText( rTextShort );
+	msgBox->setIcon( QMessageBox::Warning );
+	msgBox->setInformativeText( rTextLong );
+	msgBox->setStandardButtons( QMessageBox::Ok );
+	msgBox->show();
+	QTimer::singleShot( rTimeOut, msgBox, SLOT(close()) );
+}
 
 inline void SHOW_MSGBOX_CRIT( const QString& rTextShort, const QString& rTextLong ) {
 	QMessageBox msgBox;
