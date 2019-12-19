@@ -187,7 +187,7 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 	cout << "[ObjReader::" << __FUNCTION__ << "] File opened: '" << rFilename << "'.\n";
 
 	std::filesystem::path prevRootPath = std::filesystem::current_path();
-	std::filesystem::current_path(std::filesystem::path(rFilename).parent_path());
+	std::filesystem::current_path(std::filesystem::absolute(std::filesystem::path(rFilename)).parent_path());
 
 	// determine the amount of data by parsing the data for a start:
 	while( fp.good() ) {
