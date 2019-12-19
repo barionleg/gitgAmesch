@@ -10,6 +10,9 @@ cmake_minimum_required(VERSION 3.10)
 # 2. set g++-8 as alternative permanently:
 # sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 10
 # sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 10
+# 
+# 3. Tested alternative to 1, running cmake with:
+# cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-8 -DCMAKE_CC_COMPILER=/usr/bin/gcc-8
 
 project(GigaMesh-CLT LANGUAGES CXX C)
 
