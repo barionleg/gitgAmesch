@@ -18,7 +18,7 @@ class NormalSphereSelectionDialog : public QDialog
 		Q_OBJECT
 
 	public:
-		explicit NormalSphereSelectionDialog(QWidget *parent = nullptr);
+		explicit NormalSphereSelectionDialog(QWidget *parent = nullptr, bool faceSelection = false);
 		~NormalSphereSelectionDialog() override;
 
 		void setMeshNormals(MeshQt* mesh);
@@ -37,6 +37,7 @@ class NormalSphereSelectionDialog : public QDialog
 
 		MeshQt* mMesh;
 
+		bool mFaceSelection;	//false: vertex selection, true: face selection
 		// QWidget interface
 	protected:
 		virtual void changeEvent(QEvent* event) override;

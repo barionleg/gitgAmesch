@@ -9,7 +9,7 @@
 #include <filesystem>
 
 #include "MtlParser.h"
-
+#include "../../logging/Logging.h"
 using namespace std;
 
 //tokens 0 : "f" tag for face, 1 ... n-1: obj face triple v1/vt1/vn1 ...
@@ -178,13 +178,13 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 	// functionality:
 	ifstream fp( rFilename.c_str() );
 	if( !fp.is_open() ) {
-		cerr << "[ObjReader::" << __FUNCTION__ << "] Could not open file: '" << rFilename << "'.\n";
+		LOG::error() << "[ObjReader::" << __FUNCTION__ << "] Could not open file: '" << rFilename << "'.\n";
 		std::setlocale( LC_NUMERIC, oldLocale );
 
 		return false;
 	}
 
-	cout << "[ObjReader::" << __FUNCTION__ << "] File opened: '" << rFilename << "'.\n";
+	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] File opened: '" << rFilename << "'.\n";
 
 	std::filesystem::path prevRootPath = std::filesystem::current_path();
 	std::filesystem::current_path(std::filesystem::absolute(std::filesystem::path(rFilename)).parent_path());
@@ -332,17 +332,17 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 	}
 
 	// what we just found:
-	cout << "[ObjReader::" << __FUNCTION__ << "] " << obj_linesTotal            << " lines read.\n";
-	cout << "[ObjReader::" << __FUNCTION__ << "] =========================================================\n";
-	cout << "[ObjReader::" << __FUNCTION__ << "] " << obj_verticesTotal         << " vertices found.\n";
-	cout << "[ObjReader::" << __FUNCTION__ << "] " << objVerticesNormalsTotal   << " vertex normals found.\n";
-	cout << "[ObjReader::" << __FUNCTION__ << "] " << objTexCoordsTotal         << " texture coordinates found.\n";
-	cout << "[ObjReader::" << __FUNCTION__ << "] " << objFacesTotal             << " faces found.\n";
-	cout << "[ObjReader::" << __FUNCTION__ << "] =========================================================\n";
-	cout << "[ObjReader::" << __FUNCTION__ << "] " << obj_commentsTotal         << " lines of comments.\n";
-	cout << "[ObjReader::" << __FUNCTION__ << "] " << obj_linesUnsupportedTotal << " lines not supported.\n";
-	cout << "[ObjReader::" << __FUNCTION__ << "] " << obj_linesIgnoredTotal     << " lines ignored.\n";
-	cout << "[ObjReader::" << __FUNCTION__ << "] =========================================================\n";
+	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] " << obj_linesTotal            << " lines read.\n";
+	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] =========================================================\n";
+	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] " << obj_verticesTotal         << " vertices found.\n";
+	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] " << objVerticesNormalsTotal   << " vertex normals found.\n";
+	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] " << objTexCoordsTotal         << " texture coordinates found.\n";
+	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] " << objFacesTotal             << " faces found.\n";
+	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] =========================================================\n";
+	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] " << obj_commentsTotal         << " lines of comments.\n";
+	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] " << obj_linesUnsupportedTotal << " lines not supported.\n";
+	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] " << obj_linesIgnoredTotal     << " lines ignored.\n";
+	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] =========================================================\n";
 
 	// allocate memory:
 	rVertexProps.resize( obj_verticesTotal );
@@ -401,7 +401,6 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 		istringstream iss( someLine );
 		vector<string> tokens{ istream_iterator<string>{iss}, istream_iterator<string>{} };
 		if( tokens.empty() ) {
-			// cerr << "[ObjReader::" << __FUNCTION__ << "] ERROR: in line( " << lineNr-1 << " ) of length " << someLine.length() << "\n";
 			continue; // Essentially an empty lines with just a \cr.
 		}
 		string firstToken = tokens.at( 0 );
@@ -415,19 +414,18 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 			if( MeshReader::getModelMetaDataRef().getModelMetaStringId( possibleMetaDataName, foundMetaId ) ) {
 				uint64_t preMetaLen = 3 + possibleMetaDataName.size(); // 1 for comment sign '#' plus 2x space.
 				string metaContent = someLine.substr( preMetaLen );
-				cout << "[ObjReader::" << __FUNCTION__ << "] Meta-Data: " << possibleMetaDataName << " (" << foundMetaId << ") = " << metaContent << "\n";
+				LOG::debug() << "[ObjReader::" << __FUNCTION__ << "] Meta-Data: " << possibleMetaDataName << " (" << foundMetaId << ") = " << metaContent << "\n";
 				if( !MeshReader::getModelMetaDataRef().setModelMetaString( foundMetaId, metaContent ) ) {
-					cerr << "[ObjReader::" << __FUNCTION__ << "] ERROR: Meta-Data not set!\n";
+					LOG::warn() << "[ObjReader::" << __FUNCTION__ << "] Meta-Data not set!\n";
 				}
 			}
 			continue; // because of line with comment.
 			// --------------------------------------------------------------------------------------------
 		} else if( firstToken == "v" ) { // Vertex
-			//cout << "someLine Vertex: " << someLine << "\n";
 			auto valueCount = tokens.size()-1;
 			if( ( valueCount < 3 ) || ( valueCount == 5 ) || ( valueCount > 7 ) ) {
-				cerr << "[ObjReader::" << __FUNCTION__ << "] ERROR: Wrong token count: " << tokens.size()-1 << "!"  << "\n";
-				cerr << "[ObjReader::" << __FUNCTION__ << "] ERROR: " << someLine << "\n";
+				LOG::warn() << "[ObjReader::" << __FUNCTION__ << "] Wrong token count: " << tokens.size()-1 << "!"  << "\n";
+				LOG::warn() << "[ObjReader::" << __FUNCTION__ << "] " << someLine << "\n";
 				continue;
 			}
 
@@ -451,8 +449,8 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 
 		} else if( firstToken == "vn" ) { // Vertex normals
 			if( tokens.size() != 4 ) {
-				cerr << "[ObjReader::" << __FUNCTION__ << "] ERROR: Wrong token count: " << tokens.size() << "!"  << "\n";
-				cerr << "[ObjReader::" << __FUNCTION__ << "] ERROR: " << someLine << "\n";
+				LOG::warn() << "[ObjReader::" << __FUNCTION__ << "] Wrong token count: " << tokens.size() << "!"  << "\n";
+				LOG::warn() << "[ObjReader::" << __FUNCTION__ << "] " << someLine << "\n";
 				continue;
 			}
 
@@ -487,13 +485,13 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 			//ignore, mtllib is handled in first parsing run
 		}
 		else {
-			cerr << "[ObjReader::" << __FUNCTION__ << "] ERROR: line ignored: " << someLine << "\n";
+			LOG::warn() << "[ObjReader::" << __FUNCTION__ << "] line ignored: " << someLine << "\n";
 		}
 	}
 
 	fp.close();
 	timeStop  = clock();
-	cout << "[ObjReader::" << __FUNCTION__ << "] fetch data from file:       " << static_cast<float>( timeStop - timeStart ) / CLOCKS_PER_SEC << " seconds."  << "\n";
+	LOG::debug() << "[ObjReader::" << __FUNCTION__ << "] fetch data from file:       " << static_cast<float>( timeStop - timeStart ) / CLOCKS_PER_SEC << " seconds."  << "\n";
 	std::setlocale( LC_NUMERIC, oldLocale );
 	std::filesystem::current_path(prevRootPath);
 	return true;

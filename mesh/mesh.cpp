@@ -31,6 +31,8 @@
 #include "vertex.h"
 #include "marchingfront.h"
 
+#include "../logging/Logging.h"
+
 #ifdef LIBPSALM
 	#include <libpsalm/libpsalm.h>
 #endif
@@ -721,16 +723,14 @@ void Mesh::establishStructure(
     #endif
 
 	// Prepare array for faces:
-	vector<Face*>::iterator itFace;
-	for( itFace = mFaces.begin(); itFace != mFaces.end(); itFace++ ) {
-		delete (*itFace);
+	for(auto & face : mFaces) {
+		delete face;
 	}
 	mFaces.clear();
 
 	// Prepare array for vertices:
-	vector<Vertex*>::iterator itVertex;
-	for( itVertex=mVertices.begin(); itVertex!=mVertices.end(); itVertex++ ) {
-		delete (*itVertex);
+	for(auto & vertex : mVertices) {
+		delete vertex;
 	}
 	mVertices.clear();
 
@@ -793,18 +793,18 @@ void Mesh::establishStructure(
 		uint64_t vertBIdx = rFaceProps[i].mVertIdxB;
 		uint64_t vertCIdx = rFaceProps[i].mVertIdxC;
 		if( vertAIdx >= rVertexProps.size() ) {
-			std::cerr << "[Mesh::" << __FUNCTION__ << "] Vertex A index out of range: " << vertAIdx <<
-			             " ... ignoring Face no. " << i << "!" << std::endl;
+			LOG::warn() << "[Mesh::" << __FUNCTION__ << "] Vertex A index out of range: " << vertAIdx <<
+						 " ... ignoring Face no. " << i << "!\n";
 			continue;
 		}
 		if( vertBIdx >= rVertexProps.size() ) {
-			std::cerr << "[Mesh::" << __FUNCTION__ << "] Vertex B index out of range: " << vertBIdx <<
-			             " ... ignoring Face no. " << i << "!" << std::endl;
+			LOG::warn() << "[Mesh::" << __FUNCTION__ << "] Vertex B index out of range: " << vertBIdx <<
+						 " ... ignoring Face no. " << i << "!\n";
 			continue;
 		}
 		if( vertCIdx >= rVertexProps.size() ) {
-			std::cerr << "[Mesh::" << __FUNCTION__ << "] Vertex C index out of range: " << vertCIdx <<
-			             " ... ignoring Face no. " << i << "!" << std::endl;
+			LOG::warn() << "[Mesh::" << __FUNCTION__ << "] Vertex C index out of range: " << vertCIdx <<
+						 " ... ignoring Face no. " << i << "!\n";
 			continue;
 		}
 		// Create new face
@@ -815,7 +815,7 @@ void Mesh::establishStructure(
 			           static_cast<VertexOfFace*>(mVertices[vertCIdx])
 			         );
 		} catch ( std::bad_alloc& errBadAlloc ) {
-			std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: bad_alloc caught at index " << i << ": " << errBadAlloc.what() << std::endl;
+			LOG::error() << "[Mesh::" << __FUNCTION__ << "] ERROR: bad_alloc caught at index " << i << ": " << errBadAlloc.what() << "\n";
 			continue;
 		}
 		myFace->setUVs(rFaceProps[i].textureCoordinates);
@@ -824,7 +824,7 @@ void Mesh::establishStructure(
 		try {
 			mFaces[facesAddedToMesh] = myFace;
 		} catch ( std::bad_alloc& errBadAlloc ) {
-			std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: bad_alloc caught when pushing index " << i << ": " << errBadAlloc.what() << std::endl;
+			LOG::error() << "[Mesh::" << __FUNCTION__ << "] ERROR: bad_alloc caught when pushing index " << i << ": " << errBadAlloc.what() << "\n";
 			continue;
 		}
 		// Count sucessfully added faces
@@ -838,12 +838,12 @@ void Mesh::establishStructure(
 		//	cout << "[Mesh::" << __FUNCTION__ << "] Faces set: " << mFaces.size() << "(" << (i*100.0/facesMeshedNr) << "%)" << endl;
 		//}
 	}
-	std::cout << "[Mesh::" << __FUNCTION__ << "] Faces set: " << mFaces.size() << "" << std::endl;
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "] Faces set: " << mFaces.size() << "\n";
 	if( rFaceProps.size() != facesAddedToMesh ) {
-		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Number of faces created: " <<
-		             facesAddedToMesh << " is smaller than number of faces given " << rFaceProps.size() << std::endl;
-		std::cerr << "[Mesh::" << __FUNCTION__ << "]        Therefore " << rFaceProps.size() - facesAddedToMesh <<
-		             " faces were ignored!" << std::endl;
+		LOG::warn() << "[Mesh::" << __FUNCTION__ << "] ERROR: Number of faces created: " <<
+					 facesAddedToMesh << " is smaller than number of faces given " << rFaceProps.size() << "\n";
+		LOG::warn() << "[Mesh::" << __FUNCTION__ << "]        Therefore " << rFaceProps.size() - facesAddedToMesh <<
+					 " faces were ignored!\n";
 		// Shrinking is required:
 		mFaces.resize( facesAddedToMesh );
 		// Inform user
@@ -851,7 +851,7 @@ void Mesh::establishStructure(
 	}
 
 	if( rFaceProps.empty() ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] Point cloud dedected - no further Mesh-setup possible!" << endl;
+		LOG::info() << "[Mesh::" << __FUNCTION__ << "] Point cloud dedected - no further Mesh-setup possible!\n";
 		return;
 	}
 
@@ -877,10 +877,10 @@ void Mesh::establishStructure(
 			                                                           // such as `size_t` may be more suited.
 			PrimitiveInfo primInfo = mPolyPrimInfo.at( i );
 			if( !tmpPolyLine->setPosition( primInfo.mPosX, primInfo.mPosY, primInfo.mPosZ ) ) {
-				cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: PolyLine::setPosition failed!" << endl;
+				LOG::warn() << "[Mesh::" << __FUNCTION__ << "] ERROR: PolyLine::setPosition failed!\n";
 			}
 			if( !tmpPolyLine->setNormal( primInfo.mNormalX, primInfo.mNormalY, primInfo.mNormalZ ) ) {
-				cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: PolyLine::setNormal failed!" << endl;
+				LOG::warn() << "[Mesh::" << __FUNCTION__ << "] ERROR: PolyLine::setNormal failed!\n";
 			}
 		}
 		// if we have a label ID:
@@ -888,7 +888,7 @@ void Mesh::establishStructure(
 			                                                           // integers for the numbers; using something
 			                                                           // such as `size_t` may be more suited.
 			if( !tmpPolyLine->setLabel( mPolyLabelID.at( i ) ) ) {
-				cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: PolyLine::setLabel failed!" << endl;
+				LOG::warn() << "[Mesh::" << __FUNCTION__ << "] ERROR: PolyLine::setLabel failed!\n";
 			//} else {
 			//	cout << "[Mesh::" << __FUNCTION__ << "] PolyLine::setLabel( " << mPolyLabelID.at( i ) << " )!" << endl;
 			}
@@ -896,9 +896,9 @@ void Mesh::establishStructure(
 		mPolyLines.push_back( tmpPolyLine );
 		//cout << endl;
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] Polygonal Lines: " << mPolyLines.size() << ""  << endl;
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "] Polygonal Lines: " << mPolyLines.size() << "\n";
 
-	cout << "[Mesh::" << __FUNCTION__ << "] done in " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "] done in " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds.\n";
 
     #ifdef SHOW_MALLOC_STATS
 	    SHOW_MALLOC_STATS( 6 );
@@ -938,10 +938,10 @@ void Mesh::establishStructure(
 		areaTotal += setFaceData[t].mAreaProc;
 	}
 	//pthread_mutex_destroy( &mutexVertexPtr );
-	cout << "[Mesh::" << __FUNCTION__ << "] Total surface area: " << areaTotal << " mm² (unit assumed)." << endl;
-	cout << "[Mesh::" << __FUNCTION__ << "]                     " << getVertexNr()/areaTotal << " dots/mm² (unit assumed)." << endl;
-	cout << "[Mesh::" << __FUNCTION__ << "]                     " << 25.4*sqrt(getVertexNr()/areaTotal) << " DPI (unit assumed)." << endl;
-	cout << "[Mesh::" << __FUNCTION__ << "] PARALLEL: Face neighbourhood and normal estimation time: " << static_cast<int>( time( nullptr ) - timeStampParallel )  << " seconds."  << endl;
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "] Total surface area: " << areaTotal << " mm² (unit assumed).\n";
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "]                     " << getVertexNr()/areaTotal << " dots/mm² (unit assumed).\n";
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "]                     " << 25.4*sqrt(getVertexNr()/areaTotal) << " DPI (unit assumed).\n";
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "] PARALLEL: Face neighbourhood and normal estimation time: " << static_cast<int>( time( nullptr ) - timeStampParallel )  << " seconds.\n";
 #else
 	time_t timeStampSerial = time( NULL );
 	double areaTotal = 0.0;
@@ -972,7 +972,7 @@ void Mesh::establishStructure(
 		curVertex = getVertexPos( vertIdx );
 		totalNeighbourCount += curVertex->get1RingFaceCount();
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] Vertex No. of Neighbours: " << totalNeighbourCount << " => " << totalNeighbourCount*sizeof(Face*)/(1024*1024) << " MBytes allocated." << endl;
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "] Vertex No. of Neighbours: " << totalNeighbourCount << " => " << totalNeighbourCount*sizeof(Face*)/(1024*1024) << " MBytes allocated.\n";
 
     #ifdef SHOW_MALLOC_STATS
 	    SHOW_MALLOC_STATS( 10 );
@@ -1153,6 +1153,72 @@ bool Mesh::importFeatureVectorsFromFile(
 	}
 
 	return( true );
+}
+
+//! Exports feature vectors to a file
+//! @returns false in case of an error or user cancel
+bool Mesh::exportFeatureVectors(const string& rFileName)
+{
+	// Ask for vertex index within the first colum
+	bool hasVertexIndex = true;
+	if( !showQuestion( &hasVertexIndex, "First Column", "Should the first column contain the vertex index?<br /><br />" ) ) {
+		LOG::debug() << "[Mesh::" << __FUNCTION__ << "] User cancled.\n";
+		return( false );
+	}
+
+	//! Exports feature vectors as ASCII file.
+	std::ofstream filestr(rFileName);
+
+	if(!filestr.is_open())
+	{
+		LOG::error() << "[Mesh::" << __FUNCTION__ << "] file " << rFileName << " unable to open for writing!\n";
+		return false;
+	}
+
+	filestr.imbue(std::locale("C"));
+
+
+	time_t rawtime;
+	struct tm * timeinfo;
+
+	time( &rawtime );
+	timeinfo = localtime( &rawtime );
+	std::string timeInfoStr( asctime( timeinfo ) );
+	timeInfoStr = timeInfoStr.substr( 0, timeInfoStr.length()-1 );
+
+	filestr << "# +-------------------------------------------------------------------------------+" << endl;
+	filestr << "# | Feature vectors of vertices generated by GigaMesh - an application of the     |" << endl;
+	filestr << "# | IWR - University of Heidelberg, Germany                                       |" << endl;
+	filestr << "# +-------------------------------------------------------------------------------+" << endl;
+	filestr << "# | Contact: Hubert MARA <hubert.mara@iwr.uni-heidelberg.de>                      |" << endl;
+	filestr << "# +-------------------------------------------------------------------------------+" << endl;
+	filestr << "# | Mesh:       " << getBaseName() << endl;
+	filestr << "# | - Vertices: " << getVertexNr() << endl;
+	filestr << "# | - Faces:    " << getFaceNr() << endl;
+	filestr << "# | Timestamp:  " << timeInfoStr << endl;
+	filestr << "# +-------------------------------------------------------------------------------+" << endl;
+
+	uint64_t currIndex = 0;
+	for(const auto currVert : mVertices)
+	{
+		auto vecSize = currVert->getFeatureVectorLen();
+		if(hasVertexIndex)
+		{
+			filestr << (currIndex++) << " ";
+		}
+
+		for(int i = 0; i<vecSize; ++i)
+		{
+			double elem;
+			currVert->getFeatureElement(i, &elem);
+			filestr << elem;
+			filestr << (i == vecSize - 1 ? "\n" : " ");
+		}
+	}
+
+	filestr.close();
+
+	return true;
 }
 
 //! Assigns the feature vectors within Mesh::mFeatureVecVertices
@@ -2971,7 +3037,7 @@ bool Mesh::selectFaceInSphere( Vertex* rSeed, double rRadius ) {
 	int vertNrLongs = getBitArrayVerts( &vertBitArrayVisited );
 	// Allocate the bit arrays for faces:
 	uint64_t* faceBitArrayVisited;
-	int faceNrLongs = getBitArrayFaces( &faceBitArrayVisited );
+	uint64_t faceNrLongs = getBitArrayFaces( &faceBitArrayVisited );
 	if( !fetchSphereBitArray( rSeed, &facesInSphere, rRadius,  vertNrLongs, vertBitArrayVisited, faceNrLongs, faceBitArrayVisited ) ) {
 		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: fetchSphereBitArray failed!" << endl;
 		return false;
@@ -3787,17 +3853,17 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 						vertIntersection2 = new VertexOfFace(vertY->getPositionVector() - vecOffset);
 
 						front.push_back(vertIntersection1);
-						back.push_back(vertIntersection2);
+						back. push_back(vertIntersection2);
 					}
 					// if no duplicates are required, store vertex in _both_ sets
 					else {
 						front.push_back(vertY);
-						back.push_back(vertY);
+						back. push_back(vertY);
 					}
 
 					//push uvs of y to front and back
 					frontUVs.push_back(uvs[uvY]); frontUVs.push_back(uvs[uvY + 1]);
-					backUVs.push_back(uvs[uvY]); backUVs.push_back(uvs[uvY + 1]);
+					backUVs. push_back(uvs[uvY]); backUVs. push_back(uvs[uvY + 1]);
 				}
 
 				// Set attributes for new vertices
@@ -3818,7 +3884,7 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 			}
 
 			triangulateSplitFace(front, &adjacentAndNewFaces, &frontUVs, face->getTextureId());
-			triangulateSplitFace(back,  &adjacentAndNewFaces, &backUVs, face->getTextureId());
+			triangulateSplitFace(back , &adjacentAndNewFaces, &backUVs , face->getTextureId());
 		}
 
 		for(Face* face : mFacesSelected) {
@@ -6628,10 +6694,34 @@ bool Mesh::isolineToPolylineMultiple() {
 
 //! Compute isolines using the function values using the stored threshold.
 //!
-//! @returns false in case of an error. True otherwise.
+//! @returns false in case of an error or user cancel. True otherwise.
 bool Mesh::isolineToPolyline() {
-	double isoValue;
+	double isoValue = _NOT_A_NUMBER_DBL_;
+	double isoValueSelPrim = _NOT_A_NUMBER_DBL_;
 	getParamFloatMesh( MeshParams::FUNC_VALUE_THRES, &isoValue );
+
+	if( mPrimSelected != nullptr ) {
+		if( mPrimSelected->getFuncValue( &isoValueSelPrim ) ) {
+			if( isfinite( isoValueSelPrim ) ) {
+				bool chooseValFromSelectedPrim = false;
+				bool userCancel = false;
+				userCancel = showQuestion( &chooseValFromSelectedPrim,
+				                           "Value from Selected Primitive",
+				                           "Do you want to use the function value of the selected primitive?<br /><br />"
+				                           "YES for <b>" + to_string( isoValueSelPrim ) + "</b><br /><br />"
+				                           "NO for <b>" + to_string( isoValue ) + "</b><br /><br />"
+				                           "CANCEL to abort."
+				                          );
+				if( !userCancel ) {
+					return( false );
+				}
+				if( chooseValFromSelectedPrim ) {
+					isoValue = isoValueSelPrim;
+				}
+			}
+		}
+	}
+
 	bool retVal = isolineToPolyline( isoValue );
 	return( retVal );
 }
@@ -6646,46 +6736,62 @@ bool Mesh::isolineToPolyline(
     double     rIsoValue,          //!< Isovalue to compute the isolines.
     Plane*     rPlaneIntersect     //!< Optional plane for intersections. Will be stored with the isolines.
 ) {
+	// Sanity check
+	if( !isfinite( rIsoValue ) ) {
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Given iso-value is not finite!" << std::endl;
+		return( false );
+	}
+
 	//! \todo Fetching the label related information, makes only sense for outlines of connected components. Therefore optimizations might be possible at this point.
 	// Fetch label normals first.
 	vector<Vector3D> labelCenters;
 	vector<Vector3D> labelNormals;
 	estLabelNormalSizeCenterVert( &labelCenters, &labelNormals );
 	vector<Vector3D>::iterator itLabelCenters;
-	for( itLabelCenters=labelCenters.begin(); itLabelCenters!=labelCenters.end(); itLabelCenters++ ) {
-		Vector3D labelCenter = (*itLabelCenters);
-		cout << "[Mesh::" << __FUNCTION__ << "] vertex count: " << labelCenter.getH() << endl;
-		labelCenter.dumpInfo();
+	for( auto& labelCenter : labelCenters) {
+		//LOG::debug() << "[Mesh::" << __FUNCTION__ << "] vertex count: " << labelCenter.getH() << "\n";
+		//labelCenter.dumpInfo();
 		labelCenter /= labelCenter.getH();
-		(*itLabelCenters) = labelCenter;
 	}
-	vector<Vector3D>::iterator itLabelNormals;
-	for( itLabelNormals=labelNormals.begin(); itLabelNormals!=labelNormals.end(); itLabelNormals++ ) {
-		cout << "[Mesh::" << __FUNCTION__ << "] label area: " << (*itLabelNormals).getLength3() << endl;
-		//(*itLabelNormals).normalize3();
+
+	/*
+	for( const auto& labelNormal : labelNormals) {
+		cout << "[Mesh::" << __FUNCTION__ << "] label area: " << labelNormal.getLength3() << endl;
+		//labelNormal.normalize3();
 	}
+	*/
 
 	// Bit array:
 	uint64_t* facesVisitedBitArray;
 	uint64_t  faceBlocksNr = getBitArrayFaces( &facesVisitedBitArray );
 
+	auto setFaceVisited = [&facesVisitedBitArray] (Face* face) {
+		uint64_t  bOffset;
+		uint64_t  bNr;
+		face->getIndexOffsetBit(&bOffset, &bNr);
+		facesVisitedBitArray[bOffset] |= static_cast<uint64_t>(1) << bNr;
+	};
+
 	for( uint64_t i=0; i<faceBlocksNr; i++ ) {
-		if( facesVisitedBitArray[i] == 0xFFFFFFFF ) {
+		if( facesVisitedBitArray[i] == 0xFFFFFFFFFFFFFFFF ) {
 			// whole block visited.
 			continue;
 		}
 		for( uint64_t j=0; j<64; j++ ) {
+			const uint64_t currFaceIndex = i*64+j;
+
+			// skip unused bits within the last block:
+			if( ( i==faceBlocksNr-1 ) && ( currFaceIndex >= getFaceNr() ) ) {
+				break;
+			}
+
 			uint64_t currentBit = static_cast<uint64_t>(1) << j;
 			if( facesVisitedBitArray[i] & currentBit ) {
 				// face already visited.
 				continue;
 			}
-			// skip unused bits within the last block:
-			if( ( i==faceBlocksNr-1 ) && ( i*64+j >= getFaceNr() ) ) {
-				break;
-			}
 			//cout << "[Mesh::isolineToPolyline] Check Face in Block No. " << i << " Bit No. " << j << endl;
-			Face* checkFace = getFacePos( i*64+j );
+			Face* checkFace = getFacePos( currFaceIndex );
 			if( !checkFace->isOnFuncValIsoLine( rIsoValue ) ) {
 				// when the face is not along the isoline, we mark it visited and move on:
 				facesVisitedBitArray[i] |= currentBit;
@@ -6699,12 +6805,12 @@ bool Mesh::isolineToPolyline(
 			bool isLabelBorder = checkFaceFirst->vertLabelLabelBorder( &isLabelLabelBorder, &labelFromBorder );
 			if( isLabelBorder ) {
 				if( isLabelLabelBorder ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] is on a label-label border." << endl;
+					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] is on a label-label border.\n";
 				} else {
-					cout << "[Mesh::" << __FUNCTION__ << "] is on a nolabel-label border. labelFromBorder: " << labelFromBorder << endl;
+					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] is on a nolabel-label border. labelFromBorder: " << labelFromBorder << "\n";
 				}
 			} else {
-				cout << "[Mesh::" << __FUNCTION__ << "] is NOT on a label related border." << endl;
+				LOG::debug() << "[Mesh::" << __FUNCTION__ << "] is NOT on a label related border.\n";
 			}
 
 			//cout << "[Mesh::" << __FUNCTION__ << "] Trace Face in Block No. " << i << " Bit No. " << j << endl;
@@ -6723,19 +6829,27 @@ bool Mesh::isolineToPolyline(
 			}
 			Vector3D  isoPoint;
 			Face*     nextFace = nullptr;
+			Face*     excludeFace = nullptr;
 			uint64_t  bitOffset;
 			uint64_t  bitNr;
 
 			// Trace in forward direction:
 			//----------------------------
 			// Fetch first point ...
-			checkFaceFirst->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, true );
+			// ... set visited ...
+			checkFaceFirst->getIndexOffsetBit( &bitOffset, &bitNr );
+			facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
+			if(!checkFaceFirst->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, true, &excludeFace ))
+			{
+				continue; //skip face, because it only touches the isoLine on its vertices
+			}
+			if(excludeFace != nullptr)
+			{
+				setFaceVisited(excludeFace);
+			}
 			// ... add to polyline with normal ....
 			Vector3D normalPos = checkFaceFirst->getNormal( true );
 			isoLine->addFront( isoPoint, normalPos, checkFaceFirst );
-			// ... and set visited.
-			checkFaceFirst->getIndexOffsetBit( &bitOffset, &bitNr );
-			facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
 
 			checkFace = nextFace;
 			while( checkFace != nullptr ) {
@@ -6743,27 +6857,43 @@ bool Mesh::isolineToPolyline(
 				//cout << "[Mesh::" << __FUNCTION__ << "] Face in Block No. " << bitOffset << " Bit No. " << bitNr << endl;
 				// check if we have been there to prevent infinite loops:
 				if( facesVisitedBitArray[bitOffset] & static_cast<uint64_t>(1)<<bitNr ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] closed polyline (forward)." << endl;
+					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] closed polyline (forward).\n";
 					break;
 				}
+				// set visited
+				facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
 				// get the point ...
-				checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, true );
+				if(!checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, true, &excludeFace ))
+				{
+					nextFace = nullptr;
+					continue;
+				}
+				if(excludeFace != nullptr)
+				{
+					setFaceVisited(excludeFace);
+				}
 				// ... add to polyline with normal ...
 				normalPos = checkFace->getNormal( true );
 				isoLine->addFront( isoPoint, normalPos, checkFace );
-				// ... and set visited ...
-				facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
+
 				// .... move on:
 				checkFace = nextFace;
 				// for debuging:
 				if( nextFace == nullptr ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] open polyline (forward)." << endl;
+					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] open polyline (forward).\n";
 				}
 			}
 
 			// Trace in backward direction:
 			//------------------------------
-			checkFaceFirst->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, false );
+			if(!checkFaceFirst->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, false, &excludeFace ))
+			{
+				continue;
+			}
+			if(excludeFace != nullptr)
+			{
+				setFaceVisited(excludeFace);
+			}
 			// ... add to polyline with normal ....
 			normalPos = checkFaceFirst->getNormal( true );
 			isoLine->addBack( isoPoint, normalPos, checkFaceFirst );
@@ -6772,26 +6902,33 @@ bool Mesh::isolineToPolyline(
 			checkFace = nextFace;
 			while( checkFace != nullptr ) {
 				checkFace->getIndexOffsetBit( &bitOffset, &bitNr );
+
+				// ... and set visited ...
+				facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
+
 				//cout << "[Mesh::" << __FUNCTION__ << "] Face in Block No. " << bitOffset << " Bit No. " << bitNr << endl;
 				// check if we have been there to prevent infinite loops:
 				if( facesVisitedBitArray[bitOffset] & static_cast<uint64_t>(1)<<bitNr ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] closed polyline (backward)." << endl;
+					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] closed polyline (backward).\n";
 					break;
 				}
 				// get the point ...
-				if( !checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, false ) ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] unknown problem." << endl;
+				if( !checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, false, &excludeFace ) ) {
+					nextFace = nullptr;
+					continue;
+				}
+				if(excludeFace != nullptr)
+				{
+					setFaceVisited(excludeFace);
 				}
 				// ... add to polyline with normal ...
 				normalPos = checkFace->getNormal( true );
 				isoLine->addBack( isoPoint, normalPos, checkFace );
-				// ... and set visited ...
-				facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
 				// .... move on:
 				checkFace = nextFace;
 				// for debuging:
 				if( nextFace == nullptr ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] open polyline (backward)." << endl;
+					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] open polyline (backward).\n";
 				}
 			}
 			// Add vertices of the polyline:
@@ -8661,6 +8798,25 @@ bool Mesh::funcVertAddLight( Matrix4D &rTransformMat, unsigned int rArrayWidth, 
 	return true;
 }
 
+//! Copies the function value from each vertex to the nth component of its feature vector
+//! @param dim the component of the feature vector, where the function value is written to. If dim > featureVecSize, then the vector gets padded with zeros to fit dim
+//! @returns False in case of an error
+bool Mesh::funcValToFeatureVector(unsigned int dim)
+{
+	for(auto pVertex : mVertices)
+	{
+		if(dim >= pVertex->getFeatureVectorLen())
+		{
+			pVertex->resizeFeatureVector(dim + 1);
+		}
+		double funcVal;
+		pVertex->getFuncValue(&funcVal);
+		pVertex->setFeatureElement(dim, funcVal);
+	}
+
+	return true;
+}
+
 
 //! Compute the correlation of the vertices feature vector and store it as their function value.
 bool Mesh::setVertFuncValCorrTo( vector<double>* rFeatVector ) {
@@ -9116,7 +9272,7 @@ bool Mesh::changedMesh() {
 //! Removes multiple Vertices from the vertexList. It will also (has to)
 //! remove Faces which are defined by the Vertices.
 bool Mesh::removeVertices( set<Vertex*>* verticesToRemove ) {
-	if( verticesToRemove->size() == 0 ) {
+	if( verticesToRemove->empty() ) {
 		cout << "[Mesh::" << __FUNCTION__ << "] Nothing to do - no vertices given." << endl;
 		return false;
 	}
@@ -9129,9 +9285,12 @@ bool Mesh::removeVertices( set<Vertex*>* verticesToRemove ) {
 	// to remove a vertex, we have to determine the faces it belongs to and
 	// then remove these faces - otherwise we will screw-up our meshs
 	// internal references!
-	for ( itVertexRm=verticesToRemove->begin(); itVertexRm != verticesToRemove->end(); itVertexRm++ ) {
-		(*itVertexRm)->getFaces( &facesToRemove );
+
+	for(auto vertToRemove : *verticesToRemove)
+	{
+		vertToRemove->getFaces( &facesToRemove);
 	}
+
 	removeFaces( &facesToRemove );
 	facesToRemove.clear();
 	cout << "[Mesh::" << __FUNCTION__ << "] " << facesBefore-getFaceNr() << " Faces removed." << endl;
@@ -9324,7 +9483,7 @@ bool Mesh::removeFaces( set<Face*>* facesToRemove ) {
 		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: NULL pointer given!" << endl;
 		return false;
 	}
-	if( ( facesToRemove->size() == 0 ) || ( mFaces.size() == 0 ) ) {
+	if( facesToRemove->empty() || mFaces.empty() ) {
 		// nothing to do.
 		return false;
 	}
@@ -9450,8 +9609,8 @@ bool Mesh::completeRestore(
 	uint64_t holesFilled = 0;
 	uint64_t holesFail = 0;
 	uint64_t holesSkipped = 0;
-	long oldVertexNr;
-	long oldFaceNr;
+	uint64_t oldVertexNr;
+	uint64_t oldFaceNr;
 	bool retVal = true;
 
 	do {
@@ -12053,12 +12212,11 @@ bool Mesh::fetchSphereArea( Vertex*        rSeedPosition,  //!< Position of the 
 		rAreas[i] = 0.0;
 	}
 	// Parse all faces
-	vector<Face*>::iterator itFace;
-	for( itFace=rFacesInSphere->begin(); itFace!=rFacesInSphere->end(); itFace++ ) {
-		//bool Face::surfaceintegralinvariant( int nradii, double* radii, double* area, Vertex* rseed1 )
-		Face* currFace = (*itFace);
-		currFace->surfaceintegralinvariant( rRadiiNr, rRadii, rAreas, rSeedPosition );
+	for(auto& face : *rFacesInSphere)
+	{
+		face->surfaceintegralinvariant( rRadiiNr, rRadii, rAreas, rSeedPosition);
 	}
+
 	// Normalize areas by circle area to ]0.0,+inf) - 1.0 means the size of circle disc of a great circle, which can be flat.
 	for( unsigned int i=0; i<rRadiiNr; i++ ) {
 		rAreas[i] /= M_PI * rRadii[i] * rRadii[i];
@@ -12414,14 +12572,31 @@ bool Mesh::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool 
 		return true;
 	}
 
+	showProgressStart("Apply Transformation");
+	showProgress(0.0, "Apply Transformation");
+
 	//! .) Apply transformation matrix for each of the given vertices.
 	unsigned int errCtr = 0;
+	double percentDone = 0.0;
+	const unsigned int progressStep = rSomeVerts->size() / 10;
+	unsigned int count = 0;
 	float timeStart = clock();
 	for( auto const& currVertex: (*rSomeVerts) ) {
 		if( !(currVertex->applyTransfrom( &rTrans )) ) {
 			errCtr++;
 		}
+
+		++count;
+		if(count >= progressStep)
+		{
+			count = 0;
+			percentDone += 0.1;
+			showProgress(percentDone, "Apply Transformation");
+		}
 	}
+
+	showProgress(1.0, "Apply Transformation");
+
 	cout << "[Mesh::" << __FUNCTION__ << "] time: " << ( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
 	if( errCtr > 0 ) {
 		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: applyTransfrom failed " << errCtr << " times!" << endl;
@@ -12468,6 +12643,7 @@ bool Mesh::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool 
 		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: writing transformation matrix to: " << transMatFName << "!" << endl;
 	}
 
+	showProgressStop("Apply Transformation");
 	return ( errCtr == 0 );
 }
 
@@ -15001,6 +15177,96 @@ bool Mesh::exportFuncVals( string rFileName, bool rWithVertIdx ) {
 	filestr.close();
 
 	cout << "[Mesh::" << __FUNCTION__ << "] took " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds. " << endl;
+	return true;
+}
+
+//! Imports function values of the vertices
+//! File extension: .txt or .mat
+//! assumes that the files are either single column with the functionValue, or double column with index + functionValue
+//! lines starting with # are treated as comments
+bool Mesh::importFuncValsFromFile(const string& rFileName, bool withVertIdx)
+{
+	ifstream filestr(rFileName);
+
+	filestr.imbue(std::locale("C"));
+
+	if(!filestr.is_open())
+	{
+		LOG::error() << "[Mesh::" << __FUNCTION__ << "] Could not open file: '" << rFileName << "'.\n";
+		return false;
+	}
+
+	auto numVerts = getVertexNr();
+	std::string line;
+	double funcVal;
+
+	//importing with index
+	if(withVertIdx)
+	{
+		uint64_t currIndex = 0;
+		while(std::getline(filestr, line))
+		{
+			if(!line.empty())
+			{
+				if(line[0] == '#')
+				{
+					continue;
+				}
+
+				std::stringstream lineStream(line);
+				if(!(lineStream >> currIndex >> funcVal))
+				{
+					LOG::warn() << "[Mesh::" << __FUNCTION__ << "] File: '" << rFileName << "' contains invalid values!\n";
+					continue;
+				}
+
+				if(currIndex < numVerts)
+				{
+					mVertices[currIndex]->setFuncValue(funcVal);
+				}
+				else
+				{
+					LOG::warn() << "[Mesh::" << __FUNCTION__ << "] warning: function value out of range: " << currIndex << "\n";
+				}
+			}
+		}
+	}
+	//importing without index
+	else
+	{
+		uint64_t currIndex = 0;
+		while(std::getline(filestr, line))
+		{
+			if(!line.empty())
+			{
+				if(line[0] == '#')
+				{
+					continue;
+				}
+
+				if(currIndex > numVerts)
+				{
+					LOG::warn() << "[Mesh::" << __FUNCTION__ << "] warning: function value out of range: " << currIndex - 1 << "\n";
+					break;
+				}
+				try {
+					funcVal = std::stod(line);
+				}
+				catch (std::exception& e)
+				{
+					LOG::warn() << "[Mesh::" << __FUNCTION__ << "] File: '" << rFileName << "' contains invalid values!\n";
+					mVertices[currIndex++]->setFuncValue(0);
+					continue;
+				}
+
+				mVertices[currIndex++]->setFuncValue(funcVal);
+			}
+		}
+	}
+
+	filestr.close();
+
+	changedVertFuncVal();
 	return true;
 }
 

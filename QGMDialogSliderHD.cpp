@@ -53,7 +53,7 @@ QGMDialogSliderHD::~QGMDialogSliderHD() {
 //! Set an index to be sent with a signal.
 //! Returns the old value
 int QGMDialogSliderHD::setIdx( int setIdx ) {
-	int tmpVal = mMinVal;
+	int tmpVal = mIndex;
 	mIndex = setIdx;
 	return( tmpVal );
 }
@@ -112,16 +112,14 @@ int QGMDialogSliderHD::setSteps( int rMaxSteps ) {
 //! ATTENTION: Has to be called AFTER setMin and setMax
 //! Returns the old value.
 double QGMDialogSliderHD::setPos( double setPos ) {
-	setPos *= mFactor;
-	if( mLogarithmic ) {
-		setPos = log( setPos );
-	}
-	double tmpVal = mInitialValue;
-	mInitialValue = setPos;
 
-	int sliderPos = ( ( ( setPos - mMinVal ) / ( mMaxVal - mMinVal ) ) * ( static_cast<double>(ui->horizontalSlider->maximum()) - static_cast<double>(ui->horizontalSlider->minimum()) ) ) + ui->horizontalSlider->minimum();
-	ui->horizontalSlider->setSliderPosition( sliderPos );
-	valueChanged( sliderPos );
+	setPos *= mFactor;
+
+	double tmpVal = mInitialValue / mFactor;
+	mInitialValue = setPos;
+	ui->lineValueAbs->setText(QString( "%1" ).arg( setPos ));
+
+	valueChangedAbs(ui->lineValueAbs->text());
 
 	return tmpVal;
 }
@@ -163,14 +161,7 @@ void QGMDialogSliderHD::suppressPreview() {
 //! Get the selected value.
 //! @returns false in case of an error.
 bool QGMDialogSliderHD::getValue( double* rValue ) {
-	int sliderPos = ui->horizontalSlider->sliderPosition();
-	double valRel = ( static_cast<double>(sliderPos) - static_cast<double>(ui->horizontalSlider->minimum()) ) / ( static_cast<double>(ui->horizontalSlider->maximum()) - static_cast<double>(ui->horizontalSlider->minimum()) );
-	double valSel = ( mMaxVal - mMinVal ) * valRel + mMinVal;
-	if( mLogarithmic ) {
-		valSel = exp( valSel );
-	}
-	valSel /= mFactor;
-	(*rValue) = valSel;
+	*rValue = ui->lineValueAbs->text().toDouble() / mFactor;
 	return true;
 }
 
@@ -181,8 +172,8 @@ void QGMDialogSliderHD::previewChecked( bool state ) {
 	if( !state ) {
 		return;
 	}
-	int sliderPos = ui->horizontalSlider->sliderPosition();
-	valueChanged( sliderPos );
+	auto value = ui->lineValueAbs->text();
+	valueChangedAbs( value );
 }
 
 //! Accepts a double value as string, which is assumed to be checked by a QDoubleValidator before.
@@ -219,9 +210,8 @@ void QGMDialogSliderHD::valueChangedRel( const QString& rValRel ) {
 	if( !ui->checkBoxPreview->isChecked() ) {
 		return;
 	}
-	emit valuePreviewInt( static_cast<int>(round( valPre )) );
-	emit valuePreviewFloat( valPre );
-	emit valuePreviewIdFloat( mIndex, valPre );
+
+	emitValuePreview(valPre);
 }
 
 //! Accepts a double value as string, which is assumed to be checked by a QDoubleValidator before.
@@ -240,6 +230,9 @@ void QGMDialogSliderHD::valueChangedAbs( const QString& rValAbs ) {
 		cerr << "[QGMDialogSliderHD::" << __FUNCTION__ << "] ERROR: convert false!" << endl;
 		return;
 	}
+
+	double valPre = valAbs;
+
 	if( mLogarithmic ) {
 		valAbs = log( valAbs );
 	}
@@ -255,13 +248,8 @@ void QGMDialogSliderHD::valueChangedAbs( const QString& rValAbs ) {
 	if( !ui->checkBoxPreview->isChecked() ) {
 		return;
 	}
-	double valPre = ( mMaxVal - mMinVal ) * valRel + mMinVal;
-	if( mLogarithmic ) {
-		valPre = exp( valPre );
-	}
-	emit valuePreviewInt( static_cast<int>(round( valPre )) );
-	emit valuePreviewFloat( valPre );
-	emit valuePreviewIdFloat( mIndex, valPre );
+
+	emitValuePreview(valPre);
 }
 
 //! Checks if preview is activated.
@@ -279,10 +267,25 @@ void QGMDialogSliderHD::valueChanged( int sliderPos ) {
 	if( !ui->checkBoxPreview->isChecked() ) {
 		return;
 	}
-	emit valuePreviewInt( static_cast<int>(round( valPre )) );
-	emit valuePreviewFloat( valPre/mFactor );
-	emit valuePreviewIdFloat( mIndex, valPre/mFactor );
+
+	emitValuePreview(valPre);
 	//cout << __PRETTY_FUNCTION__ << " valPre: " << valPre << endl;
+}
+
+void QGMDialogSliderHD::emitValueSelected(double value)
+{
+	value /= mFactor;
+	emit valueSelected( static_cast<int>(round( value )) );
+	emit valueSelected( value );
+	emit valueSelected( mIndex, value );
+}
+
+void QGMDialogSliderHD::emitValuePreview(double value)
+{
+	value /= mFactor;
+	emit valuePreviewInt( static_cast<int>(round( value )) );
+	emit valuePreviewFloat( value );
+	emit valuePreviewIdFloat( mIndex, value );
 }
 
 // --- SLOTS (public) --------------------------------------------------------------------
@@ -290,19 +293,12 @@ void QGMDialogSliderHD::valueChanged( int sliderPos ) {
 //! Checks if all the input values are correct. If the values seem to be correct
 //! a signal is emitted, which should be connected MeshQt.
 void QGMDialogSliderHD::accept() {
-	int sliderPos = ui->horizontalSlider->sliderPosition();
-	double valRel = ( static_cast<double>(sliderPos) - static_cast<double>(ui->horizontalSlider->minimum()) ) / ( static_cast<double>(ui->horizontalSlider->maximum()) - static_cast<double>(ui->horizontalSlider->minimum()) );
-	double valSel = ( mMaxVal - mMinVal ) * valRel + mMinVal;
-	if( mLogarithmic ) {
-		valSel = exp( valSel );
-	}
-	//cout << "[QGMDialogSliderHD::" << __FUNCTION__ << "] valSel: " << valSel << endl;
+
+	double valSel = ui->lineValueAbs->text().toDouble();
 
 	hide();
 
-	emit valueSelected( static_cast<int>(round( valSel )) );
-	emit valueSelected( valSel );
-	emit valueSelected( mIndex, valSel );
+	emitValueSelected(valSel);
 
 	// set to default:
 	ui->checkBoxPreview->setEnabled( true );
@@ -315,13 +311,8 @@ void QGMDialogSliderHD::accept() {
 
 //! Closes the dialog and emits the initial value in case preview has changed things.
 void QGMDialogSliderHD::reject() {
-	if(mLogarithmic)  {
-		mInitialValue = exp( mInitialValue );
-	}
 
-	emit valuePreviewInt( mIndex );
-	emit valuePreviewFloat( mInitialValue  );
-	emit valuePreviewIdFloat( mIndex, mInitialValue  );
+	emitValuePreview(mInitialValue);
 
 	// set to default:
 	ui->checkBoxPreview->setEnabled( true );

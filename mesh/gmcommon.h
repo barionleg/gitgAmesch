@@ -32,6 +32,7 @@
 #ifdef WIN32
 //#warning "Redefining random(x) to rand(x) for windows compatibility"
 #define random(x) rand(x)
+
 #ifdef __FUNCDNAME__	//this only works with msvc. mingw seems to have problems with it.
 #define __PRETTY_FUNCTION__ __FUNCDNAME__
 #endif

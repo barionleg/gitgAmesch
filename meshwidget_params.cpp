@@ -17,6 +17,7 @@ MeshWidgetParams::MeshWidgetParams() {
 	mParamFlag[ORTHO_MODE]               = true;
 	mParamFlag[SHOW_HISTOGRAM_SCENE_LOG] = true;
 	mParamFlag[SHOW_GRID_RECTANGULAR]    = true;
+	mParamFlag[SHOW_GRID_HIGHLIGHTCENTER_FRONT] = false;
 	mParamFlag[LIGHT_ENABLED]            = true;
 	mParamFlag[LIGHT_FIXED_CAM]          = true;
 	mParamFlag[LIGHT_AMBIENT]            = true;

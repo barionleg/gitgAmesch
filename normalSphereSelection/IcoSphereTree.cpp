@@ -61,7 +61,7 @@ IcoSphereTree::IcoSphereTree(unsigned int subdivision)
 {
 	mVertices.resize(12);
 	//initialise root icosahedron, t == golden ratio
-	double t = (1.0f + sqrtf(5.0f)) / 2.0f;
+	double t = (1.0F + sqrtf(5.0F)) / 2.0F;
 
 	// create 12 vertices of a icosahedron
 	mVertices[ 0] = normalize3(Vector3D(-1.0,  t, 0.0));
@@ -129,7 +129,7 @@ size_t getMidPoint(size_t p1, size_t p2, std::vector<Vector3D>& vertices, std::u
 		return item->second;
 	}
 
-	Vector3D middle = (vertices[p1] + vertices[p2]) * 0.5f;
+	Vector3D middle = (vertices[p1] + vertices[p2]) * 0.5F;
 	unsigned int retVal = vertices.size();
 
 	vertices.emplace_back(normalize3(middle));
@@ -194,7 +194,7 @@ void IcoSphereTree::subdivide(unsigned int subdivisions)
 		subdivideFaces(newVertexCache, faces, mVertices);
 	}
 
-	mVertexData = std::vector<unsigned int>(mVertices.size(), 0);
+	mVertexData = std::vector<double>(mVertices.size(), 0);
 
 }
 
@@ -290,7 +290,7 @@ size_t getClosestFaceVertexIndexToRay(const Vector3D& rayOrigin, const Vector3D&
 
 inline Vector3D getFaceCenter(const IcoSphereTreeFaceNode* face, const std::vector<Vector3D>& vertices)
 {
-	return (vertices[face->vertexIndices[0]] + vertices[face->vertexIndices[1]] + vertices[face->vertexIndices[2]]) * 0.3;
+	return (vertices[face->vertexIndices[0]] + vertices[face->vertexIndices[1]] + vertices[face->vertexIndices[2]]) / 3.0;
 }
 
 size_t getVertexIndexClosestToRay(const IcoSphereTreeFaceNode* faceToRefine, const Vector3D& rayOrigin, const Vector3D& rayDirection, const std::vector<Vector3D>& vertices)
@@ -379,7 +379,7 @@ bool IcoSphereTree::getNearestVertexFromRay(const Vector3D& rayOrigin, const Vec
 			if(distance < minDist)
 			{
 				refineFace = &faceCandidate;
-				minDist = abs(distance);
+				minDist = std::abs(distance);
 			}
 		}
 	}
@@ -414,15 +414,16 @@ bool IcoSphereTree::isSelected(size_t index)
 	return mSelectedVertices.find(index) != mSelectedVertices.end();
 }
 
-void IcoSphereTree::incData(size_t index)
+void IcoSphereTree::incData(size_t index, double value)
 {
 	if(index > mVertexData.size())
 		return;
 
-	mMaxData = std::max(mMaxData, ++mVertexData[index]);	//increment mVertexData, update maxData
+	mVertexData[index] += value;
+	mMaxData = std::max(mMaxData, mVertexData[index]);	//increment mVertexData, update maxData
 }
 
-unsigned int IcoSphereTree::getMaxData() const
+double IcoSphereTree::getMaxData() const
 {
 	return mMaxData;
 }

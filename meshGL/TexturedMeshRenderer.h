@@ -48,6 +48,10 @@ class TexturedMeshRenderer
 
 		bool isInitialized() const;
 
+		void setBackFaceColor(const QVector3D& backFaceColor);
+
+		void setCullBackfaces(bool cullBackfaces);
+
 	private:
 
 		void setUpVertexBuffer(QOpenGLBuffer& vertexBuffer);
@@ -58,6 +62,9 @@ class TexturedMeshRenderer
 		QOpenGLShaderProgram* mShader = nullptr;
 		std::vector<QOpenGLTexture*> mTextures;
 		QOpenGLFunctions_3_3_Core mGL;
+
+		QVector3D mBackFaceColor = QVector3D(128.0 / 255.0, 92.0 / 255.0, 92.0 / 255.0);
+		bool mCullBackfaces = false;
 };
 
 #endif // TEXTUREDMESHRENDERER_H

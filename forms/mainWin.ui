@@ -126,6 +126,7 @@
     <addaction name="actionImportNormals"/>
     <addaction name="actionImportTexMap"/>
     <addaction name="separator"/>
+    <addaction name="actionExportFeatureVectors"/>
     <addaction name="actionExportFuncVals"/>
     <addaction name="separator"/>
     <addaction name="actionExportCoordinatesOfAllVerticesAsCSV"/>
@@ -200,6 +201,8 @@
      <addaction name="separator"/>
      <addaction name="actionFuncValFeatureVecPNorm"/>
      <addaction name="actionFuncValFeatureVecMahalanobis"/>
+     <addaction name="separator"/>
+     <addaction name="actionFuncValToFeatureVector"/>
     </widget>
     <widget class="QMenu" name="menuColorPerVertexToFunctionValue">
      <property name="title">
@@ -606,6 +609,7 @@
     <addaction name="menuPolylines"/>
     <addaction name="separator"/>
     <addaction name="actionVertices_Normal_Sphere"/>
+    <addaction name="actionFaces_Normal_Sphere"/>
    </widget>
    <widget class="QMenu" name="menuHistogram">
     <property name="title">
@@ -668,6 +672,7 @@
     <addaction name="actionBackGroundGridRaster"/>
     <addaction name="actionBackGroundGridPolar"/>
     <addaction name="actionGridHighlightCenter"/>
+    <addaction name="actionGrid_Center_Cross_in_front"/>
     <addaction name="actionGridShiftDepth"/>
     <addaction name="menuGridsExtra"/>
     <addaction name="separator"/>
@@ -3827,7 +3832,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionImportFunctionValues">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>Import Function Values (&amp;per Vertex)</string>
@@ -4315,7 +4320,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionVertices_Normal_Sphere">
    <property name="text">
-    <string>Vertices - Normal-Sphere</string>
+    <string>Normal-Sphere - Vertices</string>
    </property>
   </action>
   <action name="actionExport_Normal_Sphere_Data">
@@ -4337,6 +4342,29 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>Save Texture along Mesh</string>
+   </property>
+  </action>
+  <action name="actionFaces_Normal_Sphere">
+   <property name="text">
+    <string>Normal-Sphere - Faces</string>
+   </property>
+  </action>
+  <action name="actionExportFeatureVectors">
+   <property name="text">
+    <string>Export Feature Vectors (per Vertex)</string>
+   </property>
+  </action>
+  <action name="actionFuncValToFeatureVector">
+   <property name="text">
+    <string>Function Value to Feature Vector</string>
+   </property>
+  </action>
+  <action name="actionGrid_Center_Cross_in_front">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Grid: Center Cross in front</string>
    </property>
   </action>
  </widget>

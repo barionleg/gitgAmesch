@@ -72,6 +72,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	//.
 	QObject::connect( actionImportTexMap,             SIGNAL(triggered()), this,       SLOT(menuImportTexMap())          );
 	QObject::connect( actionImportFeatureVectors,     SIGNAL(triggered()), this,       SLOT(menuImportFeatureVectors())  );
+	QObject::connect( actionExportFeatureVectors,     SIGNAL(triggered()), this,       SIGNAL(sExportFeatureVectors())  );
 	QObject::connect( actionImportNormals,            SIGNAL(triggered()), this,       SLOT(menuImportNormalVectors())   );
 	//.
 	QObject::connect( actionExportPolylines,          SIGNAL(triggered()), this,       SIGNAL(exportPolyLinesCoords())          );
@@ -165,7 +166,8 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionSelPolyShortest,        SIGNAL(triggered()),         this, SIGNAL(selectPolyShortest())            );
 	QObject::connect( actionSelPolyLabelNo,         SIGNAL(triggered()),         this, SIGNAL(selectPolyLabelNo())             );
 
-	QObject::connect( actionVertices_Normal_Sphere, SIGNAL(triggered()),         this, SIGNAL(sOpenNormalSphereSelectionDialog())           );
+	QObject::connect( actionVertices_Normal_Sphere, &QAction::triggered,         this, &QGMMainWindow::sOpenNormalSphereSelectionDialogVertices );
+	QObject::connect( actionFaces_Normal_Sphere,    &QAction::triggered,         this, &QGMMainWindow::sOpenNormalSphereSelectionDialogFaces    );
 
 	// --- View --------------------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( actionFullscreen,    &QAction::triggered,   this,          &QGMMainWindow::toggleFullscreen   );
@@ -270,6 +272,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionFeatCorrelationSelectedVert,    SIGNAL(triggered()),   this,       SIGNAL(sFuncVertFeatCorrSelVert())             ); // <- NEW naming convention based on new menu structure!
 	QObject::connect( actionFeatAutoCorrelationVert,        SIGNAL(triggered()),   this,       SIGNAL(sFuncVertFeatAutoCorrVert())            ); // <- NEW naming convention based on new menu structure!
 	QObject::connect( actionFeatAutoSelectedVertCorr,       SIGNAL(triggered()),   this,       SIGNAL(sFuncVertFeatAutoCorrSelVert())         ); // <- NEW naming convention based on new menu structure!
+	QObject::connect( actionFuncValToFeatureVector,         SIGNAL(triggered()),   this,       SIGNAL(sFuncValToFeatureVector())              );
 	//! \todo Rename regarding new menu structure.
 	// # Distance to plane, line, selected primitive and cone
 	QObject::connect( actionDistanceToPlane,                SIGNAL(triggered()),   this,       SIGNAL(visualizeDistanceToPlane())             ); // <- OLD
@@ -426,6 +429,7 @@ void QGMMainWindow::initMeshWidgetSignals() {
 	// Add flag IDs for mMeshWidget class to menu actions:
 	actionGridRectangular->setProperty(           "gmMeshWidgetFlag",       MeshWidgetParams::SHOW_GRID_RECTANGULAR );
 	actionGridHighlightCenter->setProperty(       "gmMeshWidgetFlag",       MeshWidgetParams::SHOW_GRID_HIGHLIGHTCENTER );
+	actionGrid_Center_Cross_in_front->setProperty("gmMeshWidgetFlag",       MeshWidgetParams::SHOW_GRID_HIGHLIGHTCENTER_FRONT);
 	actionGridPolarLines->setProperty(            "gmMeshWidgetFlag",       MeshWidgetParams::SHOW_GRID_POLAR_LINES );
 	actionGridPolarCircles->setProperty(          "gmMeshWidgetFlag",       MeshWidgetParams::SHOW_GRID_POLAR_CIRCLES );
 	actionHistShow->setProperty(                  "gmMeshWidgetFlag",       MeshWidgetParams::SHOW_HISTOGRAM );
@@ -1295,7 +1299,7 @@ void QGMMainWindow::menuImportFeatureVectors() {
 	QString fileName = QFileDialog::getOpenFileName( this,
 													 tr( "Import Feature Vectors (Vertices)" ),
 	                                                 settings.value( "lastPath" ).toString(),
-													 tr( "Texture maps (*.mat *.txt)" )
+													 tr( "Feature vectors (*.mat *.txt)" )
 	                                                );
 	if( fileName.length() > 0 ) {
 		emit sFileImportFeatureVectors( fileName );
@@ -1940,6 +1944,8 @@ void QGMMainWindow::updateWidgetShowFlag(MeshWidgetParams::eParamFlag rFlag, boo
 	case MeshWidgetParams::SHOW_GRID_POLAR_LINES:
 		break;
 	case MeshWidgetParams::SHOW_GRID_POLAR_CIRCLES:
+		break;
+	case MeshWidgetParams::SHOW_GRID_HIGHLIGHTCENTER_FRONT:
 		break;
 	case MeshWidgetParams::SHOW_HISTOGRAM:
 		break;

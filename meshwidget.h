@@ -64,6 +64,8 @@ public:
 
 	bool    getViewPortResolution( double& rRealWidth, double& rRealHeight );
 	bool    getViewPortPixelWorldSize( double& rPixelWidth, double& rPixelHeight );
+	bool    getViewPortDPI(double& rDPI);
+	bool    getViewPortDPM(double& rDPM);
 
 public slots: // ... overloaded from MeshWidgetParams:
 	virtual bool    setParamFlagMeshWidget(    MeshWidgetParams::eParamFlag rFlagNr,  bool   rState  );
@@ -215,7 +217,7 @@ public slots:
 	bool exportPlaneIntersectPolyLinesSVG();
 
 	bool screenshotSVGexportPolyLines( Vector3D& cameraViewDir, Matrix4D& matView, double polyScaleWdith, double polyScaleHeight, double polyLineWidth, SvgWriter& svgWriter );
-	bool screenshotSVGexportPlaneIntersections( double rOffsetX, double rOffsetY, double rPolyLineWidth, SvgWriter& svgWriter );
+	bool screenshotSVGexportPlaneIntersections(double rOffsetX, double rOffsetY, double rPolyLineWidth, double canvasWidth, SvgWriter& svgWriter );
 
 	void screenshotRuler();
 	bool screenshotRuler( const QString& rFileName );
@@ -251,7 +253,7 @@ public slots:
 	//.
 	bool currentViewToDefault();
 
-	void openNormalSphereSelectionDialog();
+	void openNormalSphereSelectionDialog(bool faces);
 	void setCameraRotation(QQuaternion rotationQuat);
 
 signals:
@@ -367,6 +369,9 @@ private:
 	bool paintBackgroundShader( QOpenGLShaderProgram** rShaderProgram );
 	bool paintRasterImage( eTextureMaps rTexMap, int rPixelX, int rPixelY, int rPixelWidth, int rPixelHeight );
     //------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	//! Checkes if mesh might cause problems. E.g. too small or georeferenced (far away from origin)
+	void checkMeshSanity();
 };
 
 #endif // MESHWIDGET_H

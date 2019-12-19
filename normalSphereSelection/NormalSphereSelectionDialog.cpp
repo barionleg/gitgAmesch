@@ -8,10 +8,11 @@
 #include <QRadioButton>
 #include <iostream>
 
-NormalSphereSelectionDialog::NormalSphereSelectionDialog(QWidget *parent) :
+NormalSphereSelectionDialog::NormalSphereSelectionDialog(QWidget *parent, bool faceSelection) :
 	QDialog(parent),
 	ui(new Ui::NormalSphereSelectionDialog),
-	mMesh(nullptr)
+	mMesh(nullptr),
+	mFaceSelection(faceSelection)
 {
 	ui->setupUi(this);
 
@@ -88,17 +89,37 @@ NormalSphereSelectionDialog::~NormalSphereSelectionDialog()
 void NormalSphereSelectionDialog::setMeshNormals(MeshQt* mesh)
 {
 	mMesh = mesh;
-	std::vector<Vertex*> vertices;
-	mesh->getVertexList(&vertices);
 
 	std::vector<float> normalData;
-	normalData.reserve(vertices.size() * 3);
 
-	for(const auto vertex : vertices)
+	if(mFaceSelection)
 	{
-		normalData.push_back(vertex->getNormalX());
-		normalData.push_back(vertex->getNormalY());
-		normalData.push_back(vertex->getNormalZ());
+		std::vector<Face*> faces;
+		mesh->getFaceList(&faces);
+
+		normalData.reserve(faces.size() * 3);
+
+		for(const auto face : faces)
+		{
+			normalData.push_back(face->getNormalX());
+			normalData.push_back(face->getNormalY());
+			normalData.push_back(face->getNormalZ());
+		}
+	}
+
+	else
+	{
+		std::vector<Vertex*> vertices;
+		mesh->getVertexList(&vertices);
+
+		normalData.reserve(vertices.size() * 3);
+
+		for(const auto vertex : vertices)
+		{
+			normalData.push_back(vertex->getNormalX());
+			normalData.push_back(vertex->getNormalY());
+			normalData.push_back(vertex->getNormalZ());
+		}
 	}
 
 	ui->openGLWidget->setRenderNormals(normalData);
@@ -110,29 +131,49 @@ void NormalSphereSelectionDialog::selectMeshByNormals()
 	if(mMesh == nullptr)
 		return;
 
-	std::vector<Vertex*> vertices;
-	mMesh->getVertexList(&vertices);
-
-	std::list<Vertex*> selectedVertices;
-
-	for(const auto vertex : vertices)
+	if(mFaceSelection)
 	{
+		std::vector<Face*> faces;
+		mMesh->getFaceList(&faces);
 
-		if(ui->openGLWidget->isNormalSelected(vertex->getNormalX(), vertex->getNormalY(), vertex->getNormalZ()))
+		std::set<Face*> selectedFaces;
+
+		for(const auto face : faces)
 		{
-			selectedVertices.push_back(vertex);
+			if(ui->openGLWidget->isNormalSelected(face->getNormalX(), face->getNormalY(), face->getNormalZ()))
+			{
+				selectedFaces.insert(face);
+			}
 		}
+
+		if(selectedFaces.empty())
+			return;
+
+		mMesh->addToSelection(selectedFaces);
 	}
 
-	if(selectedVertices.empty())
-		return;
+	else
+	{
+		std::vector<Vertex*> vertices;
+		mMesh->getVertexList(&vertices);
 
-	std::vector<Vertex*> selVertexVec;
-	selVertexVec.reserve(selectedVertices.size());
-	std::copy(selectedVertices.begin(), selectedVertices.end(), std::back_inserter(selVertexVec));
+		std::set<Vertex*> selectedVertices;
 
+		for(const auto vertex : vertices)
+		{
 
-	mMesh->addToSelection(&selVertexVec);
+			if(ui->openGLWidget->isNormalSelected(vertex->getNormalX(), vertex->getNormalY(), vertex->getNormalZ()))
+			{
+				selectedVertices.insert(vertex);
+			}
+		}
+
+		if(selectedVertices.empty())
+			return;
+
+		mMesh->addToSelection(selectedVertices);
+	}
+
 }
 
 void NormalSphereSelectionDialog::comboButtonBoxClicked(QAbstractButton* button)

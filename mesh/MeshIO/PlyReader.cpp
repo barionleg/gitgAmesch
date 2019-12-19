@@ -7,23 +7,19 @@
 #include <clocale>
 #include "PlyEnums.h"
 
+#include "../../logging/Logging.h"
+
 using uint = unsigned int;
 
 template <class T>
 void READ_IN_PROPER_BYTE_ORDER(std::fstream& filestream, T target, size_t size, bool reverse)
 {
-	if( !reverse || ( size == 1 ) ) {
-		(filestream).read( reinterpret_cast<char*>(target), (size) );
-	} else {
-		char* tmpBufRev = new char[size];
-		char* tmpBuf = new char[size];
-		(filestream).read( tmpBufRev, size );
-		for( size_t i=0; i<(size); i++ ) {
-			tmpBuf[i] = tmpBufRev[(size)-1-i];
-		}
-		memcpy( target, tmpBuf, size );
-		delete[] tmpBufRev;
-		delete[] tmpBuf;
+	auto data = reinterpret_cast<char*>(target);
+	(filestream).read(data , (size) );
+
+	if(reverse && size != 1)
+	{
+		std::reverse(data, data + size);
 	}
 }
 
@@ -87,10 +83,10 @@ bool PlyReader::readFile(const std::string& rFilename,
 
 	int timeStart = clock(); // for performance mesurement
 
-	std::cout << "[PlyReader::" << __FUNCTION__ << "] opening: '" << rFilename << "'" << std::endl;
+	std::cout << "[PlyReader::" << __FUNCTION__ << "] opening: '" << rFilename << "'\n";
 	filestr.open( rFilename.c_str(), std::fstream::in );
 	if( !filestr.is_open() ) {
-		std::cerr << "[PlyReader::" << __FUNCTION__ << "] could not open: '" << rFilename << "'!" << std::endl;
+		LOG::error() << "[PlyReader::" << __FUNCTION__ << "] could not open: '" << rFilename << "'!\n";
 		return false;
 	}
 
@@ -145,7 +141,7 @@ bool PlyReader::readFile(const std::string& rFilename,
 			if( MeshReader::getModelMetaDataRef().getModelMetaStringId( possibleMetaDataName, foundMetaId ) ) {
 				uint64_t preMetaLen = 9 + possibleMetaDataName.size(); // 7 for 'comment' plus 2x space.
 				std::string metaContent = lineToParseOri.substr( preMetaLen );
-				std::cout << "[PlyReader::" << __FUNCTION__ << "] Meta-Data: " << possibleMetaDataName << " (" << foundMetaId << ") = " << metaContent << std::endl;
+				LOG::info() << "[PlyReader::" << __FUNCTION__ << "] Meta-Data: " << possibleMetaDataName << " (" << foundMetaId << ") = " << metaContent << "\n";
 
 				if( foundMetaId == ModelMetaData::META_TEXTUREFILE)
 				{
@@ -155,7 +151,7 @@ bool PlyReader::readFile(const std::string& rFilename,
 				else
 				{
 					if( !MeshReader::getModelMetaDataRef().setModelMetaString( foundMetaId, metaContent ) ) {
-						std::cerr << "[PlyReader::" << __FUNCTION__ << "] ERROR: Meta-Data not set!" << std::endl;
+						LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Meta-Data not set!" << "\n";
 					}
 				}
 			}
@@ -165,19 +161,19 @@ bool PlyReader::readFile(const std::string& rFilename,
 
 		if( lineToParse.substr( 0, 6 ) == "format" ) {
 			if( lineToParse == "format binary_big_endian 1.0" ) {
-				std::cout << "[PlyReader::" << __FUNCTION__ << "] File is BIG Endian." << std::endl;
+				LOG::debug() << "[PlyReader::" << __FUNCTION__ << "] File is BIG Endian.\n";
 				if( not( mSystemIsBigEndian ) ) {
 					reverseByteOrder = true;
 				}
 			} else if( lineToParse == "format binary_little_endian 1.0" ) {
-				std::cout << "[PlyReader::" << __FUNCTION__ << "] File is LITTLE Endian." << std::endl;
+				LOG::debug() << "[PlyReader::" << __FUNCTION__ << "] File is LITTLE Endian.\n";
 				if( mSystemIsBigEndian ) {
 					reverseByteOrder = true;
 				}
 			} else {
 				readASCII = true;
-				std::cerr << "[PlyReader::" << __FUNCTION__ << "] try to read as ASCII." << std::endl;
-				std::cerr << "[PlyReader::" << __FUNCTION__ << "] Line: " << lineToParse << std::endl;
+				LOG::debug() << "[PlyReader::" << __FUNCTION__ << "] try to read as ASCII.\n";
+				LOG::debug() << "[PlyReader::" << __FUNCTION__ << "] Line: " << lineToParse << "\n";
 			}
 		}
 
@@ -194,7 +190,7 @@ bool PlyReader::readFile(const std::string& rFilename,
 		if( lineToParse.substr( 0, 7 ) == "element" ) {
 			// Vertices
 			if( sscanf( lineToParse.c_str(), "element vertex %lu", &plyElements[PLY_VERTEX] ) == 1 ) {
-				std::cout << "[PlyReader::" << __FUNCTION__ << "] Vertices: " << plyElements[PLY_VERTEX] << std::endl;
+				LOG::info() << "[PlyReader::" << __FUNCTION__ << "] Vertices: " << plyElements[PLY_VERTEX] << "\n";
 				plyCurrentSection = PLY_VERTEX;
 				// allocate memory - assume color per vertex:
 				rVertexProps.resize( plyElements[PLY_VERTEX] );
@@ -214,12 +210,12 @@ bool PlyReader::readFile(const std::string& rFilename,
 				}
 			// Faces
 			} else if( sscanf( lineToParse.c_str(), "element face %lu", &plyElements[PLY_FACE] ) == 1 ) {
-				std::cout << "[PlyReader::" << __FUNCTION__ << "] Faces: " << plyElements[PLY_FACE] << std::endl;
+				LOG::info() << "[PlyReader::" << __FUNCTION__ << "] Faces: " << plyElements[PLY_FACE] << "\n";
 				plyCurrentSection = PLY_FACE;
 				// allocate memory:
 				rFaceProps.resize( plyElements[PLY_FACE] );
 			} else if( sscanf( lineToParse.c_str(), "element line %lu", &plyElements[PLY_POLYGONAL_LINE] ) == 1 ) {
-				std::cout << "[PlyReader::" << __FUNCTION__ << "] Polygonal lines: " << plyElements[PLY_POLYGONAL_LINE] << std::endl;
+				LOG::info() << "[PlyReader::" << __FUNCTION__ << "] Polygonal lines: " << plyElements[PLY_POLYGONAL_LINE] << "\n";
 				plyCurrentSection = PLY_POLYGONAL_LINE;
 			// Unsupported
 			} else {
@@ -228,7 +224,7 @@ bool PlyReader::readFile(const std::string& rFilename,
 				sscanf( lineToParse.c_str(), "element %s %i", elementName, &elementCount );
 				plyElements[PLY_SECTION_UNSUPPORTED] += elementCount;
 				plyCurrentSection = PLY_SECTION_UNSUPPORTED;
-				std::cerr << "[PlyReader::" << __FUNCTION__ << "] ERROR: unknown element '" << elementName << "', count: " << elementCount << "!" << std::endl;
+				LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] unknown element '" << elementName << "', count: " << elementCount << "!\n";
 			}
 		}
 
@@ -246,7 +242,7 @@ bool PlyReader::readFile(const std::string& rFilename,
 			char propName[255];
 			char propTypeCount[255];
 			if( sscanf( lineToParse.c_str(), "property list %s %s %s", propTypeCount, propType, propName ) != 3 ) {
-				std::cerr << "[PlyReader::" << __FUNCTION__ << "] Error while parsing list properties!" << std::endl;
+				LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Error while parsing list properties!\n";
 				propertyParsed = false;
 			}
 			propertyListCountDataType = plyParseTypeStr( propTypeCount );
@@ -263,14 +259,14 @@ bool PlyReader::readFile(const std::string& rFilename,
 				propertyType = PLY_LIST_IGNORE;
 			}
 			if( ( propertyListDataType == PLY_SIZE_UNDEF ) || ( propertyListCountDataType == PLY_SIZE_UNDEF ) ) {
-				std::cerr << "[PlyReader::" << __FUNCTION__ << "] Line: " << lineToParse << std::endl;
+				LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Line: " << lineToParse << "\n";
 			}
 		} else if( lineToParse.substr( 0, 8 ) == "property" ) {
 			propertyParsed = true;
 			char propType[255];
 			char propName[255];
 			if( sscanf( lineToParse.c_str(), "property %s %s", propType, propName ) != 2 ) {
-				std::cerr << "[PlyReader::" << __FUNCTION__ << "] Error while parsing single properties!" << std::endl;
+				LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Error while parsing single properties!\n";
 				propertyParsed = false;
 			}
 			if( strcmp( propName, "x" ) == 0 ) {
@@ -317,13 +313,13 @@ bool PlyReader::readFile(const std::string& rFilename,
 			} else if (strcmp (propName, "texnumber") == 0) {
 				propertyType = PLY_FACE_TEXNUMBER;
 			} else {
-				std::cerr << "[PlyReader::" << __FUNCTION__ << "] unknown property '" << propName << "' in header!" << std::endl;
-				std::cerr << "[PlyReader::" << __FUNCTION__ << "] Line: " << lineToParse << std::endl;
+				LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] unknown property '" << propName << "' in header!\n";
+				LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Line: " << lineToParse << "\n";
 				propertyType = PLY_UNSUPPORTED;
 			}
 			propertyDataType = plyParseTypeStr( propType );
 			if( propertyDataType == PLY_SIZE_UNDEF ) {
-				std::cerr << "[PlyReader::" << __FUNCTION__ << "] Line: " << lineToParse << std::endl;
+				LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Line: " << lineToParse << "\n";
 			}
 		}
 
@@ -334,7 +330,7 @@ bool PlyReader::readFile(const std::string& rFilename,
 		switch( plyCurrentSection ) {
 			//! \todo Is this fallthrough intentional?
 			case PLY_SECTION_UNSUPPORTED:
-				std::cerr << "[PlyReader::" << __FUNCTION__ << "] Property of an unsupported type: " << lineToParse << std::endl;
+				LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Property of an unsupported type: " << lineToParse << "\n";
 				break;
 			case PLY_POLYGONAL_LINE:
 			case PLY_VERTEX:
@@ -349,13 +345,13 @@ bool PlyReader::readFile(const std::string& rFilename,
 				sectionProps[plyCurrentSection].propertyListDataType.push_back( propertyListDataType );
 				break;
 			default:
-				std::cerr << "[PlyReader::" << __FUNCTION__ << "] Error undefined section type: " << plyCurrentSection << "!" << std::endl;
+				LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] undefined section type: " << plyCurrentSection << "!\n";
 		}
 	}
 
 	if( !endOfHeader ) {
 		// no end of the header found means some trouble:
-		std::cerr << "[PlyReader::" << __FUNCTION__ << "] failed: no end of header was found!" << std::endl;
+		LOG::error() << "[PlyReader::" << __FUNCTION__ << "] failed: no end of header was found!\n";
 		filestr.close();
 		return( false );
 	}
@@ -410,8 +406,8 @@ bool PlyReader::readFile(const std::string& rFilename,
 			for( uint64_t i=0; i<tokens.size(); i++ ) {
 				if( i>=sectionProps[PLY_VERTEX].propertyType.size() ) {
 					// Sanity check
-					std::cout << "[PlyReader::" << __FUNCTION__ << "] verticesRead: " << verticesRead << " of " << plyElements[PLY_VERTEX] << std::endl;
-					std::cerr << "[PlyReader::" << __FUNCTION__ << "] ERROR: More tokens than properties " << i << " >= " << sectionProps[PLY_VERTEX].propertyType.size() << "!" << std::endl;
+					LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] verticesRead: " << verticesRead << " of " << plyElements[PLY_VERTEX] << "\n";
+					LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] More tokens than properties " << i << " >= " << sectionProps[PLY_VERTEX].propertyType.size() << "!\n";
 					continue;
 				}
 				std::string lineElement = tokens[ i ];
@@ -493,16 +489,16 @@ bool PlyReader::readFile(const std::string& rFilename,
 							// someFloat = atof( lineElement.c_str() );
 							// featureVecVertices[verticesRead*featureVecVerticesLen+j] = (double)someFloat;
 						}
-						//std::cout << std::endl;
+						//LOG::info() << "\n";
 						break;
 					case PLY_UNSUPPORTED:
 					default:
 						// Read but ignore
-						std::cerr << "[PlyReader::" << __FUNCTION__ << "] ERROR: Unknown property in vertex section " << currProperty << " !" << std::endl;
+						LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Unknown property in vertex section " << currProperty << " !\n";
 				}
 			}
 		}
-		std::cout << "[PlyReader::" << __FUNCTION__ << "] Reading vertices done." << std::endl;
+		std::cout << "[PlyReader::" << __FUNCTION__ << "] Reading vertices done.\n";
 
 
 		//--------------------------------- PARSE FACES --------------------------------------------------------
@@ -527,7 +523,7 @@ bool PlyReader::readFile(const std::string& rFilename,
 			for( uint64_t i=0; i<tokens.size(); i++ ) {
 				if(currPropertyIt == sectionProps[PLY_FACE].propertyType.end())
 				{
-					std::cerr << "[PlyReader::" << __FUNCTION__ << "] ERROR: Unknown property in face section!" << std::endl;
+					LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Unknown property in face section!\n";
 					continue;
 				}
 
@@ -538,7 +534,7 @@ bool PlyReader::readFile(const std::string& rFilename,
 							uint64_t elementCount = atoi( lineElement.c_str() );
 							if( elementCount != 3 ) {
 								i += elementCount; // These have to be skipped by the outer loop.
-								std::cerr << "[PlyReader::" << __FUNCTION__ << "] ERROR: unsupported number (" << listNrChar << ") of elements within the list!" << std::endl;
+								LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] unsupported number (" << listNrChar << ") of elements within the list!\n";
 								continue;
 							}
 							std::string listElementInLine = tokens[ i+1 ];
@@ -556,7 +552,7 @@ bool PlyReader::readFile(const std::string& rFilename,
 							auto elementCount = atoi(lineElement.c_str());
 							if(elementCount != 6) {
 								i += elementCount; // these have to be skipped by the outer loop
-								std::cerr << "[PlyReader::" << __FUNCTION__ << "] ERROR: unsupported number (" << listNrChar << ") of elements within the list!" << std::endl;
+								LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] unsupported number (" << listNrChar << ") of elements within the list!\n";
 								continue;
 							}
 							for(int j = 0; j < elementCount; ++j)
@@ -570,12 +566,12 @@ bool PlyReader::readFile(const std::string& rFilename,
 						break;
 					default:
 						// Read but ignore
-						std::cerr << "[PlyReader::" << __FUNCTION__ << "] ERROR: Unknown property in face section " << currProperty << " !" << std::endl;
+						LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Unknown property in face section " << currProperty << " !\n";
 				}
 				++currPropertyIt;
 			}
 		}
-		std::cout << "[PlyReader::" << __FUNCTION__ << "] Reading faces done." << std::endl;
+		std::cout << "[PlyReader::" << __FUNCTION__ << "] Reading faces done.\n";
 		//! \todo ASCII: add support for selected vertices.
 		//! \todo ASCII: add support for polylines.
 		//! \todo ASCII: add support for unsupported lines.
@@ -596,33 +592,33 @@ bool PlyReader::readFile(const std::string& rFilename,
 
 		filestr.open( rFilename.c_str(), std::fstream::in | std::ios_base::binary );
 		if( !filestr.is_open() ) {
-			std::cerr << "[PlyReader::" << __FUNCTION__ << "] could not open: '" << rFilename << "'!" << std::endl;
+			LOG::error() << "[PlyReader::" << __FUNCTION__ << "] could not open: '" << rFilename << "'!\n";
 			return false;
 		}
 		filestr.seekg( 0, filestr.end );
 		uint64_t fileLength = filestr.tellg();
 		filestr.seekg( 0, filestr.beg );
-		std::cout << "[PlyReader::" << __FUNCTION__ << "] File length for reading binary: " << fileLength << " Bytes." << std::endl;
+		LOG::debug() << "[PlyReader::" << __FUNCTION__ << "] File length for reading binary: " << fileLength << " Bytes.\n";
 
 		//! \todo buffer can not allocate sufficent memory for very large 3D-models. Anyway it makes no sense to load the whole file jus to search for the end of the header. The latter is relativly small.
 		std::vector<char> buffer;
 		try{
 			buffer.resize( fileLength );
 		} catch( const std::exception& e ) {
-			std::cerr << "[PlyReader::" << __FUNCTION__ << "] ERROR: A standard exception was caught, with message '"
-				 << e.what() << "'" << std::endl;
-			std::cerr << "[PlyReader::" << __FUNCTION__ << "]        File length: " << fileLength << std::endl;
-			std::cerr << "[PlyReader::" << __FUNCTION__ << "]        Size of chars for the buffer: " << fileLength*sizeof( char ) << std::endl;
-			std::cerr << "[PlyReader::" << __FUNCTION__ << "]        Maximum buffer size (theoretical, but not guaranteed): " << buffer.max_size() << std::endl;
-			std::cerr << "[PlyReader::" << __FUNCTION__ << "] ...... Trying again!" << std::endl;
+			LOG::error() << "[PlyReader::" << __FUNCTION__ << "] A standard exception was caught, with message '"
+				 << e.what() << "'\n";
+			LOG::error() << "[PlyReader::" << __FUNCTION__ << "]        File length: " << fileLength << "\n";
+			LOG::error() << "[PlyReader::" << __FUNCTION__ << "]        Size of chars for the buffer: " << fileLength*sizeof( char ) << "\n";
+			LOG::error() << "[PlyReader::" << __FUNCTION__ << "]        Maximum buffer size (theoretical, but not guaranteed): " << buffer.max_size() << "\n";
+			LOG::error() << "[PlyReader::" << __FUNCTION__ << "] ...... Trying again!\n";
 
 			try{
 				// try to truncate to 10 MB
 				fileLength = 10*1024*1024;
 				buffer.resize( fileLength );
 			} catch( const std::exception& e ) {
-				std::cerr << "[PlyReader::" << __FUNCTION__ << "] ERROR: A standard exception was caught, with message '"
-					 << e.what() << "'" << std::endl;
+				LOG::error() << "[PlyReader::" << __FUNCTION__ << "] A standard exception was caught, with message '"
+					 << e.what() << "'\n";
 				// Close file and return
 				filestr.close();
 				return( false );
@@ -635,26 +631,26 @@ bool PlyReader::readFile(const std::string& rFilename,
 		std::vector<char>::iterator it;
 		it = std::search( buffer.begin(), buffer.end(), seq.begin(), seq.end() );
 		if( it == buffer.end() ) {
-			std::cerr << "[PlyReader::" << __FUNCTION__ << "] ERROR: 'end_header' not found!" << std::endl;
+			LOG::error() << "[PlyReader::" << __FUNCTION__ << "] 'end_header' not found!\n";
 			// Close file and return
 			filestr.close();
 			return( false );
 		}
 		int posfound = ( it - buffer.begin() );
-		std::cout << "[PlyReader::" << __FUNCTION__ << "] 'end_header' found at position " << posfound << std::endl;
+		LOG::debug() << "[PlyReader::" << __FUNCTION__ << "] 'end_header' found at position " << posfound << "\n";
 
 		char newLine = buffer[ posfound+seq.size() ];
 		int forwardToPos;
 		if( newLine == 0x0A ) {
 			forwardToPos = posfound+seq.size()+1;
-			std::cout << "[PlyReader::" << __FUNCTION__ << "] one byte line break." << std::endl;
+			LOG::debug() << "[PlyReader::" << __FUNCTION__ << "] one byte line break.\n";
 		} else {
 			newLine = buffer[ posfound+seq.size()+1 ];
 			if( newLine == 0x0A ) {
 				forwardToPos = posfound+seq.size()+2;
-				std::cout << "[PlyReader::" << __FUNCTION__ << "] two byte line break." << std::endl;
+				LOG::debug() << "[PlyReader::" << __FUNCTION__ << "] two byte line break.\n";
 			} else {
-				std::cerr << "[PlyReader::" << __FUNCTION__ << "] ERROR: end of header new line not found!" << std::endl;
+				LOG::error() << "[PlyReader::" << __FUNCTION__ << "] end of header new line not found!\n";
 				filestr.close();
 				return false;
 			}
@@ -679,14 +675,14 @@ bool PlyReader::readFile(const std::string& rFilename,
 						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
 						rVertexProps[ verticesRead ].mCoordX = static_cast<double>(someFloat);
 						if( filestr.tellg() < 0 ) {
-							std::cerr << "ERROR" << std::endl;
+							LOG::warn() << "insufficient coordinates provided for position vector\n";
 						}
 						break;
 					case PLY_COORD_Y:
 						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
 						rVertexProps[ verticesRead ].mCoordY = static_cast<double>(someFloat);
 						if( filestr.tellg() < 0 ) {
-							std::cerr << "ERROR" << std::endl;
+							LOG::warn() << "insufficient coordinates provided for position vector\n";
 						}
 						break;
 					case PLY_COORD_Z:
@@ -746,9 +742,9 @@ bool PlyReader::readFile(const std::string& rFilename,
 						break;
 					case PLY_LIST_FEATURE_VECTOR:
 						READ_IN_PROPER_BYTE_ORDER( filestr, &listNrChar, (*plyPropListCountSize), reverseByteOrder );
-						//std::cout << "listNrChar: " << (unsigned short)listNrChar << std::endl;
+						//LOG::debug() << "listNrChar: " << (unsigned short)listNrChar << "\n";
 						if( filestr.tellg() < 0 ) {
-							std::cerr << "ERROR" << std::endl;
+							LOG::warn() << "feature vector data is missing\n";
 						}
 						// When we have no memory allocated yet - this is the time (and we assume that all vertices have feature vectors of the same length or shorter.
 						if( rMeshSeed.getFeatureVecVerticesRef().size() == 0 ) {
@@ -758,7 +754,7 @@ bool PlyReader::readFile(const std::string& rFilename,
 						for( uint j=0; j<static_cast<uint>(listNrChar); j++ ) {
 							READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropListSize), reverseByteOrder );
 							if( filestr.tellg() < 0 ) {
-								std::cerr << "ERROR" << std::endl;
+								LOG::warn() << "feature vector data is missing\n";
 							}
 							rMeshSeed.getFeatureVecVerticesRef()[ verticesRead*listNrChar+j ] = static_cast<double>(someFloat);
 						}
@@ -786,24 +782,19 @@ bool PlyReader::readFile(const std::string& rFilename,
 					case PLY_LIST_VERTEX_INDICES:
 						READ_IN_PROPER_BYTE_ORDER( filestr, &listNrChar, (*plyPropListCountSize), reverseByteOrder );
 						if( listNrChar != 3 ) {
-							std::cerr << "[PlyReader::" << __FUNCTION__ << "] unsupported number (" << static_cast<uint>(listNrChar) << ") of elements within the list!" << std::endl;
+							LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] unsupported number (" << static_cast<uint>(listNrChar) << ") of elements within the list!\n";
 						}
-						//std::cout << "Read: " << (uint)listNrChar << " x " << (uint)(*plyPropListSize) << " Byte." << std::endl;
 						READ_IN_PROPER_BYTE_ORDER( filestr, &someInt, (*plyPropListSize), reverseByteOrder );
-						//std::cout << someInt << " ";
 						rFaceProps[facesRead].mVertIdxA = someInt;
 						READ_IN_PROPER_BYTE_ORDER( filestr, &someInt, (*plyPropListSize), reverseByteOrder );
-						//std::cout << someInt << " ";
 						rFaceProps[facesRead].mVertIdxB = someInt;
 						READ_IN_PROPER_BYTE_ORDER( filestr, &someInt, (*plyPropListSize), reverseByteOrder );
-						//std::cout << someInt << " ";
 						rFaceProps[facesRead].mVertIdxC = someInt;
-						//std::cout << std::endl;
 						break;
 					case PLY_LIST_TEXCOORDS:
 						READ_IN_PROPER_BYTE_ORDER( filestr, &listNrChar, (*plyPropListCountSize), reverseByteOrder );
 						if( listNrChar != 6) {
-							std::cerr << "[PlyReader::" << __FUNCTION__ << "] unsupported number (" << static_cast<uint>(listNrChar) << ") of elements within the list!" << std::endl;
+							LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] unsupported number (" << static_cast<uint>(listNrChar) << ") of elements within the list!\n";
 						}
 						else {
 							for(unsigned char j = 0; j<listNrChar; ++j)
@@ -820,9 +811,7 @@ bool PlyReader::readFile(const std::string& rFilename,
 						break;
 					case PLY_LIST_FEATURE_VECTOR:
 					case PLY_LIST_IGNORE:
-						//std::cout << "Ignore: " << (*plyPropListCountSize) << " Byte - " << (*plyPropListSize) << " Byte." << std::endl;
 						READ_IN_PROPER_BYTE_ORDER( filestr, &listNrChar, (*plyPropListCountSize), reverseByteOrder );
-						//std::cout << "Ignore: " << (uint)listNrChar << " x " << (uint)(*plyPropListSize) << " Byte." << std::endl;
 						posInFile = filestr.tellg();
 						filestr.seekg( posInFile+static_cast<long>(static_cast<uint>(listNrChar)*static_cast<uint>(*plyPropListSize)) );
 						bytesIgnored += static_cast<long>(static_cast<uint>(listNrChar)*static_cast<uint>(*plyPropListSize));
@@ -951,10 +940,10 @@ bool PlyReader::readFile(const std::string& rFilename,
 		copyVertexTexCoordsToFaces(vertexTextureCoordinates, rFaceProps);
 	}
 
-	std::cout << "[PlyReader::" << __FUNCTION__ << "] PLY comment lines: " << linesComment << std::endl;
-	std::cout << "[PlyReader::" << __FUNCTION__ << "] PLY ignored:       " << bytesIgnored << " Byte. (one is OK as it is the EOF byte) " << std::endl;
-	std::cout << "[PlyReader::" << __FUNCTION__ << "] PLY Extra ignored: " << extraBytesIgnored << " Byte. (one is OK as it is the EOF byte) " << std::endl;
-	std::cout << "[PlyReader::" << __FUNCTION__ << "] PLY:               " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds. " << std::endl;
+	LOG::info() << "[PlyReader::" << __FUNCTION__ << "] PLY comment lines: " << linesComment << "\n";
+	LOG::info() << "[PlyReader::" << __FUNCTION__ << "] PLY ignored:       " << bytesIgnored << " Byte. (one is OK as it is the EOF byte)\n";
+	LOG::info() << "[PlyReader::" << __FUNCTION__ << "] PLY Extra ignored: " << extraBytesIgnored << " Byte. (one is OK as it is the EOF byte)\n";
+	LOG::info() << "[PlyReader::" << __FUNCTION__ << "] PLY:               " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds.\n";
 
 	return( true );
 }
@@ -989,7 +978,7 @@ ePlyPropertySize plyParseTypeStr( char* propType ) {
 		propertyDataType = PLY_UINT32;
 	} else if( strcmp( propType, "uint" ) == 0 ) { // assume 'uint' as 32-bit
 		propertyDataType = PLY_UINT32;
-		std::cout << "[PlyReader::" << __FUNCTION__ << "] Warning: assuming 'uint' having 4 byte." << std::endl;
+		LOG::debug() << "[PlyReader::" << __FUNCTION__ << "] assuming 'uint' having 4 byte.\n";
 	} else if( strcmp( propType, "float32" ) == 0 ) {
 		propertyDataType = PLY_FLOAT32;
 	} else if( strcmp( propType, "float64" ) == 0 ) {
@@ -1001,7 +990,7 @@ ePlyPropertySize plyParseTypeStr( char* propType ) {
 	} else if( strcmp( propType, "uchar" ) == 0 ) {
 		propertyDataType = PLY_UCHAR;
 	} else {
-		std::cerr << "[PlyReader::" << __FUNCTION__ << "] unknown type '" << propType << "' in header!" << std::endl;
+		LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] unknown type '" << propType << "' in header!\n";
 		propertyDataType = PLY_SIZE_UNDEF;
 	}
 	return propertyDataType;

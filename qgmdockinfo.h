@@ -47,7 +47,7 @@ private:
 
 	// Mouse mode related:
 	MeshWidgetParams::eMouseModes mMouseMode;        //! Storage for the current Mouse Mode.
-	QVariant mMouseModeNoControlKey;                 //! Temporary storage for the mouse mode, when the Control Key is pressed.
+	QVariant mMouseModeNoControlKey = MeshWidgetParams::MOUSE_MODE_MOVE_CAMERA;                 //! Temporary storage for the mouse mode, when the Control Key is pressed.
 	// Guide related:
 	MeshWidgetParams::eGuideIDCommon    mGuideCommon;      //! Storage for the last/current Selection Guide ID.
 	MeshWidgetParams::eGuideIDSelection mGuideSelection;   //! Storage for the last/current Selection Guide ID in selection mode.

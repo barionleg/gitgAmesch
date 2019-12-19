@@ -22,7 +22,7 @@ class ArcBall
 	private:
 
 		QVector3D mouseOnSphere(const QVector2D& mousePos);
-		QQuaternion quatFromUnitSphere(const QVector3D& from, const QVector3D& to);
+		static QQuaternion quatFromUnitSphere(const QVector3D& from, const QVector3D& to);
 
 		QVector3D mCenter;
 		float mRadius;

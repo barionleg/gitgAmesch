@@ -4,6 +4,8 @@
 #include "meshseedext.h"
 #include "MeshIO/ModelMetaData.h"
 
+#include <list>
+
 //!
 //! \brief Class for handling file access. (Layer 0)
 //!
@@ -62,7 +64,7 @@ class MeshIO : public MeshSeedExt {
 		virtual std::string getFileLocation();
 		virtual std::string getFullName();
 
-		virtual bool writeIcoNormalSphereData(const std::string& rFilename, const std::vector<sVertexProperties>& rVertexProps, int subdivisions, bool sphereCoordinates = false);
+		virtual bool writeIcoNormalSphereData(const std::string& rFilename, const std::list<sVertexProperties>& rVertexProps, int subdivisions, bool sphereCoordinates = false);
 
 	private:
 		std::array<bool, EXPORT_FLAG_COUNT>   mExportFlags; //!< Handles export options.

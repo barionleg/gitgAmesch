@@ -139,7 +139,8 @@ MeshWidget::MeshWidget( const QGLFormat &format, QWidget *parent )
 
 	// Select menu ----------------------------------------------------------------------------------------------------
 	QObject::connect( mMainWindow, &QGMMainWindow::setPlaneHNFByView,      this, &MeshWidget::setPlaneHNFByView      );
-	QObject::connect( mMainWindow, &QGMMainWindow::sOpenNormalSphereSelectionDialog, this, &MeshWidget::openNormalSphereSelectionDialog);
+	QObject::connect( mMainWindow, &QGMMainWindow::sOpenNormalSphereSelectionDialogVertices, [this]() {openNormalSphereSelectionDialog(false); });
+	QObject::connect( mMainWindow, &QGMMainWindow::sOpenNormalSphereSelectionDialogFaces, [this]() {openNormalSphereSelectionDialog(true); });
 	// ----------------------------------------------------------------------------------------------------------------
 
 	// Function calls --------------------------------------------------------------------------------------------------
@@ -289,6 +290,34 @@ bool MeshWidget::getViewPortPixelWorldSize(
 	return( true );
 }
 
+//! Returns the DPI of the viewport
+//! @param rDPI return value of the DPI.
+//! @returns false in case of an error
+bool MeshWidget::getViewPortDPI(double& rDPI)
+{
+	double pixelWidth;
+	double pixelHeight;
+	if(!getViewPortPixelWorldSize(pixelWidth, pixelHeight))
+		return false;
+
+	rDPI = 25.4/pixelWidth;
+	return true;
+}
+
+//! Returns the dots per meter of the viewport
+//! @param rDPM return value of the DPM
+//! @returns false in case of an error
+bool MeshWidget::getViewPortDPM(double& rDPM)
+{
+	double pixelWidth;
+	double pixelHeight;
+	if(!getViewPortPixelWorldSize(pixelWidth, pixelHeight))
+		return false;
+
+	rDPM = 1000.0/pixelWidth;
+	return true;
+}
+
 //! Set flag controlling the display of Primitives, etc.
 //! @returns true when the flag was changed. false otherwise.
 bool MeshWidget::setParamFlagMeshWidget( MeshWidgetParams::eParamFlag rFlagNr, bool rState ) {
@@ -302,10 +331,9 @@ bool MeshWidget::setParamFlagMeshWidget( MeshWidgetParams::eParamFlag rFlagNr, b
 	if( rFlagNr == ORTHO_MODE ) {
 		// Print resolution (in ortho mode):
 		if( rState ) {
-			double pixelWidth;
-			double pixelHeight;
-			if( getViewPortPixelWorldSize( pixelWidth, pixelHeight ) ) {
-				emit sViewPortInfo( VPINFO_DPI, QString::number( 25.4/pixelWidth, 'f', 2 ) );
+			double dpi;
+			if( getViewPortDPI( dpi ) ) {
+				emit sViewPortInfo( VPINFO_DPI, QString::number( dpi, 'f', 2 ) );
 			} else {
 				emit sViewPortInfo( VPINFO_DPI, QString( "err" ) );
 			}
@@ -660,10 +688,9 @@ bool MeshWidget::setParamFloatMeshWidget( MeshWidgetParams::eParamFlt rParamID, 
 	switch( rParamID ) {
 		case GRID_SHIFT_DEPTH:
 		case ORTHO_ZOOM: {
-			double pixelWidth;
-			double pixelHeight;
-			if( getViewPortPixelWorldSize( pixelWidth, pixelHeight ) ) {
-				emit sViewPortInfo( VPINFO_DPI, QString::number( 25.4/pixelWidth, 'f', 2 ) );
+			double dpi;
+			if( getViewPortDPI(dpi) ) {
+				emit sViewPortInfo( VPINFO_DPI, QString::number( dpi, 'f', 2 ) );
 			} else {
 				emit sViewPortInfo( VPINFO_DPI, QString( "err" ) );
 			}
@@ -798,9 +825,9 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 	bool readOk;
 
 	mMeshVisual = new MeshQt( fileName, readOk,
-	                          mMatModelView.constData(), mMatProjection.constData(), \
-	                          static_cast<MeshWidgetParams*>(this), static_cast<MeshGLColors*>(this), \
-	                          mMainWindow, context() \
+							  mMatModelView.constData(), mMatProjection.constData(),
+							  static_cast<MeshWidgetParams*>(this), static_cast<MeshGLColors*>(this),
+							  mMainWindow, context()
 	                         );
 
 	if( not( readOk ) ) {
@@ -820,13 +847,15 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 	QObject::connect( mMeshVisual, &MeshQt::sDefaultViewLightZoom,           this,        &MeshWidget::defaultViewLightZoom     );
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
 
+	// cheks mesh for problems and fix them
+	checkMeshSanity();
+
 	// Guess some initial distance for fog:
 	double minDist;
 	double maxDist;
 
 	double bboxLength = mMeshVisual->getBoundingBoxRadius() * 2.0;
 
-	double centerDistance = mMeshVisual->getBoundingBoxCenter().getLength3();
 	setParamFloatMeshWidget( FOG_LINEAR_START, bboxLength  * 0.75);
 	setParamFloatMeshWidget( FOG_LINEAR_END,   bboxLength  * 1.75);
 
@@ -965,6 +994,20 @@ void MeshWidget::saveStillImages360( Vector3D rotCenter, Vector3D rotAxis ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
+
+	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
+	QString savePath = QFileDialog::getExistingDirectory(mMainWindow, tr( "Folder for image stack" ),
+													 filePath);
+
+	if(savePath.length() == 0)
+	{
+		std::cout << "[MeshWidget::" << __FUNCTION__ << "] user abort\n";
+		return;
+	}
+
+	if(savePath[savePath.length() - 1] != '/')
+		savePath.push_back('/');
+
 	if( !saveStillImagesSettings() ) {
 		return;
 	}
@@ -976,17 +1019,18 @@ void MeshWidget::saveStillImages360( Vector3D rotCenter, Vector3D rotAxis ) {
 	if( userCancel ) {
 		return;
 	}
+
 	//! .) Estimate angles using VIDEO_SLOW_STARTSTOP, VIDEO_FRAMES_PER_SEC and VIDEO_DURATION
 	float* stepAngles;
 	int    stepAnglesNr;
 	saveStillImages360Angles( &stepAngles, &stepAnglesNr );
-	char buffer[255];
 	//! .) Save sequence of still images
 	for( int i=0; i<stepAnglesNr; i++ ) {
 		rotArbitAxis( rotCenter, rotAxis, stepAngles[i]*180.0/M_PI );
-		sprintf( buffer, "gigamesh_still_image_%05i.tiff", i );
+
+		QString fileName = QString("%1gigamesh_still_image_%2.tiff").arg(savePath).arg(i,5,10,QChar('0'));
 		double realWidth, realHeigth;
-		screenshotSingle( buffer, useTiled, realWidth, realHeigth );
+		screenshotSingle( fileName, useTiled, realWidth, realHeigth );
 	}
 	delete[] stepAngles;
 }
@@ -1558,7 +1602,7 @@ void MeshWidget::initializeShader( const QString& rFileName, QOpenGLShaderProgra
 		QString linkMsgs = (*rShaderProgram)->log();
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: linking shader program (Background): " << linkMsgs.toStdString() << endl;
 		linkMsgs = linkMsgs.left( linkMsgs.indexOf( "***" ) );
-		SHOW_MSGBOX_CRIT( tr("GLSL Error") , linkMsgs )
+		SHOW_MSGBOX_CRIT( tr("GLSL Error") , linkMsgs );
 	} else {
 		cout << "[MeshWidget::" << __FUNCTION__ << "] Linking shader program (Background) successfull." << endl;
 	}
@@ -2740,7 +2784,7 @@ bool MeshWidget::screenshotViewsPDFUser() {
 		return( false );
 	}
 	QString filePrefix = mMeshVisual->getBaseName().c_str();
-	QString filePath = QString( mMeshVisual->getFileLocation().c_str() ) + "/";
+	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
 	std::cout << "[MeshWidget::" << __FUNCTION__ << "] filePath:        " << filePath.toStdString() << std::endl;
 	//qDebug() << filePath + QString( fileNamePattern.c_str() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as - Using a pattern for side, top and bottom views" ), \
@@ -3360,7 +3404,7 @@ bool MeshWidget::screenshotPDFUser() {
 		return( false );
 	}
 	QString filePrefix = mMeshVisual->getBaseName().c_str();
-	QString filePath = QString( mMeshVisual->getFileLocation().c_str() ) + "/";
+	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
 	std::cout << "[MeshWidget::" << __FUNCTION__ << "] filePath:        " << filePath.toStdString() << std::endl;
 	//qDebug() << filePath + QString( fileNamePattern.c_str() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as - Using a pattern for side, top and bottom views" ), \
@@ -3725,13 +3769,14 @@ bool MeshWidget::fetchFrameBuffer(
 	*/
 
 	unsigned char* imArrayGL;
-	int w,h;
+	int w;
+	int h;
 	imArrayGL = offscreenBuffer->getColorTexture(w, h);
 	float* pixelZBuffer = nullptr;
 
 	*rImWidth = w;
 	*rImHeight = h;
-
+	*rImArray = new unsigned char[w*h*3];
 	// Set the crop size to the image size. Otherwise the values are invalid, when there is nothing to crop.
 	int xMin = 0;
 	int xMax = (*rImWidth)-1;
@@ -3803,7 +3848,7 @@ bool MeshWidget::screenshotTIFF( const string& rFileName , OffscreenBuffer* offs
 
 	int imWidth;
 	int imHeight;
-	unsigned char* imArray;
+	unsigned char* imArray = nullptr;
 	fetchFrameBuffer( &imArray, &imWidth, &imHeight, mParamFlag[CROP_SCREENSHOTS], offscreenBuffer );
 #ifdef LIBTIFF
 	Image2D frameBufIm;
@@ -3856,26 +3901,19 @@ bool MeshWidget::screenshotPNG( const string&   rFileName,
 	}
 
 	// Compute dots per meter for PNG export with Qt
-	double realWidth  = 0.0;
-	double realHeight = 0.0;
-	int dotsPerMeterWidth  = 0;
-	int dotsPerMeterHeight = 0;
-	if( orthoMode ) {
-		// Fetch real world dimensions
-		if( !getViewPortResolution( realWidth, realHeight ) ) {
-			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: getViewPortResolution failed!" << endl;
-			return( false );
-		}
-		dotsPerMeterWidth  = static_cast<int>( imWidth*1000 /  static_cast<uint64_t>(realWidth)  );
-		dotsPerMeterHeight = static_cast<int>( imHeight*1000 / static_cast<uint64_t>(realHeight) );
+	double dpm = 0.0;
+
+	if( !getViewPortDPM(dpm) )
+	{
+		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: getViewPortDPM failed!" << endl;
+		return false;
 	}
 
 	// Write the file:
-	bool writeOk = writePNG( rFileName, imWidth, imHeight, imRGBA, dotsPerMeterWidth, dotsPerMeterHeight );
+	bool writeOk = writePNG( rFileName, imWidth, imHeight, imRGBA, dpm, dpm );
 	if( writeOk ) {
 		if( orthoMode ) {
-			rWidthReal  = realWidth;
-			rHeigthReal = realHeight;
+			getViewPortResolution(rWidthReal, rHeigthReal);
 		}
 		emit sStatusMessage( "Screenshot saved as PNG with transparency to: " + QString( rFileName.c_str() ) );
 	} else {
@@ -4781,7 +4819,7 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 
 	// 5.) Export intersections
 	double polyLineWidth = 0.5;
-	if( !screenshotSVGexportPlaneIntersections( Xmin, (Ymax+fontExtraSpace), polyLineWidth, svgWriter ) ) {
+	if( !screenshotSVGexportPlaneIntersections( Xmin, (Ymax+fontExtraSpace), polyLineWidth, canvasWidth, svgWriter ) ) {
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: screenshotSVGexportPolyLines falied!" << endl;
 	}
 
@@ -4872,7 +4910,7 @@ bool MeshWidget::screenshotSVGexportPolyLines(Vector3D& cameraViewDir, Matrix4D&
 //! @return false in case of an error. True otherwise.
 bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 				double rOffsetY,
-				double rPolyLineWidth,
+				double rPolyLineWidth, double canvasWidth,
 				SvgWriter& svgWriter) {
 
 	// Axis coordinates. Note x=0.0
@@ -4919,13 +4957,11 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 		vector<double> screenCoords;    // Coordinates in drawing/SVG space.
 		currPoly->getVertexCoordsInPlane( &polyCoords, true );
 		screenCoords.reserve( polyCoords.size()*2 );
-		vector<Vector3D>::iterator vertexPos;
-		for( vertexPos=polyCoords.begin(); vertexPos != polyCoords.end(); vertexPos++ ) {
-			// vertexPos->dumpInfo();
-			screenCoords.push_back( (+vertexPos->getX()-rOffsetX) * mParamFlt[SVG_SCALE] );
-			screenCoords.push_back( (-vertexPos->getY()+rOffsetY) * mParamFlt[SVG_SCALE] );
+		for(const auto& vertexPos : polyCoords)
+		{
+			screenCoords.push_back( (+vertexPos.getX()-rOffsetX) * mParamFlt[SVG_SCALE] );
+			screenCoords.push_back( (-vertexPos.getY()+rOffsetY) * mParamFlt[SVG_SCALE] );
 		}
-
 		// Draw using the projected coordinates
 		svgLine->moveTo( screenCoords[0], screenCoords[1] );
 		for( int j=1; j<polyLen; j++ ) {
@@ -4964,12 +5000,14 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 	std::string widthUnit;
 	getParamStringMeshWidget( RULER_WIDTH_UNIT, &widthUnit );
 
+	double centerLineX = canvasWidth * 0.5;
+
 	// Draw horizontal lines, when present:
 	if( isnormal( minYBottomX ) ) {
 		auto svgHLine = std::make_unique<SvgPath>();
 		svgHLine->setColor(0.75,0.0,0.0);
 		svgHLine->setLineWidth(rPolyLineWidth * 1.5);
-		svgHLine->moveTo(-rOffsetX * mParamFlt[SVG_SCALE], minYforAxis);
+		svgHLine->moveTo( centerLineX * mParamFlt[SVG_SCALE], minYforAxis);
 		svgHLine->lineTo( minYBottomX, minYforAxis);
 		svgHLine->setLineCap(SvgPath::LineCap::CAP_ROUND);
 		svgHLine->setLineJoin(SvgPath::LineJoin::JOIN_ROUND);
@@ -4978,9 +5016,9 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 
 		auto svgLineText = std::make_unique<SvgText>();
 
-		float lineWidthPixels = std::abs(minYBottomX - (-rOffsetX * mParamFlt[SVG_SCALE]));
+		float lineWidthPixels = std::abs(minYBottomX - (centerLineX * mParamFlt[SVG_SCALE]));
 
-		svgLineText->setPosition(-rOffsetX * mParamFlt[SVG_SCALE] - 0.5 * lineWidthPixels, minYforAxis + 4);
+		svgLineText->setPosition(centerLineX * mParamFlt[SVG_SCALE] - 0.5 * lineWidthPixels, minYforAxis + 4);
 		svgLineText->setSize(4.0);
 		svgLineText->setTextAnchor(SvgText::TextAnchor::ANCHOR_MIDDLE);
 
@@ -4992,7 +5030,7 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 		auto svgNormalLine = std::make_unique<SvgPath>();
 		svgNormalLine->setColor(0.75,0.0,0.0);
 		svgNormalLine->setLineWidth(rPolyLineWidth * 1.5);
-		svgNormalLine->moveTo(-rOffsetX * mParamFlt[SVG_SCALE], maxYforAxis);
+		svgNormalLine->moveTo(centerLineX * mParamFlt[SVG_SCALE], maxYforAxis);
 		svgNormalLine->lineTo( maxYTopX, maxYforAxis );
 		svgNormalLine->setLineCap(SvgPath::LineCap::CAP_ROUND);
 		svgNormalLine->setLineJoin(SvgPath::LineJoin::JOIN_ROUND);
@@ -5001,9 +5039,9 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 
 		auto svgLineText = std::make_unique<SvgText>();
 
-		float lineWidthPixels = std::abs(maxYTopX - (-rOffsetX * mParamFlt[SVG_SCALE]));
+		float lineWidthPixels = std::abs(maxYTopX - (centerLineX * mParamFlt[SVG_SCALE]));
 
-		svgLineText->setPosition(-rOffsetX * mParamFlt[SVG_SCALE] - 0.5 * lineWidthPixels, maxYforAxis + 4);
+		svgLineText->setPosition(centerLineX * mParamFlt[SVG_SCALE] + 0.5 * lineWidthPixels, maxYforAxis + 4);
 		svgLineText->setSize(4.0);
 		svgLineText->setTextAnchor(SvgText::TextAnchor::ANCHOR_MIDDLE);
 
@@ -5028,8 +5066,8 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 		svgAxisPath->setLineDash(dashedLine, lenDashed, 1);
 	}
 	// The axis is along the y-axis
-	svgAxisPath->moveTo(-rOffsetX * mParamFlt[SVG_SCALE], minYforAxis);
-	svgAxisPath->lineTo(-rOffsetX * mParamFlt[SVG_SCALE], maxYforAxis);
+	svgAxisPath->moveTo(centerLineX * mParamFlt[SVG_SCALE], minYforAxis);
+	svgAxisPath->lineTo(centerLineX * mParamFlt[SVG_SCALE], maxYforAxis);
 
 	svgWriter.addElement(std::move(svgAxisPath));
 
@@ -5039,7 +5077,7 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 	svgAxisText->setTextAnchor(SvgText::TextAnchor::ANCHOR_MIDDLE);
 	svgAxisText->setText(std::to_string(std::abs(maxYforAxis - minYforAxis) / mParamFlt[SVG_SCALE]) + widthUnit);
 	svgAxisText->setRotation(90);
-	svgAxisText->setPosition(-rOffsetX * mParamFlt[SVG_SCALE] + 2.0, (minYforAxis + maxYforAxis) * 0.5);
+	svgAxisText->setPosition(centerLineX * mParamFlt[SVG_SCALE] + 2.0, (minYforAxis + maxYforAxis) * 0.5);
 
 	svgWriter.addElement(std::move(svgAxisText));
 	cout << "[MeshWidget::" << __FUNCTION__ << "] Polylines: " << mMeshVisual->getPolyLineNr() << endl;
@@ -5157,8 +5195,6 @@ bool MeshWidget::screenshotTiledPNG(
 	if( !getViewPortResolution( realWidth, realHeight ) ) {
 		return( false );
 	}
-	int dotsPerMeterWidth  = width()*1000  / static_cast<long>(realWidth);
-	int dotsPerMeterHeight = height()*1000 / static_cast<long>(realHeight);
 
 	//! 3. Estimate the number of tiles for each direction.
 	GLint    viewport[4];
@@ -5257,6 +5293,13 @@ bool MeshWidget::screenshotTiledPNG(
 	}
 	bool appendDPItoFilename = false;
 	getParamFlagMeshWidget( SCREENSHOT_FILENAME_WITH_DPI, &appendDPItoFilename );
+
+	double dpm;
+	if(!getViewPortDPM(dpm))
+	{
+		return false;
+	}
+
 	if( splitLargeImage ) {
 		for( uint64_t subImageX=0; subImageX<largeTilesX; subImageX++ ) {
 			for( uint64_t subImageY=0; subImageY<largeTilesY; subImageY++ ) {
@@ -5286,7 +5329,7 @@ bool MeshWidget::screenshotTiledPNG(
 				}
 				// Write file
 				if( !writePNG( rFileNameSubImage.toStdString(), subImageWidth, subImageHeight, imSubRGBA,
-				               dotsPerMeterWidth, dotsPerMeterHeight ) ) {
+							   dpm, dpm ) ) {
 					cerr << "[MeshWidget::" << __FUNCTION__ << "] could not write to '" << rFileNameSubImage.toStdString() << "'!" << endl;
 					emit sStatusMessage( "ERROR: Could not save screenshot as PNG with transparency to: " + rFileNameSubImage + "!" );
 					return false;
@@ -5300,7 +5343,7 @@ bool MeshWidget::screenshotTiledPNG(
 			QString strDPI = QString( "_%1DPI." ).arg( resolutionDPI );
 			rFileName.replace( extSeperator, 1, strDPI );
 		}
-		if( !writePNG( rFileName.toStdString(), imWidth, imHeight, imRGBA, dotsPerMeterWidth, dotsPerMeterHeight ) ) {
+		if( !writePNG( rFileName.toStdString(), imWidth, imHeight, imRGBA, dpm, dpm ) ) {
 			cerr << "[MeshWidget::" << __FUNCTION__ << "] could not write to '" << rFileName.toStdString() << "'!" << endl;
 			emit sStatusMessage( "ERROR: Could not save screenshot as PNG with transparency to: " + rFileName + "!" );
 			return false;
@@ -5905,7 +5948,7 @@ void MeshWidget::paintEvent( QPaintEvent *rEvent ) {
 	if( showGridPolarCircles ) {
 		paintBackgroundShader( &mShaderGridPolarCircles );
 	}
-	if( ( showGridRect | showGridPolarLines | showGridPolarCircles ) & showGridHighLightCenter ) {
+	if( ( showGridRect || showGridPolarLines || showGridPolarCircles ) && showGridHighLightCenter ) {
 		paintBackgroundShader( &mShaderGridHighLightCenter );
 	}
 
@@ -6040,6 +6083,10 @@ bool MeshWidget::paintBackgroundShader( QOpenGLShaderProgram** rShaderProgram ) 
 	(*rShaderProgram)->setUniformValue( "uDepthPos", static_cast<GLfloat>(gridShiftDepth)   );
 	(*rShaderProgram)->setUniformValue( "uScaleX",   static_cast<GLfloat>(realWidth/2.0)  );
 	(*rShaderProgram)->setUniformValue( "uScaleY",   static_cast<GLfloat>(realHeight/2.0) );
+
+	bool gridCenterFront;
+	getParamFlagMeshWidget( SHOW_GRID_HIGHLIGHTCENTER_FRONT, &gridCenterFront);
+	(*rShaderProgram)->setUniformValue( "uHighlightDepth", (gridCenterFront ? 0.0F : 0.999F ));
 
 	double xOffset = 0.0;
 	double yOffset = 0.0;
@@ -6176,6 +6223,49 @@ bool MeshWidget::paintRasterImage( eTextureMaps rTexMap, int rPixelX, int rPixel
 	PRINT_OPENGL_ERROR( "glBindVertexArray( 0 )" );	
 	someBuffer.destroy();
 	return true;
+}
+
+void MeshWidget::checkMeshSanity()
+{
+	const auto meshSize = mMeshVisual->getBoundingBoxRadius();
+	const auto meshCenterDistance = mMeshVisual->getBoundingBoxCenter().getLength3();
+
+	//! TODO: find out resonable value
+	if(meshCenterDistance > 1000000.0)
+	{
+		bool move = false;
+		bool cancel = false;
+		SHOW_QUESTION(tr("Center Mesh"), tr("The mesh is very far off center (distance: %1mm). This may cause numeric problems. Would you like to move the mesh to the origin?").arg(meshCenterDistance),
+					  move, cancel);
+
+		if(!cancel && move)
+		{
+			const auto transVector = mMeshVisual->getBoundingBoxCenter();
+
+			Matrix4D transMat(transVector);
+
+			mMeshVisual->applyTransformationToWholeMesh(transMat);
+
+			SHOW_MSGBOX_INFO(tr("Transfrom Vector"), tr("To move the mesh back to its original position, you can translate it back by the following vector:\n(%1, %2, %3)").
+							 arg(transVector.getX()).
+							 arg(transVector.getY()).
+							 arg(transVector.getZ()));
+		}
+	}
+
+	//! TODO: find out resonable value
+	if(meshSize < 1.0)
+	{
+		bool rescale = false;
+		bool cancel = false;
+		SHOW_QUESTION(tr("Rescale Mesh"), tr("The mesh appears to be unusually small (radius: %1mm). Would you like to scale the Mesh up?").arg(meshSize), rescale, cancel);
+
+		if(!cancel && rescale)
+		{
+			mMeshVisual->callFunction(MeshParams::APPLY_TRANSMAT_ALL_SCALE);
+		}
+	}
+
 }
 
 //! Paint the selected volume (prisms defined by polgonal selection).
@@ -7115,7 +7205,7 @@ bool MeshWidget::currentViewToDefault() {
 	return( retVal );
 }
 
-void MeshWidget::openNormalSphereSelectionDialog()
+void MeshWidget::openNormalSphereSelectionDialog(bool faces)
 {
 	auto dialog = this->findChild<QDialog*>(tr("NormalSphereSelectionDialog"));
 
@@ -7125,7 +7215,7 @@ void MeshWidget::openNormalSphereSelectionDialog()
 		return;
 	}
 
-	auto normalSphereDialog = new NormalSphereSelectionDialog(this);
+	auto normalSphereDialog = new NormalSphereSelectionDialog(this, faces);
 
 	normalSphereDialog->setAttribute(Qt::WA_DeleteOnClose);
 	normalSphereDialog->setWindowFlags( normalSphereDialog->windowFlags() | Qt::Tool);
@@ -7404,10 +7494,9 @@ void MeshWidget::setView( GLdouble* rOrthoViewPort //!< position and dimension o
 
 	// Update of the sidebar
 	if( mParamFlag[ORTHO_MODE] ) {
-		double pixelWidth;
-		double pixelHeight;
-		if( getViewPortPixelWorldSize( pixelWidth, pixelHeight ) ) {
-			emit sViewPortInfo( VPINFO_DPI, QString::number( 25.4/pixelWidth, 'f', 2 ) );
+		double dpi;
+		if( getViewPortDPI(dpi) ) {
+			emit sViewPortInfo( VPINFO_DPI, QString::number( dpi, 'f', 2 ) );
 		} else {
 			emit sViewPortInfo( VPINFO_DPI, QString( "err" ) );
 		}

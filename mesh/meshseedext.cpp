@@ -4,6 +4,8 @@
 #include <ctime>
 #include <string>
 
+#include "../logging/Logging.h"
+
 using namespace std;
 
 using uint = unsigned int;
@@ -51,9 +53,9 @@ void MeshSeedExt::clear() {
 //! @returns false in case of an error. True otherwise.
 bool MeshSeedExt::importFeatureVectors(
                 const string&         rFileName,            //!< Filename to parse.
-                const uint64_t   rNrVertices,          //!< Maximum number of vertices within the Mesh.
+				uint64_t              rNrVertices,          //!< Maximum number of vertices within the Mesh.
                 vector<double>&       rFeatureVecs,         //!< Feature vectors.
-                uint64_t&        rMaxFeatVecLen,       //!< Length of the longest vector.
+				uint64_t&             rMaxFeatVecLen,       //!< Length of the longest vector.
                 bool                  rVertexIdInFirstCol   //!< Does the feature vector file have a vertex id within the first column?
 ) {
 	// LOCALE .... because of "." vs ","
@@ -62,10 +64,11 @@ bool MeshSeedExt::importFeatureVectors(
 
 	ifstream fp( rFileName.c_str() );
 	if( !fp.is_open() ) {
-		cerr << "[MeshSeedExt::" << __FUNCTION__ << "] Could not open file: '" << rFileName << "'." << endl;
+		LOG::error() << "[MeshSeedExt::" << __FUNCTION__ << "] Could not open file: '" << rFileName << "'.\n";
+		setlocale(LC_NUMERIC, oldLocale);
 		return( false );
 	}
-	cout << "[MeshSeedExt::" << __FUNCTION__ << "] File opened: '" << rFileName << "'." << endl;
+	LOG::debug() << "[MeshSeedExt::" << __FUNCTION__ << "] File opened: '" << rFileName << "'.\n";
 
 	// Determine the amount of data by parsing the data for a start
 	int    lineNr = 0;
@@ -181,15 +184,6 @@ bool MeshSeedExt::importFeatureVectors(
 	setlocale( LC_NUMERIC, oldLocale );
 
 	return( true );
-}
-
-bool MeshSeedExt::exportFeatureVectors( const string& rFilename ) {
-	//! Exports feature vectors as ASCII file.
-
-	//! \todo IMPLEMENT!
-	cerr << "[MeshSeedExt::" << __FUNCTION__ << "] file " << rFilename << " NOT written - function not implemented!" << endl;
-
-	return false;
 }
 
 // Feature Vectors - STUB to be overloaded by Mesh -------------------------------------------------------------------------------------------------------------

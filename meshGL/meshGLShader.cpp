@@ -562,8 +562,9 @@ void MeshGLShader::glPaint() {
 	//display the mesh as a reduced pointcloud when moving the camera
 	bool showMeshReduced;
 	mWidgetParams->getParamFlagMeshWidget(MeshWidgetParams::SHOW_MESH_REDUCED, &showMeshReduced);
-	if(showMeshReduced && shaderChoice == MeshGLParams::SHADER_MONOLITHIC) {
-		shaderChoice = SHADER_POINTCLOUD; }
+	if(showMeshReduced) {
+		shaderChoice = SHADER_POINTCLOUD;
+	}
 
 	switch( shaderChoice ) {
 		case SHADER_POINTCLOUD:
@@ -671,6 +672,12 @@ void MeshGLShader::glPaint() {
 
 void MeshGLShader::glPaintTransparent()
 {
+	bool showMeshReduced;
+	mWidgetParams->getParamFlagMeshWidget(MeshWidgetParams::SHOW_MESH_REDUCED, &showMeshReduced);
+
+	if(showMeshReduced)
+		return;
+
 	MeshGL::glPaint();
 
 	int drawTransparency;
@@ -845,7 +852,7 @@ bool MeshGLShader::shaderLink( QOpenGLShaderProgram** rShaderProgram, //!< Point
 							  ) {
 
 	if( (*rShaderProgram) != nullptr ) {
-		SHOW_MSGBOX_CRIT( QString( "GLSL Error (" + rName + ")" ), "Shader program (" + rName + ") already exists!" )
+		SHOW_MSGBOX_CRIT( QString( "GLSL Error (" + rName + ")" ), "Shader program (" + rName + ") already exists!" );
 		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: shader program (" << rName.toStdString() << ") already exists!" << endl;
 		return false;
 	}
@@ -856,7 +863,7 @@ bool MeshGLShader::shaderLink( QOpenGLShaderProgram** rShaderProgram, //!< Point
 		QString linkMsgs = (*rShaderProgram)->log();
 		linkMsgs = linkMsgs.left( linkMsgs.indexOf( "***" ) );
 		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: compiling shader program (" << rName.toStdString() << "/vert): " << linkMsgs.toStdString() << endl;
-		SHOW_MSGBOX_CRIT( QString( "GLSL Error (" + rName + "/vert)" ), linkMsgs )
+		SHOW_MSGBOX_CRIT( QString( "GLSL Error (" + rName + "/vert)" ), linkMsgs );
 		return false;
 	}
 	// Geometry shader is optional:
@@ -865,7 +872,7 @@ bool MeshGLShader::shaderLink( QOpenGLShaderProgram** rShaderProgram, //!< Point
 			QString linkMsgs = (*rShaderProgram)->log();
 			linkMsgs = linkMsgs.left( linkMsgs.indexOf( "***" ) );
 			cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: compiling shader program (" << rName.toStdString() << "/geom): " << linkMsgs.toStdString() << endl;
-			SHOW_MSGBOX_CRIT( QString( "GLSL Error (" + rName + "/geom)" ), linkMsgs )
+			SHOW_MSGBOX_CRIT( QString( "GLSL Error (" + rName + "/geom)" ), linkMsgs );
 			return false;
 		}
 	}
@@ -874,7 +881,7 @@ bool MeshGLShader::shaderLink( QOpenGLShaderProgram** rShaderProgram, //!< Point
 		QString linkMsgs = (*rShaderProgram)->log();
 		linkMsgs = linkMsgs.left( linkMsgs.indexOf( "***" ) );
 		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: compiling shader program (" << rName.toStdString() << "/frag): " << linkMsgs.toStdString() << endl;
-		SHOW_MSGBOX_CRIT( QString( "GLSL Error (" + rName + "/frag)" ), linkMsgs )
+		SHOW_MSGBOX_CRIT( QString( "GLSL Error (" + rName + "/frag)" ), linkMsgs );
 		return false;
 	}
 
@@ -884,7 +891,7 @@ bool MeshGLShader::shaderLink( QOpenGLShaderProgram** rShaderProgram, //!< Point
 		QString linkMsgs = (*rShaderProgram)->log();
 		linkMsgs = linkMsgs.left( linkMsgs.indexOf( "***" ) );
 		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: linking shader program (" << rName.toStdString() << "): " << linkMsgs.toStdString() << endl;
-		SHOW_MSGBOX_CRIT( QString( "GLSL Error" ), linkMsgs )
+		SHOW_MSGBOX_CRIT( QString( "GLSL Error" ), linkMsgs );
 		return false;
 	} else {
 		cout << "[MeshGLShader::" << __FUNCTION__ << "] Linking shader program (" << rName.toStdString() << ") successfull." << endl;
@@ -3853,6 +3860,19 @@ void MeshGLShader::vboPaintTextured()
 		lightInfo.ambient.setW( 1.0f );
 	}
 
+	// better: do this section only when changes are made:
+	// --------------------------------------------------
+	bool showBackfaces;
+	MeshGLParams::getParamFlagMeshGL(SHOW_FACES_CULLED, &showBackfaces);
+
+	mTexturedMeshRenderer.setCullBackfaces(!showBackfaces);
+	if(showBackfaces)
+	{
+		float backFaceColor[4];
+		mRenderColors->getColorSettings(MeshGLColors::COLOR_MESH_BACKFACE, backFaceColor);
+		mTexturedMeshRenderer.setBackFaceColor(QVector3D(backFaceColor[0], backFaceColor[1], backFaceColor[2]));
+	}
+	// ----------------------------------------------------
 	PRINT_OPENGL_ERROR("unknown error");
 	mTexturedMeshRenderer.render(ppvMatrix, pmvMatrix, *mMeshTextured, lightInfo);
 

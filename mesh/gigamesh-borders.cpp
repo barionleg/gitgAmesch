@@ -30,22 +30,20 @@
 using namespace std;
 
 bool convertMeshData(
-                const string&   rFileName,
-                const string&   rFileSuffix,
-                const bool      rWriteBinary,
-                const bool      rWriteNormals,
-                const bool      rReplaceFiles
+		     const string&   rFileName,
+		     const bool      rWriteVertexId,
+		     const bool      rWriteNormals,
+		     const bool      rReplaceFiles
 ) {
 	std::string fileExtension = std::filesystem::path( rFileName ).extension().string();
 	// Check file extension for input file
-	if( fileExtension.size() != 4 ) {
+	if( !(fileExtension == ".obj" || fileExtension == ".ply") ) {
 		cerr << "[GigaMesh] ERROR: File extension '" << fileExtension << "' is faulty!" << endl;
 		return( false );
 	}
 
 	// Add parameters to output prefix
-	std::string fileNameOut = std::filesystem::path( rFileName ).stem().string();
-	fileNameOut += rFileSuffix;
+	std::string fileNameOut = std::filesystem::path( rFileName ).stem().string() + ".pline";
 
 #ifndef WIN32
 	// Check files using file statistics
@@ -57,8 +55,8 @@ bool convertMeshData(
 	}
 
 	// Output file for 3D data including the volumetric feature vectors.
-	string fileNameOut3D( fileNameOut );
-	fileNameOut3D += ".ply";
+	std::string pathOut = std::filesystem::absolute( std::filesystem::path( rFileName )).remove_filename().string();
+	std::string fileNameOut3D = pathOut + fileNameOut;
 	if( stat( fileNameOut3D.c_str(), &stFileInfo ) == 0 ) {
 		if( !rReplaceFiles ) {
 			cerr << "[GigaMesh] File '" << fileNameOut3D << "' already exists!" << endl;
@@ -76,8 +74,8 @@ bool convertMeshData(
 	}
 
 	// Output file for 3D data including the volumetric feature vectors.
-	string fileNameOut3D( fileNameOut );
-	fileNameOut3D += ".ply";
+	std::string pathOut = std::filesystem::absolute( std::filesystem::path( rFileName )).remove_filename().string();
+	std::string fileNameOut3D = pathOut + fileNameOut;
 	if( _stat64( fileNameOut3D.c_str(), &stFileInfo ) == 0 ) {
 		if( !rReplaceFiles ) {
 			cerr << "[GigaMesh] File '" << fileNameOut3D << "' already exists!" << endl;
@@ -129,13 +127,18 @@ bool convertMeshData(
 	time( &rawtime );
 	timeinfo = localtime( &rawtime );
 	cout << "[GigaMesh] Start date/time is: " << asctime( timeinfo );// << endl;
-	someMesh.setFlagExport( MeshIO::EXPORT_BINARY,        rWriteBinary );
-	someMesh.setFlagExport( MeshIO::EXPORT_VERT_NORMAL,   rWriteNormals );
-	someMesh.setFlagExport( MeshIO::EXPORT_VERT_FLAGS, false );
-	someMesh.setFlagExport( MeshIO::EXPORT_VERT_LABEL, false );
-	someMesh.setFlagExport( MeshIO::EXPORT_VERT_FTVEC, false );
-	someMesh.setFlagExport( MeshIO::EXPORT_POLYLINE,   false );
-	someMesh.writeFile( fileNameOut3D );
+	bool convertSuccess = someMesh.convertBordersToPolylines();
+	if( !convertSuccess ) {
+		cerr << "[GigaMesh] Error: Could not convert borders of mesh '" << rFileName << "'!" << endl;
+		return( false );
+	}
+
+	bool writeSuccess = someMesh.exportPolyLinesCoords(fileNameOut3D,rWriteNormals,rWriteVertexId);
+	if( !writeSuccess ) {
+		cerr << "[GigaMesh] Error: Could not write file '" << fileNameOut3D << "'!" << endl;
+		return( false );
+	}
+
 	cout << "[GigaMesh] End date/time is: " << asctime( timeinfo );// << endl;
 
 	return( true );
@@ -144,46 +147,40 @@ bool convertMeshData(
 //! Help i.e. usage of paramters.
 void printHelp( const char* rExecName ) {
 	std::cout << "Usage: " << rExecName << " [options] (<file>)" << std::endl;
-	std::cout << "GigaMesh Software Framework TO.LEGACY 3D-data" << std::endl << std::endl;
-	std::cout << "Converts the given meshes to legacy Stanford Polygon Files (PLYs) i.e. strips extra information added by GigaMesh like feature vectors." << std::endl;
-	std::cout << "Function values will be kept as quality field, which is widely accepted. ";
-	std::cout << "Normals per vertex are not written per default as they are typically estimated for measurment data.";
+	std::cout << "GigaMesh Software Framework export borders of 3D-data." << std::endl << std::endl;
+	std::cout << "Extracts and exports the borders of the given meshes as Polylines ('.pline')." << std::endl;
+	std::cout << "Normals per vertex and vertex ID's are written per default.";
 	std::cout << std::endl << std::endl;
 	std::cout << "Options:" << endl;
 	std::cout << "  -h, --help                              Displays this help." << std::endl;
 	std::cout << "  -v, --version                           Displays version information." << std::endl << std::endl;
-	std::cout << "  -b, --binary                            Write the converted file binary." << std::endl;
+	std::cout << "  -p, --write-vertices                    Write the ids per vertex." << std::endl;
 	std::cout << "  -n, --write-normals                     Write the normal vectors per vertex." << std::endl;
-	std::cout << "  -s, --output-suffix <string>            Write the converted file using the given <string> as suffix for its name." << std::endl;
-	std::cout << "                                          Default suffices are '_ASCII' and '_Legacy'." << std::endl;
-	std::cout << "  -k, --overwrite-existing                Overwrite exisitng files, which is not done by default" << std::endl;
-	std::cout << "                                          to prevent accidental data loss." << std::endl;
+	std::cout << "  -k, --overwrite-existing                Overwrite exisitng files, which is" << std::endl;
+	std::cout << "                                          not done by default to prevent" << std::endl;
+	std::cout << "                                          accidental data loss." << std::endl;
 	std::cout << "    , --log-level [0-4]                   Sets the log level of this application.\n"
 				 "                                          Higher numbers increases verbosity.\n"
 				 "                                          (Default: 1)" << std::endl;
 	//std::cout << "" << endl;
 }
 
-//! Main routine for loading a (binary) PLY and store it as ASCII without the extra data supplied by GigaMesh
+//! Main routine for loading a PLY and exporting borders as .pline
 //==============================================================================================================================================================
 int main( int argc, char *argv[] ) {
 
 	LOG::initLogging();
 
-	// Default string parameter
-	std::string optFileSuffix;
-
 	// Default flags
 	bool optReplaceFiles = false;
-	bool optWriteBinary  = false;
+	bool optWriteVertexId  = false;
 	bool optWriteNormals = false;
 
 	// PARSE command line options
 	//--------------------------------------------------------------------------
 	// https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html#Getopt-Long-Option-Example
 	static struct option longOptions[] = {
-		{ "output-suffix",                required_argument, nullptr, 's' },
-		{ "binary",                       no_argument,       nullptr, 'b' },
+		{ "write-vertices",               no_argument,       nullptr, 'p' },
 		{ "write-normals",                no_argument,       nullptr, 'n' },
 		{ "overwrite-existing",           no_argument,       nullptr, 'k' },
 		{ "version",                      no_argument,       nullptr, 'v' },
@@ -195,8 +192,8 @@ int main( int argc, char *argv[] ) {
 	int character = 0;
 	int optionIndex = 0;
 
-	while( ( character = getopt_long_only( argc, argv, ":s:bnkvh",
-	         longOptions, &optionIndex ) ) != -1 ) {
+	while( ( character = getopt_long_only( argc, argv, ":pnkvh",
+		 longOptions, &optionIndex ) ) != -1 ) {
 		switch(character) {
 			case 0:
 				// printf ("option %s", long_options[option_index].name);
@@ -217,15 +214,13 @@ int main( int argc, char *argv[] ) {
 
 				break;
 
-			case 's':
-				optFileSuffix = std::string( optarg );
-				break;
-
-			case 'b': // write binray file
-				optWriteBinary = true;
+			case 'p': // write vertex ids
+				std::cout << "[GigaMesh] Vertex ID's will be added." << std::endl;
+				optWriteVertexId = true;
 				break;
 
 			case 'n': // write vertex normals
+				std::cout << "[GigaMesh] Vertex normals will be added." << std::endl;
 				optWriteNormals = true;
 				break;
 
@@ -235,7 +230,9 @@ int main( int argc, char *argv[] ) {
 				break;
 
 			case 'v':
-				std::cout << "GigaMesh Software Framework TO.LEGACY Stanford Polygon Files (PLYs) " << VERSION_PACKAGE << endl;
+#ifdef VERSION_PACKAGE
+				std::cout << "GigaMesh Software Framework export borders of 3D Data " << VERSION_PACKAGE << endl;
+#endif
 #ifdef THREADS
 				std::cout << "Multi-threading with " << NUM_THREADS << " threads." << endl;
 #else
@@ -263,14 +260,6 @@ int main( int argc, char *argv[] ) {
 		std::exit( EXIT_FAILURE );
 	}
 
-	// Add default suffix
-	if( optFileSuffix.size() == 0 ) {
-		optFileSuffix = "_ASCII";
-		if( optWriteBinary ) {
-			optFileSuffix = "_Legacy";
-		}
-	}
-
 	// SHOW Build information
 	printBuildInfo();
 
@@ -284,8 +273,8 @@ int main( int argc, char *argv[] ) {
 		if( !nonOptionArgumentString.empty() ) {
 			std::cout << "[GigaMesh] Processing file " << nonOptionArgumentString << "..." << std::endl;
 
-			if( !convertMeshData( nonOptionArgumentString, optFileSuffix,
-			                      optWriteBinary, optWriteNormals, optReplaceFiles ) ) {
+			if( !convertMeshData( nonOptionArgumentString, optWriteVertexId,
+					      optWriteNormals, optReplaceFiles ) ) {
 				std::cerr << "[GigaMesh] ERROR: convertMeshData failed!" << std::endl;
 				std::exit( EXIT_FAILURE );
 			}

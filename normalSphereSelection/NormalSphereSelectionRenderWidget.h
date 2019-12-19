@@ -87,13 +87,8 @@ class NormalSphereSelectionRenderWidget : public QOpenGLWidget, QOpenGLFunctions
 		int mScreenHeight = 0;
 		unsigned int mColorMapIndex = 0;
 
-
-		float mMinData = 0.0f;
-
-
-
-		float mSelectionRadius = 1.0f;
-		float mUpperQuantil = 1.0f;
+		float mSelectionRadius = 1.0F;
+		float mUpperQuantil = 1.0F;
 
 		bool mScaleNormals = false;
 		bool mInvertFuncVal = false;

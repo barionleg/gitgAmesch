@@ -2,6 +2,9 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <filesystem>
+
+#include "../../logging/Logging.h"
 
 //helper RAII class for the file-stream
 class FStreamGuard {
@@ -106,7 +109,7 @@ void parseColorValue(std::stringstream& sStream, std::array<float,3>& color)
 
 	if(option == "spectral")
 	{
-		std::cerr << "Warning, spectral opion is not supported\n";
+		LOG::warn() << "Warning, spectral opion is not supported\n";
 	}
 
 	else if(option == "xyz")
@@ -166,7 +169,10 @@ void parseTextureValue(std::stringstream& sStream, std::string& str)
 		sStream >> temp;
 	}
 
-	str = temp;
+	if(std::filesystem::exists(temp))
+	{
+		str = temp;
+	}
 }
 
 
@@ -295,7 +301,7 @@ bool MtlParser::parseFile(const std::string& fileName)
 				case MtlToken::KE:
 					break;	//ignore KE
 				case MtlToken::UNKNOWN:
-					std::cerr << "Unknown MTL token in line " << lineNum << " : " << stringToken << "\n";
+					LOG::warn() << "Unknown MTL token in line " << lineNum << " : " << stringToken << "\n";
 					break;
 			}
 

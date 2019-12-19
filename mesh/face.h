@@ -172,7 +172,7 @@ class Face : public Primitive {
 		        double   getFuncValMaxExcluding( Vertex* someVert );
 				bool     getFuncValVertRidge( std::set<Vertex*>* rRidgeVerts );
 		        bool     isOnFuncValIsoLine( double isoThres );
-		        bool     getFuncValIsoPoint( double isoThres, Vector3D* isoPoint, Face** faceNext, bool searchForward );
+				bool     getFuncValIsoPoint( double isoThres, Vector3D* isoPoint, Face** faceNext, bool searchForward, Face** faceVisited );
 		// Feature vector related
 				bool     getFeatureVec1RingSector( const Vertex* rVert1RingCenter, const s1RingSectorPrecomp& r1RingSecPre,
 				                                    std::vector<double>& rFeatureVec1RingSector ) const;

@@ -23,13 +23,13 @@
 // C++ includes:
 #include "printbuildinfo.h"
 
-#ifdef LIBTEST
-	#include "libtest.h"
-#endif
-
 using namespace std;
 
+#include "logging/Logging.h"
+
 int main( int argc, char *argv[] ) {
+	LOG::initLogging();
+
 	QApplication app( argc, argv );
 
 	/*
@@ -62,12 +62,30 @@ int main( int argc, char *argv[] ) {
 	                                       QCoreApplication::translate( "main", "Assume HiDPI Display scale by a factor of 2." ) );
 	parser.addOption( showHiDPI20Option );
 
+	QCommandLineOption setLogLevelOption( "log-level",
+									QCoreApplication::translate( "main", "Sets the applications logging level [0-4]."),
+									"level", "1");
+	parser.addOption( setLogLevelOption);
+
 	// File name(s)
 	parser.addPositionalArgument(  "filename", 
 	                               QCoreApplication::translate( "main", "File with 3D-data.") );
 
 	// Process the actual command line arguments given by the user
 	parser.process( app );
+
+	if(parser.isSet(setLogLevelOption))
+	{
+		QString param = parser.value(setLogLevelOption);
+		if(param.size() != 1 || param[0] < '0' || param[0] > '4')
+		{
+			cerr << "The logging level has to be in the range of [0-4].\n";
+		}
+		else
+		{
+			LOG::setLogLevel(static_cast<LOG::LogLevel>(param.toInt()));
+		}
+	}
 
 	const QStringList args = parser.positionalArguments();
 
@@ -92,13 +110,9 @@ int main( int argc, char *argv[] ) {
 	cout << "[GigaMesh] using Qt Version: " << qVersion() << endl; // see: http://doc.trolltech.com/4.6/qtglobal.html
 	printBuildInfo();
 
-#ifdef LIBTEST
-	cout << "[GigaMesh] ------------------------------------------------------------------------" << endl;
-	cout << "[GigaMesh] libtest has the answer: " << foobar() << endl;
-#endif
 	// System checks:
 	if( !QGLFormat::hasOpenGL() ) {
-		cerr << "[Main] ERROR: This system has no OpenGL support!" << endl;
+		LOG::fatal() << "[Main] ERROR: This system has no OpenGL support!\n";
 		SHOW_MSGBOX_WARN( "No OpenGL", "ERROR: This system has no OpenGL support!" );
 		exit( EXIT_FAILURE );
 	}

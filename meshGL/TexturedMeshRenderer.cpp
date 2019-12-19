@@ -74,6 +74,11 @@ void TexturedMeshRenderer::render(const QMatrix4x4& projectionMatrix, const QMat
 	GLint prevVAO;
 	mGL.glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &prevVAO);
 
+	if(!mCullBackfaces)
+	{
+		mGL.glDisable(GL_CULL_FACE);
+	}
+
 	mShader->bind();
 	mVAO.bind();
 
@@ -91,6 +96,7 @@ void TexturedMeshRenderer::render(const QMatrix4x4& projectionMatrix, const QMat
 	mShader->setUniformValue("FixedWorld_SpecularProduct", lightInfo.fixedWorldSpecular);
 	mShader->setUniformValue("AmbientProduct"            , lightInfo.ambient           );
 	mShader->setUniformValue("Shininess"                 , static_cast<GLfloat>(lightInfo.shininess));
+	mShader->setUniformValue("uBackFaceColor"            , mBackFaceColor              );
 
 	mGL.glActiveTexture(GL_TEXTURE0);
 	PRINT_OPENGL_ERROR("active texture");
@@ -120,6 +126,7 @@ void TexturedMeshRenderer::render(const QMatrix4x4& projectionMatrix, const QMat
 	mVAO.release();
 	mShader->release();
 
+	mGL.glEnable(GL_CULL_FACE);
 	mGL.glBindVertexArray(prevVAO);
 	mGL.glBindTexture(GL_TEXTURE_2D, 0);
 	PRINT_OPENGL_ERROR("release texture");
@@ -175,6 +182,16 @@ bool TexturedMeshRenderer::initShader()
 		return false;
 	}
 	return true;
+}
+
+void TexturedMeshRenderer::setCullBackfaces(bool cullBackfaces)
+{
+	mCullBackfaces = cullBackfaces;
+}
+
+void TexturedMeshRenderer::setBackFaceColor(const QVector3D& backFaceColor)
+{
+	mBackFaceColor = backFaceColor;
 }
 
 bool TexturedMeshRenderer::isInitialized() const

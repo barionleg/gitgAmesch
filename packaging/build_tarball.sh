@@ -72,6 +72,7 @@ cp -a ../meshBuild/gigamesh-info  $ND
 cp -a ../meshBuild/gigamesh-clean $ND
 cp -a ../meshBuild/gigamesh-tolegacy $ND
 cp -a ../meshBuild/gigamesh-featurevectors $ND
+cp -a ../meshBuild/gigamesh-borders $ND
 # --- Scripts ---
 # None for now, which is a good thing.
 

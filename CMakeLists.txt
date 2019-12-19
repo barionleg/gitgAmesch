@@ -89,7 +89,9 @@ set(SOURCES_COMMON mesh/geodentry.cpp
 	mesh/MeshIO/TxtReader.cpp
 	mesh/MeshIO/TxtWriter.cpp
 	mesh/MeshIO/VRMLWriter.cpp
-	mesh/MeshIO/MtlParser.cpp)
+	mesh/MeshIO/MtlParser.cpp
+	logging/Logging.cpp
+	logging/Logger.cpp)
 
 set(HEADERS_COMMON mesh/geodentry.h
 	mesh/bitflagarray.h
@@ -133,7 +135,9 @@ set(HEADERS_COMMON mesh/geodentry.h
 	mesh/MeshIO/TxtWriter.h
 	mesh/MeshIO/VRMLWriter.h
 	mesh/MeshIO/PlyEnums.h
-	mesh/MeshIO/MtlParser.h)
+	mesh/MeshIO/MtlParser.h
+	logging/Logging.h
+	logging/Logger.h)
 
 if(MSVC)
     list(APPEND HEADERS_COMMON mesh/getoptwin.h)
@@ -188,3 +192,6 @@ elseif(MSVC)
 elseif(MINGW)
 	target_link_libraries(meshgeneratefeaturevectors25d PRIVATE ws2_32)
 endif()
+
+add_executable(gigamesh-borders mesh/gigamesh-borders.cpp)
+target_link_libraries(gigamesh-borders PRIVATE gigamesh-common)

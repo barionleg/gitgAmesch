@@ -16,6 +16,7 @@ uniform vec4 FixedCam_SpecularProduct;
 uniform vec4 FixedWorld_DiffuseProduct;
 uniform vec4 FixedWorld_SpecularProduct;
 uniform vec4 AmbientProduct;
+uniform vec3 uBackFaceColor;
 
 uniform float Shininess;
 
@@ -40,14 +41,28 @@ vec4 getLightAmount( vec3 L, vec3 normal, vec3 halfVector, vec4 diffuseProduct, 
 void main(void)
 {
 	vec4 colorLight = vec4( 1.0, 1.0, 1.0, 1.0 );
+	vec3 norm = normalize(normal);
+	if(!gl_FrontFacing)
+	{
+		norm = -norm;
+	}
+
 	if( uLightEnabled )
 	{
-		vec4 fixedCamLight   = getLightAmount( FixedCam_L,   normal, FixedCam_halfVector,   FixedCam_DiffuseProduct,   FixedCam_SpecularProduct   );
-		vec4 fixedWorldLight = getLightAmount( FixedWorld_L, normal, FixedWorld_halfVector, FixedWorld_DiffuseProduct, FixedWorld_SpecularProduct );
+		vec4 fixedCamLight   = getLightAmount( FixedCam_L,   norm, FixedCam_halfVector,   FixedCam_DiffuseProduct,   FixedCam_SpecularProduct   );
+		vec4 fixedWorldLight = getLightAmount( FixedWorld_L, norm, FixedWorld_halfVector, FixedWorld_DiffuseProduct, FixedWorld_SpecularProduct );
 		// ++++ Sum up all parts of the light:
 		colorLight = AmbientProduct + fixedCamLight + fixedWorldLight;
 		colorLight.a = 1.0;
 	}
 
-	fragColor = texture(uTexture, uv) * colorLight;
+	if(gl_FrontFacing)
+	{
+		fragColor = texture(uTexture, uv) * colorLight;
+	}
+
+	else
+	{
+		fragColor.rgba = vec4(uBackFaceColor,1.0) * colorLight;
+	}
 }

@@ -249,27 +249,6 @@ CONFIG( tiff ) {
 # INCLUDEPATH += ./cuda                                 # ... and their  header location
 # -------------------------------------------------------------------------------
 
-# --- TEST LIB ------------------------------------------------------------------
-exists( "libtest/libtest.a" ) {
-    DEFINES     += LIBTEST
-    INCLUDEPATH += $$PWD/libtest                  # .our home-made library header location
-    LIBS        += -ltest -L$$PWD/libtest          # home-made library files ;)
-    message( LIBTEST present. )
-}
-else:message( LIBTEST not required and also not present. )
-# -------------------------------------------------------------------------------
-
-# --- TRIANGLE LIB ------------------------------------------------------------------
-#exists( "triangle/triangle.o" ) {
-#    DEFINES     += TRIANGLE
-#    INCLUDEPATH += $$PWD/triangle                  # .our home-made library header location
-#    LIBS        += -ltriangle -L$$PWD/libtriangle         # home-made library files ;)
-#    message( TRIANGLE present. )
-#}
-#else:message( TRIANGLE not required and also not present. )
-# -------------------------------------------------------------------------------
-
-
 # --- PSALM LIB ------------------------------------------------------------------
 win32-msvc {
 exists( "external/libpsalmBoostless/psalm.lib" ) {
@@ -379,6 +358,8 @@ VPATH += ./voxel ./mesh ./meshGL
 # Bit array for flags
 HEADERS += meshGL/meshGLShader.h \
         ExternalProgramsDialog.h \
+	logging/Logger.h \
+	logging/Logging.h \
 	mesh/MeshIO/MeshReader.h \
 	mesh/MeshIO/MeshWriter.h \
 	mesh/MeshIO/ModelMetaData.h \
@@ -422,6 +403,8 @@ HEADERS += mesh/meshinfodata.h
 SOURCES += mesh/meshinfodata.cpp \
         ExternalProgramsDialog.cpp \
     MeshQtCSVImportExport.cpp \
+	logging/Logger.cpp \
+	logging/Logging.cpp \
 	mesh/MeshIO/MeshReader.cpp \
 	mesh/MeshIO/MeshWriter.cpp \
 	mesh/MeshIO/ModelMetaData.cpp \
@@ -703,6 +686,7 @@ OTHER_FILES += mesh/make_win.bat      # Windows
 OTHER_FILES += mesh/gigamesh-info.cpp
 OTHER_FILES += mesh/gigamesh-clean.cpp
 OTHER_FILES += mesh/gigamesh-tolegacy.cpp
+OTHER_FILES += mesh/gigamesh-borders.cpp
 OTHER_FILES += mesh/meshgeneratefeaturevectors.cpp
 OTHER_FILES += mesh/meshgeneratefeaturevectors25d.cpp
 OTHER_FILES += mesh/mesh_main.c

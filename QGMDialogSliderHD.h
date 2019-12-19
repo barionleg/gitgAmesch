@@ -22,8 +22,8 @@ class QGMDialogSliderHD : public QDialog
 
 	public:
 		// Constructor and Destructor:
-		explicit QGMDialogSliderHD(QWidget *parent = 0);
-		~QGMDialogSliderHD();
+		explicit QGMDialogSliderHD(QWidget *parent = nullptr);
+		~QGMDialogSliderHD() override;
 
 		int    setIdx( int    setIdx    );
 		double setMin( double setMinVal );
@@ -39,8 +39,8 @@ class QGMDialogSliderHD : public QDialog
 		bool getValue( double* rValue );
 
 	public slots:
-		void accept();
-		void reject();
+		void accept() override;
+		void reject() override;
 
 	private slots:
 		void previewChecked( bool state );
@@ -68,6 +68,9 @@ class QGMDialogSliderHD : public QDialog
 
 		QDoubleValidator mValidRel; //!< Validator for lineEdit of the relative value.
 		QDoubleValidator mValidAbs; //!< Validator for lineEdit of the absolute value.
+
+		void emitValueSelected(double value); //!< Helper function to emit selected values with correct scale
+		void emitValuePreview(double value);  //!< Helper function to emit preview values with correct scale
 
 		// QWidget interface
 	protected:

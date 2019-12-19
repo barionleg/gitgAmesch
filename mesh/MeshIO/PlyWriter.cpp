@@ -6,6 +6,8 @@
 #include "../primitive.h"
 #include "PlyEnums.h"
 
+#include "../../logging/Logging.h"
+
 using namespace std;
 
 
@@ -29,14 +31,14 @@ bool PlyWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 	bool exportTextureId = MeshWriter::getModelMetaDataRef().getTexturefilesRef().size() > 1;
 	// Measure total time:
 	tStart = high_resolution_clock::now();
-	cout << "[PlyWriter::" << __FUNCTION__ << "] ------------------------------------------------------------\n";
+	LOG::info() << "[PlyWriter::" << __FUNCTION__ << "] ------------------------------------------------------------\n";
 
 	filestr.open( rFilename.c_str(), fstream::out | fstream::binary);
 	if( !filestr.is_open() ) {
-		cerr << "[PlyWriter::" << __FUNCTION__ <<"] ERROR: Could not open file: '" << rFilename << "'!\n";
+		LOG::error() << "[PlyWriter::" << __FUNCTION__ <<"] ERROR: Could not open file: '" << rFilename << "'!\n";
 		return false;
 	} else {
-		cout << "[PlyWriter::" << __FUNCTION__ <<"] File open for writing: '" << rFilename << "'.\n";
+		LOG::info() << "[PlyWriter::" << __FUNCTION__ <<"] File open for writing: '" << rFilename << "'.\n";
 	}
 
 	// if we got a vertex texture_
@@ -268,16 +270,16 @@ bool PlyWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 		// ---- Polygonal lines -----------------------------------------------------
 		for( unsigned int i=0; i<rMeshSeed.getPolyLineNr(); i++ ) {
 			PrimitiveInfo primInfo = rMeshSeed.getPolyLinePrimInfo( i );
-			filestr << primInfo.mPosX << "\n";
-			filestr << primInfo.mPosY << "\n";
-			filestr << primInfo.mPosZ << "\n";
-			filestr << primInfo.mNormalX << "\n";
-			filestr << primInfo.mNormalY << "\n";
-			filestr << primInfo.mNormalZ << "\n";
+			filestr << primInfo.mPosX << " ";
+			filestr << primInfo.mPosY << " ";
+			filestr << primInfo.mPosZ << " ";
+			filestr << primInfo.mNormalX << " ";
+			filestr << primInfo.mNormalY << " ";
+			filestr << primInfo.mNormalZ << " ";
 			// The label ID:                      property uint32 labelid
 			unsigned int polyLabelID = rMeshSeed.getPolyLineLabel( i );
 			filestr << polyLabelID;
-			filestr << "\n";
+			filestr << " ";
 			// Than a list of vertex references:  property list int32 int32 vertex_indices
 			filestr << rMeshSeed.getPolyLineLength( i );
 			// Finally the references to the vertices:
@@ -338,7 +340,7 @@ bool PlyWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 			}
 			high_resolution_clock::time_point tEndVertices = high_resolution_clock::now();
 			duration<double> time_span_Vertices = duration_cast<duration<double>>( tEndVertices - tStartVertices );
-			cout << "[PlyWriter::" << __FUNCTION__ << "] write Vertices:         " << time_span_Vertices.count() << " seconds." << std::endl;
+			LOG::info() << "[PlyWriter::" << __FUNCTION__ << "] write Vertices:         " << time_span_Vertices.count() << " seconds.\n";
 			// --- Faces ----------------------------------------------------------------
 			{
 				high_resolution_clock::time_point tStartFaces = high_resolution_clock::now();
@@ -371,7 +373,7 @@ bool PlyWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 				}
 				high_resolution_clock::time_point tEndFaces = high_resolution_clock::now();
 				duration<double> time_span_Faces = duration_cast<duration<double>>( tEndFaces - tStartFaces );
-				cout << "[PlyWriter::" << __FUNCTION__ << "] write Faces:            " << time_span_Faces.count() << " seconds." << std::endl;
+				LOG::info() << "[PlyWriter::" << __FUNCTION__ << "] write Faces:            " << time_span_Faces.count() << " seconds.\n";
 			}
 			// ---- Polygonal lines -----------------------------------------------------
 			if( ( mExportPolyline ) && ( rMeshSeed.getPolyLineNr() > 0 ) ) {
@@ -404,9 +406,9 @@ bool PlyWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 				}
 				high_resolution_clock::time_point tEndPolylines = high_resolution_clock::now();
 				duration<double> time_span_Polylines = duration_cast<duration<double>>( tEndPolylines - tStartPolylines );
-				cout << "[PlyWriter::" << __FUNCTION__ << "] write Polylines:        " << time_span_Polylines.count() << " seconds." << std::endl;
+				LOG::info() << "[PlyWriter::" << __FUNCTION__ << "] write Polylines:        " << time_span_Polylines.count() << " seconds.\n";
 			} else {
-				cout << "[PlyWriter::" << __FUNCTION__ << "] write Polylines:        None present or export disabled." << std::endl;
+				LOG::info() << "[PlyWriter::" << __FUNCTION__ << "] write Polylines:        None present or export disabled.\n";
 			}
 		}
 
@@ -414,9 +416,9 @@ bool PlyWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 
 		tEnd = high_resolution_clock::now();
 		duration<double> time_span = duration_cast<duration<double>>( tEnd - tStart );
-		cout << "[PlyWriter::" << __FUNCTION__ << "] ------------------------------------------------------------" << endl;
-		cout << "[PlyWriter::" << __FUNCTION__ << "] write TOTAL:            " << time_span.count() << " seconds." << endl;
-		cout << "[PlyWriter::" << __FUNCTION__ << "] ------------------------------------------------------------" << endl;
+		LOG::info() << "[PlyWriter::" << __FUNCTION__ << "] ------------------------------------------------------------\n";
+		LOG::info() << "[PlyWriter::" << __FUNCTION__ << "] write TOTAL:            " << time_span.count() << " seconds.\n";
+		LOG::info() << "[PlyWriter::" << __FUNCTION__ << "] ------------------------------------------------------------\n";
 
 	return true;
 }

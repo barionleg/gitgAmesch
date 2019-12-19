@@ -103,7 +103,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		// IO Operations - overloaded from MeshIO and MeshSeedExt
 		virtual bool     writeFile( const std::string& rFileName );
 		virtual bool     importFeatureVectorsFromFile( const std::string& rFileName );
-
+		virtual bool     exportFeatureVectors(const std::string& rFileName);
 	private:
 				bool     assignFeatureVectors( const std::vector<double>& rFeatureVecs, const uint64_t& rMaxFeatVecLen );
 
@@ -520,6 +520,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool funcVertFeatureVecElementByIndex( unsigned int rElementNr );
 		virtual bool funcVertDistanceToPlane( Vector3D rPlaneHNF, bool rAbsDist, bool rSilent=false );
 				bool funcVertAddLight(Matrix4D &rTransformMat, unsigned int rArrayWidth, unsigned int rArrayHeight, const std::vector<float>& rDepths, float rZTolerance );
+				bool funcValToFeatureVector(unsigned int dim);
 		// Again some old style function value calls:
 		        bool setVertFuncValCorrTo( std::vector<double>* rFeatVector );
 		        bool setVertFuncValDistanceToSelPrim();
@@ -694,6 +695,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool exportPolyLinesCoordsProjected( std::string rFileName, bool rWithVertIdx, double rAngleRot=0.0 );
 				bool exportPolyLinesFuncVals( std::string rFileName );
 				bool exportFuncVals( std::string rFileName, bool rWithVertIdx );
+				bool importFuncValsFromFile( const std::string& rFileName, bool withVertIdx );
 		virtual bool exportFaceNormalAngles( std::string filename );
 
 		// Extra menu

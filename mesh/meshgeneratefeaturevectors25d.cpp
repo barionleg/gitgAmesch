@@ -31,6 +31,7 @@
 #include "image2d.h"
 
 #include <sys/stat.h> // statistics for files
+#include "../logging/Logging.h"
 
 using namespace std;
 
@@ -204,6 +205,7 @@ using namespace std;
 //==========================================================================
 int main( int argc, char *argv[] ) {
 
+	LOG::initLogging();
 	// SHOW Build information
 	printBuildInfo();
 
@@ -221,7 +223,7 @@ int main( int argc, char *argv[] ) {
 	int c{0};
 	int tmpInt{0};
 	bool radiusSet{false};
-	while( ( c = getopt( argc, argv, "f:o:r:v:n:ka" ) ) != -1 ) {
+	while( ( c = getopt( argc, argv, "f:o:r:v:n:kal:" ) ) != -1 ) {
 		switch( c ) {
 			//! Option f: filename for input data (required)
 			case 'f':
@@ -264,6 +266,16 @@ int main( int argc, char *argv[] ) {
 				cout << "[GigaMesh] Warning: Only area integrals will be computed!" << endl;
 				areaOnly = true;
 				break;
+			case 'l':
+				tmpInt = atoi( optarg );
+				if(tmpInt < 0 || tmpInt > 4)
+				{
+					cerr << "[GigaMesh] Error: logging value not in range of [0-4]\n";
+				}
+				else
+				{
+					LOG::setLogLevel(static_cast<LOG::LogLevel>(tmpInt));
+				}
 			case '?':
 				cerr << "[GigaMesh] Error: Unknown option!" << endl;
 				break;
