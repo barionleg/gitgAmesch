@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -4364,7 +4364,7 @@ p, li { white-space: pre-wrap; }
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Grid: Center Cross in front</string>
+    <string>Grid: Center Crosshair in front</string>
    </property>
   </action>
  </widget>

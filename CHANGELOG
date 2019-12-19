@@ -1,31 +1,33 @@
 Current version
-+) New: Face selection by normal vectors. See "Select -> Normal-Sphere Faces".
-+) New: Export face normal vectors
-+) New: Support for textured ply and obj files
++) NEW: Support for TEXTURED ply and obj files.
 +) New: Basic support for obj-mtl files. Currently, only reading of map_Kd is used to parse textures.
-+) New: Setting of log verbosity by command line ("--log-level [0-4]")
-+) New: Border extraction (CLI)
-+) New: Feature vector export "File -> Export Feature Vectors (per Vertex)"
-+) New: Function Value import "File -> Import Function Values (per Vertex)"
-+) New: Mapping function values to feature-vector elements "Functions -> Feature Vectors - Extra Functions -> Function Value to Feature Vector"
-+) New: Added the option to show the whole centerview highlight in front of the mesh
-+) New: Added sanity checks when loading a mesh. Warnings show up now, if the mesh is either too small, or too far away from the origin
++) New: Face selection by normal vectors. See "Select -> Normal-Sphere Faces".
++) New: Export face normal vectors.
++) New: Setting of log verbosity by command line ("--log-level [0-4]").
++) New: Border extraction (CLI). See 'gigamesh-borders --help'.
++) New: Feature vector export "File -> Export Feature Vectors (per Vertex)".
++) New: Function Value import "File -> Import Function Values (per Vertex)".
++) New: Mapping function values to feature-vector elements "Functions -> Feature Vectors - Extra Functions -> Function Value to Feature Vector".
++) New: Option to show the whole centerview crosshair in front of the mesh.
++) New: Added sanity checks when loading a mesh. Warnings are shown when the mesh is either too small or too far away from the origin.
 +) Improved: The function value of SelPrim can be chosen by the user, when executing "Analyze -> Polylines from &Isovalue / Functionvalue".
-+) Improved: Reduced Point-Cloud rendering now works with all Render-Passes
-+) Improved: Logging performance should now be better in various places
-+) Improved: NormalSpheres now consider Area (length) of the normals
-+) Improved: Exporting image stack allows the user now to select a folder
-+) Improved: Apply transform now emits progress and resets view after being done
-+) Bugfix: fixed exporting differnt DPI values for x and y when exporting screenshots
-+) Bugfix: Slider dialogs are now emitting exact values
-+) Bugfix: Inconsistent behaviours of Slider dialogs regarding the factor property
-+) Bugfix: Fixed a bug when exporting ASCII plys with polylines
-+) Bugfix: Suggested filename and path is now fixed. In some cases, the parent-folder was not separated from the filename by '/'
-+) Bugfix: Fixed crash in Exporting Image Stacks
-+) Bugfix: Polylines from Isolines: fixed cases, where the Isoline is only touching the triangles
-+) Bugfix: Fixed potential endless loop when filling holes with lippsalm
-+) Bugfix: Fixed SVG-Export of Plane intersections, where the mesh is not centered at the origin
-+) Bugfix: Polylines in meshes are now shown after loading the file. However, the vertices of the polylines are still marked as solo vertices.
++) Improved: Reduced Point-Cloud rendering now works with all Render-Passes.
++) Improved: Logging performance should now be better in various places.
++) Improved: NormalSpheres now consider Area (length) of the normals.
++) Improved: Exporting image stack allows the user now to select a folder.
++) Improved: Apply transform now emits progress and resets view after being done.
++) Bugfix: fixed exporting differnt DPI values for x and y when exporting screenshots.
++) Bugfix: Slider dialogs are now emitting exact values.
++) Bugfix: Inconsistent behaviours of slider dialogs regarding the factor property.
++) Bugfix: Fixed a bug when exporting ASCII plys with polylines.
++) Bugfix: Suggested filename and path is now fixed. In some cases, the parent-folder was not separated from the filename by '/'.
++) Bugfix: Fixed crash when using "File -> Exporting Image Stacks".
++) Bugfix: Polylines from Isolines: fixed cases, where the Isoline is only touching the triangles.
++) Bugfix: Fixed potential endless loop when filling holes with lippsalm.
++) Bugfix: Fixed SVG-Export of Plane intersections, where the mesh is not centered at the origin.
++) Bugfix: Polylines in meshes are now shown after loading the file.
+-) Bug: Polyline vertices are still marked as solo.
+-) Bug: Meshes with multiple missing texture maps are not correctly imported.
 
 Version 190805
 +) New: Selection by normal vectors. See "Select -> Vertices Normal Sphere". Attention: unstable in Windows!
