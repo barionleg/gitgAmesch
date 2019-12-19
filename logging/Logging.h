@@ -17,8 +17,8 @@ namespace LOG{
 	//Example usage: Log::fatal() << "myMessage\n";
 	Logger& fatal();	//! log fatal level errors that causes the program to crash.
 	Logger& error();	//! log errors that stop an operation but allow the program to continue
-	Logger& warn();		//! log minor errors, that will let the operation continue, but may cause unwanted behaviour
-	Logger& info();		//! informative logs that are no errors, but may be useful.  !!! Prints to std::cout by default !!!
+	Logger& warn();		//! log minor errors, that will let the operation continue, but may cause unwanted behaviour. Turned off by default.
+	Logger& info();		//! verbose logs that may be useful, but are optional.  !!! Prints to std::cout by default !!! Turned off by default.
 	Logger& debug();	//! development warnings / messages. Those are disabled by default and should only used for development. Optimally, debug logs are remove before release.
 
 	//! Initialize logging. Sets the streams the log-functions should write to
