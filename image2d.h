@@ -1,6 +1,11 @@
 #ifndef IMAGE2D_H
 #define IMAGE2D_H
 
+#ifdef LIBTIFF
+	#include "tiffio.h"
+	// for insights about uint32_t visit: http://stackoverflow.com/questions/911035/uint32_t-int16-and-the-like-are-they-standard-c
+#endif
+
 // C++ includes:
 #include "gmcommon.h"
 

@@ -3850,7 +3850,7 @@ bool MeshWidget::screenshotTIFF( const string& rFileName , OffscreenBuffer* offs
 	int imHeight;
 	unsigned char* imArray = nullptr;
 	fetchFrameBuffer( &imArray, &imWidth, &imHeight, mParamFlag[CROP_SCREENSHOTS], offscreenBuffer );
-//#ifdef LIBTIF
+
 	Image2D frameBufIm;
 	if( orthoMode ) {
 		//! When the widget is in orthographic mode, the proper resolution is set for the image.
@@ -3864,10 +3864,6 @@ bool MeshWidget::screenshotTIFF( const string& rFileName , OffscreenBuffer* offs
 	}
 	emit sStatusMessage( "Screenshot saved to: " + QString::fromStdString( rFileName ) );
 	return true;
-//#else
-//	emit sStatusMessage( "Screenshot NOT saved to: " + QString( rFileName.c_str() ) + " libtiff missing!" );
-//	return false;
-//#endif
 }
 
 //! Saves the PNG with transparency to the given filename.

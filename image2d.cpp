@@ -6,12 +6,8 @@ constexpr int WRITE_OK = 0;
 constexpr int WRITE_ERROR = -1;
 
 
-#ifdef LIBTIFF
-    #include "tiffio.h"
-    #define uint32_t uint32_t
-    // for insights about uint32_t visit: http://stackoverflow.com/questions/911035/uint32_t-int16-and-the-like-are-they-standard-c
-#else
-    #define uint32_t unsigned int
+
+#ifndef LIBTIFF
     #include <QImage>
 #endif
 
