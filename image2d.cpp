@@ -2,6 +2,20 @@
 
 using namespace std;
 
+constexpr int WRITE_OK = 0;
+constexpr int WRITE_ERROR = -1;
+
+
+#ifdef LIBTIFF
+    #include "tiffio.h"
+    #define uint32_t uint32_t
+    // for insights about uint32_t visit: http://stackoverflow.com/questions/911035/uint32_t-int16-and-the-like-are-they-standard-c
+#else
+    #define uint32_t unsigned int
+    #include <QImage>
+#endif
+
+
 Image2D::Image2D() {
 	//! Constructor
 #ifdef LIBTIFF
@@ -19,8 +33,8 @@ void Image2D::setResolution( const double setXRes, const double setYRes, const s
 }
 
 int Image2D::writeTIFF( const string&  filename, //!< Name of the file to be written.
-            const UINT32  width,                 //!< Image width (pixel).
-            const UINT32  height,                //!< Image height (pixel).
+            const uint32_t  width,                 //!< Image width (pixel).
+            const uint32_t  height,                //!< Image height (pixel).
                     double* raster,              //!< Colour-data width*height*(3|1) [0.0..maxVal].
                     const double  maxVal,        //!< maximum value for grayscale (or each of the RGB-channels)
                     const bool    isRGB          //!< RGB or Grayscale
@@ -30,7 +44,7 @@ int Image2D::writeTIFF( const string&  filename, //!< Name of the file to be wri
 	uint8_t* rasterRGB = new uint8_t[width*height*3];
 
 	if( isRGB ) {
-		for( UINT32 i=0; i<width*height*3; i++ ) {
+		for( uint32_t i=0; i<width*height*3; i++ ) {
 			// some precaution about under- and overflows:
 			if( raster[i] < 0.0 ) {
 				cout << "[Image2D::writeTIFF] warning: underflow." << endl;
@@ -43,7 +57,7 @@ int Image2D::writeTIFF( const string&  filename, //!< Name of the file to be wri
 			}
 		}
 	} else {
-		for( UINT32 i=0; i<width*height; i++ ) {
+		for( uint32_t i=0; i<width*height; i++ ) {
 			// some precaution about under- and overflows:
 			if( raster[i] < 0.0 ) {
 				cout << "[Image2D::writeTIFF] warning: underflow: " << raster[i] << endl;
@@ -69,8 +83,8 @@ int Image2D::writeTIFF( const string&  filename, //!< Name of the file to be wri
 //! Shows a warning in case of over- and underflows.
 //! Sets pixels with under-/overflow to black/white
 int Image2D::writeTIFF( const string& filename, //!< Name of the file to be written.
-            const UINT32 width,                 //!< Image width (pixel).
-            const UINT32 height,                //!< Image height (pixel).
+            const uint32_t width,                 //!< Image width (pixel).
+            const uint32_t height,                //!< Image height (pixel).
                     float* raster,              //!< Colour-data width*height*(3|1) [minVal...maxVal].
                     const float  minVal,        //!< minimum Value (for normalization to [0...255]
                     const float  maxVal,        //!< minimum Value (for normalization to [0...255]
@@ -78,8 +92,8 @@ int Image2D::writeTIFF( const string& filename, //!< Name of the file to be writ
 {
 	//cout << "[Image2D::writeTIFF] FLOAT" << endl;
 
-	char*  rasterArray;
-	UINT32 rasterArraySize;
+	unsigned char*  rasterArray = nullptr;
+	uint32_t rasterArraySize;
 	bool   normalize = false;
 	float  range = 0.0;
 	float  newValue;
@@ -102,9 +116,9 @@ int Image2D::writeTIFF( const string& filename, //!< Name of the file to be writ
 		rasterArraySize = width*height;
 	}
 	// allocate memory
-	rasterArray = static_cast<char*>(calloc( rasterArraySize, sizeof(char) ));
+	rasterArray = new unsigned char[rasterArraySize];
 	// fill/convert char array:
-	for( UINT32 i=0; i<rasterArraySize; i++ ) {
+	for( uint32_t i=0; i<rasterArraySize; i++ ) {
 		if( normalize ) {
 			newValue = floor( CHAR_MAX * ( ( raster[i]-minVal ) / range ) + 0.5 );
 		} else {
@@ -128,14 +142,14 @@ int Image2D::writeTIFF( const string& filename, //!< Name of the file to be writ
 	}
 
 	bool retVal = writeTIFF( filename, width, height, rasterArray, isRGB );
-	free( rasterArray );
+	delete[] rasterArray;
 
 	return retVal;
 }
 
 int Image2D::writeTIFF( const string&  filename, //!< Name of the file to be written.
-			UINT32  width,    //!< Image width (pixel).
-			UINT32  height,   //!< Image height (pixel).
+            uint32_t  width,    //!< Image width (pixel).
+            uint32_t  height,   //!< Image height (pixel).
 	                double* raster,   //!< Colour-data width*height*(3|1) [minVal...maxVal].
 	                double  minVal,   //!< minimum Value (for normalization to [0...255]
 	                double  maxVal,   //!< minimum Value (for normalization to [0...255]
@@ -150,8 +164,8 @@ int Image2D::writeTIFF( const string&  filename, //!< Name of the file to be wri
 
 	//cout << "[Image2D::writeTIFF] DOUBLE" << endl;
 
-	char*   rasterArray;
-	UINT32  rasterArraySize;
+	unsigned char*   rasterArray = nullptr;
+	uint32_t  rasterArraySize;
 	bool    normalize = false;
 	double  range = 0.0;
 	double  newValue;
@@ -174,9 +188,9 @@ int Image2D::writeTIFF( const string&  filename, //!< Name of the file to be wri
 		rasterArraySize = width*height;
 	}
 	// allocate memory
-	rasterArray = static_cast<char*>(calloc( rasterArraySize, sizeof(char) ));
+	rasterArray = new unsigned char[rasterArraySize];
 	// fill/convert char array:
-	for( UINT32 i=0; i<rasterArraySize; i++ ) {
+	for( uint32_t i=0; i<rasterArraySize; i++ ) {
 		if( normalize ) {
 			newValue = floor( CHAR_MAX * ( ( raster[i]-minVal ) / range ) + 0.5 );
 		} else {
@@ -200,15 +214,15 @@ int Image2D::writeTIFF( const string&  filename, //!< Name of the file to be wri
 	}
 
 	bool retVal = writeTIFF( filename, width, height, rasterArray, isRGB );
-	free( rasterArray );
+	delete[] rasterArray;
 
 	return retVal;
 }
 
-int Image2D::writeTIFF( string filename, //!< Name of the file to be written.
-			UINT32 width,    //!< Image width (pixel).
-			UINT32 height,   //!< Image height (pixel).
-			char*  raster,   //!< Colour-data width*height*(3|1) [0..255].
+int Image2D::writeTIFF(string filename, //!< Name of the file to be written.
+            uint32_t width,    //!< Image width (pixel).
+            uint32_t height,   //!< Image height (pixel).
+            unsigned char*  raster,   //!< Colour-data width*height*(3|1) [0..255].
 			bool   isRGB     //!< RGB or Grayscale
 	) {
 	//! Write some data to a TIFF file.
@@ -218,8 +232,27 @@ int Image2D::writeTIFF( string filename, //!< Name of the file to be written.
 	//! for a colour-image: http://www.ibm.com/developerworks/linux/library/l-libtiff2/
 
 #ifndef LIBTIFF
-	cerr << "[Image2D::" << __FUNCTION__ << "] ERROR: libtiff NOT present!" << endl;
-	return  _WRITE_ERROR_;
+	//cerr << "[Image2D::" << __FUNCTION__ << "] ERROR: libtiff NOT present!" << endl;
+
+	auto foundDot = filename.rfind('.');
+
+	if(foundDot == filename.npos)
+	{
+		filename += ".png";
+	}
+
+	else
+	{
+		filename = filename.substr(0,foundDot) + ".png"; //substitude extension by png
+	}
+
+	QImage img(raster, static_cast<int>(width),
+	           static_cast<int>(height),
+	           (isRGB ? QImage::Format_RGB888 : QImage::Format_Grayscale8));
+
+	img.save(filename.c_str());
+
+	return  WRITE_OK;
 #else
 	size_t foundDot;
 	foundDot = filename.rfind( '.' );
@@ -230,7 +263,7 @@ int Image2D::writeTIFF( string filename, //!< Name of the file to be written.
 	TIFF* image = TIFFOpen( filename.c_str(), "w" );
 	if( image == nullptr ) {
 		cerr << "[Image2D] Could not open file: '" << filename << "'." << endl;		
-		return _WRITE_ERROR_;
+		return WRITE_ERROR;
 	} else {
 		cout << "[Image2D] File open for writing: '" << filename << "'." << endl;
 	}
@@ -266,42 +299,30 @@ int Image2D::writeTIFF( string filename, //!< Name of the file to be written.
 	// Close the file
 	TIFFClose( image );
 
-	return  _WRITE_OK_;
+	return  WRITE_OK;
 #endif
 }
 
+/*
 int Image2D::writeTIFF( const string& filename,       //!< Name of the file to be written.
-			UINT32 width,          //!< Image width (pixel).
-			UINT32 height,         //!< Image height (pixel).
+			uint32_t width,          //!< Image width (pixel).
+			uint32_t height,         //!< Image height (pixel).
 	                unsigned char* raster, //!< Colour-data width*height*(3|1) [0..255].
 	                bool isRGB             //!< RGB or Grayscale
 	) {
 	//! Write some unsigned data to a TIFF file.
 	return writeTIFF( filename, width, height, reinterpret_cast<char*>(raster), isRGB );
 }
+*/
 
-
-int Image2D::writeTIFFStack( const string& filename, UINT32 width, UINT32 height, UINT32 stackheight, char* imageStack, bool isRGB ) {
+int Image2D::writeTIFFStack( const string& filename, uint32_t width, uint32_t height, uint32_t stackheight, unsigned char* imageStack, bool isRGB ) {
 	//! Write a some 3D-data into a stack of single images.
 	//!
 	//! A sequence number and the file extension will be added.
 	char strNr[12];
-	for( UINT32 i=0; i<stackheight; i++ ) {
+	for( uint32_t i=0; i<stackheight; i++ ) {
 		sprintf( strNr, "%03i", i );
 		writeTIFF( filename + "_stack_" + strNr, width, height, &imageStack[i*width*height], isRGB );
 	}
 	return 0;
 }
-
-int Image2D::writeTIFFStack( const string& filename, UINT32 width, UINT32 height, UINT32 stackheight, unsigned char* imageStack, bool isRGB ) {
-	//! Write a some unsigned 3D-data into a stack of single images.
-	//!
-	//! A sequence number and the file extension will be added.
-	char strNr[12];
-	for( UINT32 i=0; i<stackheight; i++ ) {
-		sprintf( strNr, "%03i", i );
-		writeTIFF( filename + "_stack_" + strNr, width, height, &imageStack[i*width*height], isRGB );
-	}
-	return 0;
-}
-
