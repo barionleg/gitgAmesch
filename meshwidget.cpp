@@ -4996,13 +4996,13 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 	std::string widthUnit;
 	getParamStringMeshWidget( RULER_WIDTH_UNIT, &widthUnit );
 
-	// Draw horizontal lines, when present:
-	if( isnormal( minYBottomX ) ) {
+	//helper function to draw line with length as label
+	auto drawCenterLabledLine = [&svgWriter, &rPolyLineWidth, &widthUnit, this] (double from, double to, double y) {
 		auto svgHLine = std::make_unique<SvgPath>();
 		svgHLine->setColor(0.75,0.0,0.0);
 		svgHLine->setLineWidth(rPolyLineWidth * 1.5);
-		svgHLine->moveTo(-rOffsetX * mParamFlt[SVG_SCALE], minYforAxis);
-		svgHLine->lineTo( minYBottomX, minYforAxis);
+		svgHLine->moveTo(from, y);
+		svgHLine->lineTo( to, y);
 		svgHLine->setLineCap(SvgPath::LineCap::CAP_ROUND);
 		svgHLine->setLineJoin(SvgPath::LineJoin::JOIN_ROUND);
 
@@ -5010,38 +5010,23 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 
 		auto svgLineText = std::make_unique<SvgText>();
 
-		float lineWidthPixels = std::abs(minYBottomX - (-rOffsetX * mParamFlt[SVG_SCALE]));
+		float lineWidthPixels = std::abs(to - from);
 
-		svgLineText->setPosition(-rOffsetX * mParamFlt[SVG_SCALE] - 0.5 * lineWidthPixels, minYforAxis + 4);
+		svgLineText->setPosition((from + to) * 0.5, y + 4);
 		svgLineText->setSize(4.0);
 		svgLineText->setTextAnchor(SvgText::TextAnchor::ANCHOR_MIDDLE);
 
 		svgLineText->setText(std::to_string(lineWidthPixels / mParamFlt[SVG_SCALE]) + widthUnit);
 
 		svgWriter.addElement(std::move(svgLineText));
+	};
+
+	// Draw horizontal lines, when present:
+	if( isnormal( minYBottomX ) ) {
+		drawCenterLabledLine(-rOffsetX * mParamFlt[SVG_SCALE], minYBottomX, minYforAxis);
 	}
 	if( isnormal( maxYTopX ) ) {
-		auto svgNormalLine = std::make_unique<SvgPath>();
-		svgNormalLine->setColor(0.75,0.0,0.0);
-		svgNormalLine->setLineWidth(rPolyLineWidth * 1.5);
-		svgNormalLine->moveTo(-rOffsetX * mParamFlt[SVG_SCALE], maxYforAxis);
-		svgNormalLine->lineTo( maxYTopX, maxYforAxis );
-		svgNormalLine->setLineCap(SvgPath::LineCap::CAP_ROUND);
-		svgNormalLine->setLineJoin(SvgPath::LineJoin::JOIN_ROUND);
-
-		svgWriter.addElement(std::move(svgNormalLine));
-
-		auto svgLineText = std::make_unique<SvgText>();
-
-		float lineWidthPixels = std::abs(maxYTopX - (-rOffsetX * mParamFlt[SVG_SCALE]));
-
-		svgLineText->setPosition(-rOffsetX * mParamFlt[SVG_SCALE] - 0.5 * lineWidthPixels, maxYforAxis + 4);
-		svgLineText->setSize(4.0);
-		svgLineText->setTextAnchor(SvgText::TextAnchor::ANCHOR_MIDDLE);
-
-		svgLineText->setText(std::to_string(lineWidthPixels / mParamFlt[SVG_SCALE]) + widthUnit);
-
-		svgWriter.addElement(std::move(svgLineText));
+		drawCenterLabledLine(-rOffsetX * mParamFlt[SVG_SCALE], maxYTopX, maxYforAxis);
 	}
 
 	auto svgAxisPath = std::make_unique<SvgPath>();
