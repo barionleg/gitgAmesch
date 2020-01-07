@@ -4997,68 +4997,63 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 	getParamStringMeshWidget( RULER_WIDTH_UNIT, &widthUnit );
 
 	//helper function to draw line with length as label
-	auto drawCenterLabledLine = [&svgWriter, &rPolyLineWidth, &widthUnit, this] (double from, double to, double y) {
+	auto drawCenterLabledLine = [&svgWriter, &rPolyLineWidth, &widthUnit, this] (double x1, double y1, double x2, double y2, bool vert = false, bool dashed = false) {
 		auto svgHLine = std::make_unique<SvgPath>();
 		svgHLine->setColor(0.75,0.0,0.0);
-		svgHLine->setLineWidth(rPolyLineWidth * 1.5);
-		svgHLine->moveTo(from, y);
-		svgHLine->lineTo( to, y);
+		svgHLine->setLineWidth(static_cast<float>(rPolyLineWidth) * 1.5F);
+		svgHLine->moveTo(x1, y1);
+		svgHLine->lineTo(x2, y2);
 		svgHLine->setLineCap(SvgPath::LineCap::CAP_ROUND);
 		svgHLine->setLineJoin(SvgPath::LineJoin::JOIN_ROUND);
+
+		if( dashed ) {
+			static const double dashedLine[] = { 1.0, 2.0, 5.0, 2.0 };
+			static int lenDashed = sizeof( dashedLine ) / sizeof( dashedLine[0] );
+			svgHLine->setLineDash(dashedLine, lenDashed, 1);
+		}
 
 		svgWriter.addElement(std::move(svgHLine));
 
 		auto svgLineText = std::make_unique<SvgText>();
 
-		float lineWidthPixels = std::abs(to - from);
+		double lineWidthPixels = 0.0;
+		if(vert)
+		{
+			//-rOffsetX * mParamFlt[SVG_SCALE] + 2.0, (minYforAxis + maxYforAxis) * 0.5
+			svgLineText->setPosition(x1 + 2.0, (y1 + y2) * 0.5);
+			svgLineText->setRotation(90);
+			lineWidthPixels = std::abs(y2 - y1);
+		}
+		else
+		{
+			svgLineText->setPosition((x1 + x2) * 0.5, y1 + 4.0);
+			lineWidthPixels = std::abs(x2 - x1);
+		}
+		svgLineText->setText(std::to_string(lineWidthPixels / mParamFlt[SVG_SCALE]) + widthUnit);
 
-		svgLineText->setPosition((from + to) * 0.5, y + 4);
 		svgLineText->setSize(4.0);
 		svgLineText->setTextAnchor(SvgText::TextAnchor::ANCHOR_MIDDLE);
-
-		svgLineText->setText(std::to_string(lineWidthPixels / mParamFlt[SVG_SCALE]) + widthUnit);
 
 		svgWriter.addElement(std::move(svgLineText));
 	};
 
 	// Draw horizontal lines, when present:
 	if( isnormal( minYBottomX ) ) {
-		drawCenterLabledLine(-rOffsetX * mParamFlt[SVG_SCALE], minYBottomX, minYforAxis);
+		drawCenterLabledLine(-rOffsetX * mParamFlt[SVG_SCALE], minYforAxis,
+		                     minYBottomX                     , minYforAxis);
 	}
 	if( isnormal( maxYTopX ) ) {
-		drawCenterLabledLine(-rOffsetX * mParamFlt[SVG_SCALE], maxYTopX, maxYforAxis);
+		drawCenterLabledLine(-rOffsetX * mParamFlt[SVG_SCALE], maxYforAxis,
+		                     maxYTopX                        , maxYforAxis);
 	}
 
-	auto svgAxisPath = std::make_unique<SvgPath>();
-	svgAxisPath->setLineCap(SvgPath::LineCap::CAP_ROUND);
-	svgAxisPath->setLineJoin(SvgPath::LineJoin::JOIN_ROUND);
-
-	svgAxisPath->setColor(0.75,0.0,0.0);
-	svgAxisPath->setLineWidth( rPolyLineWidth * 1.5 );
-
-	// Draw a dashed line for the axis
 	bool dashedAxis = true;
 	getParamFlagMeshWidget( EXPORT_SVG_AXIS_DASHED, &dashedAxis );
-	if( dashedAxis ) {
-		static const double dashedLine[] = { 1.0, 2.0, 5.0, 2.0 };
-		static int lenDashed = sizeof( dashedLine ) / sizeof( dashedLine[0] );
-		svgAxisPath->setLineDash(dashedLine, lenDashed, 1);
-	}
-	// The axis is along the y-axis
-	svgAxisPath->moveTo(-rOffsetX * mParamFlt[SVG_SCALE], minYforAxis);
-	svgAxisPath->lineTo(-rOffsetX * mParamFlt[SVG_SCALE], maxYforAxis);
 
-	svgWriter.addElement(std::move(svgAxisPath));
+	drawCenterLabledLine(-rOffsetX * mParamFlt[SVG_SCALE], minYforAxis ,
+	                     -rOffsetX * mParamFlt[SVG_SCALE], maxYforAxis ,
+	                     true, dashedAxis);
 
-	auto svgAxisText = std::make_unique<SvgText>();
-
-	svgAxisText->setSize(4.0);
-	svgAxisText->setTextAnchor(SvgText::TextAnchor::ANCHOR_MIDDLE);
-	svgAxisText->setText(std::to_string(std::abs(maxYforAxis - minYforAxis) / mParamFlt[SVG_SCALE]) + widthUnit);
-	svgAxisText->setRotation(90);
-	svgAxisText->setPosition(-rOffsetX * mParamFlt[SVG_SCALE] + 2.0, (minYforAxis + maxYforAxis) * 0.5);
-
-	svgWriter.addElement(std::move(svgAxisText));
 	cout << "[MeshWidget::" << __FUNCTION__ << "] Polylines: " << mMeshVisual->getPolyLineNr() << endl;
 	cout << "[MeshWidget::" << __FUNCTION__ << "] ctrPolyLinesDrawn: " << ctrPolyLinesDrawn << endl;
 
