@@ -53,7 +53,6 @@ inline void SHOW_MSGBOX_WARN( const QString& rTextShort, const QString& rTextLon
 	msgBox.exec();
 }
 
-//!TODO: this Macro/function leaks memory, because msgBox is never deleted
 inline void SHOW_MSGBOX_WARN_TIMEOUT( const QString& rTextShort, const QString& rTextLong, int rTimeOut ) {
 	QMessageBox *msgBox = new QMessageBox;
 	msgBox->setAttribute( Qt::WA_DeleteOnClose, true );
