@@ -217,7 +217,7 @@ public slots:
 	bool exportPlaneIntersectPolyLinesSVG();
 
 	bool screenshotSVGexportPolyLines( Vector3D& cameraViewDir, Matrix4D& matView, double polyScaleWdith, double polyScaleHeight, double polyLineWidth, SvgWriter& svgWriter );
-	bool screenshotSVGexportPlaneIntersections(double rOffsetX, double rOffsetY, double rPolyLineWidth, double canvasWidth, SvgWriter& svgWriter );
+	bool screenshotSVGexportPlaneIntersections( double rOffsetX, double rOffsetY, double rPolyLineWidth, SvgWriter& svgWriter );
 
 	void screenshotRuler();
 	bool screenshotRuler( const QString& rFileName );

@@ -4815,7 +4815,7 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 
 	// 5.) Export intersections
 	double polyLineWidth = 0.5;
-	if( !screenshotSVGexportPlaneIntersections( Xmin, (Ymax+fontExtraSpace), polyLineWidth, canvasWidth, svgWriter ) ) {
+	if( !screenshotSVGexportPlaneIntersections( Xmin, (Ymax+fontExtraSpace), polyLineWidth, svgWriter ) ) {
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: screenshotSVGexportPolyLines falied!" << endl;
 	}
 
@@ -4906,7 +4906,7 @@ bool MeshWidget::screenshotSVGexportPolyLines(Vector3D& cameraViewDir, Matrix4D&
 //! @return false in case of an error. True otherwise.
 bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 				double rOffsetY,
-				double rPolyLineWidth, double canvasWidth,
+				double rPolyLineWidth,
 				SvgWriter& svgWriter) {
 
 	// Axis coordinates. Note x=0.0
@@ -4996,14 +4996,12 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 	std::string widthUnit;
 	getParamStringMeshWidget( RULER_WIDTH_UNIT, &widthUnit );
 
-	double centerLineX = canvasWidth * 0.5;
-
 	// Draw horizontal lines, when present:
 	if( isnormal( minYBottomX ) ) {
 		auto svgHLine = std::make_unique<SvgPath>();
 		svgHLine->setColor(0.75,0.0,0.0);
 		svgHLine->setLineWidth(rPolyLineWidth * 1.5);
-		svgHLine->moveTo( centerLineX * mParamFlt[SVG_SCALE], minYforAxis);
+		svgHLine->moveTo(-rOffsetX * mParamFlt[SVG_SCALE], minYforAxis);
 		svgHLine->lineTo( minYBottomX, minYforAxis);
 		svgHLine->setLineCap(SvgPath::LineCap::CAP_ROUND);
 		svgHLine->setLineJoin(SvgPath::LineJoin::JOIN_ROUND);
@@ -5012,9 +5010,9 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 
 		auto svgLineText = std::make_unique<SvgText>();
 
-		float lineWidthPixels = std::abs(minYBottomX - (centerLineX * mParamFlt[SVG_SCALE]));
+		float lineWidthPixels = std::abs(minYBottomX - (-rOffsetX * mParamFlt[SVG_SCALE]));
 
-		svgLineText->setPosition(centerLineX * mParamFlt[SVG_SCALE] - 0.5 * lineWidthPixels, minYforAxis + 4);
+		svgLineText->setPosition(-rOffsetX * mParamFlt[SVG_SCALE] - 0.5 * lineWidthPixels, minYforAxis + 4);
 		svgLineText->setSize(4.0);
 		svgLineText->setTextAnchor(SvgText::TextAnchor::ANCHOR_MIDDLE);
 
@@ -5026,7 +5024,7 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 		auto svgNormalLine = std::make_unique<SvgPath>();
 		svgNormalLine->setColor(0.75,0.0,0.0);
 		svgNormalLine->setLineWidth(rPolyLineWidth * 1.5);
-		svgNormalLine->moveTo(centerLineX * mParamFlt[SVG_SCALE], maxYforAxis);
+		svgNormalLine->moveTo(-rOffsetX * mParamFlt[SVG_SCALE], maxYforAxis);
 		svgNormalLine->lineTo( maxYTopX, maxYforAxis );
 		svgNormalLine->setLineCap(SvgPath::LineCap::CAP_ROUND);
 		svgNormalLine->setLineJoin(SvgPath::LineJoin::JOIN_ROUND);
@@ -5035,9 +5033,9 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 
 		auto svgLineText = std::make_unique<SvgText>();
 
-		float lineWidthPixels = std::abs(maxYTopX - (centerLineX * mParamFlt[SVG_SCALE]));
+		float lineWidthPixels = std::abs(maxYTopX - (-rOffsetX * mParamFlt[SVG_SCALE]));
 
-		svgLineText->setPosition(centerLineX * mParamFlt[SVG_SCALE] + 0.5 * lineWidthPixels, maxYforAxis + 4);
+		svgLineText->setPosition(-rOffsetX * mParamFlt[SVG_SCALE] - 0.5 * lineWidthPixels, maxYforAxis + 4);
 		svgLineText->setSize(4.0);
 		svgLineText->setTextAnchor(SvgText::TextAnchor::ANCHOR_MIDDLE);
 
@@ -5062,8 +5060,8 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 		svgAxisPath->setLineDash(dashedLine, lenDashed, 1);
 	}
 	// The axis is along the y-axis
-	svgAxisPath->moveTo(centerLineX * mParamFlt[SVG_SCALE], minYforAxis);
-	svgAxisPath->lineTo(centerLineX * mParamFlt[SVG_SCALE], maxYforAxis);
+	svgAxisPath->moveTo(-rOffsetX * mParamFlt[SVG_SCALE], minYforAxis);
+	svgAxisPath->lineTo(-rOffsetX * mParamFlt[SVG_SCALE], maxYforAxis);
 
 	svgWriter.addElement(std::move(svgAxisPath));
 
@@ -5073,7 +5071,7 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 	svgAxisText->setTextAnchor(SvgText::TextAnchor::ANCHOR_MIDDLE);
 	svgAxisText->setText(std::to_string(std::abs(maxYforAxis - minYforAxis) / mParamFlt[SVG_SCALE]) + widthUnit);
 	svgAxisText->setRotation(90);
-	svgAxisText->setPosition(centerLineX * mParamFlt[SVG_SCALE] + 2.0, (minYforAxis + maxYforAxis) * 0.5);
+	svgAxisText->setPosition(-rOffsetX * mParamFlt[SVG_SCALE] + 2.0, (minYforAxis + maxYforAxis) * 0.5);
 
 	svgWriter.addElement(std::move(svgAxisText));
 	cout << "[MeshWidget::" << __FUNCTION__ << "] Polylines: " << mMeshVisual->getPolyLineNr() << endl;
