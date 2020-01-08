@@ -6205,11 +6205,11 @@ void MeshWidget::checkMeshSanity()
 	const auto meshCenterDistance = mMeshVisual->getBoundingBoxCenter().getLength3();
 
 	//! TODO: find out resonable value
-	if(meshCenterDistance > 1000000.0)
+	if(meshCenterDistance > 2.0 * meshSize)
 	{
 		bool move = false;
 		bool cancel = false;
-		SHOW_QUESTION(tr("Center Mesh"), tr("The mesh is very far off center (distance: %1mm). This may cause numeric problems. Would you like to move the mesh to the origin?").arg(meshCenterDistance),
+		SHOW_QUESTION(tr("Center Mesh"), tr("The mesh is very far off center compared to its radius(distance: %1mm). This may cause numeric problems. Would you like to move the mesh to the origin?").arg(meshCenterDistance),
 					  move, cancel);
 
 		if(!cancel && move)
