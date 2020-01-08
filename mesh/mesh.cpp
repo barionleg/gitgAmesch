@@ -12616,6 +12616,9 @@ bool Mesh::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool 
 	//! .) Can also affect the polylines - reset them too:
 	polyLinesChanged();
 
+	//! .) Apply transformation to the mesh-plane
+	applyTransfromToPlane(rTrans);
+
 	//! .) Write the transformation to the side-car file, because HiWis tend to forget this.
 	string transMatFName = getFileLocation() + "/" + getBaseName() + "_transmat.txt";
 	ofstream transMatFile;
