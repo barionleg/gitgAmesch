@@ -27,7 +27,7 @@ class Logger
 
 		void setOutputStream(std::ostream* outputStream);
 	private:
-		std::ostream* mOutputStream;
+		std::ostream* mOutputStream = nullptr;
 		bool mIsEnabled = true;
 };
 

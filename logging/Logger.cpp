@@ -1,7 +1,7 @@
 #include "Logger.h"
 #include <iostream>
 
-Logger::Logger(bool isEnabled) : mOutputStream(nullptr), mIsEnabled(isEnabled)
+Logger::Logger(bool isEnabled) : mIsEnabled(isEnabled)
 {
 
 }

@@ -22,6 +22,8 @@
 
 // #define DEBUG_SHOW_ALL_METHOD_CALLS
 
+#include "logging/Logging.h"
+
 using namespace std;
 
 // Vertex Array Object related -- see initializeGL()
@@ -4761,25 +4763,41 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 		return( false );
 	}
 
-	// 1.) Determine Bounding Box of the projected Polylines
-	//     Note: this part also checks for qualified polylines.
-	double Xmin, Ymin, Zmin, Xmax, Ymax, Zmax;
-	if( !mMeshVisual->getPolyLineBoundingBoxFromAll( &Xmin, &Ymin, &Zmin, &Xmax, &Ymax, &Zmax, true ) ) {
+	std::set<unsigned int> axisPolylines;
+	std::set<unsigned int> planePolylines;
+
+	// 1.) get qualified polylines and store their ID's into the appropriate set
+	for(unsigned int i = 0; i<mMeshVisual->getPolyLineNr(); ++i)
+	{
+		PolyLine* polyLine = mMeshVisual->getPolyLinePos(i);
+		Plane* polyLinePlane = nullptr;
+		bool hasPolyLinePlane = polyLine->getIntersectPlane(&polyLinePlane);
+
+		if(hasPolyLinePlane)
+		{
+			polyLinePlane->getDefinedBy() == Plane::AXIS_POINTS_AND_POSITION ?
+			            axisPolylines.insert(i) :
+			            planePolylines.insert(i);
+		}
+
+		delete polyLinePlane;
+	}
+
+	// 2.) abort if there are no qualified polylines
+	if(axisPolylines.empty() && planePolylines.empty())
+	{
 		SHOW_MSGBOX_WARN_TIMEOUT( tr("Warning"), tr("No qualified polylines i.e. intersections by planes present."), 5000 );
-		cout << "[MeshWidget::" << __FUNCTION__ << "] No qualified polylines found." << endl;
+		LOG::info() << "[MeshWidget::" << __FUNCTION__ << "] No qualified polylines found." << "\n";
 		return( false );
 	}
-	cout << "[MeshWidget::" << __FUNCTION__ << "] Bounding Box (X): " << Xmin << " to " << Xmax << endl;
-	cout << "[MeshWidget::" << __FUNCTION__ << "] Bounding Box (Y): " << Ymin << " to " << Ymax << endl;
-	cout << "[MeshWidget::" << __FUNCTION__ << "] Bounding Box (Z): " << Zmin << " to " << Zmax << endl;
 
-	// 2.) Ask for the filename
+	// 3.) Ask for the filename
 	QString baseName = QString( mMeshVisual->getBaseName().c_str() );
 	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save intersections as" ), \
 	                                                 filePath + baseName + "_profiles.svg", \
-													 tr( "Scaleable Vector Graphic (*.svg)" ) );
-	if( fileName == nullptr ) { // Cancel pressed
+	                                                 tr( "Scaleable Vector Graphic (*.svg)" ) );
+	if( fileName.isEmpty() ) { // Cancel pressed
 		SHOW_MSGBOX_WARN( tr("User abort"), tr("No files saved.") );
 		return( false );
 	}
@@ -4789,19 +4807,16 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 #endif
 
 	// 3.) Open/create SVG file
-	double fontHeight     = 5.0;
-	double fontExtraSpace = fontHeight+3.0;
+	const double fontHeight     = 5.0;
+	const double fontExtraSpace = fontHeight+3.0;
 
 	SvgWriter svgWriter;
 
-	double canvasWidth  = Xmax-Xmin;
-	double canvasHeight = Ymax-Ymin;
-	cout << "[MeshWidget::" << __FUNCTION__ << "] Drawing size width: " << canvasWidth << " height: " << canvasHeight << endl;
-	// Add space for text:
-	canvasHeight += fontExtraSpace * 2;
-	cout << "[MeshWidget::" << __FUNCTION__ << "] Canvas size width:  " << canvasWidth << " height: " << canvasHeight << endl;
+	double canvasWidth  = 0.0;
+	double canvasHeight = 0.0;
 
-	svgWriter.setSize(canvasWidth  * mParamFlt[SVG_SCALE], canvasHeight * mParamFlt[SVG_SCALE]);
+	// Add space for text:
+	canvasHeight += fontExtraSpace;
 
 	//! \todo change to inventory no. (meta-data)
 	// 4.) Write filename within SVG
@@ -4813,89 +4828,99 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 
 	svgWriter.addElement(std::move(svgTextName));
 
-	// 5.) Export intersections
-	double polyLineWidth = 0.5;
-	if( !screenshotSVGexportPlaneIntersections( Xmin, (Ymax+fontExtraSpace), polyLineWidth, svgWriter ) ) {
-		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: screenshotSVGexportPolyLines falied!" << endl;
+	//helper function to get sorrounding bbox from set of polylines
+	auto getPolylinesBBOX = [this] (const std::set<unsigned int>& ids, bool useAxis,
+	        double& minX, double& maxX, double& minY, double& maxY) {
+		minX = +_INFINITE_DBL_;
+		minY = +_INFINITE_DBL_;
+
+		maxX = -_INFINITE_DBL_;
+		maxY = -_INFINITE_DBL_;
+
+		for(auto id : ids)
+		{
+			PolyLine* currPolyLine = mMeshVisual->getPolyLinePos(id);
+			double tminX, tminY, tminZ, tmaxX, tmaxY, tmaxZ;
+			currPolyLine->getBoundingBox(&tminX, &tminY, &tminZ, &tmaxX, &tmaxY, &tmaxZ, true, useAxis);
+
+			minX = std::min(minX, tminX);
+			maxX = std::max(maxX, tmaxX);
+
+			minY = std::min(minY, tminY);
+			maxY = std::max(maxY, tmaxY);
+		}
+	};
+
+	if(!axisPolylines.empty())
+	{
+		//write axis polyline label
+		auto svgTextName = std::make_unique<SvgText>();
+		svgTextName->setFont("Sans");
+		svgTextName->setSize(fontHeight*mParamFlt[SVG_SCALE]);
+		svgTextName->setPosition(0.0, (fontHeight + canvasHeight)*mParamFlt[SVG_SCALE]);
+		svgTextName->setText("Plane-Axis intersections:");
+		svgWriter.addElement(std::move(svgTextName));
+
+		canvasHeight += fontExtraSpace;
+
+		double minX,maxX,minY,maxY;
+
+		getPolylinesBBOX(axisPolylines, true, minX, maxX, minY, maxY);
+		const double bboxWidth  = maxX - minX;
+		const double bboxHeight = maxY - minY;
+
+
+		// 5.) Export axis intersections
+		const double polyLineWidth = 0.5;
+		if( !screenshotSVGexportPlaneIntersections( minX, canvasHeight + maxY, polyLineWidth, minX, svgWriter, axisPolylines ) ) {
+			LOG::error() << "[MeshWidget::" << __FUNCTION__ << "] ERROR: screenshotSVGexportPolyLines falied!\n";
+		}
+
+		//update offset + spacer
+		canvasWidth = std::max(canvasWidth, bboxWidth);
+		canvasHeight += bboxHeight + fontExtraSpace;
 	}
 
-	// 6.) SVG final steps:
-	svgWriter.writeToFile(fileName.toStdString());
+	if(!planePolylines.empty())
+	{
+		//write axis polyline label
+		auto svgTextName = std::make_unique<SvgText>();
+		svgTextName->setFont("Sans");
+		svgTextName->setSize(fontHeight*mParamFlt[SVG_SCALE]);
+		svgTextName->setPosition(0.0, (fontHeight + canvasHeight)*mParamFlt[SVG_SCALE]);
+		svgTextName->setText("Plane intersections:");
+		svgWriter.addElement(std::move(svgTextName));
 
+		canvasHeight += fontExtraSpace;
+
+		double minX,maxX,minY,maxY;
+
+		getPolylinesBBOX(planePolylines, false, minX, maxX, minY, maxY);
+		const double bboxWidth  = maxX - minX;
+		const double bboxHeight = maxY - minY;
+
+		// 6.) Export plane intersections
+		const double polyLineWidth = 0.5;
+		if( !screenshotSVGexportPlaneIntersections( minX, canvasHeight + maxY, polyLineWidth, ( maxX - minX) * -0.5, svgWriter, planePolylines ) ) {
+			LOG::error() << "[MeshWidget::" << __FUNCTION__ << "] ERROR: screenshotSVGexportPolyLines falied!\n";
+		}
+
+		//update canvas size
+		canvasWidth = std::max(canvasWidth, bboxWidth);
+		canvasHeight += bboxHeight + fontExtraSpace;
+	}
+
+	LOG::debug() << "[MeshWidget::" << __FUNCTION__ << "] Drawing size width: " << canvasWidth << " height: " << canvasHeight << "\n";
+	svgWriter.setSize(canvasWidth  * mParamFlt[SVG_SCALE], canvasHeight * mParamFlt[SVG_SCALE]);
+
+	// 7.) SVG final steps:
+	svgWriter.writeToFile(fileName.toStdString());
 
 	std::string inkscapeCommand;
 	getParamStringMeshWidget(MeshWidgetParams::INKSCAPE_COMMAND, &inkscapeCommand);
-	// 7.) Display with Inkscape:
+	// 8.) Display with Inkscape:
 	if( !QProcess::startDetached( QString(inkscapeCommand.c_str()) + " " + fileName ) ) {
-		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Inkscape won't start!" << endl;
-	}
-	// 8.) Done.
-	return( true );
-}
-
-//! Draw polygonal lines to a SVG canvas.
-//!
-//! @return false in case of an error. True otherwise.
-bool MeshWidget::screenshotSVGexportPolyLines(Vector3D& cameraViewDir, Matrix4D& matView, double polyScaleWdith, double polyScaleHeight, double polyLineWidth , SvgWriter& svgWriter) {
-	cout << "[MeshWidget::" << __FUNCTION__ << "] Polylines: " << mMeshVisual->getPolyLineNr() << endl;
-
-	for( unsigned int i=0; i<mMeshVisual->getPolyLineNr(); i++ ) {
-		auto svgPolyLinePath = std::make_unique<SvgPath>();
-		svgPolyLinePath->setLineWidth(polyLineWidth);
-		svgPolyLinePath->setColor(0.9,0.0,0.0);
-
-		PolyLine* currPoly     = mMeshVisual->getPolyLinePos( i );
-
-		Plane*    intersectPlane( nullptr );
-		bool      hasIntersectPlane = currPoly->getIntersectPlane( &intersectPlane );
-		if( hasIntersectPlane ) {
-			// Intersecting lines become dark green:
-			svgPolyLinePath->setColor(0.0,0.5,0.0);
-			//cout << "[MeshWidget::" << __FUNCTION__ << "] Plane: " << intersectPlane << endl;
-		}
-
-		// Determine polylines with pointing away from the camera.
-		// This will provide a basic filter for polylines not seen by the viewer, which will do the trick for most objects.
-		float     angleToCam   = currPoly->angleToNormal( cameraViewDir );
-		//cout << "[MeshWidget::" << __FUNCTION__ << "] angleToCam: " << angleToCam*180.0/M_PI << endl;
-		bool pointingAway = false;
-		if( ( mParamFlag[ORTHO_MODE] ) && ( angleToCam > M_PI/2.0 ) ) {
-			pointingAway = true;
-		}
-		if( ( !mParamFlag[ORTHO_MODE] ) && ( angleToCam > ( M_PI/2.0 - mParamFlt[FOV_ANGLE]*M_PI/360.0 ) ) ) { // 360=2*180 because we need fovAngle/2 in radiant
-			pointingAway = true;
-		}
-
-		// Export only:
-		//  +) Polylines computed using intersecting planes.
-		//  +) other polylines pointing towards the view direction.
-		if( !hasIntersectPlane && pointingAway ) {
-			continue;
-		}
-
-		int polyLen = currPoly->length();
-		vector<double> polyCoords;    // 3D-Coordinates in object space.
-		vector<float>  screenCoords;  // Coordinates in drawing/SVG space.
-		currPoly->getVertexCoords( &polyCoords );
-		screenCoords.resize( polyLen*2, _NOT_A_NUMBER_DBL_ );
-		for( int j=0; j<polyLen; j++ ) {
-			Vector3D coordProjected = Vector3D( &polyCoords[j*3], 1.0f ) * matView;
-			coordProjected.normalizeW();
-			coordProjected += Vector3D( 1.0, 1.0, 1.0, 0.0 );
-			//coordProjected.dumpInfo();
-			//cout << "[MeshWidget::" << __FUNCTION__ << "] " << coordProjected.getX()*xywh[2] << " " << coordProjected.getY()*xywh[3] << endl;
-			screenCoords.at(j*2)   = (coordProjected.getX()/2.0)     * polyScaleWdith;
-			screenCoords.at(j*2+1) = (1.0-coordProjected.getY()/2.0) * polyScaleHeight;
-		}
-
-		// Draw using the projected coordinates
-		svgPolyLinePath->moveTo(screenCoords[0], screenCoords[1]);
-		for( int j=1; j<polyLen; j++ ) {
-			svgPolyLinePath->lineTo(screenCoords.at(j*2), screenCoords.at(j*2+1));
-		}
-
-		// Draw now
-		svgWriter.addElement(std::move(svgPolyLinePath));
+		LOG::error() << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Inkscape won't start!\n";
 	}
 
 	return( true );
@@ -4905,9 +4930,10 @@ bool MeshWidget::screenshotSVGexportPolyLines(Vector3D& cameraViewDir, Matrix4D&
 //!
 //! @return false in case of an error. True otherwise.
 bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
-				double rOffsetY,
-				double rPolyLineWidth,
-				SvgWriter& svgWriter) {
+                double rOffsetY,
+                double rPolyLineWidth,
+                double axisOffset,
+                SvgWriter& svgWriter, const std::set<unsigned int>& polylineIDs) {
 
 	// Axis coordinates. Note x=0.0
 	double minYforAxis = +_INFINITE_DBL_;
@@ -4917,11 +4943,11 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 	double maxYTopX    = _NOT_A_NUMBER_DBL_;
 
 	unsigned int ctrPolyLinesDrawn = 0;
-	for( unsigned int i=0; i<mMeshVisual->getPolyLineNr(); i++ ) {
+	for( auto i : polylineIDs) {
 
 		auto svgLine = std::make_unique<SvgPath>();
 		svgLine->setColor(0.0,0.0,0.8);
-		svgLine->setLineWidth(rPolyLineWidth);
+		svgLine->setLineWidth(static_cast<float>(rPolyLineWidth));
 		svgLine->setLineCap(SvgPath::LineCap::CAP_ROUND);
 		svgLine->setLineJoin(SvgPath::LineJoin::JOIN_ROUND);
 
@@ -4942,13 +4968,9 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 			cout << "[MeshWidget::" << __FUNCTION__ << "] Plane defined by Axis." << endl;
 		}
 
-		// double Xmin, Ymin, Zmin, Xmax, Ymax, Zmax;
-		// currPoly->getBoundingBox( &Xmin, &Ymin, &Zmin, &Xmax, &Ymax, &Zmax, true );
-		// cout << "[MeshWidget::" << __FUNCTION__ << "] Bounding Box (X): " << Xmin << " - " << Xmax << endl;
-		// cout << "[MeshWidget::" << __FUNCTION__ << "] Bounding Box (Y): " << Ymin << " - " << Ymax << endl;
-		// cout << "[MeshWidget::" << __FUNCTION__ << "] Bounding Box (Z): " << Zmin << " - " << Zmax << endl;
+		delete intersectPlane;
 
-		int polyLen = currPoly->length();
+		size_t polyLen = static_cast<size_t>(currPoly->length());
 		vector<Vector3D> polyCoords;    // 3D-Coordinates in object space.
 		vector<double> screenCoords;    // Coordinates in drawing/SVG space.
 		currPoly->getVertexCoordsInPlane( &polyCoords, true );
@@ -4960,7 +4982,7 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 		}
 		// Draw using the projected coordinates
 		svgLine->moveTo( screenCoords[0], screenCoords[1] );
-		for( int j=1; j<polyLen; j++ ) {
+		for( size_t j=1; j<polyLen; j++ ) {
 			// Draw line
 			double currXcoord = screenCoords.at(j*2);
 			double currYcoord = screenCoords.at(j*2+1);
@@ -5039,23 +5061,93 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 
 	// Draw horizontal lines, when present:
 	if( isnormal( minYBottomX ) ) {
-		drawCenterLabledLine(-rOffsetX * mParamFlt[SVG_SCALE], minYforAxis,
+		drawCenterLabledLine(-axisOffset * mParamFlt[SVG_SCALE], minYforAxis,
 		                     minYBottomX                     , minYforAxis);
 	}
 	if( isnormal( maxYTopX ) ) {
-		drawCenterLabledLine(-rOffsetX * mParamFlt[SVG_SCALE], maxYforAxis,
+		drawCenterLabledLine(-axisOffset * mParamFlt[SVG_SCALE], maxYforAxis,
 		                     maxYTopX                        , maxYforAxis);
 	}
 
 	bool dashedAxis = true;
 	getParamFlagMeshWidget( EXPORT_SVG_AXIS_DASHED, &dashedAxis );
 
-	drawCenterLabledLine(-rOffsetX * mParamFlt[SVG_SCALE], minYforAxis ,
-	                     -rOffsetX * mParamFlt[SVG_SCALE], maxYforAxis ,
+	drawCenterLabledLine(-axisOffset * mParamFlt[SVG_SCALE], minYforAxis ,
+	                     -axisOffset * mParamFlt[SVG_SCALE], maxYforAxis ,
 	                     true, dashedAxis);
 
-	cout << "[MeshWidget::" << __FUNCTION__ << "] Polylines: " << mMeshVisual->getPolyLineNr() << endl;
-	cout << "[MeshWidget::" << __FUNCTION__ << "] ctrPolyLinesDrawn: " << ctrPolyLinesDrawn << endl;
+	LOG::info() << "[MeshWidget::" << __FUNCTION__ << "] Polylines: " << mMeshVisual->getPolyLineNr() << "\n";
+	LOG::info() << "[MeshWidget::" << __FUNCTION__ << "] ctrPolyLinesDrawn: " << ctrPolyLinesDrawn << "\n";
+
+	return( true );
+}
+
+//! Draw polygonal lines to a SVG canvas.
+//!
+//! @return false in case of an error. True otherwise.
+bool MeshWidget::screenshotSVGexportPolyLines(Vector3D& cameraViewDir, Matrix4D& matView, double polyScaleWdith, double polyScaleHeight, double polyLineWidth , SvgWriter& svgWriter) {
+	LOG::info() << "[MeshWidget::" << __FUNCTION__ << "] Polylines: " << mMeshVisual->getPolyLineNr() << "\n";
+
+	for( unsigned int i=0; i<mMeshVisual->getPolyLineNr(); i++ ) {
+		auto svgPolyLinePath = std::make_unique<SvgPath>();
+		svgPolyLinePath->setLineWidth(polyLineWidth);
+		svgPolyLinePath->setColor(0.9,0.0,0.0);
+
+		PolyLine* currPoly     = mMeshVisual->getPolyLinePos( i );
+
+		Plane*    intersectPlane( nullptr );
+		bool      hasIntersectPlane = currPoly->getIntersectPlane( &intersectPlane );
+		if( hasIntersectPlane ) {
+			// Intersecting lines become dark green:
+			svgPolyLinePath->setColor(0.0,0.5,0.0);
+			//cout << "[MeshWidget::" << __FUNCTION__ << "] Plane: " << intersectPlane << endl;
+		}
+
+		delete intersectPlane;
+
+		// Determine polylines with pointing away from the camera.
+		// This will provide a basic filter for polylines not seen by the viewer, which will do the trick for most objects.
+		float     angleToCam   = currPoly->angleToNormal( cameraViewDir );
+		//cout << "[MeshWidget::" << __FUNCTION__ << "] angleToCam: " << angleToCam*180.0/M_PI << endl;
+		bool pointingAway = false;
+		if( ( mParamFlag[ORTHO_MODE] ) && ( angleToCam > M_PI/2.0 ) ) {
+			pointingAway = true;
+		}
+		if( ( !mParamFlag[ORTHO_MODE] ) && ( angleToCam > ( M_PI/2.0 - mParamFlt[FOV_ANGLE]*M_PI/360.0 ) ) ) { // 360=2*180 because we need fovAngle/2 in radiant
+			pointingAway = true;
+		}
+
+		// Export only:
+		//  +) Polylines computed using intersecting planes.
+		//  +) other polylines pointing towards the view direction.
+		if( !hasIntersectPlane && pointingAway ) {
+			continue;
+		}
+
+		int polyLen = currPoly->length();
+		vector<double> polyCoords;    // 3D-Coordinates in object space.
+		vector<float>  screenCoords;  // Coordinates in drawing/SVG space.
+		currPoly->getVertexCoords( &polyCoords );
+		screenCoords.resize( polyLen*2, _NOT_A_NUMBER_DBL_ );
+		for( int j=0; j<polyLen; j++ ) {
+			Vector3D coordProjected = Vector3D( &polyCoords[j*3], 1.0f ) * matView;
+			coordProjected.normalizeW();
+			coordProjected += Vector3D( 1.0, 1.0, 1.0, 0.0 );
+			//coordProjected.dumpInfo();
+			//cout << "[MeshWidget::" << __FUNCTION__ << "] " << coordProjected.getX()*xywh[2] << " " << coordProjected.getY()*xywh[3] << endl;
+			screenCoords.at(j*2)   = (coordProjected.getX()/2.0)     * polyScaleWdith;
+			screenCoords.at(j*2+1) = (1.0-coordProjected.getY()/2.0) * polyScaleHeight;
+		}
+
+		// Draw using the projected coordinates
+		svgPolyLinePath->moveTo(screenCoords[0], screenCoords[1]);
+		for( int j=1; j<polyLen; j++ ) {
+			svgPolyLinePath->lineTo(screenCoords.at(j*2), screenCoords.at(j*2+1));
+		}
+
+		// Draw now
+		svgWriter.addElement(std::move(svgPolyLinePath));
+	}
 
 	return( true );
 }

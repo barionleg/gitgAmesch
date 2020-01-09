@@ -214,10 +214,11 @@ public slots:
 	//.
 	bool screenshotSVG();
 	bool screenshotSVG(const QString& rFileName, const QString& rFileNamePNG );
+
 	bool exportPlaneIntersectPolyLinesSVG();
+	bool screenshotSVGexportPlaneIntersections( double rOffsetX, double rOffsetY, double rPolyLineWidth, double axisOffset, SvgWriter& svgWriter, const std::set<unsigned int>& polylineIDs );
 
 	bool screenshotSVGexportPolyLines( Vector3D& cameraViewDir, Matrix4D& matView, double polyScaleWdith, double polyScaleHeight, double polyLineWidth, SvgWriter& svgWriter );
-	bool screenshotSVGexportPlaneIntersections( double rOffsetX, double rOffsetY, double rPolyLineWidth, SvgWriter& svgWriter );
 
 	void screenshotRuler();
 	bool screenshotRuler( const QString& rFileName );

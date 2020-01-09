@@ -6627,7 +6627,7 @@ bool Mesh::planeIntersectionToPolyline() {
 }
 
 //! Compute polylines using the axis and the selected positons
-//! i.e. multiiple profile line.
+//! i.e. multiple profile line.
 //!
 //! Note:
 //! (i) Function values are not changed as they are stashed and restored.
