@@ -4806,7 +4806,6 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 	fileName.replace(QString("/"), QString("\\"));
 #endif
 
-	// 3.) Open/create SVG file
 	const double fontHeight     = 5.0;
 	const double fontExtraSpace = fontHeight+3.0;
 
@@ -4853,6 +4852,7 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 
 	if(!axisPolylines.empty())
 	{
+		// 5.) Export axis intersections
 		//write axis polyline label
 		auto svgTextName = std::make_unique<SvgText>();
 		svgTextName->setFont("Sans");
@@ -4869,8 +4869,6 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 		const double bboxWidth  = maxX - minX;
 		const double bboxHeight = maxY - minY;
 
-
-		// 5.) Export axis intersections
 		const double polyLineWidth = 0.5;
 		if( !screenshotSVGexportPlaneIntersections( minX, canvasHeight + maxY, polyLineWidth, minX, svgWriter, axisPolylines ) ) {
 			LOG::error() << "[MeshWidget::" << __FUNCTION__ << "] ERROR: screenshotSVGexportPolyLines falied!\n";
@@ -4883,6 +4881,7 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 
 	if(!planePolylines.empty())
 	{
+		// 6.) Export plane intersections
 		//write axis polyline label
 		auto svgTextName = std::make_unique<SvgText>();
 		svgTextName->setFont("Sans");
@@ -4899,7 +4898,6 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 		const double bboxWidth  = maxX - minX;
 		const double bboxHeight = maxY - minY;
 
-		// 6.) Export plane intersections
 		const double polyLineWidth = 0.5;
 		if( !screenshotSVGexportPlaneIntersections( minX, canvasHeight + maxY, polyLineWidth, ( maxX - minX) * -0.5, svgWriter, planePolylines ) ) {
 			LOG::error() << "[MeshWidget::" << __FUNCTION__ << "] ERROR: screenshotSVGexportPolyLines falied!\n";
