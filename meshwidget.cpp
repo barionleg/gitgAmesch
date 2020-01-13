@@ -13,6 +13,8 @@
 
 #include <filesystem>
 #include <cctype>
+#include <cmath>
+#include <limits>
 
 #include "svg/SvgIncludes.h"
 #include "normalSphereSelection/NormalSphereSelectionDialog.h"
