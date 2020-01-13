@@ -6294,8 +6294,11 @@ void MeshWidget::checkMeshSanity()
 	const auto meshSize = mMeshVisual->getBoundingBoxRadius();
 	const auto meshCenterDistance = mMeshVisual->getBoundingBoxCenter().getLength3();
 
-	//! TODO: find out resonable value
-	if(meshCenterDistance > 2.0 * meshSize)
+	int exponent = 0.0F;
+	const auto mantissa = frexp(meshCenterDistance,&exp);
+
+	//! TODO: find out resonable value. Currently, assume that the float should have at least 4 binary decimal places
+	if(std::numeric_limits<float>::digits - exponent < 4)
 	{
 		bool move = false;
 		bool cancel = false;
