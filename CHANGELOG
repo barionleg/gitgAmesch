@@ -1,4 +1,10 @@
 Current version
++) Bugfix: Svg-Export from plane axis and pure plane intersections are now separated within the exported SVG
++) Bugfix: Distance-labels in the SVG export are now positioned correctly
++) Bugfix: 90° Plane-Rotations with the keys B/N are now possible
++) Bugfix: Transformations like applying a transfromation matrix now affect the mesh-plane too
+
+Version 201219
 +) NEW: Support for TEXTURED ply and obj files.
 +) New: Basic support for obj-mtl files. Currently, only reading of map_Kd is used to parse textures.
 +) New: Face selection by normal vectors. See "Select -> Normal-Sphere Faces".
