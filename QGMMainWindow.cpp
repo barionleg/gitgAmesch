@@ -202,11 +202,6 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionRotRoll,                 SIGNAL(triggered()),   this,       SIGNAL(rotRoll())               );
 	QObject::connect( actionRotOrthoPlane,           SIGNAL(triggered()),   this,       SIGNAL(rotOrthoPlane())         );
 	//.
-	QObject::connect( actionRotPlaneYawLeft,          SIGNAL(triggered()),   this,      SIGNAL(sRotPlaneYawLeft())      );
-	QObject::connect( actionRotPlaneYawRight,         SIGNAL(triggered()),   this,      SIGNAL(sRotPlaneYawRight())     );
-	QObject::connect( actionRotPlanePitchUp,          SIGNAL(triggered()),   this,      SIGNAL(sRotPlanePitchUp())      );
-	QObject::connect( actionRotPlanePitchDown,        SIGNAL(triggered()),   this,      SIGNAL(sRotPlanePitchDown())    );
-	//.
 	QObject::connect( actionSelPrimViewReference,     SIGNAL(triggered()),  this,       SIGNAL(sSelPrimViewReference()) );
 
 	// --- Analyze------------------------------------------------------------------------------------------------------------------------------------------

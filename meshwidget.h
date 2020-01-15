@@ -242,10 +242,6 @@ public slots:
 	void rotOrthoPlane();
 	void rotArbitAxis( Vector3D rCenter, Vector3D rAxis, double rAngle );
 	//.
-	bool rotPlaneYawLeft();
-	bool rotPlaneYawRight();
-	bool rotPlanePitchUp();
-	bool rotPlanePitchDown();
     bool rotPlaneYaw( double rAngle );
     bool rotPlanePitch( double rAngle );
     bool rotPlaneRoll( double rAngle );

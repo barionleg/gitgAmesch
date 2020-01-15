@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>22</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -434,10 +434,6 @@
      <property name="title">
       <string>Rotate - Plane</string>
      </property>
-     <addaction name="actionRotPlaneYawLeft"/>
-     <addaction name="actionRotPlaneYawRight"/>
-     <addaction name="actionRotPlanePitchUp"/>
-     <addaction name="actionRotPlanePitchDown"/>
     </widget>
     <addaction name="menuToolbars"/>
     <addaction name="separator"/>
@@ -1929,12 +1925,12 @@
   </action>
   <action name="actionRotYaw">
    <property name="text">
-    <string>&amp;Rotate - Yaw (L/R)</string>
+    <string>Rotate - Yaw (L/R)</string>
    </property>
   </action>
   <action name="actionRotPitch">
    <property name="text">
-    <string>Rotate - Pitch (&amp;U/D)</string>
+    <string>Rotate - Pitch (U/D)</string>
    </property>
   </action>
   <action name="actionRotRoll">
@@ -2694,30 +2690,6 @@ p, li { white-space: pre-wrap; }
   <action name="actionFuncVert1RingVolInt">
    <property name="text">
     <string>Vertex - 1-Ring Volume &amp;Integral</string>
-   </property>
-  </action>
-  <action name="actionRotPlaneYawLeft">
-   <property name="text">
-    <string>Rotate - Plane - &amp;Yaw - Left</string>
-   </property>
-   <property name="shortcut">
-    <string>Shift+Y</string>
-   </property>
-  </action>
-  <action name="actionRotPlaneYawRight">
-   <property name="text">
-    <string>Rotate - Plane - Yaw - Right</string>
-   </property>
-   <property name="shortcut">
-    <string>Shift+X</string>
-   </property>
-  </action>
-  <action name="actionRotPlanePitchDown">
-   <property name="text">
-    <string>Rotate - Plane - Pitch - Down</string>
-   </property>
-   <property name="shortcut">
-    <string>Shift+V</string>
    </property>
   </action>
   <action name="actionInfoKeyShortcuts">
@@ -4283,14 +4255,6 @@ p, li { white-space: pre-wrap; }
   <action name="actionDistanceToCone">
    <property name="text">
     <string>Distance to Cone</string>
-   </property>
-  </action>
-  <action name="actionRotPlanePitchUp">
-   <property name="text">
-    <string>Rotate - Plane - Pitch - Up</string>
-   </property>
-   <property name="shortcut">
-    <string>Shift+C</string>
    </property>
   </action>
   <action name="actionSelMFacesBorderBridge">

@@ -278,11 +278,6 @@ signals:
 	void rotRoll();                                          //!< trigger manual entry of a roll angle for changing the camera position.
 	void rotOrthoPlane();                                    //!< trigger rotation of the camera to orthogonally view the mesh plane.
 	//.
-	void sRotPlaneYawLeft();                                 //!< rotate plane by 90° to the left
-	void sRotPlaneYawRight();                                //!< rotate plane by 90° to the right
-	void sRotPlanePitchUp();                                 //!< rotate plane by 90° up
-	void sRotPlanePitchDown();                               //!< rotate plane by 90° down
-	//.
 	void sSelPrimViewReference();                            //!< signal to set the selected primitive as reference point of the camera's view.
 
 	// --- Analyze -----------------------------------------------------------------------------------------------------------------------------------------

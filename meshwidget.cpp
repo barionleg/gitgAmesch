@@ -127,11 +127,6 @@ MeshWidget::MeshWidget( const QGLFormat &format, QWidget *parent )
 	QObject::connect( mMainWindow, SIGNAL(rotPitch()),                     this, SLOT(rotPitch())                     );
 	QObject::connect( mMainWindow, SIGNAL(rotOrthoPlane()),                this, SLOT(rotOrthoPlane())                );
 	//.
-	QObject::connect( mMainWindow, SIGNAL(sRotPlaneYawLeft()),             this, SLOT(rotPlaneYawLeft())              );
-	QObject::connect( mMainWindow, SIGNAL(sRotPlaneYawRight()),            this, SLOT(rotPlaneYawRight())             );
-	QObject::connect( mMainWindow, SIGNAL(sRotPlanePitchUp()),             this, SLOT(rotPlanePitchUp())              );
-	QObject::connect( mMainWindow, SIGNAL(sRotPlanePitchDown()),           this, SLOT(rotPlanePitchDown())            );
-	//.
 	QObject::connect( mMainWindow, SIGNAL(sDefaultViewLight()),            this, SLOT(defaultViewLight())             );
 	QObject::connect( mMainWindow, SIGNAL(sDefaultViewLightZoom()),        this, SLOT(defaultViewLightZoom())         );
 	//.
@@ -5832,64 +5827,9 @@ void MeshWidget::rotArbitAxis( Vector3D rCenter, //!< arbitrary rotation axis, p
     //update();
 }
 
-//! Rotate the mesh plane to the left (yaw) by 90°
-bool MeshWidget::rotPlaneYawLeft() {
-#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
-#endif
-	float moveAngleLeftRight =  +M_PI / 2.0;
-	Matrix4D transMatLeftRight( mCenterView, mCameraUp, moveAngleLeftRight );
-	emit sApplyTransfromToPlane( transMatLeftRight );
-	setView();
-	update();
-	return true;
-}
-
-//! Rotate the mesh plane to the right (yaw) by 90°
-bool MeshWidget::rotPlaneYawRight() {
-#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
-#endif
-	float moveAngleLeftRight =  -M_PI / 2.0;
-	Matrix4D transMatLeftRight( mCenterView, mCameraUp, moveAngleLeftRight );
-	emit sApplyTransfromToPlane( transMatLeftRight );
-	setView();
-	update();
-	return true;
-}
-
-//! Rotate the mesh plane to the up (pitch) by 90°
-bool MeshWidget::rotPlanePitchUp() {
-#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
-#endif
-	float moveAngleUpDown = -M_PI / 2.0;
-	Vector3D cameraPitchAxis( mMatModelView(0,0), mMatModelView(0,1), mMatModelView(0,2), 0.0 );
-	Matrix4D transMatUpDown( mCenterView, cameraPitchAxis, moveAngleUpDown );
-	emit sApplyTransfromToPlane( transMatUpDown );
-	setView();
-	update();
-	return true;
-}
-
-//! Rotate the mesh plane to the down (pitch) by 90°
-bool MeshWidget::rotPlanePitchDown() {
-#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
-#endif
-	float moveAngleUpDown = +M_PI / 2.0;
-	Vector3D cameraPitchAxis( mMatModelView(0,0), mMatModelView(0,1), mMatModelView(0,2), 0.0 );
-	Matrix4D transMatUpDown( mCenterView, cameraPitchAxis, moveAngleUpDown );
-	emit sApplyTransfromToPlane( transMatUpDown );
-	setView();
-	update();
-	return true;
-}
-
 //! Rotate the mesh plane left/right by angle
 bool MeshWidget::rotPlaneYaw(double rAngle)
 {
-
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
     cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
@@ -5918,6 +5858,9 @@ bool MeshWidget::rotPlanePitch(double rAngle)
 //! Rotate the mesh plane clockwise/counterclockwise by angle
 bool MeshWidget::rotPlaneRoll(double rAngle)
 {
+#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
+	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
+#endif
     Vector3D camRollAxis( -mMatModelView(2,0), -mMatModelView(2,1), -mMatModelView(2,2), 0.0 );
     Matrix4D transMatRot(mCenterView, camRollAxis, -rAngle*M_PI/180.0);
     emit sApplyTransfromToPlane( transMatRot );
@@ -6950,7 +6893,7 @@ void MeshWidget::keyPressEvent( QKeyEvent *rEvent ) {
 		return;
 	}
 	if( rEvent->key() == Qt::Key_N ) {
-		rEvent->modifiers() & Qt::ShiftModifier ? rotPlaneRoll( -90.0) :	rotRoll( -90.0 );
+		rEvent->modifiers() & Qt::ShiftModifier ? rotPlaneRoll( -90.0) : rotRoll( -90.0 );
 		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 		return;
 	}
