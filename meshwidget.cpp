@@ -6078,6 +6078,10 @@ bool MeshWidget::paintBackgroundShader( QOpenGLShaderProgram** rShaderProgram ) 
 		return false;
 	}
 
+	GLboolean oldDepthMask = true;
+	glGetBooleanv(GL_DEPTH_WRITEMASK, &oldDepthMask);
+	glDepthMask(false);
+
 	double realWidth;
 	double realHeight;
 	if( !getViewPortResolution( realWidth, realHeight ) ) {
@@ -6126,6 +6130,7 @@ bool MeshWidget::paintBackgroundShader( QOpenGLShaderProgram** rShaderProgram ) 
 	glBindVertexArray( 0 );
 	PRINT_OPENGL_ERROR( "glBindVertexArray( 0 )" );
 
+	glDepthMask(oldDepthMask);
 	return true;
 }
 
