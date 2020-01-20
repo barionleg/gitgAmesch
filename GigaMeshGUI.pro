@@ -250,10 +250,10 @@ CONFIG( tiff ) {
 # -------------------------------------------------------------------------------
 
 # --- SPHERICAL_INTERSECTION LIB ------------------------------------------------------------------
-exists( "spherical_intersection/libspherical_intersection.a" ) {
+exists( "external/spherical_intersection/libspherical_intersection.a" ) {
     DEFINES     += LIBSPHERICAL_INTERSECTION
-    INCLUDEPATH += $$PWD/spherical_intersection/include
-    LIBS        += -lspherical_intersection -L$$PWD/spherical_intersection
+	INCLUDEPATH += $$PWD/external/spherical_intersection/include
+	LIBS        += -lspherical_intersection -L$$PWD/external/spherical_intersection
     message( LIBSPHERICAL_INTERSECTION present. )
 }
 else:message( ERROR: LIBSPHERICAL_INTERSECTION (optional) not present!)
