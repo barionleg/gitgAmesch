@@ -130,8 +130,8 @@ double extract_cycle_contribution(Graph &graph) {
 	}
 
 	// erase the cycle's arcs from graph
-	for (const Arc &arc : arcs_of_cycle) {
-		graph.erase_arc(arc);
+	for (const Arc &circleArc : arcs_of_cycle) {
+		graph.erase_arc(circleArc);
 	}
 
 	return 2 * M_PI - accumulation;

@@ -42,6 +42,14 @@
     #include "ablas.h"
 #endif
 
+#ifdef LIBSPHERICAL_INTERSECTION
+    #include "external/spherical_intersection/include/algorithm/component_count.h"
+    #include "external/spherical_intersection/include/algorithm/sphere_surface_msii.h"
+    #include "external/spherical_intersection/include/algorithm/sphere_volume_msii.h"
+    #include "external/spherical_intersection/include/graph.h"
+    #include "external/spherical_intersection/include/mesh.h"
+#endif
+
 using namespace std;
 
 #ifdef THREADS
@@ -8907,6 +8915,7 @@ vector<double> calculateSphericalIntersectionFuncValues(
 	return results;
 }
 #endif
+
 //! Assigns the i-th given values to the i-th vertex of the given mesh for every suitable i
 //! @param mesh the given mesh
 //! @param values the given values

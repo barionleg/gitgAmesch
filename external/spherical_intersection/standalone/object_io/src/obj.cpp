@@ -29,7 +29,7 @@ Object_Information object_io::obj::load_obj(const std::string &path) {
 		} else if (line_type_str == "f") {
 			std::string s_1, s_2, s_3;
 			iss >> s_1 >> s_2 >> s_3;
-			if (!s_1.empty() && !s_1.empty() && !s_3.empty()) {
+			if (!s_1.empty() && !s_2.empty() && !s_3.empty()) {
 				std::size_t i_1, i_2, i_3;
 				auto string_to_index =
 				    [](const std::string &string) {

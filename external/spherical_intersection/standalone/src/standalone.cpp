@@ -180,7 +180,7 @@ std::vector<double> compute_all_values(
 			values[index] = algorithm(graph);
 		}
 	};
-	std::vector<std::thread> threads;
+
 	std::size_t current_start_index = 0;
 	std::size_t load_per_thread = max_thread_load;
 	std::cout << std::endl;
@@ -199,6 +199,8 @@ std::vector<double> compute_all_values(
 		std::cout << (100.0 * current_start_index) / vertex_count << "%"
 			  << std::endl;
 	}
+
+	std::vector<std::thread> threads;
 	load_per_thread = (vertex_count - current_start_index) / thread_count;
 	std::size_t load_for_last_thread =
 	    ((vertex_count - current_start_index) / thread_count) +
