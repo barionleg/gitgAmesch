@@ -1,5 +1,5 @@
-#ifndef OBJECT_IO__H
-#define OBJECT_IO__H
+#ifndef OBJECT_IO_H
+#define OBJECT_IO_H
 
 #include <array>
 #include <vector>

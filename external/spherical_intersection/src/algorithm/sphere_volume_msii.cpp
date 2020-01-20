@@ -142,9 +142,6 @@ double extract_cycle_contribution(Graph &graph) {
 
 // The implementation makes use of the cycle cut relation in dual planar graphs.
 double algorithm::get_sphere_volume_area(Graph &graph) {
-	using Graph = Graph;
-	using Arc = typename Graph::Arc;
-
 	const auto &arcs = graph.get_arcs();
 
 	auto accumulation = [&] {

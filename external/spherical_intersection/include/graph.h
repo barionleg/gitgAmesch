@@ -63,7 +63,7 @@ class Graph {
 
 		//! @brief Move assignment operator.
 		//! @param other the other node.
-		Node &operator=(Node &&other) = default;
+		Node &operator=(Node &&other) = delete;
 
 		//! @brief Gets the sphere whose intersection with a mesh is
 		//! represented by the graph.
@@ -142,7 +142,7 @@ class Graph {
 
 		//! @brief Move assignment operator.
 		//! @param other the other arc.
-		Arc &operator=(Arc &&other) = default;
+		Arc &operator=(Arc &&other) = delete;
 
 		//! @brief Gets the sphere whose intersection with a mesh is
 		//! represented by the graph.

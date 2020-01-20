@@ -1,6 +1,8 @@
 #ifndef SPHERICAL_INTERSECTION_IMPLEMENTATION_UTILITY_HASH_COMBINE_H
 #define SPHERICAL_INTERSECTION_IMPLEMENTATION_UTILITY_HASH_COMBINE_H
 
+#include <functional>
+
 //! @cond DEV
 
 namespace spherical_intersection {

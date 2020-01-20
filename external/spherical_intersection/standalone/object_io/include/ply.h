@@ -1,3 +1,6 @@
+#ifndef SPHERICAL_PLY_H
+#define SPHERICAL_PLY_H
+
 #include <string>
 #include <vector>
 
@@ -14,3 +17,5 @@ void save_ply(const std::string &path,
 	      const std::vector<double> &qualities, const Format format);
 } // namespace ply
 } // namespace object_io
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef SPHERICAL_OBJ_H
+#define SPHERICAL_OBJ_H
+
 #include <string>
 
 #include "object_io.h"
@@ -10,3 +13,5 @@ void save_obj(const std::string &path,
 	      const Object_Information &object_information);
 } // namespace ply
 } // namespace object_io
+
+#endif

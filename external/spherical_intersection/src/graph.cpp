@@ -171,8 +171,8 @@ Intersection_Mapper::Intersection_Mapper(Graph &graph,
 		    }
 	    };
 
-	auto process_adjacency = [&graph, &sphere, &known_edge_ptrs,
-				  &notice_vertex, &notice_edge,
+	auto process_adjacency = [&sphere, &known_edge_ptrs,
+	              &notice_vertex,
 				  &notice_containing_triangle_edges, this](
 				     const Mesh::Vertex::Adjacency &adjacency) {
 		auto &edge = adjacency.get_edge();
