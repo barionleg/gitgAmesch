@@ -7,6 +7,7 @@
 #include <iomanip>   // for setiosflags( ios_base::fixed ) - see: http://www.cplusplus.com/reference/iostream/ios_base/fmtflags/
 #include <string.h>  // memcpy, strncmp
 #include <float.h>   // FLT_MAX, FLT_MIN, FLT_EPS, etc.
+#include <array>
 
 // generic defines
 #define _INFINITE_DBL_      std::numeric_limits<double>::infinity()
@@ -31,6 +32,7 @@
 #ifdef WIN32
 //#warning "Redefining random(x) to rand(x) for windows compatibility"
 #define random(x) rand(x)
+
 #ifdef __FUNCDNAME__	//this only works with msvc. mingw seems to have problems with it.
 #define __PRETTY_FUNCTION__ __FUNCDNAME__
 #endif
@@ -54,9 +56,12 @@ struct sVertexProperties {
 };
 
 struct sFaceProperties {
-	uint64_t mVertIdxA;
-	uint64_t mVertIdxB;
-	uint64_t mVertIdxC;
+	uint64_t mVertIdxA = 0;
+	uint64_t mVertIdxB = 0;
+	uint64_t mVertIdxC = 0;
+
+	std::array<float,6> textureCoordinates = {0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F};
+	unsigned char textureId = 0;
 };
 
 #endif

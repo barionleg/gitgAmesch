@@ -23,6 +23,7 @@
 #include "printbuildinfo.h"
 
 #include "mesh.h"
+#include "../logging/Logging.h"
 
 bool cleanupGigaMeshData(
                 const  std::string& fileNameIn,
@@ -112,13 +113,13 @@ bool cleanupGigaMeshData(
 	// Meta-data options:
 	// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	if( rMaterialWhenEmptySet ) {
-		std::string currMat = someMesh.getModelMetaString( MeshIO::META_MODEL_MATERIAL );
+		std::string currMat = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
 		if( ( currMat.size() == 0 ) || rEnforceIdMaterial ){
-			someMesh.setModelMetaString( MeshIO::META_MODEL_MATERIAL, rMaterialWhenEmpty );
+			someMesh.getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_MATERIAL, rMaterialWhenEmpty );
 		}
 	}
 	if( rFileNameAsIdWhenEmpty ) {
-		std::string currModelId = someMesh.getModelMetaString( MeshIO::META_MODEL_ID );
+		std::string currModelId = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
 		if( ( currModelId.size() == 0 ) || rEnforceIdMaterial ) {
 			currModelId = std::filesystem::path( fileNameInName ).stem().string();
 			std::replace( currModelId.begin(), currModelId.end(), '_', ' ' );
@@ -127,7 +128,7 @@ bool cleanupGigaMeshData(
 				std::size_t charsRemain = currModelId.size() - rRemoveTrailingChars;
 				currModelId = currModelId.substr( 0, charsRemain );
 			}
-			someMesh.setModelMetaString( MeshIO::META_MODEL_ID, currModelId );
+			someMesh.getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_ID, currModelId );
 		}
 	}
 
@@ -283,6 +284,9 @@ void printHelp( const char* rExecName ) {
 	std::cout << "  -j, --set-id-remove-trailing-chars SIZE Remove SIZE trailing characters from the filename stem for the id."<< std::endl;
 	std::cout << "                                          Will be ignored if -i is not used." << std::endl;
 	std::cout << "  -o, --set-material-id-forced            Enforce id and material, even when NOT empty." << std::endl;
+	std::cout << "    , --log-level [0-4]                   Sets the log level of this application.\n"
+				 "                                          Higher numbers increases verbosity.\n"
+				 "                                          (Default: 1)" << std::endl;
 	//std::cout << "" << std::endl;
 }
 
@@ -291,6 +295,8 @@ void printHelp( const char* rExecName ) {
 //==============================================================================================================================================================
 
 int main( int argc, char* argv[] ) {
+
+	LOG::initLogging();
 
 	// Default string parameter
 	std::string fileNameOutSuffix = "_GMCF";
@@ -330,6 +336,7 @@ int main( int argc, char* argv[] ) {
 		{ "set-material-id-forced",       no_argument,       nullptr, 'o' },
 		{ "version",                      no_argument,       nullptr, 'v' },
 		{ "help",                         no_argument,       nullptr, 'h' },
+		{ "log-level",                    required_argument, nullptr,  0  },
 		{ nullptr, 0, nullptr, 0 }
 	};
 
@@ -341,8 +348,17 @@ int main( int argc, char* argv[] ) {
 		switch(character) {
 			case 0:
 
-				if( longOptions[optionIndex].flag == nullptr ) {
-					break;
+				if(longOptions[optionIndex].name == "log-level")
+				{
+					unsigned int arg = optarg[0] - '0';
+					if(arg <= 5)
+					{
+						LOG::setLogLevel(static_cast<LOG::LogLevel>(arg));
+					}
+					else
+					{
+						std::cerr << "[GigaMesh] WARNING: Log level is out of range [0-4]!" << std::endl;
+					}
 				}
 
 				// printf ("option %s", long_options[option_index].name);

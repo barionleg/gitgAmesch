@@ -1333,7 +1333,7 @@ void mesh::prune(const std::set<size_t>& remove_faces, const std::set<size_t>& r
 *	@returns Whether the edge has been relaxed
 */
 
-bool mesh::relax_edge(edge* e)
+bool mesh::relax_edge(edge* e, double threshHold)
 {
 	if(!e->get_f() || !e->get_g())
 		return(false);
@@ -1397,8 +1397,7 @@ bool mesh::relax_edge(edge* e)
 			if(v != e->get_u() && v != e->get_v())
 			{
 				// ...and check whether it is outside the circumcircle
-				swap = (v->get_position() - c).length() < r - 5*std::numeric_limits<double>::epsilon();	// Why we used a factor of 5 times epsilon is left as an easy
-															// exercise to the reader
+				swap = (v->get_position() - c).length() < r - threshHold;
 
 				// Set new vertices
 				if(v1)

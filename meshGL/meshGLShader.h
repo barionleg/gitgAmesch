@@ -8,6 +8,7 @@
 #include <QOpenGLTexture>
 #include <QOpenGLFunctions_4_3_Core>
 #include "PinRenderer.h"
+#include "TexturedMeshRenderer.h"
 //!
 //! \brief Shader extension for the Mesh class. (Layer 1.5)
 //!
@@ -15,8 +16,6 @@
 //!
 //! Layer 1.5
 //!
-
-#define NUM_SSBOS 3
 
 class MeshGLShader : public MeshGL {
 
@@ -99,6 +98,7 @@ private:
 	void vboPaintWireframe();
 	void vboPaintPolylines();
 	void vboPaintNPR();
+	void vboPaintTextured();
 	void prepareFrambuffersNPR();
 	void releaseFramebuffersNPR();
 	void vboPaintLightingOverlay();
@@ -145,7 +145,7 @@ private:
 	//SSBOs and variables for Transparency rendering
 	QOpenGLFunctions_4_3_Core mGL4_3Functions;  //<-------needed for ssbo´s
 
-	GLuint mSSBOs[NUM_SSBOS];
+	std::array<GLuint,3> mSSBOs;
 
 	GLuint mTransFragmentQuery;
 
@@ -160,6 +160,7 @@ private:
 	QOpenGLFramebufferObject* mFboOverlay;
 
 	PinRenderer mPinRenderer;
+	TexturedMeshRenderer mTexturedMeshRenderer;
 };
 
 #endif // MESHGLSHADER_H

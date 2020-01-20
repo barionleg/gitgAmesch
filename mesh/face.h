@@ -172,7 +172,7 @@ class Face : public Primitive {
 		        double   getFuncValMaxExcluding( Vertex* someVert );
 				bool     getFuncValVertRidge( std::set<Vertex*>* rRidgeVerts );
 		        bool     isOnFuncValIsoLine( double isoThres );
-		        bool     getFuncValIsoPoint( double isoThres, Vector3D* isoPoint, Face** faceNext, bool searchForward );
+				bool     getFuncValIsoPoint( double isoThres, Vector3D* isoPoint, Face** faceNext, bool searchForward, Face** faceVisited );
 		// Feature vector related
 				bool     getFeatureVec1RingSector( const Vertex* rVert1RingCenter, const s1RingSectorPrecomp& r1RingSecPre,
 				                                    std::vector<double>& rFeatureVec1RingSector ) const;
@@ -237,7 +237,7 @@ class Face : public Primitive {
 				Vertex* advanceInSphere( Vertex* fromVert, double* sphereCenter, double radius, uint64_t* bitArrayVisited, std::set<Vertex*>* nextArray );
 
 		// plane
-		        bool intersectsPlane(Vector3D* planeHNF);
+				bool intersectsPlane(const Vector3D* planeHNF);
 		        bool intersectsFace( const Face* face2 ) const;
 
 		// rasterization / voxelization => volume integral
@@ -252,13 +252,27 @@ class Face : public Primitive {
 		        void    dumpFaceInfo() const;
 				void    dumpInfoAsDOT( std::string fileSuffix="" );
 
+				[[nodiscard]] std::array<float, 6> getUVs() const;
+				void setUVs(const std::array<float, 6>& uVs);
+
+				[[nodiscard]] unsigned char getTextureId() const;
+				void setTextureId(unsigned char textureId);
+
 	private:
 		// Vertices - Connectivity:
 		VertexOfFace* vertA;            //!< reference to index of Vertex A
 		VertexOfFace* vertB;            //!< reference to index of Vertex B
 		VertexOfFace* vertC;            //!< reference to index of Vertex C
+
 		// Normal
 		double  mNormalXYZ[3];    //!< Normal vector for the face - has to be initalized.
+
+		// UV-Coordinates
+		std::array<float,6>   mUVs;          //!< UV coordinates of the three vertices of the face
+
+		// Texture-Id
+		unsigned char mTextureId = 0;        //!< id of the texture-file assiciated to this face
+
 		// Indexing - required for bit arrays and to be maintained properly!
 		unsigned int mIndex;      //!< Stores the actual index, which may change due to manipulation, while idxOri stores the original index.
 		// Function Value:

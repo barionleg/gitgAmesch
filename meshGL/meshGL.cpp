@@ -290,6 +290,12 @@ bool MeshGL::applyMeltingSphere( double rRadius, double rRel ) {
 bool MeshGL::resetVertexNormals() {
 		bool retVal = Mesh::resetVertexNormals();
 		vboRemoveBuffer( VBUFF_VERTICES_STRIPED,         __FUNCTION__ );
+		if(mMeshTextured != nullptr)
+		{
+			delete mMeshTextured;
+			mMeshTextured = nullptr;
+		}
+
 		return( retVal );
 }
 
@@ -321,6 +327,13 @@ bool MeshGL::assignImportedTexture( int              rLineCount,
 #endif
 		bool retVal = Mesh::assignImportedTexture( rLineCount, rRefToPrimitves, rTexMap );
 		vboRemoveBuffer( VBUFF_VERTICES_STRIPED, __FUNCTION__ );
+
+		if(mMeshTextured != nullptr)
+		{
+			delete mMeshTextured;
+			mMeshTextured = nullptr;
+		}
+
 		return retVal;
 }
 
@@ -331,6 +344,13 @@ bool MeshGL::assignImportedNormalsToVertices( vector<MeshIO::grVector3ID>* rNorm
 #endif
 		bool retVal = Mesh::assignImportedNormalsToVertices( rNormals );
 		vboRemoveBuffer( VBUFF_VERTICES_STRIPED, __FUNCTION__ );
+
+		if(mMeshTextured != nullptr)
+		{
+			delete mMeshTextured;
+			mMeshTextured = nullptr;
+		}
+
 		return retVal;
 }
 
@@ -2219,8 +2239,8 @@ void MeshGL::glPrepare() {
 		// --- Unit sized objects ------------------------------------------------------------------------------------------------------------------------------
 		vboPrepareBox();
 		vboPrepareCylinder();
-	vboPrepareSphere();
-	vboPrepareQuad();
+		vboPrepareSphere();
+		vboPrepareQuad();
 
 		// especially as double cone estimation takes quite some time, we store indices to "intersting" vertices in a vector array:
 		vector<GLuint> vertexSoloTmp;
@@ -2310,6 +2330,12 @@ void MeshGL::glRemove() {
 		// no general free as not all arrays might not be set!: glDeleteBuffers( VBO_ARRAY_COUNT, vboId );
 		for( int i=0; i<VBUFF_COUNT; i++ ) {
 				vboRemoveBuffer( static_cast<eVertBufObjs>(i), __FUNCTION__ );
+		}
+
+		if(mMeshTextured != nullptr)
+		{
+			delete mMeshTextured;
+			mMeshTextured = nullptr;
 		}
 #ifdef OPENGL_VBO_SHOW_MEMORY_USAGE
 		mVboMemoryUsage = 0;
@@ -2410,6 +2436,20 @@ bool MeshGL::setParamIntMeshGL( MeshGLParams::eParamInt rParamID, int rValue ) {
 		if( !MeshGLParams::setParamIntMeshGL( rParamID, rValue ) ) {
 				return false;
 		}
+
+		//remove textured buffer if not needed
+		if(rParamID == MeshGLParams::SHADER_CHOICE)
+		{
+			if(rValue != SHADER_TEXTURED)
+			{
+				if(mMeshTextured != nullptr)
+				{
+					delete mMeshTextured;
+					mMeshTextured = nullptr;
+				}
+			}
+		}
+
 		return true;
 }
 

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>313</width>
-    <height>330</height>
+    <height>333</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,7 +19,7 @@
   <property name="minimumSize">
    <size>
     <width>313</width>
-    <height>306</height>
+    <height>333</height>
    </size>
   </property>
   <property name="maximumSize">
@@ -276,13 +276,23 @@
       </property>
      </widget>
     </item>
+    <item row="12" column="0">
+     <widget class="QRadioButton" name="radioButtonTextured">
+      <property name="text">
+       <string>Textured</string>
+      </property>
+      <attribute name="buttonGroup">
+       <string notr="true">buttonGroup_rendering</string>
+      </attribute>
+     </widget>
+    </item>
    </layout>
   </widget>
  </widget>
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_rendering"/>
   <buttongroup name="buttonGroup_colormap"/>
+  <buttongroup name="buttonGroup_rendering"/>
  </buttongroups>
 </ui>

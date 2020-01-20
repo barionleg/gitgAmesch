@@ -14,6 +14,7 @@
 
 #include "face.h"
 #include "edgegeodesic.h"
+#include "../logging/Logging.h"
 
 // proper access to the center of gravity / position:
 #define POS_X           mPosition[0]
@@ -456,7 +457,7 @@ bool Vertex::getGraylevel( double* rGraylevel, eGrayLevelConversion rGrayLevelCo
 			*rGraylevel = ( static_cast<double>(max( max( mTexRGBA[0], mTexRGBA[1] ), mTexRGBA[2] )) ) / 255.0;
 			break;
 		default:
-			cerr << "[Vertex::" << __FUNCTION__ << "] ERROR: Unknown conversion method: " << rGrayLevelConvMethod << endl;
+			LOG::error() << "[Vertex::" << __FUNCTION__ << "] ERROR: Unknown conversion method: " << rGrayLevelConvMethod << "\n";
 			break;
 	}
 	return true;
@@ -498,7 +499,7 @@ double Vertex::distanceToHNF( Vector3D HNF_Position, Vector3D HNF_Normal ) {
 //! @returns distance of this vertex to a given line. NaN in case of an error.
 double Vertex::distanceToLine( const Vector3D* rPos1, const Vector3D* rPos2 ) {
 	if( ( rPos1 == nullptr ) || ( rPos2 == nullptr ) ) {
-		cerr << "[Vertex::" << __FUNCTION__ << "] ERROR: Null pointer given!" << endl;
+		LOG::debug() << "[Vertex::" << __FUNCTION__ << "] ERROR: Null pointer given!\n";
 		return _NOT_A_NUMBER_DBL_;
 	}
 	Vector3D x0 = getPositionVector();
@@ -690,7 +691,7 @@ double Vertex::get1RingSumAngles() {
 unsigned int Vertex::getOctreeIndex( Vector3D rCubeTopLeft, double rEdgeLen, unsigned int rXyzCubes ) {
 	//! Compute (one-dimensional) index of this vertex within the smallest cube of an octree.
 	if( rXyzCubes & 0x1 ) {
-		cerr << "[Vertex::" << __FUNCTION__ << "] ERROR: expects an even number!" << endl;
+		LOG::debug() << "[Vertex::" << __FUNCTION__ << "] ERROR: expects an even number!\n";
 		return 0;
 	}
 	Vector3D distToCenter = ( getPositionVector() - rCubeTopLeft ) / rEdgeLen;
@@ -806,12 +807,12 @@ bool Vertex::funcValDescendingLabel( Vertex* vert1, Vertex* vert2 ) {
 
 	double funcVal1;
 	if( !vert1->getFuncValue( &funcVal1 ) ) {
-		cerr << "[Vertex::" << __FUNCTION__ << "] no function value!" << endl;
+		LOG::debug() << "[Vertex::" << __FUNCTION__ << "] no function value!\n";
 		return false;
 	}
 	double funcVal2;
 	if( !vert2->getFuncValue( &funcVal2 ) ) {
-		cerr << "[Vertex::" << __FUNCTION__ << "] no function value!" << endl;
+		LOG::debug() << "[Vertex::" << __FUNCTION__ << "] no function value!\n";
 		return false;
 	}
 
@@ -827,12 +828,12 @@ bool Vertex::funcValDescendingLabel( Vertex* vert1, Vertex* vert2 ) {
 bool Vertex::funcValDescending( Vertex* vert1, Vertex* vert2 ) {
 	double funcVal1;
 	if( !vert1->getFuncValue( &funcVal1 ) ) {
-		cerr << "[Vertex::" << __FUNCTION__ << "] no function value!" << endl;
+		LOG::debug() << "[Vertex::" << __FUNCTION__ << "] no function value!\n";
 		return false;
 	}
 	double funcVal2;
 	if( !vert2->getFuncValue( &funcVal2 ) ) {
-		cerr << "[Vertex::" << __FUNCTION__ << "] no function value!" << endl;
+		LOG::debug() << "[Vertex::" << __FUNCTION__ << "] no function value!\n";
 		return false;
 	}
 
@@ -848,12 +849,12 @@ bool Vertex::funcValDescending( Vertex* vert1, Vertex* vert2 ) {
 bool Vertex::funcValLower( Vertex* vert1, Vertex* vert2 ) {
 	double funcVal1;
 	if( !vert1->getFuncValue( &funcVal1 ) ) {
-		cerr << "[Vertex::" << __FUNCTION__ << "] no function value!" << endl;
+		LOG::debug() << "[Vertex::" << __FUNCTION__ << "] no function value!\n";
 		return false;
 	}
 	double funcVal2;
 	if( !vert2->getFuncValue( &funcVal2 ) ) {
-		cerr << "[Vertex::" << __FUNCTION__ << "] no function value!" << endl;
+		LOG::debug() << "[Vertex::" << __FUNCTION__ << "] no function value!\n";
 		return false;
 	}
 
@@ -874,12 +875,12 @@ bool Vertex::funcValLowerLabled( Vertex* vert1, Vertex* vert2 ) {
 
 	double funcVal1;
 	if( !vert1->getFuncValue( &funcVal1 ) ) {
-		cerr << "[Vertex::funcValLower] no function value!" << endl;
+		LOG::debug() << "[Vertex::funcValLower] no function value!\n";
 		return false;
 	}
 	double funcVal2;
 	if( !vert2->getFuncValue( &funcVal2 ) ) {
-		cerr << "[Vertex::funcValLower] no function value!" << endl;
+		LOG::debug() << "[Vertex::funcValLower] no function value!\n";
 		return false;
 	}
 
@@ -1141,7 +1142,7 @@ int Vertex::getState() {
 		return  _PRIMITIVE_STATE_NON_MANIFOLD_;
 	}
 	// we should never reach this point:
-// 	cerr << "[Edge] ERROR - negative value for size (" << faceList.size() << ")." << endl;
+// 	LOG::debug() << "[Edge] ERROR - negative value for size (" << faceList.size() << ").\n";
 	return _PRIMITIVE_STATE_ERROR_;
 }
 
@@ -1249,12 +1250,12 @@ double Vertex::estDistanceToCone(Vector3D* axisTop,
                                  bool absDist) {
 
 	if(!axisTop || !axisBot || !coneTip) {
-		cerr << "[Vertex::" << __FUNCTION__ << "] Called without axis parameters -- unable to continue" << endl;
+		LOG::error() << "[Vertex::" << __FUNCTION__ << "] Called without axis parameters -- unable to continue\n";
 		return(0.0);
 	}
 
 	if(upperRadius == lowerRadius) {
-		cerr << "[Vertex::" << __FUNCTION__ << "] Unable to handle degenerate cone (upperRadius == lowerRadius)" << endl;
+		LOG::error() << "[Vertex::" << __FUNCTION__ << "] Unable to handle degenerate cone (upperRadius == lowerRadius)\n";
 		return(0.0);
 	}
 
@@ -1287,12 +1288,12 @@ double Vertex::estDistanceToCone(Vector3D* axisTop,
 double Vertex::estDistanceToSphere(Vector3D* center, const double& radius, bool absDist) {
 
 	if(!center) {
-		cerr << "[Vertex::" << __FUNCTION__ << "] Called without sphere center -- unable to continue" << endl;
+		LOG::error() << "[Vertex::" << __FUNCTION__ << "] Called without sphere center -- unable to continue\n";
 		return(0.0);
 	}
 
 	if(radius == 0) { // TODO: entferne Nullckeck !!!!!!!!
-		cerr << "[Vertex::" << __FUNCTION__ << "] Unable to handle degenerate sphere (radius == 0)" << endl;
+		LOG::error() << "[Vertex::" << __FUNCTION__ << "] Unable to handle degenerate sphere (radius == 0)\n";
 		return(0.0);
 	}
 
@@ -1348,7 +1349,7 @@ bool Vertex::getGeodesicEdgesSeed( deque<EdgeGeodesic*>* frontEdges, map<Vertex*
 
 	// Check for invalid settings:
 	if( ( frontEdges == nullptr ) || ( geoDistList == nullptr ) ) {
-		cerr << "[Vertex::" << __FUNCTION__ << "] frontEdges and/or geoDistList is/are NULL!" << endl;
+		LOG::error() << "[Vertex::" << __FUNCTION__ << "] frontEdges and/or geoDistList is/are NULL!\n";
 		return false;
 	}
 
@@ -1373,12 +1374,12 @@ bool Vertex::getGeodesicEdgesSeed( deque<EdgeGeodesic*>* frontEdges, map<Vertex*
 		Vertex* vertB;
 		Face::eEdgeNames edgeIndex;
 		if( !currFace->getOposingEdgeAndVertices( this, &edgeIndex, &vertA, &vertB ) ) {
-			cerr << "[Vertex::" << __FUNCTION__ << "] ERROR: Unexpected error #1!" << endl;
+			LOG::error() << "[Vertex::" << __FUNCTION__ << "] ERROR: Unexpected error #1!\n";
 			return false;
 		}
 		refVecAngle = ( vertA->getPositionVector() - getPositionVector() ) + ( vertB->getPositionVector() - getPositionVector() );
 		if( refVecAngle.getLength3() <= 0.0 ) {
-			cerr << "[Vertex::" << __FUNCTION__ << "] ERROR: Unexpected error #2!" << endl;
+			LOG::error() << "[Vertex::" << __FUNCTION__ << "] ERROR: Unexpected error #2!\n";
 			return false;
 		}
 	}
@@ -1394,7 +1395,7 @@ bool Vertex::getGeodesicEdgesSeed( deque<EdgeGeodesic*>* frontEdges, map<Vertex*
 		Vertex* vertB;
 		Face::eEdgeNames edgeIndex;
 		if( !currFace->getOposingEdgeAndVertices( this, &edgeIndex, &vertA, &vertB ) ) {
-			cerr << "[Vertex::" << __FUNCTION__ << "] ERROR: Unexpected error #3!" << endl;
+			LOG::error() << "[Vertex::" << __FUNCTION__ << "] ERROR: Unexpected error #3!\n";
 			return false;
 		}
 
@@ -1409,7 +1410,7 @@ bool Vertex::getGeodesicEdgesSeed( deque<EdgeGeodesic*>* frontEdges, map<Vertex*
 			if( weightFuncVal ) {
 				double funcValA;
 				if( !vertA->getFuncValue( &funcValA ) ) {
-					cerr << "[Vertex::" << __FUNCTION__ << "] ERROR: fetching function value for A!" << endl;
+					LOG::error() << "[Vertex::" << __FUNCTION__ << "] ERROR: fetching function value for A!\n";
 					return false;
 				}
 				Vector3D posC = getPositionVector() + getNormal( true ) * mFuncValue;
@@ -1443,7 +1444,7 @@ bool Vertex::getGeodesicEdgesSeed( deque<EdgeGeodesic*>* frontEdges, map<Vertex*
 			if( weightFuncVal ) {
 				double funcValB;
 				if( !vertB->getFuncValue( &funcValB ) ) {
-					cerr << "[Vertex::" << __FUNCTION__ << "] ERROR: fetching function value for B!" << endl;
+					LOG::error() << "[Vertex::" << __FUNCTION__ << "] ERROR: fetching function value for B!\n";
 					return false;
 				}
 				Vector3D posC = getPositionVector() + getNormal( true ) * mFuncValue;
@@ -1492,7 +1493,7 @@ bool Vertex::assignFeatureVec(
 ) {
 	if( ( rAttachFeatureVec == nullptr ) && ( rSetFeatureVecLen > 0 ) ) {
 		// No pointer => problem.
-		cerr << "[Vertex::" << __FUNCTION__ << "] ERROR: NULL pointer given, while length > 0!" << endl;
+		LOG::error() << "[Vertex::" << __FUNCTION__ << "] ERROR: NULL pointer given, while length > 0!\n";
 		return false;
 	}
 	// Erase existing vector:
@@ -1580,11 +1581,11 @@ bool Vertex::copyFeatureVecTo( double* rFetchFeatureVec ) const {
 //! @returns false in case of an error. True otherwise.
 bool Vertex::assignFeatureVecValues( const vector<double>& newFeatureVec ) {
 	if( mFeatureVec == nullptr ) {
-		cerr << "[Vertex::" << __FUNCTION__ << "] ERROR: Can not write to feature vector - no memory resereved!" << endl;
+		LOG::error() << "[Vertex::" << __FUNCTION__ << "] ERROR: Can not write to feature vector - no memory resereved!\n";
 		return( false );
 	}
 	if( newFeatureVec.size() != mFeatureVecLen ) {
-		cerr << "[Vertex::" << __FUNCTION__ << "] ERROR: Feature vector length do not match!" << endl;
+		LOG::error() << "[Vertex::" << __FUNCTION__ << "] ERROR: Feature vector length do not match!\n";
 		return( false );
 	}
 	for( uint64_t i=0; i<mFeatureVecLen; i++ ) {
@@ -1950,6 +1951,19 @@ bool Vertex::getFeatureElement( unsigned int rElementNr, double* rElementValue )
 	return true;
 }
 
+//! Sets an element of the feature vector to value.
+//! @param elementNr the element to be set
+//! @param value the value to set the element to
+//! @returns false, if elementNr is out of range
+bool Vertex::setFeatureElement(unsigned int elementNr, double value)
+{
+	if(elementNr >= mFeatureVecLen)
+		return false;
+
+	mFeatureVec[elementNr] = value;
+	return true;
+}
+
 //! @returns the length of the feature vector.
 unsigned int Vertex::getFeatureVectorLen() {
 	return mFeatureVecLen;
@@ -1984,6 +1998,27 @@ int Vertex::cutOffFeatureElements( double rMinVal, double rMaxVal, bool rSetToNo
 	return elementsChanged;
 }
 
+//! resizes the feature-vector of the vertex to fit size
+//! @param size the new size. If size is smaller than the current size, elements get cut. Otherwise, the vector is padded with zeros
+void Vertex::resizeFeatureVector(unsigned int size)
+{
+	if(size == mFeatureVecLen)
+		return;
+
+	double* oldVec = mFeatureVec;
+	unsigned int oldlen = mFeatureVecLen;
+	mFeatureVec = new double[size];
+	mFeatureVecLen = size;
+
+	//copy data
+	for(int i = 0; i<mFeatureVecLen; ++i)
+	{
+		mFeatureVec[i] = i < oldlen ? oldVec[i] : _NOT_A_NUMBER_DBL_;
+	}
+
+	delete[] oldVec;
+}
+
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 // --- Feature vector smoothing --------------------------------------------------------------------------------------------------------------------------------
@@ -2002,8 +2037,8 @@ bool Vertex::getFeatureVecMedianOneRing( vector<double>& rMedianValues, double r
 		try {
 			rMedianValues.at( i ) = mFeatureVec[i];
 		} catch (...) {
-			cerr << "[Vertex::" << __FUNCTION__ << "] ERROR: Exception!" << endl;
-			cerr << "[Vertex::" << __FUNCTION__ << "]        Probably some missmatch of array/vector-size." << endl;
+			LOG::error() << "[Vertex::" << __FUNCTION__ << "] ERROR: Exception!\n";
+			LOG::error() << "[Vertex::" << __FUNCTION__ << "]        Probably some missmatch of array/vector-size.\n";
 			return( false );
 		}
 	}
@@ -2023,8 +2058,8 @@ bool Vertex::getFeatureVecMeanOneRing( vector<double>& rMeanValues, double rMinD
 		try {
 			rMeanValues.at( i ) = mFeatureVec[i];
 		} catch (...) {
-			cerr << "[Vertex::" << __FUNCTION__ << "] ERROR: Exception!" << endl;
-			cerr << "[Vertex::" << __FUNCTION__ << "]        Probably some missmatch of array/vector-size." << endl;
+			LOG::error() << "[Vertex::" << __FUNCTION__ << "] ERROR: Exception!\n";
+			LOG::error() << "[Vertex::" << __FUNCTION__ << "]        Probably some missmatch of array/vector-size.\n";
 			return( false );
 		}
 	}
@@ -2040,8 +2075,8 @@ bool Vertex::getFeatureVecMeanOneRing(
 		try {
 			rMeanValues.at( i ) = mFeatureVec[i];
 		} catch (...) {
-			cerr << "[Vertex::" << __FUNCTION__ << "] ERROR: Exception!" << endl;
-			cerr << "[Vertex::" << __FUNCTION__ << "]        Probably some missmatch of array/vector-size." << endl;
+			LOG::error() << "[Vertex::" << __FUNCTION__ << "] ERROR: Exception!\n";
+			LOG::error() << "[Vertex::" << __FUNCTION__ << "]        Probably some missmatch of array/vector-size.\n";
 			return( false );
 		}
 	}

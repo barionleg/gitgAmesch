@@ -134,11 +134,13 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	QObject::connect( mMainWindow, &QGMMainWindow::sFileImportFunctionValues, this, &MeshQt::importFunctionValues );
 	// Old Qt Style connections:
 	QObject::connect( mMainWindow, SIGNAL(sFileImportFeatureVectors(QString)), this, SLOT(importFeatureVectors(QString)) );
+	QObject::connect( mMainWindow, SIGNAL(sExportFeatureVectors()), this, SLOT(exportFeatureVectors()) );
 	QObject::connect( mMainWindow, SIGNAL(sFileImportTexMap(QString)),         this, SLOT(importTexMapFromFile(QString)) );
 	QObject::connect( mMainWindow, SIGNAL(sFileImportNormals(QString)),        this, SLOT(importNormalVectorsFile(QString)) );
 	//.
 	QObject::connect( mMainWindow, SIGNAL(sFileSaveFlagBinary(bool)),          this, SLOT(setFileSaveFlagBinary(bool))      );
 	QObject::connect( mMainWindow, SIGNAL(sFileSaveFlagGMExtras(bool)),        this, SLOT(setFileSaveFlagGMExtras(bool))    );
+	QObject::connect( mMainWindow, SIGNAL(sFileSaveFlagExportTexture(bool)),this, SLOT(setFileSaveFlagExportTextures(bool)));
 	//.
 	QObject::connect( mMainWindow, SIGNAL(exportPolyLinesCoords()),          this, SLOT(exportPolyLinesCoords())          );
 	QObject::connect( mMainWindow, SIGNAL(exportPolyLinesCoordsProjected()), this, SLOT(exportPolyLinesCoordsProjected()) );
@@ -159,6 +161,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	QObject::connect( mMainWindow, SIGNAL(funcValsNormalize()),          this, SLOT(funcValsNormalize())      );
 	QObject::connect( mMainWindow, SIGNAL(funcValsAbs()),                this, SLOT(funcValsAbs())            );
 	QObject::connect( mMainWindow, SIGNAL(funcValsAdd()),                this, SLOT(funcValsAdd())            );
+	QObject::connect( mMainWindow, SIGNAL(sFuncValToFeatureVector()),    this, SLOT(funcValsToFeatureVector()));
 	//.
 	QObject::connect( mMainWindow, SIGNAL(setConeData()),                this, SLOT(setConeData()));
 	QObject::connect( mMainWindow, SIGNAL(centerAroundCone()),           this, SLOT(centerAroundCone()));
@@ -318,7 +321,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	//! \bug Emitting inside constructor has no effect
 		emit showFlagState( MeshGL::SHOW_POLYLINES, false );
 	}
-
+	polyLinesChanged();
 	// Erase any previous selection:
 	//! \bug Emitting inside constructor has no effect
 	emit primitiveSelected( nullptr );
@@ -732,7 +735,7 @@ bool MeshQt::exportPolyLinesFuncVals() {
 bool MeshQt::exportFuncVals() {
 	QString filePath = QString( getFileLocation().c_str() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Export function values" ), \
-	                                                 filePath + getBaseName().c_str() + "_funcvals.txt", \
+													 filePath + "/" + getBaseName().c_str() + "_funcvals.txt", \
 													 tr( "ASCII text (*.txt)" ) );
 	if( fileName.length() == 0 ) {
 		return false;
@@ -745,7 +748,7 @@ bool MeshQt::exportFuncVals() {
 		return false;
 	}
 
-	if( !MeshGL::exportFuncVals( fileName.toStdString(), withVertIdx ) ) {
+	if( !Mesh::exportFuncVals( fileName.toStdString(), withVertIdx ) ) {
 		SHOW_MSGBOX_CRIT( tr("Export function values"), tr("Failed") );
 		emit statusMessage( "ERROR: Function values NOT exported to: " + fileName );
 		return false;
@@ -789,6 +792,12 @@ void MeshQt::exportNormalSphereData()
 		return;
 	}
 
+	bool exportFaceNormals = false;
+	SHOW_QUESTION( tr("Normal selection"), tr("Export face normals (yes) or vertex normals (no)"), exportFaceNormals, userCancel);
+	if(userCancel) {
+		return;
+	}
+
 	// Ask for vertex normals in sphere coordinates
 	bool sphereCoordinates;
 	SHOW_QUESTION( tr("Normals representation"), tr("Export normals in sphere-coordinates?"), sphereCoordinates, userCancel );
@@ -796,15 +805,41 @@ void MeshQt::exportNormalSphereData()
 		return;
 	}
 
-	std::vector<sVertexProperties> vertexProps;
-	vertexProps.resize( getVertexNr() );
+	std::list<sVertexProperties> vertexProps;
 
-	uint64_t vertCount = getVertexNr();
+	auto fAddNormal = [&vertexProps](const Vector3D& normal) -> void {
+		if( std::isnan(normal.getX()) || std::isnan(normal.getY()) || std::isnan(normal.getZ()) )
+		{
+			return;
+		}
+		sVertexProperties prop;
+		prop.mNormalX = normal.getX();
+		prop.mNormalY = normal.getY();
+		prop.mNormalZ = normal.getZ();
 
-	for( uint64_t vertIdx=0; vertIdx<vertCount; vertIdx++ ) {
-		Vertex* curVertex = getVertexPos( vertIdx );
-		curVertex->setIndex( vertIdx );
-		curVertex->copyVertexPropsTo( vertexProps[vertIdx] );
+		vertexProps.emplace_back(prop);
+	};
+
+	if(exportFaceNormals)
+	{
+		auto faceCount = getFaceNr();
+
+		for( uint64_t faceIdx = 0; faceIdx < faceCount; ++faceIdx)
+		{
+			Face* currFace = getFacePos( faceIdx );
+			auto normal = currFace->getNormal(false);
+			fAddNormal(normal);
+		}
+	}
+	else
+	{
+		auto vertCount = getVertexNr();
+
+		for( uint64_t vertIdx=0; vertIdx<vertCount; vertIdx++ ) {
+			Vertex* currVertex = getVertexPos( vertIdx );
+			auto normal = currVertex->getNormal(false);
+			fAddNormal(normal);
+		}
 	}
 
 	MeshIO::writeIcoNormalSphereData(fileName.toStdString(), vertexProps , subdivision.toInt(), sphereCoordinates);
@@ -865,14 +900,14 @@ bool MeshQt::removeUncleanSmallUser() {
 	bool applyErosion;
 	bool userCancel;
 	SHOW_QUESTION( tr("Apply border erosion"), tr("Do you want to remove dangling faces along the borders?") +
-										   QString("<br /><br />") + tr("Recommended: YES"), applyErosion, userCancel )
+										   QString("<br /><br />") + tr("Recommended: YES"), applyErosion, userCancel );
 	if( userCancel ) {
 		return( false );
 	}
 
 	// Ask if we wan't to store the result, when finished.
 	bool saveFile;
-	SHOW_QUESTION( tr("Store results"), tr("Do you want to store the result as file?"), saveFile, userCancel )
+	SHOW_QUESTION( tr("Store results"), tr("Do you want to store the result as file?"), saveFile, userCancel );
 	if( userCancel ) {
 		return( false );
 	}
@@ -887,7 +922,7 @@ bool MeshQt::removeUncleanSmallUser() {
 	uint64_t oldVertexNr = getVertexNr();
 	uint64_t oldFaceNr   = getFaceNr();
 	bool retVal = MeshGL::removeUncleanSmall( percentArea, applyErosion, fileName.toStdString() );
-	SHOW_MSGBOX_INFO( tr("Primitives removed"), tr( "%1 Vertices\n%2 Faces" ).arg( oldVertexNr - getVertexNr() ).arg( oldFaceNr - getFaceNr() ) )
+	SHOW_MSGBOX_INFO( tr("Primitives removed"), tr( "%1 Vertices\n%2 Faces" ).arg( oldVertexNr - getVertexNr() ).arg( oldFaceNr - getFaceNr() ) );
 	return retVal;
 }
 
@@ -926,7 +961,7 @@ bool MeshQt::completeRestore() {
 		tr("Remove longest polyline -- keep largest hole"),
 		tr("Do you want to remove the longest polyline, to prevent it from getting filled?\n\ni.e. Do you want to keep the largest hole in the mesh?"),
 		prevent, userCancel
-	)
+	);
 	if( userCancel ) {
 		return( false );
 	}
@@ -934,7 +969,7 @@ bool MeshQt::completeRestore() {
 	// Optional border erosion
 	bool applyErosion;
 	SHOW_QUESTION( tr("Apply border erosion"), tr("Do you want to remove dangling faces along the borders?") +
-										   QString("<br /><br />") + tr("Recommended: YES"), applyErosion, userCancel )
+										   QString("<br /><br />") + tr("Recommended: YES"), applyErosion, userCancel );
 	if( userCancel ) {
 		return( false );
 	}
@@ -945,7 +980,7 @@ bool MeshQt::completeRestore() {
 
 	// Ask if we wan't to store the result, when finished.
 	bool saveFile;
-	SHOW_QUESTION( tr("Store results"), tr("Do you want to store the result as file?"), saveFile, userCancel )
+	SHOW_QUESTION( tr("Store results"), tr("Do you want to store the result as file?"), saveFile, userCancel );
 	if( userCancel ) {
 		return false;
 	}
@@ -962,7 +997,7 @@ bool MeshQt::completeRestore() {
 	// Iterative cleaning is done in the Mesh class.
 	string resultMsg;
 	MeshGL::completeRestore( fileName.toStdString(), percentArea, applyErosion, prevent, maxNrVertices, &resultMsg );
-	SHOW_MSGBOX_INFO( tr("Complete Restore finished"), QString( resultMsg.c_str() ) )
+	SHOW_MSGBOX_INFO( tr("Complete Restore finished"), QString( resultMsg.c_str() ) );
 
 	return true;
 }
@@ -1083,6 +1118,17 @@ bool MeshQt::funcValsAdd() {
 bool MeshQt::funcValsAdd( double rVal ) {
 	//! (2/2) Execute - see Mesh::setVertFuncValAdd
 	return setVertFuncValAdd( rVal );
+}
+
+bool MeshQt::funcValsToFeatureVector()
+{
+	QGMDialogEnterText dlgEnterTextVal;
+	dlgEnterTextVal.setInt(0);
+	dlgEnterTextVal.setWindowTitle( tr("Set dimension (warning, resizes feature vectors if necessary!)") );
+
+	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int dim) {this->funcValToFeatureVector(dim);});
+
+	return dlgEnterTextVal.exec() == QDialog::Accepted;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2183,6 +2229,15 @@ bool MeshQt::applyTransfromToPlane( Matrix4D transMat ) {
 	}
 	emit updateGL();
 	return true;
+}
+
+bool MeshQt::applyTransformation(Matrix4D rTrans, std::set<Vertex*>* rSomeVerts, bool rResetNormals)
+{
+	bool retValue = MeshGL::applyTransformation(rTrans, rSomeVerts, rResetNormals);
+
+	emit sDefaultViewLightZoom();
+
+	return retValue;
 }
 
 // Selection - Cone ------------------------------------------------------------
@@ -3787,7 +3842,7 @@ void MeshQt::visualizeDistanceToCone( bool rAbsDist ) {
 bool MeshQt::editMetaData() {
 
 	//! .) Edit Model ID.
-	string modelID = getModelMetaString( META_MODEL_ID );
+	string modelID = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
 	if( modelID.empty() ) {
 		// Prepare suggestion
 		QString suggestId( getBaseName().c_str() );
@@ -3808,11 +3863,11 @@ bool MeshQt::editMetaData() {
 			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: bad input (1)!" << endl;
 			return false;
 		}
-		setModelMetaString( META_MODEL_ID, newModelId.toStdString() );
+		getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_ID, newModelId.toStdString() );
 	}
 
 	//! .) Edit Model Material.
-	string modelMaterial = getModelMetaString( META_MODEL_MATERIAL );
+	string modelMaterial = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
 	if( modelMaterial.empty() ) {
 		QGMDialogEnterText dlgEnterTxt;
 		dlgEnterTxt.setText( tr( "original, clay" ) );
@@ -3826,7 +3881,7 @@ bool MeshQt::editMetaData() {
 			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: bad input (1)!" << endl;
 			return false;
 		}
-		setModelMetaString( META_MODEL_MATERIAL, newMaterial.toStdString() );
+		getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_MATERIAL, newMaterial.toStdString() );
 	}
 
 	return( true );
@@ -4420,6 +4475,12 @@ bool MeshQt::setFileSaveFlagGMExtras( bool rSetTo ) {
 	return rSetTo;
 }
 
+bool MeshQt::setFileSaveFlagExportTextures(bool setTo)
+{
+	setFlagExport( MeshIO::EXPORT_TEXTURE_FILE, setTo);
+	return setTo;
+}
+
 // Set Information ------------------------------------------------------------
 
 //! Imports a texture map from a given file and assigns it to a new texture map.
@@ -4489,7 +4550,7 @@ bool MeshQt::importNormalVectorsFile( const QString& rFileName ) {
 //! @returns false in case of an error. True otherwise.
 bool MeshQt::importFeatureVectors( const QString& rFileName ) {
 	emit statusMessage( "Importing feature vectors from " + rFileName );
-	if( !MeshGL::importFeatureVectorsFromFile( rFileName.toStdString() ) ) {
+	if( !Mesh::importFeatureVectorsFromFile( rFileName.toStdString() ) ) {
 		emit statusMessage( "ERROR - Reading file " + rFileName );
 		return( false );
 	}
@@ -4502,18 +4563,47 @@ bool MeshQt::importFeatureVectors( const QString& rFileName ) {
 //! See ...
 //! @returns false in case of an error. True otherwise.
 bool MeshQt::importFunctionValues( const QString& rFileName ) {
-	cerr << "[MeshQt::" << __FUNCTION__ << "] ERROR: not yet implemented!" << endl;
-	return( false );
-	/*
+
 	emit statusMessage( "Importing feature vectors from " + rFileName );
-	if( !MeshGL::importFeatureVectorsFromFile( rFileName.toStdString() ) ) {
+
+	// Ask for vertex index within the first colum
+	bool hasVertexIndex = true;
+	if( !showQuestion( &hasVertexIndex, "First Column", "Does the first column contain the vertex index?<br /><br />"
+					   "Recommendation: YES for files computed with gigamesh-featurevectors" ) ) {
+		std::cout << "[Mesh::" << __FUNCTION__ << "] User cancled." << std::endl;
+		return( false );
+	}
+
+	if( !Mesh::importFuncValsFromFile( rFileName.toStdString(), hasVertexIndex ) ) {
 		emit statusMessage( "ERROR - Reading file " + rFileName );
 		return( false );
 	}
 	emit primitiveSelected( mPrimSelected );
 	emit statusMessage( "Feature vectors assigned and imported from " + rFileName );
 	return( true );
-	*/
+}
+
+//! Export feature vectors and emit statusMessage
+bool MeshQt::exportFeatureVectors()
+{
+	QString filePath = QString( getFileLocation().c_str()) ;
+
+	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Export feature vectors" ), \
+													 filePath + "/" + getBaseName().c_str() + "_featureVectors.txt", \
+													 tr( "Feature Vectors (*.txt *.mat)" ) );
+	if( fileName.length() == 0 ) {
+		return false;
+	}
+
+	emit statusMessage( "Exporting feature vectors to " + fileName);
+
+	if( !Mesh::exportFeatureVectors( fileName.toStdString() ) ) {
+		emit statusMessage( "ERROR - Writing file " + fileName );
+		return( false );
+	}
+
+	emit statusMessage( "Feature vectors exported to " + fileName);
+	return true;
 }
 
 //! Display the dialog for NPR settings.

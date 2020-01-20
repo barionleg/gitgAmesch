@@ -19,6 +19,7 @@
 #include "printbuildinfo.h"
 
 #include "mesh.h"
+#include "../logging/Logging.h"
 
 bool infoGigaMeshData(
                 const std::string&   rFileNameIn,    //!< Input - filename.
@@ -69,6 +70,9 @@ void printHelp( const char* rExecName ) {
 	std::cout << "  -a, --show-absolute-filename            Show the filename with extenstion and absolute path." << std::endl;
 	std::cout << "                                          If not given only the stem of the filename is printed." << std::endl;
 	std::cout << "                                          Affects all types of output i.e. side car files and tabular." << std::endl;
+	std::cout << "    , --log-level [0-4]                   Sets the log level of this application.\n"
+				 "                                          Higher numbers increases verbosity.\n"
+				 "                                          (Default: 1)" << std::endl;
 	//std::cout << "" << std::endl;
 }
 
@@ -77,6 +81,8 @@ void printHelp( const char* rExecName ) {
 //==============================================================================================================================================================
 
 int main( int argc, char* argv[] ) {
+
+	LOG::initLogging();
 
 	// Default string parameter
 	std::string fileNameCSVOut;
@@ -96,6 +102,7 @@ int main( int argc, char* argv[] ) {
 		{ "overwrite-existing",           no_argument,       nullptr, 'k' },
 		{ "version",                      no_argument,       nullptr, 'v' },
 		{ "help",                         no_argument,       nullptr, 'h' },
+		{ "log-level",                    required_argument, nullptr,  0  },
 		{ nullptr, 0, nullptr, 0 }
 	};
 
@@ -108,6 +115,20 @@ int main( int argc, char* argv[] ) {
 			case 0:
 				// printf ("option %s", long_options[option_index].name);
 				// if (optarg) printf (" with arg %s", optarg);	
+
+				if(longOptions[optionIndex].name == "log-level")
+				{
+					unsigned int arg = optarg[0] - '0';
+					if(arg <= 5)
+					{
+						LOG::setLogLevel(static_cast<LOG::LogLevel>(arg));
+					}
+					else
+					{
+						std::cerr << "[GigaMesh] WARNING: Log level is out of range [0-4]!" << std::endl;
+					}
+				}
+
 				break;
 
 			case 'o':

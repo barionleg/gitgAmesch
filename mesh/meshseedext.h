@@ -39,11 +39,14 @@ class MeshSeedExt {
 		virtual void clear();
 
 		// Import / Export - Feature Vectors
-		virtual bool importFeatureVectors( const std::string& rFileName, const uint64_t rNrVerticesMax, std::vector<double>& rFeatureVecs, uint64_t& rMaxFeatVecLen, bool rVertexIdInFirstCol );
-		virtual bool exportFeatureVectors( const std::string& rFilename );
+		virtual bool importFeatureVectors( const std::string& rFileName, uint64_t rNrVerticesMax, std::vector<double>& rFeatureVecs, uint64_t& rMaxFeatVecLen, bool rVertexIdInFirstCol );
 
 		// Feature std::vectors - STUB to be overloaded by Mesh
 		virtual uint64_t getFeatureVecLenMax( int rPrimitiveType );
+		std::vector<double>& getFeatureVecVerticesRef() {return mFeatureVecVertices;}
+
+		void setFeatureVecVerticesLen(uint64_t len);
+
 
 		// Polyline related
 		virtual unsigned int  getPolyLineNr();
@@ -51,6 +54,10 @@ class MeshSeedExt {
 		virtual int           getPolyLineVertIdx( unsigned int rPolyIdx, unsigned int rElementIdx );
 		virtual uint64_t getPolyLineLabel( unsigned int rPolyIdx );
 		virtual PrimitiveInfo getPolyLinePrimInfo( unsigned int rPolyIdx );
+
+		std::vector<std::vector<int>*>& getPolyLineVertIndicesRef() {return mPolyLineVertIndices;}
+		std::vector<uint64_t>& getPolyLabelIDRef() {return mPolyLabelID;}
+		std::vector<PrimitiveInfo>& getPolyPrimInfoRef() {return mPolyPrimInfo;}
 
 	protected:
 		// Features:

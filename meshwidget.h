@@ -64,6 +64,8 @@ public:
 
 	bool    getViewPortResolution( double& rRealWidth, double& rRealHeight );
 	bool    getViewPortPixelWorldSize( double& rPixelWidth, double& rPixelHeight );
+	bool    getViewPortDPI(double& rDPI);
+	bool    getViewPortDPM(double& rDPM);
 
 public slots: // ... overloaded from MeshWidgetParams:
 	virtual bool    setParamFlagMeshWidget(    MeshWidgetParams::eParamFlag rFlagNr,  bool   rState  );
@@ -212,10 +214,11 @@ public slots:
 	//.
 	bool screenshotSVG();
 	bool screenshotSVG(const QString& rFileName, const QString& rFileNamePNG );
+
 	bool exportPlaneIntersectPolyLinesSVG();
+	bool screenshotSVGexportPlaneIntersections( double rOffsetX, double rOffsetY, double rPolyLineWidth, double axisOffset, SvgWriter& svgWriter, const std::set<unsigned int>& polylineIDs );
 
 	bool screenshotSVGexportPolyLines( Vector3D& cameraViewDir, Matrix4D& matView, double polyScaleWdith, double polyScaleHeight, double polyLineWidth, SvgWriter& svgWriter );
-	bool screenshotSVGexportPlaneIntersections( double rOffsetX, double rOffsetY, double rPolyLineWidth, SvgWriter& svgWriter );
 
 	void screenshotRuler();
 	bool screenshotRuler( const QString& rFileName );
@@ -239,10 +242,6 @@ public slots:
 	void rotOrthoPlane();
 	void rotArbitAxis( Vector3D rCenter, Vector3D rAxis, double rAngle );
 	//.
-	bool rotPlaneYawLeft();
-	bool rotPlaneYawRight();
-	bool rotPlanePitchUp();
-	bool rotPlanePitchDown();
     bool rotPlaneYaw( double rAngle );
     bool rotPlanePitch( double rAngle );
     bool rotPlaneRoll( double rAngle );
@@ -251,7 +250,7 @@ public slots:
 	//.
 	bool currentViewToDefault();
 
-	void openNormalSphereSelectionDialog();
+	void openNormalSphereSelectionDialog(bool faces);
 	void setCameraRotation(QQuaternion rotationQuat);
 
 signals:
@@ -269,6 +268,8 @@ signals:
 	void sGuideIDSelection(MeshWidgetParams::eGuideIDSelection);    //!< guide ID for sidebar
 
 	void camRotationChanged(Vector3D, Vector3D);                            //!< signal emitted when camera is rotated by mouse
+
+	void loadedMeshIsTextured(bool);
 private:
 	void initializeGL();
 	void initializeVAO();
@@ -365,6 +366,9 @@ private:
 	bool paintBackgroundShader( QOpenGLShaderProgram** rShaderProgram );
 	bool paintRasterImage( eTextureMaps rTexMap, int rPixelX, int rPixelY, int rPixelWidth, int rPixelHeight );
     //------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	//! Checkes if mesh might cause problems. E.g. too small or georeferenced (far away from origin)
+	void checkMeshSanity();
 };
 
 #endif // MESHWIDGET_H

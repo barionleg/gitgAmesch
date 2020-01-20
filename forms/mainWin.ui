@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>22</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -118,6 +118,7 @@
     <addaction name="actionFileSaveAs"/>
     <addaction name="actionSaveFlagBinary"/>
     <addaction name="actionSaveFlagGMExtras"/>
+    <addaction name="actionSaveFlagTextureExport"/>
     <addaction name="separator"/>
     <addaction name="actionImportVertexCoordinatesFromCSV"/>
     <addaction name="actionImportFeatureVectors"/>
@@ -125,6 +126,7 @@
     <addaction name="actionImportNormals"/>
     <addaction name="actionImportTexMap"/>
     <addaction name="separator"/>
+    <addaction name="actionExportFeatureVectors"/>
     <addaction name="actionExportFuncVals"/>
     <addaction name="separator"/>
     <addaction name="actionExportCoordinatesOfAllVerticesAsCSV"/>
@@ -199,6 +201,8 @@
      <addaction name="separator"/>
      <addaction name="actionFuncValFeatureVecPNorm"/>
      <addaction name="actionFuncValFeatureVecMahalanobis"/>
+     <addaction name="separator"/>
+     <addaction name="actionFuncValToFeatureVector"/>
     </widget>
     <widget class="QMenu" name="menuColorPerVertexToFunctionValue">
      <property name="title">
@@ -439,10 +443,6 @@
      <property name="title">
       <string>Rotate - Plane</string>
      </property>
-     <addaction name="actionRotPlaneYawLeft"/>
-     <addaction name="actionRotPlaneYawRight"/>
-     <addaction name="actionRotPlanePitchUp"/>
-     <addaction name="actionRotPlanePitchDown"/>
     </widget>
     <addaction name="menuToolbars"/>
     <addaction name="separator"/>
@@ -614,6 +614,7 @@
     <addaction name="menuPolylines"/>
     <addaction name="separator"/>
     <addaction name="actionVertices_Normal_Sphere"/>
+    <addaction name="actionFaces_Normal_Sphere"/>
    </widget>
    <widget class="QMenu" name="menuHistogram">
     <property name="title">
@@ -676,6 +677,7 @@
     <addaction name="actionBackGroundGridRaster"/>
     <addaction name="actionBackGroundGridPolar"/>
     <addaction name="actionGridHighlightCenter"/>
+    <addaction name="actionGrid_Center_Cross_in_front"/>
     <addaction name="actionGridShiftDepth"/>
     <addaction name="menuGridsExtra"/>
     <addaction name="separator"/>
@@ -1932,12 +1934,12 @@
   </action>
   <action name="actionRotYaw">
    <property name="text">
-    <string>&amp;Rotate - Yaw (L/R)</string>
+    <string>Rotate - Yaw (L/R)</string>
    </property>
   </action>
   <action name="actionRotPitch">
    <property name="text">
-    <string>Rotate - Pitch (&amp;U/D)</string>
+    <string>Rotate - Pitch (U/D)</string>
    </property>
   </action>
   <action name="actionRotRoll">
@@ -2697,30 +2699,6 @@ p, li { white-space: pre-wrap; }
   <action name="actionFuncVert1RingVolInt">
    <property name="text">
     <string>Vertex - 1-Ring Volume &amp;Integral</string>
-   </property>
-  </action>
-  <action name="actionRotPlaneYawLeft">
-   <property name="text">
-    <string>Rotate - Plane - &amp;Yaw - Left</string>
-   </property>
-   <property name="shortcut">
-    <string>Shift+Y</string>
-   </property>
-  </action>
-  <action name="actionRotPlaneYawRight">
-   <property name="text">
-    <string>Rotate - Plane - Yaw - Right</string>
-   </property>
-   <property name="shortcut">
-    <string>Shift+X</string>
-   </property>
-  </action>
-  <action name="actionRotPlanePitchDown">
-   <property name="text">
-    <string>Rotate - Plane - Pitch - Down</string>
-   </property>
-   <property name="shortcut">
-    <string>Shift+V</string>
    </property>
   </action>
   <action name="actionInfoKeyShortcuts">
@@ -3835,7 +3813,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionImportFunctionValues">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>Import Function Values (&amp;per Vertex)</string>
@@ -4288,14 +4266,6 @@ p, li { white-space: pre-wrap; }
     <string>Distance to Cone</string>
    </property>
   </action>
-  <action name="actionRotPlanePitchUp">
-   <property name="text">
-    <string>Rotate - Plane - Pitch - Up</string>
-   </property>
-   <property name="shortcut">
-    <string>Shift+C</string>
-   </property>
-  </action>
   <action name="actionSelMFacesBorderBridge">
    <property name="text">
     <string>Faces - Border - Bridge</string>
@@ -4323,7 +4293,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionVertices_Normal_Sphere">
    <property name="text">
-    <string>Vertices - Normal-Sphere</string>
+    <string>Normal-Sphere - Vertices</string>
    </property>
   </action>
   <action name="actionExport_Normal_Sphere_Data">
@@ -4349,6 +4319,40 @@ p, li { white-space: pre-wrap; }
   <action name="actionSphereSurfaceNumberOfComponents">
    <property name="text">
     <string>Sphere Surface Number of Components</string>
+   </property>
+  </action>
+  <action name="actionSaveFlagTextureExport">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Save Texture along Mesh</string>
+   </property>
+  </action>
+  <action name="actionFaces_Normal_Sphere">
+   <property name="text">
+    <string>Normal-Sphere - Faces</string>
+   </property>
+  </action>
+  <action name="actionExportFeatureVectors">
+   <property name="text">
+    <string>Export Feature Vectors (per Vertex)</string>
+   </property>
+  </action>
+  <action name="actionFuncValToFeatureVector">
+   <property name="text">
+    <string>Function Value to Feature Vector</string>
+   </property>
+  </action>
+  <action name="actionGrid_Center_Cross_in_front">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Grid: Center Crosshair in front</string>
    </property>
   </action>
  </widget>

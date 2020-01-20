@@ -13,6 +13,8 @@
 
 #include <filesystem>
 #include <cctype>
+#include <cmath>
+#include <limits>
 
 #include "svg/SvgIncludes.h"
 #include "normalSphereSelection/NormalSphereSelectionDialog.h"
@@ -21,6 +23,8 @@
 //#include <typeinfo> // see: http://www.cplusplus.com/reference/std/typeinfo/type_info/
 
 // #define DEBUG_SHOW_ALL_METHOD_CALLS
+
+#include "logging/Logging.h"
 
 using namespace std;
 
@@ -123,11 +127,6 @@ MeshWidget::MeshWidget( const QGLFormat &format, QWidget *parent )
 	QObject::connect( mMainWindow, SIGNAL(rotPitch()),                     this, SLOT(rotPitch())                     );
 	QObject::connect( mMainWindow, SIGNAL(rotOrthoPlane()),                this, SLOT(rotOrthoPlane())                );
 	//.
-	QObject::connect( mMainWindow, SIGNAL(sRotPlaneYawLeft()),             this, SLOT(rotPlaneYawLeft())              );
-	QObject::connect( mMainWindow, SIGNAL(sRotPlaneYawRight()),            this, SLOT(rotPlaneYawRight())             );
-	QObject::connect( mMainWindow, SIGNAL(sRotPlanePitchUp()),             this, SLOT(rotPlanePitchUp())              );
-	QObject::connect( mMainWindow, SIGNAL(sRotPlanePitchDown()),           this, SLOT(rotPlanePitchDown())            );
-	//.
 	QObject::connect( mMainWindow, SIGNAL(sDefaultViewLight()),            this, SLOT(defaultViewLight())             );
 	QObject::connect( mMainWindow, SIGNAL(sDefaultViewLightZoom()),        this, SLOT(defaultViewLightZoom())         );
 	//.
@@ -139,7 +138,8 @@ MeshWidget::MeshWidget( const QGLFormat &format, QWidget *parent )
 
 	// Select menu ----------------------------------------------------------------------------------------------------
 	QObject::connect( mMainWindow, &QGMMainWindow::setPlaneHNFByView,      this, &MeshWidget::setPlaneHNFByView      );
-	QObject::connect( mMainWindow, &QGMMainWindow::sOpenNormalSphereSelectionDialog, this, &MeshWidget::openNormalSphereSelectionDialog);
+	QObject::connect( mMainWindow, &QGMMainWindow::sOpenNormalSphereSelectionDialogVertices, [this]() {openNormalSphereSelectionDialog(false); });
+	QObject::connect( mMainWindow, &QGMMainWindow::sOpenNormalSphereSelectionDialogFaces, [this]() {openNormalSphereSelectionDialog(true); });
 	// ----------------------------------------------------------------------------------------------------------------
 
 	// Function calls --------------------------------------------------------------------------------------------------
@@ -289,6 +289,34 @@ bool MeshWidget::getViewPortPixelWorldSize(
 	return( true );
 }
 
+//! Returns the DPI of the viewport
+//! @param rDPI return value of the DPI.
+//! @returns false in case of an error
+bool MeshWidget::getViewPortDPI(double& rDPI)
+{
+	double pixelWidth;
+	double pixelHeight;
+	if(!getViewPortPixelWorldSize(pixelWidth, pixelHeight))
+		return false;
+
+	rDPI = 25.4/pixelWidth;
+	return true;
+}
+
+//! Returns the dots per meter of the viewport
+//! @param rDPM return value of the DPM
+//! @returns false in case of an error
+bool MeshWidget::getViewPortDPM(double& rDPM)
+{
+	double pixelWidth;
+	double pixelHeight;
+	if(!getViewPortPixelWorldSize(pixelWidth, pixelHeight))
+		return false;
+
+	rDPM = 1000.0/pixelWidth;
+	return true;
+}
+
 //! Set flag controlling the display of Primitives, etc.
 //! @returns true when the flag was changed. false otherwise.
 bool MeshWidget::setParamFlagMeshWidget( MeshWidgetParams::eParamFlag rFlagNr, bool rState ) {
@@ -302,10 +330,9 @@ bool MeshWidget::setParamFlagMeshWidget( MeshWidgetParams::eParamFlag rFlagNr, b
 	if( rFlagNr == ORTHO_MODE ) {
 		// Print resolution (in ortho mode):
 		if( rState ) {
-			double pixelWidth;
-			double pixelHeight;
-			if( getViewPortPixelWorldSize( pixelWidth, pixelHeight ) ) {
-				emit sViewPortInfo( VPINFO_DPI, QString::number( 25.4/pixelWidth, 'f', 2 ) );
+			double dpi;
+			if( getViewPortDPI( dpi ) ) {
+				emit sViewPortInfo( VPINFO_DPI, QString::number( dpi, 'f', 2 ) );
 			} else {
 				emit sViewPortInfo( VPINFO_DPI, QString( "err" ) );
 			}
@@ -660,10 +687,9 @@ bool MeshWidget::setParamFloatMeshWidget( MeshWidgetParams::eParamFlt rParamID, 
 	switch( rParamID ) {
 		case GRID_SHIFT_DEPTH:
 		case ORTHO_ZOOM: {
-			double pixelWidth;
-			double pixelHeight;
-			if( getViewPortPixelWorldSize( pixelWidth, pixelHeight ) ) {
-				emit sViewPortInfo( VPINFO_DPI, QString::number( 25.4/pixelWidth, 'f', 2 ) );
+			double dpi;
+			if( getViewPortDPI(dpi) ) {
+				emit sViewPortInfo( VPINFO_DPI, QString::number( dpi, 'f', 2 ) );
 			} else {
 				emit sViewPortInfo( VPINFO_DPI, QString( "err" ) );
 			}
@@ -798,9 +824,9 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 	bool readOk;
 
 	mMeshVisual = new MeshQt( fileName, readOk,
-	                          mMatModelView.constData(), mMatProjection.constData(), \
-	                          static_cast<MeshWidgetParams*>(this), static_cast<MeshGLColors*>(this), \
-	                          mMainWindow, context() \
+							  mMatModelView.constData(), mMatProjection.constData(),
+							  static_cast<MeshWidgetParams*>(this), static_cast<MeshGLColors*>(this),
+							  mMainWindow, context()
 	                         );
 
 	if( not( readOk ) ) {
@@ -820,13 +846,15 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 	QObject::connect( mMeshVisual, &MeshQt::sDefaultViewLightZoom,           this,        &MeshWidget::defaultViewLightZoom     );
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
 
+	// cheks mesh for problems and fix them
+	checkMeshSanity();
+
 	// Guess some initial distance for fog:
 	double minDist;
 	double maxDist;
 
 	double bboxLength = mMeshVisual->getBoundingBoxRadius() * 2.0;
 
-	double centerDistance = mMeshVisual->getBoundingBoxCenter().getLength3();
 	setParamFloatMeshWidget( FOG_LINEAR_START, bboxLength  * 0.75);
 	setParamFloatMeshWidget( FOG_LINEAR_END,   bboxLength  * 1.75);
 
@@ -874,6 +902,29 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 	                                  boundIngBoxDiag / 75.0 );  //75.0 magick number, seems to work well for a good pinSize
 
 	cout << "[MeshWidget::" << __FUNCTION__ << "] Done." << endl;
+
+	//check if the mesh is textured
+	if(mMeshVisual->getModelMetaDataRef().hasTextureCoordinates() && !mMeshVisual->getModelMetaDataRef().hasTextureFiles())
+	{
+		bool userLoad = false;
+		bool userCancel = false;
+		SHOW_QUESTION( tr("Load texture file"), tr("No valid texturefile found for the loaded Mesh. Do you want to select a texturefile manually?"), userLoad, userCancel );
+
+		if(userLoad && !userCancel)
+		{
+			auto imgFiles = QImageReader::supportedImageFormats();
+			QString supportedImages;
+			for(const auto& imgType : imgFiles)
+			{
+				supportedImages += QString("*." + imgType + " ");
+			}
+
+			auto fileName = QFileDialog::getOpenFileName(this, tr("Open texture"), mMeshVisual->getFileLocation().c_str(), tr("Images") + "(" + supportedImages + ")");
+			mMeshVisual->getModelMetaDataRef().setModelMetaString(ModelMetaData::META_TEXTUREFILE, fileName.toStdString());
+		}
+	}
+
+	emit loadedMeshIsTextured( mMeshVisual->getModelMetaDataRef().hasTextureCoordinates() && mMeshVisual->getModelMetaDataRef().hasTextureFiles() );
 
 	return( true );
 }
@@ -942,6 +993,20 @@ void MeshWidget::saveStillImages360( Vector3D rotCenter, Vector3D rotAxis ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
+
+	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
+	QString savePath = QFileDialog::getExistingDirectory(mMainWindow, tr( "Folder for image stack" ),
+													 filePath);
+
+	if(savePath.length() == 0)
+	{
+		std::cout << "[MeshWidget::" << __FUNCTION__ << "] user abort\n";
+		return;
+	}
+
+	if(savePath[savePath.length() - 1] != '/')
+		savePath.push_back('/');
+
 	if( !saveStillImagesSettings() ) {
 		return;
 	}
@@ -953,17 +1018,18 @@ void MeshWidget::saveStillImages360( Vector3D rotCenter, Vector3D rotAxis ) {
 	if( userCancel ) {
 		return;
 	}
+
 	//! .) Estimate angles using VIDEO_SLOW_STARTSTOP, VIDEO_FRAMES_PER_SEC and VIDEO_DURATION
 	float* stepAngles;
 	int    stepAnglesNr;
 	saveStillImages360Angles( &stepAngles, &stepAnglesNr );
-	char buffer[255];
 	//! .) Save sequence of still images
 	for( int i=0; i<stepAnglesNr; i++ ) {
 		rotArbitAxis( rotCenter, rotAxis, stepAngles[i]*180.0/M_PI );
-		sprintf( buffer, "gigamesh_still_image_%05i.tiff", i );
+
+		QString fileName = QString("%1gigamesh_still_image_%2.tiff").arg(savePath).arg(i,5,10,QChar('0'));
 		double realWidth, realHeigth;
-		screenshotSingle( buffer, useTiled, realWidth, realHeigth );
+		screenshotSingle( fileName, useTiled, realWidth, realHeigth );
 	}
 	delete[] stepAngles;
 }
@@ -1535,7 +1601,7 @@ void MeshWidget::initializeShader( const QString& rFileName, QOpenGLShaderProgra
 		QString linkMsgs = (*rShaderProgram)->log();
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: linking shader program (Background): " << linkMsgs.toStdString() << endl;
 		linkMsgs = linkMsgs.left( linkMsgs.indexOf( "***" ) );
-		SHOW_MSGBOX_CRIT( tr("GLSL Error") , linkMsgs )
+		SHOW_MSGBOX_CRIT( tr("GLSL Error") , linkMsgs );
 	} else {
 		cout << "[MeshWidget::" << __FUNCTION__ << "] Linking shader program (Background) successfull." << endl;
 	}
@@ -1641,7 +1707,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         tempFileName.replace(".", mainPath);
 
 		//! .) Fetch strings and their values. (For the pictures)
-		QString title = QString( mMeshVisual->getModelMetaString( MeshIO::META_MODEL_ID ).c_str() );
+		QString title = QString( mMeshVisual->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID ).c_str() );
 		title = title.replace( QString("-"), QString("\\protect\\-") );
 		title = title.replace( QString("_"), QString("\\protect\\_") );
 		string titleString = title.toStdString();
@@ -2717,7 +2783,7 @@ bool MeshWidget::screenshotViewsPDFUser() {
 		return( false );
 	}
 	QString filePrefix = mMeshVisual->getBaseName().c_str();
-	QString filePath = QString( mMeshVisual->getFileLocation().c_str() ) + "/";
+	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
 	std::cout << "[MeshWidget::" << __FUNCTION__ << "] filePath:        " << filePath.toStdString() << std::endl;
 	//qDebug() << filePath + QString( fileNamePattern.c_str() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as - Using a pattern for side, top and bottom views" ), \
@@ -3337,7 +3403,7 @@ bool MeshWidget::screenshotPDFUser() {
 		return( false );
 	}
 	QString filePrefix = mMeshVisual->getBaseName().c_str();
-	QString filePath = QString( mMeshVisual->getFileLocation().c_str() ) + "/";
+	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
 	std::cout << "[MeshWidget::" << __FUNCTION__ << "] filePath:        " << filePath.toStdString() << std::endl;
 	//qDebug() << filePath + QString( fileNamePattern.c_str() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as - Using a pattern for side, top and bottom views" ), \
@@ -3702,13 +3768,14 @@ bool MeshWidget::fetchFrameBuffer(
 	*/
 
 	unsigned char* imArrayGL;
-	int w,h;
+	int w;
+	int h;
 	imArrayGL = offscreenBuffer->getColorTexture(w, h);
 	float* pixelZBuffer = nullptr;
 
 	*rImWidth = w;
 	*rImHeight = h;
-
+	*rImArray = new unsigned char[w*h*3];
 	// Set the crop size to the image size. Otherwise the values are invalid, when there is nothing to crop.
 	int xMin = 0;
 	int xMax = (*rImWidth)-1;
@@ -3780,9 +3847,9 @@ bool MeshWidget::screenshotTIFF( const string& rFileName , OffscreenBuffer* offs
 
 	int imWidth;
 	int imHeight;
-	unsigned char* imArray;
+	unsigned char* imArray = nullptr;
 	fetchFrameBuffer( &imArray, &imWidth, &imHeight, mParamFlag[CROP_SCREENSHOTS], offscreenBuffer );
-#ifdef LIBTIFF
+
 	Image2D frameBufIm;
 	if( orthoMode ) {
 		//! When the widget is in orthographic mode, the proper resolution is set for the image.
@@ -3796,10 +3863,6 @@ bool MeshWidget::screenshotTIFF( const string& rFileName , OffscreenBuffer* offs
 	}
 	emit sStatusMessage( "Screenshot saved to: " + QString::fromStdString( rFileName ) );
 	return true;
-#else
-	emit sStatusMessage( "Screenshot NOT saved to: " + QString( rFileName.c_str() ) + " libtiff missing!" );
-	return false;
-#endif
 }
 
 //! Saves the PNG with transparency to the given filename.
@@ -3833,26 +3896,19 @@ bool MeshWidget::screenshotPNG( const string&   rFileName,
 	}
 
 	// Compute dots per meter for PNG export with Qt
-	double realWidth  = 0.0;
-	double realHeight = 0.0;
-	int dotsPerMeterWidth  = 0;
-	int dotsPerMeterHeight = 0;
-	if( orthoMode ) {
-		// Fetch real world dimensions
-		if( !getViewPortResolution( realWidth, realHeight ) ) {
-			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: getViewPortResolution failed!" << endl;
-			return( false );
-		}
-		dotsPerMeterWidth  = static_cast<int>( imWidth*1000 /  static_cast<uint64_t>(realWidth)  );
-		dotsPerMeterHeight = static_cast<int>( imHeight*1000 / static_cast<uint64_t>(realHeight) );
+	double dpm = 0.0;
+
+	if( !getViewPortDPM(dpm) )
+	{
+		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: getViewPortDPM failed!" << endl;
+		return false;
 	}
 
 	// Write the file:
-	bool writeOk = writePNG( rFileName, imWidth, imHeight, imRGBA, dotsPerMeterWidth, dotsPerMeterHeight );
+	bool writeOk = writePNG( rFileName, imWidth, imHeight, imRGBA, dpm, dpm );
 	if( writeOk ) {
 		if( orthoMode ) {
-			rWidthReal  = realWidth;
-			rHeigthReal = realHeight;
+			getViewPortResolution(rWidthReal, rHeigthReal);
 		}
 		emit sStatusMessage( "Screenshot saved as PNG with transparency to: " + QString( rFileName.c_str() ) );
 	} else {
@@ -4704,25 +4760,41 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 		return( false );
 	}
 
-	// 1.) Determine Bounding Box of the projected Polylines
-	//     Note: this part also checks for qualified polylines.
-	double Xmin, Ymin, Zmin, Xmax, Ymax, Zmax;
-	if( !mMeshVisual->getPolyLineBoundingBoxFromAll( &Xmin, &Ymin, &Zmin, &Xmax, &Ymax, &Zmax, true ) ) {
+	std::set<unsigned int> axisPolylines;
+	std::set<unsigned int> planePolylines;
+
+	// 1.) get qualified polylines and store their ID's into the appropriate set
+	for(unsigned int i = 0; i<mMeshVisual->getPolyLineNr(); ++i)
+	{
+		PolyLine* polyLine = mMeshVisual->getPolyLinePos(i);
+		Plane* polyLinePlane = nullptr;
+		bool hasPolyLinePlane = polyLine->getIntersectPlane(&polyLinePlane);
+
+		if(hasPolyLinePlane)
+		{
+			polyLinePlane->getDefinedBy() == Plane::AXIS_POINTS_AND_POSITION ?
+			            axisPolylines.insert(i) :
+			            planePolylines.insert(i);
+		}
+
+		delete polyLinePlane;
+	}
+
+	// 2.) abort if there are no qualified polylines
+	if(axisPolylines.empty() && planePolylines.empty())
+	{
 		SHOW_MSGBOX_WARN_TIMEOUT( tr("Warning"), tr("No qualified polylines i.e. intersections by planes present."), 5000 );
-		cout << "[MeshWidget::" << __FUNCTION__ << "] No qualified polylines found." << endl;
+		LOG::info() << "[MeshWidget::" << __FUNCTION__ << "] No qualified polylines found." << "\n";
 		return( false );
 	}
-	cout << "[MeshWidget::" << __FUNCTION__ << "] Bounding Box (X): " << Xmin << " to " << Xmax << endl;
-	cout << "[MeshWidget::" << __FUNCTION__ << "] Bounding Box (Y): " << Ymin << " to " << Ymax << endl;
-	cout << "[MeshWidget::" << __FUNCTION__ << "] Bounding Box (Z): " << Zmin << " to " << Zmax << endl;
 
-	// 2.) Ask for the filename
+	// 3.) Ask for the filename
 	QString baseName = QString( mMeshVisual->getBaseName().c_str() );
 	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save intersections as" ), \
 	                                                 filePath + baseName + "_profiles.svg", \
-													 tr( "Scaleable Vector Graphic (*.svg)" ) );
-	if( fileName == nullptr ) { // Cancel pressed
+	                                                 tr( "Scaleable Vector Graphic (*.svg)" ) );
+	if( fileName.isEmpty() ) { // Cancel pressed
 		SHOW_MSGBOX_WARN( tr("User abort"), tr("No files saved.") );
 		return( false );
 	}
@@ -4731,20 +4803,16 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 	fileName.replace(QString("/"), QString("\\"));
 #endif
 
-	// 3.) Open/create SVG file
-	double fontHeight     = 5.0;
-	double fontExtraSpace = fontHeight+3.0;
+	const double fontHeight     = 5.0;
+	const double fontExtraSpace = fontHeight+3.0;
 
 	SvgWriter svgWriter;
 
-	double canvasWidth  = Xmax-Xmin;
-	double canvasHeight = Ymax-Ymin;
-	cout << "[MeshWidget::" << __FUNCTION__ << "] Drawing size width: " << canvasWidth << " height: " << canvasHeight << endl;
-	// Add space for text:
-	canvasHeight += fontExtraSpace * 2;
-	cout << "[MeshWidget::" << __FUNCTION__ << "] Canvas size width:  " << canvasWidth << " height: " << canvasHeight << endl;
+	double canvasWidth  = 0.0;
+	double canvasHeight = 0.0;
 
-	svgWriter.setSize(canvasWidth  * mParamFlt[SVG_SCALE], canvasHeight * mParamFlt[SVG_SCALE]);
+	// Add space for text:
+	canvasHeight += fontExtraSpace;
 
 	//! \todo change to inventory no. (meta-data)
 	// 4.) Write filename within SVG
@@ -4756,23 +4824,256 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 
 	svgWriter.addElement(std::move(svgTextName));
 
-	// 5.) Export intersections
-	double polyLineWidth = 0.5;
-	if( !screenshotSVGexportPlaneIntersections( Xmin, (Ymax+fontExtraSpace), polyLineWidth, svgWriter ) ) {
-		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: screenshotSVGexportPolyLines falied!" << endl;
+	//helper function to get sorrounding bbox from set of polylines
+	auto getPolylinesBBOX = [this] (const std::set<unsigned int>& ids, bool useAxis,
+	        double& minX, double& maxX, double& minY, double& maxY) {
+		minX = +_INFINITE_DBL_;
+		minY = +_INFINITE_DBL_;
+
+		maxX = -_INFINITE_DBL_;
+		maxY = -_INFINITE_DBL_;
+
+		for(auto id : ids)
+		{
+			PolyLine* currPolyLine = mMeshVisual->getPolyLinePos(id);
+			double tminX, tminY, tminZ, tmaxX, tmaxY, tmaxZ;
+			currPolyLine->getBoundingBox(&tminX, &tminY, &tminZ, &tmaxX, &tmaxY, &tmaxZ, true, useAxis);
+
+			minX = std::min(minX, tminX);
+			maxX = std::max(maxX, tmaxX);
+
+			minY = std::min(minY, tminY);
+			maxY = std::max(maxY, tmaxY);
+		}
+	};
+
+	if(!axisPolylines.empty())
+	{
+		// 5.) Export axis intersections
+		//write axis polyline label
+		auto svgTextName = std::make_unique<SvgText>();
+		svgTextName->setFont("Sans");
+		svgTextName->setSize(fontHeight*mParamFlt[SVG_SCALE]);
+		svgTextName->setPosition(0.0, (fontHeight + canvasHeight)*mParamFlt[SVG_SCALE]);
+		svgTextName->setText("Plane-Axis intersections:");
+		svgWriter.addElement(std::move(svgTextName));
+
+		canvasHeight += fontExtraSpace;
+
+		double minX,maxX,minY,maxY;
+
+		getPolylinesBBOX(axisPolylines, true, minX, maxX, minY, maxY);
+		const double bboxWidth  = maxX - minX;
+		const double bboxHeight = maxY - minY;
+
+		const double polyLineWidth = 0.5;
+		if( !screenshotSVGexportPlaneIntersections( minX, canvasHeight + maxY, polyLineWidth, minX, svgWriter, axisPolylines ) ) {
+			LOG::error() << "[MeshWidget::" << __FUNCTION__ << "] ERROR: screenshotSVGexportPolyLines falied!\n";
+		}
+
+		//update offset + spacer
+		canvasWidth = std::max(canvasWidth, bboxWidth);
+		canvasHeight += bboxHeight + fontExtraSpace;
 	}
 
-	// 6.) SVG final steps:
-	svgWriter.writeToFile(fileName.toStdString());
+	if(!planePolylines.empty())
+	{
+		// 6.) Export plane intersections
+		//write axis polyline label
+		auto svgTextName = std::make_unique<SvgText>();
+		svgTextName->setFont("Sans");
+		svgTextName->setSize(fontHeight*mParamFlt[SVG_SCALE]);
+		svgTextName->setPosition(0.0, (fontHeight + canvasHeight)*mParamFlt[SVG_SCALE]);
+		svgTextName->setText("Plane intersections:");
+		svgWriter.addElement(std::move(svgTextName));
 
+		canvasHeight += fontExtraSpace;
+
+		double minX,maxX,minY,maxY;
+
+		getPolylinesBBOX(planePolylines, false, minX, maxX, minY, maxY);
+		const double bboxWidth  = maxX - minX;
+		const double bboxHeight = maxY - minY;
+
+		const double polyLineWidth = 0.5;
+		if( !screenshotSVGexportPlaneIntersections( minX, canvasHeight + maxY, polyLineWidth, ( maxX - minX) * -0.5, svgWriter, planePolylines ) ) {
+			LOG::error() << "[MeshWidget::" << __FUNCTION__ << "] ERROR: screenshotSVGexportPolyLines falied!\n";
+		}
+
+		//update canvas size
+		canvasWidth = std::max(canvasWidth, bboxWidth);
+		canvasHeight += bboxHeight + fontExtraSpace;
+	}
+
+	LOG::debug() << "[MeshWidget::" << __FUNCTION__ << "] Drawing size width: " << canvasWidth << " height: " << canvasHeight << "\n";
+	svgWriter.setSize(canvasWidth  * mParamFlt[SVG_SCALE], canvasHeight * mParamFlt[SVG_SCALE]);
+
+	// 7.) SVG final steps:
+	svgWriter.writeToFile(fileName.toStdString());
 
 	std::string inkscapeCommand;
 	getParamStringMeshWidget(MeshWidgetParams::INKSCAPE_COMMAND, &inkscapeCommand);
-	// 7.) Display with Inkscape:
+	// 8.) Display with Inkscape:
 	if( !QProcess::startDetached( QString(inkscapeCommand.c_str()) + " " + fileName ) ) {
-		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Inkscape won't start!" << endl;
+		LOG::error() << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Inkscape won't start!\n";
 	}
-	// 8.) Done.
+
+	return( true );
+}
+
+//! Draw polygonal lines to a cairo SVG canvas.
+//!
+//! @return false in case of an error. True otherwise.
+bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
+                double rOffsetY,
+                double rPolyLineWidth,
+                double axisOffset,
+                SvgWriter& svgWriter, const std::set<unsigned int>& polylineIDs) {
+
+	// Axis coordinates. Note x=0.0
+	double minYforAxis = +_INFINITE_DBL_;
+	double maxYforAxis = -_INFINITE_DBL_;
+	// x-value for horizontal lines from the axis to the top and bottom points.
+	double minYBottomX = _NOT_A_NUMBER_DBL_;
+	double maxYTopX    = _NOT_A_NUMBER_DBL_;
+
+	unsigned int ctrPolyLinesDrawn = 0;
+	for( auto i : polylineIDs) {
+
+		auto svgLine = std::make_unique<SvgPath>();
+		svgLine->setColor(0.0,0.0,0.8);
+		svgLine->setLineWidth(static_cast<float>(rPolyLineWidth));
+		svgLine->setLineCap(SvgPath::LineCap::CAP_ROUND);
+		svgLine->setLineJoin(SvgPath::LineJoin::JOIN_ROUND);
+
+		// Intersections using a plane
+		PolyLine* currPoly     = mMeshVisual->getPolyLinePos( i );
+
+		Plane*    intersectPlane( nullptr );
+		bool      hasIntersectPlane = currPoly->getIntersectPlane( &intersectPlane );
+		// Skip all polylines NOT computed using a plane.
+		if( !hasIntersectPlane ) {
+			//cout << "[MeshWidget::" << __FUNCTION__ << "] Plane: " << intersectPlane << endl;
+			continue;
+		}
+		ctrPolyLinesDrawn++;
+
+		Plane::ePlaneDefinedBy planeDefType = intersectPlane->getDefinedBy();
+		if( planeDefType == Plane::AXIS_POINTS_AND_POSITION ) {
+			cout << "[MeshWidget::" << __FUNCTION__ << "] Plane defined by Axis." << endl;
+		}
+
+		delete intersectPlane;
+
+		size_t polyLen = static_cast<size_t>(currPoly->length());
+		vector<Vector3D> polyCoords;    // 3D-Coordinates in object space.
+		vector<double> screenCoords;    // Coordinates in drawing/SVG space.
+		currPoly->getVertexCoordsInPlane( &polyCoords, true );
+		screenCoords.reserve( polyCoords.size()*2 );
+		for(const auto& vertexPos : polyCoords)
+		{
+			screenCoords.push_back( (+vertexPos.getX()-rOffsetX) * mParamFlt[SVG_SCALE] );
+			screenCoords.push_back( (-vertexPos.getY()+rOffsetY) * mParamFlt[SVG_SCALE] );
+		}
+		// Draw using the projected coordinates
+		svgLine->moveTo( screenCoords[0], screenCoords[1] );
+		for( size_t j=1; j<polyLen; j++ ) {
+			// Draw line
+			double currXcoord = screenCoords.at(j*2);
+			double currYcoord = screenCoords.at(j*2+1);
+
+			svgLine->lineTo( currXcoord, currYcoord );
+			// Determine points for drawing the axis
+			if( minYforAxis > currYcoord ) {
+				// Set lower point of the axis
+				minYforAxis = currYcoord;
+				// Store the x-coordinate for the horizontal line:
+				if( currXcoord != 0.0 ) { // Intentionally ignore 0.0 to avoid lines of length zero.
+					minYBottomX = currXcoord;
+				}
+			}
+			if( maxYforAxis < currYcoord ) {
+				// Set lower point of the axis
+				maxYforAxis = currYcoord;
+				// Store the x-coordinate for the horizontal line:
+				if( currXcoord != 0.0 ) { // Intentionally ignore 0.0 to avoid lines of length zero.
+					maxYTopX = currXcoord;
+				}
+			}
+			// Simple just for drawing the axis:
+			// minYforAxis = min( minYforAxis, screenCoords.at(j*2+1) );
+			// maxYforAxis = max( maxYforAxis, screenCoords.at(j*2+1) );
+		}
+
+		// Draw now
+		svgWriter.addElement( std::move(svgLine));
+		// cout << "[MeshWidget::" << __FUNCTION__ << "] ------------- " << endl;
+	}
+
+	std::string widthUnit;
+	getParamStringMeshWidget( RULER_WIDTH_UNIT, &widthUnit );
+
+	//helper function to draw line with length as label
+	auto drawCenterLabledLine = [&svgWriter, &rPolyLineWidth, &widthUnit, this] (double x1, double y1, double x2, double y2, bool vert = false, bool dashed = false) {
+		auto svgHLine = std::make_unique<SvgPath>();
+		svgHLine->setColor(0.75,0.0,0.0);
+		svgHLine->setLineWidth(static_cast<float>(rPolyLineWidth) * 1.5F);
+		svgHLine->moveTo(x1, y1);
+		svgHLine->lineTo(x2, y2);
+		svgHLine->setLineCap(SvgPath::LineCap::CAP_ROUND);
+		svgHLine->setLineJoin(SvgPath::LineJoin::JOIN_ROUND);
+
+		if( dashed ) {
+			static const double dashedLine[] = { 1.0, 2.0, 5.0, 2.0 };
+			static int lenDashed = sizeof( dashedLine ) / sizeof( dashedLine[0] );
+			svgHLine->setLineDash(dashedLine, lenDashed, 1);
+		}
+
+		svgWriter.addElement(std::move(svgHLine));
+
+		auto svgLineText = std::make_unique<SvgText>();
+
+		double lineWidthPixels = 0.0;
+		if(vert)
+		{
+			//-rOffsetX * mParamFlt[SVG_SCALE] + 2.0, (minYforAxis + maxYforAxis) * 0.5
+			svgLineText->setPosition(x1 + 2.0, (y1 + y2) * 0.5);
+			svgLineText->setRotation(90);
+			lineWidthPixels = std::abs(y2 - y1);
+		}
+		else
+		{
+			svgLineText->setPosition((x1 + x2) * 0.5, y1 + 4.0);
+			lineWidthPixels = std::abs(x2 - x1);
+		}
+		svgLineText->setText(std::to_string(lineWidthPixels / mParamFlt[SVG_SCALE]) + widthUnit);
+
+		svgLineText->setSize(4.0);
+		svgLineText->setTextAnchor(SvgText::TextAnchor::ANCHOR_MIDDLE);
+
+		svgWriter.addElement(std::move(svgLineText));
+	};
+
+	// Draw horizontal lines, when present:
+	if( isnormal( minYBottomX ) ) {
+		drawCenterLabledLine(-axisOffset * mParamFlt[SVG_SCALE], minYforAxis,
+		                     minYBottomX                     , minYforAxis);
+	}
+	if( isnormal( maxYTopX ) ) {
+		drawCenterLabledLine(-axisOffset * mParamFlt[SVG_SCALE], maxYforAxis,
+		                     maxYTopX                        , maxYforAxis);
+	}
+
+	bool dashedAxis = true;
+	getParamFlagMeshWidget( EXPORT_SVG_AXIS_DASHED, &dashedAxis );
+
+	drawCenterLabledLine(-axisOffset * mParamFlt[SVG_SCALE], minYforAxis ,
+	                     -axisOffset * mParamFlt[SVG_SCALE], maxYforAxis ,
+	                     true, dashedAxis);
+
+	LOG::info() << "[MeshWidget::" << __FUNCTION__ << "] Polylines: " << mMeshVisual->getPolyLineNr() << "\n";
+	LOG::info() << "[MeshWidget::" << __FUNCTION__ << "] ctrPolyLinesDrawn: " << ctrPolyLinesDrawn << "\n";
+
 	return( true );
 }
 
@@ -4780,7 +5081,7 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 //!
 //! @return false in case of an error. True otherwise.
 bool MeshWidget::screenshotSVGexportPolyLines(Vector3D& cameraViewDir, Matrix4D& matView, double polyScaleWdith, double polyScaleHeight, double polyLineWidth , SvgWriter& svgWriter) {
-	cout << "[MeshWidget::" << __FUNCTION__ << "] Polylines: " << mMeshVisual->getPolyLineNr() << endl;
+	LOG::info() << "[MeshWidget::" << __FUNCTION__ << "] Polylines: " << mMeshVisual->getPolyLineNr() << "\n";
 
 	for( unsigned int i=0; i<mMeshVisual->getPolyLineNr(); i++ ) {
 		auto svgPolyLinePath = std::make_unique<SvgPath>();
@@ -4796,6 +5097,8 @@ bool MeshWidget::screenshotSVGexportPolyLines(Vector3D& cameraViewDir, Matrix4D&
 			svgPolyLinePath->setColor(0.0,0.5,0.0);
 			//cout << "[MeshWidget::" << __FUNCTION__ << "] Plane: " << intersectPlane << endl;
 		}
+
+		delete intersectPlane;
 
 		// Determine polylines with pointing away from the camera.
 		// This will provide a basic filter for polylines not seen by the viewer, which will do the trick for most objects.
@@ -4840,187 +5143,6 @@ bool MeshWidget::screenshotSVGexportPolyLines(Vector3D& cameraViewDir, Matrix4D&
 		// Draw now
 		svgWriter.addElement(std::move(svgPolyLinePath));
 	}
-
-	return( true );
-}
-
-//! Draw polygonal lines to a cairo SVG canvas.
-//!
-//! @return false in case of an error. True otherwise.
-bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
-				double rOffsetY,
-				double rPolyLineWidth,
-				SvgWriter& svgWriter) {
-
-	// Axis coordinates. Note x=0.0
-	double minYforAxis = +_INFINITE_DBL_;
-	double maxYforAxis = -_INFINITE_DBL_;
-	// x-value for horizontal lines from the axis to the top and bottom points.
-	double minYBottomX = _NOT_A_NUMBER_DBL_;
-	double maxYTopX    = _NOT_A_NUMBER_DBL_;
-
-	unsigned int ctrPolyLinesDrawn = 0;
-	for( unsigned int i=0; i<mMeshVisual->getPolyLineNr(); i++ ) {
-
-		auto svgLine = std::make_unique<SvgPath>();
-		svgLine->setColor(0.0,0.0,0.8);
-		svgLine->setLineWidth(rPolyLineWidth);
-		svgLine->setLineCap(SvgPath::LineCap::CAP_ROUND);
-		svgLine->setLineJoin(SvgPath::LineJoin::JOIN_ROUND);
-
-		// Intersections using a plane
-		PolyLine* currPoly     = mMeshVisual->getPolyLinePos( i );
-
-		Plane*    intersectPlane( nullptr );
-		bool      hasIntersectPlane = currPoly->getIntersectPlane( &intersectPlane );
-		// Skip all polylines NOT computed using a plane.
-		if( !hasIntersectPlane ) {
-			//cout << "[MeshWidget::" << __FUNCTION__ << "] Plane: " << intersectPlane << endl;
-			continue;
-		}
-		ctrPolyLinesDrawn++;
-
-		Plane::ePlaneDefinedBy planeDefType = intersectPlane->getDefinedBy();
-		if( planeDefType == Plane::AXIS_POINTS_AND_POSITION ) {
-			cout << "[MeshWidget::" << __FUNCTION__ << "] Plane defined by Axis." << endl;
-		}
-
-		// double Xmin, Ymin, Zmin, Xmax, Ymax, Zmax;
-		// currPoly->getBoundingBox( &Xmin, &Ymin, &Zmin, &Xmax, &Ymax, &Zmax, true );
-		// cout << "[MeshWidget::" << __FUNCTION__ << "] Bounding Box (X): " << Xmin << " - " << Xmax << endl;
-		// cout << "[MeshWidget::" << __FUNCTION__ << "] Bounding Box (Y): " << Ymin << " - " << Ymax << endl;
-		// cout << "[MeshWidget::" << __FUNCTION__ << "] Bounding Box (Z): " << Zmin << " - " << Zmax << endl;
-
-		int polyLen = currPoly->length();
-		vector<Vector3D> polyCoords;    // 3D-Coordinates in object space.
-		vector<double> screenCoords;    // Coordinates in drawing/SVG space.
-		currPoly->getVertexCoordsInPlane( &polyCoords, true );
-		screenCoords.reserve( polyCoords.size()*2 );
-		vector<Vector3D>::iterator vertexPos;
-		for( vertexPos=polyCoords.begin(); vertexPos != polyCoords.end(); vertexPos++ ) {
-			// vertexPos->dumpInfo();
-			screenCoords.push_back( (+vertexPos->getX()-rOffsetX) * mParamFlt[SVG_SCALE] );
-			screenCoords.push_back( (-vertexPos->getY()+rOffsetY) * mParamFlt[SVG_SCALE] );
-		}
-
-		// Draw using the projected coordinates
-		svgLine->moveTo( screenCoords[0], screenCoords[1] );
-		for( int j=1; j<polyLen; j++ ) {
-			// Draw line
-			double currXcoord = screenCoords.at(j*2);
-			double currYcoord = screenCoords.at(j*2+1);
-
-			svgLine->lineTo( currXcoord, currYcoord );
-			// Determine points for drawing the axis
-			if( minYforAxis > currYcoord ) {
-				// Set lower point of the axis
-				minYforAxis = currYcoord;
-				// Store the x-coordinate for the horizontal line:
-				if( currXcoord != 0.0 ) { // Intentionally ignore 0.0 to avoid lines of length zero.
-					minYBottomX = currXcoord;
-				}
-			}
-			if( maxYforAxis < currYcoord ) {
-				// Set lower point of the axis
-				maxYforAxis = currYcoord;
-				// Store the x-coordinate for the horizontal line:
-				if( currXcoord != 0.0 ) { // Intentionally ignore 0.0 to avoid lines of length zero.
-					maxYTopX = currXcoord;
-				}
-			}
-			// Simple just for drawing the axis:
-			// minYforAxis = min( minYforAxis, screenCoords.at(j*2+1) );
-			// maxYforAxis = max( maxYforAxis, screenCoords.at(j*2+1) );
-		}
-
-		// Draw now
-		svgWriter.addElement( std::move(svgLine));
-		// cout << "[MeshWidget::" << __FUNCTION__ << "] ------------- " << endl;
-	}
-
-	std::string widthUnit;
-	getParamStringMeshWidget( RULER_WIDTH_UNIT, &widthUnit );
-
-	// Draw horizontal lines, when present:
-	if( isnormal( minYBottomX ) ) {
-		auto svgHLine = std::make_unique<SvgPath>();
-		svgHLine->setColor(0.75,0.0,0.0);
-		svgHLine->setLineWidth(rPolyLineWidth * 1.5);
-		svgHLine->moveTo(-rOffsetX * mParamFlt[SVG_SCALE], minYforAxis);
-		svgHLine->lineTo( minYBottomX, minYforAxis);
-		svgHLine->setLineCap(SvgPath::LineCap::CAP_ROUND);
-		svgHLine->setLineJoin(SvgPath::LineJoin::JOIN_ROUND);
-
-		svgWriter.addElement(std::move(svgHLine));
-
-		auto svgLineText = std::make_unique<SvgText>();
-
-		float lineWidthPixels = std::abs(minYBottomX - (-rOffsetX * mParamFlt[SVG_SCALE]));
-
-		svgLineText->setPosition(-rOffsetX * mParamFlt[SVG_SCALE] - 0.5 * lineWidthPixels, minYforAxis + 4);
-		svgLineText->setSize(4.0);
-		svgLineText->setTextAnchor(SvgText::TextAnchor::ANCHOR_MIDDLE);
-
-		svgLineText->setText(std::to_string(lineWidthPixels / mParamFlt[SVG_SCALE]) + widthUnit);
-
-		svgWriter.addElement(std::move(svgLineText));
-	}
-	if( isnormal( maxYTopX ) ) {
-		auto svgNormalLine = std::make_unique<SvgPath>();
-		svgNormalLine->setColor(0.75,0.0,0.0);
-		svgNormalLine->setLineWidth(rPolyLineWidth * 1.5);
-		svgNormalLine->moveTo(-rOffsetX * mParamFlt[SVG_SCALE], maxYforAxis);
-		svgNormalLine->lineTo( maxYTopX, maxYforAxis );
-		svgNormalLine->setLineCap(SvgPath::LineCap::CAP_ROUND);
-		svgNormalLine->setLineJoin(SvgPath::LineJoin::JOIN_ROUND);
-
-		svgWriter.addElement(std::move(svgNormalLine));
-
-		auto svgLineText = std::make_unique<SvgText>();
-
-		float lineWidthPixels = std::abs(maxYTopX - (-rOffsetX * mParamFlt[SVG_SCALE]));
-
-		svgLineText->setPosition(-rOffsetX * mParamFlt[SVG_SCALE] - 0.5 * lineWidthPixels, maxYforAxis + 4);
-		svgLineText->setSize(4.0);
-		svgLineText->setTextAnchor(SvgText::TextAnchor::ANCHOR_MIDDLE);
-
-		svgLineText->setText(std::to_string(lineWidthPixels / mParamFlt[SVG_SCALE]) + widthUnit);
-
-		svgWriter.addElement(std::move(svgLineText));
-	}
-
-	auto svgAxisPath = std::make_unique<SvgPath>();
-	svgAxisPath->setLineCap(SvgPath::LineCap::CAP_ROUND);
-	svgAxisPath->setLineJoin(SvgPath::LineJoin::JOIN_ROUND);
-
-	svgAxisPath->setColor(0.75,0.0,0.0);
-	svgAxisPath->setLineWidth( rPolyLineWidth * 1.5 );
-
-	// Draw a dashed line for the axis
-	bool dashedAxis = true;
-	getParamFlagMeshWidget( EXPORT_SVG_AXIS_DASHED, &dashedAxis );
-	if( dashedAxis ) {
-		static const double dashedLine[] = { 1.0, 2.0, 5.0, 2.0 };
-		static int lenDashed = sizeof( dashedLine ) / sizeof( dashedLine[0] );
-		svgAxisPath->setLineDash(dashedLine, lenDashed, 1);
-	}
-	// The axis is along the y-axis
-	svgAxisPath->moveTo(-rOffsetX * mParamFlt[SVG_SCALE], minYforAxis);
-	svgAxisPath->lineTo(-rOffsetX * mParamFlt[SVG_SCALE], maxYforAxis);
-
-	svgWriter.addElement(std::move(svgAxisPath));
-
-	auto svgAxisText = std::make_unique<SvgText>();
-
-	svgAxisText->setSize(4.0);
-	svgAxisText->setTextAnchor(SvgText::TextAnchor::ANCHOR_MIDDLE);
-	svgAxisText->setText(std::to_string(std::abs(maxYforAxis - minYforAxis) / mParamFlt[SVG_SCALE]) + widthUnit);
-	svgAxisText->setRotation(90);
-	svgAxisText->setPosition(-rOffsetX * mParamFlt[SVG_SCALE] + 2.0, (minYforAxis + maxYforAxis) * 0.5);
-
-	svgWriter.addElement(std::move(svgAxisText));
-	cout << "[MeshWidget::" << __FUNCTION__ << "] Polylines: " << mMeshVisual->getPolyLineNr() << endl;
-	cout << "[MeshWidget::" << __FUNCTION__ << "] ctrPolyLinesDrawn: " << ctrPolyLinesDrawn << endl;
 
 	return( true );
 }
@@ -5134,8 +5256,6 @@ bool MeshWidget::screenshotTiledPNG(
 	if( !getViewPortResolution( realWidth, realHeight ) ) {
 		return( false );
 	}
-	int dotsPerMeterWidth  = width()*1000  / static_cast<long>(realWidth);
-	int dotsPerMeterHeight = height()*1000 / static_cast<long>(realHeight);
 
 	//! 3. Estimate the number of tiles for each direction.
 	GLint    viewport[4];
@@ -5234,6 +5354,13 @@ bool MeshWidget::screenshotTiledPNG(
 	}
 	bool appendDPItoFilename = false;
 	getParamFlagMeshWidget( SCREENSHOT_FILENAME_WITH_DPI, &appendDPItoFilename );
+
+	double dpm;
+	if(!getViewPortDPM(dpm))
+	{
+		return false;
+	}
+
 	if( splitLargeImage ) {
 		for( uint64_t subImageX=0; subImageX<largeTilesX; subImageX++ ) {
 			for( uint64_t subImageY=0; subImageY<largeTilesY; subImageY++ ) {
@@ -5263,7 +5390,7 @@ bool MeshWidget::screenshotTiledPNG(
 				}
 				// Write file
 				if( !writePNG( rFileNameSubImage.toStdString(), subImageWidth, subImageHeight, imSubRGBA,
-				               dotsPerMeterWidth, dotsPerMeterHeight ) ) {
+							   dpm, dpm ) ) {
 					cerr << "[MeshWidget::" << __FUNCTION__ << "] could not write to '" << rFileNameSubImage.toStdString() << "'!" << endl;
 					emit sStatusMessage( "ERROR: Could not save screenshot as PNG with transparency to: " + rFileNameSubImage + "!" );
 					return false;
@@ -5277,7 +5404,7 @@ bool MeshWidget::screenshotTiledPNG(
 			QString strDPI = QString( "_%1DPI." ).arg( resolutionDPI );
 			rFileName.replace( extSeperator, 1, strDPI );
 		}
-		if( !writePNG( rFileName.toStdString(), imWidth, imHeight, imRGBA, dotsPerMeterWidth, dotsPerMeterHeight ) ) {
+		if( !writePNG( rFileName.toStdString(), imWidth, imHeight, imRGBA, dpm, dpm ) ) {
 			cerr << "[MeshWidget::" << __FUNCTION__ << "] could not write to '" << rFileName.toStdString() << "'!" << endl;
 			emit sStatusMessage( "ERROR: Could not save screenshot as PNG with transparency to: " + rFileName + "!" );
 			return false;
@@ -5700,64 +5827,9 @@ void MeshWidget::rotArbitAxis( Vector3D rCenter, //!< arbitrary rotation axis, p
     //update();
 }
 
-//! Rotate the mesh plane to the left (yaw) by 90°
-bool MeshWidget::rotPlaneYawLeft() {
-#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
-#endif
-	float moveAngleLeftRight =  +M_PI / 2.0;
-	Matrix4D transMatLeftRight( mCenterView, mCameraUp, moveAngleLeftRight );
-	emit sApplyTransfromToPlane( transMatLeftRight );
-	setView();
-	update();
-	return true;
-}
-
-//! Rotate the mesh plane to the right (yaw) by 90°
-bool MeshWidget::rotPlaneYawRight() {
-#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
-#endif
-	float moveAngleLeftRight =  -M_PI / 2.0;
-	Matrix4D transMatLeftRight( mCenterView, mCameraUp, moveAngleLeftRight );
-	emit sApplyTransfromToPlane( transMatLeftRight );
-	setView();
-	update();
-	return true;
-}
-
-//! Rotate the mesh plane to the up (pitch) by 90°
-bool MeshWidget::rotPlanePitchUp() {
-#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
-#endif
-	float moveAngleUpDown = -M_PI / 2.0;
-	Vector3D cameraPitchAxis( mMatModelView(0,0), mMatModelView(0,1), mMatModelView(0,2), 0.0 );
-	Matrix4D transMatUpDown( mCenterView, cameraPitchAxis, moveAngleUpDown );
-	emit sApplyTransfromToPlane( transMatUpDown );
-	setView();
-	update();
-	return true;
-}
-
-//! Rotate the mesh plane to the down (pitch) by 90°
-bool MeshWidget::rotPlanePitchDown() {
-#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
-#endif
-	float moveAngleUpDown = +M_PI / 2.0;
-	Vector3D cameraPitchAxis( mMatModelView(0,0), mMatModelView(0,1), mMatModelView(0,2), 0.0 );
-	Matrix4D transMatUpDown( mCenterView, cameraPitchAxis, moveAngleUpDown );
-	emit sApplyTransfromToPlane( transMatUpDown );
-	setView();
-	update();
-	return true;
-}
-
 //! Rotate the mesh plane left/right by angle
 bool MeshWidget::rotPlaneYaw(double rAngle)
 {
-
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
     cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
@@ -5786,6 +5858,9 @@ bool MeshWidget::rotPlanePitch(double rAngle)
 //! Rotate the mesh plane clockwise/counterclockwise by angle
 bool MeshWidget::rotPlaneRoll(double rAngle)
 {
+#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
+	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
+#endif
     Vector3D camRollAxis( -mMatModelView(2,0), -mMatModelView(2,1), -mMatModelView(2,2), 0.0 );
     Matrix4D transMatRot(mCenterView, camRollAxis, -rAngle*M_PI/180.0);
     emit sApplyTransfromToPlane( transMatRot );
@@ -5882,7 +5957,7 @@ void MeshWidget::paintEvent( QPaintEvent *rEvent ) {
 	if( showGridPolarCircles ) {
 		paintBackgroundShader( &mShaderGridPolarCircles );
 	}
-	if( ( showGridRect | showGridPolarLines | showGridPolarCircles ) & showGridHighLightCenter ) {
+	if( ( showGridRect || showGridPolarLines || showGridPolarCircles ) && showGridHighLightCenter ) {
 		paintBackgroundShader( &mShaderGridHighLightCenter );
 	}
 
@@ -6003,6 +6078,10 @@ bool MeshWidget::paintBackgroundShader( QOpenGLShaderProgram** rShaderProgram ) 
 		return false;
 	}
 
+	GLboolean oldDepthMask = true;
+	glGetBooleanv(GL_DEPTH_WRITEMASK, &oldDepthMask);
+	glDepthMask(false);
+
 	double realWidth;
 	double realHeight;
 	if( !getViewPortResolution( realWidth, realHeight ) ) {
@@ -6017,6 +6096,10 @@ bool MeshWidget::paintBackgroundShader( QOpenGLShaderProgram** rShaderProgram ) 
 	(*rShaderProgram)->setUniformValue( "uDepthPos", static_cast<GLfloat>(gridShiftDepth)   );
 	(*rShaderProgram)->setUniformValue( "uScaleX",   static_cast<GLfloat>(realWidth/2.0)  );
 	(*rShaderProgram)->setUniformValue( "uScaleY",   static_cast<GLfloat>(realHeight/2.0) );
+
+	bool gridCenterFront;
+	getParamFlagMeshWidget( SHOW_GRID_HIGHLIGHTCENTER_FRONT, &gridCenterFront);
+	(*rShaderProgram)->setUniformValue( "uHighlightDepth", (gridCenterFront ? 0.0F : 0.999F ));
 
 	double xOffset = 0.0;
 	double yOffset = 0.0;
@@ -6047,6 +6130,7 @@ bool MeshWidget::paintBackgroundShader( QOpenGLShaderProgram** rShaderProgram ) 
 	glBindVertexArray( 0 );
 	PRINT_OPENGL_ERROR( "glBindVertexArray( 0 )" );
 
+	glDepthMask(oldDepthMask);
 	return true;
 }
 
@@ -6153,6 +6237,52 @@ bool MeshWidget::paintRasterImage( eTextureMaps rTexMap, int rPixelX, int rPixel
 	PRINT_OPENGL_ERROR( "glBindVertexArray( 0 )" );	
 	someBuffer.destroy();
 	return true;
+}
+
+void MeshWidget::checkMeshSanity()
+{
+	const auto meshSize = mMeshVisual->getBoundingBoxRadius();
+	const auto meshCenterDistance = mMeshVisual->getBoundingBoxCenter().getLength3();
+
+	int exponent = 0.0F;
+	const auto mantissa = frexp(meshCenterDistance,&exponent);
+
+	//! TODO: find out resonable value. Currently, assume that the float should have at least 4 binary decimal places
+	if(std::numeric_limits<float>::digits - exponent < 4)
+	{
+		bool move = false;
+		bool cancel = false;
+		SHOW_QUESTION(tr("Center Mesh"), tr("The mesh is very far off center compared to its radius(distance: %1mm). This may cause numeric problems. Would you like to move the mesh to the origin?").arg(meshCenterDistance),
+					  move, cancel);
+
+		if(!cancel && move)
+		{
+			const auto transVector = mMeshVisual->getBoundingBoxCenter();
+
+			Matrix4D transMat(transVector);
+
+			mMeshVisual->applyTransformationToWholeMesh(transMat);
+
+			SHOW_MSGBOX_INFO(tr("Transfrom Vector"), tr("To move the mesh back to its original position, you can translate it back by the following vector:\n(%1, %2, %3)").
+							 arg(transVector.getX()).
+							 arg(transVector.getY()).
+							 arg(transVector.getZ()));
+		}
+	}
+
+	//! TODO: find out resonable value
+	if(meshSize < 1.0)
+	{
+		bool rescale = false;
+		bool cancel = false;
+		SHOW_QUESTION(tr("Rescale Mesh"), tr("The mesh appears to be unusually small (radius: %1mm). Would you like to scale the Mesh up?").arg(meshSize), rescale, cancel);
+
+		if(!cancel && rescale)
+		{
+			mMeshVisual->callFunction(MeshParams::APPLY_TRANSMAT_ALL_SCALE);
+		}
+	}
+
 }
 
 //! Paint the selected volume (prisms defined by polgonal selection).
@@ -6741,34 +6871,34 @@ void MeshWidget::keyPressEvent( QKeyEvent *rEvent ) {
 	// --- 90° Rotations ----
 	//! Y/X rotate left/right about 90°
 	if( rEvent->key() == Qt::Key_Y ) {
-		rotYaw( +90.0 );
+		rEvent->modifiers() & Qt::ShiftModifier ? rotPlaneYaw( +90.0) : rotYaw( +90.0 );
 		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 		return;
 	}
 	if( rEvent->key() == Qt::Key_X ) {
-		rotYaw( -90.0 );
+		rEvent->modifiers() & Qt::ShiftModifier ? rotPlaneYaw( -90.0) : rotYaw( -90.0 );
 		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 		return;
 	}
 	//! C/V rotate up/down about 90°
 	if( rEvent->key() == Qt::Key_C ) {
-		rotPitch( +90.0 );
+		rEvent->modifiers() & Qt::ShiftModifier ? rotPlanePitch( +90.0) : rotPitch( +90.0 );
 		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 		return;
 	}
 	if( rEvent->key() == Qt::Key_V ) {
-		rotPitch( -90.0 );
+		rEvent->modifiers() & Qt::ShiftModifier ? rotPlanePitch( -90.0) : rotPitch( -90.0 );
 		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 		return;
 	}
 	//! B/N camera roll clockwise/counterclockwise
 	if( rEvent->key() == Qt::Key_B ) {
-		rotRoll( +90.0 );
+		rEvent->modifiers() & Qt::ShiftModifier ? rotPlaneRoll( +90.0) : rotRoll( +90.0 );
 		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 		return;
 	}
 	if( rEvent->key() == Qt::Key_N ) {
-		rotRoll( -90.0 );
+		rEvent->modifiers() & Qt::ShiftModifier ? rotPlaneRoll( -90.0) : rotRoll( -90.0 );
 		emit camRotationChanged(mCameraCenter - mCenterView, mCameraUp);
 		return;
 	}
@@ -7092,7 +7222,7 @@ bool MeshWidget::currentViewToDefault() {
 	return( retVal );
 }
 
-void MeshWidget::openNormalSphereSelectionDialog()
+void MeshWidget::openNormalSphereSelectionDialog(bool faces)
 {
 	auto dialog = this->findChild<QDialog*>(tr("NormalSphereSelectionDialog"));
 
@@ -7102,7 +7232,7 @@ void MeshWidget::openNormalSphereSelectionDialog()
 		return;
 	}
 
-	auto normalSphereDialog = new NormalSphereSelectionDialog(this);
+	auto normalSphereDialog = new NormalSphereSelectionDialog(this, faces);
 
 	normalSphereDialog->setAttribute(Qt::WA_DeleteOnClose);
 	normalSphereDialog->setWindowFlags( normalSphereDialog->windowFlags() | Qt::Tool);
@@ -7381,10 +7511,9 @@ void MeshWidget::setView( GLdouble* rOrthoViewPort //!< position and dimension o
 
 	// Update of the sidebar
 	if( mParamFlag[ORTHO_MODE] ) {
-		double pixelWidth;
-		double pixelHeight;
-		if( getViewPortPixelWorldSize( pixelWidth, pixelHeight ) ) {
-			emit sViewPortInfo( VPINFO_DPI, QString::number( 25.4/pixelWidth, 'f', 2 ) );
+		double dpi;
+		if( getViewPortDPI(dpi) ) {
+			emit sViewPortInfo( VPINFO_DPI, QString::number( dpi, 'f', 2 ) );
 		} else {
 			emit sViewPortInfo( VPINFO_DPI, QString( "err" ) );
 		}

@@ -35,7 +35,9 @@ GMESHOBJECTS = geodentry.o bitflagarray.o primitive.o vertex.o vertexofface.o fa
                meshio.o meshseedext.o mesh_params.o \
                vector3d.o matrix4d.o voxelfilter25d.o \
                meshinfodata.o \
-               ../normalSphereSelection/IcoSphereTree.o
+			   ../normalSphereSelection/IcoSphereTree.o \
+			   ../logging/Logging.o \
+			   ../logging/Logger.o
 GMESHHEADERS = gmcommon.h geodentry.h bitflagarray.h primitive.h vertex.h vertexofface.h face.h sphere.h rectbox.h line.h \
                showprogress.h userinteraction.h printbuildinfo.h \
                polyline.h polyedge.h plane.h \
@@ -46,7 +48,9 @@ GMESHHEADERS = gmcommon.h geodentry.h bitflagarray.h primitive.h vertex.h vertex
                meshio.h meshseedext.h mesh_params.h \
                vector3d.h matrix4d.h voxelfilter25d.h \
                meshinfodata.h \
-               ../normalSphereSelection/IcoSphereTree.h
+			   ../normalSphereSelection/IcoSphereTree.h \
+			   ../logging/Logging.h \
+			   ../logging/Logger.h
 
 TIFFLIB = -ltiff
 
@@ -57,6 +61,7 @@ TIFFLIB = -ltiff
 
 all: mesh \
      gigamesh-tolegacy \
+     gigamesh-borders \
      gigamesh-clean \
      gigamesh-info \
      meshgeneratefeaturevectors25d \
@@ -67,11 +72,16 @@ package-files: \
      gigamesh-featurevectors \
      gigamesh-clean \
      gigamesh-tolegacy \
+     gigamesh-borders \
      gigamesh-info
 
 gigamesh-tolegacy: $(GMESHOBJECTS) $(GMESHHEADERS) vector3d.h octree.h octnode.h mesh_threads.o gigamesh-tolegacy.o voxelcuboid.o image2d.o Makefile
 	$(CXX) $(TIFFLIB) -pthread -o gigamesh-tolegacy $(GMESHOBJECTS) mesh_threads.o gigamesh-tolegacy.o voxelcuboid.o image2d.o -lstdc++fs $(LDFLAGS)
 	./gigamesh-tolegacy --version
+	
+gigamesh-borders: $(GMESHOBJECTS) $(GMESHHEADERS) vector3d.h octree.h octnode.h mesh_threads.o gigamesh-borders.o voxelcuboid.o image2d.o Makefile
+	$(CXX) $(TIFFLIB) -pthread -o gigamesh-borders $(GMESHOBJECTS) mesh_threads.o gigamesh-borders.o voxelcuboid.o image2d.o -lstdc++fs $(LDFLAGS)
+	./gigamesh-borders --version
 
 gigamesh-clean: $(GMESHOBJECTS) $(GMESHHEADERS) vector3d.h octree.h octnode.h mesh_threads_psalm.o gigamesh-clean.o voxelcuboid.o image2d.o printbuildinfo.o Makefile
 	$(CXX) $(TIFFLIB) -pthread -o gigamesh-clean $(GMESHOBJECTS) mesh_threads_psalm.o gigamesh-clean.o voxelcuboid.o image2d.o ../external/libpsalmBoostless/libpsalm.a -lstdc++fs $(LDFLAGS)
@@ -130,6 +140,9 @@ mesh_main.o: mesh.o mesh_main.c
 
 gigamesh-tolegacy.o: mesh.o gigamesh-tolegacy.cpp
 	$(CXX) -I. -I..  -DTHREADS $(CFLAGS) gigamesh-tolegacy.cpp -o gigamesh-tolegacy.o $(LDFLAGS)
+	
+gigamesh-borders.o: mesh.o gigamesh-borders.cpp
+	$(CXX) -I. -I..  -DTHREADS $(CFLAGS) gigamesh-borders.cpp -o gigamesh-borders.o $(LDFLAGS)
 
 gigamesh-clean.o: mesh_threads_psalm.o printbuildinfo.o gigamesh-clean.cpp
 	$(CXX) -I. -I..  -DTHREADS -DLIBPSALM $(CFLAGS) gigamesh-clean.cpp -o gigamesh-clean.o $(LDFLAGS)
@@ -192,6 +205,7 @@ clean:
 	rm -f *.o *.a *.linkinfo a.out *~ image2d matrix4d mesh vector3d voxelcuboid
 	rm -f triangle/*.o
 	rm -f gigamesh-tolegacy
+	rm -f gigamesh-borders
 	rm -f gigamesh-clean
 	rm -f gigamesh-info
 	rm -f meshgeneratefeaturevectors

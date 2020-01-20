@@ -10,6 +10,9 @@ cmake_minimum_required(VERSION 3.10)
 # 2. set g++-8 as alternative permanently:
 # sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 10
 # sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 10
+# 
+# 3. Tested alternative to 1, running cmake with:
+# cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-8 -DCMAKE_CC_COMPILER=/usr/bin/gcc-8
 
 project(GigaMesh-CLT LANGUAGES CXX C)
 
@@ -77,7 +80,21 @@ set(SOURCES_COMMON mesh/geodentry.cpp
 	mesh/voxelfilter25d.cpp
 	mesh/meshinfodata.cpp
 	mesh/mesh.cpp
-	normalSphereSelection/IcoSphereTree.cpp)
+	normalSphereSelection/IcoSphereTree.cpp
+	mesh/MeshIO/MeshReader.cpp
+	mesh/MeshIO/MeshWriter.cpp
+	mesh/MeshIO/ModelMetaData.cpp
+	mesh/MeshIO/ObjReader.cpp
+	mesh/MeshIO/ObjWriter.cpp
+	mesh/MeshIO/PlyReader.cpp
+	mesh/MeshIO/PlyWriter.cpp
+	mesh/MeshIO/RegularGridTxtReader.cpp
+	mesh/MeshIO/TxtReader.cpp
+	mesh/MeshIO/TxtWriter.cpp
+	mesh/MeshIO/VRMLWriter.cpp
+	mesh/MeshIO/MtlParser.cpp
+	logging/Logging.cpp
+	logging/Logger.cpp)
 
 set(HEADERS_COMMON mesh/geodentry.h
 	mesh/bitflagarray.h
@@ -108,7 +125,22 @@ set(HEADERS_COMMON mesh/geodentry.h
 	mesh/voxelfilter25d.h
 	mesh/meshinfodata.h
 	mesh/mesh.h
-	normalSphereSelection/IcoSphereTree.h)
+	normalSphereSelection/IcoSphereTree.h
+	mesh/MeshIO/MeshReader.h
+	mesh/MeshIO/MeshWriter.h
+	mesh/MeshIO/ModelMetaData.h
+	mesh/MeshIO/ObjReader.h
+	mesh/MeshIO/ObjWriter.h
+	mesh/MeshIO/PlyReader.h
+	mesh/MeshIO/PlyWriter.h
+	mesh/MeshIO/RegularGridTxtReader.h
+	mesh/MeshIO/TxtReader.h
+	mesh/MeshIO/TxtWriter.h
+	mesh/MeshIO/VRMLWriter.h
+	mesh/MeshIO/PlyEnums.h
+	mesh/MeshIO/MtlParser.h
+	logging/Logging.h
+	logging/Logger.h)
 
 if(MSVC)
     list(APPEND HEADERS_COMMON mesh/getoptwin.h)
@@ -163,3 +195,6 @@ elseif(MSVC)
 elseif(MINGW)
 	target_link_libraries(meshgeneratefeaturevectors25d PRIVATE ws2_32)
 endif()
+
+add_executable(gigamesh-borders mesh/gigamesh-borders.cpp)
+target_link_libraries(gigamesh-borders PRIVATE gigamesh-common)

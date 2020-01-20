@@ -20,6 +20,7 @@ QGMDockSideBar::QGMDockSideBar( QWidget *parent ) :
 	QObject::connect( ui->radioButtonPointcloud,       SIGNAL(toggled(bool)), this, SLOT(shaderChoicePointCloud(bool)));
 	QObject::connect( ui->radioButton_Solid,           SIGNAL(toggled(bool)), this, SLOT(shaderChoiceMonolithic(bool)));
 	QObject::connect( ui->radioButtonTransparency,     SIGNAL(toggled(bool)), this, SLOT(shaderChoiceTransparency(bool)));
+	QObject::connect( ui->radioButtonTextured,         SIGNAL(toggled(bool)), this, SLOT(shaderChoiceTextured(bool)));
 
 	QObject::connect( this, SIGNAL(sShowParamIntMeshGL(MeshGLParams::eParamInt,int)), SLOT(updateMeshParamInt(MeshGLParams::eParamInt,int)) );
 
@@ -126,6 +127,25 @@ void QGMDockSideBar::shaderChoiceTransparency(bool rState)
 	}
 }
 
+void QGMDockSideBar::shaderChoiceTextured(bool rState)
+{
+	if(rState)
+	{
+		emit sShowParamIntMeshGL( MeshGLParams::SHADER_CHOICE, MeshGLParams::SHADER_TEXTURED);
+		ui->radioButtonFuncValVertTex->setEnabled(false);
+		ui->radioButtonVertexLabel->setEnabled(false);
+		ui->radioButtonVertexTex->setEnabled(false);
+		ui->radioButtonSolidColor->setEnabled(false);
+	}
+	else
+	{
+		ui->radioButtonFuncValVertTex->setEnabled(true);
+		ui->radioButtonVertexLabel->setEnabled(true);
+		ui->radioButtonVertexTex->setEnabled(true);
+		ui->radioButtonSolidColor->setEnabled(true);
+	}
+}
+
 //! Sets menu items according to the flags of MeshGL::viewParamsIntArr
 void QGMDockSideBar::updateMeshParamInt( MeshGLParams::eParamInt rParamNr, int rSetValue ) {
 	ui->radioButtonFuncValVertTex->setEnabled(true);
@@ -176,6 +196,9 @@ void QGMDockSideBar::updateMeshParamInt( MeshGLParams::eParamInt rParamNr, int r
 			case MeshGLParams::SHADER_TRANSPARENCY:
 					ui->radioButtonTransparency->setChecked( true );
 					break;
+			case MeshGLParams::SHADER_TEXTURED:
+					ui->radioButtonTextured->setChecked( true );
+					break;
 				default:
 					cerr << "[QGMDockSideBar::" << __FUNCTION__ << "] ERROR: parameter SHADER_CHOICE has an unknown choice: " << rSetValue << "!" << endl;
 			}
@@ -206,6 +229,11 @@ void QGMDockSideBar::updateMeshParamInt( MeshGLParams::eParamInt rParamNr, int r
 		default:
 			cerr << "[QGMDockSideBar::" << __FUNCTION__ << "] ERROR: unsupported/unimplemented parameter no: " << rParamNr << "!" << endl;
 	}
+}
+
+void QGMDockSideBar::enableTextureMeshRendering(bool enable)
+{
+	ui->radioButtonTextured->setEnabled(enable);
 }
 
 

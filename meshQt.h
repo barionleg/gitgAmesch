@@ -129,6 +129,7 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		virtual bool   funcValsAbs();
 		virtual bool   funcValsAdd();
 		virtual bool   funcValsAdd( double rVal );
+		virtual bool   funcValsToFeatureVector();
 		//.
 		virtual bool   setConeData();
 		virtual bool   setConeParameters( const Vector3D& rAxisTop, const Vector3D& rAxisBot,
@@ -217,6 +218,7 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		virtual bool   getPlanePosToSet( int* rPosID );
 		virtual bool   setPlanePos( Vector3D* rSomePos );
 		virtual bool   applyTransfromToPlane( Matrix4D transMat );
+		virtual bool   applyTransformation( Matrix4D rTrans, std::set<Vertex*>* rSomeVerts, bool rResetNormals = true );
 
 		// Selection - Cone:
 		virtual bool       setConeAxis( const Vector3D& rUpper, const Vector3D& rLower );
@@ -338,6 +340,7 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		// Set flags:
 		virtual bool setFileSaveFlagBinary( bool rSetTo );
 		virtual bool setFileSaveFlagGMExtras( bool rSetTo );
+		virtual bool setFileSaveFlagExportTextures( bool setTo );
 
 	// Related to MeshIO
 	//===================
@@ -349,6 +352,7 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		virtual bool importFeatureVectors(const QString& rFileName );
 		virtual bool importFunctionValues(const QString& rFileName );
 
+		virtual bool exportFeatureVectors();
 
 	signals:
 		void updateGL();                             //!< requests an update from the MeshWidget.

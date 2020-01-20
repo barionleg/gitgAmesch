@@ -4,6 +4,7 @@
 #include <QtMath>
 #include <QMouseEvent>
 #include <array>
+#include <algorithm>
 #include "IcoSphereTree.h"
 
 bool initShaderProgram(QOpenGLShaderProgram& program, const QString& vertexSource, const QString& fragmentSource)
@@ -30,7 +31,7 @@ bool initShaderProgram(QOpenGLShaderProgram& program, const QString& vertexSourc
 QVector2D vec3ToSphereCoord(const QVector3D& vec)
 {
 	return QVector2D(
-			(atan2f(vec.y(), vec.x()) / M_PI + 1.0f) * 0.5f,
+			(atan2f(vec.y(), vec.x()) / M_PI + 1.0F) * 0.5F,
 			acosf(vec.z()) / M_PI
 			);
 }
@@ -38,8 +39,8 @@ QVector2D vec3ToSphereCoord(const QVector3D& vec)
 
 QVector2D getScreenPosNormalized(int posX, int posY, int w, int h)
 {
-	float x = (static_cast<float>(posX) / static_cast<float>(w)) * 2.0f - 1.0f;
-	float y = (static_cast<float>(posY) / static_cast<float>(h)) * 2.0f - 1.0f;
+	float x = (static_cast<float>(posX) / static_cast<float>(w)) * 2.0F - 1.0F;
+	float y = (static_cast<float>(posY) / static_cast<float>(h)) * 2.0F - 1.0F;
 
 
 	//respect aspect ratio
@@ -53,15 +54,15 @@ QVector2D getScreenPosNormalized(int posX, int posY, int w, int h)
 
 float raySphereIntersect(const QVector3D& r0, const QVector3D& rd)
 {
-	float b = 2.0f * QVector3D::dotProduct(rd, r0);
-	float c = QVector3D::dotProduct(r0, r0) - 1.0f;
+	float b = 2.0F * QVector3D::dotProduct(rd, r0);
+	float c = QVector3D::dotProduct(r0, r0) - 1.0F;
 
-	float test = b*b - 4.0f*c;
+	float test = b*b - 4.0F*c;
 
-	if (test < 0.0f) {
-		return -1.0f;
+	if (test < 0.0F) {
+		return -1.0F;
 	}
-	return (-b - sqrtf(test))/ 2.0f;
+	return (-b - sqrtf(test))/ 2.0F;
 }
 
 
@@ -100,8 +101,12 @@ void NormalSphereSelectionRenderWidget::setRenderNormals(std::vector<float>& nor
 		if(std::isnan(mNormalUpload[i]) || std::isnan(mNormalUpload[i + 1]) || std::isnan(mNormalUpload[i+2]) )
 			continue;
 
-		size_t index = mIcoSphereTree.getNearestVertexIndexAt(Vector3D(mNormalUpload[i], mNormalUpload[i+1], mNormalUpload[i+2]));
-		mIcoSphereTree.incData(index);
+		Vector3D normal(mNormalUpload[i], mNormalUpload[i+1], mNormalUpload[i+2]);
+
+		auto incSize = normal.normalize3();
+
+		size_t index = mIcoSphereTree.getNearestVertexIndexAt(normal);
+		mIcoSphereTree.incData(index, incSize);
 	}
 }
 
@@ -153,21 +158,18 @@ void NormalSphereSelectionRenderWidget::setColorMapIndex(unsigned int index)
 
 void NormalSphereSelectionRenderWidget::refreshNormals()
 {
+	auto icoData = mIcoSphereTree.getVertexDataP();
+
+	std::vector<float> dataBuffer;
+
+	double minData = *(std::min_element(icoData->begin(), icoData->end()));
+	double maxData = mIcoSphereTree.getMaxData();
+
+	std::transform(icoData->begin(), icoData->end(), std::back_inserter(dataBuffer),
+				   [minData, maxData](double data) -> float {return (data - minData) / (maxData - minData);}
+	);
 
 	mIcosphereDataBuffer.bind();
-	std::vector<float> dataBuffer(mIcoSphereTree.getVertexDataP()->size());
-
-	for(size_t i = 0; i<dataBuffer.size(); ++i)
-	{
-		dataBuffer[i] = static_cast<float>((*mIcoSphereTree.getVertexDataP())[i]);
-	}
-
-	mMinData = dataBuffer[0];
-	for(auto dat : dataBuffer)
-	{
-		mMinData = std::min(mMinData, dat);
-	}
-
 	mIcosphereDataBuffer.write(0,dataBuffer.data(), dataBuffer.size() * sizeof (float));
 	mIcosphereDataBuffer.release();
 	assert(glGetError() == GL_NO_ERROR);
@@ -184,7 +186,7 @@ float NormalSphereSelectionRenderWidget::selectionRadius() const
 
 void NormalSphereSelectionRenderWidget::setSelectionRadius(float selectionRadius)
 {
-	mSelectionRadius = std::min(selectionRadius, 10.0f);
+	mSelectionRadius = std::min(selectionRadius, 10.0F);
 }
 
 bool getSpherePoint(const QVector2D& screenCoordNorm, const QQuaternion& camRotation, QVector3D& retVec)
@@ -206,7 +208,7 @@ bool getSpherePoint(const QVector2D& screenCoordNorm, const QQuaternion& camRota
 
 void NormalSphereSelectionRenderWidget::selectAt(int xCoord, int yCoord)
 {
-	if(mSelectionRadius == 1.0f)
+	if(mSelectionRadius == 1.0F)
 	{
 		auto posNormalized = getScreenPosNormalized(xCoord, yCoord, mScreenWidth, mScreenHeight);
 		QVector3D sphereVec;
@@ -219,9 +221,9 @@ void NormalSphereSelectionRenderWidget::selectAt(int xCoord, int yCoord)
 	else
 	{
 		//TODO: do this in normalized coordinates? Otherwise it depends on the window-size...
-		for(float x = -mSelectionRadius; x < mSelectionRadius; x += 1.0f)
+		for(float x = -mSelectionRadius; x < mSelectionRadius; x += 1.0F)
 		{
-			for(float y = -mSelectionRadius; y < mSelectionRadius; y += 1.0f)
+			for(float y = -mSelectionRadius; y < mSelectionRadius; y += 1.0F)
 			{
 				if(QVector2D(x,y).lengthSquared() > mSelectionRadius * mSelectionRadius)
 					continue;
@@ -317,9 +319,9 @@ void NormalSphereSelectionRenderWidget::initializeGL()
 
 	mIcoSphereShader = new QOpenGLShaderProgram;
 
-	glClearColor(1.0f,1.0f,1.0f,0.0f);
+	glClearColor(1.0F,1.0F,1.0F,0.0F);
 
-	mProjectionMatrix.ortho(-1.0f,1.0f,-1.0f,1.0f,0.0f,2.0f);	//ortho matrix with unit qube for the sphere
+	mProjectionMatrix.ortho(-1.0F,1.0F,-1.0F,1.0F,-1.0F,3.0F);	//ortho matrix with unit qube for the sphere
 
 	assert(glGetError() == GL_NO_ERROR);
 
@@ -413,7 +415,7 @@ void NormalSphereSelectionRenderWidget::resizeGL(int w, int h)
 	mScreenHeight = h;
 	assert(glGetError() == GL_NO_ERROR);
 
-	float width = 1.0f;
+	float width = 1.0F;
 	float height = 1.0f;
 
 	//maintain aspect ratio
@@ -423,7 +425,7 @@ void NormalSphereSelectionRenderWidget::resizeGL(int w, int h)
 		width = static_cast<float>(w) / static_cast<float>(h);
 
 	mProjectionMatrix.setToIdentity();
-	mProjectionMatrix.ortho(-width,width,-height,height,0.0f,2.0f);	//ortho matrix with unit qube for the sphere
+	mProjectionMatrix.ortho(-width,width,-height,height,-1.0F,3.0F);	//ortho matrix with unit qube for the sphere
 
 }
 
@@ -456,31 +458,27 @@ void NormalSphereSelectionRenderWidget::paintGL()
 	//glCullFace(GL_BACK);
 	QQuaternion quat = mArcBall.getTransformationQuat();
 
-	QVector3D origin = quat.conjugated() * QVector3D(0.0f,0.0f, 1.5f);
-	QVector3D up = quat.conjugated() * QVector3D(0.0f,1.0f,0.0f);
+	QVector3D origin = quat.conjugated() * QVector3D(0.0F,0.0F, 1.5F);
+	QVector3D up = quat.conjugated() * QVector3D(0.0F,1.0F,0.0F);
 
 	mViewMatrix.setToIdentity();
-	mViewMatrix.lookAt(origin, QVector3D(0.0f,0.0f,0.0f), up);
+	mViewMatrix.lookAt(origin, QVector3D(0.0F,0.0F,0.0F), up);
 
 	mIcoSphereShader->setUniformValue("uModelViewMatrix",mViewMatrix);
 	mIcoSphereShader->setUniformValue("uProjectionMatrix", mProjectionMatrix);
-	mIcoSphereShader->setUniformValue("uMaxData", static_cast<float>(mIcoSphereTree.getMaxData()));
-	mIcoSphereShader->setUniformValue("uMinData", mMinData);
 	mIcoSphereShader->setUniformValue("uColorMapIndex", static_cast<float>(mColorMapIndex));
 	mIcoSphereShader->setUniformValue("invertFuncVal", mInvertFuncVal);
 	mIcoSphereShader->setUniformValue("uUpperQuantil", mUpperQuantil);
 
-	float normalScale = mScaleNormals ? 0.7f : 1.0f;
+	float normalScale = mScaleNormals ? 0.7f : 1.0F;
 	mIcoSphereShader->setUniformValue("uNormalScale", normalScale );
 
 	glActiveTexture(GL_TEXTURE0);
-	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, mFuncValTexture.textureId());
 
 	mIcoSphereShader->setUniformValue("uFuncValTexture", 0);
 
 	glActiveTexture(GL_TEXTURE1);
-	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, mSelectionTexture.textureId());
 
 	mIcoSphereShader->setUniformValue("uSelectionTexture", 1);
@@ -497,7 +495,6 @@ void NormalSphereSelectionRenderWidget::paintGL()
 	glActiveTexture(GL_TEXTURE0);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
-	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_CULL_FACE);
 	assert(glGetError() == GL_NO_ERROR);
 }

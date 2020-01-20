@@ -50,6 +50,7 @@ package() {
 	cp meshBuild/gigamesh-clean $pkgdir/usr/bin
 	cp meshBuild/gigamesh-tolegacy $pkgdir/usr/bin
 	cp meshBuild/gigamesh-featurevectors $pkgdir/usr/bin
+	cp meshBuild/gigamesh-borders $pkgdir/usr/bin
 
 	mkdir -p $pkgdir/usr/share/pixmaps
 	cp forms/gigamesh_logo.svg $pkgdir/usr/share/pixmaps

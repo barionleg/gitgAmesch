@@ -2,7 +2,7 @@
 
 #include <QtMath>
 
-ArcBall::ArcBall(const QVector3D& center, float radius) : mCenter(center), mRadius(radius), mMouseStart(0.0f,0.0f,0.0f)
+ArcBall::ArcBall(const QVector3D& center, float radius) : mCenter(center), mRadius(radius), mMouseStart(0.0F,0.0F,0.0F)
 {
 
 }
@@ -43,12 +43,12 @@ QVector3D ArcBall::mouseOnSphere(const QVector2D& mousePos)
 
 	if(mag > 1.0)
 	{
-		ballMouse *= 1.0f / sqrtf(mag);
+		ballMouse *= 1.0F / sqrtf(mag);
 		ballMouse.setZ(0.0);
 	}
 
 	else {
-		ballMouse.setZ(sqrtf(1.0f - mag));
+		ballMouse.setZ(sqrtf(1.0F - mag));
 	}
 
 	return ballMouse;

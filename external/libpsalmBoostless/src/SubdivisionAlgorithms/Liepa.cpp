@@ -185,13 +185,24 @@ bool Liepa::apply_to(mesh& input_mesh)
 
 		// Relax interior edges
 		bool relaxed_edge;
+		double threshHold = std::numeric_limits<double>::epsilon() * 5.0;
+		unsigned int iters = 0;
 		do
 		{
+			++iters;
 			relaxed_edge = false;
 			for(size_t i = 0; i < input_mesh.num_edges(); i++)
 			{
-				if(input_mesh.relax_edge(input_mesh.get_edge(i)))
+				if(input_mesh.relax_edge(input_mesh.get_edge(i),threshHold))
+				{
 					relaxed_edge = true;
+					//slowly increase relaxing threshold, if the last edges where changed to avoid infinite loops
+					//last edge are newly added ones from previous relaxation steps
+					if(i == input_mesh.num_edges() - 1)
+					{
+						threshHold *= 1.5;
+					}
+				}
 			}
 		}
 		while(relaxed_edge);

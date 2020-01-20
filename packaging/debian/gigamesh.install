@@ -5,5 +5,6 @@ meshBuild/gigamesh-info usr/bin
 meshBuild/gigamesh-clean usr/bin
 meshBuild/gigamesh-featurevectors usr/bin
 meshBuild/gigamesh-tolegacy usr/bin
+meshBuild/gigamesh-borders usr/bin
 debian/gigamesh.desktop usr/share/applications
 debian/gigamesh_term.desktop usr/share/applications

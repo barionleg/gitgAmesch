@@ -55,6 +55,7 @@ windows:
       - meshBuild/gigamesh-tolegacy.exe
       - meshBuild/gigamesh-clean.exe
       - meshBuild/gigamesh-info.exe
+      - meshBuild/gigamesh-borders.exe
     expire_in: 4 hours
    
 ubuntu bionic:
@@ -101,6 +102,7 @@ ubuntu bionic:
       - meshBuild/gigamesh-tolegacy
       - meshBuild/gigamesh-clean
       - meshBuild/gigamesh-info
+      - meshBuild/gigamesh-borders
     expire_in: 4 hours
     
 manjaro arch:
@@ -144,5 +146,6 @@ manjaro arch:
       - meshBuild/gigamesh-tolegacy
       - meshBuild/gigamesh-clean
       - meshBuild/gigamesh-info
+      - meshBuild/gigamesh-borders
     expire_in: 4 hours
   

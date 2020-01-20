@@ -19,6 +19,7 @@ extern "C"
 #include <map>
 #include <list>
 #include <set>
+#include <functional>
 
 #include "bitflagarray.h"
 #include "vertex.h"
@@ -110,7 +111,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		// IO Operations - overloaded from MeshIO and MeshSeedExt
 		virtual bool     writeFile( const std::string& rFileName );
 		virtual bool     importFeatureVectorsFromFile( const std::string& rFileName );
-
+		virtual bool     exportFeatureVectors(const std::string& rFileName);
 	private:
 				bool     assignFeatureVectors( const std::vector<double>& rFeatureVecs, const uint64_t& rMaxFeatVecLen );
 
@@ -297,8 +298,9 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool   applyTransfromToPlane( Matrix4D rTransMat );
 		virtual bool   splitByPlane( Vector3D planeHNF, bool duplicateVertices = false, bool noRedraw = false );
 		virtual bool   splitByIsoLine( double rIsoVal, bool duplicateVertices = false, bool noRedraw = false, Vector3D rUniformOffset=Vector3D( 0.0, 0.0, 0.0, 0.0 ) );
+		virtual bool   splitMesh(const std::function<bool(Face*)>& intersectTest, const std::function<double(VertexOfFace*)>& signedDistanceFunction, const std::function<void(VertexOfFace*, VertexOfFace*, Vector3D&)>& getIntersectionVector, bool duplicateVertices = false, bool noRedraw = false, Vector3D rUniformOffset=Vector3D( 0.0, 0.0, 0.0, 0.0 ));
 	private:
-		virtual bool   triangulateSplitFace(std::vector<VertexOfFace*>& faceVertices, std::set<Face*>* newFaces = nullptr);
+		virtual bool   triangulateSplitFace(std::vector<VertexOfFace*>& faceVertices, std::set<Face*>* newFaces = nullptr, std::vector<float>* newUVS = nullptr, unsigned char textureID = 0);
 
 	public:
 		// Cone stuff:
@@ -529,6 +531,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool funcVertSphereSurfaceLength();
 				bool funcVertSphereVolumeArea();
 				bool funcVertSphereSurfaceNumberOfComponents();
+				bool funcValToFeatureVector(unsigned int dim);
 		// Again some old style function value calls:
 		        bool setVertFuncValCorrTo( std::vector<double>* rFeatVector );
 		        bool setVertFuncValDistanceToSelPrim();
@@ -703,6 +706,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool exportPolyLinesCoordsProjected( std::string rFileName, bool rWithVertIdx, double rAngleRot=0.0 );
 				bool exportPolyLinesFuncVals( std::string rFileName );
 				bool exportFuncVals( std::string rFileName, bool rWithVertIdx );
+				bool importFuncValsFromFile( const std::string& rFileName, bool withVertIdx );
 		virtual bool exportFaceNormalAngles( std::string filename );
 
 		// Extra menu

@@ -17,6 +17,7 @@
 
 #include "printbuildinfo.h"
 #include "mesh.h"
+#include "../logging/Logging.h"
 //#include "meshseed.h"
 
 // //#include "voxelcuboid.h"
@@ -110,8 +111,8 @@ bool convertMeshData(
 	areaAcq = round( areaAcq );
 	double volDXYZ[3];
 	someMesh.estimateVolumeDivergence( volDXYZ );
-	string modelID  = someMesh.getModelMetaString( MeshIO::META_MODEL_ID );
-	string modelMat = someMesh.getModelMetaString( MeshIO::META_MODEL_MATERIAL );
+	string modelID  = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
+	string modelMat = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
 	// Write data to file
 	cout << "[GigaMesh] Model ID:        " << modelID << endl;
 	cout << "[GigaMesh] Material:        " << modelMat << endl;
@@ -157,12 +158,17 @@ void printHelp( const char* rExecName ) {
 	std::cout << "                                          Default suffices are '_ASCII' and '_Legacy'." << std::endl;
 	std::cout << "  -k, --overwrite-existing                Overwrite exisitng files, which is not done by default" << std::endl;
 	std::cout << "                                          to prevent accidental data loss." << std::endl;
+	std::cout << "    , --log-level [0-4]                   Sets the log level of this application.\n"
+				 "                                          Higher numbers increases verbosity.\n"
+				 "                                          (Default: 1)" << std::endl;
 	//std::cout << "" << endl;
 }
 
 //! Main routine for loading a (binary) PLY and store it as ASCII without the extra data supplied by GigaMesh
 //==============================================================================================================================================================
 int main( int argc, char *argv[] ) {
+
+	LOG::initLogging();
 
 	// Default string parameter
 	std::string optFileSuffix;
@@ -182,6 +188,7 @@ int main( int argc, char *argv[] ) {
 		{ "overwrite-existing",           no_argument,       nullptr, 'k' },
 		{ "version",                      no_argument,       nullptr, 'v' },
 		{ "help",                         no_argument,       nullptr, 'h' },
+		{ "log-level",                    required_argument, nullptr,  0  },
 		{ nullptr, 0, nullptr, 0 }
 	};
 
@@ -194,6 +201,20 @@ int main( int argc, char *argv[] ) {
 			case 0:
 				// printf ("option %s", long_options[option_index].name);
 				// if (optarg) printf (" with arg %s", optarg);
+
+				if(longOptions[optionIndex].name == "log-level")
+				{
+					unsigned int arg = optarg[0] - '0';
+					if(arg <= 5)
+					{
+						LOG::setLogLevel(static_cast<LOG::LogLevel>(arg));
+					}
+					else
+					{
+						std::cerr << "[GigaMesh] WARNING: Log level is out of range [0-4]!" << std::endl;
+					}
+				}
+
 				break;
 
 			case 's':

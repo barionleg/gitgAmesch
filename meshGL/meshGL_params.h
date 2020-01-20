@@ -136,7 +136,8 @@ class MeshGLParams {
 			SHADER_TRANSPARENCY,    //!< Use the tranparency shader, which is similar in functions to the monolitihic shader.
 			SHADER_WIREFRAME,       //!< Use the shader for the wireframe.
 			SHADER_NPR,             //!< Use the NPR shader.
-			SHADER_POINTCLOUD       //!< Use Monolithic shader, but render as pointcloud
+			SHADER_POINTCLOUD,      //!< Use Monolithic shader, but render as pointcloud
+			SHADER_TEXTURED         //!< Show mesh with texture
 		};
 
 		// Colormaps (NEW for shader)

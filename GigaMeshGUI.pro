@@ -249,16 +249,6 @@ CONFIG( tiff ) {
 # INCLUDEPATH += ./cuda                                 # ... and their  header location
 # -------------------------------------------------------------------------------
 
-# --- TEST LIB ------------------------------------------------------------------
-exists( "libtest/libtest.a" ) {
-    DEFINES     += LIBTEST
-    INCLUDEPATH += $$PWD/libtest                  # .our home-made library header location
-    LIBS        += -ltest -L$$PWD/libtest          # home-made library files ;)
-    message( LIBTEST present. )
-}
-else:message( LIBTEST not required and also not present. )
-# -------------------------------------------------------------------------------
-
 # --- SPHERICAL_INTERSECTION LIB ------------------------------------------------------------------
 exists( "spherical_intersection/libspherical_intersection.a" ) {
     DEFINES     += LIBSPHERICAL_INTERSECTION
@@ -268,17 +258,6 @@ exists( "spherical_intersection/libspherical_intersection.a" ) {
 }
 else:message( ERROR: LIBSPHERICAL_INTERSECTION (optional) not present!)
 # -------------------------------------------------------------------------------
-
-# --- TRIANGLE LIB ------------------------------------------------------------------
-#exists( "triangle/triangle.o" ) {
-#    DEFINES     += TRIANGLE
-#    INCLUDEPATH += $$PWD/triangle                  # .our home-made library header location
-#    LIBS        += -ltriangle -L$$PWD/libtriangle         # home-made library files ;)
-#    message( TRIANGLE present. )
-#}
-#else:message( TRIANGLE not required and also not present. )
-# -------------------------------------------------------------------------------
-
 
 # --- PSALM LIB ------------------------------------------------------------------
 win32-msvc {
@@ -304,7 +283,7 @@ message( LIBPSALM present. )
 }
 else:message( ERROR: LIBPSALM (optional) not present! see: README_LIBPSALM.txt )
 }
- -------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 # --- ALGlib --------------------------------------------------------------------
 # from http://www.alglib.net
@@ -389,6 +368,24 @@ VPATH += ./voxel ./mesh ./meshGL
 # Bit array for flags
 HEADERS += meshGL/meshGLShader.h \
         ExternalProgramsDialog.h \
+	logging/Logger.h \
+	logging/Logging.h \
+	mesh/MeshIO/MeshReader.h \
+	mesh/MeshIO/MeshWriter.h \
+	mesh/MeshIO/ModelMetaData.h \
+	mesh/MeshIO/MtlParser.h \
+	mesh/MeshIO/ObjReader.h \
+	mesh/MeshIO/ObjWriter.h \
+	mesh/MeshIO/PlyEnums.h \
+	mesh/MeshIO/PlyReader.h \
+	mesh/MeshIO/PlyWriter.h \
+	mesh/MeshIO/RegularGridTxtReader.h \
+	mesh/MeshIO/TxtReader.h \
+	mesh/MeshIO/TxtWriter.h \
+	mesh/MeshIO/VRMLWriter.h \
+	meshGL/PinGeometry.h \
+	meshGL/TexturedMesh.h \
+	meshGL/TexturedMeshRenderer.h \
     meshGL/meshGL_params.h \
     mesh/triangle/triangleTriangleIntersection.h \
     mesh/ellipsedisc.h \
@@ -416,7 +413,23 @@ HEADERS += mesh/meshinfodata.h
 SOURCES += mesh/meshinfodata.cpp \
         ExternalProgramsDialog.cpp \
     MeshQtCSVImportExport.cpp \
+	logging/Logger.cpp \
+	logging/Logging.cpp \
+	mesh/MeshIO/MeshReader.cpp \
+	mesh/MeshIO/MeshWriter.cpp \
+	mesh/MeshIO/ModelMetaData.cpp \
+	mesh/MeshIO/MtlParser.cpp \
+	mesh/MeshIO/ObjReader.cpp \
+	mesh/MeshIO/ObjWriter.cpp \
+	mesh/MeshIO/PlyReader.cpp \
+	mesh/MeshIO/PlyWriter.cpp \
+	mesh/MeshIO/RegularGridTxtReader.cpp \
+	mesh/MeshIO/TxtReader.cpp \
+	mesh/MeshIO/TxtWriter.cpp \
+	mesh/MeshIO/VRMLWriter.cpp \
         meshGL/PinRenderer.cpp \
+	meshGL/TexturedMesh.cpp \
+	meshGL/TexturedMeshRenderer.cpp \
 	normalSphereSelection/ArcBall.cpp \
 	normalSphereSelection/IcoSphereTree.cpp \
 	normalSphereSelection/NormalSphereSelectionDialog.cpp \
@@ -683,6 +696,7 @@ OTHER_FILES += mesh/make_win.bat      # Windows
 OTHER_FILES += mesh/gigamesh-info.cpp
 OTHER_FILES += mesh/gigamesh-clean.cpp
 OTHER_FILES += mesh/gigamesh-tolegacy.cpp
+OTHER_FILES += mesh/gigamesh-borders.cpp
 OTHER_FILES += mesh/meshgeneratefeaturevectors.cpp
 OTHER_FILES += mesh/meshgeneratefeaturevectors25d.cpp
 OTHER_FILES += mesh/mesh_main.c

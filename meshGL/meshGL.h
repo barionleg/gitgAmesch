@@ -5,6 +5,8 @@
 #include "meshGL_params.h"
 #include "meshglcolors.h"
 
+#include "TexturedMesh.h"
+
 // OpenGL stuff
 //#define GL_GLEXT_PROTOTYPES
 #ifdef MACXPORT
@@ -156,6 +158,8 @@ protected:
 	};
 	GLuint          mVAO;                      //!< Vertex Array Object - has to be created!
 	QOpenGLBuffer*  mVertBufObjs[VBUFF_COUNT]; //!< Array of Vertex Buffer Objects (within the VAO).
+
+	TexturedMesh* mMeshTextured = nullptr;               //!< Class holding the vertex-buffers for a mesh with multiple textures
 #ifdef OPENGL_VBO_SHOW_MEMORY_USAGE
 	long   mVboMemoryUsage; //!< Memory usage for resources analysis and debugging.
 #endif
@@ -170,6 +174,12 @@ protected:
 	struct grVertexStripeElment : grVertexElmentBasic {
 		GLfloat  mLabelID;     //!< Label number. The reason for using a float is the fact that it will be interpolated for faces and a non-integer value indicates a face along a label border.
 		GLfloat  mFlags;       //!< State flags, such as border, selected, solo, etc. This should be UINT, but all buffer data is NORMALIZED: http://qt-project.org/forums/viewthread/38929
+	};
+
+	struct grVertexTextured {
+			GLfloat position[3];
+			GLfloat normal[3];
+			GLfloat uv[2];
 	};
 
 private:

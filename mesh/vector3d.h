@@ -39,7 +39,7 @@ class Vector3D {
 
 		void set( double setX, double setY, double setZ, double setH=1.0 );
 		void set( Vector3D* vecToCopy );
-		void set( Vector3D vecToCopy );
+		void set( const Vector3D& vecToCopy );
 		void setX( double setX );
 		void setY( double setY );
 		void setZ( double setZ );

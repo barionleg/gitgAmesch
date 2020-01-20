@@ -24,16 +24,17 @@ void main(void)
 {
 	data = vData;
 
-	float funcVal = clamp((data - uMinData) / (uMaxData - uMinData), 0.0, 1.0);
-	funcVal = clamp(funcVal / uUpperQuantil, 0.0, 1.0);
+
+	float funcVal = clamp(vData, 0.0, 1.0);
 
 	/*
 	if(invertFuncVal)
 		funcVal = 1.0 - funcVal;
 	*/
 
-	float scale = funcVal * (1.0 - uNormalScale) +  uNormalScale;
+	funcVal = clamp(funcVal / uUpperQuantil, 0.0, 1.0);
 
+	float scale = funcVal * (1.0 - uNormalScale) +  uNormalScale;
 
 	ivec2 texCoord = ivec2( mod(gl_VertexID ,uTextureWidth) , gl_VertexID / uTextureWidth );
 

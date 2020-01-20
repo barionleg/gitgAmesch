@@ -25,10 +25,9 @@ public:
 	PinRenderer(const PinRenderer&& other) = delete;
 	PinRenderer& operator=(const PinRenderer&& other) = delete;
 
+	//call these with valid OpenGL context
 	bool init();
-
 	void destroy();
-
 	void render(std::vector<PinVertex> &pinPoints, const QMatrix4x4 &projectionMatrix, const QMatrix4x4 &modelViewMatrix, float pinSize);
 
 
@@ -46,7 +45,7 @@ private:
 	unsigned int mPinFaceIndicesSize;
 
 	QOpenGLFunctions_3_3_Core mGL;
-	QOpenGLShaderProgram mShaderPins;
+	QOpenGLShaderProgram* mShaderPins = nullptr;
 
 	QOpenGLBuffer mPinPositionBuffer;
 	QOpenGLBuffer mPinNormalBuffer;

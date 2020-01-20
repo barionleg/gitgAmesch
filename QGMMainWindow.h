@@ -161,7 +161,9 @@ signals:
 	void sFileImportNormals( QString );                      //!< passes a filename for import of a file with normal vectors to MeshQt::importNormalVectorsFile
 	void sFileSaveFlagBinary( bool );                        //!< passed down to MeshIO. However this has to be revised.
 	void sFileSaveFlagGMExtras( bool );                      //!< passed down to MeshIO. However this has to be revised.
+	void sFileSaveFlagExportTexture( bool );                 //!< passed down to MeshIO. This probably also needs to be revised.
 	void exportFuncVals();                                   //!< signal MeshQt to export the function values.
+	void sExportFeatureVectors();                            //!< signal MeshQt to export the feature vectors.
 	//.
 	void exportPolyLinesCoords();                            //!< Triggers the export of polyline coordinates (3D).
 	void exportPolyLinesCoordsProjected();                   //!< Triggers the export of polyline coordinates project on a plane.
@@ -276,11 +278,6 @@ signals:
 	void rotRoll();                                          //!< trigger manual entry of a roll angle for changing the camera position.
 	void rotOrthoPlane();                                    //!< trigger rotation of the camera to orthogonally view the mesh plane.
 	//.
-	void sRotPlaneYawLeft();                                 //!< rotate plane by 90° to the left
-	void sRotPlaneYawRight();                                //!< rotate plane by 90° to the right
-	void sRotPlanePitchUp();                                 //!< rotate plane by 90° up
-	void sRotPlanePitchDown();                               //!< rotate plane by 90° down
-	//.
 	void sSelPrimViewReference();                            //!< signal to set the selected primitive as reference point of the camera's view.
 
 	// --- Analyze -----------------------------------------------------------------------------------------------------------------------------------------
@@ -334,7 +331,7 @@ signals:
 	// #####################################################################################################################################################
 	// # FUNCTION VALUE
 	// #####################################################################################################################################################
-	// # Feature Vector reöated
+	// # Feature Vector related
 	void sFuncVertFeatLengthEuc();                           //!< Visualize the length of the feature vector using euclidean metric.
 	void sFuncVertFeatLengthMan();                           //!< Visualize the length of the feature vector using manhattan metric.
 	void sFuncVertFeatBVFunc();                              //!< Visualize the Bounded Variation (BV) the feature vectors.
@@ -347,6 +344,7 @@ signals:
 	void sFuncVertFeatCorrSelVert();                         //!< Visualize Correlation to a selected Vertex using OpenGL.
 	void sFuncVertFeatAutoCorrVert();                        //!< Visualize Auto Correlation of Vertices features using OpenGL.
 	void sFuncVertFeatAutoCorrSelVert();                     //!< Visualize Auto-Correlation and Correlation to a selected Vertex using OpenGL.
+	void sFuncValToFeatureVector();                          //!< Assign function value to Nth feature vector component
 	// # Distance to plane, line, selected primitive and cone
 	void visualizeDistanceToPlane();                         //!< triggers the plane distance estimation.
 	void visualizeDistanceToCone();                          //!< triggers distance to cone estimation (if cone has been selected)
@@ -413,7 +411,8 @@ signals:
 	void sShowTransparencySettings();
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
 
-	void sOpenNormalSphereSelectionDialog();
+	void sOpenNormalSphereSelectionDialogVertices();
+	void sOpenNormalSphereSelectionDialogFaces();
 
 private:
 	// Specialized UI class:

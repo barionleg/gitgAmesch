@@ -21,7 +21,7 @@
 #else
 #include <unistd.h> // gethostname, getlogin_r
 #endif
-#include <limits.h>
+#include <climits>
 
 #ifdef MACXPORT
     #include <sys/malloc.h> // mac os x
@@ -30,6 +30,8 @@
 #include "mesh.h"
 #include "vertex.h"
 #include "marchingfront.h"
+
+#include "../logging/Logging.h"
 
 #ifdef LIBPSALM
 	#include <libpsalm/libpsalm.h>
@@ -674,21 +676,21 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			cuneiformFigureLaTeX();
 			break;
 		case METADATA_EDIT_MODEL_ID: {
-			string metaData = getModelMetaString( META_MODEL_ID );
+			string metaData = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
 			if( showEnterText( metaData, "Edit the Id of the model" ) ) {
-				setModelMetaString( META_MODEL_ID, metaData );
+				getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_ID, metaData );
 			}
 			} break;
 		case METADATA_EDIT_MODEL_MATERIAL: {
-			string metaData = getModelMetaString( META_MODEL_MATERIAL );
+			string metaData = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
 			if( showEnterText( metaData, "Edit the material of the object" ) ) {
-				setModelMetaString( META_MODEL_MATERIAL, metaData );
+				getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_MATERIAL, metaData );
 			}
 			} break;
 		case METADATA_EDIT_REFERENCE_WEB: {
-			string metaData = getModelMetaString( META_REFERENCE_WEB );
+			string metaData = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_REFERENCE_WEB );
 			if( showEnterText( metaData, "Edit web reference of the model" ) ) {
-				setModelMetaString( META_REFERENCE_WEB, metaData );
+				getModelMetaDataRef().setModelMetaString( ModelMetaData::META_REFERENCE_WEB, metaData );
 			}
 			} break;
 		case ELLIPSENFIT_EXPERIMENTAL:
@@ -730,16 +732,14 @@ void Mesh::establishStructure(
     #endif
 
 	// Prepare array for faces:
-	vector<Face*>::iterator itFace;
-	for( itFace = mFaces.begin(); itFace != mFaces.end(); itFace++ ) {
-		delete (*itFace);
+	for(auto & face : mFaces) {
+		delete face;
 	}
 	mFaces.clear();
 
 	// Prepare array for vertices:
-	vector<Vertex*>::iterator itVertex;
-	for( itVertex=mVertices.begin(); itVertex!=mVertices.end(); itVertex++ ) {
-		delete (*itVertex);
+	for(auto & vertex : mVertices) {
+		delete vertex;
 	}
 	mVertices.clear();
 
@@ -802,18 +802,18 @@ void Mesh::establishStructure(
 		uint64_t vertBIdx = rFaceProps[i].mVertIdxB;
 		uint64_t vertCIdx = rFaceProps[i].mVertIdxC;
 		if( vertAIdx >= rVertexProps.size() ) {
-			std::cerr << "[Mesh::" << __FUNCTION__ << "] Vertex A index out of range: " << vertAIdx <<
-			             " ... ignoring Face no. " << i << "!" << std::endl;
+			LOG::warn() << "[Mesh::" << __FUNCTION__ << "] Vertex A index out of range: " << vertAIdx <<
+						 " ... ignoring Face no. " << i << "!\n";
 			continue;
 		}
 		if( vertBIdx >= rVertexProps.size() ) {
-			std::cerr << "[Mesh::" << __FUNCTION__ << "] Vertex B index out of range: " << vertBIdx <<
-			             " ... ignoring Face no. " << i << "!" << std::endl;
+			LOG::warn() << "[Mesh::" << __FUNCTION__ << "] Vertex B index out of range: " << vertBIdx <<
+						 " ... ignoring Face no. " << i << "!\n";
 			continue;
 		}
 		if( vertCIdx >= rVertexProps.size() ) {
-			std::cerr << "[Mesh::" << __FUNCTION__ << "] Vertex C index out of range: " << vertCIdx <<
-			             " ... ignoring Face no. " << i << "!" << std::endl;
+			LOG::warn() << "[Mesh::" << __FUNCTION__ << "] Vertex C index out of range: " << vertCIdx <<
+						 " ... ignoring Face no. " << i << "!\n";
 			continue;
 		}
 		// Create new face
@@ -824,14 +824,16 @@ void Mesh::establishStructure(
 			           static_cast<VertexOfFace*>(mVertices[vertCIdx])
 			         );
 		} catch ( std::bad_alloc& errBadAlloc ) {
-			std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: bad_alloc caught at index " << i << ": " << errBadAlloc.what() << std::endl;
+			LOG::error() << "[Mesh::" << __FUNCTION__ << "] ERROR: bad_alloc caught at index " << i << ": " << errBadAlloc.what() << "\n";
 			continue;
 		}
+		myFace->setUVs(rFaceProps[i].textureCoordinates);
+		myFace->setTextureId(rFaceProps[i].textureId);
 		// Add face to the list
 		try {
 			mFaces[facesAddedToMesh] = myFace;
 		} catch ( std::bad_alloc& errBadAlloc ) {
-			std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: bad_alloc caught when pushing index " << i << ": " << errBadAlloc.what() << std::endl;
+			LOG::error() << "[Mesh::" << __FUNCTION__ << "] ERROR: bad_alloc caught when pushing index " << i << ": " << errBadAlloc.what() << "\n";
 			continue;
 		}
 		// Count sucessfully added faces
@@ -845,20 +847,20 @@ void Mesh::establishStructure(
 		//	cout << "[Mesh::" << __FUNCTION__ << "] Faces set: " << mFaces.size() << "(" << (i*100.0/facesMeshedNr) << "%)" << endl;
 		//}
 	}
-	std::cout << "[Mesh::" << __FUNCTION__ << "] Faces set: " << mFaces.size() << "" << std::endl;
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "] Faces set: " << mFaces.size() << "\n";
 	if( rFaceProps.size() != facesAddedToMesh ) {
-		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Number of faces created: " <<
-		             facesAddedToMesh << " is smaller than number of faces given " << rFaceProps.size() << std::endl;
-		std::cerr << "[Mesh::" << __FUNCTION__ << "]        Therefore " << rFaceProps.size() - facesAddedToMesh <<
-		             " faces were ignored!" << std::endl;
+		LOG::warn() << "[Mesh::" << __FUNCTION__ << "] ERROR: Number of faces created: " <<
+					 facesAddedToMesh << " is smaller than number of faces given " << rFaceProps.size() << "\n";
+		LOG::warn() << "[Mesh::" << __FUNCTION__ << "]        Therefore " << rFaceProps.size() - facesAddedToMesh <<
+					 " faces were ignored!\n";
 		// Shrinking is required:
 		mFaces.resize( facesAddedToMesh );
 		// Inform user
 		showWarning( "Mesh import incomplete", "Not all faces could be imported due to out-of-range indices." );
 	}
 
-	if( rFaceProps.size() == 0 ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] Point cloud dedected - no further Mesh-setup possible!" << endl;
+	if( rFaceProps.empty() ) {
+		LOG::info() << "[Mesh::" << __FUNCTION__ << "] Point cloud dedected - no further Mesh-setup possible!\n";
 		return;
 	}
 
@@ -884,10 +886,10 @@ void Mesh::establishStructure(
 			                                                           // such as `size_t` may be more suited.
 			PrimitiveInfo primInfo = mPolyPrimInfo.at( i );
 			if( !tmpPolyLine->setPosition( primInfo.mPosX, primInfo.mPosY, primInfo.mPosZ ) ) {
-				cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: PolyLine::setPosition failed!" << endl;
+				LOG::warn() << "[Mesh::" << __FUNCTION__ << "] ERROR: PolyLine::setPosition failed!\n";
 			}
 			if( !tmpPolyLine->setNormal( primInfo.mNormalX, primInfo.mNormalY, primInfo.mNormalZ ) ) {
-				cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: PolyLine::setNormal failed!" << endl;
+				LOG::warn() << "[Mesh::" << __FUNCTION__ << "] ERROR: PolyLine::setNormal failed!\n";
 			}
 		}
 		// if we have a label ID:
@@ -895,7 +897,7 @@ void Mesh::establishStructure(
 			                                                           // integers for the numbers; using something
 			                                                           // such as `size_t` may be more suited.
 			if( !tmpPolyLine->setLabel( mPolyLabelID.at( i ) ) ) {
-				cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: PolyLine::setLabel failed!" << endl;
+				LOG::warn() << "[Mesh::" << __FUNCTION__ << "] ERROR: PolyLine::setLabel failed!\n";
 			//} else {
 			//	cout << "[Mesh::" << __FUNCTION__ << "] PolyLine::setLabel( " << mPolyLabelID.at( i ) << " )!" << endl;
 			}
@@ -903,9 +905,9 @@ void Mesh::establishStructure(
 		mPolyLines.push_back( tmpPolyLine );
 		//cout << endl;
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] Polygonal Lines: " << mPolyLines.size() << ""  << endl;
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "] Polygonal Lines: " << mPolyLines.size() << "\n";
 
-	cout << "[Mesh::" << __FUNCTION__ << "] done in " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "] done in " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds.\n";
 
     #ifdef SHOW_MALLOC_STATS
 	    SHOW_MALLOC_STATS( 6 );
@@ -945,10 +947,10 @@ void Mesh::establishStructure(
 		areaTotal += setFaceData[t].mAreaProc;
 	}
 	//pthread_mutex_destroy( &mutexVertexPtr );
-	cout << "[Mesh::" << __FUNCTION__ << "] Total surface area: " << areaTotal << " mm² (unit assumed)." << endl;
-	cout << "[Mesh::" << __FUNCTION__ << "]                     " << getVertexNr()/areaTotal << " dots/mm² (unit assumed)." << endl;
-	cout << "[Mesh::" << __FUNCTION__ << "]                     " << 25.4*sqrt(getVertexNr()/areaTotal) << " DPI (unit assumed)." << endl;
-	cout << "[Mesh::" << __FUNCTION__ << "] PARALLEL: Face neighbourhood and normal estimation time: " << static_cast<int>( time( nullptr ) - timeStampParallel )  << " seconds."  << endl;
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "] Total surface area: " << areaTotal << " mm² (unit assumed).\n";
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "]                     " << getVertexNr()/areaTotal << " dots/mm² (unit assumed).\n";
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "]                     " << 25.4*sqrt(getVertexNr()/areaTotal) << " DPI (unit assumed).\n";
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "] PARALLEL: Face neighbourhood and normal estimation time: " << static_cast<int>( time( nullptr ) - timeStampParallel )  << " seconds.\n";
 #else
 	time_t timeStampSerial = time( NULL );
 	double areaTotal = 0.0;
@@ -979,7 +981,7 @@ void Mesh::establishStructure(
 		curVertex = getVertexPos( vertIdx );
 		totalNeighbourCount += curVertex->get1RingFaceCount();
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] Vertex No. of Neighbours: " << totalNeighbourCount << " => " << totalNeighbourCount*sizeof(Face*)/(1024*1024) << " MBytes allocated." << endl;
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "] Vertex No. of Neighbours: " << totalNeighbourCount << " => " << totalNeighbourCount*sizeof(Face*)/(1024*1024) << " MBytes allocated.\n";
 
     #ifdef SHOW_MALLOC_STATS
 	    SHOW_MALLOC_STATS( 10 );
@@ -1160,6 +1162,72 @@ bool Mesh::importFeatureVectorsFromFile(
 	}
 
 	return( true );
+}
+
+//! Exports feature vectors to a file
+//! @returns false in case of an error or user cancel
+bool Mesh::exportFeatureVectors(const string& rFileName)
+{
+	// Ask for vertex index within the first colum
+	bool hasVertexIndex = true;
+	if( !showQuestion( &hasVertexIndex, "First Column", "Should the first column contain the vertex index?<br /><br />" ) ) {
+		LOG::debug() << "[Mesh::" << __FUNCTION__ << "] User cancled.\n";
+		return( false );
+	}
+
+	//! Exports feature vectors as ASCII file.
+	std::ofstream filestr(rFileName);
+
+	if(!filestr.is_open())
+	{
+		LOG::error() << "[Mesh::" << __FUNCTION__ << "] file " << rFileName << " unable to open for writing!\n";
+		return false;
+	}
+
+	filestr.imbue(std::locale("C"));
+
+
+	time_t rawtime;
+	struct tm * timeinfo;
+
+	time( &rawtime );
+	timeinfo = localtime( &rawtime );
+	std::string timeInfoStr( asctime( timeinfo ) );
+	timeInfoStr = timeInfoStr.substr( 0, timeInfoStr.length()-1 );
+
+	filestr << "# +-------------------------------------------------------------------------------+" << endl;
+	filestr << "# | Feature vectors of vertices generated by GigaMesh - an application of the     |" << endl;
+	filestr << "# | IWR - University of Heidelberg, Germany                                       |" << endl;
+	filestr << "# +-------------------------------------------------------------------------------+" << endl;
+	filestr << "# | Contact: Hubert MARA <hubert.mara@iwr.uni-heidelberg.de>                      |" << endl;
+	filestr << "# +-------------------------------------------------------------------------------+" << endl;
+	filestr << "# | Mesh:       " << getBaseName() << endl;
+	filestr << "# | - Vertices: " << getVertexNr() << endl;
+	filestr << "# | - Faces:    " << getFaceNr() << endl;
+	filestr << "# | Timestamp:  " << timeInfoStr << endl;
+	filestr << "# +-------------------------------------------------------------------------------+" << endl;
+
+	uint64_t currIndex = 0;
+	for(const auto currVert : mVertices)
+	{
+		auto vecSize = currVert->getFeatureVectorLen();
+		if(hasVertexIndex)
+		{
+			filestr << (currIndex++) << " ";
+		}
+
+		for(int i = 0; i<vecSize; ++i)
+		{
+			double elem;
+			currVert->getFeatureElement(i, &elem);
+			filestr << elem;
+			filestr << (i == vecSize - 1 ? "\n" : " ");
+		}
+	}
+
+	filestr.close();
+
+	return true;
 }
 
 //! Assigns the feature vectors within Mesh::mFeatureVecVertices
@@ -1413,13 +1481,19 @@ bool Mesh::getFaceList( vector<Face*>* rFaces ) {
 	if( rFaces == nullptr ) {
 		return false;
 	}
+
+	*rFaces = mFaces;
+	/*
 	//! *) Clears the given vertexVector.
 	rFaces->clear();
+	rFaces->reserve(mFaces.size());
+
 	//! *) Prepare list of vertices.
 	vector<Face*>::iterator itFace;
 	for( itFace=mFaces.begin(); itFace!=mFaces.end(); itFace++ ) {
 		rFaces->push_back( (*itFace) );
 	}
+	*/
 	cout << "[Mesh::" << __FUNCTION__ << "] make vertex vector time: " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
 	return true;
 }
@@ -2972,7 +3046,7 @@ bool Mesh::selectFaceInSphere( Vertex* rSeed, double rRadius ) {
 	int vertNrLongs = getBitArrayVerts( &vertBitArrayVisited );
 	// Allocate the bit arrays for faces:
 	uint64_t* faceBitArrayVisited;
-	int faceNrLongs = getBitArrayFaces( &faceBitArrayVisited );
+	uint64_t faceNrLongs = getBitArrayFaces( &faceBitArrayVisited );
 	if( !fetchSphereBitArray( rSeed, &facesInSphere, rRadius,  vertNrLongs, vertBitArrayVisited, faceNrLongs, faceBitArrayVisited ) ) {
 		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: fetchSphereBitArray failed!" << endl;
 		return false;
@@ -3533,252 +3607,23 @@ bool Mesh::applyTransfromToPlane( Matrix4D rTransMat ) {
 //! @param noRedraw If set, does not force a redraw after each splitting
 //!        operation. Increases speed.
 bool Mesh::splitByPlane( Vector3D planeHNF, bool duplicateVertices, bool noRedraw ) {
-	//cout << __FUNCTION__ << endl;
-	//cout << planeHNF << endl;
+
 	Plane cutPlane( &planeHNF );
-	//Vector3D tmp;
-	//cutPlane.getPlaneHNF( &tmp );
-	//cout << tmp << endl;
 
 	//! \todo sanity checks for plane, because the following is deprecated:
 	//if(!isPlanePosCSet()) {
 	//	return(false);
 	//}
 
-	// TODO: Should become a unique function
-	Vertex* currVertex;
-	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
-		currVertex = getVertexPos( vertIdx );
-		currVertex->setIndex( vertIdx );
-	}
+	auto interSectFun = [&planeHNF](Face* face) { return face->intersectsPlane(&planeHNF);};
 
-	// If `duplicateVertices` is set, the vertex position will be
-	// changed by this vector
-	Vector3D vecOffset = 1000.0*numeric_limits<double>::epsilon()*planeHNF;
-	vecOffset.setH( 1.0 );
-	cout << vecOffset << endl;
+	auto distFun = [&planeHNF](VertexOfFace* vertex) { return vertex->estDistanceToPlane(&planeHNF);};
 
-	// Work with _all_ faces of the mesh and populate selected faces
-	// with _all_ faces that actually intersect the plane
-	Face* currFace = nullptr;
-	if(mFacesSelected.size() == 0) {
-		// select all faces that are to be deleted afterwards -- they are not required anymore
-		// as they will be replaced by the faces created by the splitting procedure
-		for( uint64_t faceIdx = 0; faceIdx < getFaceNr(); faceIdx++ ) {
-			currFace = getFacePos(faceIdx);
-			if(currFace->intersectsPlane(&planeHNF)) {
-				mFacesSelected.insert(currFace);
-			}
-		}
-	}
-	else {
-		// remove all non-intersecting faces from the preselected faces; this step is necessary
-		// because the code below does not actually check for an intersection
-		for(std::set<Face*>::iterator faceIt = mFacesSelected.begin(); faceIt != mFacesSelected.end();) {
-			if(!(*faceIt)->intersectsPlane(&planeHNF)) {
-				mFacesSelected.erase(faceIt++);
-			}
-			else {
-				faceIt++;
-			}
-		}
-	}
+	auto getIntersectionVectorFun = [&cutPlane]( VertexOfFace* vertX, VertexOfFace* vertY, Vector3D& rVecIntersection)  {
+		cutPlane.getIntersectionFacePlaneLinePos(vertX->getPositionVector(), vertY->getPositionVector(), rVecIntersection);
+	};
 
-	// required for reconnecting the _new_ faces created by
-	// the splitting procedure
-	std::set<Face*> adjacentAndNewFaces;
-
-	// store edges for which an intersection vertex has already
-	// been created
-	std::map< std::pair<int, int>, std::pair<VertexOfFace*, VertexOfFace*> > edgeMap;
-
-	for(Face* face : mFacesSelected) {
-
-		// Classify face vertices with respect to the plane; split face into
-		// `front` part and `back` part
-
-		std::vector<VertexOfFace*> front;
-		std::vector<VertexOfFace*> back;
-
-		// required so that we may loop over the vertices
-
-		Vertex* vertsToCheck[3] = {face->getVertB(),
-		                           face->getVertC(),
-		                           face->getVertA()};
-
-		VertexOfFace* vertX  = static_cast<VertexOfFace*>(face->getVertA());
-		VertexOfFace* vertY;
-
-		double sideX = vertX->estDistanceToPlane(&planeHNF);
-		double sideY;
-
-		Vector3D vecIntersection;
-		for(Vertex*& vertex : vertsToCheck) {
-
-			// These vertices store the position of the points _on_ the plane. If `duplicateVertices`
-			// is set to true, `vertIntersection2` will contain a slightly offset version of
-			// `vertIntersection1`. Else, this parameter will _not_ be used.
-			VertexOfFace* vertIntersection1 = nullptr;
-			VertexOfFace* vertIntersection2 = nullptr;
-
-			// required for reconnecting the faces later on
-			vertex->getFaces(&adjacentAndNewFaces);
-
-			vertY = static_cast<VertexOfFace*>(vertex);
-			sideY = vertY->estDistanceToPlane(&planeHNF);
-
-			// Check whether edge exists; if this is the case, use the stored vertex as
-			// the intersection vertex and do _not_ store the vertex twice.
-
-			bool edgeExists = false;
-
-			int id1 = vertX->getIndex();
-			int id2 = vertY->getIndex();
-			if(id1 > id2) {
-				std::swap(id1, id2);
-			}
-
-			std::map< std::pair<int, int>, std::pair<VertexOfFace*, VertexOfFace*> >::iterator edgeIt;
-			if((edgeIt = edgeMap.find(std::make_pair(id1, id2))) != edgeMap.end()) {
-				vertIntersection1 = edgeIt->second.first; // Cool notation ;)
-				vertIntersection2 = edgeIt->second.second;
-				edgeExists = true;
-			}
-
-			Vector3D positionX = vertX->getPositionVector();
-			Vector3D positionY = vertY->getPositionVector();
-
-			unsigned char averageColor[3];
-			averageColor[0] = static_cast<unsigned char>(0.5*(vertX->getR() + vertY->getR()));
-			averageColor[1] = static_cast<unsigned char>(0.5*(vertX->getG() + vertY->getG()));
-			averageColor[2] = static_cast<unsigned char>(0.5*(vertX->getB() + vertY->getB()));
-
-			// second vertex is in front of plane...
-			if(sideY > 0) {
-				// ...but first vertex is behind plane
-				if(sideX <= 0) {
-					cutPlane.getIntersectionFacePlaneLinePos( positionX, positionY, vecIntersection );
-
-					if(duplicateVertices) {
-						if(!vertIntersection1 && !vertIntersection2) {
-							vertIntersection1 = new VertexOfFace(vecIntersection + vecOffset);
-							vertIntersection2 = new VertexOfFace(vecIntersection - vecOffset);
-
-							edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection2);
-						}
-
-						front.push_back(vertIntersection1);
-						back.push_back( vertIntersection2);
-					}
-					else {
-						// Vertex at intersection may have already been found;
-						// do _not_ create vertex twice
-						if(!vertIntersection1) {
-							vertIntersection1 = new VertexOfFace(vecIntersection);
-							edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection1);
-						}
-
-						front.push_back(vertIntersection1);
-						back.push_back( vertIntersection1);
-					}
-				}
-
-				front.push_back(vertY);
-			}
-
-			// second vertex is behind plane...
-			else if(sideY < 0) {
-				// ..but first vertex is in front of plane
-				if(sideX >= 0) {
-					cutPlane.getIntersectionFacePlaneLinePos( positionX, positionY, vecIntersection );
-
-					if(duplicateVertices) {
-						if(!vertIntersection1 && !vertIntersection2) {
-							vertIntersection1 = new VertexOfFace(vecIntersection + vecOffset);
-							vertIntersection2 = new VertexOfFace(vecIntersection - vecOffset);
-
-							edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection2);
-						}
-
-						front.push_back(vertIntersection1);
-						back.push_back( vertIntersection2);
-					}
-					else {
-						// Vertex at intersection may have already been found;
-						// do _not_ create vertex twice
-						if(!vertIntersection1) {
-							vertIntersection1 = new VertexOfFace(vecIntersection);
-							edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection1);
-						}
-
-						front.push_back(vertIntersection1);
-						back.push_back( vertIntersection1);
-					}
-				}
-
-				back.push_back(vertY);
-			}
-
-			else {
-
-				std::cerr << "[Mesh::" << __FUNCTION__ << "] Handling vertex _on_ plane" << std::endl;
-
-				// slightly shift vertex; variable names are not entirely correct, but will not
-				// be changed as code afterwards depends on it
-				if(duplicateVertices) {
-					vertIntersection1 = new VertexOfFace(vertY->getPositionVector() + vecOffset);
-					vertIntersection2 = new VertexOfFace(vertY->getPositionVector() - vecOffset);
-
-					front.push_back(vertIntersection1);
-					back.push_back(vertIntersection2);
-				}
-				// if no duplicates are required, store vertex in _both_ sets
-				else {
-					front.push_back(vertY);
-					back.push_back(vertY);
-				}
-			}
-
-			// Set attributes for new vertices
-
-			if(vertIntersection1 && !edgeExists) {
-				vertIntersection1->setRGB(averageColor[0], averageColor[1], averageColor[2]);
-				mVertices.push_back(vertIntersection1);
-			}
-			if(vertIntersection2 && !edgeExists) {
-				vertIntersection2->setRGB(averageColor[0], averageColor[1], averageColor[2]);
-				mVertices.push_back(vertIntersection2);
-			}
-
-			vertX = vertY;
-			sideX = sideY;
-		}
-
-		triangulateSplitFace(front, &adjacentAndNewFaces);
-		triangulateSplitFace(back,  &adjacentAndNewFaces);
-	}
-
-	for(Face* faceIt : mFacesSelected) {
-		adjacentAndNewFaces.erase(faceIt);
-	}
-
-	if(noRedraw) {
-		Mesh::removeFacesSelected();
-	}
-	else {
-		this->removeFacesSelected();
-	}
-
-	// Re-establish mesh
-	for(Face* adjacentAndNewFace : adjacentAndNewFaces) {
-		adjacentAndNewFace->reconnectToFaces();
-	}
-
-	// Apply other nessary methods
-	bool retVal = true;
-	retVal &= changedMesh();
-
-	return( retVal );
+	return splitMesh( interSectFun, distFun, getIntersectionVectorFun, duplicateVertices, noRedraw, 1000.0*numeric_limits<double>::epsilon() * planeHNF);
 }
 
 //! Splits the mesh using a threshold (Iso Value) for the vertice's function value.
@@ -3791,7 +3636,46 @@ bool Mesh::splitByPlane( Vector3D planeHNF, bool duplicateVertices, bool noRedra
 //! @param noRedraw If set, does not force a redraw after each splitting
 //!        operation. Increases speed.
 bool Mesh::splitByIsoLine( double rIsoVal, bool duplicateVertices, bool noRedraw, Vector3D rUniformOffset ) {
-	// TODO: Should become a unique function
+
+	auto intersectFun = [rIsoVal](Face* face) { return face->isOnFuncValIsoLine( rIsoVal);};
+
+	auto distFun = [rIsoVal](VertexOfFace* vertex) {
+		double retVal;
+		vertex->getFuncValue(&retVal);
+		return retVal - rIsoVal;
+	};
+
+	auto getIntersectionVectorFun = [rIsoVal, this] (VertexOfFace* vertX, VertexOfFace* vertY, Vector3D& rVecIntersection)  {
+		this->getPointOnIsoLine(&rVecIntersection, vertX, vertY, rIsoVal);
+	};
+
+	return splitMesh(intersectFun, distFun, getIntersectionVectorFun, duplicateVertices, noRedraw, rUniformOffset);
+}
+
+//----------------------------------
+//helper functions for splitMesh
+//returns relatve distance between vertA and vect in relation to the distance between vertA and vertB
+double getRelativeDistance(VertexOfFace* vertA, VertexOfFace* vertB, Vector3D* vect)
+{
+	Vector3D a;
+	vertA->getPositionVector(&a);
+	Vector3D b;
+	vertB->getPositionVector(&b);
+
+	return (*vect - a).getLength3() / (b - a).getLength3();
+}
+
+void linearInterpolateUV(float s1, float t1, float s2, float t2, float factor, float& sOut, float& tOut)
+{
+	sOut = (1.0f - factor) * s1 + factor * s2;
+	tOut = (1.0f - factor) * t1 + factor * t2;
+}
+//----------------------------------
+
+
+bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std::function<double(VertexOfFace*)>& signedDistanceFunction, const std::function<void(VertexOfFace*, VertexOfFace*, Vector3D&)>& getIntersectionVector, bool duplicateVertices, bool noRedraw, Vector3D rUniformOffset)
+{
+	// TODO: Should become a unique function <--- is this TODO still relevant?
 	Vertex* currVertex;
 	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
 		currVertex = getVertexPos( vertIdx );
@@ -3800,251 +3684,261 @@ bool Mesh::splitByIsoLine( double rIsoVal, bool duplicateVertices, bool noRedraw
 
 	// If `duplicateVertices` is set, the vertex position will be
 	// changed by this vector
-	Vector3D vecOffset = rUniformOffset; //1000.0*numeric_limits<double>::epsilon()*planeHNF;
+	Vector3D vecOffset = rUniformOffset;
 	vecOffset.setH( 1.0 );
-	//cout << vecOffset << endl;
 
 	// Work with _all_ faces of the mesh and populate selected faces
-	// with _all_ faces that actually intersect the plane
-	Face* currFace = nullptr;
-	if( mFacesSelected.size() == 0 ) {
-		cout << "[Mesh::" << __FUNCTION__ << "] Processing ALL faces." << endl;
-		// select all faces that are to be deleted afterwards -- they are not required anymore
-		// as they will be replaced by the faces created by the splitting procedure
-		for( uint64_t faceIdx = 0; faceIdx < getFaceNr(); faceIdx++ ) {
-			currFace = getFacePos( faceIdx );
-			if( currFace->isOnFuncValIsoLine( rIsoVal ) ) {
-				mFacesSelected.insert( currFace );
+		// with _all_ faces that actually intersect the plane
+		Face* currFace = nullptr;
+		if( mFacesSelected.size() == 0 ) {
+			cout << "[Mesh::" << __FUNCTION__ << "] Processing ALL faces." << endl;
+			// select all faces that are to be deleted afterwards -- they are not required anymore
+			// as they will be replaced by the faces created by the splitting procedure
+			for( uint64_t faceIdx = 0; faceIdx < getFaceNr(); faceIdx++ ) {
+				currFace = getFacePos(faceIdx);
+				if(intersectTest(currFace))
+				{
+					mFacesSelected.insert( currFace );
+				}
 			}
 		}
-	}
-	else {
-		cout << "[Mesh::" << __FUNCTION__ << "] Processing only selected faces: " << mFacesSelected.size() << endl;
-		// remove all non-intersecting faces from the preselected faces; this step is necessary
-		// because the code below does not actually check for an intersection
-		for( std::set<Face*>::iterator faceIt = mFacesSelected.begin(); faceIt != mFacesSelected.end(); ) {
-			if(!(*faceIt)->isOnFuncValIsoLine( rIsoVal )) {
-				mFacesSelected.erase( faceIt++ );
-			}
-			else {
-				faceIt++;
-			}
-		}
-	}
-
-	// required for reconnecting the _new_ faces created by
-	// the splitting procedure
-	std::set<Face*> adjacentAndNewFaces;
-
-	// store edges for which an intersection vertex has already
-	// been created
-	std::map< std::pair<int, int>, std::pair<VertexOfFace*, VertexOfFace*> > edgeMap;
-
-	cout << "[Mesh::" << __FUNCTION__ << "] Remaining faces: " << mFacesSelected.size() << endl;
-	for(Face* face : mFacesSelected) {
-
-		// Classify face vertices with respect to the plane; split face into
-		// `front` part and `back` part
-
-		std::vector<VertexOfFace*> front;
-		std::vector<VertexOfFace*> back;
-
-		// required so that we may loop over the vertices
-
-		VertexOfFace* vertsToCheck[3] = { static_cast<VertexOfFace*>(face->getVertB()),
-		                                  static_cast<VertexOfFace*>(face->getVertC()),
-		                                  static_cast<VertexOfFace*>(face->getVertA()) };
-
-		VertexOfFace* vertX  = static_cast<VertexOfFace*>(face->getVertA());
-		VertexOfFace* vertY;
-
-		double sideX;
-		double sideY;
-		vertX->getFuncValue( &sideX );
-		sideX -= rIsoVal;
-
-		Vector3D vecIntersection;
-		for(VertexOfFace*& vertexOfFace : vertsToCheck) {
-
-			// These vertices store the position of the points _on_ the plane. If `duplicateVertices`
-			// is set to true, `vertIntersection2` will contain a slightly offset version of
-			// `vertIntersection1`. Else, this parameter will _not_ be used.
-			VertexOfFace* vertIntersection1 = nullptr;
-			VertexOfFace* vertIntersection2 = nullptr;
-
-			// required for reconnecting the faces later on
-			vertexOfFace->getFaces(&adjacentAndNewFaces);
-
-			vertY = vertexOfFace;
-			vertY->getFuncValue( &sideY );
-			sideY -= rIsoVal;
-
-			// Check whether edge exists; if this is the case, use the stored vertex as
-			// the intersection vertex and do _not_ store the vertex twice.
-
-			bool edgeExists = false;
-
-			int id1 = vertX->getIndex();
-			int id2 = vertY->getIndex();
-			if(id1 > id2) {
-				std::swap(id1, id2);
-			}
-
-			std::map< std::pair<int, int>, std::pair<VertexOfFace*, VertexOfFace*> >::iterator edgeIt;
-			if((edgeIt = edgeMap.find(std::make_pair(id1, id2))) != edgeMap.end()) {
-				vertIntersection1 = edgeIt->second.first; // Cool notation ;)
-				vertIntersection2 = edgeIt->second.second;
-				edgeExists = true;
-			}
-
-			unsigned char averageColor[3];
-			averageColor[0] = static_cast<unsigned char>(0.5*(vertX->getR() + vertY->getR()));
-			averageColor[1] = static_cast<unsigned char>(0.5*(vertX->getG() + vertY->getG()));
-			averageColor[2] = static_cast<unsigned char>(0.5*(vertX->getB() + vertY->getB()));
-
-			// second vertex is in front of plane...
-			if(sideY > 0) {
-				// ...but first vertex is behind plane
-				if(sideX <= 0) {
-					if( !getPointOnIsoLine( &vecIntersection, vertX, vertY, rIsoVal ) ) {
-						cerr << "[Mesh::" << __FUNCTION__ << "] ERROR during getPointOnIsoLine(1)!" << endl;
-					}
-
-					if(duplicateVertices) {
-						if(!vertIntersection1 && !vertIntersection2) {
-							vertIntersection1 = new VertexOfFace(vecIntersection + vecOffset);
-							vertIntersection2 = new VertexOfFace(vecIntersection - vecOffset);
-
-							edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection2);
-						}
-
-						front.push_back(vertIntersection1);
-						back.push_back( vertIntersection2);
-					}
-					else {
-						// Vertex at intersection may have already been found;
-						// do _not_ create vertex twice
-						if(!vertIntersection1) {
-							vertIntersection1 = new VertexOfFace(vecIntersection);
-							edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection1);
-						}
-
-						front.push_back(vertIntersection1);
-						back.push_back( vertIntersection1);
-					}
+		else {
+			cout << "[Mesh::" << __FUNCTION__ << "] Processing only selected faces: " << mFacesSelected.size() << endl;
+			// remove all non-intersecting faces from the preselected faces; this step is necessary
+			// because the code below does not actually check for an intersection
+			for(std::set<Face*>::iterator faceIt = mFacesSelected.begin(); faceIt != mFacesSelected.end();) {
+				if(!intersectTest(*faceIt))
+				{
+					mFacesSelected.erase( faceIt++ );
 				}
-
-				front.push_back(vertY);
-			}
-
-			// second vertex is behind plane...
-			else if(sideY < 0) {
-				// ..but first vertex is in front of plane
-				if(sideX >= 0) {
-					if( !getPointOnIsoLine( &vecIntersection, vertX, vertY, rIsoVal ) ) {
-						cerr << "[Mesh::" << __FUNCTION__ << "] ERROR during getPointOnIsoLine(2)!" << endl;
-					}
-
-					if(duplicateVertices) {
-						if(!vertIntersection1 && !vertIntersection2) {
-							vertIntersection1 = new VertexOfFace(vecIntersection + vecOffset);
-							vertIntersection2 = new VertexOfFace(vecIntersection - vecOffset);
-
-							edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection2);
-						}
-
-						front.push_back(vertIntersection1);
-						back.push_back( vertIntersection2);
-					}
-					else {
-						// Vertex at intersection may have already been found;
-						// do _not_ create vertex twice
-						if(!vertIntersection1) {
-							vertIntersection1 = new VertexOfFace(vecIntersection);
-							edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection1);
-						}
-
-						front.push_back(vertIntersection1);
-						back.push_back( vertIntersection1);
-					}
-				}
-
-				back.push_back(vertY);
-			}
-
-			else {
-
-				std::cerr << "[Mesh::" << __FUNCTION__ << "] Handling vertex _on_ plane" << std::endl;
-
-				// slightly shift vertex; variable names are not entirely correct, but will not
-				// be changed as code afterwards depends on it
-				if(duplicateVertices) {
-					vertIntersection1 = new VertexOfFace(vertY->getPositionVector() + vecOffset);
-					vertIntersection2 = new VertexOfFace(vertY->getPositionVector() - vecOffset);
-
-					front.push_back(vertIntersection1);
-					back.push_back(vertIntersection2);
-				}
-				// if no duplicates are required, store vertex in _both_ sets
 				else {
-					front.push_back(vertY);
-					back.push_back(vertY);
+					faceIt++;
 				}
 			}
-
-			// Set attributes for new vertices
-
-			if(vertIntersection1 && !edgeExists) {
-				vertIntersection1->setRGB(averageColor[0], averageColor[1], averageColor[2]);
-				mVertices.push_back(vertIntersection1);
-			}
-			if(vertIntersection2 && !edgeExists) {
-				vertIntersection2->setRGB(averageColor[0], averageColor[1], averageColor[2]);
-				mVertices.push_back(vertIntersection2);
-			}
-
-			vertX = vertY;
-			sideX = sideY;
 		}
 
-		triangulateSplitFace(front, &adjacentAndNewFaces);
-		triangulateSplitFace(back,  &adjacentAndNewFaces);
-	}
+		// required for reconnecting the _new_ faces created by
+		// the splitting procedure
+		std::set<Face*> adjacentAndNewFaces;
 
-	for(Face* face : mFacesSelected) {
-		adjacentAndNewFaces.erase(face);
-	}
+		// store edges for which an intersection vertex has already
+		// been created
+		std::map< std::pair<int, int>, std::pair<VertexOfFace*, VertexOfFace*> > edgeMap;
 
-	if(noRedraw) {
-		Mesh::removeFacesSelected();
-	}
-	else {
-		this->removeFacesSelected();
-	}
+		cout << "[Mesh::" << __FUNCTION__ << "] Remaining faces: " << mFacesSelected.size() << endl;
+		for(Face* face : mFacesSelected) {
 
-	// Re-establish mesh
-	for(Face* adjacentAndNewFace : adjacentAndNewFaces) {
-		adjacentAndNewFace->reconnectToFaces();
-	}
+			// Classify face vertices with respect to the plane; split face into
+			// `front` part and `back` part
 
-	// Apply other nessary methods
-	bool retVal = true;
-	retVal &= changedMesh();
+			std::vector<VertexOfFace*> front;
+			std::vector<VertexOfFace*> back;
+			front.reserve(4);
+			back.reserve(4);
 
-	return( retVal );
+			std::vector<float> frontUVs;
+			frontUVs.reserve(8);
+			std::vector<float> backUVs;
+			backUVs.reserve(8);
+
+			// required so that we may loop over the vertices
+			VertexOfFace* vertsToCheck[3] = { static_cast<VertexOfFace*>(face->getVertB()),
+											  static_cast<VertexOfFace*>(face->getVertC()),
+											  static_cast<VertexOfFace*>(face->getVertA()) };
+
+			auto uvs = face->getUVs();
+
+			//x index of the current uv-coordinate
+			size_t uvX = 0;
+			size_t uvY = 2;
+
+			VertexOfFace* vertX  = static_cast<VertexOfFace*>(face->getVertA());
+			VertexOfFace* vertY = nullptr;
+
+			double sideX = signedDistanceFunction(vertX);
+			double sideY;
+
+			Vector3D vecIntersection;
+			for(VertexOfFace*& vertexOfFace : vertsToCheck) {
+
+				// These vertices store the position of the points _on_ the plane. If `duplicateVertices`
+				// is set to true, `vertIntersection2` will contain a slightly offset version of
+				// `vertIntersection1`. Else, this parameter will _not_ be used.
+				VertexOfFace* vertIntersection1 = nullptr;
+				VertexOfFace* vertIntersection2 = nullptr;
+
+				// required for reconnecting the faces later on
+				vertexOfFace->getFaces(&adjacentAndNewFaces);
+
+				vertY = vertexOfFace;
+				sideY = signedDistanceFunction(vertexOfFace);
+
+				// Check whether edge exists; if this is the case, use the stored vertex as
+				// the intersection vertex and do _not_ store the vertex twice.
+
+				bool edgeExists = false;
+
+				int id1 = vertX->getIndex();
+				int id2 = vertY->getIndex();
+				if(id1 > id2) {
+					std::swap(id1, id2);
+				}
+
+				std::map< std::pair<int, int>, std::pair<VertexOfFace*, VertexOfFace*> >::iterator edgeIt;
+				if((edgeIt = edgeMap.find(std::make_pair(id1, id2))) != edgeMap.end()) {
+					vertIntersection1 = edgeIt->second.first; // Cool notation ;)
+					vertIntersection2 = edgeIt->second.second;
+					edgeExists = true;
+				}
+
+				unsigned char averageColor[3];
+				averageColor[0] = static_cast<unsigned char>(0.5*(vertX->getR() + vertY->getR()));
+				averageColor[1] = static_cast<unsigned char>(0.5*(vertX->getG() + vertY->getG()));
+				averageColor[2] = static_cast<unsigned char>(0.5*(vertX->getB() + vertY->getB()));
+
+
+				//the vertices are on the other sides
+				if( sideY != 0)
+				{
+					if(sideY > 0 != sideX > 0)
+					{
+						getIntersectionVector(vertX, vertY, vecIntersection);
+
+						if(duplicateVertices) {
+							if(!vertIntersection1 && !vertIntersection2) {
+								vertIntersection1 = new VertexOfFace(vecIntersection + vecOffset);
+								vertIntersection2 = new VertexOfFace(vecIntersection - vecOffset);
+
+								edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection2);
+							}
+
+							front.push_back(vertIntersection1);
+							back.push_back( vertIntersection2);
+						}
+						else {
+							// Vertex at intersection may have already been found;
+							// do _not_ create vertex twice
+							if(!vertIntersection1) {
+								vertIntersection1 = new VertexOfFace(vecIntersection);
+								edgeMap[std::make_pair(id1, id2)] = std::make_pair(vertIntersection1, vertIntersection1);
+							}
+
+							front.push_back(vertIntersection1);
+							back.push_back( vertIntersection1);
+						}
+
+						//push interpolated uvs to front and back
+						float relDist = getRelativeDistance(vertY, vertX, &vecIntersection);
+						float s;
+						float t;
+
+						linearInterpolateUV(uvs[uvY], uvs[uvY + 1], uvs[uvX], uvs[uvX + 1], relDist, s, t);
+
+						frontUVs.push_back(s); frontUVs.push_back(t);
+						backUVs.push_back( s); backUVs.push_back( t);
+					}
+					//y is in front
+					if(sideY > 0)
+					{
+						front.push_back(vertY);
+						frontUVs.push_back(uvs[uvY]); frontUVs.push_back(uvs[uvY + 1]);
+					}
+					//y is in back
+					else
+					{
+						back.push_back(vertY);
+						backUVs.push_back( uvs[uvY]); backUVs.push_back( uvs[uvY + 1]);
+					}
+				}
+
+				else
+				{
+					std::cerr << "[Mesh::" << __FUNCTION__ << "] Handling vertex _on_ plane" << std::endl;
+
+					// slightly shift vertex; variable names are not entirely correct, but will not
+					// be changed as code afterwards depends on it
+					if(duplicateVertices) {
+						vertIntersection1 = new VertexOfFace(vertY->getPositionVector() + vecOffset);
+						vertIntersection2 = new VertexOfFace(vertY->getPositionVector() - vecOffset);
+
+						front.push_back(vertIntersection1);
+						back. push_back(vertIntersection2);
+					}
+					// if no duplicates are required, store vertex in _both_ sets
+					else {
+						front.push_back(vertY);
+						back. push_back(vertY);
+					}
+
+					//push uvs of y to front and back
+					frontUVs.push_back(uvs[uvY]); frontUVs.push_back(uvs[uvY + 1]);
+					backUVs. push_back(uvs[uvY]); backUVs. push_back(uvs[uvY + 1]);
+				}
+
+				// Set attributes for new vertices
+
+				if(vertIntersection1 && !edgeExists) {
+					vertIntersection1->setRGB(averageColor[0], averageColor[1], averageColor[2]);
+					mVertices.push_back(vertIntersection1);
+				}
+				if(vertIntersection2 && !edgeExists) {
+					vertIntersection2->setRGB(averageColor[0], averageColor[1], averageColor[2]);
+					mVertices.push_back(vertIntersection2);
+				}
+
+				vertX = vertY;
+				uvX = uvY;
+				uvY = (uvY + 2) % 6;
+				sideX = sideY;
+			}
+
+			triangulateSplitFace(front, &adjacentAndNewFaces, &frontUVs, face->getTextureId());
+			triangulateSplitFace(back , &adjacentAndNewFaces, &backUVs , face->getTextureId());
+		}
+
+		for(Face* face : mFacesSelected) {
+			adjacentAndNewFaces.erase(face);
+		}
+
+		if(noRedraw) {
+			Mesh::removeFacesSelected();
+		}
+		else {
+			this->removeFacesSelected();
+		}
+
+		// Re-establish mesh
+		for(Face* adjacentAndNewFace : adjacentAndNewFaces) {
+			adjacentAndNewFace->reconnectToFaces();
+		}
+
+		// Apply other nessary methods
+		bool retVal = true;
+		retVal &= changedMesh();
+
+		return( retVal );
 }
 
 //! Triangulates a face that has been split by a plane. The new faces are then inserted into a
 //! set if the parameter is not NULL.
 //! @warning This function assumes that points are added to the vector of vertices in the correct
 //! order. There is no way for this function to determine/change the order.
-bool Mesh::triangulateSplitFace(std::vector<VertexOfFace*>& faceVertices, std::set<Face*>* newFaces) {
+bool Mesh::triangulateSplitFace(std::vector<VertexOfFace*>& faceVertices, std::set<Face*>* newFaces, std::vector<float>* newUVS, unsigned char textureID) {
 
 	size_t n = faceVertices.size();
 	if(n != 3 && n !=4) {
 		std::cerr << "[Mesh::" << __FUNCTION__ << "] Encountered result of non-triangular split. Unable to triangulate. n=" << n
 		          << std::endl;
 		return(false);
+	}
+
+	if(newUVS)
+	{
+		if(faceVertices.size() * 2 != newUVS->size())
+		{
+			std::cerr << "[Mesh::" << __FUNCTION__ << "] The number of UV's does not match with the number of vertices * 2: " << newUVS->size() << " vs " << faceVertices.size() << std::endl;
+			return false;
+		}
 	}
 
 	int faceId = getFaceNr();
@@ -4054,12 +3948,31 @@ bool Mesh::triangulateSplitFace(std::vector<VertexOfFace*>& faceVertices, std::s
 
 	// this face is created in any case
 	newFace1 = new Face(faceId, faceVertices[0], faceVertices[1], faceVertices[2]);
+	if(newUVS)
+	{
+		std::array<float,6> uvs;
+		for(int i = 0; i<6; ++i)
+			uvs[i] = (*newUVS)[i];
+
+		newFace1->setUVs(uvs);
+		newFace1->setTextureId(textureID);
+	}
+
 	mFaces.push_back(newFace1);
 
 	// this face can only be created if four points are the result of
 	// the splitting plane operation
 	if(n == 4) {
 		newFace2 = new Face(faceId + 1, faceVertices[2], faceVertices[3], faceVertices[0]);
+		if(newUVS)
+		{
+			std::array<float,6> uvs;
+			for(int i = 0; i<6; ++i)
+				uvs[i] = (*newUVS)[(4 + i) % 8];
+
+			newFace2->setUVs(uvs);
+			newFace2->setTextureId(textureID);
+		}
 		mFaces.push_back(newFace2);
 	}
 
@@ -6723,7 +6636,7 @@ bool Mesh::planeIntersectionToPolyline() {
 }
 
 //! Compute polylines using the axis and the selected positons
-//! i.e. multiiple profile line.
+//! i.e. multiple profile line.
 //!
 //! Note:
 //! (i) Function values are not changed as they are stashed and restored.
@@ -6790,10 +6703,34 @@ bool Mesh::isolineToPolylineMultiple() {
 
 //! Compute isolines using the function values using the stored threshold.
 //!
-//! @returns false in case of an error. True otherwise.
+//! @returns false in case of an error or user cancel. True otherwise.
 bool Mesh::isolineToPolyline() {
-	double isoValue;
+	double isoValue = _NOT_A_NUMBER_DBL_;
+	double isoValueSelPrim = _NOT_A_NUMBER_DBL_;
 	getParamFloatMesh( MeshParams::FUNC_VALUE_THRES, &isoValue );
+
+	if( mPrimSelected != nullptr ) {
+		if( mPrimSelected->getFuncValue( &isoValueSelPrim ) ) {
+			if( isfinite( isoValueSelPrim ) ) {
+				bool chooseValFromSelectedPrim = false;
+				bool userCancel = false;
+				userCancel = showQuestion( &chooseValFromSelectedPrim,
+				                           "Value from Selected Primitive",
+				                           "Do you want to use the function value of the selected primitive?<br /><br />"
+				                           "YES for <b>" + to_string( isoValueSelPrim ) + "</b><br /><br />"
+				                           "NO for <b>" + to_string( isoValue ) + "</b><br /><br />"
+				                           "CANCEL to abort."
+				                          );
+				if( !userCancel ) {
+					return( false );
+				}
+				if( chooseValFromSelectedPrim ) {
+					isoValue = isoValueSelPrim;
+				}
+			}
+		}
+	}
+
 	bool retVal = isolineToPolyline( isoValue );
 	return( retVal );
 }
@@ -6808,46 +6745,62 @@ bool Mesh::isolineToPolyline(
     double     rIsoValue,          //!< Isovalue to compute the isolines.
     Plane*     rPlaneIntersect     //!< Optional plane for intersections. Will be stored with the isolines.
 ) {
+	// Sanity check
+	if( !isfinite( rIsoValue ) ) {
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Given iso-value is not finite!" << std::endl;
+		return( false );
+	}
+
 	//! \todo Fetching the label related information, makes only sense for outlines of connected components. Therefore optimizations might be possible at this point.
 	// Fetch label normals first.
 	vector<Vector3D> labelCenters;
 	vector<Vector3D> labelNormals;
 	estLabelNormalSizeCenterVert( &labelCenters, &labelNormals );
 	vector<Vector3D>::iterator itLabelCenters;
-	for( itLabelCenters=labelCenters.begin(); itLabelCenters!=labelCenters.end(); itLabelCenters++ ) {
-		Vector3D labelCenter = (*itLabelCenters);
-		cout << "[Mesh::" << __FUNCTION__ << "] vertex count: " << labelCenter.getH() << endl;
-		labelCenter.dumpInfo();
+	for( auto& labelCenter : labelCenters) {
+		//LOG::debug() << "[Mesh::" << __FUNCTION__ << "] vertex count: " << labelCenter.getH() << "\n";
+		//labelCenter.dumpInfo();
 		labelCenter /= labelCenter.getH();
-		(*itLabelCenters) = labelCenter;
 	}
-	vector<Vector3D>::iterator itLabelNormals;
-	for( itLabelNormals=labelNormals.begin(); itLabelNormals!=labelNormals.end(); itLabelNormals++ ) {
-		cout << "[Mesh::" << __FUNCTION__ << "] label area: " << (*itLabelNormals).getLength3() << endl;
-		//(*itLabelNormals).normalize3();
+
+	/*
+	for( const auto& labelNormal : labelNormals) {
+		cout << "[Mesh::" << __FUNCTION__ << "] label area: " << labelNormal.getLength3() << endl;
+		//labelNormal.normalize3();
 	}
+	*/
 
 	// Bit array:
 	uint64_t* facesVisitedBitArray;
 	uint64_t  faceBlocksNr = getBitArrayFaces( &facesVisitedBitArray );
 
+	auto setFaceVisited = [&facesVisitedBitArray] (Face* face) {
+		uint64_t  bOffset;
+		uint64_t  bNr;
+		face->getIndexOffsetBit(&bOffset, &bNr);
+		facesVisitedBitArray[bOffset] |= static_cast<uint64_t>(1) << bNr;
+	};
+
 	for( uint64_t i=0; i<faceBlocksNr; i++ ) {
-		if( facesVisitedBitArray[i] == 0xFFFFFFFF ) {
+		if( facesVisitedBitArray[i] == 0xFFFFFFFFFFFFFFFF ) {
 			// whole block visited.
 			continue;
 		}
 		for( uint64_t j=0; j<64; j++ ) {
+			const uint64_t currFaceIndex = i*64+j;
+
+			// skip unused bits within the last block:
+			if( ( i==faceBlocksNr-1 ) && ( currFaceIndex >= getFaceNr() ) ) {
+				break;
+			}
+
 			uint64_t currentBit = static_cast<uint64_t>(1) << j;
 			if( facesVisitedBitArray[i] & currentBit ) {
 				// face already visited.
 				continue;
 			}
-			// skip unused bits within the last block:
-			if( ( i==faceBlocksNr-1 ) && ( i*64+j >= getFaceNr() ) ) {
-				break;
-			}
 			//cout << "[Mesh::isolineToPolyline] Check Face in Block No. " << i << " Bit No. " << j << endl;
-			Face* checkFace = getFacePos( i*64+j );
+			Face* checkFace = getFacePos( currFaceIndex );
 			if( !checkFace->isOnFuncValIsoLine( rIsoValue ) ) {
 				// when the face is not along the isoline, we mark it visited and move on:
 				facesVisitedBitArray[i] |= currentBit;
@@ -6861,12 +6814,12 @@ bool Mesh::isolineToPolyline(
 			bool isLabelBorder = checkFaceFirst->vertLabelLabelBorder( &isLabelLabelBorder, &labelFromBorder );
 			if( isLabelBorder ) {
 				if( isLabelLabelBorder ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] is on a label-label border." << endl;
+					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] is on a label-label border.\n";
 				} else {
-					cout << "[Mesh::" << __FUNCTION__ << "] is on a nolabel-label border. labelFromBorder: " << labelFromBorder << endl;
+					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] is on a nolabel-label border. labelFromBorder: " << labelFromBorder << "\n";
 				}
 			} else {
-				cout << "[Mesh::" << __FUNCTION__ << "] is NOT on a label related border." << endl;
+				LOG::debug() << "[Mesh::" << __FUNCTION__ << "] is NOT on a label related border.\n";
 			}
 
 			//cout << "[Mesh::" << __FUNCTION__ << "] Trace Face in Block No. " << i << " Bit No. " << j << endl;
@@ -6885,19 +6838,27 @@ bool Mesh::isolineToPolyline(
 			}
 			Vector3D  isoPoint;
 			Face*     nextFace = nullptr;
+			Face*     excludeFace = nullptr;
 			uint64_t  bitOffset;
 			uint64_t  bitNr;
 
 			// Trace in forward direction:
 			//----------------------------
 			// Fetch first point ...
-			checkFaceFirst->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, true );
+			// ... set visited ...
+			checkFaceFirst->getIndexOffsetBit( &bitOffset, &bitNr );
+			facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
+			if(!checkFaceFirst->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, true, &excludeFace ))
+			{
+				continue; //skip face, because it only touches the isoLine on its vertices
+			}
+			if(excludeFace != nullptr)
+			{
+				setFaceVisited(excludeFace);
+			}
 			// ... add to polyline with normal ....
 			Vector3D normalPos = checkFaceFirst->getNormal( true );
 			isoLine->addFront( isoPoint, normalPos, checkFaceFirst );
-			// ... and set visited.
-			checkFaceFirst->getIndexOffsetBit( &bitOffset, &bitNr );
-			facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
 
 			checkFace = nextFace;
 			while( checkFace != nullptr ) {
@@ -6905,27 +6866,43 @@ bool Mesh::isolineToPolyline(
 				//cout << "[Mesh::" << __FUNCTION__ << "] Face in Block No. " << bitOffset << " Bit No. " << bitNr << endl;
 				// check if we have been there to prevent infinite loops:
 				if( facesVisitedBitArray[bitOffset] & static_cast<uint64_t>(1)<<bitNr ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] closed polyline (forward)." << endl;
+					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] closed polyline (forward).\n";
 					break;
 				}
+				// set visited
+				facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
 				// get the point ...
-				checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, true );
+				if(!checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, true, &excludeFace ))
+				{
+					nextFace = nullptr;
+					continue;
+				}
+				if(excludeFace != nullptr)
+				{
+					setFaceVisited(excludeFace);
+				}
 				// ... add to polyline with normal ...
 				normalPos = checkFace->getNormal( true );
 				isoLine->addFront( isoPoint, normalPos, checkFace );
-				// ... and set visited ...
-				facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
+
 				// .... move on:
 				checkFace = nextFace;
 				// for debuging:
 				if( nextFace == nullptr ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] open polyline (forward)." << endl;
+					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] open polyline (forward).\n";
 				}
 			}
 
 			// Trace in backward direction:
 			//------------------------------
-			checkFaceFirst->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, false );
+			if(!checkFaceFirst->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, false, &excludeFace ))
+			{
+				continue;
+			}
+			if(excludeFace != nullptr)
+			{
+				setFaceVisited(excludeFace);
+			}
 			// ... add to polyline with normal ....
 			normalPos = checkFaceFirst->getNormal( true );
 			isoLine->addBack( isoPoint, normalPos, checkFaceFirst );
@@ -6934,26 +6911,33 @@ bool Mesh::isolineToPolyline(
 			checkFace = nextFace;
 			while( checkFace != nullptr ) {
 				checkFace->getIndexOffsetBit( &bitOffset, &bitNr );
+
+				// ... and set visited ...
+				facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
+
 				//cout << "[Mesh::" << __FUNCTION__ << "] Face in Block No. " << bitOffset << " Bit No. " << bitNr << endl;
 				// check if we have been there to prevent infinite loops:
 				if( facesVisitedBitArray[bitOffset] & static_cast<uint64_t>(1)<<bitNr ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] closed polyline (backward)." << endl;
+					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] closed polyline (backward).\n";
 					break;
 				}
 				// get the point ...
-				if( !checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, false ) ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] unknown problem." << endl;
+				if( !checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, false, &excludeFace ) ) {
+					nextFace = nullptr;
+					continue;
+				}
+				if(excludeFace != nullptr)
+				{
+					setFaceVisited(excludeFace);
 				}
 				// ... add to polyline with normal ...
 				normalPos = checkFace->getNormal( true );
 				isoLine->addBack( isoPoint, normalPos, checkFace );
-				// ... and set visited ...
-				facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
 				// .... move on:
 				checkFace = nextFace;
 				// for debuging:
 				if( nextFace == nullptr ) {
-					cout << "[Mesh::" << __FUNCTION__ << "] open polyline (backward)." << endl;
+					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] open polyline (backward).\n";
 				}
 			}
 			// Add vertices of the polyline:
@@ -9182,6 +9166,25 @@ bool Mesh::funcVertSphereSurfaceNumberOfComponents() {
 	return false;
 #endif
 }
+//! Copies the function value from each vertex to the nth component of its feature vector
+//! @param dim the component of the feature vector, where the function value is written to. If dim > featureVecSize, then the vector gets padded with zeros to fit dim
+//! @returns False in case of an error
+bool Mesh::funcValToFeatureVector(unsigned int dim)
+{
+	for(auto pVertex : mVertices)
+	{
+		if(dim >= pVertex->getFeatureVectorLen())
+		{
+			pVertex->resizeFeatureVector(dim + 1);
+		}
+		double funcVal;
+		pVertex->getFuncValue(&funcVal);
+		pVertex->setFeatureElement(dim, funcVal);
+	}
+
+	return true;
+}
+
 
 //! Compute the correlation of the vertices feature vector and store it as their function value.
 bool Mesh::setVertFuncValCorrTo( vector<double>* rFeatVector ) {
@@ -9637,7 +9640,7 @@ bool Mesh::changedMesh() {
 //! Removes multiple Vertices from the vertexList. It will also (has to)
 //! remove Faces which are defined by the Vertices.
 bool Mesh::removeVertices( set<Vertex*>* verticesToRemove ) {
-	if( verticesToRemove->size() == 0 ) {
+	if( verticesToRemove->empty() ) {
 		cout << "[Mesh::" << __FUNCTION__ << "] Nothing to do - no vertices given." << endl;
 		return false;
 	}
@@ -9650,9 +9653,12 @@ bool Mesh::removeVertices( set<Vertex*>* verticesToRemove ) {
 	// to remove a vertex, we have to determine the faces it belongs to and
 	// then remove these faces - otherwise we will screw-up our meshs
 	// internal references!
-	for ( itVertexRm=verticesToRemove->begin(); itVertexRm != verticesToRemove->end(); itVertexRm++ ) {
-		(*itVertexRm)->getFaces( &facesToRemove );
+
+	for(auto vertToRemove : *verticesToRemove)
+	{
+		vertToRemove->getFaces( &facesToRemove);
 	}
+
 	removeFaces( &facesToRemove );
 	facesToRemove.clear();
 	cout << "[Mesh::" << __FUNCTION__ << "] " << facesBefore-getFaceNr() << " Faces removed." << endl;
@@ -9845,7 +9851,7 @@ bool Mesh::removeFaces( set<Face*>* facesToRemove ) {
 		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: NULL pointer given!" << endl;
 		return false;
 	}
-	if( ( facesToRemove->size() == 0 ) || ( mFaces.size() == 0 ) ) {
+	if( facesToRemove->empty() || mFaces.empty() ) {
 		// nothing to do.
 		return false;
 	}
@@ -9971,8 +9977,8 @@ bool Mesh::completeRestore(
 	uint64_t holesFilled = 0;
 	uint64_t holesFail = 0;
 	uint64_t holesSkipped = 0;
-	long oldVertexNr;
-	long oldFaceNr;
+	uint64_t oldVertexNr;
+	uint64_t oldFaceNr;
 	bool retVal = true;
 
 	do {
@@ -12574,12 +12580,11 @@ bool Mesh::fetchSphereArea( Vertex*        rSeedPosition,  //!< Position of the 
 		rAreas[i] = 0.0;
 	}
 	// Parse all faces
-	vector<Face*>::iterator itFace;
-	for( itFace=rFacesInSphere->begin(); itFace!=rFacesInSphere->end(); itFace++ ) {
-		//bool Face::surfaceintegralinvariant( int nradii, double* radii, double* area, Vertex* rseed1 )
-		Face* currFace = (*itFace);
-		currFace->surfaceintegralinvariant( rRadiiNr, rRadii, rAreas, rSeedPosition );
+	for(auto& face : *rFacesInSphere)
+	{
+		face->surfaceintegralinvariant( rRadiiNr, rRadii, rAreas, rSeedPosition);
 	}
+
 	// Normalize areas by circle area to ]0.0,+inf) - 1.0 means the size of circle disc of a great circle, which can be flat.
 	for( unsigned int i=0; i<rRadiiNr; i++ ) {
 		rAreas[i] /= M_PI * rRadii[i] * rRadii[i];
@@ -12935,14 +12940,31 @@ bool Mesh::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool 
 		return true;
 	}
 
+	showProgressStart("Apply Transformation");
+	showProgress(0.0, "Apply Transformation");
+
 	//! .) Apply transformation matrix for each of the given vertices.
 	unsigned int errCtr = 0;
+	double percentDone = 0.0;
+	const unsigned int progressStep = rSomeVerts->size() / 10;
+	unsigned int count = 0;
 	float timeStart = clock();
 	for( auto const& currVertex: (*rSomeVerts) ) {
 		if( !(currVertex->applyTransfrom( &rTrans )) ) {
 			errCtr++;
 		}
+
+		++count;
+		if(count >= progressStep)
+		{
+			count = 0;
+			percentDone += 0.1;
+			showProgress(percentDone, "Apply Transformation");
+		}
 	}
+
+	showProgress(1.0, "Apply Transformation");
+
 	cout << "[Mesh::" << __FUNCTION__ << "] time: " << ( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
 	if( errCtr > 0 ) {
 		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: applyTransfrom failed " << errCtr << " times!" << endl;
@@ -12961,6 +12983,9 @@ bool Mesh::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool 
 
 	//! .) Can also affect the polylines - reset them too:
 	polyLinesChanged();
+
+	//! .) Apply transformation to the mesh-plane
+	applyTransfromToPlane(rTrans);
 
 	//! .) Write the transformation to the side-car file, because HiWis tend to forget this.
 	string transMatFName = getFileLocation() + "/" + getBaseName() + "_transmat.txt";
@@ -12989,6 +13014,7 @@ bool Mesh::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool 
 		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: writing transformation matrix to: " << transMatFName << "!" << endl;
 	}
 
+	showProgressStop("Apply Transformation");
 	return ( errCtr == 0 );
 }
 
@@ -13834,10 +13860,19 @@ void Mesh::flipTriangle( int index //!< input: Face-Index
 
 	if(FaceOptA->getNormal() == currFaceNormal){
 		//if FaceOptA has the same orientation like the currentFace -> then use FaceOptB (with a different orientation)
+		auto uvs = currentFace->getUVs();
+
+		//swap uvs of Vert1 and Vert2
+		std::swap(uvs[0],uvs[4]);
+		std::swap(uvs[1], uvs[5]);
+		FaceOptB->setUVs(uvs);
+
 		this->mFaces.insert(this->mFaces.begin()+index+1, FaceOptB);
 		delete (FaceOptA);
 	}else if(FaceOptB->getNormal() == currFaceNormal){
 		//if FaceOptB has the same orientation like the currentFace -> then use FaceOptA (with a different orientation)
+
+		FaceOptA->setUVs( currentFace->getUVs() );
 		this->mFaces.insert(this->mFaces.begin()+index+1, FaceOptA);
 		delete (FaceOptB);
 	}
@@ -15516,6 +15551,96 @@ bool Mesh::exportFuncVals( string rFileName, bool rWithVertIdx ) {
 	return true;
 }
 
+//! Imports function values of the vertices
+//! File extension: .txt or .mat
+//! assumes that the files are either single column with the functionValue, or double column with index + functionValue
+//! lines starting with # are treated as comments
+bool Mesh::importFuncValsFromFile(const string& rFileName, bool withVertIdx)
+{
+	ifstream filestr(rFileName);
+
+	filestr.imbue(std::locale("C"));
+
+	if(!filestr.is_open())
+	{
+		LOG::error() << "[Mesh::" << __FUNCTION__ << "] Could not open file: '" << rFileName << "'.\n";
+		return false;
+	}
+
+	auto numVerts = getVertexNr();
+	std::string line;
+	double funcVal;
+
+	//importing with index
+	if(withVertIdx)
+	{
+		uint64_t currIndex = 0;
+		while(std::getline(filestr, line))
+		{
+			if(!line.empty())
+			{
+				if(line[0] == '#')
+				{
+					continue;
+				}
+
+				std::stringstream lineStream(line);
+				if(!(lineStream >> currIndex >> funcVal))
+				{
+					LOG::warn() << "[Mesh::" << __FUNCTION__ << "] File: '" << rFileName << "' contains invalid values!\n";
+					continue;
+				}
+
+				if(currIndex < numVerts)
+				{
+					mVertices[currIndex]->setFuncValue(funcVal);
+				}
+				else
+				{
+					LOG::warn() << "[Mesh::" << __FUNCTION__ << "] warning: function value out of range: " << currIndex << "\n";
+				}
+			}
+		}
+	}
+	//importing without index
+	else
+	{
+		uint64_t currIndex = 0;
+		while(std::getline(filestr, line))
+		{
+			if(!line.empty())
+			{
+				if(line[0] == '#')
+				{
+					continue;
+				}
+
+				if(currIndex > numVerts)
+				{
+					LOG::warn() << "[Mesh::" << __FUNCTION__ << "] warning: function value out of range: " << currIndex - 1 << "\n";
+					break;
+				}
+				try {
+					funcVal = std::stod(line);
+				}
+				catch (std::exception& e)
+				{
+					LOG::warn() << "[Mesh::" << __FUNCTION__ << "] File: '" << rFileName << "' contains invalid values!\n";
+					mVertices[currIndex++]->setFuncValue(0);
+					continue;
+				}
+
+				mVertices[currIndex++]->setFuncValue(funcVal);
+			}
+		}
+	}
+
+	filestr.close();
+
+	changedVertFuncVal();
+	return true;
+}
+
 //! Exports the faces normals as sphereical coordinates as ASCII file in the format:
 //! Face Number Phi Theta Radius
 //! File extension: .facen
@@ -15712,11 +15837,11 @@ bool Mesh::latexFetchFigureInfos( vector<pair<string,string>>* rStrings ) {
 	rStrings->push_back( pair<string,string>( string( "__FACE_COUNT__"  ),  to_string( getFaceNr()   ) ) ); //! __FACE_COUNT__
 
 	//! Meta-data:
-	rStrings->push_back( pair<string,string>( string( "__OBJECT_ID__" ),       getModelMetaString( META_MODEL_ID ) )       ); //! __OBJECT_ID__
-	rStrings->push_back( pair<string,string>( string( "__OBJECT_MATERIAL__" ), getModelMetaString( META_MODEL_MATERIAL ) ) ); //! __OBJECT_MATERIAL__
+	rStrings->push_back( pair<string,string>( string( "__OBJECT_ID__" ),       getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID ) )       ); //! __OBJECT_ID__
+	rStrings->push_back( pair<string,string>( string( "__OBJECT_MATERIAL__" ), getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL ) ) ); //! __OBJECT_MATERIAL__
 	// Adapt web-reference
 	//! \todo extend for multiple links.
-	std::string strWebRef = getModelMetaString( META_REFERENCE_WEB );
+	std::string strWebRef = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_REFERENCE_WEB );
 	if( strWebRef.size() == 0 ) { // When empty
 		rStrings->push_back( pair<string,string>( string( "__WEB_REFERENCE__" ), "" ) ); //! __WEB_REFERENCE__ when empty
 	} else { //! \todo check if there is at least one properly formatted web-reference.
@@ -15842,9 +15967,9 @@ bool Mesh::getMeshInfoData(
 	} else {
 		rMeshInfos.mStrings[MeshInfoData::FILENAME]       = this->getBaseName();
 	}
-	rMeshInfos.mStrings[MeshInfoData::MODEL_ID]           = this->getModelMetaString( META_MODEL_ID );
-	rMeshInfos.mStrings[MeshInfoData::MODEL_MATERIAL]     = this->getModelMetaString( META_MODEL_MATERIAL );
-	rMeshInfos.mStrings[MeshInfoData::MODEL_WEBREFERENCE] = this->getModelMetaString( META_REFERENCE_WEB );
+	rMeshInfos.mStrings[MeshInfoData::MODEL_ID]           = this->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
+	rMeshInfos.mStrings[MeshInfoData::MODEL_MATERIAL]     = this->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
+	rMeshInfos.mStrings[MeshInfoData::MODEL_WEBREFERENCE] = this->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_REFERENCE_WEB );
 
 	// Primitive count
 	rMeshInfos.mCountULong[MeshInfoData::VERTICES_TOTAL] = this->getVertexNr();

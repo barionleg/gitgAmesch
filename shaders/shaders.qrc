@@ -63,5 +63,7 @@
         <file>pointcloud/pointcloud.frag</file>
         <file>normalSphere/IcoshphereShader.vert</file>
         <file>normalSphere/IcosphereShader.frag</file>
+        <file>textureMesh/texturemesh.vert</file>
+        <file>textureMesh/texturemesh.frag</file>
     </qresource>
 </RCC>

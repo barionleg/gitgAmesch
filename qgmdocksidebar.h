@@ -27,8 +27,10 @@ private slots:
 	void shaderChoicePointCloud( bool rState);
 	void shaderChoiceMonolithic( bool rState);
 	void shaderChoiceTransparency( bool rState);
+	void shaderChoiceTextured( bool rState);
 public slots:
 	void updateMeshParamInt( MeshGLParams::eParamInt rParamNr, int rSetValue );
+	void enableTextureMeshRendering(bool enable);
 
 signals:
 	void sShowParamIntMeshGL(MeshGLParams::eParamInt,int); //!< Trigger setup of a MeshGL specific parameter of type int.

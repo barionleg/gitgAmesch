@@ -2,6 +2,8 @@
 
 #include "face.h"
 
+#include "../logging/Logging.h"
+
 #define VERTEXOFFACEINITDEFAULTS \
 	mAdjacentFacesNr( 0 ),   \
 	mAdjacentFaces( NULL )
@@ -35,7 +37,7 @@ VertexOfFace::VertexOfFace( unsigned int rSetIdx, double rPosX, double rPosY, do
 //! Destructor
 VertexOfFace::~VertexOfFace() {
 	if( mAdjacentFacesNr > 0 ) {
-		cerr << "[Vertex::" << __FUNCTION__ << "] ERROR: still connected to " << mAdjacentFacesNr << " faces!" << endl;
+		LOG::debug() << "[VertexOfFace::" << __FUNCTION__ << "] ERROR: still connected to " << mAdjacentFacesNr << " faces!\n";
 	}
 	if( mAdjacentFaces != nullptr ) {
 		delete[] mAdjacentFaces;
@@ -63,9 +65,9 @@ bool VertexOfFace::estNormalAvgAdjacentFaces() {
 		Vector3D adjacentFaceNormal = mAdjacentFaces[i]->getNormal( false );
 		// Neglect degenerated faces:
 		if( !isnormal( adjacentFaceNormal.getLength3() ) ) {
-			cerr << "[Vertex::" << __FUNCTION__ << "] ERROR: No valid normal for face No. " << mAdjacentFaces[i]->getIndex() << "!" << endl;
-			cerr << "[Vertex::" << __FUNCTION__ << "]        adjacentFaceNormal: " << adjacentFaceNormal << endl;
-			cerr << "[Vertex::" << __FUNCTION__ << "]        Check for zero-area faces!" << endl;
+			LOG::warn() << "[VertexOfFace::" << __FUNCTION__ << "] ERROR: No valid normal for face No. " << mAdjacentFaces[i]->getIndex() << "!\n";
+			LOG::warn() << "[VertexOfFace::" << __FUNCTION__ << "]        adjacentFaceNormal: " << adjacentFaceNormal << "\n";
+			LOG::warn() << "[VertexOfFace::" << __FUNCTION__ << "]        Check for zero-area faces!\n";
 			continue;
 		}
 		// We apply a counterweight using the angle of the face for this vertex.
@@ -75,14 +77,14 @@ bool VertexOfFace::estNormalAvgAdjacentFaces() {
 	// Invalid noraml
 	if( !isnormal( faceNormal.getLength3() ) ) {
 		// This error will be shown often for defective meshs - to be treated by calling method:
-		// cerr << "[Vertex::" << __FUNCTION__ << "] ERROR: no valid normal set for Vertex " << this->getIndex() << " !" << endl;
+		// cerr << "[VertexOfFace::" << __FUNCTION__ << "] ERROR: no valid normal set for Vertex " << this->getIndex() << " !" << endl;
 		unsetNormal();
 		return( false );
 	}
 	// Final step: normalize the valid normal vector.
 	faceNormal.normalize3();
 	if( !setNormal( faceNormal.getX(), faceNormal.getY(), faceNormal.getZ() ) ) {
-		cerr << "[Vertex::" << __FUNCTION__ << "] ERROR: setNormal failed!" << endl;
+		LOG::warn() << "[VertexOfFace::" << __FUNCTION__ << "] ERROR: setNormal failed!\n";
 		return( false );
 	}
 	return( true );
@@ -209,7 +211,7 @@ bool VertexOfFace::isFuncValLocalMinimum() {
 	double neighbourFuncVal;
 	for( int i=0; i<mAdjacentFacesNr; i++ ) {
 		neighbourFuncVal = mAdjacentFaces[i]->getFuncValMinExcluding( this );
-		//cout << "[Vertex::isFuncValLocalMinimum] " << neighbourFuncVal << " < " << FUNCTION_VALUE << endl;
+		//cout << "[VertexOfFace::isFuncValLocalMinimum] " << neighbourFuncVal << " < " << FUNCTION_VALUE << endl;
 		if( neighbourFuncVal <= funcValue ) {
 			return( false );
 		}
@@ -234,7 +236,7 @@ bool VertexOfFace::isFuncValLocalMaximum() {
 	double neighbourFuncVal;
 	for( int i=0; i<mAdjacentFacesNr; i++ ) {
 		neighbourFuncVal = mAdjacentFaces[i]->getFuncValMaxExcluding( this );
-		//cout << "[Vertex::isFuncValLocalMaximum] " << neighbourFuncVal << " < " << FUNCTION_VALUE << endl;
+		//cout << "[VertexOfFace::isFuncValLocalMaximum] " << neighbourFuncVal << " < " << FUNCTION_VALUE << endl;
 		if( neighbourFuncVal >= funcValue ) {
 			return( false );
 		}
@@ -335,7 +337,7 @@ bool VertexOfFace::funcValMeanOneRing(
 //!
 //! @returns false in case of an error. True otherwise.
 bool VertexOfFace::getFeatureVecMedianOneRing( vector<double>& rMedianValues, double rMinDist ) {
-	cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: NOT yet IMPLEMENTED!" << endl;
+	LOG::debug() << "[Mesh::" << __FUNCTION__ << "] ERROR: NOT yet IMPLEMENTED!\n";
 	return( false );
 }
 
@@ -503,7 +505,7 @@ Vertex* VertexOfFace::getConnection( set<Vertex*>* someVertList, bool reverse ) 
 //! Add an adjacent Face.
 void VertexOfFace::connectToFace( Face* someFace ) {
 	if( someFace == nullptr ) {
-		cerr << "[Vertex::" << __FUNCTION__ << "] can not connect - NO Face given (NULL)." << endl;
+		LOG::debug() << "[VertexOfFace::" << __FUNCTION__ << "] can not connect - NO Face given (NULL).\n";
 		return;
 	}
 	// when empty:
@@ -515,7 +517,7 @@ void VertexOfFace::connectToFace( Face* someFace ) {
 	}
 	// check if already connected:
 	if( isAdjacent( someFace ) ) {
-		cerr << "[Vertex::" << __FUNCTION__ << "] can not re-connect - the Face is already adjacent." << endl;
+		LOG::debug() << "[VertexOfFace::" << __FUNCTION__ << "] can not re-connect - the Face is already adjacent.\n";
 		return;
 	}
 	// creat new array, size+1:
@@ -536,15 +538,15 @@ void VertexOfFace::connectToFace( Face* someFace ) {
 //! Remove an adjacent Face (e.g. when removed).
 void VertexOfFace::disconnectFace( Face* someFace ) {
 	if( someFace == nullptr ) {
-		cerr << "[Vertex::" << __FUNCTION__ << "] can not disconnect - NO Face given (NULL)." << endl;
+		LOG::debug() << "[VertexOfFace::" << __FUNCTION__ << "] can not disconnect - NO Face given (NULL).\n";
 		return;
 	}
 	if( mAdjacentFacesNr <= 0 ) {
-		cerr << "[Vertex::" << __FUNCTION__ << "] can not disconnect - NO Faces adjacent." << endl;
+		LOG::debug() << "[VertexOfFace::" << __FUNCTION__ << "] can not disconnect - NO Faces adjacent.\n";
 		return;
 	}
 	if( !isAdjacent( someFace ) ) {
-		cerr << "[Vertex::" << __FUNCTION__ << "] can not disconnect - the Face is NOT adjacent." << endl;
+		LOG::debug() << "[VertexOfFace::" << __FUNCTION__ << "] can not disconnect - the Face is NOT adjacent.\n";
 		return;
 	}
 	if( mAdjacentFacesNr == 1 ) {
@@ -585,7 +587,7 @@ bool VertexOfFace::isAdjacent( Face* someFace ) {
 
 	else
 	{
-		cerr << "[Vertex::" << __FUNCTION__ << "] ERROR: unexpected state: mAdjacentFacesNr: " << mAdjacentFacesNr << " while mAdjacentFaces is NULL!" << endl;
+		LOG::error() << "[VertexOfFace::" << __FUNCTION__ << "] ERROR: unexpected state: mAdjacentFacesNr: " << mAdjacentFacesNr << " while mAdjacentFaces is NULL!\n";
 	}
 
 	return false;
@@ -673,11 +675,11 @@ bool VertexOfFace::isBorder() {
 			Face* nextFace    = nullptr;
 			Face* currentFace = mAdjacentFaces[0];
 			Face* firstFace   = currentFace;
-			//cout << "[Vertex::isBorder] currentFace " << currentFace->getIndexOriginal() << endl;
+			//cout << "[VertexOfFace::isBorder] currentFace " << currentFace->getIndexOriginal() << endl;
 			facesVisited.insert( currentFace );
 			nextFace = currentFace->getNextFaceWith( this, &facesVisited );
 			while( nextFace != nullptr ) {
-				//cout << "[Vertex::isBorder] nextFace " << nextFace->getIndexOriginal() << endl;
+				//cout << "[VertexOfFace::isBorder] nextFace " << nextFace->getIndexOriginal() << endl;
 				currentFace = nextFace;
 				nextFace = currentFace->getNextFaceWith( this, &facesVisited );
 				facesVisited.insert( currentFace );
@@ -727,11 +729,11 @@ bool VertexOfFace::isDoubleCone() {
 	set<Face*> facesVisited;
 	Face* nextFace = nullptr;
 	Face* currentFace = mAdjacentFaces[0];
-	//cout << "[Vertex::isDoubleCone] currentFace " << currentFace->getIndexOriginal() << endl;
+	//cout << "[VertexOfFace::isDoubleCone] currentFace " << currentFace->getIndexOriginal() << endl;
 	facesVisited.insert( currentFace );
 	nextFace = currentFace->getNextFaceWith( this, &facesVisited );
 	while( nextFace != nullptr ) {
-		//cout << "[Vertex::isDoubleCone] nextFace " << nextFace->getIndexOriginal() << endl;
+		//cout << "[VertexOfFace::isDoubleCone] nextFace " << nextFace->getIndexOriginal() << endl;
 		currentFace = nextFace;
 		nextFace = currentFace->getNextFaceWith( this, &facesVisited );
 		facesVisited.insert( currentFace );
@@ -740,14 +742,14 @@ bool VertexOfFace::isDoubleCone() {
 	currentFace = mAdjacentFaces[0];
 	nextFace = currentFace->getNextFaceWith( this, &facesVisited );
 	while( nextFace != nullptr ) {
-		//cout << "[Vertex::isDoubleCone] nextFace " << nextFace->getIndexOriginal() << endl;
+		//cout << "[VertexOfFace::isDoubleCone] nextFace " << nextFace->getIndexOriginal() << endl;
 		currentFace = nextFace;
 		nextFace = currentFace->getNextFaceWith( this, &facesVisited );
 		facesVisited.insert( currentFace );
 	}
-	//cout << "[Vertex::isDoubleCone] facesVisited.size = " << facesVisited.size() << endl;
-	//cout << "[Vertex::isDoubleCone] faceList.size     = " << faceList.size() << endl;
-	//cout << "[Vertex::isDoubleCone] ------------------------------------------------------------" << endl;
+	//cout << "[VertexOfFace::isDoubleCone] facesVisited.size = " << facesVisited.size() << endl;
+	//cout << "[VertexOfFace::isDoubleCone] faceList.size     = " << faceList.size() << endl;
+	//cout << "[VertexOfFace::isDoubleCone] ------------------------------------------------------------" << endl;
 	// during our dance we should have visitied all neighbouring faces:
 	if( mAdjacentFacesNr == static_cast<int>(facesVisited.size()) ) {
 		return( false );
