@@ -43,11 +43,11 @@
 #endif
 
 #ifdef LIBSPHERICAL_INTERSECTION
-    #include "external/spherical_intersection/include/algorithm/component_count.h"
-    #include "external/spherical_intersection/include/algorithm/sphere_surface_msii.h"
-    #include "external/spherical_intersection/include/algorithm/sphere_volume_msii.h"
-    #include "external/spherical_intersection/include/graph.h"
-    #include "external/spherical_intersection/include/mesh.h"
+    #include <spherical_intersection/algorithm/component_count.h>
+    #include <spherical_intersection/algorithm/sphere_surface_msii.h>
+    #include <spherical_intersection/algorithm/sphere_volume_msii.h>
+    #include <spherical_intersection/graph.h>
+    #include <spherical_intersection/mesh.h>
 #endif
 
 using namespace std;

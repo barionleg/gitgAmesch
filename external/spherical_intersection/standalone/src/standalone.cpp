@@ -13,11 +13,11 @@
 #include "input_parser.h"
 #include "obj.h"
 #include "ply.h"
-#include "algorithm/component_count.h"
-#include "algorithm/sphere_surface_msii.h"
-#include "algorithm/sphere_volume_msii.h"
-#include "graph.h"
-#include "mesh.h"
+#include <spherical_intersection/algorithm/component_count.h>
+#include <spherical_intersection/algorithm/sphere_surface_msii.h>
+#include <spherical_intersection/algorithm/sphere_volume_msii.h>
+#include <spherical_intersection/graph.h>
+#include <spherical_intersection/mesh.h>
 #include "timer.h"
 
 namespace {

@@ -12,7 +12,7 @@ add_library(spherical_intersection
 									src/algorithm/sphere_intersections_msii.cpp
 									src/algorithm/sphere_surface_msii.cpp
 									src/algorithm/component_count.cpp)
-target_include_directories(spherical_intersection PRIVATE include)
+target_include_directories(spherical_intersection PRIVATE include/spherical_intersection)
 if (NOT CMAKE_BUILD_TYPE)
 	message(STATUS "Using default build type: Release")
 	set(CMAKE_BUILD_TYPE Release)

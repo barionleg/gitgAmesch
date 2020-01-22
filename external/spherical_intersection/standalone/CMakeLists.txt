@@ -1,4 +1,5 @@
 cmake_minimum_required (VERSION 3.1)
+project(Spherical_intersection_standalones VERSION 1.0.0 DESCRIPTION "mesh sphere intersection standalone tools")
 set (CMAKE_CXX_STANDARD 17)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 if (NOT SPHERICAL_INTERSECTION_LIB)
