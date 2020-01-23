@@ -927,8 +927,8 @@ int PolyLine::compileLine( set<labelLine*>* unsortedLines ) {
 				lineFound = true;
 			}
 			if( lineFound ) {
-				unsortedLines->erase( itLine );
 				delete (*itLine);
+				unsortedLines->erase( itLine );
 				continue;
 			}
 			if( (*itLine)->vertB == vertFront ) {
@@ -942,8 +942,8 @@ int PolyLine::compileLine( set<labelLine*>* unsortedLines ) {
 				lineFound = true;
 			}
 			if( lineFound ) {
-				unsortedLines->erase( itLine );
 				delete (*itLine);
+				unsortedLines->erase( itLine );
 			}
 		}
 	}
