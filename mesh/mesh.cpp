@@ -366,6 +366,9 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 		case SELECT_MESH_PLANE_AXIS_SELPRIM:
 			retVal = setPlaneHNFbyAxisSelPrim();
 			break;
+		case SELECT_MESH_PLANE_AXIS_SELPOS:
+			retVal = setPlaneHNFbyAxisAndLastPosition();
+			break;
 		case FEATUREVEC_MEAN_ONE_RING_REPEAT:
 			retVal = featureVecMedianOneRingUI( true );
 			break;
@@ -3403,13 +3406,13 @@ bool Mesh::setPlaneHNF( Vector3D* rPlaneHNF ) {
 	return true;
 }
 
-//! Define the plane using the (cone) axis and the selected primitive.
+//! Define the plane using the (cone) axis and the selected primitive. This will change the Mesh-Plane to an axis-plane
 //!
 //! See Mesh::mPlane and Mesh::mPrimSelected
 //!
 //! @returns false in case of an error e.g. degenarted positions or missing axis. True otherwise.
 bool Mesh::setPlaneHNFbyAxisSelPrim() {
-	cerr << "NOT FULLY IMPLEMENTED!" << endl;
+	LOG::warn() << "NOT FULLY IMPLEMENTED!\n";
 	Vector3D axisTop, axisBottom;
 	if( !getConeAxis( &axisTop, &axisBottom ) ) {
 		return( false );
@@ -3418,6 +3421,29 @@ bool Mesh::setPlaneHNFbyAxisSelPrim() {
 	mPlane.setPlaneByAxisAndPosition( axisTop, axisBottom, mPrimSelected->getCenterOfGravity() );
 	return( true );
 }
+
+//! Define the plane using the (cone) axis and the last selected position. This will change the Mesh-Plane to an axis-plane
+//!
+//! See Mesh::mPlane and Mesh::mSelectedPositions
+//!
+//! @returns false in case of an error, true otherwise
+bool Mesh::setPlaneHNFbyAxisAndLastPosition()
+{
+	if(mSelectedPositions.empty())
+		return false;
+
+	Vector3D axisTop, axisBottom, selectedPosition;
+
+	if(!getConeAxis(&axisTop, &axisBottom))
+	{
+		return false;
+	}
+
+	selectedPosition = std::get<0>(mSelectedPositions.back());
+
+	return mPlane.setPlaneByAxisAndPosition(axisTop, axisBottom, selectedPosition);
+}
+
 
 //! Change the orientation of the plane's normal vector -- see Plane::flipPlane()
 //! This is used e.g. for an OpenGL clipping plane.
@@ -3925,6 +3951,11 @@ bool Mesh::splitMesh(const std::function<bool(Face*)>& intersectTest , const std
 		retVal &= changedMesh();
 
 		return( retVal );
+}
+
+Plane::ePlaneDefinedBy Mesh::getPlaneDefinition()
+{
+	return mPlane.getDefinedBy();
 }
 
 //! Triangulates a face that has been split by a plane. The new faces are then inserted into a

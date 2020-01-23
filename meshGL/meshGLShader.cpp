@@ -1987,8 +1987,19 @@ void MeshGLShader::vboPaintFacesIndexed( eTexMapType rRenderColor ) {
 	bool showMeshPlane, showMeshPlaneTemp;
 	getParamFlagMeshGL( SHOW_MESH_PLANE, &showMeshPlane );
 	getParamFlagMeshGL( SHOW_MESH_PLANE_TEMP, &showMeshPlaneTemp );
-	if( showMeshPlane | showMeshPlaneTemp ) {
+	if( showMeshPlane || showMeshPlaneTemp ) {
 		Vector3D planeHNF;
+
+		std::array<GLubyte,3> planeColor;
+		if(getPlaneDefinition() == Plane::AXIS_POINTS_AND_POSITION)
+		{
+			planeColor = {255,0,170};
+		}
+		else
+		{
+			planeColor = {255,170,0};
+		}
+
 		if( getPlaneHNF( &planeHNF ) ) {
 			vector<Vector3D> planeIntersections;
 			Vector3D centralPointPlane( 0.0, 0.0, 0.0, 0.0 );
@@ -2007,9 +2018,9 @@ void MeshGLShader::vboPaintFacesIndexed( eTexMapType rRenderColor ) {
 				vertexBufferDataCentral.mNormal[1]   = planeHNF.getY();
 				vertexBufferDataCentral.mNormal[2]   = planeHNF.getZ();
 				grVertexStripeElment vertexBufferData;
-				vertexBufferData.mColor[0]   = 255;
-				vertexBufferData.mColor[1]   = 170;
-				vertexBufferData.mColor[2]   =   0;
+				vertexBufferData.mColor[0]   = planeColor[0];
+				vertexBufferData.mColor[1]   = planeColor[1];
+				vertexBufferData.mColor[2]   = planeColor[2];
 				vertexBufferData.mColor[3]   =  64;
 				vertexBufferData.mNormal[0]  = planeHNF.getX();
 				vertexBufferData.mNormal[1]  = planeHNF.getY();
@@ -2782,15 +2793,25 @@ void MeshGLShader::vboPaintPolylines() {
 	bool showMeshPlane, showMeshPlaneTemp;
 	getParamFlagMeshGL( SHOW_MESH_PLANE, &showMeshPlane );
 	getParamFlagMeshGL( SHOW_MESH_PLANE_TEMP, &showMeshPlaneTemp );
-	if( showMeshPlane | showMeshPlaneTemp ) {
+	if( showMeshPlane || showMeshPlaneTemp ) {
+		std::array<GLubyte,3> planeColor;
+		if(getPlaneDefinition() == Plane::AXIS_POINTS_AND_POSITION)
+		{
+			planeColor = {255,0,170};
+		}
+		else
+		{
+			planeColor = {255,170,0};
+		}
+
 		vector<Vector3D> planeIntersections;
 		Vector3D centralPointPlane( 0.0, 0.0, 0.0, 0.0 );
 		if( getMeshPlaneFan( &centralPointPlane, &planeIntersections ) && \
 			( planeIntersections.size() > 0 ) ) {
 			grVertexStripeElment vertexBufferData;
-			vertexBufferData.mColor[0]    = 255;
-			vertexBufferData.mColor[1]    = 170;
-			vertexBufferData.mColor[2]    =   0;
+			vertexBufferData.mColor[0]    = planeColor[0];
+			vertexBufferData.mColor[1]    = planeColor[1];
+			vertexBufferData.mColor[2]    = planeColor[2];
 			vertexBufferData.mColor[3]    = 255;
 			Vector3D lastPos = planeIntersections.back();
 			vertexBufferData.mPosition[0] = lastPos.getX();

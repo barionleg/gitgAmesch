@@ -281,6 +281,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool   getPlaneHNF( double* rPlaneHNF );
 		virtual bool   setPlaneHNF( Vector3D* rPlaneHNF );
 				bool   setPlaneHNFbyAxisSelPrim();
+				bool   setPlaneHNFbyAxisAndLastPosition();
 				bool   flipPlane();
 				bool   getPlaneIntersectEdge( Vector3D* rayTop, Vector3D* rayBot, Vector3D* rayIntersect );
 				bool   getPlaneIntersectLine( Vector3D* ptA, Vector3D* ptB, Vector3D* lineIntersect );
@@ -291,6 +292,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool   splitByPlane( Vector3D planeHNF, bool duplicateVertices = false, bool noRedraw = false );
 		virtual bool   splitByIsoLine( double rIsoVal, bool duplicateVertices = false, bool noRedraw = false, Vector3D rUniformOffset=Vector3D( 0.0, 0.0, 0.0, 0.0 ) );
 		virtual bool   splitMesh(const std::function<bool(Face*)>& intersectTest, const std::function<double(VertexOfFace*)>& signedDistanceFunction, const std::function<void(VertexOfFace*, VertexOfFace*, Vector3D&)>& getIntersectionVector, bool duplicateVertices = false, bool noRedraw = false, Vector3D rUniformOffset=Vector3D( 0.0, 0.0, 0.0, 0.0 ));
+
+				Plane::ePlaneDefinedBy getPlaneDefinition();
 	private:
 		virtual bool   triangulateSplitFace(std::vector<VertexOfFace*>& faceVertices, std::set<Face*>* newFaces = nullptr, std::vector<float>* newUVS = nullptr, unsigned char textureID = 0);
 

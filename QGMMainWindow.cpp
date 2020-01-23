@@ -1026,6 +1026,7 @@ void QGMMainWindow::initMeshSignals() {
 	actionSelMFacesLabledVerticesVoronoiCorner->setProperty(      "gmMeshFunctionCall", MeshParams::SELMFACES_LABEL_CORNER                       );
 	actionSelPolyVerticesNr->setProperty(                         "gmMeshFunctionCall", MeshParams::SELMPOLY_BY_VERTEX_COUNT                     );
 	actionPlaneSetByAxisSelPrim->setProperty(                     "gmMeshFunctionCall", MeshParams::SELECT_MESH_PLANE_AXIS_SELPRIM               );
+	actionPlaneSetByAxisLastSelPos->setProperty(                  "gmMeshFunctionCall", MeshParams::SELECT_MESH_PLANE_AXIS_SELPOS                );
 	// ... Feature vectors ...................................................................................................................................
 	actionFeatureVecMeanOneRingRepeat->setProperty(               "gmMeshFunctionCall", MeshParams::FEATUREVEC_MEAN_ONE_RING_REPEAT              );
 	actionUnloadFeatureVectors->setProperty(                      "gmMeshFunctionCall", MeshParams::FEATUREVEC_UNLOAD_ALL                        );

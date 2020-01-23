@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>23</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -604,6 +604,7 @@
     <addaction name="actionPlaneSetHNFByView"/>
     <addaction name="actionSelectPlane3FP"/>
     <addaction name="actionPlaneSetByAxisSelPrim"/>
+    <addaction name="actionPlaneSetByAxisLastSelPos"/>
     <addaction name="menuPlane_Extra"/>
     <addaction name="separator"/>
     <addaction name="actionSelFaceNone"/>
@@ -4353,6 +4354,11 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>Grid: Center Crosshair in front</string>
+   </property>
+  </action>
+  <action name="actionPlaneSetByAxisLastSelPos">
+   <property name="text">
+    <string>Plane - Set using Axis and last Selected Position</string>
    </property>
   </action>
  </widget>
