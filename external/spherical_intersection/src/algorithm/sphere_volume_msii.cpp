@@ -2,6 +2,7 @@
 #include <limits>
 #include <thread>
 #include <vector>
+#include <numeric>
 
 #include "algorithm/sphere_volume_msii.h"
 #include "graph.h"
@@ -125,9 +126,8 @@ double extract_cycle_contribution(Graph &graph) {
 	// accumulate contributions
 	accumulation += angle + start_curve.get_geodesic_curvature() *
 				    start_curve.get_length();
-	for (double contribution : arc_contributions_to_cycle) {
-		accumulation += contribution;
-	}
+
+	std::accumulate(arc_contributions_to_cycle.begin(), arc_contributions_to_cycle.end(), accumulation);
 
 	// erase the cycle's arcs from graph
 	for (const Arc &circleArc : arcs_of_cycle) {
