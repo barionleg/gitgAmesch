@@ -14,6 +14,16 @@ windows:
     - export PATH="/mxe/usr/bin:$PATH"
     - export PATH="/mxe/usr/x86_64-w64-mingw32.static/qt5/bin:$PATH"
     - export QT_SELECT=qt5
+
+    # build sphericlal_intersection lib
+    - cd external/spherical_intersection
+    - mkdir build
+    - cd build
+    - /mxe/usr/bin/x86_64-w64-mingw32.static-cmake ..
+    - /mxe/usr/bin/x86_64-w64-mingw32.static-cmake --build . --config Release
+    - cp libspherical_intersection.a ../
+    - cd ../../../
+
     # build libpsalm
     - cd external/libpsalmBoostless
     - mkdir build
@@ -71,6 +81,16 @@ ubuntu bionic:
     - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 10
     - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 10
     - export QT_SELECT=qt5
+
+    # build sphericlal_intersection lib
+    - cd external/spherical_intersection
+    - mkdir build
+    - cd build
+    - cmake ..
+    - cmake --build . --config Release
+    - cp libspherical_intersection.a ../
+    - cd ../../../
+
     # build libpsalm
     - cd external/libpsalmBoostless
     - mkdir build
@@ -115,6 +135,16 @@ manjaro arch:
    - pacman -S gcc glibc cmake boost unzip qtcreator make cairo git --noconfirm
   script:
     - export QT_SELECT=qt5
+
+    # build sphericlal_intersection lib
+    - cd external/spherical_intersection
+    - mkdir build
+    - cd build
+    - cmake ..
+    - cmake --build . --config Release
+    - cp libspherical_intersection.a ../
+    - cd ../../../
+
     # build libpsalm
     - cd external/libpsalmBoostless
     - mkdir build
