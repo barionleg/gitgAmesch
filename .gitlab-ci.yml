@@ -14,13 +14,14 @@ windows:
     - export PATH="/mxe/usr/bin:$PATH"
     - export PATH="/mxe/usr/x86_64-w64-mingw32.static/qt5/bin:$PATH"
     - export QT_SELECT=qt5
-	# build spherical intersection lib
+
+    # build sphericlal_intersection lib
     - cd external/spherical_intersection
-    - mkdib build
+    - mkdir build
     - cd build
     - /mxe/usr/bin/x86_64-w64-mingw32.static-cmake ..
     - /mxe/usr/bin/x86_64-w64-mingw32.static-cmake --build . --config Release
-    - cp libspherical_intersection ../
+    - cp libspherical_intersection.a ../
     - cd ../../
 
     # build libpsalm
@@ -81,13 +82,13 @@ ubuntu bionic:
     - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 10
     - export QT_SELECT=qt5
 
-	# build spherical intersection lib
+    # build sphericlal_intersection lib
     - cd external/spherical_intersection
-    - mkdib build
+    - mkdir build
     - cd build
     - cmake ..
     - cmake --build . --config Release
-    - cp libspherical_intersection ../
+    - cp libspherical_intersection.a ../
     - cd ../../
 
     # build libpsalm
@@ -135,13 +136,13 @@ manjaro arch:
   script:
     - export QT_SELECT=qt5
 
-	# build spherical intersection lib
+    # build sphericlal_intersection lib
     - cd external/spherical_intersection
-    - mkdib build
+    - mkdir build
     - cd build
     - cmake ..
     - cmake --build . --config Release
-    - cp libspherical_intersection ../
+    - cp libspherical_intersection.a ../
     - cd ../../
 
     # build libpsalm
