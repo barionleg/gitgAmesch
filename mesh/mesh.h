@@ -277,6 +277,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool   getPlanePosToSet( int* rPosID );
 		virtual bool   setPlaneVPos( std::vector<double>* rPositions );
 		virtual bool   setPlanePos( Vector3D* rSomePos );
+				bool   setPlaneAxisPos( const Vector3D& axisTop, const Vector3D& axisBottom, const Vector3D& pos);
 				bool   getPlaneHNF( Vector3D* rPlaneHNF );
 				bool   getPlaneHNF( double* rPlaneHNF );
 		virtual bool   setPlaneHNF( Vector3D* rPlaneHNF );

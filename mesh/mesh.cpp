@@ -3370,6 +3370,11 @@ bool Mesh::setPlanePos( Vector3D*  rSomePos ) {
 	return true;
 }
 
+bool Mesh::setPlaneAxisPos(const Vector3D& axisTop, const Vector3D& axisBottom, const Vector3D& pos)
+{
+	return mPlane.setPlaneByAxisAndPosition(axisTop, axisBottom, pos);
+}
+
 //! Retrieve the HNF of the plane.
 //! Returns false in case of an error.
 bool Mesh::getPlaneHNF( Vector3D* rPlaneHNF ) {

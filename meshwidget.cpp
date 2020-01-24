@@ -389,7 +389,7 @@ bool MeshWidget::setParamIntegerMeshWidget( MeshWidgetParams::eParamInt rParam )
 			MeshWidget::setParamIntegerMeshWidget( VIDEO_FRAME_HEIGHT, paramValues[1] );
 			MeshWidget::setParamFlagMeshWidget( MeshWidgetParams::VIDEO_FRAME_FIXED, true );
 			return true;
-			} break;
+		    }
 		default: {
 			// Ask for the single integer parameter
 			int paramValue;
@@ -408,7 +408,7 @@ bool MeshWidget::setParamIntegerMeshWidget( MeshWidgetParams::eParamInt rParam )
 			return MeshWidget::setParamIntegerMeshWidget( rParam, paramValue );
 			}
 	}
-	cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: undefined!" << endl;
+	LOG::debug() << "[MeshWidget::" << __FUNCTION__ << "] ERROR: undefined!\n";
 	return false;
 }
 
@@ -493,7 +493,7 @@ bool MeshWidget::setParamIntegerMeshWidget( MeshWidgetParams::eParamInt rParam, 
 			//! \todo implent check for parameters.
 			break;
 		case MOUSE_MODE:
-			if( rValue == MeshWidgetParams::MOUSE_MODE_MOVE_PLANE ) {
+			if( rValue == MeshWidgetParams::MOUSE_MODE_MOVE_PLANE || rValue == MeshWidgetParams::MOUSE_MODE_MOVE_PLANE_AXIS) {
 				emit sParamFlagMesh( MeshGLParams::SHOW_MESH_PLANE_TEMP, true );
 			} else {
 				emit sParamFlagMesh( MeshGLParams::SHOW_MESH_PLANE_TEMP, false );
@@ -6701,8 +6701,8 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 		( currMouseMode == MOUSE_MODE_MOVE_PLANE ) &&
 	    ( planeShown )
 	  ) {
-		float moveAngleLeftRight =  dx * M_PI / ( 180.0 * 2.0 );
-		float moveAngleUpDown    =  dy * M_PI / ( 180.0 * 2.0 ); // ( 180.0 * factor ) ... factor influences the speed of the rotation
+		double moveAngleLeftRight =  dx * M_PI / ( 180.0 * 2.0 );
+		double moveAngleUpDown    =  dy * M_PI / ( 180.0 * 2.0 ); // ( 180.0 * factor ) ... factor influences the speed of the rotation
 		// rotate left/right
 		if( moveAngleUpDown != 0.0 ) {
 			Vector3D cameraPitchAxis( mMatModelView(0,0), mMatModelView(0,1), mMatModelView(0,2), 0.0 );
@@ -6739,6 +6739,83 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 			Matrix4D transMatLeftRight( moveUD );
 			emit sApplyTransfromToPlane( transMatLeftRight );
 		}
+		setView();
+		update();
+		return;
+	}
+
+	//! Move the plane along Axis, when the Left Mouse Button is pressed.
+	if( ( rEvent->buttons() == Qt::LeftButton) &&
+	    ( currMouseMode == MeshWidgetParams::MOUSE_MODE_MOVE_PLANE_AXIS) &&
+	    ( mMeshVisual->getConeAxisDefined() ) &&
+	    ( planeShown))
+	{
+		double pixelWidth;
+		double pixelHeight;
+		getViewPortPixelWorldSize( pixelWidth, pixelHeight );
+
+		double dLen = std::abs(dx) >= std::abs(dy) ? dx * pixelWidth : dy * pixelHeight;
+
+		Vector3D axisTop;
+		Vector3D axisBottom;
+		mMeshVisual->getConeAxis(&axisTop, &axisBottom);
+
+		Vector3D transVec = (axisTop - axisBottom);
+		transVec.normalize3();
+
+		transVec *= dLen;
+
+		std::vector<double> vTranslate = {transVec.getX(), transVec.getY(), transVec.getZ()};
+
+		Matrix4D transMat(Matrix4D::INIT_TRANSLATE, &vTranslate);
+
+		emit sApplyTransfromToPlane( transMat );
+
+		setView();
+		update();
+		return;
+	}
+
+	//! Rotate the plane around Axis, when the Right Mouse Button is pressed.
+	if( ( rEvent->buttons() == Qt::RightButton) &&
+	    ( currMouseMode == MeshWidgetParams::MOUSE_MODE_MOVE_PLANE_AXIS) &&
+	    ( mMeshVisual->getConeAxisDefined() ) &&
+	    ( planeShown) &&
+	    ( mMeshVisual->getPlaneDefinition() == Plane::AXIS_POINTS_AND_POSITION))
+	{
+		double pixelWidth;
+		double pixelHeight;
+		getViewPortPixelWorldSize( pixelWidth, pixelHeight );
+
+		double dLen = std::abs(dx) >= std::abs(dy) ? dx * pixelWidth : dy * pixelHeight;
+
+		Vector3D axisTop;
+		Vector3D axisBottom;
+		mMeshVisual->getConeAxis(&axisTop, &axisBottom);
+
+		Vector3D rotAxis = (axisTop - axisBottom);
+		rotAxis.normalize3();
+
+		std::array<double,9> planePositions;
+		mMeshVisual->getPlanePositions(planePositions.data());
+		Vector3D planeZPoint(&planePositions[6], 1.0);
+
+		Vector3D rotPoint = planeZPoint.projectOntoLine(axisTop, axisBottom);
+
+		Matrix4D rotMat(rotPoint,rotAxis, dLen);
+
+		planeZPoint = rotMat * planeZPoint;
+
+		mMeshVisual->setPlaneAxisPos(axisTop, axisBottom, planeZPoint);
+
+		/*
+		 //Alternative: use old plane-Axis for Rotations:
+		 Vector3D planeXPoint(&planePositions[0], 1.0);
+		 Vector3D planeYPoint(&planePositions[3], 1.0);
+
+		 mMeshVisual->setPlaneAxisPos(planeXPoint, planeYPoint, planeZPoint);
+		*/
+
 		setView();
 		update();
 		return;

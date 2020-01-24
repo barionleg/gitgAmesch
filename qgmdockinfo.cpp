@@ -18,11 +18,12 @@ QGMDockInfo::QGMDockInfo( QWidget *parent ) :
 	ui->setupUi( this );
 
 	// Initialize comboBox for MouseMode
-	ui->comboBoxMouseMode->addItem( "Move Camera",         QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_CAMERA            ) );
-	ui->comboBoxMouseMode->addItem( "Move Plane",          QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_PLANE             ) );
-	ui->comboBoxMouseMode->addItem( "Move Light 1 FixWorld", QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_WORLD ) );
-	ui->comboBoxMouseMode->addItem( "Move Light 2 FixCam",   QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_CAM   ) );
-	ui->comboBoxMouseMode->addItem( "Selection",           QVariant( MeshWidgetParams::MOUSE_MODE_SELECT                 ) );
+    ui->comboBoxMouseMode->addItem( tr("Move Camera"),         QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_CAMERA            ) );
+	ui->comboBoxMouseMode->addItem( tr("Move Plane"),          QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_PLANE             ) );
+	ui->comboBoxMouseMode->addItem( tr("Move/Rotate Plane with Axis"), QVariant(MeshWidgetParams::MOUSE_MODE_MOVE_PLANE_AXIS ) );
+	ui->comboBoxMouseMode->addItem( tr("Move Light 1 FixWorld"), QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_WORLD ) );
+	ui->comboBoxMouseMode->addItem( tr("Move Light 2 FixCam"),   QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_CAM   ) );
+	ui->comboBoxMouseMode->addItem( tr("Selection"),           QVariant( MeshWidgetParams::MOUSE_MODE_SELECT                 ) );
 
 	int selIndex = ui->comboBoxMouseMode->findData( QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_CAMERA ) );
 	ui->comboBoxMouseMode->setCurrentIndex(selIndex);
