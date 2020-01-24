@@ -69,6 +69,7 @@ mkdir -p dist
 
 echo "Removing all PLY files!"
 find . -name "*.ply" -exec rm -rf {} \;
+
 # Make libpsalm
 cd external/libpsalmBoostless
 mkdir build
@@ -81,6 +82,18 @@ cd ..
 rm -rf build
 cd ..
 # END make libpsalm
+
+# make spherical intersection
+cd spherical_intersection
+mkdir build
+cd build
+cmake ..
+cmake --build . --config Release
+cp libspherical_intersection.a ..
+cd ..
+rm -rf build
+cd ..
+# END make spherical intersection
 
 # Make ALGLib
 bash make_alglib.sh

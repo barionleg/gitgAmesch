@@ -63,6 +63,18 @@ cp libpsalm.a ..
 cd ..
 rm -rf build
 cd ..
+
+# make spherical intersection
+cd spherical_intersection
+mkdir build
+cd build
+cmake ..
+cmake --build . --config Release
+cp libspherical_intersection.a ..
+cd ..
+rm -rf build
+cd ..
+
 # Make ALGLIB
 unzip alglib-2.6.0.cpp.zip
 mv cpp alglib
