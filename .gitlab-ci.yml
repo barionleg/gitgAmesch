@@ -22,7 +22,7 @@ windows:
     - /mxe/usr/bin/x86_64-w64-mingw32.static-cmake ..
     - /mxe/usr/bin/x86_64-w64-mingw32.static-cmake --build . --config Release
     - cp libspherical_intersection.a ../
-    - cd ../../
+    - cd ../../../
 
     # build libpsalm
     - cd external/libpsalmBoostless
@@ -89,7 +89,7 @@ ubuntu bionic:
     - cmake ..
     - cmake --build . --config Release
     - cp libspherical_intersection.a ../
-    - cd ../../
+    - cd ../../../
 
     # build libpsalm
     - cd external/libpsalmBoostless
@@ -143,7 +143,7 @@ manjaro arch:
     - cmake ..
     - cmake --build . --config Release
     - cp libspherical_intersection.a ../
-    - cd ../../
+    - cd ../../../
 
     # build libpsalm
     - cd external/libpsalmBoostless
