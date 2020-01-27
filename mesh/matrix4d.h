@@ -101,6 +101,7 @@ class Matrix4D {
 
 		// Operators
 		void operator *= (Matrix4D multMat);
+		void operator *= (double scalar);
 		void operator += (Matrix4D multMat);
 		double& operator()(int row, int col);
 
@@ -121,6 +122,12 @@ class Matrix4D {
 		double getMinorDeterminant(int row, int col); //! Auxiliary function for computing minor determinants
 		double mDet;                                  //! Determinant (set to NaN when not initialized)
 };
+
+// GLOBAL Operators
+Matrix4D operator* (const Matrix4D& matA, const Matrix4D& matB);
+Matrix4D operator* (       double scalar, const Matrix4D& mat );
+Matrix4D operator* (const Matrix4D&  mat, double scalar       );
+Matrix4D operator+ (const Matrix4D& matA, const Matrix4D& matB);
 
 //! \todo change to Matrix4D::invert
 void invert( const float *mat, float *rdst );

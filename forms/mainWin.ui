@@ -605,6 +605,7 @@
     <addaction name="actionSelectPlane3FP"/>
     <addaction name="actionPlaneSetByAxisSelPrim"/>
     <addaction name="actionPlaneSetByAxisLastSelPos"/>
+    <addaction name="actionPlaneOrientTowardsAxis"/>
     <addaction name="menuPlane_Extra"/>
     <addaction name="separator"/>
     <addaction name="actionSelFaceNone"/>
@@ -4359,6 +4360,11 @@ p, li { white-space: pre-wrap; }
   <action name="actionPlaneSetByAxisLastSelPos">
    <property name="text">
     <string>Plane - Set using Axis and last Selected Position</string>
+   </property>
+  </action>
+  <action name="actionPlaneOrientTowardsAxis">
+   <property name="text">
+    <string>Plane - Set orientation using Axis</string>
    </property>
   </action>
  </widget>

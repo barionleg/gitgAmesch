@@ -83,6 +83,7 @@ class MeshParams {
 			SELMPOLY_BY_VERTEX_COUNT,                  //!< Call selection of (multiple) Polylines (SelMPoly) by given number of vertices.
 			SELECT_MESH_PLANE_AXIS_SELPRIM,            //!< Define the mesh plane using the axis and the selected primitive.
 			SELECT_MESH_PLANE_AXIS_SELPOS,             //!< Define the mesh plane using the axis and the last selected position.
+			ORIENT_MESH_PLANE_TO_AXIS,                 //!< Orients the mesh plane by the cone axis
 			FEATUREVEC_MEAN_ONE_RING_REPEAT,           //!< Apply a mean filter repeatedly to the feature vectors' values within a 1-ring neighbourhood.
 			FEATUREVEC_MEDIAN_ONE_RING_REPEAT,         //!< Apply a median filter repeatedly to the feature vectors' values within a 1-ring neighbourhood.
 			FEATUREVEC_UNLOAD_ALL,                     //!< Unload i.e. remove all the feature vectors.

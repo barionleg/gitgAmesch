@@ -369,6 +369,9 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 		case SELECT_MESH_PLANE_AXIS_SELPOS:
 			retVal = setPlaneHNFbyAxisAndLastPosition();
 			break;
+		case ORIENT_MESH_PLANE_TO_AXIS:
+			retVal = orientPlaneHNFbyAxis();
+			break;
 		case FEATUREVEC_MEAN_ONE_RING_REPEAT:
 			retVal = featureVecMedianOneRingUI( true );
 			break;
@@ -3447,6 +3450,43 @@ bool Mesh::setPlaneHNFbyAxisAndLastPosition()
 	selectedPosition = std::get<0>(mSelectedPositions.back());
 
 	return mPlane.setPlaneByAxisAndPosition(axisTop, axisBottom, selectedPosition);
+}
+
+//! Orients the plane using the (cone) axis
+//! //! See: https://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d/476311#476311
+//! @returns false in case of an error, true otherwise
+bool Mesh::orientPlaneHNFbyAxis()
+{
+	if(!mPlane.isValid())
+		return false;
+
+	auto planeNormal = mPlane.getNormal(true);
+
+	Vector3D axisTop, axisBottom;
+	if(!getConeAxis(&axisTop, &axisBottom))
+	{
+		return false;
+	}
+
+	auto axisDir = axisTop - axisBottom;
+	axisDir.normalize3();
+
+	if(planeNormal == axisDir || -planeNormal == axisDir)
+		return true;
+
+	auto V = planeNormal % axisDir;
+	auto c = planeNormal * axisDir;
+
+	Matrix4D skew( std::vector<double>{      0.0,  V.getZ(), -V.getY(), 0.0,
+	                                   -V.getZ(),       0.0,  V.getX(), 0.0,
+	                                    V.getY(), -V.getX(),       0.0, 0.0,
+	                                         0.0,       0.0,       0.0, 1.0} );
+
+	Matrix4D transmatrix = Matrix4D(Matrix4D::INIT_IDENTITY) + skew + skew*skew* (1.0 / (1.0 + c));
+
+	transmatrix.get(3,3) = 1.0;
+
+	return applyTransfromToPlane(transmatrix);
 }
 
 

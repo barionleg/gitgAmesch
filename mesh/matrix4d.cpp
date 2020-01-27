@@ -656,6 +656,17 @@ void Matrix4D::operator *= (Matrix4D multMat) {
 	}
 }
 
+void Matrix4D::operator *=(double scalar)
+{
+	for(int x = 0; x<4; ++x)
+	{
+		for(int y = 0; y < 4; ++y)
+		{
+			this->get(x,y) *= scalar;
+		}
+	}
+}
+
 void Matrix4D::operator += (Matrix4D addMat) {
 	//! Matrix addition.
 	//!
@@ -985,4 +996,33 @@ std::ostream& operator<<(std::ostream& o, const Matrix4D& m) {
 	         << m.get( 0, 2 ) << " " << m.get( 1, 2 ) << " " << m.get( 2, 2 ) << " " << m.get( 3, 2 ) << " "
 	         << m.get( 0, 3 ) << " " << m.get( 1, 3 ) << " " << m.get( 2, 3 ) << " " << m.get( 3, 3 )
 	      );
+}
+
+Matrix4D operator*(const Matrix4D& matA, const Matrix4D& matB)
+{
+	Matrix4D mat(matA);
+	mat *= matB;
+
+	return mat;
+}
+
+Matrix4D operator*(double scalar, const Matrix4D& mat)
+{
+	Matrix4D m(mat);
+	m *= scalar;
+
+	return m;
+}
+
+Matrix4D operator*(const Matrix4D& mat, double scalar)
+{
+	return scalar * mat;
+}
+
+Matrix4D operator+(const Matrix4D& matA, const Matrix4D& matB)
+{
+	Matrix4D mat(matA);
+	mat += matB;
+
+	return mat;
 }

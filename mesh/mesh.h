@@ -283,6 +283,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool   setPlaneHNF( Vector3D* rPlaneHNF );
 				bool   setPlaneHNFbyAxisSelPrim();
 				bool   setPlaneHNFbyAxisAndLastPosition();
+				bool   orientPlaneHNFbyAxis();
 				bool   flipPlane();
 				bool   getPlaneIntersectEdge( Vector3D* rayTop, Vector3D* rayBot, Vector3D* rayIntersect );
 				bool   getPlaneIntersectLine( Vector3D* ptA, Vector3D* ptB, Vector3D* lineIntersect );
