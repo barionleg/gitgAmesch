@@ -493,7 +493,9 @@ bool MeshWidget::setParamIntegerMeshWidget( MeshWidgetParams::eParamInt rParam, 
 			//! \todo implent check for parameters.
 			break;
 		case MOUSE_MODE:
-			if( rValue == MeshWidgetParams::MOUSE_MODE_MOVE_PLANE || rValue == MeshWidgetParams::MOUSE_MODE_MOVE_PLANE_AXIS) {
+			if( rValue == MeshWidgetParams::MOUSE_MODE_MOVE_PLANE ||
+			    rValue == MeshWidgetParams::MOUSE_MODE_MOVE_PLANE_AXIS ||
+			    rValue == MeshWidgetParams::MOUSE_MODE_ROTATE_PLANE_AXIS) {
 				emit sParamFlagMesh( MeshGLParams::SHOW_MESH_PLANE_TEMP, true );
 			} else {
 				emit sParamFlagMesh( MeshGLParams::SHOW_MESH_PLANE_TEMP, false );
@@ -6777,8 +6779,8 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 	}
 
 	//! Rotate the plane around Axis, when the Right Mouse Button is pressed.
-	if( ( rEvent->buttons() == Qt::RightButton) &&
-	    ( currMouseMode == MeshWidgetParams::MOUSE_MODE_MOVE_PLANE_AXIS) &&
+	if( ( rEvent->buttons() == Qt::LeftButton) &&
+	    ( currMouseMode == MeshWidgetParams::MOUSE_MODE_ROTATE_PLANE_AXIS) &&
 	    ( mMeshVisual->getConeAxisDefined() ) &&
 	    ( planeShown) &&
 	    ( mMeshVisual->getPlaneDefinition() == Plane::AXIS_POINTS_AND_POSITION))

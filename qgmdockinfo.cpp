@@ -20,7 +20,8 @@ QGMDockInfo::QGMDockInfo( QWidget *parent ) :
 	// Initialize comboBox for MouseMode
     ui->comboBoxMouseMode->addItem( tr("Move Camera"),         QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_CAMERA            ) );
 	ui->comboBoxMouseMode->addItem( tr("Move Plane"),          QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_PLANE             ) );
-	ui->comboBoxMouseMode->addItem( tr("Move/Rotate Plane with Axis"), QVariant(MeshWidgetParams::MOUSE_MODE_MOVE_PLANE_AXIS ) );
+	ui->comboBoxMouseMode->addItem( tr("Move Plane along Axis"), QVariant(MeshWidgetParams::MOUSE_MODE_MOVE_PLANE_AXIS ) );
+	ui->comboBoxMouseMode->addItem( tr("Rotate Plane around Axis"), QVariant(MeshWidgetParams::MOUSE_MODE_ROTATE_PLANE_AXIS ) );
 	ui->comboBoxMouseMode->addItem( tr("Move Light 1 FixWorld"), QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_WORLD ) );
 	ui->comboBoxMouseMode->addItem( tr("Move Light 2 FixCam"),   QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_CAM   ) );
 	ui->comboBoxMouseMode->addItem( tr("Selection"),           QVariant( MeshWidgetParams::MOUSE_MODE_SELECT                 ) );
