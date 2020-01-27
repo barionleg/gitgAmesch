@@ -3420,7 +3420,6 @@ bool Mesh::setPlaneHNF( Vector3D* rPlaneHNF ) {
 //!
 //! @returns false in case of an error e.g. degenarted positions or missing axis. True otherwise.
 bool Mesh::setPlaneHNFbyAxisSelPrim() {
-	LOG::warn() << "NOT FULLY IMPLEMENTED!\n";
 	if(!mPlane.isValid())
 		return false;
 
@@ -3440,7 +3439,7 @@ bool Mesh::setPlaneHNFbyAxisSelPrim() {
 //! @returns false in case of an error, true otherwise
 bool Mesh::setPlaneHNFbyAxisAndLastPosition()
 {
-	if(mSelectedPositions.empty())
+	if(mSelectedPositions.empty() || !mPlane.isValid())
 		return false;
 
 	Vector3D axisTop, axisBottom, selectedPosition;
@@ -3485,7 +3484,7 @@ bool Mesh::orientPlaneHNFbyAxis()
 	                                    V.getY(), -V.getX(),       0.0, 0.0,
 	                                         0.0,       0.0,       0.0, 1.0} );
 
-	Matrix4D transmatrix = Matrix4D(Matrix4D::INIT_IDENTITY) + skew + skew*skew* (1.0 / (1.0 + c));
+	Matrix4D transmatrix = Matrix4D(Matrix4D::INIT_IDENTITY) + skew + skew*skew * (1.0 / (1.0 + c));
 
 	transmatrix.get(3,3) = 1.0;
 

@@ -456,7 +456,9 @@ bool Plane::setPlaneByAxisAndPosition(
                 const Vector3D& rAxisBottom,
                 const Vector3D& rPos
 ) {
-	//! \todo add check for a valid plane definition.
+	if(!isValid())
+		return false;
+
 	setPositions( rAxisTop, rAxisBottom, rPos );
 	mDefinitionType = AXIS_POINTS_AND_POSITION;
 
