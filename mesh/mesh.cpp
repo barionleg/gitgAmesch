@@ -3421,6 +3421,9 @@ bool Mesh::setPlaneHNF( Vector3D* rPlaneHNF ) {
 //! @returns false in case of an error e.g. degenarted positions or missing axis. True otherwise.
 bool Mesh::setPlaneHNFbyAxisSelPrim() {
 	LOG::warn() << "NOT FULLY IMPLEMENTED!\n";
+	if(!mPlane.isValid())
+		return false;
+
 	Vector3D axisTop, axisBottom;
 	if( !getConeAxis( &axisTop, &axisBottom ) ) {
 		return( false );
