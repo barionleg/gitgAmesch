@@ -49,7 +49,7 @@ elseif(MSVC)
 endif()
 
 #--GENERAL LIBRARY STUFF SHARED BY ALL TOOLS--
-add_subdirectory(external/libpsalmBoostless)
+#add_subdirectory(external/libpsalmBoostless)
 
 set(SOURCES_COMMON mesh/geodentry.cpp
 	mesh/bitflagarray.cpp

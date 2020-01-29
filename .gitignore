@@ -19,6 +19,9 @@ moc_predefs.h
 
 *.autosave
 
+#CMake
+CMakeLists.txt.user*
+
 # temp files windows
 *.bak
 *.Debug

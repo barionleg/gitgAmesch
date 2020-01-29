@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(GigaMesh Languages CXX C)
+project(GigaMesh LANGUAGES CXX C)
 
 string(TIMESTAMP COMP_DATE "%d.%b.%y")
 execute_process(COMMAND git rev-parse HEAD
@@ -36,5 +36,6 @@ endif()
 
 add_subdirectory(external/libpsalmBoostless)
 
-add_subdirectory(CLT)
-add_subdirectory(GUI)
+add_subdirectory(core)
+add_subdirectory(clt)
+add_subdirectory(gui)
