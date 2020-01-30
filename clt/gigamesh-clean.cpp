@@ -20,10 +20,10 @@
 #include <filesystem>
 #include <iostream>
 
-#include "printbuildinfo.h"
+#include <GigaMesh/printbuildinfo.h>
 
-#include "mesh.h"
-#include "../logging/Logging.h"
+#include <GigaMesh/mesh/mesh.h>
+#include <GigaMesh/logging/Logging.h>
 
 bool cleanupGigaMeshData(
                 const  std::string& fileNameIn,
@@ -217,7 +217,7 @@ bool cleanupGigaMeshData(
 #ifdef VERSION_PACKAGE
 	fileStrOutMeta << "[GigaMesh] CLEAN v." << VERSION_PACKAGE << std::endl;
 #else
-	fileStrOutMeta << "[GigaMesh] CLEAN unknown version"< endl;
+	fileStrOutMeta << "[GigaMesh] CLEAN unknown version" << std::endl;
 #endif
 #ifdef THREADS
 	fileStrOutMeta << "Threads (fixed):            " << NUM_THREADS << std::endl;

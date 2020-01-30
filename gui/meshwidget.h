@@ -30,7 +30,7 @@
 	//#include <QtOpenGL>
 	//#include <GL/glu.h>
 #endif
-#include <QGLWidget>
+#include <QtOpenGL/QGLWidget>
 #include <QOpenGLShaderProgram>
 
 class QGMMainWindow;

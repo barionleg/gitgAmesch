@@ -3,7 +3,7 @@
 
 #include <QDockWidget>
 
-#include "meshGL_params.h"
+#include "meshGL/meshGL_params.h"
 
 namespace Ui {
 class QGMDockSideBar;

@@ -1,6 +1,6 @@
 #include "TexturedMesh.h"
 
-#include "../mesh/mesh.h"
+#include <GigaMesh/mesh/mesh.h>
 
 #include <limits>
 #include "glmacros.h"

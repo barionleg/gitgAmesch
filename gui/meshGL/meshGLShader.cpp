@@ -3,14 +3,14 @@
 #include <iostream> // cerr
 
 #include <QColor>
-#include <QGLWidget>
+#include <QtOpenGL/QGLWidget>
 #include <QMessageBox>
 #include <QIcon>
 
-#include "meshwidget_params.h"
+#include "../meshwidget_params.h"
 
 #include "glmacros.h"
-#include "QGMMacros.h"
+#include "../QGMMacros.h"
 
 using namespace std;
 

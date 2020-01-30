@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "gmcommon.h"
+#include <GigaMesh/mesh/gmcommon.h>
 
 using namespace std;
 

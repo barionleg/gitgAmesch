@@ -9,7 +9,7 @@
 
 // generic Qt includes:
 #include <QApplication>
-#include <QGLFormat>
+#include <QtOpenGL/QGLFormat>
 #include <QMessageBox>
 #include <QTranslator>
 
@@ -21,11 +21,11 @@
 // none.
 
 // C++ includes:
-#include "printbuildinfo.h"
+#include <GigaMesh/printbuildinfo.h>
 
 using namespace std;
 
-#include "logging/Logging.h"
+#include <GigaMesh/logging/Logging.h>
 
 int main( int argc, char *argv[] ) {
 	LOG::initLogging();

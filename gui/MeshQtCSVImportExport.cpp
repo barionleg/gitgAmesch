@@ -4,8 +4,8 @@
 #include <iostream>
 
 // GigaMesh includes
-#include "mesh/vertex.h"
-#include "mesh/mesh.h"
+#include <GigaMesh/mesh/vertex.h>
+#include <GigaMesh/mesh/mesh.h>
 
 // Qt includes
 #include <QString>

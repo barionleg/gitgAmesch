@@ -1,6 +1,6 @@
 #include "meshwidget.h"
 
-#include "glmacros.h"
+#include "meshGL/glmacros.h"
 
 // generic Qt includes:
 #include <QFileDialog>
@@ -24,7 +24,7 @@
 
 // #define DEBUG_SHOW_ALL_METHOD_CALLS
 
-#include "logging/Logging.h"
+#include <GigaMesh/logging/Logging.h>
 
 using namespace std;
 

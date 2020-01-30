@@ -15,9 +15,9 @@
 #include <filesystem>
 
 
-#include "printbuildinfo.h"
-#include "mesh.h"
-#include "../logging/Logging.h"
+#include <GigaMesh/printbuildinfo.h>
+#include <GigaMesh/mesh/mesh.h>
+#include <GigaMesh/logging/Logging.h>
 //#include "meshseed.h"
 
 // //#include "voxelcuboid.h"

@@ -16,7 +16,7 @@
 #include <QIcon>
 #include <QDialog>
 
-#include "vector3d.h"
+#include <GigaMesh/mesh/vector3d.h>
 
 #include "ui_dialogConeParam.h"
 #include "QGMMacros.h"

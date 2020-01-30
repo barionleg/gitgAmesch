@@ -22,16 +22,16 @@
 
 #include <getopt.h>
 #endif
-#include "printbuildinfo.h"
-#include "mesh.h"
+#include <GigaMesh/printbuildinfo.h>
+#include <GigaMesh/mesh/mesh.h>
 
 //#include "voxelcuboid.h"
-#include "voxelfilter25d.h"
+#include <GigaMesh/mesh/voxelfilter25d.h>
 
-#include "image2d.h"
+//#include <GigaMesh/image2d/image2d.h>
 
 #include <sys/stat.h> // statistics for files
-#include "../logging/Logging.h"
+#include <GigaMesh/logging/Logging.h>
 
 using namespace std;
 

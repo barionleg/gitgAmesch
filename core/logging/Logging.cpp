@@ -1,5 +1,4 @@
-#include "Logging.h"
-#include "Logger.h"
+#include <GigaMesh/logging/Logging.h>
 
 #include <iostream>
 

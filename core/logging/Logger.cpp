@@ -1,4 +1,4 @@
-#include "Logger.h"
+#include <GigaMesh/logging/Logger.h>
 #include <iostream>
 
 Logger::Logger(bool isEnabled) : mIsEnabled(isEnabled)

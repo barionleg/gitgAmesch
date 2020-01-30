@@ -4,7 +4,7 @@
 #include <QString>
 #include <QDialog>
 
-#include "meshGL.h"
+#include "meshGL/meshGL.h"
 
 namespace Ui
 {

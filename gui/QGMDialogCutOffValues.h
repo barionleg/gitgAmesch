@@ -5,7 +5,7 @@
 #include <iostream>
 
 // C++ includes:
-#include "primitive.h"
+#include <GigaMesh/mesh/primitive.h>
 
 // generic Qt includes:
 #include <QtGui>

@@ -1,5 +1,5 @@
 #include "meshwidget_params.h"
-#include "mesh_params.h"
+#include <GigaMesh/mesh/mesh_params.h>
 
 #include <QSettings>
 

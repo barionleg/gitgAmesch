@@ -5,7 +5,7 @@
 #include <iostream>
 
 // C++ includes:
-#include "gmcommon.h"
+#include <GigaMesh/mesh/gmcommon.h>
 
 // generic Qt includes:
 #include <QtGui>

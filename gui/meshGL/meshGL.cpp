@@ -1,5 +1,5 @@
 #include "meshGL.h"
-#include "meshwidget_params.h"
+#include "../meshwidget_params.h"
 
 #include <thread>
 #include <future>
@@ -7,12 +7,12 @@
 #include <QPixmap>
 
 #include "glmacros.h"
-#include "octree.h"
-#include "vertexofface.h"
+#include <GigaMesh/mesh/octree.h>
+#include <GigaMesh/mesh/vertexofface.h>
 
-#include "ellipsedisc.h"
+#include <GigaMesh/mesh/ellipsedisc.h>
 
-#include "MeshQtCSVImportExport.h"
+#include "../MeshQtCSVImportExport.h"
 
 // #define DEBUG_SHOW_ALL_METHOD_CALLS
 
@@ -1243,9 +1243,10 @@ bool MeshGL::normalizeFunctionValues()
 //call triangle lib, to triangulate a Planar straight-line graph (PLSG) given in p
 //result is returned to tri
 bool MeshGL::callTriangle(vector<PixCoord> &p, vector<PixCoord> &tri) {
+	/*
 		struct triangulateio in, mid;
 
-		/* Define input points. */
+		// Define input points.
 
 		in.numberofpoints = p.size();
 		in.numberofpointattributes = 0;
@@ -1274,19 +1275,19 @@ bool MeshGL::callTriangle(vector<PixCoord> &p, vector<PixCoord> &tri) {
 		in.segmentlist[2*p.size() - 1] = 1;
 
 
-		/* Make necessary initializations so that Triangle can return a */
-		/*   triangulation in `mid' and a voronoi diagram in `vorout'.  */
-		mid.pointlist = nullptr;            /* Not needed if -N switch used. */
-		/* Not needed if -N switch used or number of point attributes is zero: */
+		// Make necessary initializations so that Triangle can return a
+		//   triangulation in `mid' and a voronoi diagram in `vorout'.
+		mid.pointlist = nullptr;            // Not needed if -N switch used.
+		// Not needed if -N switch used or number of point attributes is zero:
 		mid.pointattributelist = nullptr;
-		mid.pointmarkerlist = nullptr; /* Not needed if -N or -B switch used. */
-		mid.trianglelist = nullptr;          /* Not needed if -E switch used. */
-		/* Not needed if -E switch used or number of triangle attributes is zero: */
+		mid.pointmarkerlist = nullptr; // Not needed if -N or -B switch used.
+		mid.trianglelist = nullptr;          // Not needed if -E switch used.
+		// Not needed if -E switch used or number of triangle attributes is zero:
 		mid.triangleattributelist = nullptr;
 
-		/* Needed only if segments are output (-p or -c) and -P not used: */
+		// Needed only if segments are output (-p or -c) and -P not used:
 		mid.segmentlist = nullptr;
-		/* Needed only if segments are output (-p or -c) and -P and -B not used: */
+		// Needed only if segments are output (-p or -c) and -P and -B not used:
 		mid.segmentmarkerlist = nullptr;
 
 		triangulate("pD", &in, &mid, nullptr);
@@ -1323,7 +1324,7 @@ bool MeshGL::callTriangle(vector<PixCoord> &p, vector<PixCoord> &tri) {
 		free(mid.triangleattributelist);
 		free(mid.segmentlist);
 		free(mid.segmentmarkerlist);
-
+		*/
 		return true;
 }
 

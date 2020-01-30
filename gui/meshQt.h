@@ -5,8 +5,8 @@
 // none
 
 // C++ includes:
-#include "meshGLShader.h"
-#include "voxelfilter25d.h"
+#include "meshGL/meshGLShader.h"
+#include <GigaMesh/mesh/voxelfilter25d.h>
 #include "image2d.h"
 
 // generic Qt includes:

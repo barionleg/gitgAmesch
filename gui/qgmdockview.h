@@ -4,7 +4,7 @@
 #include <QDockWidget>
 
 #include "meshwidget_params.h"
-#include "meshGL_params.h"
+#include "meshGL/meshGL_params.h"
 
 namespace Ui {
 class QGMDockView;

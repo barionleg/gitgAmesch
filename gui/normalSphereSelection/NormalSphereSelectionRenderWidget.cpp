@@ -5,7 +5,7 @@
 #include <QMouseEvent>
 #include <array>
 #include <algorithm>
-#include "IcoSphereTree.h"
+#include <GigaMesh/icoSphereTree/IcoSphereTree.h>
 
 bool initShaderProgram(QOpenGLShaderProgram& program, const QString& vertexSource, const QString& fragmentSource)
 {

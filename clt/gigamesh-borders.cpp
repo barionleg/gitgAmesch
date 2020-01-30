@@ -13,11 +13,12 @@
 #include <getopt.h>
 #endif
 #include <filesystem>
+#include <iostream>
 
 
-#include "printbuildinfo.h"
-#include "mesh.h"
-#include "../logging/Logging.h"
+#include <GigaMesh/printbuildinfo.h>
+#include <GigaMesh/mesh/mesh.h>
+#include <GigaMesh/logging/Logging.h>
 //#include "meshseed.h"
 
 // //#include "voxelcuboid.h"
@@ -38,7 +39,7 @@ bool convertMeshData(
 	std::string fileExtension = std::filesystem::path( rFileName ).extension().string();
 	// Check file extension for input file
 	if( !(fileExtension == ".obj" || fileExtension == ".ply") ) {
-		cerr << "[GigaMesh] ERROR: File extension '" << fileExtension << "' is faulty!" << endl;
+		LOG::error() << "[GigaMesh] ERROR: File extension '" << fileExtension << "' is faulty!\n";
 		return( false );
 	}
 
@@ -50,7 +51,7 @@ bool convertMeshData(
 	struct stat stFileInfo;
 	// Check: Input file exists?
 	if( stat( rFileName.c_str(), &stFileInfo ) != 0 ) {
-		cerr << "[GigaMesh] Error: File '" << rFileName << "' not found!" << endl;
+		LOG::error() << "[GigaMesh] Error: File '" << rFileName << "' not found!\n";
 		return( false );
 	}
 
@@ -59,17 +60,17 @@ bool convertMeshData(
 	std::string fileNameOut3D = pathOut + fileNameOut;
 	if( stat( fileNameOut3D.c_str(), &stFileInfo ) == 0 ) {
 		if( !rReplaceFiles ) {
-			cerr << "[GigaMesh] File '" << fileNameOut3D << "' already exists!" << endl;
+			LOG::error() << "[GigaMesh] File '" << fileNameOut3D << "' already exists!\n";
 			return( false );
 		}
-		cerr << "[GigaMesh] Warning: File '" << fileNameOut3D << "' will be replaced!" << endl;
+		LOG::error() << "[GigaMesh] Warning: File '" << fileNameOut3D << "' will be replaced!\n";
 	}
 #else
 	// Check files using file statistics
 	struct _stat64 stFileInfo;
 	// Check: Input file exists?
 	if( _stat64( rFileName.c_str(), &stFileInfo ) != 0 ) {
-		cerr << "[GigaMesh] Error: File '" << rFileName << "' not found!" << endl;
+		LOG::error() << "[GigaMesh] Error: File '" << rFileName << "' not found!\n";
 		return( false );
 	}
 
@@ -78,10 +79,10 @@ bool convertMeshData(
 	std::string fileNameOut3D = pathOut + fileNameOut;
 	if( _stat64( fileNameOut3D.c_str(), &stFileInfo ) == 0 ) {
 		if( !rReplaceFiles ) {
-			cerr << "[GigaMesh] File '" << fileNameOut3D << "' already exists!" << endl;
+			LOG::error() << "[GigaMesh] File '" << fileNameOut3D << "' already exists!\n";
 			return( false );
 		}
-		cerr << "[GigaMesh] Warning: File '" << fileNameOut3D << "' will be replaced!" << endl;
+		LOG::error() << "[GigaMesh] Warning: File '" << fileNameOut3D << "' will be replaced!\n";
 	}
 #endif
 	// All parameters OK => infos to stdout and file with metadata  -----------------------------------------------------------

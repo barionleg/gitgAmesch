@@ -3,8 +3,8 @@
 // Qt includes
 #include <QFileDialog>
 // Qt Network
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
+#include <QtNetwork/QNetworkAccessManager>
+#include <QtNetwork/QNetworkReply>
 
 #include "QGMMacros.h"
 
@@ -2148,7 +2148,7 @@ void QGMMainWindow::setMenuContextToSelection( Primitive* primitive ) {
 void QGMMainWindow::slotHttpCheckVersion( QNetworkReply* rReply ) {
 	cout << "[QGMMainWindow::" << __FUNCTION__ << "] Current version is   " << QString( "%1" ).arg( VERSION_PACKAGE ).toStdString() << endl;
 	if( rReply->error() != QNetworkReply::NoError ) {
-		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Code " << rReply->error() << " !" << endl;
+		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Code " << rReply->error() << ": " << rReply->errorString().toStdString() << endl;
 		return;
 	}
 	QByteArray responseBytes = rReply->readAll();

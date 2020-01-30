@@ -1,7 +1,7 @@
 #ifndef MESHGL_H
 #define MESHGL_H
 
-#include "mesh/mesh.h"
+#include <GigaMesh/mesh/mesh.h>
 #include "meshGL_params.h"
 #include "meshglcolors.h"
 
@@ -19,7 +19,7 @@
 	//#include <QtOpenGL>
 	//#include <GL/glu.h>
 #endif
-#include <QGLContext>
+#include <QtOpenGL/QGLContext>
 #include <QOpenGLBuffer>
 
 #define OPENGL_VBO_SHOW_MEMORY_USAGE 1

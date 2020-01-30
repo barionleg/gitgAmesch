@@ -16,10 +16,10 @@
 #include <sys/stat.h> // Statistics for files
 #include <filesystem>
 
-#include "printbuildinfo.h"
+#include <GigaMesh/printbuildinfo.h>
 
-#include "mesh.h"
-#include "../logging/Logging.h"
+#include <GigaMesh/mesh/mesh.h>
+#include <GigaMesh/logging/Logging.h>
 
 bool infoGigaMeshData(
                 const std::string&   rFileNameIn,    //!< Input - filename.

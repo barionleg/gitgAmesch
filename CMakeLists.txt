@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 
 project(GigaMesh LANGUAGES CXX C)
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 string(TIMESTAMP COMP_DATE "%d.%b.%y")
 execute_process(COMMAND git rev-parse HEAD
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -34,7 +36,7 @@ elseif(MSVC)
     string(CONCAT COMP_USER ${USER_VAR} @ ${HOST_VAR})
 endif()
 
-add_subdirectory(external/libpsalmBoostless)
+add_subdirectory(external)
 
 add_subdirectory(core)
 add_subdirectory(clt)

@@ -4,7 +4,7 @@
 #include <QDialog>
 #include <QRadioButton>
 //#include <meshQt.h>
-#include "meshGL.h"
+#include "meshGL/meshGL.h"
 
 namespace Ui {
 class QGMDialogTransparencySettings;

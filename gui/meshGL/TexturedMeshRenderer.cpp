@@ -1,5 +1,5 @@
 #include "TexturedMeshRenderer.h"
-#include "../mesh/mesh.h"
+#include <GigaMesh/mesh/mesh.h>
 #include <array>
 #include <list>
 #include <string>

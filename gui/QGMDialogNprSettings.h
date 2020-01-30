@@ -4,8 +4,8 @@
 #include <QDialog>
 #include <QColorDialog>
 #include <QRadioButton>
-#include "gmcommon.h"
-#include "meshGL.h"
+#include <GigaMesh/mesh/gmcommon.h>
+#include "meshGL/meshGL.h"
 #include "meshwidget.h"
 
 namespace Ui {

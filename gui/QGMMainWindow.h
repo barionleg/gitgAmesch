@@ -5,12 +5,12 @@
 #include <iostream>
 
 // C++ includes:
-#include "primitive.h" //! \todo source refactoring to get rid of this include.
+#include <GigaMesh/mesh/primitive.h> //! \todo source refactoring to get rid of this include.
 
 // generic Qt includes:
 #include <QtGui>
 #include <QMainWindow>
-#include <QGLFormat>
+#include <QtOpenGL/QGLFormat>
 
 // Qt Interface includes:
 #include "ui_mainWin.h"
@@ -19,10 +19,10 @@
 #include "QGMDialogAbout.h"
 
 // Parameters, which are set by the mainwindow's menus:
-#include "mesh_params.h"
+#include <GigaMesh/mesh/mesh_params.h>
 #include "meshwidget_params.h"
-#include "meshGL_params.h" 
-#include "meshglcolors.h"
+#include "meshGL/meshGL_params.h"
+#include "meshGL/meshglcolors.h"
 
 class MeshWidget;
 class QGMDockSideBar;

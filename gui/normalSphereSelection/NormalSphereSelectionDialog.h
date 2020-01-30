@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <QQuaternion>
-#include "vector3d.h"
+#include <GigaMesh/mesh/vector3d.h>
 
 class QAbstractButton;
 

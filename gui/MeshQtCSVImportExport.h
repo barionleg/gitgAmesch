@@ -5,7 +5,7 @@
 
 #include <QTextStream>
 
-#include "meshGL.h"
+#include "meshGL/meshGL.h"
 
 class MeshQtCSVImportExport
 {

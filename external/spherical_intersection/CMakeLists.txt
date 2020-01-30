@@ -13,11 +13,27 @@ add_library(spherical_intersection
 									src/algorithm/sphere_surface_msii.cpp
 									src/algorithm/component_count.cpp)
 target_include_directories(spherical_intersection PRIVATE include/spherical_intersection)
-if (NOT CMAKE_BUILD_TYPE)
-	message(STATUS "Using default build type: Release")
-	set(CMAKE_BUILD_TYPE Release)
-endif() 
-set(DEBUG_OPTIONS "-g;-Wall;-Wextra;-pedantic")
-set(RELEASE_OPTIONS "-O3")
-target_compile_options(spherical_intersection PRIVATE "$<$<CONFIG:Debug>:${DEBUG_OPTIONS}>")
-target_compile_options(spherical_intersection PRIVATE "$<$<CONFIG:Release>:${RELEASE_OPTIONS}>")
+#if (NOT CMAKE_BUILD_TYPE)
+#	message(STATUS "Using default build type: Release")
+#	set(CMAKE_BUILD_TYPE Release)
+#endif()
+#set(DEBUG_OPTIONS "-g;-Wall;-Wextra;-pedantic")
+#set(RELEASE_OPTIONS "-O3")
+#target_compile_options(spherical_intersection PRIVATE "$<$<CONFIG:Debug>:${DEBUG_OPTIONS}>")
+#target_compile_options(spherical_intersection PRIVATE "$<$<CONFIG:Release>:${RELEASE_OPTIONS}>")
+
+target_include_directories(spherical_intersection PUBLIC
+							$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+							$<INSTALL_INTERFACE:include>
+							PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+set_target_properties(spherical_intersection PROPERTIES PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/spherical_intersection/graph.h
+															${CMAKE_CURRENT_SOURCE_DIR}/include/spherical_intersection/graph_geometry.h
+															${CMAKE_CURRENT_SOURCE_DIR}/include/spherical_intersection/graph_visualization.h
+															${CMAKE_CURRENT_SOURCE_DIR}/include/spherical_intersection/mesh.h
+															${CMAKE_CURRENT_SOURCE_DIR}/include/spherical_intersection/math3d/math3d.h
+															${CMAKE_CURRENT_SOURCE_DIR}/include/spherical_intersection/algorithm/component_count.h
+															${CMAKE_CURRENT_SOURCE_DIR}/include/spherical_intersection/algorithm/sphere_intersections_msii.h
+															${CMAKE_CURRENT_SOURCE_DIR}/include/spherical_intersection/algorithm/sphere_surface_msii.h
+															${CMAKE_CURRENT_SOURCE_DIR}/include/spherical_intersection/algorithm/sphere_colume_msii.h
+															)

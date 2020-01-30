@@ -4,7 +4,7 @@
 #include <QDockWidget>
 #include <QVariant>
 
-#include "mesh_params.h"
+#include <GigaMesh/mesh/mesh_params.h>
 #include "meshwidget_params.h"
 
 namespace Ui {

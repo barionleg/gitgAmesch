@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "ArcBall.h"
-#include "IcoSphereTree.h"
+#include <GigaMesh/icoSphereTree/IcoSphereTree.h>
 
 class NormalSphereSelectionRenderWidget : public QOpenGLWidget, QOpenGLFunctions_3_3_Core
 {
