@@ -5429,7 +5429,7 @@ bool Mesh::estFeatureAutoCorrelationVertex( double** funcValues, Vertex*** verti
 		}
 		//referenceFeature.setlength( featureVecLen );
 		double* referenceFeature = new double[featureVecLen];
-		(*funcValues)[vertIdx] = 0.0;
+		(*funcValues)[vertIdx] = _NOT_A_NUMBER_DBL_;
 		for( int i=0; i<featureVecLen; i++ ) {
 			// Copy each element and scale it to [-1.0...+1.0]
 			//referenceFeature( i ) = (2.0*currVertex->getFeatureElement(i))-1.0;
@@ -5468,9 +5468,7 @@ bool Mesh::estFeatureAutoCorrelationVertex( double** funcValues, Vertex*** verti
 			// Copy each element and scale it to [-1.0...+1.0]
 			//referenceFeature( i ) = (2.0*currVertex->getFeatureElement(i))-1.0;
 			// Elements are already scaled to [-1.0...+1.0]
-			double elementValue;
-			currVertex->getFeatureElement( i, &elementValue );
-			referenceFeature( i ) = elementValue;
+			getFeatureElement( i, &referenceFeature[i] );
 		}
 		corrr1d( referenceFeature, featureVecLen, referenceFeature, featureVecLen, crossCorr );
 		for( uint64_t j=0; j<2*featureVecLen-1; j++ ) {

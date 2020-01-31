@@ -1,58 +1,61 @@
 cmake_minimum_required(VERSION 3.10)
 
+set(OpenGL_GL_PREFERENCE GLVND)
+
+find_package(OpenGL REQUIRED)
+find_package(Qt5 COMPONENTS Core Widgets Gui OpenGL Network REQUIRED)
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC OFF)
+set(CMAKE_AUTOUIC ON)
 
 if(CMAKE_VERSION VERSION_LESS "3.7.0")
 	set(CMAKE_INCLUDE_CURRENT_DIR ON)
 endif()
 
 set(GUI_SOURCES main.cpp
-				QGMMainWindow.cpp
-				meshQt.cpp
-				image2d.cpp
-				meshwidget.cpp
-				qgmdockinfo.cpp
-				QGMDialogMSII.cpp
-				QGMDialogAbout.cpp
-				QGMDialogRuler.cpp
-				qgmdocksidebar.cpp
-				qgmdockview.cpp
-				meshwidget_params.cpp
-				QGMDialogComboBox.cpp
-				QGMDialogSliderHD.cpp
-				QGMDialogConeParam.cpp
-				QGMDialogEnterText.cpp
-				QGMDialogPlaneParam.cpp
-				QGMDialogNprSettings.cpp
-				MeshQtCSVImportExport.cpp
-				QGMDialogCutOffValues.cpp
-				dialogGridCenterSelect.cpp
-				ExternalProgramsDialog.cpp
-				qruntpsrpmscriptdialog.cpp
-				QGMDialogTransparencySettings.cpp
-				meshGL/meshGL.cpp
-				meshGL/meshglcolors.cpp
-				meshGL/meshGL_params.cpp
-				meshGL/meshGLShader.cpp
-				meshGL/PinRenderer.cpp
-				meshGL/TexturedMesh.cpp
-				meshGL/TexturedMeshRenderer.cpp
-				svg/SvgWriter.cpp
-				svg/SvgCircle.cpp
-				svg/SvgImage.cpp
-				svg/SvgPath.cpp
-				svg/SvgRect.cpp
-				svg/SvgText.cpp
-				normalSphereSelection/ArcBall.cpp
+				QGMMainWindow.cpp                 QGMMainWindow.h
+				meshQt.cpp                        meshQt.h
+				image2d.cpp                       image2d.h
+				meshwidget.cpp                    meshwidget.h
+				qgmdockinfo.cpp                   qgmdockinfo.h
+				QGMDialogMSII.cpp                 QGMDialogMSII.h
+				QGMDialogAbout.cpp                QGMDialogAbout.h
+				QGMDialogRuler.cpp                QGMDialogRuler.h
+				qgmdocksidebar.cpp                qgmdocksidebar.h
+				qgmdockview.cpp                   qgmdockinfo.h
+				meshwidget_params.cpp             meshwidget_params.h
+				QGMDialogComboBox.cpp             QGMDialogComboBox.h
+				QGMDialogSliderHD.cpp             QGMDialogSliderHD.h
+				QGMDialogConeParam.cpp            QGMDialogConeParam.h
+				QGMDialogEnterText.cpp            QGMDialogEnterText.h
+				QGMDialogPlaneParam.cpp           QGMDialogPlaneParam.h
+				QGMDialogNprSettings.cpp          QGMDialogNprSettings.h
+				MeshQtCSVImportExport.cpp         MeshQtCSVImportExport.h
+				QGMDialogCutOffValues.cpp         QGMDialogCutOffValues.h
+				dialogGridCenterSelect.cpp        dialogGridCenterSelect.h
+				ExternalProgramsDialog.cpp        ExternalProgramsDialog.h
+				qruntpsrpmscriptdialog.cpp        qruntpsrpmscriptdialog.h
+				QGMDialogTransparencySettings.cpp QGMDialogTransparencySettings.h
+				meshGL/meshGL.cpp                 meshGL/meshGL.h
+				meshGL/meshglcolors.cpp           meshGL/meshglcolors.h
+				meshGL/meshGL_params.cpp          meshGL/meshGL_params.h
+				meshGL/meshGLShader.cpp           meshGL/meshGLShader.h
+				meshGL/PinRenderer.cpp            meshGL/PinRenderer.h
+				meshGL/TexturedMesh.cpp           meshGL/TexturedMesh.h
+				meshGL/TexturedMeshRenderer.cpp   meshGL/TexturedMeshRenderer.h
+				svg/SvgWriter.cpp                 svg/SvgWriter.h
+				svg/SvgCircle.cpp                 svg/SvgCircle.h
+				svg/SvgImage.cpp                  svg/SvgImage.h
+				svg/SvgPath.cpp                   svg/SvgPath.h
+				svg/SvgRect.cpp                   svg/SvgRect.h
+				svg/SvgText.cpp                   svg/SvgText.h
+				normalSphereSelection/ArcBall.cpp normalSphereSelection/ArcBall.h
 				normalSphereSelection/NormalSphereSelectionDialog.cpp
+				normalSphereSelection/NormalSphereSelectionDialog.h
 				normalSphereSelection/NormalSphereSelectionRenderWidget.cpp
+				normalSphereSelection/NormalSphereSelectionRenderWidget.h
 )
-
-set(GUI_HEADERS normalSphereSelection/NormalSphereSelectionRenderWidget.h)
-
-find_package(Qt5 COMPONENTS Core Widgets Gui OpenGL Network REQUIRED)
 
 #NOTE: instead of adding translations via resources, the ts-files can also be build by
 #      qt5_create_translation and then be added
@@ -63,33 +66,11 @@ qt5_add_resources(GUI_RESOURCES "forms/gigamesh.qrc"
 								"python-scripts/pythonscripts.qrc"
 )
 
-qt5_wrap_ui(GUI_UI_HEADERS   "forms/mainWin.ui"
-						 "forms/qruntpsrpmscriptdialog.ui"
-						 "forms/ExternalProgramsDialog.ui"
-						 "forms/dialogGridCenterSelect.ui"
-						 "forms/qgmdialognprsettings.ui"
-						 "forms/QGMDialogTransparencySettings.ui"
-						 "forms/QGMDialogSliderHD.ui"
-						 "forms/qgmdocksidebar.ui"
-						 "forms/qgmdockinfo.ui"
-						 "forms/qgmdockview.ui"
-						 "forms/dialogAbout.ui"
-						 "forms/dialogConeParam.ui"
-						 "forms/dialogMSII.ui"
-						 "forms/dialogCutOffValues.ui"
-						 "forms/dialogEnterText.ui"
-						 "forms/dialogPlaneParam.ui"
-						 "forms/dialogComboBox.ui"
-						 "forms/dialogRuler.ui"
-						 "normalSphereSelection/NormalSphereSelectionDialog.ui"
-)
+#set here the paths of the ui-files, so autouic can find them
+set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/forms
+							   ${CMAKE_CURRENT_SOURCE_DIR}/normalSphereSelection)
 
-set(OpenGL_GL_PREFERENCE GLVND)
-
-find_package(OpenGL REQUIRED)
-
-add_executable(gigamesh ${GUI_SOURCES} ${GUI_HEADERS} ${GUI_RESOURCES} ${GUI_UI_HEADERS})
-
+add_executable(gigamesh ${GUI_SOURCES} ${GUI_RESOURCES})
 
 add_definitions(${Qt5Widgets_DEFINITIONS})
 target_include_directories(gigamesh PRIVATE ${Qt5Widgets_INCLUDES})
