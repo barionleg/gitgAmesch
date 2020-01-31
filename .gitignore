@@ -29,43 +29,7 @@ CMakeLists.txt.user*
 debug/
 release/
 
-# CUDA test-file:
-/cuda/cudatest
-
-# external libraries (e.g. libpsalm):
-external/
-
-# GigaMesh command line tools (Linux):
-mesh/meshgeneratefeaturevectors
-mesh/meshgeneratefeaturevectors_threads
-mesh/meshgeneratefeaturevectors25d
-mesh/meshgeneratefeaturevectors25d_threads
-mesh/gigamesh-featurevectors
-mesh/gigamesh-clean
-mesh/gigamesh-tolegacy
-mesh/gigamesh-info
-
-# Mesh test-files (Linux):
-mesh/matrix4d
-mesh/vector3d
-mesh/image2d
-mesh/voxelcuboid
-mesh/face
-mesh/mesh
-mesh/test
-
-# Mesh test-files (Windows):
-mesh/matrix4d.exe
-mesh/vector3d.exe
-mesh/image2d.exe
-mesh/voxelcuboid.exe
-mesh/face.exe
-mesh/mesh.exe
-mesh/meshgeneratefeaturevectors.exe
-mesh/meshgeneratefeaturevectors_threads.exe
-mesh/meshgeneratefeaturevectors25d.exe
-mesh/meshgeneratefeaturevectors25d_threads.exe
-mesh/test.exe
+build/
 
 # 3D-data files (surface)
 *.obj
