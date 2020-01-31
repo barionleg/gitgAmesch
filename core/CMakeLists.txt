@@ -98,7 +98,7 @@ set(PUBLIC_HEADERS_CORE ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/printbuildi
 add_library(gigameshCore STATIC ${SOURCES_CORE} ${HEADERS_CORE} ${PUBLIC_HEADERS_CORE})
 
 target_compile_features(gigameshCore PUBLIC cxx_std_17)
-target_compile_options(gigameshCore PUBLIC -DTHREADS -DNUM_THREADS=11 -DCOMP_USER=\"${COMP_USER}\" -DCOMP_DATE=\"${COMP_DATE}\" -DCOMP_GITHEAD=\"${COMP_GITHEAD}\" -DVERSION_PACKAGE=\"${VERSION_PACKAGE}\" -DCOMP_EDIT=\"${COMP_EDIT}\")
+target_compile_options(gigameshCore PUBLIC -DTHREADS -DNUM_THREADS=11 -DCOMP_USER=\"${COMP_USER}\" -DCOMP_DATE=\"${COMP_DATE}\" -DCOMP_GITHEAD=\"${COMP_GITHEAD}\" -DVERSION_PACKAGE=\"${VERSION_PACKAGE}\" -DCOMP_EDIT=\"${COMP_EDIT}\" -DLIBSPHERICAL_INTERSECTION -DLIBPSALM -DALGLIB)
 
 if(UNIX)
 		target_link_libraries(gigameshCore PUBLIC stdc++fs pthread)
@@ -109,14 +109,16 @@ elseif(MINGW)
 	target_link_libraries(gigameshCore PUBLIC ws2_32)
 endif()
 
+target_link_libraries(gigameshCore PRIVATE alg psalm spherical_intersection)
+
 target_include_directories(gigameshCore PUBLIC
 							$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 							$<INSTALL_INTERFACE:include>
 							PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-set_target_properties(gigameshCore PROPERTIES PUBLIC_HEADER ${PUBLIC_HEADERS_CORE}
-											  PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/ellipsedisc.h
-											  PUBLIC_HEADER	${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/MeshIO/ModelMetaData.h
-											  PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/gmcommon.h
-											  PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/normalSphere/IcoSphereTree.h
-											  )
+#set_target_properties(gigameshCore PROPERTIES PUBLIC_HEADER ${PUBLIC_HEADERS_CORE}
+#											  PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/ellipsedisc.h
+#											  PUBLIC_HEADER	${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/MeshIO/ModelMetaData.h
+#											  PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/gmcommon.h
+#											  PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/normalSphere/IcoSphereTree.h
+#											  )

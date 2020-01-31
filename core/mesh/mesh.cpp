@@ -44,8 +44,8 @@ extern "C"
 #endif
 
 #ifdef ALGLIB
-    #include "corr.h"
-    #include "ablas.h"
+    #include <alg/corr.h>
+    #include <alg/ablas.h>
 #endif
 
 #ifdef LIBSPHERICAL_INTERSECTION
@@ -5468,7 +5468,7 @@ bool Mesh::estFeatureAutoCorrelationVertex( double** funcValues, Vertex*** verti
 			// Copy each element and scale it to [-1.0...+1.0]
 			//referenceFeature( i ) = (2.0*currVertex->getFeatureElement(i))-1.0;
 			// Elements are already scaled to [-1.0...+1.0]
-			getFeatureElement( i, &referenceFeature[i] );
+			getFeatureElement( i, &referenceFeature(i) );
 		}
 		corrr1d( referenceFeature, featureVecLen, referenceFeature, featureVecLen, crossCorr );
 		for( uint64_t j=0; j<2*featureVecLen-1; j++ ) {
