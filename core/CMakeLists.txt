@@ -101,7 +101,7 @@ target_compile_features(gigameshCore PUBLIC cxx_std_17)
 target_compile_options(gigameshCore PUBLIC -DTHREADS -DNUM_THREADS=11 -DCOMP_USER=\"${COMP_USER}\" -DCOMP_DATE=\"${COMP_DATE}\" -DCOMP_GITHEAD=\"${COMP_GITHEAD}\" -DVERSION_PACKAGE=\"${VERSION_PACKAGE}\" -DCOMP_EDIT=\"${COMP_EDIT}\" -DLIBSPHERICAL_INTERSECTION -DLIBPSALM -DALGLIB)
 
 if(UNIX)
-		target_link_libraries(gigameshCore PUBLIC stdc++fs pthread)
+	target_link_libraries(gigameshCore PUBLIC stdc++fs pthread)
 elseif(MSVC)
 	target_compile_options(gigameshCore PUBLIC /permissive- -DNO_TIMER -DNOMINMAX)
 	target_link_libraries(gigameshCore PUBLIC Advapi32 Ws2_32)
