@@ -15,57 +15,22 @@ windows:
     - export PATH="/mxe/usr/x86_64-w64-mingw32.static/qt5/bin:$PATH"
     - export QT_SELECT=qt5
 
-    # build sphericlal_intersection lib
-    - cd external/spherical_intersection
+    # build gigamesh
     - mkdir build
     - cd build
     - /mxe/usr/bin/x86_64-w64-mingw32.static-cmake ..
     - /mxe/usr/bin/x86_64-w64-mingw32.static-cmake --build . --config Release
-    - cp libspherical_intersection.a ../
-    - cd ../../../
-
-    # build libpsalm
-    - cd external/libpsalmBoostless
-    - mkdir build
-    - cd build
-    - /mxe/usr/bin/x86_64-w64-mingw32.static-cmake ..
-    - /mxe/usr/bin/x86_64-w64-mingw32.static-cmake --build . --config Release
-    - cp libpsalm.a ../
-    # go back and build alglib
-    - cd ../../
-    - unzip alglib-2.6.0.cpp.zip
-    - mv cpp alglib
-    - cd alglib
-#    - chmod u+x build
-#    - ./build gcc "-pipe -std=c++17 -O2 -ftree-loop-vectorize -Wall -Wextra -Wpedantic -Werror=format-security -D_GLIBC_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fpie -fstack-protector-strong"
-# we build it manually using gcc => see the build script of alglib
-    - cp src/* _tmp
-    - cd _tmp
-    - x86_64-w64-mingw32.static-gcc -I. -L. -c -pipe -std=c++17 -O2 -ftree-loop-vectorize -Wall -Wextra -Wpedantic -Werror=format-security -D_GLIBC_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fpie *.cpp
-    - x86_64-w64-mingw32.static-ar -rc libalglib.a *.o
-    - cp libalglib.a ../out
-    - cp ../src/*.h ../out
-    - rm -f *
     - cd ..
-    # Build mesh parts.
-    - cd ../..
-    - mkdir meshBuild
-    - cd meshBuild
-    - /mxe/usr/bin/x86_64-w64-mingw32.static-cmake ..
-    - /mxe/usr/bin/x86_64-w64-mingw32.static-cmake --build . --config Release
-    - cd ..
-    - /mxe/usr/x86_64-w64-mingw32.static/qt5/bin/qmake
-    - make -j
 
   artifacts:
     name: "gigamesh_windows"
     paths:
-      - release/gigamesh.exe
-      - meshBuild/gigamesh-featurevectors.exe
-      - meshBuild/gigamesh-tolegacy.exe
-      - meshBuild/gigamesh-clean.exe
-      - meshBuild/gigamesh-info.exe
-      - meshBuild/gigamesh-borders.exe
+      - build/gui/gigamesh.exe
+      - build/clt/gigamesh-featurevectors.exe
+      - build/clt/gigamesh-tolegacy.exe
+      - build/clt/gigamesh-clean.exe
+      - build/clt/gigamesh-info.exe
+      - build/clt/gigamesh-borders.exe
     expire_in: 4 hours
    
 ubuntu bionic:
@@ -82,47 +47,22 @@ ubuntu bionic:
     - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 10
     - export QT_SELECT=qt5
 
-    # build sphericlal_intersection lib
-    - cd external/spherical_intersection
+    # build gigamesh
     - mkdir build
     - cd build
-    - cmake ..
-    - cmake --build . --config Release
-    - cp libspherical_intersection.a ../
-    - cd ../../../
-
-    # build libpsalm
-    - cd external/libpsalmBoostless
-    - mkdir build
-    - cd build
-    - cmake ..
-    - cmake --build . --config Release
-    - cp libpsalm.a ../
-    # go back and build alglib
-    - cd ../../
-    - unzip alglib-2.6.0.cpp.zip
-    - mv cpp alglib
-    - cd alglib
-    - chmod u+x build
-    - ./build gcc "-pipe -std=c++17 -O2 -ftree-loop-vectorize -Wall -Wextra -Wpedantic -Werror=format-security -D_GLIBC_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fpie -fstack-protector-strong"
-    - cd ../..
-    - mkdir meshBuild
-    - cd meshBuild
     - cmake ..
     - cmake --build . --config Release
     - cd ..
-    - qmake
-    - make -j
 
   artifacts:
     name: "gigamesh_bionic"
     paths:
-      - gigamesh
-      - meshBuild/gigamesh-featurevectors
-      - meshBuild/gigamesh-tolegacy
-      - meshBuild/gigamesh-clean
-      - meshBuild/gigamesh-info
-      - meshBuild/gigamesh-borders
+      - gui/gigamesh.exe
+      - clt/gigamesh-featurevectors.exe
+      - clt/gigamesh-tolegacy.exe
+      - clt/gigamesh-clean.exe
+      - clt/gigamesh-info.exe
+      - clt/gigamesh-borders.exe
     expire_in: 4 hours
     
 manjaro arch:
@@ -136,46 +76,21 @@ manjaro arch:
   script:
     - export QT_SELECT=qt5
 
-    # build sphericlal_intersection lib
-    - cd external/spherical_intersection
+    # build gigamesh
     - mkdir build
     - cd build
-    - cmake ..
-    - cmake --build . --config Release
-    - cp libspherical_intersection.a ../
-    - cd ../../../
-
-    # build libpsalm
-    - cd external/libpsalmBoostless
-    - mkdir build
-    - cd build
-    - cmake ..
-    - cmake --build . --config Release
-    - cp libpsalm.a ../
-    # go back and build alglib
-    - cd ../../
-    - unzip alglib-2.6.0.cpp.zip
-    - mv cpp alglib
-    - cd alglib
-    - chmod u+x build
-    - ./build gcc "-pipe -std=c++17 -O2 -ftree-loop-vectorize -Wall -Wextra -Wpedantic -Werror=format-security -D_GLIBC_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fpie -fstack-protector-strong"
-    # Build mesh parts.
-    - cd ../..
-    - mkdir meshBuild
-    - cd meshBuild
     - cmake ..
     - cmake --build . --config Release
     - cd ..
-    - qmake
-    - make -j
+
   artifacts:
     name: "gigamesh_arch_manjaro"
     paths:
-      - gigamesh
-      - meshBuild/gigamesh-featurevectors
-      - meshBuild/gigamesh-tolegacy
-      - meshBuild/gigamesh-clean
-      - meshBuild/gigamesh-info
-      - meshBuild/gigamesh-borders
+      - gui/gigamesh.exe
+      - clt/gigamesh-featurevectors.exe
+      - clt/gigamesh-tolegacy.exe
+      - clt/gigamesh-clean.exe
+      - clt/gigamesh-info.exe
+      - clt/gigamesh-borders.exe
     expire_in: 4 hours
   
