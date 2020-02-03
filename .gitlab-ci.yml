@@ -19,7 +19,7 @@ windows:
     - mkdir build
     - cd build
     - /mxe/usr/bin/x86_64-w64-mingw32.static-cmake .. -DCMAKE_BUILD_TYPE=Release -G"Unix Makefiles"
-    - /mxe/usr/bin/x86_64-w64-mingw32.static-make -j
+    - make -j
     - cd ..
 
   artifacts:
