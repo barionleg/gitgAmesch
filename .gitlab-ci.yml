@@ -57,12 +57,12 @@ ubuntu bionic:
   artifacts:
     name: "gigamesh_bionic"
     paths:
-      - build/gui/gigamesh.exe
-      - build/clt/gigamesh-featurevectors.exe
-      - build/clt/gigamesh-tolegacy.exe
-      - build/clt/gigamesh-clean.exe
-      - build/clt/gigamesh-info.exe
-      - build/clt/gigamesh-borders.exe
+      - build/gui/gigamesh
+      - build/clt/gigamesh-featurevectors
+      - build/clt/gigamesh-tolegacy
+      - build/clt/gigamesh-clean
+      - build/clt/gigamesh-info
+      - build/clt/gigamesh-borders
     expire_in: 4 hours
     
 manjaro arch:
@@ -86,11 +86,11 @@ manjaro arch:
   artifacts:
     name: "gigamesh_arch_manjaro"
     paths:
-      - build/gui/gigamesh.exe
-      - build/clt/gigamesh-featurevectors.exe
-      - build/clt/gigamesh-tolegacy.exe
-      - build/clt/gigamesh-clean.exe
-      - build/clt/gigamesh-info.exe
-      - build/clt/gigamesh-borders.exe
+      - build/gui/gigamesh
+      - build/clt/gigamesh-featurevectors
+      - build/clt/gigamesh-tolegacy
+      - build/clt/gigamesh-clean
+      - build/clt/gigamesh-info
+      - build/clt/gigamesh-borders
     expire_in: 4 hours
   

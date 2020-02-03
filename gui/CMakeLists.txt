@@ -81,7 +81,7 @@ target_include_directories(gigamesh PRIVATE ${Qt5OpenGL_INCLUDES})
 add_definitions(${Qt5Network_DEFINITIONS})
 target_include_directories(gigamesh PRIVATE ${Qt5Network_INCLUDES})
 
-add_dependencies(gigamesh OpenGL::OpenGL)
+add_dependencies(gigamesh OpenGL::GL)
 
 #needed to find generated ui-header files
 target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
@@ -89,5 +89,5 @@ target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 #needed, if ui-header files need references to custom classes (e.g. NormalSphereSelectionRenderWidget.h)
 target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(gigamesh PRIVATE Qt5::Widgets Qt5::OpenGL Qt5::Gui Qt5::Network psalm spherical_intersection OpenGL::OpenGL gigameshCore)
+target_link_libraries(gigamesh PRIVATE Qt5::Widgets Qt5::OpenGL Qt5::Gui Qt5::Network psalm spherical_intersection OpenGL::GL gigameshCore)
 target_compile_options(gigamesh PRIVATE -DTHREADS -DNUM_THREADS=11 -DCOMP_USER=\"${COMP_USER}\" -DCOMP_DATE=\"${COMP_DATE}\" -DCOMP_GITHEAD=\"${COMP_GITHEAD}\" -DVERSION_PACKAGE=\"${VERSION_PACKAGE}\" -DCOMP_EDIT=\"${COMP_EDIT}\")
