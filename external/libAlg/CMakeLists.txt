@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.13)
 
 project(libalg LANGUAGES CXX)
 
@@ -115,7 +115,7 @@ target_include_directories(alg PUBLIC
 							PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 target_include_directories(alg PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/alg)
-
+target_compile_features(alg PRIVATE cxx_std_17)
 #set_target_properties(alg PROPERTIES PUBLIC_HEADER )
 
 install(TARGETS alg

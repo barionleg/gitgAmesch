@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.13)
 
 project(libpsalm LANGUAGES CXX)
 
@@ -29,6 +29,8 @@ target_include_directories(psalm PUBLIC
 							$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 							$<INSTALL_INTERFACE:include>
 							PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+target_compile_features(psalm PRIVATE cxx_std_17)
 
 set_target_properties(psalm PROPERTIES PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/libpsalm/libpsalm.h)
 
