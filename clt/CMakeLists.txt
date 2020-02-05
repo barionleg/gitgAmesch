@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.10)
 
 # CMAKEFile for building the command-line tools of gigamesh
 
@@ -37,9 +37,9 @@ target_link_libraries(gigamesh-info PRIVATE gigameshCore)
 
 add_executable( gigamesh-featurevectors meshgeneratefeaturevectors25d.cpp)
 target_link_libraries( gigamesh-featurevectors PRIVATE gigameshCore)
-target_include_directories( gigamesh-featurevectors PRIVATE ${CMAKE_SOURCE_DIR}/voxel
-                                                          ${CMAKE_SOURCE_DIR}/mesh
-                                                          ${CMAKE_SOURCE_DIR})
+target_include_directories( gigamesh-featurevectors PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/voxel
+														  ${CMAKE_CURRENT_SOURCE_DIR}/mesh
+														  ${CMAKE_CURRENT_SOURCE_DIR})
 
 
 #add_executable(meshgeneratefeaturevectors25d mesh/meshgeneratefeaturevectors25d.cpp ${SOURCES_COMMON} ${HEADERS_COMMON})
