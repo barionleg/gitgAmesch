@@ -3,7 +3,7 @@ stages:
 
 windows:
   # Use created image for mxe
-  image: ffeldman/bionic-mxe-gcc9:latest
+  image: rkuehl83/ubuntu_bionic_mxe_qt_static:latest
   stage: build
   # install the necessary build tools when needed
   before_script:
