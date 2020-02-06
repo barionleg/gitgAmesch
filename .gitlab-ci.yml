@@ -20,6 +20,12 @@ windows:
     - cd build
     - x86_64-w64-mingw32.static-cmake .. -DCMAKE_BUILD_TYPE=Release -G"Unix Makefiles"
     - make -j
+    - strip gui/gigamesh.exe
+    - strip clt/gigamesh-featurevectors.exe
+    - strip clt/gigamesh-tolegacy.exe
+    - strip clt/gigamesh-clean.exe
+    - strip clt/gigamesh-info.exe
+    - strip clt/gigamesh-borders.exe
 
   artifacts:
     name: "gigamesh_windows"
@@ -51,6 +57,12 @@ ubuntu bionic:
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release -G"Unix Makefiles"
     - make -j
+    - strip gui/gigamesh
+    - strip clt/gigamesh-featurevectors
+    - strip clt/gigamesh-tolegacy
+    - strip clt/gigamesh-clean
+    - strip clt/gigamesh-info
+    - strip clt/gigamesh-borders
 
   artifacts:
     name: "gigamesh_bionic"
@@ -79,6 +91,12 @@ manjaro arch:
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release -G"Unix Makefiles"
     - make -j
+    - strip gui/gigamesh
+    - strip clt/gigamesh-featurevectors
+    - strip clt/gigamesh-tolegacy
+    - strip clt/gigamesh-clean
+    - strip clt/gigamesh-info
+    - strip clt/gigamesh-borders
 
   artifacts:
     name: "gigamesh_arch_manjaro"
