@@ -28,8 +28,6 @@
 //#include "voxelcuboid.h"
 #include "voxelfilter25d.h"
 
-#include "image2d.h"
-
 #include <sys/stat.h> // statistics for files
 #include "../logging/Logging.h"
 
