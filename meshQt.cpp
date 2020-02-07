@@ -3091,7 +3091,7 @@ void MeshQt::plainsEllipseFit( QGMDialogFitEllipse* params ) {
 
 #endif
 
-//! GUI Wrapper for MeshGL::estimateVolume
+//! GUI Wrapper for MeshGL::getMeshVolumeDivergence
 void MeshQt::estimateVolume() {
 	double volumeDXYZ[3];
 	bool numericError = false;
@@ -3102,11 +3102,16 @@ void MeshQt::estimateVolume() {
 	cout << "[MeshQt::" << __FUNCTION__ << "] Volume dx: " << volumeDXYZ[0] << endl;
 	cout << "[MeshQt::" << __FUNCTION__ << "] Volume dy: " << volumeDXYZ[1] << endl;
 	cout << "[MeshQt::" << __FUNCTION__ << "] Volume dz: " << volumeDXYZ[2] << endl;
-	QString msgStr = tr( "<p>The mesh has a volume of %1, %2 and %3 mm3 in respect to the derivatives.</p>" ).arg( volumeDXYZ[0], 10, 'f', 3 ).arg( volumeDXYZ[1], 10, 'f', 3 ).arg( volumeDXYZ[2], 10, 'f', 3 );
+	QString msgStr = tr( "<p>The mesh has a volume of<br /><br />"
+	                     "%1 <i>mm<sup>3</sup></i><br />"
+	                     "%2 <i>mm<sup>3</sup></i><br />"
+	                     "%3 <i>mm<sup>3</sup></i><br /><br />"
+	                     " in respect to the derivatives in x, y and z.<br /><br />"
+	                     "Unit of <i>mm</i> assumed.</p>" ).arg( volumeDXYZ[0], 10, 'f', 3 ).arg( volumeDXYZ[1], 10, 'f', 3 ).arg( volumeDXYZ[2], 10, 'f', 3 );
 	if( numericError ) {
 		msgStr += tr("<p><font color=\"red\"><b>A numeric error was encountered. <br />Probably due to zero area faces.</b></font></p>");
 	}
-	SHOW_MSGBOX_INFO( "Volume", msgStr );
+	SHOW_MSGBOX_INFO( "Volume (dx,dy,dz)", msgStr );
 	emit statusMessage( msgStr );
 }
 
