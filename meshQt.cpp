@@ -3095,7 +3095,7 @@ void MeshQt::plainsEllipseFit( QGMDialogFitEllipse* params ) {
 void MeshQt::estimateVolume() {
 	double volumeDXYZ[3];
 	bool numericError = false;
-	if( !MeshGL::estimateVolumeDivergence( volumeDXYZ ) ) {
+	if( !MeshGL::getMeshVolumeDivergence( volumeDXYZ[0], volumeDXYZ[1], volumeDXYZ[2] ) ) {
 		cerr << "[MeshQt::" << __FUNCTION__ << "] ERROR: estimateVolumeDivergence failed - probably due to zero area faces!" << endl;
 		numericError = true;
 	}
