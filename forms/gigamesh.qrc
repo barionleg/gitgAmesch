@@ -78,5 +78,4 @@
         <file>tooltips/rendering_flat_smooth_egde_on.png</file>
         <file>tooltips/rendering_flat_smooth_egde_off.png</file>
     </qresource>
-    <qresource prefix="/"/>
 </RCC>
