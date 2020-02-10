@@ -59,9 +59,7 @@ extern "C"
 using namespace std;
 
 #ifdef THREADS
-    #ifndef NUM_THREADS
-    #define NUM_THREADS           7
-    #endif
+const auto NUM_THREADS = std::thread::hardware_concurrency() * 2;
 
 	struct faceDataStruct {
 		int     mThreadID; //!< ID of the posix thread

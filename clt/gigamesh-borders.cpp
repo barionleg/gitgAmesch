@@ -233,7 +233,7 @@ int main( int argc, char *argv[] ) {
 				std::cout << "GigaMesh Software Framework export borders of 3D Data " << VERSION_PACKAGE << endl;
 #endif
 #ifdef THREADS
-				std::cout << "Multi-threading with " << NUM_THREADS << " threads." << endl;
+				std::cout << "Multi-threading with " << std::thread::hardware_concurrency() * 2 << " threads." << endl;
 #else
 				std::cout << "Single-threading. " << endl;
 #endif

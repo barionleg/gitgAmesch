@@ -1,5 +1,19 @@
 cmake_minimum_required(VERSION 3.10)
 
+# CMAKEFile for building gigamesh
+
+# note for building on Ubuntu, if g++-8 is not the default compiler, you have two options:
+# 1. Export CC and CXX before calling cmake:
+# export CC=/usr/bin/gcc-8
+# export CXX=/usr/bin/g++-8
+#
+# 2. set g++-8 as alternative permanently:
+# sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 10
+# sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 10
+#
+# 3. Tested alternative to 1, running cmake with:
+# cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-8 -DCMAKE_CC_COMPILER=/usr/bin/gcc-8
+
 project(GigaMesh LANGUAGES CXX C)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -40,10 +54,12 @@ add_subdirectory(external)
 
 add_subdirectory(core)
 
+#set this via cmake <path to this CMakeLists.txt> -DGIGAMESH_GUI_ONLY=1
 if(NOT GIGAMESH_GUI_ONLY)
 add_subdirectory(clt)
 endif()
 
+#set this via cmake <path to this CMakeLists.txt> -DGIGAMESH_CLT_ONLY=1
 if(NOT GIGAMESH_CLT_ONLY)
 add_subdirectory(gui)
 endif()

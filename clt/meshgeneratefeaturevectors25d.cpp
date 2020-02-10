@@ -402,7 +402,7 @@ int main( int argc, char *argv[] ) {
 	fileStrOutMeta << "GigaMesh Version    unknown" << endl;
 #endif
 #ifdef THREADS
-	fileStrOutMeta << "Threads (fixed):    " << NUM_THREADS << endl;
+	fileStrOutMeta << "Threads (fixed):    " << std::thread::hardware_concurrency() * 2 << endl;
 #else
 	fileStrOutMeta << "Threads (fixed):    single" << endl;
 #endif
@@ -480,7 +480,7 @@ int main( int argc, char *argv[] ) {
 	cout << "[GigaMesh] Version:         unknown" << endl;
 #endif
 #ifdef THREADS
-	cout << "[GigaMesh] Threads:         " << NUM_THREADS << endl;
+	cout << "[GigaMesh] Threads:         " << std::thread::hardware_concurrency() * 2 << endl;
 #else
 	cout << "[GigaMesh] Threads:         single" << endl;
 #endif
