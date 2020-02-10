@@ -18,7 +18,7 @@ windows:
     # build gigamesh
     - mkdir build
     - cd build
-    - x86_64-w64-mingw32.static-cmake .. -DCMAKE_BUILD_TYPE=Release -G"Unix Makefiles"
+    - x86_64-w64-mingw32.static-cmake .. -DCMAKE_BUILD_TYPE=Release -G"Unix Makefiles" -DMINGW_CI_BUILD=1
     - make -j
     - strip gui/gigamesh.exe
     - strip clt/gigamesh-featurevectors.exe
