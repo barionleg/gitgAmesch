@@ -92,7 +92,7 @@ target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(gigamesh PRIVATE ${Qt5Widgets_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Network_LIBRARIES} psalm spherical_intersection OpenGL::GL gigameshCore)
 
 #extras for static linking using the MXE mingw static build (set this via "export MINGW_CI_BUILD=True" on the command line)
-if(MINGW_CI_BUILD)
+if(MINGW)
 	qt5_import_plugins(gigamesh INCLUDE Qt5::QSvgIconPlugin Qt5::QSvgPlugin)
 	target_link_libraries(gigamesh PRIVATE ssl crypto crypt32 iphlpapi)
 endif()
