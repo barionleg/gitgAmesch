@@ -11052,26 +11052,29 @@ set<Face*> Mesh::getNonManifoldFaces() {
 
 //! Computes the volume within the 3D-Model using the divergence theorem.
 //! Remark: for a proper result the surface has to be closed (no holes/borders) and manifold.
+//!
+//! See also: Face::getVolumeDivergence
+//!
 //! @returns false in case of an error, which are caused by zero area faces.
-bool Mesh::estimateVolumeDivergence( double* rVolumeDXYZ //!< array of size 3 to store the volumes usinge the derivative with respect to x, y and z.
-    ) {
+bool Mesh::getMeshVolumeDivergence(
+                double& rVolumeDX, //!< Volume estimated in x-direction.
+                double& rVolumeDY, //!< Volume estimated in y-direction.
+                double& rVolumeDZ  //!< Volume estimated in z-direction.
+) {
 	bool retVal = true;
-	if( rVolumeDXYZ == nullptr ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Null pointer given!" << endl;
-		return false;
-	}
-	rVolumeDXYZ[0] = 0.0;
-	rVolumeDXYZ[1] = 0.0;
-	rVolumeDXYZ[2] = 0.0;
+
+	rVolumeDX = 0.0;
+	rVolumeDY = 0.0;
+	rVolumeDZ = 0.0;
 	Face* currFace;
 	for( uint64_t faceIdx=0; faceIdx<getFaceNr(); faceIdx++ ) {
 		currFace = getFacePos( faceIdx );
-		if( !currFace->getVolumeDivergence( rVolumeDXYZ ) ) {
+		if( !currFace->getVolumeDivergence( rVolumeDX, rVolumeDY, rVolumeDZ ) ) {
 			cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: getVolumeDivergence did not return a result. Probably a zero area face was encountered!" << endl;
 			retVal = false;
 		}
 	}
-	return retVal;
+	return( retVal );
 }
 
 //! Compute the volume below the Mesh's faces to the Mesh plane.
@@ -15957,7 +15960,7 @@ bool Mesh::latexFetchFigureInfos( vector<pair<string,string>>* rStrings ) {
 	//! Volume
 	double volumeDXYZ[3];
 	bool numericErrorVolume = false;
-	if( !estimateVolumeDivergence( volumeDXYZ ) ) {
+	if( !getMeshVolumeDivergence( volumeDXYZ[0], volumeDXYZ[1], volumeDXYZ[2] ) ) {
 		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: estimateVolumeDivergence encountered an error - probably due to zero area faces!" << endl;
 		numericErrorVolume = true;
 	}
@@ -16087,7 +16090,7 @@ bool Mesh::getMeshInfoData(
 
 	// Volume
 	double volDXYZ[3];
-	this->estimateVolumeDivergence( volDXYZ );
+	this->getMeshVolumeDivergence( volDXYZ[0], volDXYZ[1], volDXYZ[2] );
 	rMeshInfos.mCountDouble[MeshInfoData::TOTAL_VOLUME_DX] = volDXYZ[0];
 	rMeshInfos.mCountDouble[MeshInfoData::TOTAL_VOLUME_DY] = volDXYZ[1];
 	rMeshInfos.mCountDouble[MeshInfoData::TOTAL_VOLUME_DZ] = volDXYZ[2];

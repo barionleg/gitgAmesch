@@ -194,7 +194,7 @@ class Face : public Primitive {
 		        void     reconnectToFaces();  // re-connects this face to its neighbouring faces
 		        void     connectToFaces();    // connects this face to its neighbouring faces
 		        double   getAreaNormal();
-		        bool     getVolumeDivergence( double* rVolumeDXYZ );
+		        bool     getVolumeDivergence( double& rVolumeDX, double& rVolumeDY, double& rVolumeDZ );
 		        bool     getVolumeToPlane( double* rVolume, bool* rPlanePos, Plane* rPlane );
 
 		// mesh manipulation:

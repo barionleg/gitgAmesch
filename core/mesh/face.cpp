@@ -2884,23 +2884,29 @@ double Face::getAreaNormal() {
 }
 
 //! Computes the volume contribution of this face to the 3D-models volume using the divergence theorem
-//! and adds it to rVolumeDXYZ.
-//! rVolumeDXYZ has to be of length 3
-//! @returns false in case of an error, when the area of this face is not a finite number or zero.
-bool Face::getVolumeDivergence( double* rVolumeDXYZ ) {
+//! and increments  rVolumeDX, rVolumeDY and rVolumeDZ.
+//!
+//! @returns false in case of an error,
+//!          when the area of this face is not a finite number,
+//!          or in case the face area is zero.
+bool Face::getVolumeDivergence(
+                double& rVolumeDX,
+                double& rVolumeDY,
+                double& rVolumeDZ
+) {
 	double area     = getAreaNormal();
 	if( !isfinite( area ) | ( area == 0.0 ) ) {
-		return false;
+		return( false );
 	}
 	Vector3D cog    = getCenterOfGravity();
 	Vector3D normal = getNormal();
-	rVolumeDXYZ[0] += area * cog.getX() * normal.getX();
-	//rVolumeDXYZ[1] += area * cog.getY() * normal.getY();
-	rVolumeDXYZ[2] += area * cog.getZ() * normal.getZ();
+	rVolumeDX += area * cog.getX() * normal.getX();
+	rVolumeDY += area * cog.getY() * normal.getY();
+	rVolumeDZ += area * cog.getZ() * normal.getZ();
 	// faster alternative for X:
-	Vector3D normalArea = getNormal( false );
-	rVolumeDXYZ[1] += ( cog.getX() * normalArea.getX() )/ 2.0;
-	return true;
+	//Vector3D normalArea = getNormal( false );
+	//rVolumeDX[0] += ( cog.getX() * normalArea.getX() )/ 2.0;
+	return( true );
 }
 
 //! Compute the prism shaped volume between the face and a given plane.

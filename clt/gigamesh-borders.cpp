@@ -24,8 +24,6 @@
 // //#include "voxelcuboid.h"
 //#include "voxelfilter25d.h"
 
-//#include "image2d.h"
-
 #include <sys/stat.h> // statistics for files
 
 using namespace std;
@@ -108,8 +106,8 @@ bool convertMeshData(
 	double areaAcq;
 	someMesh.getFaceSurfSum( &areaAcq );
 	areaAcq = round( areaAcq );
-	double volDXYZ[3];
-	someMesh.estimateVolumeDivergence( volDXYZ );
+	double volDXYZ[3]{ 0.0, 0.0, 0.0 };
+	someMesh.getMeshVolumeDivergence( volDXYZ[0], volDXYZ[1], volDXYZ[2] );
 	string modelID  = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
 	string modelMat = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
 	// Write data to file
