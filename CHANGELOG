@@ -1,3 +1,6 @@
+Current version
++) Bugfix: Mesh volume for dy was wrong, because it was overwritten by the result for dx.
+
 Version 200115
 +) Bugfix: Export of SVGs from planes defined by an axis and by other means are separatly positioned within the exported SVG.
 +) Bugfix: Labels of the distances in the SVG export are positioned correctly.

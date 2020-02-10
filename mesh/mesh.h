@@ -423,7 +423,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool         getPolyVertexCount( std::set<PolyLine*>* rSomePolyLines, unsigned int rMinNr, unsigned int rMaxNr );
 
 				std::set<Face*>   getNonManifoldFaces();
-				bool         estimateVolumeDivergence( double* rVolumeDXYZ );
+				bool         getMeshVolumeDivergence( double& rVolumeDX, double& rVolumeDY, double& rVolumeDZ );
 				bool         compVolumePlane( double* rVolumePos, double* rVolumeNeg );
 
 		// Histogram:

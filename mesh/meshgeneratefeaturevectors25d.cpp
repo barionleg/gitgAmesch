@@ -468,8 +468,8 @@ int main( int argc, char *argv[] ) {
 	double areaAcq{0};
 	someMesh.getFaceSurfSum( &areaAcq );
 	areaAcq = round( areaAcq );
-	double volDXYZ[3]{0.0, 0.0, 0.0};
-	someMesh.estimateVolumeDivergence( volDXYZ );
+	double volDXYZ[3]{ 0.0, 0.0, 0.0 };
+	someMesh.getMeshVolumeDivergence( volDXYZ[0], volDXYZ[1], volDXYZ[2] );
 	string modelID = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
 	string modelMat = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
 	string modelWebRef = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_REFERENCE_WEB );
