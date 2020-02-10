@@ -39,5 +39,11 @@ endif()
 add_subdirectory(external)
 
 add_subdirectory(core)
+
+if(NOT GIGAMESH_GUI_ONLY)
 add_subdirectory(clt)
+endif()
+
+if(NOT GIGAMESH_CLT_ONLY)
 add_subdirectory(gui)
+endif()
