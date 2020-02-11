@@ -21,21 +21,21 @@ windows:
     - x86_64-w64-mingw32.static-cmake .. -DCMAKE_BUILD_TYPE=Release -G"Unix Makefiles" -DMINGW_CI_BUILD=1
     - make -j
     - strip gui/gigamesh.exe
-    - strip clt/gigamesh-featurevectors.exe
-    - strip clt/gigamesh-tolegacy.exe
-    - strip clt/gigamesh-clean.exe
-    - strip clt/gigamesh-info.exe
-    - strip clt/gigamesh-borders.exe
+    - strip cli/gigamesh-featurevectors.exe
+    - strip cli/gigamesh-tolegacy.exe
+    - strip cli/gigamesh-clean.exe
+    - strip cli/gigamesh-info.exe
+    - strip cli/gigamesh-borders.exe
 
   artifacts:
     name: "gigamesh_windows"
     paths:
       - build/gui/gigamesh.exe
-      - build/clt/gigamesh-featurevectors.exe
-      - build/clt/gigamesh-tolegacy.exe
-      - build/clt/gigamesh-clean.exe
-      - build/clt/gigamesh-info.exe
-      - build/clt/gigamesh-borders.exe
+      - build/cli/gigamesh-featurevectors.exe
+      - build/cli/gigamesh-tolegacy.exe
+      - build/cli/gigamesh-clean.exe
+      - build/cli/gigamesh-info.exe
+      - build/cli/gigamesh-borders.exe
     expire_in: 4 hours
    
 ubuntu bionic:
@@ -58,21 +58,21 @@ ubuntu bionic:
     - cmake .. -DCMAKE_BUILD_TYPE=Release -G"Unix Makefiles"
     - make -j
     - strip gui/gigamesh
-    - strip clt/gigamesh-featurevectors
-    - strip clt/gigamesh-tolegacy
-    - strip clt/gigamesh-clean
-    - strip clt/gigamesh-info
-    - strip clt/gigamesh-borders
+    - strip cli/gigamesh-featurevectors
+    - strip cli/gigamesh-tolegacy
+    - strip cli/gigamesh-clean
+    - strip cli/gigamesh-info
+    - strip cli/gigamesh-borders
 
   artifacts:
     name: "gigamesh_bionic"
     paths:
       - build/gui/gigamesh
-      - build/clt/gigamesh-featurevectors
-      - build/clt/gigamesh-tolegacy
-      - build/clt/gigamesh-clean
-      - build/clt/gigamesh-info
-      - build/clt/gigamesh-borders
+      - build/cli/gigamesh-featurevectors
+      - build/cli/gigamesh-tolegacy
+      - build/cli/gigamesh-clean
+      - build/cli/gigamesh-info
+      - build/cli/gigamesh-borders
     expire_in: 4 hours
     
 manjaro arch:
@@ -92,20 +92,20 @@ manjaro arch:
     - cmake .. -DCMAKE_BUILD_TYPE=Release -G"Unix Makefiles"
     - make -j
     - strip gui/gigamesh
-    - strip clt/gigamesh-featurevectors
-    - strip clt/gigamesh-tolegacy
-    - strip clt/gigamesh-clean
-    - strip clt/gigamesh-info
-    - strip clt/gigamesh-borders
+    - strip cli/gigamesh-featurevectors
+    - strip cli/gigamesh-tolegacy
+    - strip cli/gigamesh-clean
+    - strip cli/gigamesh-info
+    - strip cli/gigamesh-borders
 
   artifacts:
     name: "gigamesh_arch_manjaro"
     paths:
       - build/gui/gigamesh
-      - build/clt/gigamesh-featurevectors
-      - build/clt/gigamesh-tolegacy
-      - build/clt/gigamesh-clean
-      - build/clt/gigamesh-info
-      - build/clt/gigamesh-borders
+      - build/cli/gigamesh-featurevectors
+      - build/cli/gigamesh-tolegacy
+      - build/cli/gigamesh-clean
+      - build/cli/gigamesh-info
+      - build/cli/gigamesh-borders
     expire_in: 4 hours
   
