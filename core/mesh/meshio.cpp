@@ -75,6 +75,12 @@ bool MeshIO::readFile(
 	for( char& character : fileExtension ) {
 		character = static_cast<char>( std::tolower( static_cast<unsigned char>( character ) ) );
 	}
+
+	if( fileExtension.empty())
+	{
+		return false;
+	}
+
 	if( fileExtension.at(0) == '.' ) {
 		fileExtension.erase( fileExtension.begin() );
 	}
