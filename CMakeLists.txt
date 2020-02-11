@@ -51,12 +51,11 @@ elseif(MSVC)
 endif()
 
 add_subdirectory(external)
-
 add_subdirectory(core)
 
 #set this via cmake <path to this CMakeLists.txt> -DGIGAMESH_GUI_ONLY=1
 if(NOT GIGAMESH_GUI_ONLY)
-add_subdirectory(clt)
+add_subdirectory(cli)
 endif()
 
 #set this via cmake <path to this CMakeLists.txt> -DGIGAMESH_CLT_ONLY=1
