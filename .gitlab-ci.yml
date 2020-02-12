@@ -1,6 +1,5 @@
 stages:
   - build
-  - test
 
 windows:
   # Use created image for mxe
@@ -38,14 +37,6 @@ windows:
       - build/cli/gigamesh-info.exe
       - build/cli/gigamesh-borders.exe
     expire_in: 4 hours
-
-  stage: test
-  script:
-    - cd ..
-    - ./build/tests/gigameshCore_tests -o report.xml -r junit
-  artifacts:
-    reports:
-      junit: report.xml
    
 ubuntu bionic:
   # Use ubuntu 18.04 LTS
@@ -83,14 +74,6 @@ ubuntu bionic:
       - build/cli/gigamesh-info
       - build/cli/gigamesh-borders
     expire_in: 4 hours
-
-  stage: test
-  script:
-    - cd ..
-    - ./build/tests/gigameshCore_tests -o report.xml -r junit
-  artifacts:
-    reports:
-      junit: report.xml
     
 manjaro arch:
   # Use latest manjaro release
@@ -126,10 +109,3 @@ manjaro arch:
       - build/cli/gigamesh-borders
     expire_in: 4 hours
   
-  stage: test
-  script:
-    - cd ..
-    - ./build/tests/gigameshCore_tests -o report.xml -r junit
-  artifacts:
-    reports:
-      junit: report.xml
