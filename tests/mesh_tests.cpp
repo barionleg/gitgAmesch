@@ -41,7 +41,7 @@ SCENARIO("Loading a valid mesh", "[mesh]")
 				CHECK(testMesh.getY() == Approx(centerpoint.getY()));
 				CHECK(testMesh.getZ() == Approx(centerpoint.getZ()));
 			}
-			THEN("The center of gravity should be in the middle of the triangle") //careful, each scope has its own mesh, wo a new Mesh is created here!
+			AND_THEN("The center of gravity should be in the middle of the triangle") //careful, each scope has its own mesh, so a new Mesh is created here!
 			{
 				// the points of singletriangle.obj:
 				Vector3D p1(10.0, 10.0, 10.0);

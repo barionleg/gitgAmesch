@@ -90,7 +90,6 @@ bool MeshIO::readFile(
 	std::unique_ptr<MeshReader> reader = nullptr;
 	if( fileExtension == "obj" ) {
 		reader = std::make_unique<ObjReader>();
-		//readStatus = readOBJ( rFileName, rVertexProps, rFaceProps );
 	} else if( fileExtension == "txt" ) {
 		bool askRegular;
 		if( !readIsRegularGrid( &askRegular ) ) {
