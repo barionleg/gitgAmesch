@@ -65,5 +65,5 @@ endif()
 
 if(NOT TESTS_DISABLED)
 	include(CTest)
-	add_subdirectory(core/tests)
+	add_subdirectory(tests)
 endif()

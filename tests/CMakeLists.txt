@@ -7,4 +7,4 @@ target_include_directories(Catch INTERFACE ${CATCH_INCLUDE_DIR})
 add_executable(gigameshCore_tests ${CMAKE_CURRENT_SOURCE_DIR}/testsMain.cpp ${CMAKE_CURRENT_SOURCE_DIR}/mesh_tests.cpp)
 target_link_libraries(gigameshCore_tests PRIVATE Catch gigameshCore)
 
-add_test(NAME GigameshCoreTests COMMAND gigameshCore_tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../)
+add_test(NAME GigameshCoreTests COMMAND gigameshCore_tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/..)

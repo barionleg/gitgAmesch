@@ -16,7 +16,7 @@ using uint = unsigned int;
 //! Minimalistic constructur initalizing variables and pointers.
 MeshSeedExt::MeshSeedExt()
     : MESHSEEDEXTINITDEFAULTS {
-	cout << "[MeshSeedExt::" << __FUNCTION__ << "]." << endl;
+    LOG::debug() << "[MeshSeedExt::" << __FUNCTION__ << "].\n";
 }
 
 //! Destructor.
@@ -85,13 +85,11 @@ bool MeshSeedExt::importFeatureVectors(
 		// Comment line:
 		if( nextByte == '#' ) {
 			getline( fp, line );
-			//cout << "[MeshSeedExt::" << __FUNCTION__ << "] Comment: " << line << endl;
 			continue;
 		}
 		// Empty line:
 		if( ( nextByte == '\n' ) || ( nextByte == '\r' ) || ( nextByte == -1 ) ) {
 			getline( fp, line );
-			//cout << "[MeshSeedExt::" << __FUNCTION__ << "] Empty line." << endl;
 			continue;
 		}
 		// Optional vertex ID (1/2):
@@ -108,7 +106,6 @@ bool MeshSeedExt::importFeatureVectors(
 			nextByte = fp.peek();
 			valuesPerID++;
 		}
-		//cout << "[MeshSeedExt::" << __FUNCTION__ << "] Vertex " << vertID << ": " << valuesPerID << " values." << endl;
 		if( rMaxFeatVecLen < valuesPerID ) {
 			rMaxFeatVecLen = valuesPerID;
 		}
@@ -119,8 +116,8 @@ bool MeshSeedExt::importFeatureVectors(
 		// Fetch the rest of the line
 		getline( fp, line );
 	}
-	cout << "[MeshSeedExt::" << __FUNCTION__ << "] nextByte: '" << hex << nextByte << dec << "'" << endl;
-	cout << "[MeshSeedExt::" << __FUNCTION__ << "] " << lineNr << " lines parsed." << endl;
+	LOG::debug() << "[MeshSeedExt::" << __FUNCTION__ << "] nextByte: '" << hex << nextByte << dec << "'\n";
+	LOG::debug() << "[MeshSeedExt::" << __FUNCTION__ << "] " << lineNr << " lines parsed.\n";
 
 	// Allocate memory
 	rFeatureVecs.clear();
@@ -136,13 +133,13 @@ bool MeshSeedExt::importFeatureVectors(
 		// Comment line:
 		if( nextByte == '#' ) {
 			getline( fp, line );
-			cout << "[MeshSeedExt::" << __FUNCTION__ << "] Comment: " << line << endl;
+			LOG::debug() << "[MeshSeedExt::" << __FUNCTION__ << "] Comment: " << line << "\n";
 			continue;
 		}
 		// Empty line:
 		if( ( nextByte == '\n' ) || ( nextByte == '\r' ) || ( nextByte == -1 ) ) {
 			getline( fp, line );
-			cout << "[MeshSeedExt::" << __FUNCTION__ << "] Empty line." << endl;
+			LOG::debug() << "[MeshSeedExt::" << __FUNCTION__ << "] Empty line.\n";
 			continue;
 		}
 		// Optional vertex ID (1/2):
@@ -151,7 +148,7 @@ bool MeshSeedExt::importFeatureVectors(
 		}
 		// ... which should be within range
 		if( vertID >= rNrVertices ) {
-			cerr << "[MeshSeedExt::" << __FUNCTION__ << "] ERROR: Vertex ID larger than vertex count OR negative!" << endl;
+			LOG::warn() << "[MeshSeedExt::" << __FUNCTION__ << "] ERROR: Vertex ID larger than vertex count OR negative!\n";
 			getline( fp, line );
 			continue;
 		}
@@ -164,8 +161,8 @@ bool MeshSeedExt::importFeatureVectors(
 			try{
 				valueAsDouble = stod( valueAsStr );
 			} catch( const std::invalid_argument& ia ) {
-				cerr << "[MeshSeedExt::" << __FUNCTION__ << "] ERROR: Conversion to floating point failed for string '" << valueAsStr << "'!" << endl;
-				cerr << "[MeshSeedExt::" << __FUNCTION__ << "]        Invalid argument: " << ia.what() << endl;
+				LOG::error() << "[MeshSeedExt::" << __FUNCTION__ << "] ERROR: Conversion to floating point failed for string '" << valueAsStr << "'!\n";
+				LOG::error() << "[MeshSeedExt::" << __FUNCTION__ << "]        Invalid argument: " << ia.what() << "\n";
 			}
 			rFeatureVecs.at( vertID*rMaxFeatVecLen+featElementNr ) = valueAsDouble;
 			nextByte = fp.peek();

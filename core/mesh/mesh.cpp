@@ -35,7 +35,7 @@
 
 extern "C"
 {
-#include "triangle/triangle.h"
+    #include "triangle/triangle.h"
 }
 #include "triangle/triangleTriangleIntersection.h"
 
@@ -70,7 +70,7 @@ const auto NUM_THREADS = std::thread::hardware_concurrency() * 2;
 	void* estMultiFaceConnection( faceDataStruct* rFaceData ) {
 		int   threadID = rFaceData->mThreadID;
 		Mesh* myMesh   = rFaceData->mMesh;
-		std::cout << "[Thread " << threadID+1 << "] START one out of " << NUM_THREADS << " threads." << std::endl;
+		LOG::info() << "[Thread " << threadID+1 << "] START one out of " << NUM_THREADS << " threads.\n";
 
 		// Show only for one thread
 		ShowProgress myThreadProgress( "[Thread 1]" );
@@ -96,7 +96,7 @@ const auto NUM_THREADS = std::thread::hardware_concurrency() * 2;
 		}
 
 		rFaceData->mAreaProc = areaProc;
-		std::cout << "[Thread " << threadID+1 << "] Processed area: " << areaProc << "" << std::endl;
+		LOG::info() << "[Thread " << threadID+1 << "] Processed area: " << areaProc << "\n";
 		return nullptr;
 	}
 #endif
@@ -137,49 +137,50 @@ const auto NUM_THREADS = std::thread::hardware_concurrency() * 2;
 Mesh::Mesh()
     : MESHINITDEFAULTS {
 #ifdef THREADS
-    cout << "[Mesh::" << __FUNCTION__ << "] constructed Multi-THREAD-ing Version." << endl;
+    LOG::debug() << "[Mesh::" << __FUNCTION__ << "] constructed Multi-THREAD-ing Version.\n";
 #else
-    cout << "[Mesh::" << __FUNCTION__ << "] constructed." << endl;
+    LOG::debug() << "[Mesh::" << __FUNCTION__ << "] constructed.\n";
 #endif
 
 }
 
 Mesh::Mesh( const std::string& rFileName, bool& rReadSuccess )
         : MESHINITDEFAULTS {
+    showProgressStart( string( "Construct Mesh" ) );
 #ifdef THREADS
-	cout << "[Mesh::" << __FUNCTION__ << "] constructed from Faces Multi-THREAD-ing Version." << endl;
+    LOG::debug() << "[Mesh::" << __FUNCTION__ << "] constructed from Faces Multi-THREAD-ing Version.\n";
 #else
-	cout << "[Mesh::" << __FUNCTION__ << "] constructed from Faces - NOT THREAD SAFE." << endl;
+    LOG::debug() << "[Mesh::" << __FUNCTION__ << "] constructed from Faces - NOT THREAD SAFE.\n";
 #endif
 	std::vector<sVertexProperties> vertexProps;
 	std::vector<sFaceProperties> faceProps;
 	rReadSuccess = readFile( rFileName, vertexProps, faceProps );
 	establishStructure( vertexProps, faceProps );
+	showProgressStop( string( "Construct Mesh" ) );
 }
 
 //! Minimalistic constructur initalizing variables and pointers using a given face list.
 Mesh::Mesh( std::set<Face*>* someFaces )
     : MESHINITDEFAULTS {
+    showProgressStart( string( "Construct Mesh" ) );
 #ifdef THREADS
-    cout << "[Mesh::" << __FUNCTION__ << "] constructed from Faces Multi-THREAD-ing Version." << endl;
+    LOG::debug() << "[Mesh::" << __FUNCTION__ << "] constructed from Faces Multi-THREAD-ing Version.\n";
 #else
-    cout << "[Mesh::" << __FUNCTION__ << "] constructed from Faces - NOT THREAD SAFE." << endl;
+    LOG::debug() << "[Mesh::" << __FUNCTION__ << "] constructed from Faces - NOT THREAD SAFE.\n";
 #endif
 	//! Copies structure from faces:
 	//!---------------------------
 	//! 1. get vertex references
 	set<Vertex*> vertexTemp;
-	set<Face*>::iterator itFace;
-	for( itFace=someFaces->begin(); itFace != someFaces->end(); itFace++ ) {
+	for( auto itFace=someFaces->begin(); itFace != someFaces->end(); ++itFace ) {
 		vertexTemp.insert( (*itFace)->getVertA() );
 		vertexTemp.insert( (*itFace)->getVertB() );
 		vertexTemp.insert( (*itFace)->getVertC() );
 	}
 	//! 2. set temp vertex index
-	int tempVertIdx = 0;
-	set<Vertex*>::iterator itVertex;
-	for( itVertex=vertexTemp.begin(); itVertex != vertexTemp.end(); itVertex++ ) {
-		cout << "Ori " << (*itVertex)->getIndexOriginal() << " will map to " << tempVertIdx << endl;
+	size_t tempVertIdx = 0;
+	for( auto itVertex=vertexTemp.begin(); itVertex != vertexTemp.end(); ++itVertex ) {
+		LOG::debug() << "Ori " << (*itVertex)->getIndexOriginal() << " will map to " << tempVertIdx << "\n";
 		(*itVertex)->setIndex( tempVertIdx++ );
 	}
 	//! 3. allocate memory for vertices
@@ -187,7 +188,7 @@ Mesh::Mesh( std::set<Face*>* someFaces )
 	vertexProps.resize( tempVertIdx );
 	//! 4. copy vertex coordinates
 	tempVertIdx = 0;
-	for( itVertex=vertexTemp.begin(); itVertex != vertexTemp.end(); itVertex++ ) {
+	for( auto itVertex=vertexTemp.begin(); itVertex != vertexTemp.end(); ++itVertex ) {
 		(*itVertex)->copyVertexPropsTo( vertexProps[tempVertIdx] );
 		tempVertIdx++;
 	}
@@ -196,18 +197,20 @@ Mesh::Mesh( std::set<Face*>* someFaces )
 	faceProps.resize( someFaces->size() );
 	//! 6. fill face array
 	int tempFaceIdx = 0;
-	for( itFace=someFaces->begin(); itFace != someFaces->end(); itFace++ ) {
+	for( auto itFace=someFaces->begin(); itFace != someFaces->end(); ++itFace ) {
 		(*itFace)->copyFacePropsTo( faceProps[tempFaceIdx] );
 		tempFaceIdx++;
 	}
 	//! 7. establish structure
 	establishStructure( vertexProps, faceProps );
+
+	showProgressStop( string( "Construct Mesh" ) );
 }
 
 //! Destructor. Destroys all primitives referenced by lists.
 //! Does a lot of freeing memory in the following steps:
 Mesh::~Mesh() {
-	cout << "[Mesh::" << __FUNCTION__ << "] Destruct ..." << endl;
+	LOG::debug() << "[Mesh::" << __FUNCTION__ << "] Destruct ...\n";
 	showProgressStart( string( "Destruct Mesh" ) );
 	unsigned int primCtr = 0.0;
 	unsigned int primTotal = mFaces.size() + mVertices.size();
@@ -274,7 +277,7 @@ Mesh::~Mesh() {
 	}
 
 	showProgressStop( string( "Destruct Mesh" ) );
-	cout << "[Mesh::" << __FUNCTION__ << "] Done." << endl;
+	LOG::debug() << "[Mesh::" << __FUNCTION__ << "] Done.\n";
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -288,8 +291,6 @@ bool Mesh::setParamFloatMesh( MeshParams::eParamFlt rParam, double rValue ) {
 //! Call requested method/function.
 //! See MeshParams::eFunctionCall
 bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOptional  ) {
-	//cout << "[Mesh::" << __FUNCTION__ << "] rFunctionID "<< rFunctionID << endl;
-	//cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: rFunctionID "<< rFunctionID << " not yet implemented!" << endl;
 	bool retVal = false;
 	switch( rFunctionID ) {
 		case FILE_SAVE_AS:
@@ -390,7 +391,6 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			if( !showEnterText( refernceVector, "Reference vector" ) ) {
 				break;
 			}
-			cout << "foo" << endl;
 			retVal |= setVertFuncValCorrTo( &refernceVector );
 		    } break;
 		case FUNCVAL_FEATUREVECTOR_APPLY_PNORM:
@@ -552,7 +552,7 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 				retVal = applyTransformationToWholeMesh( valuesMatrix4x4 );
 				break;
 			}
-			std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Bad number of values given. Expecting one or three values, but "<< valuesScaleSkew.size() << " were given!" << std::endl;
+			LOG::error() << "[Mesh::" << __FUNCTION__ << "] ERROR: Bad number of values given. Expecting one or three values, but "<< valuesScaleSkew.size() << " were given!\n";
 			retVal = false;
 		    } break;
 		case APPLY_TRANSMAT_SELMVERT: {
@@ -718,7 +718,7 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			selectFaceSelfIntersecting();
 			break;
 		default:
-			cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Unknown rFunctionID "<< rFunctionID << " !" << endl;
+			LOG::error() << "[Mesh::" << __FUNCTION__ << "] ERROR: Unknown rFunctionID "<< rFunctionID << " !\n";
 			return false;
 	}
 
@@ -728,9 +728,9 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #define SHOW_MALLOC_STATS( nr ) { \
-	cout << "[Mesh::" << __FUNCTION__ << "] +++ MALLOC "<< (nr) << " ++++++++++++++++++++++++++++++++++++++" << endl; \
+	LOG::debug() << "[Mesh::" << __FUNCTION__ << "] +++ MALLOC "<< (nr) << " ++++++++++++++++++++++++++++++++++++++\n"; \
 	malloc_stats(); \
-	cout << "[Mesh::" << __FUNCTION__ << "] +++++++++++++++++++++++++++++++++++++++++++++++++++" << endl; \
+	LOG::debug() << "[Mesh::" << __FUNCTION__ << "] +++++++++++++++++++++++++++++++++++++++++++++++++++\n"; \
 }
 #undef SHOW_MALLOC_STATS // comment for dumping memory usage to stdout
 
@@ -977,10 +977,10 @@ void Mesh::establishStructure(
 		currFace = getFacePos( faceIdx );
 		areaTotal += currFace->getAreaNormal();
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] Total surface area: " << areaTotal << " mm² (unit assumed)." << endl;
-	cout << "[Mesh::" << __FUNCTION__ << "]                     " << getVertexNr()/areaTotal << " dots/mm² (unit assumed)." << endl;
-	cout << "[Mesh::" << __FUNCTION__ << "]                     " << 25.4*sqrt(getVertexNr()/areaTotal) << " DPI (unit assumed)." << endl;
-	cout << "[Mesh::" << __FUNCTION__ << "] SERIAL: Face normal estimation time:        " << (int) ( time( NULL ) - timeStampSerial ) << " seconds."  << endl;
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "] Total surface area: " << areaTotal << " mm² (unit assumed).\n";
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "]                     " << getVertexNr()/areaTotal << " dots/mm² (unit assumed).\n";
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "]                     " << 25.4*sqrt(getVertexNr()/areaTotal) << " DPI (unit assumed).\n";
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "] SERIAL: Face normal estimation time:        " << (int) ( time( NULL ) - timeStampSerial ) << " seconds.\n";
     #ifdef SHOW_MALLOC_STATS
 	    SHOW_MALLOC_STATS( 9 );
     #endif
@@ -990,7 +990,7 @@ void Mesh::establishStructure(
 		currFace = getFacePos( faceIdx );
 		currFace->reconnectToFaces();
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] SERIAL: Face neighbourhood estimation time: " << (int) ( time( NULL ) - timeStampSerial ) << " seconds."  << endl;
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "] SERIAL: Face neighbourhood estimation time: " << (int) ( time( NULL ) - timeStampSerial ) << " seconds.\n";
 #endif
 
 	int totalNeighbourCount = 0;
@@ -9428,13 +9428,13 @@ void Mesh::changedFaceFuncVal() {
 //! To be called, when a the function values of the vertices were changed,
 void Mesh::changedVertFuncVal() {
 	int timeStartSub = clock(); // for performance mesurement
-	cout << "[Mesh::" << __FUNCTION__ << "] Begin." << endl;
+	LOG::debug() << "[Mesh::" << __FUNCTION__ << "] Begin.\n";
 	for( auto const& currVertex: mVertices ) {
 		// Set flags by calling the according method.
 		currVertex->isFuncValLocalMinimum();
 		currVertex->isFuncValLocalMaximum();
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] Time: " << static_cast<float>( clock() - timeStartSub ) / CLOCKS_PER_SEC << " seconds."  << endl;
+	LOG::debug() << "[Mesh::" << __FUNCTION__ << "] Time: " << static_cast<float>( clock() - timeStartSub ) / CLOCKS_PER_SEC << " seconds.\n";
 }
 
 //! To be called, when the feature vectors were manipulated.
@@ -9442,12 +9442,12 @@ void Mesh::changedVertFeatureVectors() {
 	//! \todo compute for feature vectors stored within the vertices.
 	//! \bug mFeatureVecVertices seems to hold bad values.
 	if( mFeatureVecVertices.size() == 0 ) {
-		cout << "[Mesh::" << __FUNCTION__ << "] ERROR: No feature vectors found!" << endl;
+		LOG::warn() << "[Mesh::" << __FUNCTION__ << "] ERROR: No feature vectors found!\n";
 		return;
 	}
-	int timeStartSub = clock(); // for performance mesurement
-	cout << "[Mesh::" << __FUNCTION__ << "] Begin." << endl;
-	cout << "[Mesh::" << __FUNCTION__ << "] mFeatureVecVertices.size: " << mFeatureVecVertices.size() << endl;
+	auto timeStartSub = clock(); // for performance mesurement
+	LOG::debug() << "[Mesh::" << __FUNCTION__ << "] Begin.\n";
+	LOG::debug() << "[Mesh::" << __FUNCTION__ << "] mFeatureVecVertices.size: " << mFeatureVecVertices.size() << "\n";
 	mVerticesFeatVecMean.clear();
 	mVerticesFeatVecStd.clear();
 	mVerticesFeatVecMean.resize(mFeatureVecVerticesLen,0.0);
@@ -9470,8 +9470,8 @@ void Mesh::changedVertFeatureVectors() {
 	// Compute and show mean values:
 	for( uint64_t j=0; j<mFeatureVecVerticesLen; j++ ) {
 		mVerticesFeatVecMean[j] /= static_cast<double>(verticesFeatVecNormal[j]);
-		cout << "[Mesh::" << __FUNCTION__ << "] Feature vector mean [" << j << "]: " << mVerticesFeatVecMean[j];
-		cout << " using " << verticesFeatVecNormal[j] << " values." << endl;
+		LOG::debug() << "[Mesh::" << __FUNCTION__ << "] Feature vector mean [" << j << "]: " << mVerticesFeatVecMean[j];
+		LOG::debug() << " using " << verticesFeatVecNormal[j] << " values.\n";
 	}
 	// Accumulate values for the standard deviations:
 	for( uint64_t i=0; i<getVertexNr(); i++ ) {
@@ -9486,9 +9486,9 @@ void Mesh::changedVertFeatureVectors() {
 	for( uint64_t j=0; j<mFeatureVecVerticesLen; j++ ) {
 		mVerticesFeatVecStd[j] /= static_cast<double>(verticesFeatVecNormal[j]);
 		mVerticesFeatVecStd[j] = sqrt( mVerticesFeatVecStd[j] );
-		cout << "[Mesh::" << __FUNCTION__ << "] Feature vector standard deviation [" << j << "]: " << mVerticesFeatVecStd[j] << endl;
+		LOG::debug() << "[Mesh::" << __FUNCTION__ << "] Feature vector standard deviation [" << j << "]: " << mVerticesFeatVecStd[j] << "\n";
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] Time: " << static_cast<float>( clock() - timeStartSub ) / CLOCKS_PER_SEC << " seconds."  << endl;
+	LOG::debug() << "[Mesh::" << __FUNCTION__ << "] Time: " << static_cast<float>( clock() - timeStartSub ) / CLOCKS_PER_SEC << " seconds.\n";
 }
 
 // Information about function values. -----------------------------------------------
@@ -16450,16 +16450,15 @@ bool Mesh::getSelectedPositionCircleCenters( vector<Vertex*>* rCenterVertices ) 
 		posABC.push_back( get<0>( currPosTuple ) );
 		if( posABC.size() == 3  ) {
 			// Compute circle
-			cout << "[Mesh::" << __FUNCTION__ << "] Compute circle using: " << endl;
-			cout << "[Mesh::" << __FUNCTION__ << "]      " << posABC.at(0) << endl;
-			cout << "[Mesh::" << __FUNCTION__ << "]      " << posABC.at(1) << endl;
-			cout << "[Mesh::" << __FUNCTION__ << "]      " << posABC.at(2) << endl;
+			LOG::info() << "[Mesh::" << __FUNCTION__ << "] Compute circle using:\n";
+			LOG::info() << "[Mesh::" << __FUNCTION__ << "]      " << posABC.at(0) << "\n";
+			LOG::info() << "[Mesh::" << __FUNCTION__ << "]      " << posABC.at(1) << "\n";
+			LOG::info() << "[Mesh::" << __FUNCTION__ << "]      " << posABC.at(2) << "\n";
 			// Plane of the circle:
 			Plane circlePlane( posABC.at(0), posABC.at(1), posABC.at(2) );
 			Vector3D normalPlane = circlePlane.getNormal( true );
 			Vector3D centerOfGravity = circlePlane.getCenterOfGravity();
-			//cout << "[Mesh::" << __FUNCTION__ << "] Plane Normal " << normalPlane << endl;
-			//cout << "[Mesh::" << __FUNCTION__ << "] Plane COG    " << centerOfGravity << endl;
+
 			//! \todo CHECK: circlePlane.isValid()
 			// Transformation matrices for shift and rotat to XY-plane:
 			Matrix4D baseChange;
@@ -16469,21 +16468,16 @@ bool Mesh::getSelectedPositionCircleCenters( vector<Vertex*>* rCenterVertices ) 
 			Vector3D posA2 = posABC.at(0) * baseChange;
 			Vector3D posB2 = posABC.at(1) * baseChange;
 			Vector3D posC2 = posABC.at(2) * baseChange;
-			cout << "[Mesh::" << __FUNCTION__ << "] Compute circle in 2D using: " << endl;
-			cout << "[Mesh::" << __FUNCTION__ << "]      " << posA2 << endl;
-			cout << "[Mesh::" << __FUNCTION__ << "]      " << posB2 << endl;
-			cout << "[Mesh::" << __FUNCTION__ << "]      " << posC2 << endl;
+			LOG::info() << "[Mesh::" << __FUNCTION__ << "] Compute circle in 2D using: " << "\n";
+			LOG::info() << "[Mesh::" << __FUNCTION__ << "]      " << posA2 << "\n";
+			LOG::info() << "[Mesh::" << __FUNCTION__ << "]      " << posB2 << "\n";
+			LOG::info() << "[Mesh::" << __FUNCTION__ << "]      " << posC2 << "\n";
 
-			// Invert matrix
-			//cout << "[Mesh::" << __FUNCTION__ << "] Transmat: " << originTrans << endl;
-			//originTrans.dumpInfo( true, "originTrans" );
 			baseChange.invert();
-			//cout << "[Mesh::" << __FUNCTION__ << "] Inverted: " << originTrans << endl;
-			//originTrans.dumpInfo( true, "originTransInverted" );
 
-			double d = 2.0*( posA2.getX()*( posB2.getY()-posC2.getY() ) + \
-			                 posB2.getX()*( posC2.getY()-posA2.getY() ) + \
-			                 posC2.getX()*( posA2.getY()-posB2.getY() )   \
+			double d = 2.0*( posA2.getX()*( posB2.getY()-posC2.getY() ) +
+			                 posB2.getX()*( posC2.getY()-posA2.getY() ) +
+			                 posC2.getX()*( posA2.getY()-posB2.getY() )
 			               );
 			double a = pow( posA2.getX(), 2 ) + pow( posA2.getY(), 2 );
 			double b = pow( posB2.getX(), 2 ) + pow( posB2.getY(), 2 );
@@ -16492,21 +16486,15 @@ bool Mesh::getSelectedPositionCircleCenters( vector<Vertex*>* rCenterVertices ) 
 			double yu = ( a*( posC2.getX()-posB2.getX() ) + b*( posA2.getX()-posC2.getX() ) + c*( posB2.getX()-posA2.getX() ) )/d;
 			Vector3D circleCenter( xu, yu, 0.0, 1.0 );
 
-			// Radius in 2D:
-			//double rA2 = ( posA2 - circleCenter ).getLength3();
-			//double rB2 = ( posB2 - circleCenter ).getLength3();
-			//double rC2 = ( posC2 - circleCenter ).getLength3();
-			//cout << "[Mesh::" << __FUNCTION__ << "] Radius: " << rA2 << " "  << rB2 << " "  << rC2 << " " << endl;
-
-			cout << "[Mesh::" << __FUNCTION__ << "] Center in 2D: " << circleCenter << endl;
+			LOG::debug() << "[Mesh::" << __FUNCTION__ << "] Center in 2D: " << circleCenter << "\n";
 			circleCenter *= baseChange;
-			cout << "[Mesh::" << __FUNCTION__ << "] Center in 3D: " << circleCenter << endl;
+			LOG::debug() << "[Mesh::" << __FUNCTION__ << "] Center in 3D: " << circleCenter << "\n";
 
 			// Radius in 3D:
 			double rA3 = ( posABC.at(0) - circleCenter ).getLength3();
 			double rB3 = ( posABC.at(1) - circleCenter ).getLength3();
 			double rC3 = ( posABC.at(2) - circleCenter ).getLength3();
-			cout << "[Mesh::" << __FUNCTION__ << "] Radius: " << rA3 << " "  << rB3 << " "  << rC3 << " " << endl;
+			LOG::debug() << "[Mesh::" << __FUNCTION__ << "] Radius: " << rA3 << " "  << rB3 << " "  << rC3 << "\n";
 
 			// Add new center
 			Vertex* centerVertex = new Vertex( circleCenter );
@@ -16521,10 +16509,10 @@ bool Mesh::getSelectedPositionCircleCenters( vector<Vertex*>* rCenterVertices ) 
 			if( get<2>( currPosTuple ) ) {
 				posABC.clear();
 			}
-			cout << "[Mesh::" << __FUNCTION__ << "] ................................." << endl;
+			LOG::info() << "[Mesh::" << __FUNCTION__ << "] .................................\n";
 		}
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] DONE." << endl;
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "] DONE.\n";
 	return true;
 }
 
