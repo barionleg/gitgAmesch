@@ -1,5 +1,6 @@
 stages:
   - build
+  - test
 
 windows:
   # Use created image for mxe
@@ -108,4 +109,29 @@ manjaro arch:
       - build/cli/gigamesh-info
       - build/cli/gigamesh-borders
     expire_in: 4 hours
-  
+ 
+manjaro arch test:
+  # Use latest manjaro release
+  image: archlinux/base
+  stage: test
+  # install the necessary build tools when needed
+  before_script: 
+   - pacman -Sy
+   - pacman -S gcc glibc cmake boost unzip qtcreator make cairo git --noconfirm
+  script:
+    - export QT_SELECT=qt5
+
+    # build gigamesh
+    - mkdir build
+    - cd build
+    - cmake .. -DCMAKE_BUILD_TYPE=Release -G"Unix Makefiles"
+    - make -j
+    - cd ..
+    # run test
+    - build/tests/gigameshCore_tests -o report.xml -r junit
+
+  artifacts:
+    reports:
+      junit: report.xml
+    
+    expire_in: 4 hours
