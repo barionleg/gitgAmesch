@@ -18,7 +18,7 @@ TEST_CASE("Mesh Reader Tests", "[meshio]")
 		ObjReader reader;
 		reader.readFile(gTestFilesPath + "cube.obj", vertexProperties, faceProperties, meshSeed);
 
-		CHECK(vertexProperties.size() == 7);
+		CHECK(vertexProperties.size() == 8);
 		CHECK(faceProperties.  size() == 12);
 	}
 
