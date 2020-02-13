@@ -120,11 +120,11 @@ manjaro arch test:
   dependencies:
     - manjaro arch
   # install the necessary build tools when needed
-  before_script: 
-   - pacman -Sy
-   - pacman -S gcc glibc cmake boost unzip qtcreator make cairo git --noconfirm
+#  before_script: 
+#   - pacman -Sy
+#   - pacman -S gcc glibc cmake boost unzip qtcreator make cairo git --noconfirm
   script:
-    - export QT_SELECT=qt5
+#    - export QT_SELECT=qt5
     - build/tests/gigameshCore_tests -o report.xml -r junit
 
   artifacts:
