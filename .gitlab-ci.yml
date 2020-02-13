@@ -97,6 +97,8 @@ manjaro arch:
     - strip cli/gigamesh-clean
     - strip cli/gigamesh-info
     - strip cli/gigamesh-borders
+    - cd ..
+    - build/tests/gigameshCore_tests -o report.xml -r junit
 
   artifacts:
     name: "gigamesh_arch_manjaro"
@@ -107,5 +109,7 @@ manjaro arch:
       - build/cli/gigamesh-clean
       - build/cli/gigamesh-info
       - build/cli/gigamesh-borders
+    reports:
+      junit: report.xml
     expire_in: 4 hours
   
