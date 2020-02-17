@@ -941,11 +941,11 @@ void Mesh::establishStructure(
 
 #ifdef THREADS
 	time_t timeStampParallel = time( nullptr );
-	std::thread threads[NUM_THREADS];
+	std::vector<std::thread> threads(NUM_THREADS);
 	/* Initialize and set thread detached attribute */
 	//pthread_mutex_init( &mutexVertexPtr, NULL );
 
-	faceDataStruct setFaceData[NUM_THREADS];
+	std::vector<faceDataStruct> setFaceData(NUM_THREADS);
 	for( long t=0; t<NUM_THREADS; t++ ) {
 		//cout << "[Mesh::" << __FUNCTION__ << "] Preparing data for thread " << t << endl;
 		setFaceData[t].mThreadID               = t;

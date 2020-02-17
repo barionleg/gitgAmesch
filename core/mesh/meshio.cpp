@@ -417,8 +417,13 @@ string MeshIO::getBaseName() {
 //! Returns the path of the file.
 string MeshIO::getFileLocation() {
 	std::string fileLocation = std::filesystem::path( mFileNameFull ).parent_path().string();
+#ifndef WIN32
 	if(fileLocation.back() != '/')
 		fileLocation.push_back('/');
+#else
+	if(fileLocation.back() != '\\')
+		fileLocation.push_back('\\');
+#endif
 
 	return fileLocation;
 }

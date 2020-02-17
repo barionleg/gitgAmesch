@@ -1,5 +1,8 @@
 #include <cassert>
-#include <math.h>
+#ifdef _MSC_VER
+#define _USE_MATH_DEFINES
+#endif
+#include <cmath>
 
 #include "graph.h"
 #include "graph_geometry.h"
