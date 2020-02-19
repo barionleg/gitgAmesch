@@ -28,9 +28,37 @@ TEST_CASE("Mesh Reader Tests", "[meshio]")
 		reader.readFile(gTestFilesPath + "flat.obj", vertexProperties, faceProperties, meshSeed);
 
 		CHECK(vertexProperties.size() == 25);
-		CHECK(faceProperties.  size() == 32);
+		CHECK(faceProperties.  size() == 16);
+
+		for(auto& face : faceProperties)
+		{
+			REQUIRE(face.vertexIndices.size() == 4);
+		}
+	}
+
+	SECTION("ObjReader - reading ngon obj")
+	{
+		ObjReader reader;
+		reader.readFile(gTestFilesPath + "ngon_concave.obj", vertexProperties, faceProperties, meshSeed);
+
+		CHECK(vertexProperties.size() == 5);
+		REQUIRE(faceProperties.size() == 1);
+		CHECK(faceProperties[0].vertexIndices.size() == 5);
+		CHECK(faceProperties[0].textureCoordinates.size() == 0);
+	}
+
+	SECTION("PlyReader - reading ngon ascii ply")
+	{
+		PlyReader reader;
+		reader.readFile(gTestFilesPath + "ngon_concave.ply", vertexProperties, faceProperties, meshSeed);
+
+		CHECK(vertexProperties.size() == 5);
+		REQUIRE(faceProperties.size() == 1);
+		CHECK(faceProperties[0].vertexIndices.size() == 5);
+		CHECK(faceProperties[0].textureCoordinates.size() == 0);
 	}
 }
+
 
 //unit test => no need to check if the mesh was loaded correctly, only that it was loaded
 //==> correct functionality is checked by the unit test

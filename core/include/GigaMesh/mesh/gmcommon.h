@@ -8,6 +8,7 @@
 #include <string.h>  // memcpy, strncmp
 #include <float.h>   // FLT_MAX, FLT_MIN, FLT_EPS, etc.
 #include <array>
+#include <vector>
 
 // generic defines
 #define _INFINITE_DBL_      std::numeric_limits<double>::infinity()
@@ -56,11 +57,8 @@ struct sVertexProperties {
 };
 
 struct sFaceProperties {
-	uint64_t mVertIdxA = 0;
-	uint64_t mVertIdxB = 0;
-	uint64_t mVertIdxC = 0;
-
-	std::array<float,6> textureCoordinates = {0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F};
+	std::vector<uint64_t> vertexIndices;
+	std::vector<float>    textureCoordinates;
 	unsigned char textureId = 0;
 };
 

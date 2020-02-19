@@ -147,6 +147,7 @@ bool ObjWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 		filestr << "\n";
 	}
 
+	//!TODO: write texture coordinates as vec2 into set, to avoid duplicates
 	if(mExportTextureCoordinates)
 	{
 		filestr << "#===============================================================================" << '\n';
@@ -155,7 +156,7 @@ bool ObjWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 
 		for(const auto& faceProp : rFaceProps)
 		{
-			for(int i = 0; i<3; ++i)
+			for(size_t i = 0; i<faceProp.textureCoordinates.size(); i+=2)
 			{
 				filestr << "vt ";
 				filestr << faceProp.textureCoordinates[i * 2    ] << " ";
@@ -177,21 +178,23 @@ bool ObjWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 		unsigned int texIndex = 1;
 		for(const auto & rFaceProp : rFaceProps) {
 			// OBJs start with ONE!
-			filestr << "f ";
+			filestr << "f";
 
 			if(mExportTextureCoordinates)
 			{
-				filestr << rFaceProp.mVertIdxA + 1 << "/" << texIndex++ << " ";
-				filestr << rFaceProp.mVertIdxB + 1 << "/" << texIndex++ << " ";
-				filestr << rFaceProp.mVertIdxC + 1 << "/" << texIndex++ << "\n";
+				for(auto vertIndex : rFaceProp.vertexIndices)
+				{
+					filestr << " " <<  vertIndex + 1 << "/" << texIndex++;
+				}
 			}
-
 			else
 			{
-				filestr << rFaceProp.mVertIdxA+1 << " ";
-				filestr << rFaceProp.mVertIdxB+1 << " ";
-				filestr << rFaceProp.mVertIdxC+1 << "\n";
+				for(auto vertIndex : rFaceProp.vertexIndices)
+				{
+					filestr << " " <<  vertIndex + 1;
+				}
 			}
+			filestr << "\n";
 		}
 	}
 
@@ -215,17 +218,19 @@ bool ObjWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 
 				if(mExportTextureCoordinates)
 				{
-					filestr << rFaceProp->mVertIdxA + 1 << "/" << texIndex++ << " ";
-					filestr << rFaceProp->mVertIdxB + 1 << "/" << texIndex++ << " ";
-					filestr << rFaceProp->mVertIdxC + 1 << "/" << texIndex++ << "\n";
+					for(auto vertIndex : rFaceProp->vertexIndices)
+					{
+						filestr << " " <<  vertIndex + 1 << "/" << texIndex++;
+					}
 				}
-
 				else
 				{
-					filestr << rFaceProp->mVertIdxA+1 << " ";
-					filestr << rFaceProp->mVertIdxB+1 << " ";
-					filestr << rFaceProp->mVertIdxC+1 << "\n";
+					for(auto vertIndex : rFaceProp->vertexIndices)
+					{
+						filestr << " " <<  vertIndex + 1;
+					}
 				}
+				filestr << "\n";
 			}
 		}
 	}

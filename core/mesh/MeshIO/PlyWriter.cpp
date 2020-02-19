@@ -248,14 +248,16 @@ bool PlyWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 		// --- Faces ----------------------------------------------------------------
 		for(const auto & rFaceProp : rFaceProps) {
 			// PLYs start with ZERO! So no +1 needed (in contrast to OBJ)
-			filestr << "3 ";
-			filestr << rFaceProp.mVertIdxA << " ";
-			filestr << rFaceProp.mVertIdxB << " ";
-			filestr << rFaceProp.mVertIdxC;
+			filestr << rFaceProp.vertexIndices.size();
+
+			for(auto index : rFaceProp.vertexIndices)
+			{
+				filestr << " " << index;
+			}
 
 			if(mExportTextureCoordinates)
 			{
-				filestr << " 6";
+				filestr << " " << rFaceProp.textureCoordinates.size();
 				for(auto texCoord : rFaceProp.textureCoordinates)
 				{
 					filestr << " " << texCoord;
@@ -344,20 +346,20 @@ bool PlyWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 			// --- Faces ----------------------------------------------------------------
 			{
 				high_resolution_clock::time_point tStartFaces = high_resolution_clock::now();
-				char numberOfVerticesPerFace = 3;
 				for(const auto & rFaceProp : rFaceProps) {
+					const char numberOfVerticesPerFace = static_cast<char>(rFaceProp.vertexIndices.size());
 					// PLYs start with ZERO!
 					filestr.write( &numberOfVerticesPerFace, PLY_UCHAR ); // uchar have 1 byte in a binary PLY
-					uint32_t someIdx = rFaceProp.mVertIdxA;
-					filestr.write( reinterpret_cast<char*>(&someIdx), PLY_INT32 ); // floats have 4 bytes in a binary PLY
-					someIdx = rFaceProp.mVertIdxB;
-					filestr.write( reinterpret_cast<char*>(&someIdx), PLY_INT32 ); // floats have 4 bytes in a binary PLY
-					someIdx = rFaceProp.mVertIdxC;
-					filestr.write( reinterpret_cast<char*>(&someIdx), PLY_INT32 ); // floats have 4 bytes in a binary PLY
+
+					for(auto index : rFaceProp.vertexIndices)
+					{
+						uint32_t someIdx = static_cast<uint32_t>(index);
+						filestr.write( reinterpret_cast<char*>(&someIdx), PLY_INT32 ); // floats have 4 bytes in a binary PLY
+					}
 
 					if(mExportTextureCoordinates)
 					{
-						char numberOfTexcoords = 6;
+						const char numberOfTexcoords = static_cast<char>(rFaceProp.textureCoordinates.size());
 						filestr.write(&numberOfTexcoords, PLY_UCHAR);
 
 						for(auto texCoord : rFaceProp.textureCoordinates)
