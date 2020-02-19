@@ -265,7 +265,7 @@ bool parseBinary(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, st
                  bool hasVertexTexCoords,
                  const std::string& rFilename, bool reverseByteOrder, MeshSeedExt& rMeshSeed)
 {
-	//---------------------------------- PARSE BINARY FILES----------------------------------------------------------------
+
 	// ReOpen file, when binary!
 	filestr.close();
 	filestr.open( rFilename.c_str(), std::fstream::in | std::ios_base::binary );
@@ -946,7 +946,6 @@ bool PlyReader::readFile(const std::string& rFilename,
 		getModelMetaDataRef().setHasTextureCoordinates(true);
 		vertexTextureCoordinates.resize(rVertexProps.size() * 2);
 	}
-	//---------------------------------- PARSE ASCII FILES----------------------------------------------------------------
 
 	bool parseSuccess = false;
 	if( readASCII ) {
