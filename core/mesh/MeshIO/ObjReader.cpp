@@ -83,25 +83,27 @@ bool parseFaceProperty(const std::vector<std::string>& tokens, size_t faceIdx, s
 		return false;
 
 	rFaceProps[faceIdx].vertexIndices.reserve(vertIndices.size());
-	rFaceProps[faceIdx].textureCoordinates.reserve(texCoordIndices.size() * 2);
-
 	std::copy(vertIndices.begin(), vertIndices.end(), std::back_inserter(rFaceProps[faceIdx].vertexIndices));
 
-	for(auto texIndex : texCoordIndices)
+	if(!textureCoordinates.empty())
 	{
-		float uvX = 0.0F;
-		float uvY = 0.0F;
+		rFaceProps[faceIdx].textureCoordinates.reserve(texCoordIndices.size() * 2);
 
-		if(texIndex >= 0)
+		for(auto texIndex : texCoordIndices)
 		{
-			uvX = textureCoordinates[texIndex * 2    ];
-			uvY = textureCoordinates[texIndex * 2 + 1];
+			float uvX = 0.0F;
+			float uvY = 0.0F;
+
+			if(texIndex >= 0)
+			{
+				uvX = textureCoordinates[texIndex * 2    ];
+				uvY = textureCoordinates[texIndex * 2 + 1];
+			}
+
+			rFaceProps[faceIdx].textureCoordinates.push_back(uvX);
+			rFaceProps[faceIdx].textureCoordinates.push_back(uvY);
 		}
-
-		rFaceProps[faceIdx].textureCoordinates.push_back(uvX);
-		rFaceProps[faceIdx].textureCoordinates.push_back(uvY);
 	}
-
 	return true;
 }
 
