@@ -3,6 +3,7 @@
 #include "../core/mesh/MeshIO/PlyReader.h"
 #include "../core/mesh/MeshIO/TxtWriter.h"
 #include <GigaMesh/mesh/meshio.h>
+#include <GigaMesh/mesh/vector3d.h>
 
 const std::string gTestFilesPath("testdata/");
 
@@ -84,5 +85,27 @@ TEST_CASE("MeshIO integration test", "[meshio]")
 		auto fullName = meshIO.getFullName();
 
 		REQUIRE(fullName == filePath + baseName + "." + extension);
+	}
+}
+
+TEST_CASE("Mesh Triangulation Test", "[meshio]")
+{
+	std::vector<Vector3D> vertices;
+	vertices.reserve(5);
+
+	vertices.emplace_back(Vector3D(0.0, 0.0, 0.0));
+	vertices.emplace_back(Vector3D(0.0, 2.0, 0.0));
+	vertices.emplace_back(Vector3D(1.0, 1.0, 0.0));
+	vertices.emplace_back(Vector3D(2.0, 2.0, 0.0));
+	vertices.emplace_back(Vector3D(2.0, 0.0, 0.0));
+
+	SECTION("Triangulate vector of Vector3D")
+	{
+		const size_t numTriangleIndices = (vertices.size() - 2) * 3;
+
+
+		std::vector<size_t> indices;
+
+		REQUIRE(indices.size() == numTriangleIndices);
 	}
 }

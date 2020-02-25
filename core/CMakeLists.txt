@@ -45,6 +45,7 @@ set(SOURCES_CORE mesh/geodentry.cpp
 	logging/Logging.cpp
 	logging/Logger.cpp
 	normalSphere/IcoSphereTree.cpp
+	mesh/util/triangulation.cpp
 	)
 
 set(HEADERS_CORE
@@ -62,6 +63,7 @@ set(HEADERS_CORE
 	mesh/MeshIO/MtlParser.h
 	mesh/triangle/triangle.h
 	mesh/triangle/triangleTriangleIntersection.h
+	mesh/util/triangulation.h
 	)
 
 set(PUBLIC_HEADERS_CORE ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/printbuildinfo.h

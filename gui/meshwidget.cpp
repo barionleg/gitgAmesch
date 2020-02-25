@@ -6752,11 +6752,14 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 	    ( mMeshVisual->getConeAxisDefined() ) &&
 	    ( planeShown))
 	{
-		double pixelWidth;
-		double pixelHeight;
-		getViewPortPixelWorldSize( pixelWidth, pixelHeight );
-
-		double dLen = std::abs(dx) >= std::abs(dy) ? dx * pixelWidth : dy * pixelHeight;
+		const double dLen = [&](){
+			double pixelWidth;
+			double pixelHeight;
+			getViewPortPixelWorldSize( pixelWidth, pixelHeight );
+			return std::abs(dx) >= std::abs(dy) ?
+			            static_cast<double>(dx) * pixelWidth :
+			            static_cast<double>(dy) * pixelHeight;
+		}();
 
 		Vector3D axisTop;
 		Vector3D axisBottom;
@@ -6764,12 +6767,11 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 
 		Vector3D transVec = (axisTop - axisBottom);
 		transVec.normalize3();
-
 		transVec *= dLen;
 
 		std::vector<double> vTranslate = {transVec.getX(), transVec.getY(), transVec.getZ()};
 
-		Matrix4D transMat(Matrix4D::INIT_TRANSLATE, &vTranslate);
+		const Matrix4D transMat(Matrix4D::INIT_TRANSLATE, &vTranslate);
 
 		emit sApplyTransfromToPlane( transMat );
 
@@ -6785,11 +6787,14 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 	    ( planeShown) &&
 	    ( mMeshVisual->getPlaneDefinition() == Plane::AXIS_POINTS_AND_POSITION))
 	{
-		double pixelWidth;
-		double pixelHeight;
-		getViewPortPixelWorldSize( pixelWidth, pixelHeight );
-
-		double dLen = std::abs(dx) >= std::abs(dy) ? dx * pixelWidth : dy * pixelHeight;
+		const double dLen = [&](){
+			double pixelWidth;
+			double pixelHeight;
+			getViewPortPixelWorldSize( pixelWidth, pixelHeight );
+			return std::abs(dx) >= std::abs(dy) ?
+			            static_cast<double>(dx) * pixelWidth :
+			            static_cast<double>(dy) * pixelHeight;
+		}();
 
 		Vector3D axisTop;
 		Vector3D axisBottom;
@@ -6802,9 +6807,9 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 		mMeshVisual->getPlanePositions(planePositions.data());
 		Vector3D planeZPoint(&planePositions[6], 1.0);
 
-		Vector3D rotPoint = planeZPoint.projectOntoLine(axisTop, axisBottom);
+		const Vector3D rotPoint = planeZPoint.projectOntoLine(axisTop, axisBottom);
 
-		Matrix4D rotMat(rotPoint,rotAxis, dLen);
+		const Matrix4D rotMat(rotPoint,rotAxis, dLen);
 
 		planeZPoint = rotMat * planeZPoint;
 
