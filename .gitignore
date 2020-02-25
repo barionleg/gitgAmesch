@@ -118,3 +118,8 @@ latex_report_template/*.pdf
 # gource logs, videos and binary of the converter
 /gource_log_conv/gource_log_conv
 /gource
+
+#visual studio related
+.vs/
+out/
+CMakeSettings.json
