@@ -71,46 +71,46 @@ echo "Removing all PLY files!"
 find . -name "*.ply" -exec rm -rf {} \;
 
 # Make libpsalm
-cd external/libpsalmBoostless
-mkdir build
-cd build
-cmake ..
-wait
-cmake --build . --config Release
-cp libpsalm.a ..
-cd ..
-rm -rf build
-cd ..
+#cd external/libpsalmBoostless
+#mkdir build
+#cd build
+#cmake ..
+#wait
+#cmake --build . --config Release
+#cp libpsalm.a ..
+#cd ..
+#rm -rf build
+#cd ..
 # END make libpsalm
 
 # make spherical intersection
-cd spherical_intersection
-mkdir build
-cd build
-cmake ..
-cmake --build . --config Release
-cp libspherical_intersection.a ..
-cd ..
-rm -rf build
-cd ..
+#cd spherical_intersection
+#mkdir build
+#cd build
+#cmake ..
+#cmake --build . --config Release
+#cp libspherical_intersection.a ..
+#cd ..
+#rm -rf build
+#cd ..
 # END make spherical intersection
 
 # Make ALGLib
-bash make_alglib.sh
-wait
-cd .. 
+#bash make_alglib.sh
+#wait
+#cd .. 
 #END make ALGLib
 
 # make gigamesh CLI (command line interface)
 # gigamesh-featurevectors, gigamesh-clean, gigamesh-tolegacy and gigamesh-info
-mkdir meshBuild
-cd meshBuild
-cmake ..
-cmake --build . --config Release
+#mkdir meshBuild
+#cd meshBuild
+#cmake ..
+#cmake --build . --config Release
 #export CC=gcc-8 CXX=g++-8 LINK=g++-8 if neccessary
 #make -j$(nproc) CC=gcc-8 CXX=g++-8 LINK=g++-8 package-files
-wait
-cd ..
+#wait
+#cd ..
 # end make gigamesh CLI (command line interface)
 
 #

@@ -11,7 +11,7 @@ export QT_SELECT := qt5
 %:
 	# Adding the required helpers
 	# --parallel for compiling multicore
-	dh $@ --parallel --buildsystem=qmake
+	dh $@ --parallel --buildsystem=cmake
 
 override_dh_auto_build:
 	make -j CC=gcc-8 CXX=g++-8 LINK=g++-8
