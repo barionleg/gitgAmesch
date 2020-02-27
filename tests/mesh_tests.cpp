@@ -128,16 +128,19 @@ SCENARIO("Loading a valid mesh", "[mesh]")
 	}
 }
 
-SCENARIO("Testing translation of selected vertices")
+SCENARIO("Testing translation of selected vertices", "[mesh]")
 {
 	GIVEN("A simple triangle mesh")
 	{
 		bool success = false;
 		MockMesh testMesh("testdata/singletriangle.obj", success);
-		REQUIRE(success == true);  //REQUIRE => abort if fails
+		REQUIRE(success == true);
+		REQUIRE(testMesh.getVertexNr() == 3);
 		WHEN("Translating a selected vertex")
 		{
-			auto vertex = *testMesh.getVertexPos(0);
+			auto selVertex = *testMesh.getVertexPos(0);
+			auto vert2 = *testMesh.getVertexPos(1);
+			auto vert3 = *testMesh.getVertexPos(2);
 			testMesh.selectVertsByIdx(std::vector<long>{0});
 
 			std::set<Vertex*> selectedVertices;
@@ -152,9 +155,19 @@ SCENARIO("Testing translation of selected vertices")
 
 				auto transFormedVertex = testMesh.getVertexPos(0);
 
-				CHECK(vertex.getX() + 1.0 == Approx(transFormedVertex->getX()));
-				CHECK(vertex.getY()       == Approx(transFormedVertex->getY()));
-				CHECK(vertex.getZ()       == Approx(transFormedVertex->getZ()));
+				//selected vertex get transformed by 1 unit along x
+				CHECK(selVertex.getX() + 1.0 == Approx(transFormedVertex->getX()));
+				CHECK(selVertex.getY()       == Approx(transFormedVertex->getY()));
+				CHECK(selVertex.getZ()       == Approx(transFormedVertex->getZ()));
+
+				//other vertices are untouched
+				CHECK(vert2.getX() == Approx(testMesh.getVertexPos(1)->getX()));
+				CHECK(vert2.getY() == Approx(testMesh.getVertexPos(1)->getY()));
+				CHECK(vert2.getZ() == Approx(testMesh.getVertexPos(1)->getZ()));
+
+				CHECK(vert3.getX() == Approx(testMesh.getVertexPos(2)->getX()));
+				CHECK(vert3.getY() == Approx(testMesh.getVertexPos(2)->getY()));
+				CHECK(vert3.getZ() == Approx(testMesh.getVertexPos(2)->getZ()));
 			}
 			THEN("Translating the vertex by 1 unit along y")
 			{
@@ -165,9 +178,19 @@ SCENARIO("Testing translation of selected vertices")
 
 				auto transFormedVertex = testMesh.getVertexPos(0);
 
-				CHECK(vertex.getX()       == Approx(transFormedVertex->getX()));
-				CHECK(vertex.getY() + 1.0 == Approx(transFormedVertex->getY()));
-				CHECK(vertex.getZ()       == Approx(transFormedVertex->getZ()));
+				//selected vertex get transformed by 1 unit along y
+				CHECK(selVertex.getX()       == Approx(transFormedVertex->getX()));
+				CHECK(selVertex.getY() + 1.0 == Approx(transFormedVertex->getY()));
+				CHECK(selVertex.getZ()       == Approx(transFormedVertex->getZ()));
+
+				//other vertices are untouched
+				CHECK(vert2.getX() == Approx(testMesh.getVertexPos(1)->getX()));
+				CHECK(vert2.getY() == Approx(testMesh.getVertexPos(1)->getY()));
+				CHECK(vert2.getZ() == Approx(testMesh.getVertexPos(1)->getZ()));
+
+				CHECK(vert3.getX() == Approx(testMesh.getVertexPos(2)->getX()));
+				CHECK(vert3.getY() == Approx(testMesh.getVertexPos(2)->getY()));
+				CHECK(vert3.getZ() == Approx(testMesh.getVertexPos(2)->getZ()));
 			}
 			THEN("Translating the vertex by 1 unit along z")
 			{
@@ -178,9 +201,19 @@ SCENARIO("Testing translation of selected vertices")
 
 				auto transFormedVertex = testMesh.getVertexPos(0);
 
-				CHECK(vertex.getX()       == Approx(transFormedVertex->getX()));
-				CHECK(vertex.getY()       == Approx(transFormedVertex->getY()));
-				CHECK(vertex.getZ() + 1.0 == Approx(transFormedVertex->getZ()));
+				//selected vertex get transformed by 1 unit along z
+				CHECK(selVertex.getX()       == Approx(transFormedVertex->getX()));
+				CHECK(selVertex.getY()       == Approx(transFormedVertex->getY()));
+				CHECK(selVertex.getZ() + 1.0 == Approx(transFormedVertex->getZ()));
+
+				//other vertices are untouched
+				CHECK(vert2.getX() == Approx(testMesh.getVertexPos(1)->getX()));
+				CHECK(vert2.getY() == Approx(testMesh.getVertexPos(1)->getY()));
+				CHECK(vert2.getZ() == Approx(testMesh.getVertexPos(1)->getZ()));
+
+				CHECK(vert3.getX() == Approx(testMesh.getVertexPos(2)->getX()));
+				CHECK(vert3.getY() == Approx(testMesh.getVertexPos(2)->getY()));
+				CHECK(vert3.getZ() == Approx(testMesh.getVertexPos(2)->getZ()));
 			}
 		}
 	}
