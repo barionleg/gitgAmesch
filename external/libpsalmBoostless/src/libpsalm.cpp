@@ -47,14 +47,15 @@
 *				3*num_new_faces). Negative IDs signify that the
 *				vertex is _not_ new.
 *
+*	@param doLiepa	Sets, if subdivision sould be used
 *	The nomenclature here might be confusing: new_vertex_IDs contains 3
 *	vertex IDs that describe a new face created by the algorithm.
 *
 *	@returns true if the hole could be filled, otherwise false
 */
 
-bool fill_hole(	int num_vertices, long* vertex_IDs, double* coordinates, double* scale_attributes, double* normals,
-		int* num_new_vertices, double** new_coordinates, int* num_new_faces, long** new_vertex_IDs)
+bool fill_hole(int num_vertices, long* vertex_IDs, double* coordinates, double* scale_attributes, double* normals,
+        int* num_new_vertices, double** new_coordinates, int* num_new_faces, long** new_vertex_IDs, bool doLiepa)
 {
 	bool result = true;
 	if(	num_vertices == 0		||
@@ -83,8 +84,11 @@ bool fill_hole(	int num_vertices, long* vertex_IDs, double* coordinates, double*
 	}
 
 	result = (result && triangulation_algorithm.apply_to(M));				// step 1: triangulate the hole
-	result = (result && liepa_algorithm.apply_to(M));					// step 2: apply Liepa's subdivision scheme with
+	if(doLiepa && result)
+	{
+		result = (result && liepa_algorithm.apply_to(M));					// step 2: apply Liepa's subdivision scheme with
 												// default parameters
+	}
 
 	if(result)
 	{

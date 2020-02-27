@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <queue>
 #include <list>
 
 #include <algorithm>  // e.g. ::transform
@@ -31,6 +32,8 @@
 #include "MeshIO/ObjWriter.h"
 #include "MeshIO/VRMLWriter.h"
 #include "MeshIO/TxtWriter.h"
+
+#include "util/triangulation.h"
 
 #include <GigaMesh/logging/Logging.h>
 
@@ -60,6 +63,70 @@ MeshIO::MeshIO()
 }
 
 // READ ------------------------------------------------------------------------
+
+void triangulateFaces(std::vector<sFaceProperties>& rFaceProps, const std::vector<sVertexProperties>& rVertexProps)
+{
+	std::queue<sFaceProperties> newFaces;
+
+	for(auto& faceProp : rFaceProps)
+	{
+		if(faceProp.vertexIndices.size() > 3)
+		{
+			std::vector<Vector3D> vertices;
+			vertices.reserve(faceProp.vertexIndices.size());
+
+			for(auto index : faceProp.vertexIndices)
+			{
+				vertices.emplace_back(Vector3D(rVertexProps[index].mCoordX,
+				                               rVertexProps[index].mCoordY,
+				                               rVertexProps[index].mCoordZ));
+			}
+
+			auto newIndices = GigaMesh::Util::triangulateNgon(vertices);
+
+			for(size_t i = 3; i < newIndices.size(); i+=3)
+			{
+				sFaceProperties newProperties;
+				newProperties.vertexIndices.resize(3);
+				for(size_t j = 0; j<3; ++j)
+				{
+					newProperties.vertexIndices[j] = faceProp.vertexIndices[newIndices[i+j]];
+				}
+
+				if(!faceProp.textureCoordinates.empty())
+				{
+					newProperties.textureCoordinates.resize(6);
+					for(size_t j = 0; j<3; ++j)
+					{
+						newProperties.textureCoordinates[j * 2    ] = faceProp.textureCoordinates[newIndices[i+j] * 2    ];
+						newProperties.textureCoordinates[j * 2 + 1] = faceProp.textureCoordinates[newIndices[i+j] * 2 + 1];
+					}
+				}
+				newProperties.textureId = faceProp.textureId;
+				newFaces.emplace(newProperties);
+			}
+
+			auto oldIndices = faceProp.vertexIndices;
+			faceProp.vertexIndices.resize(3);
+
+			for(size_t i = 0; i < 3; ++i)
+			{
+				faceProp.vertexIndices[i] = oldIndices[newIndices[i]];
+			}
+
+			if(!faceProp.textureCoordinates.empty())
+			{
+				faceProp.textureCoordinates.resize(6);
+			}
+		}
+	}
+
+	while(!newFaces.empty())
+	{
+		rFaceProps.emplace_back(newFaces.front());
+		newFaces.pop();
+	}
+}
 
 //! Reads a file with a 3D-mesh. This method wraps around the other read-methods.
 //! The method for reading a file is automatically choosen by its file extension.
@@ -120,6 +187,8 @@ bool MeshIO::readFile(
 		LOG::error() << "[MeshIO::" << __FUNCTION__ << "] ERROR: Read failed!\n";
 		return( false );
 	}
+
+	triangulateFaces(rFaceProps, rVertexProps);
 
 	mModelMetaData = reader->getModelMetaDataRef();
 

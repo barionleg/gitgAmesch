@@ -4,6 +4,7 @@
 #include "../core/mesh/MeshIO/TxtWriter.h"
 #include <GigaMesh/mesh/meshio.h>
 #include <GigaMesh/mesh/vector3d.h>
+#include "../core/mesh/util/triangulation.h"
 
 const std::string gTestFilesPath("testdata/");
 
@@ -95,7 +96,7 @@ TEST_CASE("Mesh Triangulation Test", "[meshio]")
 
 	vertices.emplace_back(Vector3D(0.0, 0.0, 0.0));
 	vertices.emplace_back(Vector3D(0.0, 2.0, 0.0));
-	vertices.emplace_back(Vector3D(1.0, 1.0, 0.0));
+	vertices.emplace_back(Vector3D(1.0, .1, 0.0));
 	vertices.emplace_back(Vector3D(2.0, 2.0, 0.0));
 	vertices.emplace_back(Vector3D(2.0, 0.0, 0.0));
 
@@ -104,7 +105,7 @@ TEST_CASE("Mesh Triangulation Test", "[meshio]")
 		const size_t numTriangleIndices = (vertices.size() - 2) * 3;
 
 
-		std::vector<size_t> indices;
+		auto indices = GigaMesh::Util::triangulateNgon(vertices);
 
 		REQUIRE(indices.size() == numTriangleIndices);
 	}
