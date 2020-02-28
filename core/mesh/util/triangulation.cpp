@@ -6,6 +6,18 @@
 
 #include <numeric>
 
+std::vector<size_t> triangulateQuad(const std::vector<Vector3D>& vertices)
+{
+	if( (vertices[0] - vertices[2]).getLength3Squared() < (vertices[1] - vertices[3]).getLength3Squared() )
+	{
+		return {0,1,2,0,2,3};
+	}
+
+	return {0,1,3,1,2,3};
+}
+//! triangulates a ring of vertices
+//! @param vertices input vertices (non closed polyline)
+//! @return triangulated indices of the vertices
 std::vector<size_t> GigaMesh::Util::triangulateNgon(const std::vector<Vector3D>& vertices)
 {
 	if(vertices.empty())
@@ -23,6 +35,11 @@ std::vector<size_t> GigaMesh::Util::triangulateNgon(const std::vector<Vector3D>&
 	if(vertices.size() == 3)
 	{
 		return {0,1,2};
+	}
+
+	if(vertices.size() == 4)
+	{
+		return triangulateQuad(vertices);
 	}
 
 #ifdef LIBPSALM
