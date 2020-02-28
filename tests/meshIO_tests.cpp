@@ -96,7 +96,7 @@ TEST_CASE("Mesh Triangulation Test", "[meshio]")
 
 	vertices.emplace_back(Vector3D(0.0, 0.0, 0.0));
 	vertices.emplace_back(Vector3D(0.0, 2.0, 0.0));
-	vertices.emplace_back(Vector3D(1.0, .1, 0.0));
+	vertices.emplace_back(Vector3D(1.0, 1.0, 0.0));
 	vertices.emplace_back(Vector3D(2.0, 2.0, 0.0));
 	vertices.emplace_back(Vector3D(2.0, 0.0, 0.0));
 

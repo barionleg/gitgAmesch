@@ -177,6 +177,12 @@ inline ktuple MinimumWeightTriangulation::minimum_area_and_normal_angle(const ve
 
 	double area	= minimum_area(v1, v2, v3).first;
 
+	//prevent zero area triangles
+	if(area < std::numeric_limits<double>::epsilon())
+	{
+		area = std::numeric_limits<double>::max();
+	}
+
 	return(ktuple(angle, area));
 }
 
