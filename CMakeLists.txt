@@ -39,6 +39,7 @@ set(COMP_EDIT IWR\ FreeWare)
 string(STRIP "${VERSION_PACKAGE}" VERSION_PACKAGE)
 string(SUBSTRING "${VERSION_PACKAGE}" 2 9 VERSION_PACKAGE)
 string(REPLACE "-" "" VERSION_PACKAGE "${VERSION_PACKAGE}")
+string(STRIP "${VERSION_PACKAGE}" VERSION_PACKAGE)
 
 if(UNIX OR MINGW)
 	execute_process(COMMAND whoami OUTPUT_VARIABLE WHOAMIVAR)
@@ -77,3 +78,14 @@ if(ENABLE_TESTS)
 	include(CTest)
 	add_subdirectory(tests)
 endif()
+
+#CPack, see: https://cmake.org/cmake/help/v3.10/module/CPack.html
+include(InstallRequiredSystemLibraries)
+#set variables before include(CPack) to override defaults of CPack
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYING.txt")
+set(CPACK_PACKAGE_VERSION "${VERSION_PACKAGE}")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Hubert Mara <hubert.mara@iwr.uni-heidelberg.de>")
+#set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}")
+
+include(CPack)
+
