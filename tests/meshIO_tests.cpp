@@ -89,6 +89,15 @@ TEST_CASE("MeshIO integration test", "[meshio]")
 	}
 }
 
+double triangleArea(const Vector3D& vertA, const Vector3D& vertB, const Vector3D& vertC)
+{
+	auto AB = vertB - vertA;
+	AB.setH(1.0);
+	auto AC = vertC - vertA;
+	AC.setH(1.0);
+	return 0.5 * (AB * AC);
+}
+
 TEST_CASE("Mesh Triangulation Test", "[meshio]")
 {
 	std::vector<Vector3D> vertices;
@@ -103,10 +112,19 @@ TEST_CASE("Mesh Triangulation Test", "[meshio]")
 	SECTION("Triangulate vector of Vector3D")
 	{
 		const size_t numTriangleIndices = (vertices.size() - 2) * 3;
-
-
 		auto indices = GigaMesh::Util::triangulateNgon(vertices);
 
 		REQUIRE(indices.size() == numTriangleIndices);
+
+		for(auto index : indices)
+		{
+			REQUIRE(index < vertices.size());
+		}
+
+		for(size_t i = 0; i<indices.size(); i +=3)
+		{
+			auto area = triangleArea(vertices[indices[i]],vertices[indices[i+1]],vertices[indices[i+2]]);
+			CHECK(area != Approx(0.0));
+		}
 	}
 }
