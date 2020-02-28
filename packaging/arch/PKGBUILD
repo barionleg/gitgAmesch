@@ -45,16 +45,16 @@ package() {
 #	cp -R 3d_simple $pkgdir/usr/share/gigamesh/3d_simple
 
 	mkdir -p $pkgdir/usr/bin
-	cp gigamesh $pkgdir/usr/bin
-	cp meshBuild/gigamesh-info $pkgdir/usr/bin
-	cp meshBuild/gigamesh-clean $pkgdir/usr/bin
-	cp meshBuild/gigamesh-tolegacy $pkgdir/usr/bin
-	cp meshBuild/gigamesh-featurevectors $pkgdir/usr/bin
-	cp meshBuild/gigamesh-borders $pkgdir/usr/bin
+	cp build/gui/gigamesh $pkgdir/usr/bin
+	cp build/cli/gigamesh-info $pkgdir/usr/bin
+	cp build/cli/gigamesh-clean $pkgdir/usr/bin
+	cp build/cli/gigamesh-tolegacy $pkgdir/usr/bin
+	cp build/cli/gigamesh-featurevectors $pkgdir/usr/bin
+	cp build/cli/gigamesh-borders $pkgdir/usr/bin
 
 	mkdir -p $pkgdir/usr/share/pixmaps
-	cp forms/gigamesh_logo.svg $pkgdir/usr/share/pixmaps
-	cp forms/gigamesh_logo_terminal.svg $pkgdir/usr/share/pixmaps
+	cp gui/forms/gigamesh_logo.svg $pkgdir/usr/share/pixmaps
+	cp gui/forms/gigamesh_logo_terminal.svg $pkgdir/usr/share/pixmaps
 
 	mkdir -p $pkgdir/usr/share/applications
 	cp packaging/arch/gigamesh.desktop $pkgdir/usr/share/applications

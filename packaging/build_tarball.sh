@@ -28,50 +28,14 @@ fi
 # Update changelog with CURRENT_VERSION
 sed -i "/unreleasd/c\Version $CURRENT_VERSION" CHANGELOG
 
-# c-q-make everything
-cd external/libpsalmBoostless
+# cmake everything
 mkdir build
 cd build
-cmake ..
-cmake --build . --config Release
-cp libpsalm.a ..
-cd ..
-rm -rf build
-cd ..
-
-# make spherical intersection
-cd spherical_intersection
-mkdir build
-cd build
-cmake ..
-cmake --build . --config Release
-cp libspherical_intersection.a ..
-cd ..
-rm -rf build
-cd ..
-
-# Make ALGLIB
-unzip alglib-2.6.0.cpp.zip
-mv cpp alglib
-cd alglib
-chmod u+x build
-./build gcc
-cd ../..
-
-# Make the mesh cli
-mkdir meshBuild
-cd meshBuild
-cmake ..
-cmake --build . --config Release
+cmake .. -DCMAKE_BUILD_TYPE=Release -G"Unix Makefiles"
+make -j
 find . -type f -executable -not -name \*.sh -exec strip {} \;
-cd ..
-# Inside GigaMesh folder now
-#make clean
-qmake CONFIG+=release
-make -j $NUM_PROCESSORS CC=gcc-8 CXX=g++-8 LINK=g++-8
-strip gigamesh
-#Move Back to packaging
-cd packaging
+
+cd ../packaging
 
 #Create generic binary directory and compress it
 ND="gigamesh-$CURRENT_VERSION-linux-x86_64"
@@ -79,12 +43,12 @@ mkdir -p $ND/scripts
 cp -a ../CHANGELOG $ND
 
 # --- binaries
-cp -a ../gigamesh $ND
-cp -a ../meshBuild/gigamesh-info  $ND
-cp -a ../meshBuild/gigamesh-clean $ND
-cp -a ../meshBuild/gigamesh-tolegacy $ND
-cp -a ../meshBuild/gigamesh-featurevectors $ND
-cp -a ../meshBuild/gigamesh-borders $ND
+cp -a ../build/gui/gigamesh $ND
+cp -a ../build/cli/gigamesh-info  $ND
+cp -a ../build/cli/gigamesh-clean $ND
+cp -a ../build/cli/gigamesh-tolegacy $ND
+cp -a ../build/cli/gigamesh-featurevectors $ND
+cp -a ../build/cli/gigamesh-borders $ND
 # --- Scripts ---
 # None for now, which is a good thing.
 
