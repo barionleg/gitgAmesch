@@ -98,3 +98,4 @@ if(MINGW_CI_BUILD)
 	target_sources(gigamesh PRIVATE GigaMesh_Logo.rc)
 endif()
 
+install(TARGETS gigamesh DESTINATION bin)

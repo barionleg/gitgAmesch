@@ -20,6 +20,13 @@ target_include_directories( gigamesh-featurevectors PRIVATE ${CMAKE_CURRENT_SOUR
 add_executable(gigamesh-borders gigamesh-borders.cpp)
 target_link_libraries(gigamesh-borders PRIVATE gigameshCore)
 
+install(TARGETS gigamesh-tolegacy
+				gigamesh-clean
+				gigamesh-info
+				gigamesh-featurevectors
+				gigamesh-borders
+		DESTINATION bin)
+
 #add_executable(meshgeneratefeaturevectors25d mesh/meshgeneratefeaturevectors25d.cpp ${SOURCES_COMMON} ${HEADERS_COMMON})
 #target_link_libraries(meshgeneratefeaturevectors25d)
 #target_compile_options(meshgeneratefeaturevectors25d PUBLIC -DCOMP_USER=\"${COMP_USER}\" -DCOMP_DATE=\"${COMP_DATE}\" -DCOMP_GITHEAD=\"${COMP_GITHEAD}\" -DVERSION_PACKAGE=\"${VERSION_PACKAGE}\" -DCOMP_EDIT=\"${COMP_EDIT}\")

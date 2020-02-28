@@ -18,6 +18,14 @@ project(GigaMesh LANGUAGES CXX C)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+option(BUILD_CLI "Build the GigaMesh-CLI tools" ON)
+option(BUILD_GUI "Build GigaMesh-GUI" ON)
+option(ENABLE_TESTS "Build tests" ON)
+
+#--------- get git version and other useful information ---------
 string(TIMESTAMP COMP_DATE "%d.%b.%y")
 execute_process(COMMAND git rev-parse HEAD
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -31,6 +39,7 @@ set(COMP_EDIT IWR\ FreeWare)
 string(STRIP "${VERSION_PACKAGE}" VERSION_PACKAGE)
 string(SUBSTRING "${VERSION_PACKAGE}" 2 9 VERSION_PACKAGE)
 string(REPLACE "-" "" VERSION_PACKAGE "${VERSION_PACKAGE}")
+string(STRIP "${VERSION_PACKAGE}" VERSION_PACKAGE)
 
 if(UNIX OR MINGW)
 	execute_process(COMMAND whoami OUTPUT_VARIABLE WHOAMIVAR)
@@ -49,21 +58,34 @@ elseif(MSVC)
 	string(SUBSTRING "${WHOAMIVAR}" "${SLASHPOS}" -1 USER_VAR)
 	string(CONCAT COMP_USER ${USER_VAR} @ ${HOST_VAR})
 endif()
+#-------------------------------------------------------------
 
 add_subdirectory(external)
 add_subdirectory(core)
 
-#set this via cmake <path to this CMakeLists.txt> -DGIGAMESH_GUI_ONLY=1
-if(NOT GIGAMESH_GUI_ONLY)
+#disable CLI build by setting -DBUILD_CLI=OFF, or editing the variable in CMakeCache.txt
+if(BUILD_CLI)
 add_subdirectory(cli)
 endif()
 
-#set this via cmake <path to this CMakeLists.txt> -DGIGAMESH_CLT_ONLY=1
-if(NOT GIGAMESH_CLT_ONLY)
+#disable GUI build by setting -DBUILD_GUI=OFF, or editing the variable in CMakeCache.txt
+if(BUILD_GUI)
 add_subdirectory(gui)
 endif()
 
-if(NOT TESTS_DISABLED)
+#disable test build by setting -DENABLE_TESTS=OFF, or editing the variable in CMakeCache.txt
+if(ENABLE_TESTS)
 	include(CTest)
 	add_subdirectory(tests)
 endif()
+
+#CPack, see: https://cmake.org/cmake/help/v3.10/module/CPack.html
+include(InstallRequiredSystemLibraries)
+#set variables before include(CPack) to override defaults of CPack
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYING.txt")
+set(CPACK_PACKAGE_VERSION "${VERSION_PACKAGE}")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Hubert Mara <hubert.mara@iwr.uni-heidelberg.de>")
+#set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}")
+
+include(CPack)
+

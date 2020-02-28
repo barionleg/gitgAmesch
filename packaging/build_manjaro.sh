@@ -53,51 +53,14 @@ if [ ! -h gigamesh.changelog ]; then
 fi
 cd ../..
 
-# Make libpsalm
-cd external/libpsalmBoostless
+# cmake everything
 mkdir build
 cd build
-cmake ..
-cmake --build . --config Release
-cp libpsalm.a ..
-cd ..
-rm -rf build
-cd ..
-
-# make spherical intersection
-cd spherical_intersection
-mkdir build
-cd build
-cmake ..
-cmake --build . --config Release
-cp libspherical_intersection.a ..
-cd ..
-rm -rf build
-cd ..
-
-# Make ALGLIB
-unzip alglib-2.6.0.cpp.zip
-mv cpp alglib
-cd alglib
-chmod u+x build
-./build gcc
-cd ../..
-# Make libcudaonering
-#cd cuda
-#make -j $NUM_PROCESSORS
-#cd ..
-# Make Mesh
-mkdir meshBuild
-cd meshBuild
-cmake ..
-cmake --build . --config Release
+cmake .. -DCMAKE_BUILD_TYPE=Release -G"Unix Makefiles"
+make -j
 find . -type f -executable -not -name \*.sh -exec strip {} \;
-cd ..
-# qmake before clean - otherwise the paths are not correct within the Makefile
 
-qmake CONFIG+=release
-make -j $NUM_PROCESSORS
-strip gigamesh
+cd ..
 
 cd packaging/arch
 # Build Manjaro package
