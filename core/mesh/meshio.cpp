@@ -64,6 +64,7 @@ MeshIO::MeshIO()
 
 // READ ------------------------------------------------------------------------
 
+//triangulate ngon-faces
 void triangulateFaces(std::vector<sFaceProperties>& rFaceProps, const std::vector<sVertexProperties>& rVertexProps)
 {
 	std::queue<sFaceProperties> newFaces;
@@ -84,6 +85,7 @@ void triangulateFaces(std::vector<sFaceProperties>& rFaceProps, const std::vecto
 
 			auto newIndices = GigaMesh::Util::triangulateNgon(vertices);
 
+			//construct new faces
 			for(size_t i = 3; i < newIndices.size(); i+=3)
 			{
 				sFaceProperties newProperties;
@@ -106,21 +108,32 @@ void triangulateFaces(std::vector<sFaceProperties>& rFaceProps, const std::vecto
 				newFaces.emplace(newProperties);
 			}
 
-			auto oldIndices = faceProp.vertexIndices;
-			faceProp.vertexIndices.resize(3);
+			//resize current face
+			std::vector<uint64_t> tmpIndices(3);
 
 			for(size_t i = 0; i < 3; ++i)
 			{
-				faceProp.vertexIndices[i] = oldIndices[newIndices[i]];
+				tmpIndices[i] = faceProp.vertexIndices[newIndices[i]];
 			}
+
+			faceProp.vertexIndices = tmpIndices;
 
 			if(!faceProp.textureCoordinates.empty())
 			{
-				faceProp.textureCoordinates.resize(6);
+				std::vector<float> tmpTexCoods(6);
+
+				for(size_t i = 0; i<3; ++i)
+				{
+					tmpTexCoods[i * 2    ] = faceProp.textureCoordinates[newIndices[i] * 2    ];
+					tmpTexCoods[i * 2 + 1] = faceProp.textureCoordinates[newIndices[i] * 2 + 1];
+				}
+
+				faceProp.textureCoordinates = tmpTexCoods;
 			}
 		}
 	}
 
+	rFaceProps.reserve(rFaceProps.size() + newFaces.size());
 	while(!newFaces.empty())
 	{
 		rFaceProps.emplace_back(newFaces.front());
