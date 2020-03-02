@@ -67,8 +67,8 @@ mkdir -p dist
 # Remove all ply files, not needed
 #echo "Removing PLY files"
 
-echo "Removing all PLY files!"
-find . -name "*.ply" -exec rm -rf {} \;
+#echo "Removing all PLY files!"
+#find . -name "*.ply" -exec rm -rf {} \;
 
 #echo "TAR1"
 /bin/tar -czf /tmp/tmparchive.orig.tar.gz $PWD &
