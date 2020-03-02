@@ -101,16 +101,17 @@ double triangleArea(const Vector3D& vertA, const Vector3D& vertB, const Vector3D
 TEST_CASE("Mesh Triangulation Test", "[meshio]")
 {
 	std::vector<Vector3D> vertices;
-	vertices.reserve(5);
 
-	vertices.emplace_back(Vector3D(0.0, 0.0, 0.0));
-	vertices.emplace_back(Vector3D(0.0, 2.0, 0.0));
-	vertices.emplace_back(Vector3D(1.0, 1.0, 0.0));
-	vertices.emplace_back(Vector3D(2.0, 2.0, 0.0));
-	vertices.emplace_back(Vector3D(2.0, 0.0, 0.0));
-
-	SECTION("Triangulate vector of Vector3D")
+	SECTION("Triangulate concave mesh")
 	{
+		vertices.reserve(5);
+
+		vertices.emplace_back(Vector3D(0.0, 0.0, 0.0));
+		vertices.emplace_back(Vector3D(0.0, 2.0, 0.0));
+		vertices.emplace_back(Vector3D(1.0, 1.0, 0.0));
+		vertices.emplace_back(Vector3D(2.0, 2.0, 0.0));
+		vertices.emplace_back(Vector3D(2.0, 0.0, 0.0));
+
 		const size_t numTriangleIndices = (vertices.size() - 2) * 3;
 		auto indices = GigaMesh::Util::triangulateNgon(vertices);
 
@@ -125,6 +126,57 @@ TEST_CASE("Mesh Triangulation Test", "[meshio]")
 		{
 			auto area = triangleArea(vertices[indices[i]],vertices[indices[i+1]],vertices[indices[i+2]]);
 			CHECK(area != Approx(0.0));
+		}
+	}
+
+	SECTION("Tirangulate Quad Mesh")
+	{
+		vertices.reserve(4);
+
+		SECTION("short 1-3 edge")
+		{
+			vertices.emplace_back(Vector3D( 0.0, 0.0, 0.0));
+			vertices.emplace_back(Vector3D(-1.0, 2.0, 0.0));
+			vertices.emplace_back(Vector3D( 0.0, 4.0, 0.0));
+			vertices.emplace_back(Vector3D( 1.0, 2.0, 0.0));
+
+			auto indices = GigaMesh::Util::triangulateNgon(vertices);
+
+
+			REQUIRE(indices.size() == 6);
+
+			bool correctlyTriangulated = true;
+			std::vector<size_t> validTriangulation = {0,1,3,1,2,3};
+
+			for(size_t i = 0; i<6;++i)
+			{
+				correctlyTriangulated &= validTriangulation[i] == indices[i];
+			}
+
+			CHECK(correctlyTriangulated == true);
+		}
+
+		SECTION("short 0-2 edge")
+		{
+			vertices.emplace_back(Vector3D( 0.0, 0.0, 0.0));
+			vertices.emplace_back(Vector3D(-2.0, 1.0, 0.0));
+			vertices.emplace_back(Vector3D( 0.0, 2.0, 0.0));
+			vertices.emplace_back(Vector3D( 1.0, 1.0, 0.0));
+
+			auto indices = GigaMesh::Util::triangulateNgon(vertices);
+
+
+			REQUIRE(indices.size() == 6);
+
+			bool correctlyTriangulated = true;
+			std::vector<size_t> validTriangulation = {0,1,2,0,2,3};
+
+			for(size_t i = 0; i<6;++i)
+			{
+				correctlyTriangulated &= validTriangulation[i] == indices[i];
+			}
+
+			CHECK(correctlyTriangulated == true);
 		}
 	}
 }
