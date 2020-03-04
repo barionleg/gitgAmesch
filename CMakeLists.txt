@@ -83,6 +83,7 @@ install(FILES	CHANGELOG
 				README.md
 				README_LIBPSALM.txt
 				COPYING.txt
+				LICENSE.txt
 		DESTINATION doc/gigamesh)
 
 #CPack, see: https://cmake.org/cmake/help/v3.10/module/CPack.html
