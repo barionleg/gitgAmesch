@@ -79,6 +79,12 @@ if(ENABLE_TESTS)
 	add_subdirectory(tests)
 endif()
 
+install(FILES	CHANGELOG
+				README.md
+				README_LIBPSALM.txt
+				COPYING.txt
+		DESTINATION doc/gigamesh)
+
 #CPack, see: https://cmake.org/cmake/help/v3.10/module/CPack.html
 include(InstallRequiredSystemLibraries)
 #set variables before include(CPack) to override defaults of CPack
