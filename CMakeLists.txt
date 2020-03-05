@@ -14,7 +14,8 @@ cmake_minimum_required(VERSION 3.10)
 # 3. Tested alternative to 1, running cmake with:
 # cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-8 -DCMAKE_CC_COMPILER=/usr/bin/gcc-8
 
-project(GigaMesh LANGUAGES CXX C)
+project(GigaMesh LANGUAGES CXX C
+			DESCRIPTION "GigaMesh is a software Framework for processing large meshes.")
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -84,14 +85,21 @@ install(FILES	CHANGELOG
 				README_LIBPSALM.txt
 				COPYING.txt
 				LICENSE.txt
-		DESTINATION doc/gigamesh)
+		DESTINATION share/doc/gigamesh)
 
 #CPack, see: https://cmake.org/cmake/help/v3.10/module/CPack.html
 include(InstallRequiredSystemLibraries)
 #set variables before include(CPack) to override defaults of CPack
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYING.txt")
 set(CPACK_PACKAGE_VERSION "${VERSION_PACKAGE}")
+set(CPACK_SOURCE_STRIP_FILES TRUE)
+set(CPACK_STRIP_FILES "bin/gigamesh;bin/gigamesh-tolegacy;bin/gigamesh-clean;bin/gigamesh-info;bin/gigamesh-featurevectors;bin/gigamesh-borders")
+
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Hubert Mara <hubert.mara@iwr.uni-heidelberg.de>")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.14), libcairo2 (>= 1.6), libgcc1 (>= 1:3.0), qtbase5-dev(>= 5.5),libqt5core5a (>= 5), libqt5gui5 (>= 5) | libqt5gui5-gles (>= 5), libqt5opengl5 (>= 5) | libqt5opengl5-gles (>= 5), libstdc++6 (>= 5), libtiff5 (>= 4), inkscape(>=0.92)")
+set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://www.gigamesh.eu")
+set(CPACK_DEBIAN_PACKAGE_SECTION "science")
+
 #set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}")
 
 include(CPack)
