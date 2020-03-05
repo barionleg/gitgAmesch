@@ -57,6 +57,28 @@ set(GUI_SOURCES main.cpp
 				normalSphereSelection/NormalSphereSelectionRenderWidget.h
 )
 
+#add ui files, so they appear it qtcreator projects view
+set(GUI_UI_FILES normalSphereSelection/NormalSphereSelectionDialog.ui
+	forms/QGMDialogTransparencySettings.ui
+	forms/dialogComboBox.ui
+	forms/qgmdialognprsettings.ui
+	forms/qgmdockview.ui
+	forms/qruntpsrpmscriptdialog.ui
+	forms/dialogMSII.ui
+	forms/QGMDialogSliderHD.ui
+	forms/dialogAbout.ui
+	forms/dialogGridCenterSelect.ui
+	forms/dialogRuler.ui
+	forms/dialogEnterText.ui
+	forms/qgmdockinfo.ui
+	forms/dialogConeParam.ui
+	forms/ExternalProgramsDialog.ui
+	forms/mainWin.ui
+	forms/dialogPlaneParam.ui
+	forms/qgmdocksidebar.ui
+	forms/dialogCutOffValues.ui
+)
+
 #NOTE: instead of adding translations via resources, the ts-files can also be build by
 #      qt5_create_translation and then be added
 qt5_add_resources(GUI_RESOURCES "forms/gigamesh.qrc"
@@ -70,7 +92,7 @@ qt5_add_resources(GUI_RESOURCES "forms/gigamesh.qrc"
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/forms
 							   ${CMAKE_CURRENT_SOURCE_DIR}/normalSphereSelection)
 
-add_executable(gigamesh ${GUI_SOURCES} ${GUI_RESOURCES})
+add_executable(gigamesh ${GUI_SOURCES} ${GUI_RESOURCES} ${GUI_UI_FILES})
 
 add_definitions(${Qt5Widgets_DEFINITIONS})
 target_include_directories(gigamesh PRIVATE ${Qt5Widgets_INCLUDES})
