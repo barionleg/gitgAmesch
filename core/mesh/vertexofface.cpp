@@ -613,7 +613,7 @@ void VertexOfFace::getFaces( Vertex* otherVert, set<Face*>* neighbourFaces, Face
 //!
 //! Typically called by Mesh::removeVertices()
 void VertexOfFace::getFaces( set<Face*>* someFaceList ) {
-	for( int i=0; i<mAdjacentFacesNr; i++ ) {
+	for( int i=0; i<mAdjacentFacesNr; ++i ) {
 		someFaceList->insert( mAdjacentFaces[i] );
 	}
 }

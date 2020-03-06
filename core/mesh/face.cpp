@@ -2740,8 +2740,8 @@ void Face::connectToFaces() {
 	vertB->getFaces( &neighbourCandidates );
 	vertC->getFaces( &neighbourCandidates );
 	// Add face - either regular or non-manifold
-	set<Face*>::iterator itFace;
-	for( itFace=neighbourCandidates.begin(); itFace!=neighbourCandidates.end(); itFace++ ) {
+	
+	for(auto itFace=neighbourCandidates.begin(); itFace!=neighbourCandidates.end(); ++itFace ) {
 		if( (*itFace) == this ) {
 			continue;
 		}
@@ -2783,9 +2783,9 @@ void Face::connectToFaces() {
 		// Check if the face is already a neighbour.
 		// If so, the two faces stick together and FLAG_FACE_STICKY will be set.
 		int neighCount = 0;
-		for( unsigned short i=0; i<(mNeighbourFacesNonManifold+3); i++ ) {
+		for( unsigned short i=0; i<(mNeighbourFacesNonManifold+3); ++i ) {
 			if( mNeighbourFaces[i] == (*itFace) ) {
-				neighCount++;
+				++neighCount;
 			}
 		}
 		if( neighCount == 0 ) {

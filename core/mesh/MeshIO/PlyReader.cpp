@@ -363,14 +363,14 @@ bool parseBinary(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, st
 					case PLY_COORD_X:
 						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
 						rVertexProps[ verticesRead ].mCoordX = static_cast<double>(someFloat);
-						if( filestr.tellg() < 0 ) {
+						if( !filestr || filestr.eof()) {
 							LOG::warn() << "insufficient coordinates provided for position vector\n";
 						}
 						break;
 					case PLY_COORD_Y:
 						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
 						rVertexProps[ verticesRead ].mCoordY = static_cast<double>(someFloat);
-						if( filestr.tellg() < 0 ) {
+						if( !filestr || filestr.eof()) {
 							LOG::warn() << "insufficient coordinates provided for position vector\n";
 						}
 						break;
@@ -432,7 +432,7 @@ bool parseBinary(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, st
 					case PLY_LIST_FEATURE_VECTOR:
 						READ_IN_PROPER_BYTE_ORDER( filestr, &listNrChar, (*plyPropListCountSize), reverseByteOrder );
 						//LOG::debug() << "listNrChar: " << (unsigned short)listNrChar << "\n";
-						if( filestr.tellg() < 0 ) {
+						if( !filestr || filestr.eof()) {
 							LOG::warn() << "feature vector data is missing\n";
 						}
 						// When we have no memory allocated yet - this is the time (and we assume that all vertices have feature vectors of the same length or shorter.
@@ -442,7 +442,7 @@ bool parseBinary(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, st
 						}
 						for( uint j=0; j<static_cast<uint>(listNrChar); j++ ) {
 							READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropListSize), reverseByteOrder );
-							if( filestr.tellg() < 0 ) {
+							if( !filestr || filestr.eof()) {
 								LOG::warn() << "feature vector data is missing\n";
 							}
 							rMeshSeed.getFeatureVecVerticesRef()[ verticesRead*listNrChar+j ] = static_cast<double>(someFloat);
