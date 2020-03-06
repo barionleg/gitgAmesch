@@ -765,12 +765,12 @@ bool PlyReader::readFile(const std::string& rFilename,
 						filestr.seekg( posInFile+(*plyPropSize) );
 						bytesIgnored += (*plyPropSize);
 				}
-				plyPropSize++;
-				plyPropListCountSize++;
-				plyPropListSize++;
+				++plyPropSize;
+				++plyPropListCountSize;
+				++plyPropListSize;
 			}
 
-			verticesRead++;
+			++verticesRead;
 
 		//------------------------------------------- PARSE FACES -------------------------------------------
 		} else if( facesRead < plyElements[PLY_FACE] ) {
@@ -822,9 +822,9 @@ bool PlyReader::readFile(const std::string& rFilename,
 						filestr.seekg( posInFile+(*plyPropSize) );
 						bytesIgnored += (*plyPropSize);
 				}
-				plyPropSize++;
-				plyPropListCountSize++;
-				plyPropListSize++;
+				++plyPropSize;
+				++plyPropListCountSize;
+				++plyPropListSize;
 			}
 
 			facesRead++;
