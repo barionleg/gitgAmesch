@@ -816,9 +816,16 @@ void Mesh::establishStructure(
 	uint64_t facesAddedToMesh = 0;
 	for( uint64_t i=0; i<rFaceProps.size(); i++ ) {
 		//cout << "Face: " << i << " " << facesMeshed[i*3]-1 << ", " << facesMeshed[i*3+1]-1 << ", " << facesMeshed[i*3+2]-1 << endl;
-		uint64_t vertAIdx = rFaceProps[i].mVertIdxA;
-		uint64_t vertBIdx = rFaceProps[i].mVertIdxB;
-		uint64_t vertCIdx = rFaceProps[i].mVertIdxC;
+
+		if(rFaceProps[i].vertexIndices.size() < 3)
+		{
+			continue;
+		}
+
+		//!TODO: handle case, where rFaceProps[i] contains an ngon
+		uint64_t vertAIdx = rFaceProps[i].vertexIndices[0];
+		uint64_t vertBIdx = rFaceProps[i].vertexIndices[1];
+		uint64_t vertCIdx = rFaceProps[i].vertexIndices[2];
 		if( vertAIdx >= rVertexProps.size() ) {
 			LOG::warn() << "[Mesh::" << __FUNCTION__ << "] Vertex A index out of range: " << vertAIdx <<
 						 " ... ignoring Face no. " << i << "!\n";
@@ -845,7 +852,19 @@ void Mesh::establishStructure(
 			LOG::error() << "[Mesh::" << __FUNCTION__ << "] ERROR: bad_alloc caught at index " << i << ": " << errBadAlloc.what() << "\n";
 			continue;
 		}
-		myFace->setUVs(rFaceProps[i].textureCoordinates);
+
+		//!TODO: handle ngon case
+		std::array<float,6> textureCoordinates{0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F};
+
+		if(rFaceProps[i].textureCoordinates.size() >= 6)
+		{
+			for(size_t j = 0; j<6;++j)
+			{
+				textureCoordinates[j] = rFaceProps[i].textureCoordinates[j];
+			}
+		}
+
+		myFace->setUVs(textureCoordinates);
 		myFace->setTextureId(rFaceProps[i].textureId);
 		// Add face to the list
 		try {
@@ -9470,7 +9489,7 @@ void Mesh::changedVertFeatureVectors() {
 	// Compute and show mean values:
 	for( uint64_t j=0; j<mFeatureVecVerticesLen; j++ ) {
 		mVerticesFeatVecMean[j] /= static_cast<double>(verticesFeatVecNormal[j]);
-		LOG::debug() << "[Mesh::" << __FUNCTION__ << "] Feature vector mean [" << j << "]: " << mVerticesFeatVecMean[j];
+		LOG::debug() << "[Mesh::" << __FUNCTION__ << "] Feature vector mean [" << j << "]: " << mVerticesFeatVecMean[j] << '\n';
 		LOG::debug() << " using " << verticesFeatVecNormal[j] << " values.\n";
 	}
 	// Accumulate values for the standard deviations:

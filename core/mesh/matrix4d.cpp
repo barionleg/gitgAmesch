@@ -1,7 +1,7 @@
 #include <limits>
 #include <GigaMesh/mesh/matrix4d.h>
 
-#define MATRIX4DINITDEFAULTS                        \
+#define MATRIX4DINITDEFAULTS                    \
 	x{ 0.0, 0.0, 0.0, 0.0 },                    \
 	y{ 0.0, 0.0, 0.0, 0.0 },                    \
 	z{ 0.0, 0.0, 0.0, 0.0 },                    \

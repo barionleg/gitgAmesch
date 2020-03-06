@@ -48,8 +48,8 @@ bool VRMLWriter::writeFile(const std::string& rFilename, const std::vector<sVert
 	filestr << "\t\tcoordIndex [\n";
 	for( const auto& faceProp : rFaceProps) {
 		// VRML index for vertices start with ZERO!!!:
-		filestr << "\t\t\t" << faceProp.mVertIdxA << " "
-				<< faceProp.mVertIdxB << " " << faceProp.mVertIdxC << " -1\n";
+		filestr << "\t\t\t" << faceProp.vertexIndices[0] << " "
+		        << faceProp.vertexIndices[1] << " " << faceProp.vertexIndices[2] << " -1\n";
 	}
 	filestr << "\t\t] # coordIndex\n";
 

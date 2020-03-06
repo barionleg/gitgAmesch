@@ -173,11 +173,17 @@ unsigned int Face::getVertCIndex() {
 
 //! Writes the (current) indices of the Vertices A, B and C to the given array, which has to be of size int[3] (or larger).
 bool Face::copyFacePropsTo( sFaceProperties& faceProps ) const {
-	faceProps.mVertIdxA = vertA->getIndex();
-	faceProps.mVertIdxB = vertB->getIndex();
-	faceProps.mVertIdxC = vertC->getIndex();
+	faceProps.vertexIndices.resize(3);
+	faceProps.vertexIndices.shrink_to_fit();
+	faceProps.vertexIndices[0] = vertA->getIndex();
+	faceProps.vertexIndices[1] = vertB->getIndex();
+	faceProps.vertexIndices[2] = vertC->getIndex();
 
-	faceProps.textureCoordinates = mUVs;
+	faceProps.textureCoordinates.resize(6);
+	faceProps.textureCoordinates.shrink_to_fit();
+
+	std::copy(mUVs.begin(), mUVs.end(), faceProps.textureCoordinates.begin());
+
 	faceProps.textureId = mTextureId;
 
 	return( true );

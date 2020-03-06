@@ -23,7 +23,7 @@ void READ_IN_PROPER_BYTE_ORDER(std::fstream& filestream, T target, size_t size, 
 	}
 }
 
-struct plyContainer {
+struct PlyContainer {
 	std::vector<ePlyProperties> propertyType;
 	std::vector<int> propertyDataType;
 	std::vector<int> propertyListCountDataType;
@@ -48,15 +48,595 @@ void copyVertexTexCoordsToFaces(const std::vector<float>& vertexTextureCoordinat
 {
 	for(auto & prop : rFaceProps)
 	{
-		prop.textureCoordinates[0] = vertexTextureCoordinates[prop.mVertIdxA * 2];
-		prop.textureCoordinates[1] = vertexTextureCoordinates[prop.mVertIdxA * 2 + 1];
+		prop.textureCoordinates.resize(prop.vertexIndices.size() * 2);
+		prop.textureCoordinates.shrink_to_fit();
 
-		prop.textureCoordinates[2] = vertexTextureCoordinates[prop.mVertIdxB * 2];
-		prop.textureCoordinates[3] = vertexTextureCoordinates[prop.mVertIdxB * 2 + 1];
-
-		prop.textureCoordinates[4] = vertexTextureCoordinates[prop.mVertIdxC * 2];
-		prop.textureCoordinates[5] = vertexTextureCoordinates[prop.mVertIdxC * 2 + 1];
+		for(size_t i = 0; i < prop.vertexIndices.size(); ++i)
+		{
+			prop.textureCoordinates[i*2    ] = vertexTextureCoordinates[prop.vertexIndices[i] * 2    ];
+			prop.textureCoordinates[i*2 + 1] = vertexTextureCoordinates[prop.vertexIndices[i] * 2 + 1];
+		}
 	}
+}
+
+//! \todo still incomplete: flags and feature vectors not tested and not supported.
+bool parseAscii(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, std::fstream& filestr,
+                const std::array<PlyContainer, PLY_SECTIONS_COUNT>& sectionProps,
+                std::vector<float>& vertexTextureCoordinates,
+                std::vector<sVertexProperties>& rVertexProps, std::vector<sFaceProperties>& rFaceProps,
+                bool hasVertexTexCoords)
+{
+	std::string lineToParse;
+	unsigned char listNrChar;
+
+
+	//--------------------------------- PARSE VERTICES --------------------------------------------------------
+
+	for( size_t verticesRead=0; verticesRead<plyElements[PLY_VERTEX]; ++verticesRead ) {
+		getline( filestr, lineToParse );
+		// Remove trailing '\r' e.g. from files provided from some low-cost scanners
+		if( !lineToParse.empty() && lineToParse[lineToParse.size() - 1] == '\r' ) {
+			lineToParse.erase( lineToParse.size() - 1 );
+		}
+		// Break line into tokens:
+		std::istringstream iss( lineToParse );
+		std::vector<std::string> tokens{ std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{} };
+		if( tokens.size() == 0 ) {
+			continue; // Empty line
+		}
+		// Parse each token of a line:
+		for( uint64_t i=0; i<tokens.size(); i++ ) {
+			if( i>=sectionProps[PLY_VERTEX].propertyType.size() ) {
+				// Sanity check
+				LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] verticesRead: " << verticesRead << " of " << plyElements[PLY_VERTEX] << "\n";
+				LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] More tokens than properties " << i << " >= " << sectionProps[PLY_VERTEX].propertyType.size() << "!\n";
+				continue;
+			}
+			std::string lineElement = tokens[ i ];
+			ePlyProperties currProperty = sectionProps[PLY_VERTEX].propertyType[ i ];
+			switch( currProperty ) {
+				case PLY_COORD_X:
+					rVertexProps[ verticesRead ].mCoordX = atof( lineElement.c_str() );
+					break;
+				case PLY_COORD_Y:
+					rVertexProps[ verticesRead ].mCoordY = atof( lineElement.c_str() );
+					break;
+				case PLY_COORD_Z:
+					rVertexProps[ verticesRead ].mCoordZ = atof( lineElement.c_str() );
+					break;
+				case PLY_VERTEX_NORMAL_X:
+					rVertexProps[ verticesRead ].mNormalX = atof(lineElement.c_str() );
+					break;
+				case PLY_VERTEX_NORMAL_Y:
+					rVertexProps[ verticesRead ].mNormalY = atof(lineElement.c_str() );
+					break;
+				case PLY_VERTEX_NORMAL_Z:
+					rVertexProps[ verticesRead ].mNormalZ = atof(lineElement.c_str() );
+					break;
+				case PLY_VERTEX_TEXCOORD_S:
+					if(!vertexTextureCoordinates.empty())
+						vertexTextureCoordinates[ verticesRead * 2] = atof(lineElement.c_str());
+					break;
+				case PLY_VERTEX_TEXCOORD_T:
+					if(!vertexTextureCoordinates.empty())
+						vertexTextureCoordinates[ verticesRead * 2 + 1] = atof(lineElement.c_str());
+					break;
+				case PLY_FLAGS:
+					rVertexProps[ verticesRead ].mFlags = static_cast<unsigned long>(atoi( lineElement.c_str() ));
+					break;
+				case PLY_LABEL:
+					rVertexProps[ verticesRead ].mLabelId = static_cast<unsigned long>(atoi( lineElement.c_str() ));
+					break;
+				case PLY_VERTEX_QUALITY:
+					rVertexProps[ verticesRead ].mFuncVal = atof( lineElement.c_str() );
+					break;
+				case PLY_VERTEX_INDEX:
+					break;
+				case PLY_COLOR_RED:
+					rVertexProps[ verticesRead ].mColorRed = atoi( lineElement.c_str() );
+					break;
+				case PLY_COLOR_GREEN:
+					rVertexProps[ verticesRead ].mColorGrn = atoi( lineElement.c_str() );
+					break;
+				case PLY_COLOR_BLUE:
+					rVertexProps[ verticesRead ].mColorBle = atoi( lineElement.c_str() );
+					break;
+				case PLY_COLOR_ALPHA:
+					//! \todo alpha is read but ignored later on.
+					rVertexProps[ verticesRead ].mColorAlp = atoi( lineElement.c_str() );
+					break;
+				case PLY_LIST_IGNORE:
+				case PLY_LIST_VERTEX_INDICES:
+					listNrChar = atoi( lineElement.c_str() );
+					for( uint j=0; j<static_cast<uint>(listNrChar); ++j ) {
+						//! \todo implement PLY_LIST_VERTEX_INDICES for ASCII PLYs
+						// ...
+						++i;
+					}
+					break;
+				case PLY_LIST_TEXCOORDS:
+					//! \todo texture coordinates for ascii-files
+					listNrChar = atoi(lineElement.c_str() );
+					for(uint j=0; j<static_cast<uint>(listNrChar); ++j)
+					{
+						//...
+						++i;
+					}
+
+					break;
+				case PLY_LIST_FEATURE_VECTOR:
+					listNrChar = atoi( lineElement.c_str() );
+					for( uint j=0; j<static_cast<uint>(listNrChar); ++j ) {
+						//! \todo implement PLY_LIST_FEATURE_VECTOR for ASCII PLYs
+						// someFloat = atof( lineElement.c_str() );
+						// featureVecVertices[verticesRead*featureVecVerticesLen+j] = (double)someFloat;
+					}
+					//LOG::info() << "\n";
+					break;
+				case PLY_UNSUPPORTED:
+				default:
+					// Read but ignore
+					LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Unknown property in vertex section " << currProperty << " !\n";
+			}
+		}
+	}
+	std::cout << "[PlyReader::" << __FUNCTION__ << "] Reading vertices done.\n";
+
+
+	//--------------------------------- PARSE FACES --------------------------------------------------------
+
+	// Read faces
+	for(size_t facesRead=0; facesRead<plyElements[PLY_FACE]; ++facesRead ) {
+		getline( filestr, lineToParse );
+		std::string strLine( lineToParse );
+		// Remove trailing '\r' e.g. from files provided from some low-cost scanners
+		if( !lineToParse.empty() && lineToParse[lineToParse.size() - 1] == '\r' ) {
+			lineToParse.erase( lineToParse.size() - 1 );
+		}
+		// Break line into tokens:
+		std::istringstream iss( lineToParse );
+		std::vector<std::string> tokens{ std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{} };
+		if( tokens.size() == 0 ) {
+			continue; // Empty line
+		}
+		// Parse each token of a line:
+		auto currPropertyIt = sectionProps[PLY_FACE].propertyType.begin();
+
+		for( uint64_t i=0; i<tokens.size(); i++ ) {
+			if(currPropertyIt == sectionProps[PLY_FACE].propertyType.end())
+			{
+				LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Unknown property in face section!\n";
+				continue;
+			}
+
+			std::string lineElement = tokens[ i ];
+			ePlyProperties currProperty = *currPropertyIt;
+			switch( currProperty ) {
+				case PLY_LIST_VERTEX_INDICES: {
+					    const uint64_t elementCount = atoi( lineElement.c_str() );
+
+						rFaceProps[facesRead].vertexIndices.resize(elementCount);
+						rFaceProps[facesRead].vertexIndices.shrink_to_fit();
+						for(uint64_t j = 0; j < elementCount; ++j)
+						{
+							const uint64_t vertexIndexNr = atoll( tokens[++i].c_str() );
+							rFaceProps[facesRead].vertexIndices[j] = static_cast<uint64_t>(vertexIndexNr);
+						}
+				    } break;
+				case PLY_LIST_TEXCOORDS: {
+					    auto elementCount = atoi(lineElement.c_str());
+
+						rFaceProps[facesRead].textureCoordinates.resize(elementCount);
+						rFaceProps[facesRead].textureCoordinates.shrink_to_fit();
+						for(int j = 0; j < elementCount; ++j)
+						{
+							rFaceProps[facesRead].textureCoordinates[j] = static_cast<float>(atof(tokens[++i].c_str()));
+						}
+				    } break;
+				case PLY_FACE_TEXNUMBER:
+					    rFaceProps[facesRead].textureId = atoi(lineElement.c_str());
+						++i;
+					break;
+				default:
+					// Read but ignore
+					LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Unknown property in face section " << currProperty << " !\n";
+			}
+			++currPropertyIt;
+		}
+	}
+	std::cout << "[PlyReader::" << __FUNCTION__ << "] Reading faces done.\n";
+	//! \todo ASCII: add support for selected vertices.
+	//! \todo ASCII: add support for polylines.
+	//! \todo ASCII: add support for unsupported lines.
+	filestr.close();
+
+	if(hasVertexTexCoords && !vertexTextureCoordinates.empty())
+	{
+		copyVertexTexCoordsToFaces(vertexTextureCoordinates, rFaceProps);
+	}
+
+	return true;
+}
+
+bool parseBinary(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, std::fstream& filestr,
+                 const std::array<PlyContainer, PLY_SECTIONS_COUNT>& sectionProps,
+                 std::vector<float>& vertexTextureCoordinates,
+                 std::vector<sVertexProperties>& rVertexProps, std::vector<sFaceProperties>& rFaceProps,
+                 bool hasVertexTexCoords,
+                 const std::string& rFilename, bool reverseByteOrder, MeshSeedExt& rMeshSeed)
+{
+
+	// ReOpen file, when binary!
+	filestr.close();
+	filestr.open( rFilename.c_str(), std::fstream::in | std::ios_base::binary );
+	if( !filestr.is_open() ) {
+		LOG::error() << "[PlyReader::" << __FUNCTION__ << "] could not open: '" << rFilename << "'!\n";
+		return false;
+	}
+	filestr.seekg( 0, filestr.end );
+	uint64_t fileLength = filestr.tellg();
+	filestr.seekg( 0, filestr.beg );
+	LOG::debug() << "[PlyReader::" << __FUNCTION__ << "] File length for reading binary: " << fileLength << " Bytes.\n";
+
+	//! \todo buffer can not allocate sufficent memory for very large 3D-models. Anyway it makes no sense to load the whole file jus to search for the end of the header. The latter is relativly small.
+	std::vector<char> buffer;
+	try{
+		buffer.resize( fileLength );
+	} catch( const std::exception& e ) {
+		LOG::error() << "[PlyReader::" << __FUNCTION__ << "] A standard exception was caught, with message '"
+		     << e.what() << "'\n";
+		LOG::error() << "[PlyReader::" << __FUNCTION__ << "]        File length: " << fileLength << "\n";
+		LOG::error() << "[PlyReader::" << __FUNCTION__ << "]        Size of chars for the buffer: " << fileLength*sizeof( char ) << "\n";
+		LOG::error() << "[PlyReader::" << __FUNCTION__ << "]        Maximum buffer size (theoretical, but not guaranteed): " << buffer.max_size() << "\n";
+		LOG::error() << "[PlyReader::" << __FUNCTION__ << "] ...... Trying again!\n";
+
+		try{
+			// try to truncate to 10 MB
+			fileLength = 10*1024*1024;
+			buffer.resize( fileLength );
+		} catch( const std::exception& e ) {
+			LOG::error() << "[PlyReader::" << __FUNCTION__ << "] A standard exception was caught, with message '"
+			     << e.what() << "'\n";
+			// Close file and return
+			filestr.close();
+			return( false );
+		}
+	}
+
+	filestr.read( buffer.data(), fileLength );
+	// Search string: 'end_header'
+	std::vector<char> seq = { 'e', 'n', 'd', '_', 'h', 'e', 'a', 'd', 'e', 'r' };
+	std::vector<char>::iterator it;
+	it = std::search( buffer.begin(), buffer.end(), seq.begin(), seq.end() );
+	if( it == buffer.end() ) {
+		LOG::error() << "[PlyReader::" << __FUNCTION__ << "] 'end_header' not found!\n";
+		// Close file and return
+		filestr.close();
+		return( false );
+	}
+	int posfound = ( it - buffer.begin() );
+	LOG::debug() << "[PlyReader::" << __FUNCTION__ << "] 'end_header' found at position " << posfound << "\n";
+
+	char newLine = buffer[ posfound+seq.size() ];
+	int forwardToPos;
+	if( newLine == 0x0A ) {
+		forwardToPos = posfound+seq.size()+1;
+		LOG::debug() << "[PlyReader::" << __FUNCTION__ << "] one byte line break.\n";
+	} else {
+		newLine = buffer[ posfound+seq.size()+1 ];
+		if( newLine == 0x0A ) {
+			forwardToPos = posfound+seq.size()+2;
+			LOG::debug() << "[PlyReader::" << __FUNCTION__ << "] two byte line break.\n";
+		} else {
+			LOG::error() << "[PlyReader::" << __FUNCTION__ << "] end of header new line not found!\n";
+			filestr.close();
+			return false;
+		}
+	}
+	filestr.seekg( forwardToPos );
+
+	unsigned char listNrChar;
+	uint64_t verticesRead      = 0;
+	uint64_t facesRead         = 0;
+	uint64_t polyLinesRead     = 0;
+	uint64_t unsupportedRead   = 0;
+	char  charProp          = 0;
+	long  bytesIgnored      = 0l;
+	long  extraBytesIgnored = 0l;
+	long  posInFile         = 0l;
+	float someFloat         = 0.0F;
+	int   someInt           = 0;
+
+	while( filestr ) {
+
+		//------------------------------------------- PARSE VERTICES -------------------------------------------
+
+		if( verticesRead < plyElements[PLY_VERTEX] ) {
+			auto plyPropSize          = sectionProps[PLY_VERTEX].propertyDataType.begin();
+			auto plyPropListCountSize = sectionProps[PLY_VERTEX].propertyListCountDataType.begin();
+			auto plyPropListSize      = sectionProps[PLY_VERTEX].propertyListDataType.begin();
+			double vertNormalX = _NOT_A_NUMBER_DBL_;
+			double vertNormalY = _NOT_A_NUMBER_DBL_;
+			double vertNormalZ = _NOT_A_NUMBER_DBL_;
+			for(auto currProperty : sectionProps[PLY_VERTEX].propertyType) {
+				    switch( currProperty ) {
+					case PLY_COORD_X:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
+						rVertexProps[ verticesRead ].mCoordX = static_cast<double>(someFloat);
+						if( filestr.tellg() < 0 ) {
+							LOG::warn() << "insufficient coordinates provided for position vector\n";
+						}
+						break;
+					case PLY_COORD_Y:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
+						rVertexProps[ verticesRead ].mCoordY = static_cast<double>(someFloat);
+						if( filestr.tellg() < 0 ) {
+							LOG::warn() << "insufficient coordinates provided for position vector\n";
+						}
+						break;
+					case PLY_COORD_Z:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
+						rVertexProps[ verticesRead ].mCoordZ = static_cast<double>(someFloat);
+						break;
+					case PLY_VERTEX_NORMAL_X:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
+						vertNormalX = static_cast<double>(someFloat);
+						break;
+					case PLY_VERTEX_NORMAL_Y:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
+						vertNormalY = static_cast<double>(someFloat);
+						break;
+					case PLY_VERTEX_NORMAL_Z:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
+						vertNormalZ = static_cast<double>(someFloat);
+						break;
+					case PLY_FLAGS: {
+						unsigned int someFlags;
+						READ_IN_PROPER_BYTE_ORDER( filestr, &someFlags, (*plyPropSize), reverseByteOrder );
+						rVertexProps[ verticesRead ].mFlags = someFlags;
+						} break;
+					case PLY_LABEL: {
+						unsigned int someLabelID;
+						READ_IN_PROPER_BYTE_ORDER( filestr, &someLabelID, (*plyPropSize), reverseByteOrder );
+						rVertexProps[ verticesRead ].mLabelId = someLabelID;
+						} break;
+					case PLY_VERTEX_QUALITY:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
+						rVertexProps[ verticesRead ].mFuncVal = static_cast<double>(someFloat);
+						break;
+					case PLY_COLOR_RED:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &charProp, (*plyPropSize), reverseByteOrder );
+						rVertexProps[ verticesRead ].mColorRed = static_cast<unsigned char>(charProp);
+						break;
+					case PLY_COLOR_GREEN:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &charProp, (*plyPropSize), reverseByteOrder );
+						rVertexProps[ verticesRead ].mColorGrn = static_cast<unsigned char>(charProp);
+						break;
+					case PLY_COLOR_BLUE:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &charProp, (*plyPropSize), reverseByteOrder );
+						rVertexProps[ verticesRead ].mColorBle = static_cast<unsigned char>(charProp);
+						break;
+					case PLY_COLOR_ALPHA:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &charProp, (*plyPropSize), reverseByteOrder );
+						//! \todo Alpha is read but ignored later on.
+						rVertexProps[ verticesRead ].mColorAlp = static_cast<unsigned char>(charProp);
+						break;
+					case PLY_LIST_IGNORE:
+					case PLY_LIST_VERTEX_INDICES:
+					case PLY_LIST_TEXCOORDS:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &listNrChar, (*plyPropListCountSize), reverseByteOrder );
+						posInFile = filestr.tellg();
+						filestr.seekg( posInFile+static_cast<long>(static_cast<uint>(listNrChar)*static_cast<uint>(*plyPropListSize)) );
+						bytesIgnored += static_cast<long>(static_cast<uint>(listNrChar)*static_cast<uint>(*plyPropListSize));
+						break;
+					case PLY_LIST_FEATURE_VECTOR:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &listNrChar, (*plyPropListCountSize), reverseByteOrder );
+						//LOG::debug() << "listNrChar: " << (unsigned short)listNrChar << "\n";
+						if( filestr.tellg() < 0 ) {
+							LOG::warn() << "feature vector data is missing\n";
+						}
+						// When we have no memory allocated yet - this is the time (and we assume that all vertices have feature vectors of the same length or shorter.
+						if( rMeshSeed.getFeatureVecVerticesRef().size() == 0 ) {
+							rMeshSeed.setFeatureVecVerticesLen(static_cast<uint64_t>(listNrChar));
+							rMeshSeed.getFeatureVecVerticesRef().assign( listNrChar*plyElements[PLY_VERTEX], _NOT_A_NUMBER_DBL_ );
+						}
+						for( uint j=0; j<static_cast<uint>(listNrChar); j++ ) {
+							READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropListSize), reverseByteOrder );
+							if( filestr.tellg() < 0 ) {
+								LOG::warn() << "feature vector data is missing\n";
+							}
+							rMeshSeed.getFeatureVecVerticesRef()[ verticesRead*listNrChar+j ] = static_cast<double>(someFloat);
+						}
+						break;
+					default:
+						// Read but ignore
+						posInFile = filestr.tellg();
+						filestr.seekg( posInFile+(*plyPropSize) );
+						bytesIgnored += (*plyPropSize);
+				}
+				++plyPropSize;
+				++plyPropListCountSize;
+				++plyPropListSize;
+			}
+
+			++verticesRead;
+
+		//------------------------------------------- PARSE FACES -------------------------------------------
+		} else if( facesRead < plyElements[PLY_FACE] ) {
+			auto plyPropSize          = sectionProps[PLY_FACE].propertyDataType.begin();
+			auto plyPropListCountSize = sectionProps[PLY_FACE].propertyListCountDataType.begin();
+			auto plyPropListSize      = sectionProps[PLY_FACE].propertyListDataType.begin();
+			for(const ePlyProperties currProperty : sectionProps[PLY_FACE].propertyType) {
+				    switch( currProperty ) {
+					case PLY_LIST_VERTEX_INDICES:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &listNrChar, (*plyPropListCountSize), reverseByteOrder );
+						if( listNrChar != 3 ) {
+							LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] unsupported number (" << static_cast<uint>(listNrChar) << ") of elements within the list!\n";
+						}
+
+						rFaceProps[facesRead].vertexIndices.resize(listNrChar);
+						rFaceProps[facesRead].vertexIndices.shrink_to_fit();
+
+						for(uint64_t j = 0; j<listNrChar; ++j)
+						{
+							READ_IN_PROPER_BYTE_ORDER( filestr, &someInt, (*plyPropListSize), reverseByteOrder );
+							rFaceProps[facesRead].vertexIndices[j] = someInt;
+						}
+						break;
+					case PLY_LIST_TEXCOORDS:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &listNrChar, (*plyPropListCountSize), reverseByteOrder );
+						if( listNrChar != 6) {
+							LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] unsupported number (" << static_cast<uint>(listNrChar) << ") of elements within the list!\n";
+						}
+						rFaceProps[facesRead].textureCoordinates.resize(listNrChar);
+						rFaceProps[facesRead].textureCoordinates.shrink_to_fit();
+						for(unsigned char j = 0; j<listNrChar; ++j)
+						{
+							float texCoord;
+							READ_IN_PROPER_BYTE_ORDER( filestr, &texCoord,(*plyPropListSize), reverseByteOrder);
+							rFaceProps[facesRead].textureCoordinates[j] = texCoord;
+						}
+
+						break;
+					case PLY_FACE_TEXNUMBER:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &someInt, (*plyPropSize), reverseByteOrder);
+						rFaceProps[facesRead].textureId = static_cast<unsigned char>(someInt);
+						break;
+					case PLY_LIST_FEATURE_VECTOR:
+					case PLY_LIST_IGNORE:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &listNrChar, (*plyPropListCountSize), reverseByteOrder );
+						posInFile = filestr.tellg();
+						filestr.seekg( posInFile+static_cast<long>(static_cast<uint>(listNrChar)*static_cast<uint>(*plyPropListSize)) );
+						bytesIgnored += static_cast<long>(static_cast<uint>(listNrChar)*static_cast<uint>(*plyPropListSize));
+						break;
+					default:
+						// Read but ignore
+						posInFile = filestr.tellg();
+						filestr.seekg( posInFile+(*plyPropSize) );
+						bytesIgnored += (*plyPropSize);
+				}
+				++plyPropSize;
+				++plyPropListCountSize;
+				++plyPropListSize;
+			}
+
+			facesRead++;
+		//------------------------------------------- PARSE POLYLINES -------------------------------------------
+		} else if( polyLinesRead < plyElements[PLY_POLYGONAL_LINE] ) {
+			auto plyPropSize          = sectionProps[PLY_POLYGONAL_LINE].propertyDataType.begin();
+			auto plyPropListCountSize = sectionProps[PLY_POLYGONAL_LINE].propertyListCountDataType.begin();
+			auto plyPropListSize      = sectionProps[PLY_POLYGONAL_LINE].propertyListDataType.begin();
+			PrimitiveInfo primInfo;
+			for(const ePlyProperties currProperty : sectionProps[PLY_POLYGONAL_LINE].propertyType) {
+				    switch( currProperty ) {
+					case PLY_COORD_X:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
+						primInfo.mPosX = static_cast<double>(someFloat);
+						break;
+					case PLY_COORD_Y:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
+						primInfo.mPosY = static_cast<double>(someFloat);
+						break;
+					case PLY_COORD_Z:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
+						primInfo.mPosZ = static_cast<double>(someFloat);
+						break;
+					case PLY_VERTEX_NORMAL_X:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
+						primInfo.mNormalX = static_cast<double>(someFloat);
+						break;
+					case PLY_VERTEX_NORMAL_Y:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
+						primInfo.mNormalY = static_cast<double>(someFloat);
+						break;
+					case PLY_VERTEX_NORMAL_Z:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
+						primInfo.mNormalZ = static_cast<double>(someFloat);
+						break;
+					case PLY_LABEL: {
+						unsigned int labelID;
+						READ_IN_PROPER_BYTE_ORDER( filestr, &labelID, (*plyPropSize), reverseByteOrder );
+						rMeshSeed.getPolyLabelIDRef().push_back(labelID);
+						} break;
+					case PLY_LIST_VERTEX_INDICES: {
+						// Read a list of polyline indices
+						int nrIndices;
+						READ_IN_PROPER_BYTE_ORDER( filestr, &nrIndices, (*plyPropListCountSize), reverseByteOrder );
+						std::vector<int>* somePolyLinesIndices = new std::vector<int>;
+						for( int j=0; j<nrIndices; j++ ) {
+							int vertIndex;
+							READ_IN_PROPER_BYTE_ORDER( filestr, &vertIndex, (*plyPropListSize), reverseByteOrder );
+							somePolyLinesIndices->push_back( vertIndex );
+						}
+						rMeshSeed.getPolyLineVertIndicesRef().push_back( somePolyLinesIndices );
+						} break;
+					case PLY_LIST_FEATURE_VECTOR:
+					case PLY_LIST_TEXCOORDS:
+					case PLY_LIST_IGNORE:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &listNrChar, (*plyPropListCountSize), reverseByteOrder );
+						posInFile = filestr.tellg();
+						filestr.seekg( posInFile+static_cast<long>(static_cast<uint>(listNrChar)*static_cast<uint>(*plyPropListSize)) );
+						bytesIgnored += static_cast<long>(static_cast<uint>(listNrChar)*static_cast<uint>(*plyPropListSize));
+						break;
+					default:
+						// Read but ignore
+						posInFile = filestr.tellg();
+						filestr.seekg( posInFile+(*plyPropSize) );
+						bytesIgnored += (*plyPropSize);
+				}
+				plyPropSize++;
+				plyPropListCountSize++;
+				plyPropListSize++;
+			}
+			rMeshSeed.getPolyPrimInfoRef().push_back( primInfo );
+			polyLinesRead++;
+			//------------------------------------------- PARSE UNSUPPORTED -------------------------------------------
+		} else if( unsupportedRead < plyElements[PLY_SECTION_UNSUPPORTED] ) {
+			auto plyPropSize          = sectionProps[PLY_SECTION_UNSUPPORTED].propertyDataType.begin();
+			auto plyPropListCountSize = sectionProps[PLY_SECTION_UNSUPPORTED].propertyListCountDataType.begin();
+			auto plyPropListSize      = sectionProps[PLY_SECTION_UNSUPPORTED].propertyListDataType.begin();
+			for(const ePlyProperties currProperty : sectionProps[PLY_SECTION_UNSUPPORTED].propertyType) {
+				    switch( currProperty ) {
+					case PLY_LIST_IGNORE:
+					case PLY_LIST_FEATURE_VECTOR:
+					case PLY_LIST_VERTEX_INDICES:
+					case PLY_LIST_TEXCOORDS:
+						READ_IN_PROPER_BYTE_ORDER( filestr, &listNrChar, (*plyPropListCountSize), reverseByteOrder );
+						posInFile = filestr.tellg();
+						filestr.seekg( posInFile+static_cast<long>(static_cast<uint>(listNrChar)*static_cast<uint>(*plyPropListSize)) );
+						bytesIgnored += static_cast<long>(static_cast<uint>(listNrChar)*static_cast<uint>(*plyPropListSize));
+						break;
+
+					default:
+						// Read but ignore
+						posInFile = filestr.tellg();
+						filestr.seekg( posInFile+(*plyPropSize) );
+						bytesIgnored += (*plyPropSize);
+				}
+				plyPropSize++;
+				plyPropListCountSize++;
+				plyPropListSize++;
+			}
+			unsupportedRead++;
+		} else {
+			// needed to reach EOF!:
+			bytesIgnored++;
+			extraBytesIgnored++;
+			READ_IN_PROPER_BYTE_ORDER( filestr, &listNrChar, 1, reverseByteOrder );
+		}
+	}
+
+	filestr.close();
+
+	if(hasVertexTexCoords && !vertexTextureCoordinates.empty())
+	{
+		copyVertexTexCoordsToFaces(vertexTextureCoordinates, rFaceProps);
+	}
+
+	LOG::info() << "[PlyReader::" << __FUNCTION__ << "] PLY ignored:       " << bytesIgnored << " Byte. (one is OK as it is the EOF byte)\n";
+	LOG::info() << "[PlyReader::" << __FUNCTION__ << "] PLY Extra ignored: " << extraBytesIgnored << " Byte. (one is OK as it is the EOF byte)\n";
+
+	return true;
 }
 
 //! Read binary PLY (as exported from Breuckmann OPTOCAT, which we will face
@@ -76,7 +656,7 @@ bool PlyReader::readFile(const std::string& rFilename,
 	std::fstream filestr;
 	std::string  lineToParse;
 	std::string  lineToParseOri;
-	int     linesComment = 0;
+
 	bool    readASCII = false;
 
 	const LocaleGuard guard;
@@ -95,13 +675,14 @@ bool PlyReader::readFile(const std::string& rFilename,
 	bool hasVertexTexCoords = false;
 
 	uint64_t plyCurrentSection = PLY_SECTION_UNSUPPORTED;
-	uint64_t plyElements[PLY_SECTIONS_COUNT];
+	std::array<uint64_t, PLY_SECTIONS_COUNT> plyElements;
 
 	for( uint64_t& plyElement : plyElements ) {
 		plyElement = 0;
 	}
 
-	plyContainer sectionProps[PLY_SECTIONS_COUNT];
+	std::array<PlyContainer, PLY_SECTIONS_COUNT> sectionProps;
+
 
 	// the first two lines we expect: "ply" -- maybe add a check?
 	getline( filestr, lineToParse );
@@ -359,601 +940,31 @@ bool PlyReader::readFile(const std::string& rFilename,
 
 	//--------------------------- END OF HEADER PARSING ------------------------------------------------------------------------------------------------
 
-	unsigned char listNrChar;
-	uint64_t verticesRead      = 0;
-	uint64_t facesRead         = 0;
-	uint64_t polyLinesRead     = 0;
-	uint64_t unsupportedRead   = 0;
-	char  charProp;
-	long  bytesIgnored = 0;
-	long  extraBytesIgnored = 0;
-	long  posInFile;
-	float someFloat;
-	int   someInt;
-
-	std::vector<int>::iterator plyProp;
-	std::vector<int>::iterator plyPropSize;
-	std::vector<int>::iterator plyPropListCountSize;
-	std::vector<int>::iterator plyPropListSize;
-
 	std::vector<float> vertexTextureCoordinates;
 	if(hasVertexTexCoords)
 	{
 		getModelMetaDataRef().setHasTextureCoordinates(true);
 		vertexTextureCoordinates.resize(rVertexProps.size() * 2);
 	}
-	//---------------------------------- PARSE ASCII FILES----------------------------------------------------------------
 
+	bool parseSuccess = false;
 	if( readASCII ) {
-		//! \todo still incomplete: flags and feature vectors not tested and not supported.
-
-
-		//--------------------------------- PARSE VERTICES --------------------------------------------------------
-
-		for( verticesRead=0; verticesRead<plyElements[PLY_VERTEX]; verticesRead++ ) {
-			getline( filestr, lineToParse );
-			// Remove trailing '\r' e.g. from files provided from some low-cost scanners
-			if( !lineToParse.empty() && lineToParse[lineToParse.size() - 1] == '\r' ) {
-				lineToParse.erase( lineToParse.size() - 1 );
-			}
-			// Break line into tokens:
-			std::istringstream iss( lineToParse );
-			std::vector<std::string> tokens{ std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{} };
-			if( tokens.size() == 0 ) {
-				continue; // Empty line
-			}
-			// Parse each token of a line:
-			for( uint64_t i=0; i<tokens.size(); i++ ) {
-				if( i>=sectionProps[PLY_VERTEX].propertyType.size() ) {
-					// Sanity check
-					LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] verticesRead: " << verticesRead << " of " << plyElements[PLY_VERTEX] << "\n";
-					LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] More tokens than properties " << i << " >= " << sectionProps[PLY_VERTEX].propertyType.size() << "!\n";
-					continue;
-				}
-				std::string lineElement = tokens[ i ];
-				ePlyProperties currProperty = sectionProps[PLY_VERTEX].propertyType[ i ];
-				switch( currProperty ) {
-					case PLY_COORD_X:
-						rVertexProps[ verticesRead ].mCoordX = atof( lineElement.c_str() );
-						break;
-					case PLY_COORD_Y:
-						rVertexProps[ verticesRead ].mCoordY = atof( lineElement.c_str() );
-						break;
-					case PLY_COORD_Z:
-						rVertexProps[ verticesRead ].mCoordZ = atof( lineElement.c_str() );
-						break;
-					case PLY_VERTEX_NORMAL_X:
-						rVertexProps[ verticesRead ].mNormalX = atof(lineElement.c_str() );
-						break;
-					case PLY_VERTEX_NORMAL_Y:
-						rVertexProps[ verticesRead ].mNormalY = atof(lineElement.c_str() );
-						break;
-					case PLY_VERTEX_NORMAL_Z:
-						rVertexProps[ verticesRead ].mNormalZ = atof(lineElement.c_str() );
-						break;
-					case PLY_VERTEX_TEXCOORD_S:
-						if(!vertexTextureCoordinates.empty())
-							vertexTextureCoordinates[ verticesRead * 2] = atof(lineElement.c_str());
-						break;
-					case PLY_VERTEX_TEXCOORD_T:
-						if(!vertexTextureCoordinates.empty())
-							vertexTextureCoordinates[ verticesRead * 2 + 1] = atof(lineElement.c_str());
-						break;
-					case PLY_FLAGS:
-						rVertexProps[ verticesRead ].mFlags = static_cast<unsigned long>(atoi( lineElement.c_str() ));
-						break;
-					case PLY_LABEL:
-						rVertexProps[ verticesRead ].mLabelId = static_cast<unsigned long>(atoi( lineElement.c_str() ));
-						break;
-					case PLY_VERTEX_QUALITY:
-						rVertexProps[ verticesRead ].mFuncVal = atof( lineElement.c_str() );
-						break;
-					case PLY_VERTEX_INDEX:
-						break;
-					case PLY_COLOR_RED:
-						rVertexProps[ verticesRead ].mColorRed = atoi( lineElement.c_str() );
-						break;
-					case PLY_COLOR_GREEN:
-						rVertexProps[ verticesRead ].mColorGrn = atoi( lineElement.c_str() );
-						break;
-					case PLY_COLOR_BLUE:
-						rVertexProps[ verticesRead ].mColorBle = atoi( lineElement.c_str() );
-						break;
-					case PLY_COLOR_ALPHA:
-						//! \todo alpha is read but ignored later on.
-						rVertexProps[ verticesRead ].mColorAlp = atoi( lineElement.c_str() );
-						break;
-					case PLY_LIST_IGNORE:
-					case PLY_LIST_VERTEX_INDICES:
-						listNrChar = atoi( lineElement.c_str() );
-						for( uint j=0; j<static_cast<uint>(listNrChar); j++ ) {
-							//! \todo implement PLY_LIST_VERTEX_INDICES for ASCII PLYs
-							// ...
-							++i;
-						}
-						break;
-					case PLY_LIST_TEXCOORDS:
-						//! \todo texture coordinates for ascii-files
-						listNrChar = atoi(lineElement.c_str() );
-						for(uint j=0; j<static_cast<uint>(listNrChar); ++j)
-						{
-							//...
-							++i;
-						}
-
-						break;
-					case PLY_LIST_FEATURE_VECTOR:
-						listNrChar = atoi( lineElement.c_str() );
-						for( uint j=0; j<static_cast<uint>(listNrChar); j++ ) {
-							//! \todo implement PLY_LIST_FEATURE_VECTOR for ASCII PLYs
-							// someFloat = atof( lineElement.c_str() );
-							// featureVecVertices[verticesRead*featureVecVerticesLen+j] = (double)someFloat;
-						}
-						//LOG::info() << "\n";
-						break;
-					case PLY_UNSUPPORTED:
-					default:
-						// Read but ignore
-						LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Unknown property in vertex section " << currProperty << " !\n";
-				}
-			}
-		}
-		std::cout << "[PlyReader::" << __FUNCTION__ << "] Reading vertices done.\n";
-
-
-		//--------------------------------- PARSE FACES --------------------------------------------------------
-
-		// Read faces
-		for( facesRead=0; facesRead<plyElements[PLY_FACE]; facesRead++ ) {
-			getline( filestr, lineToParse );
-			std::string strLine( lineToParse );
-			// Remove trailing '\r' e.g. from files provided from some low-cost scanners
-			if( !lineToParse.empty() && lineToParse[lineToParse.size() - 1] == '\r' ) {
-				lineToParse.erase( lineToParse.size() - 1 );
-			}
-			// Break line into tokens:
-			std::istringstream iss( lineToParse );
-			std::vector<std::string> tokens{ std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{} };
-			if( tokens.size() == 0 ) {
-				continue; // Empty line
-			}
-			// Parse each token of a line:
-			auto currPropertyIt = sectionProps[PLY_FACE].propertyType.begin();
-
-			for( uint64_t i=0; i<tokens.size(); i++ ) {
-				if(currPropertyIt == sectionProps[PLY_FACE].propertyType.end())
-				{
-					LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Unknown property in face section!\n";
-					continue;
-				}
-
-				std::string lineElement = tokens[ i ];
-				ePlyProperties currProperty = *currPropertyIt;
-				switch( currProperty ) {
-					case PLY_LIST_VERTEX_INDICES: {
-							uint64_t elementCount = atoi( lineElement.c_str() );
-							if( elementCount != 3 ) {
-								i += elementCount; // These have to be skipped by the outer loop.
-								LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] unsupported number (" << listNrChar << ") of elements within the list!\n";
-								continue;
-							}
-							std::string listElementInLine = tokens[ i+1 ];
-							uint64_t vertexIndexNr = atoi( listElementInLine.c_str() );
-							rFaceProps[facesRead].mVertIdxA = static_cast<int>(vertexIndexNr);
-							listElementInLine = tokens[ i+2 ];
-							vertexIndexNr = atoi( listElementInLine.c_str() );
-							rFaceProps[facesRead].mVertIdxB = static_cast<int>(vertexIndexNr);
-							listElementInLine = tokens[ i+3 ];
-							vertexIndexNr = atoi( listElementInLine.c_str() );
-							rFaceProps[facesRead].mVertIdxC = static_cast<int>(vertexIndexNr);
-							i += elementCount; // These have to be skipped by the outer loop.
-						} break;
-					case PLY_LIST_TEXCOORDS: {
-							auto elementCount = atoi(lineElement.c_str());
-							if(elementCount != 6) {
-								i += elementCount; // these have to be skipped by the outer loop
-								LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] unsupported number (" << listNrChar << ") of elements within the list!\n";
-								continue;
-							}
-							for(int j = 0; j < elementCount; ++j)
-							{
-								rFaceProps[facesRead].textureCoordinates[j] = static_cast<float>(atof(tokens[++i].c_str()));
-							}
-						} break;
-					case PLY_FACE_TEXNUMBER:
-							rFaceProps[facesRead].textureId = atoi(lineElement.c_str());
-							++i;
-						break;
-					default:
-						// Read but ignore
-						LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Unknown property in face section " << currProperty << " !\n";
-				}
-				++currPropertyIt;
-			}
-		}
-		std::cout << "[PlyReader::" << __FUNCTION__ << "] Reading faces done.\n";
-		//! \todo ASCII: add support for selected vertices.
-		//! \todo ASCII: add support for polylines.
-		//! \todo ASCII: add support for unsupported lines.
-		filestr.close();
-
-		if(hasVertexTexCoords && !vertexTextureCoordinates.empty())
-		{
-			copyVertexTexCoordsToFaces(vertexTextureCoordinates, rFaceProps);
-		}
-
-		return( true );
+		parseSuccess = parseAscii(plyElements, filestr, sectionProps, vertexTextureCoordinates, rVertexProps, rFaceProps, hasVertexTexCoords);
 	}
-
-	//---------------------------------- PARSE BINARY FILES----------------------------------------------------------------
-	// ReOpen file, when binary!
-	if( !readASCII ) {
-		filestr.close();
-
-		filestr.open( rFilename.c_str(), std::fstream::in | std::ios_base::binary );
-		if( !filestr.is_open() ) {
-			LOG::error() << "[PlyReader::" << __FUNCTION__ << "] could not open: '" << rFilename << "'!\n";
-			return false;
-		}
-		filestr.seekg( 0, filestr.end );
-		uint64_t fileLength = filestr.tellg();
-		filestr.seekg( 0, filestr.beg );
-		LOG::debug() << "[PlyReader::" << __FUNCTION__ << "] File length for reading binary: " << fileLength << " Bytes.\n";
-
-		//! \todo buffer can not allocate sufficent memory for very large 3D-models. Anyway it makes no sense to load the whole file jus to search for the end of the header. The latter is relativly small.
-		std::vector<char> buffer;
-		try{
-			buffer.resize( fileLength );
-		} catch( const std::exception& e ) {
-			LOG::error() << "[PlyReader::" << __FUNCTION__ << "] A standard exception was caught, with message '"
-				 << e.what() << "'\n";
-			LOG::error() << "[PlyReader::" << __FUNCTION__ << "]        File length: " << fileLength << "\n";
-			LOG::error() << "[PlyReader::" << __FUNCTION__ << "]        Size of chars for the buffer: " << fileLength*sizeof( char ) << "\n";
-			LOG::error() << "[PlyReader::" << __FUNCTION__ << "]        Maximum buffer size (theoretical, but not guaranteed): " << buffer.max_size() << "\n";
-			LOG::error() << "[PlyReader::" << __FUNCTION__ << "] ...... Trying again!\n";
-
-			try{
-				// try to truncate to 10 MB
-				fileLength = 10*1024*1024;
-				buffer.resize( fileLength );
-			} catch( const std::exception& e ) {
-				LOG::error() << "[PlyReader::" << __FUNCTION__ << "] A standard exception was caught, with message '"
-					 << e.what() << "'\n";
-				// Close file and return
-				filestr.close();
-				return( false );
-			}
-		}
-
-		filestr.read( buffer.data(), fileLength );
-		// Search string: 'end_header'
-		std::vector<char> seq = { 'e', 'n', 'd', '_', 'h', 'e', 'a', 'd', 'e', 'r' };
-		std::vector<char>::iterator it;
-		it = std::search( buffer.begin(), buffer.end(), seq.begin(), seq.end() );
-		if( it == buffer.end() ) {
-			LOG::error() << "[PlyReader::" << __FUNCTION__ << "] 'end_header' not found!\n";
-			// Close file and return
-			filestr.close();
-			return( false );
-		}
-		int posfound = ( it - buffer.begin() );
-		LOG::debug() << "[PlyReader::" << __FUNCTION__ << "] 'end_header' found at position " << posfound << "\n";
-
-		char newLine = buffer[ posfound+seq.size() ];
-		int forwardToPos;
-		if( newLine == 0x0A ) {
-			forwardToPos = posfound+seq.size()+1;
-			LOG::debug() << "[PlyReader::" << __FUNCTION__ << "] one byte line break.\n";
-		} else {
-			newLine = buffer[ posfound+seq.size()+1 ];
-			if( newLine == 0x0A ) {
-				forwardToPos = posfound+seq.size()+2;
-				LOG::debug() << "[PlyReader::" << __FUNCTION__ << "] two byte line break.\n";
-			} else {
-				LOG::error() << "[PlyReader::" << __FUNCTION__ << "] end of header new line not found!\n";
-				filestr.close();
-				return false;
-			}
-		}
-		filestr.seekg( forwardToPos );
-	}
-
-	while( filestr ) {
-
-		//------------------------------------------- PARSE VERTICES -------------------------------------------
-
-		if( verticesRead < plyElements[PLY_VERTEX] ) {
-			plyPropSize          = sectionProps[PLY_VERTEX].propertyDataType.begin();
-			plyPropListCountSize = sectionProps[PLY_VERTEX].propertyListCountDataType.begin();
-			plyPropListSize      = sectionProps[PLY_VERTEX].propertyListDataType.begin();
-			double vertNormalX = _NOT_A_NUMBER_DBL_;
-			double vertNormalY = _NOT_A_NUMBER_DBL_;
-			double vertNormalZ = _NOT_A_NUMBER_DBL_;
-			for(auto currProperty : sectionProps[PLY_VERTEX].propertyType) {
-					switch( currProperty ) {
-					case PLY_COORD_X:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
-						rVertexProps[ verticesRead ].mCoordX = static_cast<double>(someFloat);
-						if( filestr.tellg() < 0 ) {
-							LOG::warn() << "insufficient coordinates provided for position vector\n";
-						}
-						break;
-					case PLY_COORD_Y:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
-						rVertexProps[ verticesRead ].mCoordY = static_cast<double>(someFloat);
-						if( filestr.tellg() < 0 ) {
-							LOG::warn() << "insufficient coordinates provided for position vector\n";
-						}
-						break;
-					case PLY_COORD_Z:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
-						rVertexProps[ verticesRead ].mCoordZ = static_cast<double>(someFloat);
-						break;
-					case PLY_VERTEX_NORMAL_X:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
-						vertNormalX = static_cast<double>(someFloat);
-						break;
-					case PLY_VERTEX_NORMAL_Y:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
-						vertNormalY = static_cast<double>(someFloat);
-						break;
-					case PLY_VERTEX_NORMAL_Z:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
-						vertNormalZ = static_cast<double>(someFloat);
-						break;
-					case PLY_FLAGS: {
-						unsigned int someFlags;
-						READ_IN_PROPER_BYTE_ORDER( filestr, &someFlags, (*plyPropSize), reverseByteOrder );
-						rVertexProps[ verticesRead ].mFlags = someFlags;
-						} break;
-					case PLY_LABEL: {
-						unsigned int someLabelID;
-						READ_IN_PROPER_BYTE_ORDER( filestr, &someLabelID, (*plyPropSize), reverseByteOrder );
-						rVertexProps[ verticesRead ].mLabelId = someLabelID;
-						} break;
-					case PLY_VERTEX_QUALITY:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
-						rVertexProps[ verticesRead ].mFuncVal = static_cast<double>(someFloat);
-						break;
-					case PLY_COLOR_RED:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &charProp, (*plyPropSize), reverseByteOrder );
-						rVertexProps[ verticesRead ].mColorRed = static_cast<unsigned char>(charProp);
-						break;
-					case PLY_COLOR_GREEN:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &charProp, (*plyPropSize), reverseByteOrder );
-						rVertexProps[ verticesRead ].mColorGrn = static_cast<unsigned char>(charProp);
-						break;
-					case PLY_COLOR_BLUE:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &charProp, (*plyPropSize), reverseByteOrder );
-						rVertexProps[ verticesRead ].mColorBle = static_cast<unsigned char>(charProp);
-						break;
-					case PLY_COLOR_ALPHA:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &charProp, (*plyPropSize), reverseByteOrder );
-						//! \todo Alpha is read but ignored later on.
-						rVertexProps[ verticesRead ].mColorAlp = static_cast<unsigned char>(charProp);
-						break;
-					case PLY_LIST_IGNORE:
-					case PLY_LIST_VERTEX_INDICES:
-					case PLY_LIST_TEXCOORDS:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &listNrChar, (*plyPropListCountSize), reverseByteOrder );
-						posInFile = filestr.tellg();
-						filestr.seekg( posInFile+static_cast<long>(static_cast<uint>(listNrChar)*static_cast<uint>(*plyPropListSize)) );
-						bytesIgnored += static_cast<long>(static_cast<uint>(listNrChar)*static_cast<uint>(*plyPropListSize));
-						break;
-					case PLY_LIST_FEATURE_VECTOR:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &listNrChar, (*plyPropListCountSize), reverseByteOrder );
-						//LOG::debug() << "listNrChar: " << (unsigned short)listNrChar << "\n";
-						if( filestr.tellg() < 0 ) {
-							LOG::warn() << "feature vector data is missing\n";
-						}
-						// When we have no memory allocated yet - this is the time (and we assume that all vertices have feature vectors of the same length or shorter.
-						if( rMeshSeed.getFeatureVecVerticesRef().size() == 0 ) {
-							rMeshSeed.setFeatureVecVerticesLen(static_cast<uint64_t>(listNrChar));
-							rMeshSeed.getFeatureVecVerticesRef().assign( listNrChar*plyElements[PLY_VERTEX], _NOT_A_NUMBER_DBL_ );
-						}
-						for( uint j=0; j<static_cast<uint>(listNrChar); j++ ) {
-							READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropListSize), reverseByteOrder );
-							if( filestr.tellg() < 0 ) {
-								LOG::warn() << "feature vector data is missing\n";
-							}
-							rMeshSeed.getFeatureVecVerticesRef()[ verticesRead*listNrChar+j ] = static_cast<double>(someFloat);
-						}
-						break;
-					default:
-						// Read but ignore
-						posInFile = filestr.tellg();
-						filestr.seekg( posInFile+(*plyPropSize) );
-						bytesIgnored += (*plyPropSize);
-				}
-				++plyPropSize;
-				++plyPropListCountSize;
-				++plyPropListSize;
-			}
-
-			++verticesRead;
-
-		//------------------------------------------- PARSE FACES -------------------------------------------
-		} else if( facesRead < plyElements[PLY_FACE] ) {
-			plyPropSize          = sectionProps[PLY_FACE].propertyDataType.begin();
-			plyPropListCountSize = sectionProps[PLY_FACE].propertyListCountDataType.begin();
-			plyPropListSize      = sectionProps[PLY_FACE].propertyListDataType.begin();
-			for(const ePlyProperties currProperty : sectionProps[PLY_FACE].propertyType) {
-					switch( currProperty ) {
-					case PLY_LIST_VERTEX_INDICES:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &listNrChar, (*plyPropListCountSize), reverseByteOrder );
-						if( listNrChar != 3 ) {
-							LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] unsupported number (" << static_cast<uint>(listNrChar) << ") of elements within the list!\n";
-						}
-						READ_IN_PROPER_BYTE_ORDER( filestr, &someInt, (*plyPropListSize), reverseByteOrder );
-						rFaceProps[facesRead].mVertIdxA = someInt;
-						READ_IN_PROPER_BYTE_ORDER( filestr, &someInt, (*plyPropListSize), reverseByteOrder );
-						rFaceProps[facesRead].mVertIdxB = someInt;
-						READ_IN_PROPER_BYTE_ORDER( filestr, &someInt, (*plyPropListSize), reverseByteOrder );
-						rFaceProps[facesRead].mVertIdxC = someInt;
-						break;
-					case PLY_LIST_TEXCOORDS:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &listNrChar, (*plyPropListCountSize), reverseByteOrder );
-						if( listNrChar != 6) {
-							LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] unsupported number (" << static_cast<uint>(listNrChar) << ") of elements within the list!\n";
-						}
-						else {
-							for(unsigned char j = 0; j<listNrChar; ++j)
-							{
-								float texCoord;
-								READ_IN_PROPER_BYTE_ORDER( filestr, &texCoord,(*plyPropListSize), reverseByteOrder);
-								rFaceProps[facesRead].textureCoordinates[j] = texCoord;
-							}
-						}
-						break;
-					case PLY_FACE_TEXNUMBER:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &someInt, (*plyPropSize), reverseByteOrder);
-						rFaceProps[facesRead].textureId = static_cast<unsigned char>(someInt);
-						break;
-					case PLY_LIST_FEATURE_VECTOR:
-					case PLY_LIST_IGNORE:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &listNrChar, (*plyPropListCountSize), reverseByteOrder );
-						posInFile = filestr.tellg();
-						filestr.seekg( posInFile+static_cast<long>(static_cast<uint>(listNrChar)*static_cast<uint>(*plyPropListSize)) );
-						bytesIgnored += static_cast<long>(static_cast<uint>(listNrChar)*static_cast<uint>(*plyPropListSize));
-						break;
-					default:
-						// Read but ignore
-						posInFile = filestr.tellg();
-						filestr.seekg( posInFile+(*plyPropSize) );
-						bytesIgnored += (*plyPropSize);
-				}
-				++plyPropSize;
-				++plyPropListCountSize;
-				++plyPropListSize;
-			}
-
-			facesRead++;
-		//------------------------------------------- PARSE POLYLINES -------------------------------------------
-		} else if( polyLinesRead < plyElements[PLY_POLYGONAL_LINE] ) {
-			plyPropSize          = sectionProps[PLY_POLYGONAL_LINE].propertyDataType.begin();
-			plyPropListCountSize = sectionProps[PLY_POLYGONAL_LINE].propertyListCountDataType.begin();
-			plyPropListSize      = sectionProps[PLY_POLYGONAL_LINE].propertyListDataType.begin();
-			PrimitiveInfo primInfo;
-			for(const ePlyProperties currProperty : sectionProps[PLY_POLYGONAL_LINE].propertyType) {
-					switch( currProperty ) {
-					case PLY_COORD_X:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
-						primInfo.mPosX = static_cast<double>(someFloat);
-						break;
-					case PLY_COORD_Y:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
-						primInfo.mPosY = static_cast<double>(someFloat);
-						break;
-					case PLY_COORD_Z:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
-						primInfo.mPosZ = static_cast<double>(someFloat);
-						break;
-					case PLY_VERTEX_NORMAL_X:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
-						primInfo.mNormalX = static_cast<double>(someFloat);
-						break;
-					case PLY_VERTEX_NORMAL_Y:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
-						primInfo.mNormalY = static_cast<double>(someFloat);
-						break;
-					case PLY_VERTEX_NORMAL_Z:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
-						primInfo.mNormalZ = static_cast<double>(someFloat);
-						break;
-					case PLY_LABEL: {
-						unsigned int labelID;
-						READ_IN_PROPER_BYTE_ORDER( filestr, &labelID, (*plyPropSize), reverseByteOrder );
-						rMeshSeed.getPolyLabelIDRef().push_back(labelID);
-						} break;
-					case PLY_LIST_VERTEX_INDICES: {
-						// Read a list of polyline indices
-						int nrIndices;
-						READ_IN_PROPER_BYTE_ORDER( filestr, &nrIndices, (*plyPropListCountSize), reverseByteOrder );
-						std::vector<int>* somePolyLinesIndices = new std::vector<int>;
-						for( int j=0; j<nrIndices; j++ ) {
-							int vertIndex;
-							READ_IN_PROPER_BYTE_ORDER( filestr, &vertIndex, (*plyPropListSize), reverseByteOrder );
-							somePolyLinesIndices->push_back( vertIndex );
-						}
-						rMeshSeed.getPolyLineVertIndicesRef().push_back( somePolyLinesIndices );
-						} break;
-					case PLY_LIST_FEATURE_VECTOR:
-					case PLY_LIST_TEXCOORDS:
-					case PLY_LIST_IGNORE:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &listNrChar, (*plyPropListCountSize), reverseByteOrder );
-						posInFile = filestr.tellg();
-						filestr.seekg( posInFile+static_cast<long>(static_cast<uint>(listNrChar)*static_cast<uint>(*plyPropListSize)) );
-						bytesIgnored += static_cast<long>(static_cast<uint>(listNrChar)*static_cast<uint>(*plyPropListSize));
-						break;
-					default:
-						// Read but ignore
-						posInFile = filestr.tellg();
-						filestr.seekg( posInFile+(*plyPropSize) );
-						bytesIgnored += (*plyPropSize);
-				}
-				plyPropSize++;
-				plyPropListCountSize++;
-				plyPropListSize++;
-			}
-			rMeshSeed.getPolyPrimInfoRef().push_back( primInfo );
-			polyLinesRead++;
-			//------------------------------------------- PARSE UNSUPPORTED -------------------------------------------
-		} else if( unsupportedRead < plyElements[PLY_SECTION_UNSUPPORTED] ) {
-			plyPropSize          = sectionProps[PLY_SECTION_UNSUPPORTED].propertyDataType.begin();
-			plyPropListCountSize = sectionProps[PLY_SECTION_UNSUPPORTED].propertyListCountDataType.begin();
-			plyPropListSize      = sectionProps[PLY_SECTION_UNSUPPORTED].propertyListDataType.begin();
-			for(const ePlyProperties currProperty : sectionProps[PLY_SECTION_UNSUPPORTED].propertyType) {
-					switch( currProperty ) {
-					case PLY_LIST_IGNORE:
-					case PLY_LIST_FEATURE_VECTOR:
-					case PLY_LIST_VERTEX_INDICES:
-					case PLY_LIST_TEXCOORDS:
-						READ_IN_PROPER_BYTE_ORDER( filestr, &listNrChar, (*plyPropListCountSize), reverseByteOrder );
-						posInFile = filestr.tellg();
-						filestr.seekg( posInFile+static_cast<long>(static_cast<uint>(listNrChar)*static_cast<uint>(*plyPropListSize)) );
-						bytesIgnored += static_cast<long>(static_cast<uint>(listNrChar)*static_cast<uint>(*plyPropListSize));
-						break;
-
-					default:
-						// Read but ignore
-						posInFile = filestr.tellg();
-						filestr.seekg( posInFile+(*plyPropSize) );
-						bytesIgnored += (*plyPropSize);
-				}
-				plyPropSize++;
-				plyPropListCountSize++;
-				plyPropListSize++;
-			}
-			unsupportedRead++;
-		} else {
-			// needed to reach EOF!:
-			bytesIgnored++;
-			extraBytesIgnored++;
-			READ_IN_PROPER_BYTE_ORDER( filestr, &listNrChar, 1, reverseByteOrder );
-		}
-	}
-
-	filestr.close();
-
-	if(hasVertexTexCoords && !vertexTextureCoordinates.empty())
+	else
 	{
-		copyVertexTexCoordsToFaces(vertexTextureCoordinates, rFaceProps);
+		parseSuccess = parseBinary(plyElements, filestr, sectionProps, vertexTextureCoordinates, rVertexProps, rFaceProps, hasVertexTexCoords, rFilename, reverseByteOrder, rMeshSeed);
 	}
 
-	LOG::info() << "[PlyReader::" << __FUNCTION__ << "] PLY comment lines: " << linesComment << "\n";
-	LOG::info() << "[PlyReader::" << __FUNCTION__ << "] PLY ignored:       " << bytesIgnored << " Byte. (one is OK as it is the EOF byte)\n";
-	LOG::info() << "[PlyReader::" << __FUNCTION__ << "] PLY Extra ignored: " << extraBytesIgnored << " Byte. (one is OK as it is the EOF byte)\n";
 	LOG::info() << "[PlyReader::" << __FUNCTION__ << "] PLY:               " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds.\n";
 
-	return( true );
+	return parseSuccess;
 }
 
 void PlyReader::setIsBigEndian(bool bigEndian)
 {
 	mSystemIsBigEndian = bigEndian;
 }
-
-
 
 //! Maps a parsed string from a PLY-header to a data-type.
 //!

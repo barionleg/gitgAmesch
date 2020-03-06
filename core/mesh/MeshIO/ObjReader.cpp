@@ -20,7 +20,7 @@ using namespace std;
 // f v1/vt1 v2/vt2 v3/vt3 ...
 // f v1//vn1 v2//vn2 v3//vn3 ...
 // f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3 ....
-bool parseFaceProperty(const std::vector<std::string>& tokens, int& faceIdx, std::vector<sFaceProperties>& rFaceProps, const std::vector<float>& textureCoordinates, MtlMaterial* material, std::unordered_map<std::string, unsigned char>& textureToIdMap)
+bool parseFaceProperty(const std::vector<std::string>& tokens, size_t faceIdx, std::vector<sFaceProperties>& rFaceProps, const std::vector<float>& textureCoordinates, MtlMaterial* material, std::unordered_map<std::string, unsigned char>& textureToIdMap)
 {
 	std::list<int> vertIndices;
 	std::list<int> texCoordIndices;
@@ -82,65 +82,28 @@ bool parseFaceProperty(const std::vector<std::string>& tokens, int& faceIdx, std
 	if(vertIndices.size() < 3)
 		return false;
 
-	auto vertIt = vertIndices.begin();
-	auto texIt = texCoordIndices.begin();
-	auto normalIt = normalIndices.begin();
+	rFaceProps[faceIdx].vertexIndices.reserve(vertIndices.size());
+	std::copy(vertIndices.begin(), vertIndices.end(), std::back_inserter(rFaceProps[faceIdx].vertexIndices));
 
-	int idxFirst = *vertIt++;
-	int idxPrev  = *vertIt++;
-
-	float uvXFirst = 0.0;
-	float uvYFirst = 0.0;
-
-	if(*texIt >= 0)
+	if(!textureCoordinates.empty())
 	{
-		uvXFirst = textureCoordinates[*texIt * 2];
-		uvYFirst = textureCoordinates[*texIt * 2 + 1];
-	}
+		rFaceProps[faceIdx].textureCoordinates.reserve(texCoordIndices.size() * 2);
 
-	++texIt;
-
-	float uvXPrev = 0.0;
-	float uvYPrev = 0.0;
-
-	if(*texIt >= 0)
-	{
-		uvXPrev = textureCoordinates[*texIt * 2];
-		uvYPrev = textureCoordinates[*texIt * 2 + 1];
-	}
-
-	++texIt;
-
-	//TODO: use normals if present;
-	++normalIt; ++normalIt;
-
-	while(vertIt != vertIndices.end())
-	{
-		rFaceProps[faceIdx].mVertIdxA = idxFirst;
-		rFaceProps[faceIdx].mVertIdxB = idxPrev;
-		idxPrev = *vertIt++;
-		rFaceProps[faceIdx].mVertIdxC = idxPrev;
-
-		rFaceProps[faceIdx].textureCoordinates[0] = uvXFirst;
-		rFaceProps[faceIdx].textureCoordinates[1] = uvYFirst;
-		rFaceProps[faceIdx].textureCoordinates[2] = uvXPrev;
-		rFaceProps[faceIdx].textureCoordinates[3] = uvYPrev;
-
-		if(*texIt >= 0)
+		for(auto texIndex : texCoordIndices)
 		{
-			uvXPrev = textureCoordinates[*texIt * 2];
-			uvYPrev = textureCoordinates[*texIt * 2 + 1];
+			float uvX = 0.0F;
+			float uvY = 0.0F;
+
+			if(texIndex >= 0)
+			{
+				uvX = textureCoordinates[texIndex * 2    ];
+				uvY = textureCoordinates[texIndex * 2 + 1];
+			}
+
+			rFaceProps[faceIdx].textureCoordinates.push_back(uvX);
+			rFaceProps[faceIdx].textureCoordinates.push_back(uvY);
 		}
-
-		rFaceProps[faceIdx].textureCoordinates[4] = uvXPrev;
-		rFaceProps[faceIdx].textureCoordinates[5] = uvYPrev;
-
-		rFaceProps[faceIdx].textureId = textureId;
-		++texIt;
-		++normalIt;
-		++faceIdx;
 	}
-
 	return true;
 }
 
@@ -194,111 +157,85 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 		fp >> linePrefix;
 		// Vertex Data -------------------------------------------------------------------------
 		if( linePrefix == "vt" ) {           // texture vertices
-			objTexCoordsTotal++;
+			++objTexCoordsTotal;
 		} else if( linePrefix == "vn" ) {     // vertex normals
-			objVerticesNormalsTotal++;
+			++objVerticesNormalsTotal;
 		} else if( linePrefix == "vp" ) {     // paramter space vertics
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "v" ) {      // vertices
 			obj_verticesTotal++;
 		} else if( linePrefix == "cstype" ) { // free-form curve/surface attributes
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "deg" ) {    // degree
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "bmat" ) {   // basis matrix
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "step" ) {   // step size
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else
 		// Elements ----------------------------------------------------------------------------
 		if( linePrefix == "p" ) {             // point
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "l"  ) {      // line
-			// obj_linesUnsupportedTotal++;
-		} else if( linePrefix == "f" ) {       // Faces and triangle fans!
-			bool isVertIdx = false;
-			int  someIdx;
-			int  indices  = 0;
-			char nextByte = fp.peek();
-			while( ( nextByte != '\n' ) && ( nextByte != '\r' ) && ( nextByte != -1 ) ) {
-				if( ( nextByte == ' ' ) || ( nextByte == '\t' ) ) {
-					nextByte = fp.get();
-					nextByte = fp.peek();
-					// Vertex Index is always loacted after whitespace
-					isVertIdx = true;
-					continue;
-				}
-				if( nextByte == '/' ) {
-					nextByte = fp.get();
-					nextByte = fp.peek();
-					// No whitespace = no vertex index
-					isVertIdx = false;
-					continue;
-				}
-				fp >> someIdx;
-				nextByte = fp.peek();
-				if( isVertIdx ) {
-					indices++;
-				}
-			}
-			// As we can have a triangle fan here, we can compute the number of faces by:
-			objFacesTotal += indices - 2;
+			// ++obj_linesUnsupportedTotal;
+		} else if( linePrefix == "f" ) {       // Faces (triangles or ngons!)
+			++objFacesTotal;
 		} else if( linePrefix == "curv" ) {   // curve
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "curv2" ) {  // 2d-curve
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "surf" ) {   // surface
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else
 		// Free-form curve/surface body statements ---------------------------------------------
 		if( linePrefix == "parm" ) {          // parameter values
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "trim" ) {   // outer trimming loop
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "hole" ) {   // inner trimming loop
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "scrv" ) {   // special curve
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "sp" ) {     // special point
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "end" ) {    // end statement
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else
 		// Connectivity between free-form surfaces ---------------------------------------------
 		if( linePrefix == "con" ) {          // connect
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else
 		// Grouping ----------------------------------------------------------------------------
 		if( linePrefix == "g" ) {            // group name
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "s" ) {     // smoothing group
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "mg" ) {    // merging group
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "o" ) {     // object name
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else
 		// Display/render attributes -----------------------------------------------------------
 		if( linePrefix == "bevel" ) {             // bevel interpolation
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "c_interp" ) {   // color interpolation
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "d_interp" ) {   // dissolve interpolation
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "lod" ) {        // level of detail
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "usemtl" ) {     // material name
-			//obj_linesUnsupportedTotal++;
+			//++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "mtlib" ) {      // material library
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "shadow_obj" ) { // shadow casting
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "trace_obj" ) {  // ray tracing
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "ctech" ) {      // curve approximation technique
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "stech" ) {      // surface approximation technique
-			obj_linesUnsupportedTotal++;
+			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "mtllib") {      // mtl libs. Parse directy, to have all materials before using them guarenteed.
 			{
 				std::string fileName;
@@ -440,12 +377,13 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 				rVertexProps.at( vertexIdx ).mColorGrn = stoi( tokens.at( 5 ) );
 				rVertexProps.at( vertexIdx ).mColorBle = stoi( tokens.at( 6 ) );
 			}
-			vertexIdx++;
+			++vertexIdx;
 		} else if( firstToken == "f" ) { // faces i.e. triangles, quadtriangles and trianglestrips
 			if(!parseFaceProperty(tokens, faceIdx, rFaceProps, textureCoordinates, currentMaterial, textureToIdMap))
 			{
-				continue;
+				LOG::warn() << "[ObjReader::" << __FUNCTION__ << "Error parsing face property nr. " << faceIdx << '\n';
 			}
+			++faceIdx;
 
 		} else if( firstToken == "vn" ) { // Vertex normals
 			if( tokens.size() != 4 ) {

@@ -45,6 +45,7 @@ set(SOURCES_CORE mesh/geodentry.cpp
 	logging/Logging.cpp
 	logging/Logger.cpp
 	normalSphere/IcoSphereTree.cpp
+	mesh/util/triangulation.cpp
 	)
 
 set(HEADERS_CORE
@@ -62,6 +63,7 @@ set(HEADERS_CORE
 	mesh/MeshIO/MtlParser.h
 	mesh/triangle/triangle.h
 	mesh/triangle/triangleTriangleIntersection.h
+	mesh/util/triangulation.h
 	)
 
 set(PUBLIC_HEADERS_CORE ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/printbuildinfo.h
@@ -115,10 +117,3 @@ target_include_directories(gigameshCore PUBLIC
 							$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 							$<INSTALL_INTERFACE:include>
 							PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-
-#set_target_properties(gigameshCore PROPERTIES PUBLIC_HEADER ${PUBLIC_HEADERS_CORE}
-#											  PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/ellipsedisc.h
-#											  PUBLIC_HEADER	${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/MeshIO/ModelMetaData.h
-#											  PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/gmcommon.h
-#											  PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/normalSphere/IcoSphereTree.h
-#											  )
