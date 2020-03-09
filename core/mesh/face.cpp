@@ -2735,12 +2735,20 @@ void Face::reconnectToFaces() {
 
 //! Connects this face to its neighbouring faces via 1-ring neighbourhood.
 void Face::connectToFaces() {
-	set<Face*> neighbourCandidates;
+	std::vector<Face*> neighbourCandidates;
+	neighbourCandidates.reserve(vertA->get1RingFaceCount() + vertB->get1RingFaceCount() + vertC->get1RingFaceCount());
 	vertA->getFaces( &neighbourCandidates );
 	vertB->getFaces( &neighbourCandidates );
 	vertC->getFaces( &neighbourCandidates );
 	// Add face - either regular or non-manifold
-	
+
+	std::sort(neighbourCandidates.begin(), neighbourCandidates.end());
+
+	neighbourCandidates.erase(
+	            std::unique(neighbourCandidates.begin(), neighbourCandidates.end()) ,
+	            neighbourCandidates.end()
+	            );
+
 	for(auto itFace=neighbourCandidates.begin(); itFace!=neighbourCandidates.end(); ++itFace ) {
 		if( (*itFace) == this ) {
 			continue;
