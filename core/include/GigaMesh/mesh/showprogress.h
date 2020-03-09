@@ -16,7 +16,7 @@ class ShowProgress
 	private:
 		std::string        mPrefix;              //!< Prefix for messages.
 		time_t             mProgressStarted;     //!< Timestamp, when the progress bar was started.
-		double             mLastTimeStamp;       //!< Timestamp of the last call of ShowProgress::showProgress;
+		time_t             mLastTimeStamp;       //!< Timestamp of the last call of ShowProgress::showProgress;
 };
 
 #endif // SHOWPROGRESS_H

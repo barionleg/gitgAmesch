@@ -21,7 +21,7 @@ void ShowProgress::showProgressStart(
                 const std::string& rMsg
 ) {
 	mProgressStarted = clock();
-	mLastTimeStamp = static_cast<double>(mProgressStarted);
+	mLastTimeStamp = mProgressStarted;
 	std::cout << mPrefix << rMsg << " --- Begin." << std::endl;
 }
 
@@ -43,12 +43,12 @@ bool ShowProgress::showProgress(
 		return( false );
 	}
 	// Set timestamp
-	mLastTimeStamp = static_cast<double>(clock());
+	mLastTimeStamp = clock();
 
 	//! \todo there are certainly more elegant ways to format time into useful/readable units.
 	// Compute progress on the console:
-	double timeElapsed = ( mLastTimeStamp - mProgressStarted ) / CLOCKS_PER_SEC;
-	double timeRemaining = round( 10.0 * ( timeElapsed / rVal ) * ( 1.0 - rVal ) ) / 10.0;
+	double timeElapsed = static_cast<double>( mLastTimeStamp - mProgressStarted ) / CLOCKS_PER_SEC;
+	double timeRemaining = round( 10.0 * (( timeElapsed / rVal ) - ( timeElapsed )) ) / 10.0;
 	std::string timeRemainingUnit = "sec";
 	if( timeRemaining > ( 24.0 * 3600.0 ) ) {
 		timeRemaining = round( 10.0 * timeRemaining / ( 24.0 * 3600.0 ) ) / 10.0;
