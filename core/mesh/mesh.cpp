@@ -226,7 +226,7 @@ Mesh::~Mesh() {
 	}
 	mFaces.clear();
 	//! 1b. remove Vertices.
-	for(auto itVertex = mVertices.begin(); itVertex != mVertices.end(); itVertex++ ) {
+	for(auto itVertex = mVertices.begin(); itVertex != mVertices.end(); ++itVertex ) {
 		if( primCtr % 100000 == 0 ) {
 			showProgress( (1.0+static_cast<double>(primCtr))/static_cast<double>(primTotal), string( "Destruct Mesh" ) );
 		}
