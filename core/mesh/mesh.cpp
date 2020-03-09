@@ -68,8 +68,9 @@ const auto NUM_THREADS = std::thread::hardware_concurrency() * 2;
 	};
 
 	void* estMultiFaceConnection( faceDataStruct* rFaceData ) {
-		int   threadID = rFaceData->mThreadID;
-		Mesh* myMesh   = rFaceData->mMesh;
+		const int   threadID = rFaceData->mThreadID;
+		Mesh* const myMesh   = rFaceData->mMesh;
+
 		LOG::info() << "[Thread " << threadID+1 << "] START one out of " << NUM_THREADS << " threads.\n";
 
 		// Show only for one thread
@@ -79,14 +80,14 @@ const auto NUM_THREADS = std::thread::hardware_concurrency() * 2;
 		}
 
 		double areaProc = 0.0;
-		Face* currFace;
-		uint64_t faceCount = myMesh->getFaceNr();
-		for( uint64_t faceIdx=threadID; faceIdx<faceCount; faceIdx+=NUM_THREADS ) {
-			currFace = myMesh->getFacePos( faceIdx );
+
+		const uint64_t faceCount = myMesh->getFaceNr();
+		for( uint64_t faceIdx=static_cast<uint64_t>(threadID); faceIdx<faceCount; faceIdx+=NUM_THREADS ) {
+			Face* const currFace = myMesh->getFacePos( faceIdx );
 			areaProc += currFace->getAreaNormal();
 			currFace->connectToFaces();
 			if( threadID == 0 ) {
-				myThreadProgress.showProgress( (double)faceIdx/(double)faceCount ,
+				myThreadProgress.showProgress( static_cast<double>(faceIdx)/static_cast<double>(faceCount) ,
 				                      "estMultiFaceConnection" );
 			}
 		}
@@ -773,7 +774,7 @@ void Mesh::establishStructure(
 	mMinZ = +DBL_MAX;
 	mMaxZ = -DBL_MAX;
 	double* featureVecVerticesPtr = mFeatureVecVertices.data();
-	for(size_t i=0; i<rVertexProps.size(); i++ ) {
+	for(size_t i=0; i<rVertexProps.size(); ++i ) {
 		VertexOfFace* newVert = new VertexOfFace( i, rVertexProps[i] );
 		// Assign feature vectors, when present:
 		if( mFeatureVecVerticesLen > 0 ) {
@@ -814,7 +815,7 @@ void Mesh::establishStructure(
 	Face *myFace;
 	mFaces.resize( rFaceProps.size() );
 	uint64_t facesAddedToMesh = 0;
-	for( uint64_t i=0; i<rFaceProps.size(); i++ ) {
+	for( uint64_t i=0; i<rFaceProps.size(); ++i ) {
 		//cout << "Face: " << i << " " << facesMeshed[i*3]-1 << ", " << facesMeshed[i*3+1]-1 << ", " << facesMeshed[i*3+2]-1 << endl;
 
 		if(rFaceProps[i].vertexIndices.size() < 3)
@@ -822,7 +823,7 @@ void Mesh::establishStructure(
 			continue;
 		}
 
-		//!TODO: handle case, where rFaceProps[i] contains an ngon
+		//!TODO: handle case, where rFaceProps[i] contains an ngon => currently handled in MeshIO
 		uint64_t vertAIdx = rFaceProps[i].vertexIndices[0];
 		uint64_t vertBIdx = rFaceProps[i].vertexIndices[1];
 		uint64_t vertCIdx = rFaceProps[i].vertexIndices[2];
@@ -853,7 +854,7 @@ void Mesh::establishStructure(
 			continue;
 		}
 
-		//!TODO: handle ngon case
+		//!TODO: handle case, where rFaceProps[i] contains an ngon => currently handled in MeshIO
 		std::array<float,6> textureCoordinates{0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F};
 
 		if(rFaceProps[i].textureCoordinates.size() >= 6)
@@ -874,7 +875,7 @@ void Mesh::establishStructure(
 			continue;
 		}
 		// Count sucessfully added faces
-		facesAddedToMesh++;
+		++facesAddedToMesh;
 
 		// Don't do this as it is extremly slow (approx. >>50x than using the temporary vector:
 		//Face *myFace = new Face( faceIdx, getVertexByIdx(...), getVertexByIdx(...), getVertexByIdx(...) );
@@ -907,12 +908,12 @@ void Mesh::establishStructure(
 
 	// Polylines:
 	removePolylinesAll();
-	for( unsigned int i=0; i<MeshSeedExt::getPolyLineNr(); i++ ) {
+	for( unsigned int i=0; i<MeshSeedExt::getPolyLineNr(); ++i ) {
 		//cout << "[Mesh::" << __FUNCTION__ << "] Polyline: ";
 		PolyLine* tmpPolyLine = new PolyLine( Vector3D( _NOT_A_NUMBER_, _NOT_A_NUMBER_, _NOT_A_NUMBER_, 1.0 ),
 		                                      Vector3D( _NOT_A_NUMBER_, _NOT_A_NUMBER_, _NOT_A_NUMBER_, 0.0 ) );
 		// The references to the vertices:
-		for( unsigned int j=0; j<MeshSeedExt::getPolyLineLength( i ); j++ ) {
+		for( unsigned int j=0; j<MeshSeedExt::getPolyLineLength( i ); ++j ) {
 			int vertIdxPoly = MeshSeedExt::getPolyLineVertIdx( i, j );
 			tmpPolyLine->addBack( mVertices.at( vertIdxPoly ) );
 			//cout << vertIdxPoly << " ";
@@ -965,7 +966,7 @@ void Mesh::establishStructure(
 	//pthread_mutex_init( &mutexVertexPtr, NULL );
 
 	std::vector<faceDataStruct> setFaceData(NUM_THREADS);
-	for( long t=0; t<NUM_THREADS; t++ ) {
+	for( long t=0; t<NUM_THREADS; ++t ) {
 		//cout << "[Mesh::" << __FUNCTION__ << "] Preparing data for thread " << t << endl;
 		setFaceData[t].mThreadID               = t;
 		setFaceData[t].mMesh                   = this;
