@@ -174,24 +174,16 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual int    selectVertFuncValGreatThan( double rVal );
 		//.
 
-				//TODO: is this the right place for these structs?
-				struct vertexNeighbourhoodHelper{
-				Vertex* vert;
-			int type;
+		//TODO: is this the right place for these structs?
+		struct vertexNeighbourhoodHelper{
+			Vertex* vert = nullptr;
+			int     type = 0;
 			bool visited = false;
 
 			vertexNeighbourhoodHelper(Vertex* aVert, int anInt, bool aBool) : vert(aVert), type(anInt), visited(aBool) { }
 
 			bool operator < (const vertexNeighbourhoodHelper& other) const {
 				return (type < other.type);
-			}
-		};
-
-		struct find_vertex_struct {
-				Vertex* vert;
-			find_vertex_struct(Vertex* vert):vert(vert) { }
-			bool operator()(vertexNeighbourhoodHelper const& v) const {
-				return v.vert == vert;
 			}
 		};
 
@@ -719,12 +711,12 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 
 	protected:
 		// Bounding Box:
-		double             mMinX;                //!< Bounding Box - minimum X
-		double             mMaxX;                //!< Bounding Box - maximum X
-		double             mMinY;                //!< Bounding Box - minimum Y
-		double             mMaxY;                //!< Bounding Box - maximum Y
-		double             mMinZ;                //!< Bounding Box - minimum Z
-		double             mMaxZ;                //!< Bounding Box - maximum Z
+		double             mMinX = 0.0;               //!< Bounding Box - minimum X
+		double             mMaxX = 0.0;               //!< Bounding Box - maximum X
+		double             mMinY = 0.0;               //!< Bounding Box - minimum Y
+		double             mMaxY = 0.0;               //!< Bounding Box - maximum Y
+		double             mMinZ = 0.0;               //!< Bounding Box - minimum Z
+		double             mMaxZ = 0.0;               //!< Bounding Box - maximum Z
 
 		// Datums
 		std::vector<Sphere*>    mDatumSpheres;        //!< Datum list/set for spheres.
@@ -737,7 +729,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		std::vector<PolyLine*>  mPolyLines;           //!< Polylines with or without labels.
 		std::set<PolyLine*>     mPolyLinesSelected;   //!< Selected polylines.
 		// Single selection of a primitive:
-		Primitive*         mPrimSelected;        //!< Pointer corresponding to the element related to the selected pixel. Will be a Face or a Vertex in most cases.
+		Primitive*         mPrimSelected = nullptr;        //!< Pointer corresponding to the element related to the selected pixel. Will be a Face or a Vertex in most cases.
 
 		// Selection of positions e.g. to measure distances:
 		std::vector<std::tuple<Vector3D,Primitive*,bool> > mSelectedPositions;  //!< Selected coordinates, which are typically from a face or (solo) vertices.
@@ -751,8 +743,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 
 		// Binary Space Partitioning -- Octree
 	protected:
-		Octree<Vertex*>*   mOctree;              //! Octree handling the Vertices stored in mVertices.
-		Octree<Face*>*     mOctreeface;          //! Octree handling the Faces stored in mFaces.
+		Octree<Vertex*>*   mOctree     = nullptr;          //! Octree handling the Vertices stored in mVertices.
+		Octree<Face*>*     mOctreeface = nullptr;          //! Octree handling the Faces stored in mFaces.
 
 		// Primitves describing the Mesh:
 		std::vector<Vertex*> mVertices;   //!< Vertices of the Mesh.
@@ -767,18 +759,19 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 
 		//----------------------------------------------------------------------
 		// Selection of points for a plane:
-		Plane::ePlaneVerts    mPlanePosIdx;           //!< Index of the next position vector of a plane to be set.
+		Plane::ePlaneVerts    mPlanePosIdx = Plane::PLANE_VERT_A;  //!< Index of the next position vector of a plane to be set.
 		Plane    mPlane;             //!< Mesh internal plane, used for various operations like cut, projection, etc.
 
 		//! \todo the mConeAxisPoints and MeshParams::AXIS_PRIMEMERIDIAN are also used for the cylinder and (in the future) the sphere. Therefore the name and handling has to be adapted.
 		// Selection of points for a cone:
-		Vector3D    mConeAxisPoints[2];   //! Stores points on axis of cone (upper & lower point); the points
-		                                  //! will be updated after the user has chosen two radii. If this is
-		                                  //! done, the points will be the foot of perpendicular of the radius
-		                                  //! point with respect to the cone axis.
-		double      mConeRadius[2];       //! Stores radii of cone (upper & lower radius)
-		int         mConeRadiusIdx;       //! Stores index of cone radius
-		coneStates  mConeStatus;          //! Stores current status of cone selection
+		Vector3D    mConeAxisPoints[2] =
+		        {Vector3D(0.0), Vector3D(0.0)};   //! Stores points on axis of cone (upper & lower point); the points
+		                                          //! will be updated after the user has chosen two radii. If this is
+		                                          //! done, the points will be the foot of perpendicular of the radius
+		                                          //! point with respect to the cone axis.
+		double      mConeRadius[2] = {0.0,0.0};   //! Stores radii of cone (upper & lower radius)
+		int         mConeRadiusIdx = 0;           //! Stores index of cone radius
+		coneStates  mConeStatus = CONE_UNDEFINED; //! Stores current status of cone selection
 
 	protected:
 		virtual bool centerAroundCone( bool rResetNormals=true );
@@ -788,13 +781,13 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 	private:
 
 		// Selection of points for a sphere:
-		int      mSpherePointsIdx;      //! Stores next index for sphere point position storage
+		int      mSpherePointsIdx = 0;  //! Stores next index for sphere point position storage
 		Vector3D mSpherePoints[4];      //! Stores points for sphere
 		Vector3D mSpherePointNormals[4];//! Stores normals of the points for the sphere
 		Vector3D mSphereCenter;         //! Stores center of sphere; calculated once four points have been selected
-		double   mSphereRadius;         //! Stores radius of sphere; calculated once four points have been selected
-		bool     mCenteredAroundSphere; //! Flag signalling that the mesh is centered around the sphere
-		bool     mUnrolledAroundSphere; //! Flag signalling that the mesh has been unrolled
+		double   mSphereRadius = 0.0;   //! Stores radius of sphere; calculated once four points have been selected
+		bool     mCenteredAroundSphere = false; //! Flag signalling that the mesh is centered around the sphere
+		bool     mUnrolledAroundSphere = false; //! Flag signalling that the mesh has been unrolled
 
 
 protected:

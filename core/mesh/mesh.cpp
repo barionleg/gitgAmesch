@@ -121,17 +121,6 @@ const auto NUM_THREADS = std::thread::hardware_concurrency() * 2;
 	funcValStash.clear();
 
 #define MESHINITDEFAULTS                        \
-	mPrimSelected( nullptr ),                  \
-	mOctree( nullptr ),                        \
-	mOctreeface( nullptr ),                    \
-	mPlanePosIdx( Plane::PLANE_VERT_A ),    \
-	mConeAxisPoints{ Vector3D( 0.0 ), Vector3D( 0.0 ) },   \
-	mConeRadiusIdx(0),                      \
-	mConeStatus(CONE_UNDEFINED),            \
-	mSpherePointsIdx(0),                    \
-	mSphereRadius(0.0),                     \
-	mCenteredAroundSphere(false),           \
-	mUnrolledAroundSphere(false),           \
 	ShowProgress( "[Mesh]" )
 
 //! Minimalistic constructur initalizing variables and pointers.
@@ -2868,7 +2857,6 @@ bool Mesh::traverseSkeletonLine(vector<vertexNeighbourhoodHelper> &neighbourhood
 
 	//if no PolyLine is active, create a new one and add the current vertex x to it
 	if(line == nullptr) {
-		delete line;
 		line = new PolyLine();
 		line->addBack(x.vert);
 		start = x;
@@ -2878,8 +2866,12 @@ bool Mesh::traverseSkeletonLine(vector<vertexNeighbourhoodHelper> &neighbourhood
 	    for(auto& vert : adjacentVerts) {
 
 			//look if current vertex vert is in the active selection
-			vector<vertexNeighbourhoodHelper>::iterator y = find_if(neighbourhood.begin(), neighbourhood.end(),
-			                 find_vertex_struct(vert));
+			auto y = find_if(neighbourhood.begin(), neighbourhood.end(),
+			    [&vert](const vertexNeighbourhoodHelper& helper)
+			    {
+				    return helper.vert == vert;
+			    }
+			);
 
 		//if the vertice is in the active selection AND not yet visited AND not the start vertex AND there is an active line, continue
 		if(y != neighbourhood.end() && !y->visited && y->vert != start.vert && line != nullptr) {
