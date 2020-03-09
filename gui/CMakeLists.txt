@@ -13,52 +13,53 @@ if(CMAKE_VERSION VERSION_LESS "3.7.0")
 	set(CMAKE_INCLUDE_CURRENT_DIR ON)
 endif()
 
-set(GUI_SOURCES main.cpp
-				QGMMainWindow.cpp                 QGMMainWindow.h
-				meshQt.cpp                        meshQt.h
-				image2d.cpp                       image2d.h
-				meshwidget.cpp                    meshwidget.h
-				qgmdockinfo.cpp                   qgmdockinfo.h
-				QGMDialogMSII.cpp                 QGMDialogMSII.h
-				QGMDialogAbout.cpp                QGMDialogAbout.h
-				QGMDialogRuler.cpp                QGMDialogRuler.h
-				qgmdocksidebar.cpp                qgmdocksidebar.h
-				qgmdockview.cpp                   qgmdockinfo.h
-				meshwidget_params.cpp             meshwidget_params.h
-				QGMDialogComboBox.cpp             QGMDialogComboBox.h
-				QGMDialogSliderHD.cpp             QGMDialogSliderHD.h
-				QGMDialogConeParam.cpp            QGMDialogConeParam.h
-				QGMDialogEnterText.cpp            QGMDialogEnterText.h
-				QGMDialogPlaneParam.cpp           QGMDialogPlaneParam.h
-				QGMDialogNprSettings.cpp          QGMDialogNprSettings.h
-				MeshQtCSVImportExport.cpp         MeshQtCSVImportExport.h
-				QGMDialogCutOffValues.cpp         QGMDialogCutOffValues.h
-				dialogGridCenterSelect.cpp        dialogGridCenterSelect.h
-				ExternalProgramsDialog.cpp        ExternalProgramsDialog.h
-				qruntpsrpmscriptdialog.cpp        qruntpsrpmscriptdialog.h
-				QGMDialogTransparencySettings.cpp QGMDialogTransparencySettings.h
-				meshGL/meshGL.cpp                 meshGL/meshGL.h
-				meshGL/meshglcolors.cpp           meshGL/meshglcolors.h
-				meshGL/meshGL_params.cpp          meshGL/meshGL_params.h
-				meshGL/meshGLShader.cpp           meshGL/meshGLShader.h
-				meshGL/PinRenderer.cpp            meshGL/PinRenderer.h
-				meshGL/TexturedMesh.cpp           meshGL/TexturedMesh.h
-				meshGL/TexturedMeshRenderer.cpp   meshGL/TexturedMeshRenderer.h
-				svg/SvgWriter.cpp                 svg/SvgWriter.h
-				svg/SvgCircle.cpp                 svg/SvgCircle.h
-				svg/SvgImage.cpp                  svg/SvgImage.h
-				svg/SvgPath.cpp                   svg/SvgPath.h
-				svg/SvgRect.cpp                   svg/SvgRect.h
-				svg/SvgText.cpp                   svg/SvgText.h
-				normalSphereSelection/ArcBall.cpp normalSphereSelection/ArcBall.h
-				normalSphereSelection/NormalSphereSelectionDialog.cpp
-				normalSphereSelection/NormalSphereSelectionDialog.h
-				normalSphereSelection/NormalSphereSelectionRenderWidget.cpp
-				normalSphereSelection/NormalSphereSelectionRenderWidget.h
+set(GUI_SOURCES src/main.cpp
+				src/QGMMainWindow.cpp                 src/QGMMainWindow.h
+				src/meshQt.cpp                        src/meshQt.h
+				src/image2d.cpp                       src/image2d.h
+				src/meshwidget.cpp                    src/meshwidget.h
+				src/qgmdockinfo.cpp                   src/qgmdockinfo.h
+				src/QGMDialogMSII.cpp                 src/QGMDialogMSII.h
+				src/QGMDialogAbout.cpp                src/QGMDialogAbout.h
+				src/QGMDialogRuler.cpp                src/QGMDialogRuler.h
+				src/qgmdocksidebar.cpp                src/qgmdocksidebar.h
+				src/qgmdockview.cpp                   src/qgmdockinfo.h
+				src/meshwidget_params.cpp             src/meshwidget_params.h
+				src/QGMDialogComboBox.cpp             src/QGMDialogComboBox.h
+				src/QGMDialogSliderHD.cpp             src/QGMDialogSliderHD.h
+				src/QGMDialogConeParam.cpp            src/QGMDialogConeParam.h
+				src/QGMDialogEnterText.cpp            src/QGMDialogEnterText.h
+				src/QGMDialogPlaneParam.cpp           src/QGMDialogPlaneParam.h
+				src/QGMDialogNprSettings.cpp          src/QGMDialogNprSettings.h
+				src/MeshQtCSVImportExport.cpp         src/MeshQtCSVImportExport.h
+				src/QGMDialogCutOffValues.cpp         src/QGMDialogCutOffValues.h
+				src/dialogGridCenterSelect.cpp        src/dialogGridCenterSelect.h
+				src/ExternalProgramsDialog.cpp        src/ExternalProgramsDialog.h
+				src/qruntpsrpmscriptdialog.cpp        src/qruntpsrpmscriptdialog.h
+				src/QGMDialogTransparencySettings.cpp src/QGMDialogTransparencySettings.h
+				src/meshGL/meshGL.cpp                 src/meshGL/meshGL.h
+				src/meshGL/meshglcolors.cpp           src/meshGL/meshglcolors.h
+				src/meshGL/meshGL_params.cpp          src/meshGL/meshGL_params.h
+				src/meshGL/meshGLShader.cpp           src/meshGL/meshGLShader.h
+				src/meshGL/PinRenderer.cpp            src/meshGL/PinRenderer.h
+				src/meshGL/TexturedMesh.cpp           src/meshGL/TexturedMesh.h
+				src/meshGL/TexturedMeshRenderer.cpp   src/meshGL/TexturedMeshRenderer.h
+				src/svg/SvgWriter.cpp                 src/svg/SvgWriter.h
+				src/svg/SvgCircle.cpp                 src/svg/SvgCircle.h
+				src/svg/SvgImage.cpp                  src/svg/SvgImage.h
+				src/svg/SvgPath.cpp                   src/svg/SvgPath.h
+				src/svg/SvgRect.cpp                   src/svg/SvgRect.h
+				src/svg/SvgText.cpp                   src/svg/SvgText.h
+				src/normalSphereSelection/ArcBall.cpp src/normalSphereSelection/ArcBall.h
+				src/normalSphereSelection/NormalSphereSelectionDialog.cpp
+				src/normalSphereSelection/NormalSphereSelectionDialog.h
+				src/normalSphereSelection/NormalSphereSelectionRenderWidget.cpp
+				src/normalSphereSelection/NormalSphereSelectionRenderWidget.h
 )
 
 #add ui files, so they appear it qtcreator projects view
-set(GUI_UI_FILES normalSphereSelection/NormalSphereSelectionDialog.ui
+set(GUI_UI_FILES
+	src/normalSphereSelection/NormalSphereSelectionDialog.ui
 	forms/QGMDialogTransparencySettings.ui
 	forms/dialogComboBox.ui
 	forms/qgmdialognprsettings.ui
@@ -109,7 +110,7 @@ add_dependencies(gigamesh OpenGL::GL)
 target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 #needed, if ui-header files need references to custom classes (e.g. NormalSphereSelectionRenderWidget.h)
-target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 target_link_libraries(gigamesh PRIVATE ${Qt5Widgets_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Network_LIBRARIES} psalm spherical_intersection OpenGL::GL gigameshCore)
 

@@ -60,7 +60,7 @@ bool VertexOfFace::estNormalAvgAdjacentFaces() {
 	}
 	// Compute a weigthed average:
 	Vector3D faceNormal;
-	for( int i=0; i<mAdjacentFacesNr; i++ ) {
+	for( int i=0; i<mAdjacentFacesNr; ++i ) {
 		// We use the area of the face as weight by using getNormal( false )
 		Vector3D adjacentFaceNormal = mAdjacentFaces[i]->getNormal( false );
 		// Neglect degenerated faces:
@@ -93,7 +93,7 @@ bool VertexOfFace::estNormalAvgAdjacentFaces() {
 //! Estimates the total area of the adjacent faces.
 double VertexOfFace::get1RingArea() {
 	Vector3D faceNormal;
-	for( int i=0; i<mAdjacentFacesNr; i++ ) {
+	for( int i=0; i<mAdjacentFacesNr; ++i ) {
 		if( mAdjacentFaces[i] == nullptr )  {
 			continue;
 		}
@@ -113,7 +113,7 @@ inline uint64_t VertexOfFace::get1RingFaceCount() const {
 //! Returns the sum of the angles of the adjacent faces enclosing this Vertex.
 double VertexOfFace::get1RingSumAngles() {
 	double angleSum = 0.0;
-	for( int i=0; i<mAdjacentFacesNr; i++ ) {
+	for( int i=0; i<mAdjacentFacesNr; ++i ) {
 		angleSum += mAdjacentFaces[i]->getAngleAtVertex( this );
 	}
 	return angleSum;
@@ -172,7 +172,7 @@ bool VertexOfFace::mark1RingVisited(
 ) {
 	uint64_t  bitOffset;
 	uint64_t  bitNr;
-	for( int i=0; i<mAdjacentFacesNr; i++ ) {
+	for( int i=0; i<mAdjacentFacesNr; ++i ) {
 		// Sanity check;
 		if( mAdjacentFaces[i] == nullptr ) {
 			continue;
@@ -234,7 +234,7 @@ bool VertexOfFace::isFuncValLocalMaximum() {
 		return( false );
 	}
 	double neighbourFuncVal;
-	for( int i=0; i<mAdjacentFacesNr; i++ ) {
+	for( int i=0; i<mAdjacentFacesNr; ++i ) {
 		neighbourFuncVal = mAdjacentFaces[i]->getFuncValMaxExcluding( this );
 		//cout << "[VertexOfFace::isFuncValLocalMaximum] " << neighbourFuncVal << " < " << FUNCTION_VALUE << endl;
 		if( neighbourFuncVal >= funcValue ) {
