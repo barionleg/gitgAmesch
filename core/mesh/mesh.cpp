@@ -213,26 +213,24 @@ Mesh::Mesh( std::set<Face*>* someFaces )
 Mesh::~Mesh() {
 	LOG::debug() << "[Mesh::" << __FUNCTION__ << "] Destruct ...\n";
 	showProgressStart( string( "Destruct Mesh" ) );
-	unsigned int primCtr = 0.0;
-	unsigned int primTotal = mFaces.size() + mVertices.size();
+	unsigned int primCtr = 0;
+	auto primTotal = mFaces.size() + mVertices.size();
 
 	//! 1a. remove Faces.
-	vector<Face*>::iterator itFace;
-	for( itFace = mFaces.begin(); itFace != mFaces.end(); itFace++ ) {
+	for(auto itFace = mFaces.begin(); itFace != mFaces.end(); ++itFace ) {
 		if( primCtr % 100000 == 0 ) {
 			showProgress( (1.0+static_cast<double>(primCtr))/static_cast<double>(primTotal), string( "Destruct Mesh" ) );
 		}
-		primCtr++;
+		++primCtr;
 		delete (*itFace);
 	}
 	mFaces.clear();
 	//! 1b. remove Vertices.
-	vector<Vertex*>::iterator itVertex;
-	for( itVertex = mVertices.begin(); itVertex != mVertices.end(); itVertex++ ) {
+	for(auto itVertex = mVertices.begin(); itVertex != mVertices.end(); itVertex++ ) {
 		if( primCtr % 100000 == 0 ) {
 			showProgress( (1.0+static_cast<double>(primCtr))/static_cast<double>(primTotal), string( "Destruct Mesh" ) );
 		}
-		primCtr++;
+		++primCtr;
 		delete (*itVertex);
 	}
 	mVertices.clear();
