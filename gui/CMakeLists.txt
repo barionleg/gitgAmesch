@@ -83,7 +83,7 @@ set(GUI_UI_FILES
 #NOTE: instead of adding translations via resources, the ts-files can also be build by
 #      qt5_create_translation and then be added
 qt5_add_resources(GUI_RESOURCES "forms/gigamesh.qrc"
-								"shaders/shaders.qrc"
+								"src/shaders/shaders.qrc"
 								"languages/translations.qrc"
 								"latex_report_template/latex_templates.qrc"
 								"python-scripts/pythonscripts.qrc"
