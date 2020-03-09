@@ -2225,10 +2225,9 @@ void MeshGL::glPrepare() {
 				return;
 		}
 
-		int timeStart, timeStop; // for performance mesurement
-		timeStart = clock();
 
-		int timeStartSub = clock(); // for performance mesurement
+		const auto timeStart    = clock(); // for performance mesurement
+		const auto timeStartSub = clock(); // for performance mesurement
 
 		PglGenVertexArrays glGenVertexArrays = reinterpret_cast<PglGenVertexArrays>(mOpenGLContext->getProcAddress( "glGenVertexArrays" ));
 		glGenVertexArrays( 1, &mVAO );
@@ -2304,7 +2303,7 @@ void MeshGL::glPrepare() {
 		mVertBufObjs[VBUFF_FACES] = new QOpenGLBuffer( QOpenGLBuffer::IndexBuffer );
 		vboAddBuffer( sizeof(GLuint)*faceIndices.size(), faceIndices.data(), QOpenGLBuffer::StaticDraw, VBUFF_FACES, __FUNCTION__ );
 
-		timeStop = clock();
+		const auto timeStop = clock();
 #ifdef OPENGL_VBO_SHOW_MEMORY_USAGE
 		cout << "[MeshGL::" << __FUNCTION__ << "] Memory: " << mVboMemoryUsage << " Bytes = " << mVboMemoryUsage/(1024*1024) << " MB" << endl;
 #endif
