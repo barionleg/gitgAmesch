@@ -102,7 +102,7 @@ class Face : public Primitive {
 		static  bool     sortByIndex( Face* rPrim1, Face* rPrim2 );
 
 		        double   getAngleAtVertex( const Vertex* vertABC ) const;            // retrieve the angle next to an arbitrary vertex
-		        bool     requiresVertex( Vertex* vertexRequired );                   // returns true if vertexRequired matches A, B or C
+		        bool     requiresVertex( Vertex* vertexRequired ) const;                   // returns true if vertexRequired matches A, B or C
 				bool     requiresOneOrMoreVerticesOf( std::set<Vertex*>* vertexList );    // returns true if A,B or C is within the list (set)
 		        bool     getMinDistTo( double const rSomePos[3], double* rDist );
 		        double   getMinDistTo( double x, double y, double z );                  // minimum Distance of the Distances of A, B and C to (x,y,z)

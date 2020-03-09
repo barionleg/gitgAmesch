@@ -15,7 +15,7 @@ template <class T>
 void READ_IN_PROPER_BYTE_ORDER(std::fstream& filestream, T target, size_t size, bool reverse)
 {
 	auto data = reinterpret_cast<char*>(target);
-	(filestream).read(data , (size) );
+	filestream.read(data , size);
 
 	if(reverse && size != 1)
 	{

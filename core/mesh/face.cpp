@@ -554,18 +554,11 @@ double Face::getAngleAtVertex( const Vertex* vertABC ) const {
 	return( 0.0 );
 }
 
-bool Face::requiresVertex( Vertex* vertexRequired ) {
+bool Face::requiresVertex( Vertex* vertexRequired ) const {
 	//! Returns true if vertexRequired matches A, B or C.
-	if( vertA == vertexRequired ) {
-		return true;
-	}
-	if( vertB == vertexRequired ) {
-		return true;
-	}
-	if( vertC == vertexRequired ) {
-		return true;
-	}
-	return false;
+	return vertA == vertexRequired ||
+		vertB == vertexRequired ||
+		vertC == vertexRequired;
 }
 
 //! Returns true if A,B or C is within the list (set).
@@ -2755,7 +2748,10 @@ void Face::connectToFaces() {
 		}
 		bool faceIsConnected = false;
 		bool faceAddedMultipleTimes = false; //! \todo pass on information
-		if( (*itFace)->requiresVertex( vertA ) && (*itFace)->requiresVertex( vertB ) ) {
+		const bool requireA = (*itFace)->requiresVertex(vertA);
+		const bool requireB = (*itFace)->requiresVertex(vertB);
+		const bool requireC = (*itFace)->requiresVertex(vertC);
+		if( requireA && requireB ) {
 			if( FACE_NEIGHBOUR_AB == nullptr ) {
 				FACE_NEIGHBOUR_AB = (*itFace);
 			} else {
@@ -2763,7 +2759,7 @@ void Face::connectToFaces() {
 			}
 			faceIsConnected = true;
 		}
-		if( (*itFace)->requiresVertex( vertB ) && (*itFace)->requiresVertex( vertC ) ) {
+		if( requireB && requireC ) {
 			if( FACE_NEIGHBOUR_BC == nullptr ) {
 				FACE_NEIGHBOUR_BC = (*itFace);
 			} else {
@@ -2771,7 +2767,7 @@ void Face::connectToFaces() {
 			}
 			faceIsConnected = true;
 		}
-		if( (*itFace)->requiresVertex( vertC ) && (*itFace)->requiresVertex( vertA ) ) {
+		if( requireC && requireA ) {
 			if( FACE_NEIGHBOUR_CA == nullptr ) {
 				FACE_NEIGHBOUR_CA = (*itFace);
 			} else {
