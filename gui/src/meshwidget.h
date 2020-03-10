@@ -369,6 +369,7 @@ private:
 
 	//! Checkes if mesh might cause problems. E.g. too small or georeferenced (far away from origin)
 	void checkMeshSanity();
+	void checkMissingTextures(ModelMetaData& metadata);
 };
 
 #endif // MESHWIDGET_H

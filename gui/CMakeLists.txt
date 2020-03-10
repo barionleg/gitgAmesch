@@ -50,12 +50,14 @@ set(GUI_SOURCES src/main.cpp
 				src/svg/SvgPath.cpp                   src/svg/SvgPath.h
 				src/svg/SvgRect.cpp                   src/svg/SvgRect.h
 				src/svg/SvgText.cpp                   src/svg/SvgText.h
+				src/DialogFindTextures.cpp            src/DialogFindTextures.h
 				src/normalSphereSelection/ArcBall.cpp src/normalSphereSelection/ArcBall.h
 				src/normalSphereSelection/NormalSphereSelectionDialog.cpp
 				src/normalSphereSelection/NormalSphereSelectionDialog.h
 				src/normalSphereSelection/NormalSphereSelectionRenderWidget.cpp
 				src/normalSphereSelection/NormalSphereSelectionRenderWidget.h
 )
+
 
 #add ui files, so they appear it qtcreator projects view
 set(GUI_UI_FILES
@@ -78,6 +80,7 @@ set(GUI_UI_FILES
 	forms/dialogPlaneParam.ui
 	forms/qgmdocksidebar.ui
 	forms/dialogCutOffValues.ui
+	forms/DialogFindTextures.ui
 )
 
 #NOTE: instead of adding translations via resources, the ts-files can also be build by

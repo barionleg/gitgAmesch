@@ -19,6 +19,8 @@
 #include "svg/SvgIncludes.h"
 #include "normalSphereSelection/NormalSphereSelectionDialog.h"
 
+#include "DialogFindTextures.h"
+
 //#include <iostream>
 //#include <typeinfo> // see: http://www.cplusplus.com/reference/std/typeinfo/type_info/
 
@@ -906,6 +908,7 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 	cout << "[MeshWidget::" << __FUNCTION__ << "] Done." << endl;
 
 	//check if the mesh is textured
+	/*
 	if(mMeshVisual->getModelMetaDataRef().hasTextureCoordinates() && !mMeshVisual->getModelMetaDataRef().hasTextureFiles())
 	{
 		bool userLoad = false;
@@ -922,10 +925,13 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 			}
 
 			auto fileName = QFileDialog::getOpenFileName(this, tr("Open texture"), mMeshVisual->getFileLocation().c_str(), tr("Images") + "(" + supportedImages + ")");
-			mMeshVisual->getModelMetaDataRef().setModelMetaString(ModelMetaData::META_TEXTUREFILE, fileName.toStdString());
+			if(!fileName.isNull())
+			{
+				mMeshVisual->getModelMetaDataRef().setModelMetaString(ModelMetaData::META_TEXTUREFILE, fileName.toStdString());
+			}
 		}
 	}
-
+	*/
 	emit loadedMeshIsTextured( mMeshVisual->getModelMetaDataRef().hasTextureCoordinates() && mMeshVisual->getModelMetaDataRef().hasTextureFiles() );
 
 	return( true );
@@ -6241,6 +6247,49 @@ bool MeshWidget::paintRasterImage( eTextureMaps rTexMap, int rPixelX, int rPixel
 	return true;
 }
 
+void MeshWidget::checkMissingTextures(ModelMetaData& metadata)
+{
+	if(metadata.hasTextureFiles())
+	{
+		QStringList textures;
+		size_t texId = 0;
+		std::list<size_t> missingTexIds;
+		for(const auto& texName : metadata.getTexturefilesRef())
+		{
+			if(!QFileInfo::exists(texName.c_str()))
+			{
+				textures.push_back(texName.c_str());
+				missingTexIds.push_back(texId);
+			}
+			++texId;
+		}
+
+		if(missingTexIds.empty())
+			return;
+
+		DialogFindTextures textureDialog(textures);
+
+		textureDialog.setModal(true);
+		if(textureDialog.exec() == QDialog::Accepted)
+		{
+			auto fileNames = textureDialog.getFileNames();
+
+			if(fileNames.size() != missingTexIds.size())
+				return;
+
+			auto fileNameIt = fileNames.begin();
+			auto idIt       = missingTexIds.begin();
+
+			for(int i = 0; i<fileNames.size(); ++i)
+			{
+				metadata.getTexturefilesRef()[*idIt] = fileNameIt->toStdString();
+				++fileNameIt;
+				++idIt;
+			}
+		}
+	}
+}
+
 void MeshWidget::checkMeshSanity()
 {
 	const auto meshSize = mMeshVisual->getBoundingBoxRadius();
@@ -6285,6 +6334,7 @@ void MeshWidget::checkMeshSanity()
 		}
 	}
 
+	checkMissingTextures(mMeshVisual->getModelMetaDataRef());
 }
 
 //! Paint the selected volume (prisms defined by polgonal selection).
