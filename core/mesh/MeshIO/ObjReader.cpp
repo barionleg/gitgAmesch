@@ -134,10 +134,6 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 	size_t  objFacesTotal             = 0;
 	unsigned int  obj_commentsTotal         = 0;
 
-	// for performance measurement:
-	int timeStart;
-	int timeStop;
-
 	// functionality:
 	ifstream fp( rFilename.c_str() );
 	if( !fp.is_open() ) {
@@ -323,7 +319,7 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 	int faceIdx         = 0;
 
 	// rewind file and fetch data:
-	timeStart = clock();
+	const auto timeStart = clock();
 
 	fp.clear();
 	fp.seekg( ios_base::beg );
@@ -428,7 +424,8 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 	}
 
 	fp.close();
-	timeStop  = clock();
+
+	const auto timeStop  = clock();
 	LOG::debug() << "[ObjReader::" << __FUNCTION__ << "] fetch data from file:       " << static_cast<float>( timeStop - timeStart ) / CLOCKS_PER_SEC << " seconds."  << "\n";
 	std::setlocale( LC_NUMERIC, oldLocale );
 	std::filesystem::current_path(prevRootPath);

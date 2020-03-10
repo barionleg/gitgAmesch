@@ -6,6 +6,8 @@
 #include <QFileInfo>
 #include "glmacros.h"
 
+#include <GigaMesh/logging/Logging.h>
+
 TexturedMeshRenderer::~TexturedMeshRenderer()
 {
 	if(mIsInitialized)
@@ -47,6 +49,7 @@ bool TexturedMeshRenderer::init(const std::vector<std::string>& textureNames)
 		}
 		else
 		{
+			LOG::warn() << "[TexturedMeshRenderer::" << __FUNCTION__ << "] Missing texture: " << textureNames[i] << "\n";
 			QImage texImage(1,1, QImage::Format_RGB16);
 			texImage.fill(0);
 			mTextures[i] = new QOpenGLTexture(QOpenGLTexture::Target2D);

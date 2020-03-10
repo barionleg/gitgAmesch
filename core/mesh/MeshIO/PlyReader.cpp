@@ -661,7 +661,7 @@ bool PlyReader::readFile(const std::string& rFilename,
 
 	const LocaleGuard guard;
 
-	int timeStart = clock(); // for performance mesurement
+	const auto timeStart = clock(); // for performance mesurement
 
 	std::cout << "[PlyReader::" << __FUNCTION__ << "] opening: '" << rFilename << "'\n";
 	filestr.open( rFilename.c_str(), std::fstream::in );
@@ -686,7 +686,7 @@ bool PlyReader::readFile(const std::string& rFilename,
 
 	// the first two lines we expect: "ply" -- maybe add a check?
 	getline( filestr, lineToParse );
-	// than the header begins, which is typically ASCII:
+	// then the header begins, which is typically ASCII:
 	while( !filestr.eof() && !endOfHeader) {
 		getline( filestr, lineToParseOri );
 		lineToParse = lineToParseOri;
@@ -948,12 +948,31 @@ bool PlyReader::readFile(const std::string& rFilename,
 	}
 
 	bool parseSuccess = false;
+
 	if( readASCII ) {
 		parseSuccess = parseAscii(plyElements, filestr, sectionProps, vertexTextureCoordinates, rVertexProps, rFaceProps, hasVertexTexCoords);
 	}
 	else
 	{
 		parseSuccess = parseBinary(plyElements, filestr, sectionProps, vertexTextureCoordinates, rVertexProps, rFaceProps, hasVertexTexCoords, rFilename, reverseByteOrder, rMeshSeed);
+	}
+
+	//check if the texture-ids for faces are out of range. If so, add dummy texture names
+	if(getModelMetaDataRef().hasTextureCoordinates())
+	{
+		auto maxTexIdFace = std::max_element(rFaceProps.begin(), rFaceProps.end(), [](const sFaceProperties& A, const sFaceProperties& B)
+		                                        {
+			                                        return A.textureId < B.textureId;
+		                                        }
+		                                    );
+
+		if(maxTexIdFace->textureId >= getModelMetaDataRef().getTexturefilesRef().size())
+		{
+			for(auto i = getModelMetaDataRef().getTexturefilesRef().size(); i <= maxTexIdFace->textureId; ++i)
+			{
+				getModelMetaDataRef().addTextureName("unknown");
+			}
+		}
 	}
 
 	LOG::info() << "[PlyReader::" << __FUNCTION__ << "] PLY:               " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds.\n";

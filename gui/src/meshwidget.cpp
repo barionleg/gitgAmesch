@@ -907,31 +907,6 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 
 	cout << "[MeshWidget::" << __FUNCTION__ << "] Done." << endl;
 
-	//check if the mesh is textured
-	/*
-	if(mMeshVisual->getModelMetaDataRef().hasTextureCoordinates() && !mMeshVisual->getModelMetaDataRef().hasTextureFiles())
-	{
-		bool userLoad = false;
-		bool userCancel = false;
-		SHOW_QUESTION( tr("Load texture file"), tr("No valid texturefile found for the loaded Mesh. Do you want to select a texturefile manually?"), userLoad, userCancel );
-
-		if(userLoad && !userCancel)
-		{
-			auto imgFiles = QImageReader::supportedImageFormats();
-			QString supportedImages;
-			for(const auto& imgType : imgFiles)
-			{
-				supportedImages += QString("*." + imgType + " ");
-			}
-
-			auto fileName = QFileDialog::getOpenFileName(this, tr("Open texture"), mMeshVisual->getFileLocation().c_str(), tr("Images") + "(" + supportedImages + ")");
-			if(!fileName.isNull())
-			{
-				mMeshVisual->getModelMetaDataRef().setModelMetaString(ModelMetaData::META_TEXTUREFILE, fileName.toStdString());
-			}
-		}
-	}
-	*/
 	emit loadedMeshIsTextured( mMeshVisual->getModelMetaDataRef().hasTextureCoordinates() && mMeshVisual->getModelMetaDataRef().hasTextureFiles() );
 
 	return( true );
