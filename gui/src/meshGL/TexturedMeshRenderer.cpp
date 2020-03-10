@@ -3,7 +3,7 @@
 #include <array>
 #include <list>
 #include <string>
-
+#include <QFileInfo>
 #include "glmacros.h"
 
 TexturedMeshRenderer::~TexturedMeshRenderer()
@@ -39,9 +39,19 @@ bool TexturedMeshRenderer::init(const std::vector<std::string>& textureNames)
 
 	for(size_t i = 0; i<textureNames.size(); ++i)
 	{
-		QImage texImage(textureNames[i].c_str());
-		mTextures[i] = new QOpenGLTexture(QOpenGLTexture::Target2D);
-		mTextures[i]->setData(texImage.mirrored(), QOpenGLTexture::GenerateMipMaps);
+		if(QFileInfo::exists(textureNames[i].c_str()))
+		{
+			QImage texImage(textureNames[i].c_str());
+			mTextures[i] = new QOpenGLTexture(QOpenGLTexture::Target2D);
+			mTextures[i]->setData(texImage.mirrored(), QOpenGLTexture::GenerateMipMaps);
+		}
+		else
+		{
+			QImage texImage(1,1, QImage::Format_RGB16);
+			texImage.fill(0);
+			mTextures[i] = new QOpenGLTexture(QOpenGLTexture::Target2D);
+			mTextures[i]->setData(texImage.mirrored(), QOpenGLTexture::GenerateMipMaps);
+		}
 	}
 
 	mIsInitialized = true;
