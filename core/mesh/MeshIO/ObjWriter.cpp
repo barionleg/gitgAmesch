@@ -10,7 +10,7 @@
 
 using namespace std;
 
-void writeMTL(const std::vector<std::string>& textureFiles, const std::string& fileName)
+void writeMTL(const std::vector<std::filesystem::path>& textureFiles, const std::string& fileName)
 {
 	std::fstream filestr;
 	filestr.imbue(std::locale("C"));

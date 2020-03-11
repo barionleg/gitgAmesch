@@ -6226,14 +6226,14 @@ void MeshWidget::checkMissingTextures(ModelMetaData& metadata)
 {
 	if(metadata.hasTextureFiles())
 	{
-		QStringList textures;
+		QStringList missingTextures;
 		size_t texId = 0;
 		std::list<size_t> missingTexIds;
 		for(const auto& texName : metadata.getTexturefilesRef())
 		{
-			if(!QFileInfo::exists(texName.c_str()))
+			if(!std::filesystem::exists(texName))
 			{
-				textures.push_back(texName.c_str());
+				missingTextures.push_back(texName.string().c_str());
 				missingTexIds.push_back(texId);
 			}
 			++texId;
@@ -6242,7 +6242,7 @@ void MeshWidget::checkMissingTextures(ModelMetaData& metadata)
 		if(missingTexIds.empty())
 			return;
 
-		DialogFindTextures textureDialog(textures);
+		DialogFindTextures textureDialog(missingTextures);
 
 		textureDialog.setModal(true);
 		if(textureDialog.exec() == QDialog::Accepted)

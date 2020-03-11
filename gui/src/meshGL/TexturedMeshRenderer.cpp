@@ -16,7 +16,7 @@ TexturedMeshRenderer::~TexturedMeshRenderer()
 	}
 }
 
-bool TexturedMeshRenderer::init(const std::vector<std::string>& textureNames)
+bool TexturedMeshRenderer::init(const std::vector<std::filesystem::path>& textureNames)
 {
 	if(mIsInitialized)
 		return true;
@@ -41,9 +41,11 @@ bool TexturedMeshRenderer::init(const std::vector<std::string>& textureNames)
 
 	for(size_t i = 0; i<textureNames.size(); ++i)
 	{
-		if(QFileInfo::exists(textureNames[i].c_str()))
+		QString textureName = textureNames[i].string().c_str();
+
+		if(QFileInfo::exists(textureName))
 		{
-			QImage texImage(textureNames[i].c_str());
+			QImage texImage(textureName);
 			mTextures[i] = new QOpenGLTexture(QOpenGLTexture::Target2D);
 			mTextures[i]->setData(texImage.mirrored(), QOpenGLTexture::GenerateMipMaps);
 		}

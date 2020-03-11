@@ -960,16 +960,32 @@ bool PlyReader::readFile(const std::string& rFilename,
 	//check if the texture-ids for faces are out of range. If so, add dummy texture names
 	if(getModelMetaDataRef().hasTextureCoordinates())
 	{
+		const auto numTextures = getModelMetaDataRef().getTexturefilesRef().size();
+
 		auto maxTexIdFace = std::max_element(rFaceProps.begin(), rFaceProps.end(), [](const sFaceProperties& A, const sFaceProperties& B)
 		                                        {
 			                                        return A.textureId < B.textureId;
 		                                        }
 		                                    );
-
-		if(maxTexIdFace->textureId >= getModelMetaDataRef().getTexturefilesRef().size())
+		//only add to a max of 10 new textures
+		//otherwise collapse all exessive textures to 1
+		if(maxTexIdFace->textureId >= numTextures)
 		{
-			for(auto i = getModelMetaDataRef().getTexturefilesRef().size(); i <= maxTexIdFace->textureId; ++i)
+			if (maxTexIdFace->textureId - numTextures < 10)
 			{
+				for (auto i = numTextures; i <= maxTexIdFace->textureId; ++i)
+				{
+					getModelMetaDataRef().addTextureName("unknown");
+				}
+			}
+			else
+			{
+				std::for_each(rFaceProps.begin(), rFaceProps.end(), [numTextures](sFaceProperties& prop)
+					{
+						prop.textureId = numTextures;
+					}
+				);
+
 				getModelMetaDataRef().addTextureName("unknown");
 			}
 		}

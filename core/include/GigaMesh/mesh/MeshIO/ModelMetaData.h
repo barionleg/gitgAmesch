@@ -4,6 +4,7 @@
 #include <string>
 #include <array>
 #include <vector>
+#include <filesystem>
 
 using TextureHandle = unsigned char;
 
@@ -23,25 +24,26 @@ class ModelMetaData
 		};
 
 		bool         setModelMetaString( eMetaStrings rMetaStrID, const std::string& rModelMeta );
-		std::string  getModelMetaString( eMetaStrings rMetaStrID );
-		bool         getModelMetaStringName( eMetaStrings rMetaStrID, std::string& rModelMetaStringName );
-		bool         getModelMetaStringId( const std::string& rModelMetaStringName, eMetaStrings& rMetaStrID );
+		std::string  getModelMetaString( eMetaStrings rMetaStrID ) const;
+		bool         getModelMetaStringName( eMetaStrings rMetaStrID, std::string& rModelMetaStringName ) const;
+		bool         getModelMetaStringId( const std::string& rModelMetaStringName, eMetaStrings& rMetaStrID ) const;
 		bool         clearModelMetaStrings();
 
 		[[nodiscard]] bool hasTextureCoordinates() const;
 		void setHasTextureCoordinates(bool hasTextureCoordinates);
 
 
-		TextureHandle addTextureName(const std::string& textureName);
-		[[nodiscard]] std::string getTextureName(TextureHandle id) const;
+		TextureHandle addTextureName(const std::filesystem::path& textureName);
+		[[nodiscard]] std::filesystem::path getTextureName(TextureHandle id) const;
 		[[nodiscard]] bool hasTextureFiles() const;
-		std::vector<std::string>& getTexturefilesRef();
+		std::vector<std::filesystem::path>& getTexturefilesRef();
 
 	private:
 		std::array<std::string, META_STRINGS_COUNT> mMetaDataStrings;         //!< Meta-Data contents
 		std::array<std::string, META_STRINGS_COUNT> mMetaDataStringNames;     //!< Meta-Data names
 
-		std::vector<std::string> mTextureFiles;                               //!< Stores referenced texture-files
+		std::vector<std::filesystem::path> mTextureFiles;                               //!< Stores referenced texture-files
+
 		bool mHasTextureCoordinates = false;                                  //!< Stores if the mesh has texture-coordinates
 };
 

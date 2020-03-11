@@ -20,10 +20,11 @@ bool ModelMetaData::setModelMetaString(
 //! @returns nullptr case of an error.
 std::string ModelMetaData::getModelMetaString(
 				eMetaStrings rMetaStrID               //!< Id of the meta-data string.
-) {
+) const 
+{
 	if( rMetaStrID == META_STRINGS_COUNT ) {
 		std::cerr << "[ModelMetaData::" << __FUNCTION__ << "] ERROR: Id META_STRINGS_COUNT has no content!\n" << std::endl;
-		return( nullptr );
+		return std::string();
 	}
 	return( mMetaDataStrings[rMetaStrID] );
 }
@@ -33,7 +34,8 @@ std::string ModelMetaData::getModelMetaString(
 bool ModelMetaData::getModelMetaStringName(
 				eMetaStrings rMetaStrID,                   //!< Id of the meta-data string.
 				std::string& rModelMetaStringName          //!< Name as string of the meta-data string.
-) {
+) const 
+{
 	if( rMetaStrID == META_STRINGS_COUNT ) {
 		std::cerr << "[ModelMetaData::" << __FUNCTION__ << "] ERROR: Id META_STRINGS_COUNT has no name!" << std::endl;
 		return( false );
@@ -47,7 +49,8 @@ bool ModelMetaData::getModelMetaStringName(
 bool ModelMetaData::getModelMetaStringId(
 				const std::string& rModelMetaStringName,   //!< Id of the meta-data string.
 				eMetaStrings& rMetaStrID                   //!< Name as string of the meta-data string.
-) {
+) const 
+{
 	for( unsigned i=0; i<META_STRINGS_COUNT ; i++ ) {
 		if( rModelMetaStringName == mMetaDataStringNames[i]) {
 			rMetaStrID = static_cast<eMetaStrings>( i );
@@ -88,7 +91,7 @@ void ModelMetaData::setHasTextureCoordinates(bool hasTextureCoordinates)
 	mHasTextureCoordinates = hasTextureCoordinates;
 }
 
-TextureHandle ModelMetaData::addTextureName(const std::string& textureName)
+TextureHandle ModelMetaData::addTextureName(const std::filesystem::path& textureName)
 {
 	for(size_t i = 0; i<mTextureFiles.size(); ++i)
 	{
@@ -100,12 +103,12 @@ TextureHandle ModelMetaData::addTextureName(const std::string& textureName)
 	return mTextureFiles.size() - 1;
 }
 
-std::string ModelMetaData::getTextureName(TextureHandle id) const
+std::filesystem::path ModelMetaData::getTextureName(TextureHandle id) const
 {
 	if(id < mTextureFiles.size())
 		return mTextureFiles[id];
 
-	return "";
+	return std::filesystem::path();
 }
 
 bool ModelMetaData::hasTextureFiles() const
@@ -113,7 +116,7 @@ bool ModelMetaData::hasTextureFiles() const
 	return !mTextureFiles.empty();
 }
 
-std::vector<std::string>& ModelMetaData::getTexturefilesRef()
+std::vector<std::filesystem::path>& ModelMetaData::getTexturefilesRef()
 {
 	return mTextureFiles;
 }

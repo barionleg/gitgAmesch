@@ -9,6 +9,7 @@
 #include <QMatrix4x4>
 #include <string>
 #include "TexturedMesh.h"
+#include <filesystem>
 
 class TexturedMeshRenderer
 {
@@ -35,7 +36,7 @@ class TexturedMeshRenderer
 				bool lightEnabled = false;
 		};
 
-		bool init(const std::vector<std::string>& textureNames);
+		bool init(const std::vector<std::filesystem::path>& textureNames);
 		void render(const QMatrix4x4 &projectionMatrix, const QMatrix4x4 &modelViewMatrix, TexturedMesh& texturedMesh, const LightInfo& lightInfo);
 
 		void destroy();
