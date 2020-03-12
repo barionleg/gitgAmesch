@@ -923,8 +923,8 @@ bool MeshWidget::reloadFile() {
 	if( ( userCancel ) || not( userReload ) ) {
 		return false;
 	}
-	string fileName = mMeshVisual->getFullName();
-	return fileOpen( QString( fileName.c_str() ) );
+	auto fileName = mMeshVisual->getFullName();
+	return fileOpen( QString::fromStdWString( fileName ) );
 }
 
 //! Ask to turn off settings, which usually are hindering the rendering of image stacks,
@@ -977,7 +977,7 @@ void MeshWidget::saveStillImages360( Vector3D rotCenter, Vector3D rotAxis ) {
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
 
-	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
+	QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation() );
 	QString savePath = QFileDialog::getExistingDirectory(mMainWindow, tr( "Folder for image stack" ),
 													 filePath);
 
@@ -1113,7 +1113,7 @@ void MeshWidget::sphericalImagesLight() {
 	}
 	string fileNamePattern;
 	getParamStringMeshWidget( FILENAME_EXPORT_VR, &fileNamePattern );
-	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
+	QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as - Using a pattern for spherical images" ), \
 	                                                 filePath + QString( fileNamePattern.c_str() ), \
 													 tr( "Image (*.png *.tiff *.tif)" ),
@@ -1230,7 +1230,7 @@ void MeshWidget::sphericalImages() {
 	}
 	string fileNamePattern;
 	getParamStringMeshWidget( FILENAME_EXPORT_VR, &fileNamePattern );
-	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
+	QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation());
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as - Using a pattern for spherical images" ), \
 	                                                 filePath + QString( fileNamePattern.c_str() ), \
 													 tr( "Image (*.png *.tiff *.tif)" ),
@@ -1649,7 +1649,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
 
         setParamFlagMeshWidget( SHOW_GRID_RECTANGULAR, false );
 
-        QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
+		QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation());
         string fileNamePattern;
         getParamStringMeshWidget( FILENAME_EXPORT_VIEWS, &fileNamePattern );
         // important name change !!!!
@@ -1662,13 +1662,13 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
 		double mmPerPixel_Height;
 		getViewPortPixelWorldSize( mmPerPixel_Width, mmPerPixel_Height );
 
-		double oldDPI = 25.4/mmPerPixel_Width;
+		const double oldDPI = 25.4/mmPerPixel_Width;
 		orthoSetDPI(25.4/mmPerPixel_Width*dpiFactorf);
 
-		std::vector<std::string> imageFileNames;
+		std::vector<QString> imageFileNames;
 		std::vector<double> imageSizes;
-		string filePrefix = mMeshVisual->getBaseName();
-		screenshotViews( fileName.toLatin1().data(), filePrefix, rUseTiled, imageFileNames, imageSizes );
+		const auto filePrefix = QString::fromStdWString(mMeshVisual->getBaseName());
+		screenshotViews( fileName.toLatin1(), filePrefix, rUseTiled, imageFileNames, imageSizes );
 
 		getViewPortPixelWorldSize( mmPerPixel_Width, mmPerPixel_Height );
 
@@ -2375,7 +2375,7 @@ QStringList MeshWidget::screenshotDirectory(const bool rUseTiled, const QString&
 
             setParamFlagMeshWidget( SHOW_GRID_RECTANGULAR, false );
 
-            QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
+			QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation());
             string fileNamePattern;
             getParamStringMeshWidget( FILENAME_EXPORT_VIEWS, &fileNamePattern );
 			fileNamePattern.insert( fileNamePattern.find_last_of('.'), suffix.toStdString() );
@@ -2388,10 +2388,10 @@ QStringList MeshWidget::screenshotDirectory(const bool rUseTiled, const QString&
 			getViewPortPixelWorldSize( rPixelWidth, rPixelHeight );
 			pictureInformation.append( rPath+'/'+files.at(i) + '@' + QString::number(rPixelHeight) + '@' + QString::number(rPixelWidth) + '@' );
 
-			std::vector<std::string> imageFileNames;
+			std::vector<QString> imageFileNames;
 			std::vector<double> imageSizes;
-			string filePrefix = mMeshVisual->getBaseName();
-			screenshotViews( fileName.toLatin1().data(), filePrefix, rUseTiled, imageFileNames, imageSizes );
+			const auto filePrefix = QString::fromStdWString(mMeshVisual->getBaseName());
+			screenshotViews( fileName.toLatin1(), filePrefix, rUseTiled, imageFileNames, imageSizes );
 
             cout << "done " << (i+1) << " of " << files.size() << endl;
         }
@@ -2435,7 +2435,7 @@ QStringList MeshWidget::screenshotDirectory(const bool rUseTiled, const QString&
             fileNamePattern += ".png";
 
             // filePath should be equal to path path+'/'+files.at(i)
-            QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
+			QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation() );
 
 			QString fileName = filePath + QString( fileNamePattern.c_str() );
 
@@ -2765,8 +2765,8 @@ bool MeshWidget::screenshotViewsPDFUser() {
 	if( mMeshVisual == nullptr ) {
 		return( false );
 	}
-	QString filePrefix = mMeshVisual->getBaseName().c_str();
-	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
+	const QString filePrefix = QString::fromStdWString(mMeshVisual->getBaseName());
+	const QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation());
 	std::cout << "[MeshWidget::" << __FUNCTION__ << "] filePath:        " << filePath.toStdString() << std::endl;
 	//qDebug() << filePath + QString( fileNamePattern.c_str() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as - Using a pattern for side, top and bottom views" ), \
@@ -2811,31 +2811,32 @@ bool MeshWidget::screenshotViewsPDF( const QString& rFileName ) {
 	setParamFlagMeshWidget( EXPORT_SIDE_VIEWS_SIX, true );
 
 	// Prepare filenames.
-	string fileNamePattern;
-	getParamStringMeshWidget( FILENAME_EXPORT_VIEWS, &fileNamePattern );
-	cout << "[MeshWidget::" << __FUNCTION__ << "] fileNamePattern: " << fileNamePattern << endl;
-	string prefixPath = std::filesystem::path( rFileName.toStdString() ).parent_path().string();
-	string prefixStem = std::filesystem::path( rFileName.toStdString() ).stem().string();
-	QString filePrefixTex = QString( prefixPath.c_str() ) + "/" + QString( prefixStem.c_str() );
-	QString filePrefixImg = QString( prefixPath.c_str() ) + "/figs/" + QString( prefixStem.c_str() ) + "_PDFpage";
-	QString filePrefixImgTex = "figs/" + QString( prefixStem.c_str() ) + "_PDFpage"; // Relative path to images!
+	string fileNamePatternTmp;
+	getParamStringMeshWidget( FILENAME_EXPORT_VIEWS, &fileNamePatternTmp );
+	const QString fileNamePattern = QString::fromStdString(fileNamePatternTmp);
+	cout << "[MeshWidget::" << __FUNCTION__ << "] fileNamePattern: " << fileNamePatternTmp << endl;
+	auto prefixPath = QString::fromStdWString(std::filesystem::path( rFileName.toStdString() ).parent_path().wstring());
+	const auto prefixStem = QString::fromStdWString(std::filesystem::path( rFileName.toStdString() ).stem().wstring());
+	QString filePrefixTex    = prefixPath + "/"        + prefixStem;
+	QString filePrefixImg    = prefixPath + "/figs/"   + prefixStem + "_PDFpage";
+	QString filePrefixImgTex = "figs/"    + prefixStem + "_PDFpage"; // Relative path to images!
 
 	// Create "figs" subfolder, when necessary
 	try {
-		std::filesystem::create_directory( prefixPath+"/figs" ); // https://en.cppreference.com/w/cpp/filesystem/create_directory
+		std::filesystem::create_directory( prefixPath.toStdWString()+L"/figs" ); // https://en.cppreference.com/w/cpp/filesystem/create_directory
 	} catch ( std::exception& except ) {
-		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: creating '" << prefixPath << "/figs'!" << endl;
+		wcerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: creating '" << prefixPath.toStdWString() << "/figs'!" << endl;
 		cerr << "[MeshWidget::" << __FUNCTION__ << "]        " << except.what() << endl;
 		return( false );
 	}
 
 	// Render screenshots in sub-directoy "figs" and add extra tag to the prefix.
-	std::vector<std::string> imageFileNames;
+	std::vector<QString> imageFileNames;
 	std::vector<double> imageSizes;
-	screenshotViews( fileNamePattern, filePrefixImg.toStdString(),
+	screenshotViews( fileNamePattern, filePrefixImg,
 	                 useTiled, imageFileNames, imageSizes );
 	for( uint64_t i=0; i<imageFileNames.size(); i++ ) {
-		cout << "[MeshWidget::" << __FUNCTION__ << "] File written: " << imageFileNames.at( i ) <<
+		wcout << "[MeshWidget::" << __FUNCTION__ << "] File written: " << imageFileNames.at( i ).toStdWString() <<
 		        " Size " << imageSizes.at( i*2 ) << " x " << imageSizes.at( i*2 + 1 ) << " mm (unit assumed)." << endl;
 	}
 	// Compute image dimensions W: 2,3,4 H: 1,3,5,6 - but out of order => 7,1,6 and 0,1,2,3
@@ -2897,7 +2898,7 @@ bool MeshWidget::screenshotViewsPDF( const QString& rFileName ) {
 	}
 	fileLatexOut.close();
 
-	QString qPrefixPath(prefixPath.c_str());
+	QString qPrefixPath(prefixPath);
 #ifdef WIN32
 	qPrefixPath.replace(QString("/"), QString("\\"));
 	filePrefixTex.replace(QString("/"), QString("\\"));
@@ -2967,7 +2968,7 @@ void MeshWidget::screenshotViews() {
 	}
 	string fileNamePattern;
 	getParamStringMeshWidget( FILENAME_EXPORT_VIEWS, &fileNamePattern );
-	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
+	QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation());
 	cout << "[MeshWidget::" << __FUNCTION__ << "] fileNamePattern: " << fileNamePattern << endl;
 	cout << "[MeshWidget::" << __FUNCTION__ << "] filePath:        " << filePath.toStdString() << endl;
 	//qDebug() << filePath + QString( fileNamePattern.c_str() );
@@ -3023,21 +3024,21 @@ void MeshWidget::screenshotViews( const QString& rFileName ) {
 	}
 
 	//! 4.) Execute
-	std::vector<std::string> imageFileNames;
+	std::vector<QString> imageFileNames;
 	std::vector<double> imageSizes;
-	string filePrefix = mMeshVisual->getBaseName();
+	auto filePrefix = QString::fromStdWString(mMeshVisual->getBaseName());
 	screenshotViews( rFileName.toLatin1().data(), filePrefix, useTiled, imageFileNames, imageSizes );
 	for( uint64_t i=0; i<imageFileNames.size(); i++ ) {
-		cout << "[MeshWidget::" << __FUNCTION__ << "] File written: " << imageFileNames.at( i ) <<
+		wcout << "[MeshWidget::" << __FUNCTION__ << "] File written: " << imageFileNames.at( i ).toStdWString() <<
 		        " Size " << imageSizes.at( i*2 ) << " x " << imageSizes.at( i*2 + 1 ) << " mm (unit assumed)." << endl;
 	}
 }
 
 //! Writes 6 screenshots/views - either by horizontal or vertial rotation.
-void MeshWidget::screenshotViews( const string&               rFilePattern,   //!< File pattern.
-                                  const string&               rFilePrefix,    //!< File name (prefix).
+void MeshWidget::screenshotViews( const QString&               rFilePattern,   //!< File pattern.
+                                  const QString&               rFilePrefix,    //!< File name (prefix).
                                   const bool                  rUseTiled,      //!< Toggle tiled rendering.
-                                  std::vector<std::string>&   rImageFiles,    //!< Name of the written image files.
+                                  std::vector<QString>&       rImageFiles,    //!< Name of the written image files.
                                   std::vector<double>&        rImageSizes     //!< Size of the image in world coordinates (mm, assumed).
 ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
@@ -3050,7 +3051,8 @@ void MeshWidget::screenshotViews( const string&               rFilePattern,   //
 	bool rotationAboutVertical;
 	getParamFlagMeshWidget( SPHERICAL_VERTICAL, &rotationAboutVertical );
 
-	char buffer[512]; // For preparation of the rFileName using a pattern
+	//char buffer[512]; // For preparation of the rFileName using a pattern
+	QString buffer;
 	double realWidth  = _NOT_A_NUMBER_DBL_; // Width in world coordinates e.g. millimeter.
 	double realHeigth = _NOT_A_NUMBER_DBL_; // Heigth in world coordinates.
 
@@ -3058,7 +3060,8 @@ void MeshWidget::screenshotViews( const string&               rFilePattern,   //
 	//===================================================
 	if( rotationAboutVertical ) {
 		// View 2: Front
-		sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 2, "va_front" );
+		//sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 2, "va_front" );
+		buffer = rFilePattern.arg(rFilePrefix).arg(2,2,10,QChar('0')).arg("va_front");
 		if( screenshotSingle( buffer, rUseTiled, realWidth, realHeigth ) ) {
 			rImageFiles.push_back( buffer );
 			rImageSizes.push_back( realWidth );
@@ -3067,7 +3070,8 @@ void MeshWidget::screenshotViews( const string&               rFilePattern,   //
 
 		// View 3: Side
 		rotYaw( -90.0 );
-		sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 3, "va_side" );
+		//sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 3, "va_side" );
+		buffer = rFilePattern.arg(rFilePrefix).arg(3,2,10,QChar('0')).arg("va_side");
 		if( screenshotSingle( buffer, rUseTiled, realWidth, realHeigth ) ) {
 			rImageFiles.push_back( buffer );
 			rImageSizes.push_back( realWidth );
@@ -3076,7 +3080,8 @@ void MeshWidget::screenshotViews( const string&               rFilePattern,   //
 
 		// View 4: Back
 		rotYaw( -90.0 );
-		sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 4, "va_back" );
+		//sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 4, "va_back" );
+		buffer = rFilePattern.arg(rFilePrefix).arg(4,2,10,QChar('0')).arg("va_back");
 		if( screenshotSingle( buffer, rUseTiled, realWidth, realHeigth ) ) {
 			rImageFiles.push_back( buffer );
 			rImageSizes.push_back( realWidth );
@@ -3085,7 +3090,8 @@ void MeshWidget::screenshotViews( const string&               rFilePattern,   //
 
 		// View 5: Side
 		rotYaw( -90.0 );
-		sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 5, "va_side" );
+		//sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 5, "va_side" );
+		buffer = rFilePattern.arg(rFilePrefix).arg(5,2,10,QChar('0')).arg("va_side");
 		if( screenshotSingle( buffer, rUseTiled, realWidth, realHeigth ) ) {
 			rImageFiles.push_back( buffer );
 			rImageSizes.push_back( realWidth );
@@ -3097,7 +3103,8 @@ void MeshWidget::screenshotViews( const string&               rFilePattern,   //
 
 		// View 1: Top
 		rotPitch( -90.0 );
-		sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 1, "va_top" );
+		//sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 1, "va_top" );
+		buffer = rFilePattern.arg(rFilePrefix).arg(1,2,10,QChar('0')).arg("va_top");
 		if( screenshotSingle( buffer, rUseTiled, realWidth, realHeigth ) ) {
 			rImageFiles.push_back( buffer );
 			rImageSizes.push_back( realWidth );
@@ -3106,7 +3113,8 @@ void MeshWidget::screenshotViews( const string&               rFilePattern,   //
 
 		// View 6: Bottom
 		rotPitch( +180.0 );
-		sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 6, "va_bottom" );
+		//sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 6, "va_bottom" );
+		buffer = rFilePattern.arg(rFilePrefix).arg(6,2,10,QChar('0')).arg("va_bottom");
 		if( screenshotSingle( buffer, rUseTiled, realWidth, realHeigth ) ) {
 			rImageFiles.push_back( buffer );
 			rImageSizes.push_back( realWidth );
@@ -3125,7 +3133,8 @@ void MeshWidget::screenshotViews( const string&               rFilePattern,   //
 	// ... and rotate up 90° ...
 	// View 1: Top
 	rotPitch( -90.0 );
-	sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 1, "ha_top" );
+	//sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 1, "ha_top" );
+	buffer = rFilePattern.arg(rFilePrefix).arg(1,2,10,QChar('0')).arg("ha_top");
 	if( screenshotSingle( buffer, rUseTiled, realWidth, realHeigth ) ) {
 		rImageFiles.push_back( buffer );
 		rImageSizes.push_back( realWidth );
@@ -3134,7 +3143,8 @@ void MeshWidget::screenshotViews( const string&               rFilePattern,   //
 
 	// View 3: Front
 	rotPitch( +90.0 );
-	sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 3, "ha_front" );
+	//sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 3, "ha_front" );
+	buffer = rFilePattern.arg(rFilePrefix).arg(3,2,10,QChar('0')).arg("ha_front");
 	if( screenshotSingle( buffer, rUseTiled, realWidth, realHeigth ) ) {
 		rImageFiles.push_back( buffer );
 		rImageSizes.push_back( realWidth );
@@ -3143,7 +3153,8 @@ void MeshWidget::screenshotViews( const string&               rFilePattern,   //
 
 	// View 5: Bottom
 	rotPitch( +90.0 );
-	sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 5, "ha_bottom" );
+	//sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 5, "ha_bottom" );
+	buffer = rFilePattern.arg(rFilePrefix).arg(5,2,10,QChar('0')).arg("ha_bottom");
 	if( screenshotSingle( buffer, rUseTiled, realWidth, realHeigth ) ) {
 		rImageFiles.push_back( buffer );
 		rImageSizes.push_back( realWidth );
@@ -3152,7 +3163,8 @@ void MeshWidget::screenshotViews( const string&               rFilePattern,   //
 
 	// View 6: Back
 	rotPitch( +90.0 );
-	sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 6, "ha_back" );
+	//sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 6, "ha_back" );
+	buffer = rFilePattern.arg(rFilePrefix).arg(6,2,10,QChar('0')).arg("ha_back");
 	if( screenshotSingle( buffer, rUseTiled, realWidth, realHeigth ) ) {
 		rImageFiles.push_back( buffer );
 		rImageSizes.push_back( realWidth );
@@ -3162,7 +3174,8 @@ void MeshWidget::screenshotViews( const string&               rFilePattern,   //
 	// View 7: Backleft
 	rotYaw( -90.0 );
 	if( !sixViews ) { // Extra views - typically only usefull for cuneiform tablets rendered with light
-		sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 7, "ha_back_left" );
+		//sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 7, "ha_back_left" );
+		buffer = rFilePattern.arg(rFilePrefix).arg(7,2,10,QChar('0')).arg("ha_back_left");
 		if( screenshotSingle( buffer, rUseTiled, realWidth, realHeigth ) ) {
 			rImageFiles.push_back( buffer );
 			rImageSizes.push_back( realWidth );
@@ -3173,7 +3186,8 @@ void MeshWidget::screenshotViews( const string&               rFilePattern,   //
 	// View 8: Backright
 	rotYaw( +180.0 );
 	if( !sixViews ) { // Extra views - typically only usefull for cuneiform tablets rendered with light
-		sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 8, "ha_back_right" );
+		//sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 8, "ha_back_right" );
+		buffer = rFilePattern.arg(rFilePrefix).arg(8,2,10,QChar('0')).arg("ha_back_right");
 		if( screenshotSingle( buffer, rUseTiled, realWidth, realHeigth ) ) {
 			rImageFiles.push_back( buffer );
 			rImageSizes.push_back( realWidth );
@@ -3187,7 +3201,8 @@ void MeshWidget::screenshotViews( const string&               rFilePattern,   //
 
 	// View 4: Right
 	rotYaw( +90.0 );
-	sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 4, "ha_right" );
+	//sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 4, "ha_right" );
+	buffer = rFilePattern.arg(rFilePrefix).arg(4,2,10,QChar('0')).arg("ha_right");
 	if( screenshotSingle( buffer, rUseTiled, realWidth, realHeigth ) ) {
 		rImageFiles.push_back( buffer );
 		rImageSizes.push_back( realWidth );
@@ -3196,7 +3211,8 @@ void MeshWidget::screenshotViews( const string&               rFilePattern,   //
 
 	// View 2: Left
 	rotYaw( -180.0 );
-	sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 2, "ha_left" );
+	//sprintf( buffer, rFilePattern.c_str(), rFilePrefix.c_str(), 2, "ha_left" );
+	buffer = rFilePattern.arg(rFilePrefix).arg(2,2,10,QChar('0')).arg("ha_left");
 	if( screenshotSingle( buffer, rUseTiled, realWidth, realHeigth ) ) {
 		rImageFiles.push_back( buffer );
 		rImageSizes.push_back( realWidth );
@@ -3222,8 +3238,8 @@ bool MeshWidget::screenshotSingle() {
 		return false;
 	}
 
-	QString filePath    = QString( mMeshVisual->getFileLocation().c_str() );
-	QString fileSuggest = QString( mMeshVisual->getBaseName().c_str() ) + ".png";
+	QString filePath    = QString::fromStdWString( mMeshVisual->getFileLocation());
+	QString fileSuggest = QString::fromStdWString( mMeshVisual->getBaseName() ) + ".png";
 
 	QStringList filters;
 	filters << tr("Image (*.png *.tiff *.tif)");
@@ -3385,8 +3401,8 @@ bool MeshWidget::screenshotPDFUser() {
 	if( mMeshVisual == nullptr ) {
 		return( false );
 	}
-	QString filePrefix = mMeshVisual->getBaseName().c_str();
-	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
+	QString filePrefix = QString::fromStdWString(mMeshVisual->getBaseName());
+	QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation() );
 	std::cout << "[MeshWidget::" << __FUNCTION__ << "] filePath:        " << filePath.toStdString() << std::endl;
 	//qDebug() << filePath + QString( fileNamePattern.c_str() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as - Using a pattern for side, top and bottom views" ), \
@@ -4160,9 +4176,11 @@ bool MeshWidget::screenshotSVG() {
 	}
 
 	//! 1.) Ask for the filename
-	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
-	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save screenshot as" ), \
-	                                                 filePath + QString( mMeshVisual->getBaseName().c_str() ) + ".svg", \
+	QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation());
+	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save screenshot as" ),
+	                                                 filePath +
+	                                                 QString::fromStdWString( mMeshVisual->getBaseName() ) +
+	                                                 ".svg",
 													 tr( "Scaleable Vector Graphic (*.svg)" ) );
 	if( fileName == nullptr ) { // Cancel pressed
 		SHOW_MSGBOX_WARN( tr("User abort"), tr("No files saved.") );
@@ -4772,8 +4790,8 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 	}
 
 	// 3.) Ask for the filename
-	QString baseName = QString( mMeshVisual->getBaseName().c_str() );
-	QString filePath = QString( mMeshVisual->getFileLocation().c_str() );
+	QString baseName = QString::fromStdWString( mMeshVisual->getBaseName() );
+	QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save intersections as" ), \
 	                                                 filePath + baseName + "_profiles.svg", \
 	                                                 tr( "Scaleable Vector Graphic (*.svg)" ) );

@@ -176,7 +176,7 @@ void parseTextureValue(std::stringstream& sStream, std::string& str)
 }
 
 
-bool MtlParser::parseFile(const std::string& fileName)
+bool MtlParser::parseFile(const std::filesystem::path& fileName)
 {
 	std::ifstream fStream;
 	FStreamGuard streamGuard(fStream);

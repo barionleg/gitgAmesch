@@ -4,6 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <array>
+#include <filesystem>
 
 struct MtlMaterial {
 	//color and illumination
@@ -42,7 +43,7 @@ class MtlParser
 	public:
 		MtlParser() = default;
 
-		bool parseFile(const std::string& fileName);
+		bool parseFile(const std::filesystem::path& fileName);
 		bool hasMaterial(const std::string& name);
 
 		MtlMaterial& getMaterial(const std::string& name);

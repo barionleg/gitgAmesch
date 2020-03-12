@@ -17,7 +17,7 @@ PlyWriter::PlyWriter()
 }
 
 
-bool PlyWriter::writeFile(const std::string& rFilename, const std::vector<sVertexProperties>& rVertexProps, const std::vector<sFaceProperties>& rFaceProps, MeshSeedExt& rMeshSeed)
+bool PlyWriter::writeFile(const std::filesystem::path& rFilename, const std::vector<sVertexProperties>& rVertexProps, const std::vector<sFaceProperties>& rFaceProps, MeshSeedExt& rMeshSeed)
 {
 	//! Supports:
 	fstream filestr;
@@ -33,7 +33,7 @@ bool PlyWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 	tStart = high_resolution_clock::now();
 	LOG::info() << "[PlyWriter::" << __FUNCTION__ << "] ------------------------------------------------------------\n";
 
-	filestr.open( rFilename.c_str(), fstream::out | fstream::binary);
+	filestr.open( rFilename, fstream::out | fstream::binary);
 	if( !filestr.is_open() ) {
 		LOG::error() << "[PlyWriter::" << __FUNCTION__ <<"] ERROR: Could not open file: '" << rFilename << "'!\n";
 		return false;

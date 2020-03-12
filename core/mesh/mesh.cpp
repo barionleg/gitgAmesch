@@ -13090,7 +13090,7 @@ bool Mesh::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool 
 	applyTransfromToPlane(rTrans);
 
 	//! .) Write the transformation to the side-car file, because HiWis tend to forget this.
-	string transMatFName = getFileLocation() + "/" + getBaseName() + "_transmat.txt";
+	string transMatFName = getFileLocation().string() + "/" + getBaseName().string() + "_transmat.txt";
 	ofstream transMatFile;
 	transMatFile.open( transMatFName, ios::app );
 	if( transMatFile.is_open() ) {
@@ -16065,9 +16065,9 @@ bool Mesh::getMeshInfoData(
 
 	// String data
 	if( rAbsolutePath ) {
-		rMeshInfos.mStrings[MeshInfoData::FILENAME]       = this->getFullName();
+		rMeshInfos.mStrings[MeshInfoData::FILENAME]       = this->getFullName().string();
 	} else {
-		rMeshInfos.mStrings[MeshInfoData::FILENAME]       = this->getBaseName();
+		rMeshInfos.mStrings[MeshInfoData::FILENAME]       = this->getBaseName().string();
 	}
 	rMeshInfos.mStrings[MeshInfoData::MODEL_ID]           = this->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
 	rMeshInfos.mStrings[MeshInfoData::MODEL_MATERIAL]     = this->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );

@@ -113,7 +113,7 @@ bool parseFaceProperty(const std::vector<std::string>& tokens, size_t faceIdx, s
 //! are executed. Furthermore functions are tested here.
 //!
 //! see .OBJ specification: http://local.wasp.uwa.edu.au/~pbourke/dataformats/obj/
-bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProperties> &rVertexProps, std::vector<sFaceProperties> &rFaceProps, MeshSeedExt& rMeshSeed)
+bool ObjReader::readFile(const std::filesystem::path &rFilename, std::vector<sVertexProperties> &rVertexProps, std::vector<sFaceProperties> &rFaceProps, MeshSeedExt& rMeshSeed)
 {
 	char* oldLocale = std::setlocale( LC_NUMERIC, nullptr );
 	std::setlocale( LC_NUMERIC, "C" );
@@ -135,7 +135,7 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 	unsigned int  obj_commentsTotal         = 0;
 
 	// functionality:
-	ifstream fp( rFilename.c_str() );
+	ifstream fp( rFilename );
 	if( !fp.is_open() ) {
 		LOG::error() << "[ObjReader::" << __FUNCTION__ << "] Could not open file: '" << rFilename << "'.\n";
 		std::setlocale( LC_NUMERIC, oldLocale );
@@ -146,7 +146,7 @@ bool ObjReader::readFile(const std::string &rFilename, std::vector<sVertexProper
 	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] File opened: '" << rFilename << "'.\n";
 
 	std::filesystem::path prevRootPath = std::filesystem::current_path();
-	std::filesystem::current_path(std::filesystem::absolute(std::filesystem::path(rFilename)).parent_path());
+	std::filesystem::current_path(std::filesystem::absolute(rFilename).parent_path());
 
 	// determine the amount of data by parsing the data for a start:
 	while( fp.good() ) {

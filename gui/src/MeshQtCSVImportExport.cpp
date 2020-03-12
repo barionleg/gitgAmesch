@@ -376,7 +376,7 @@ bool MeshQtCSVImportExport::importVertexDataFromCSV(const QString& inputFilename
 bool MeshQtCSVImportExport::importVertexDataFromCSVDialog(const std::function<void()>& boundingBoxChangedCallback)
 {
 	const QString vertexCoordinatesInputFileDirectory =
-	                                        QString::fromStdString( m_meshGLPtr->getFileLocation() );
+	                                        QString::fromStdWString( m_meshGLPtr->getFileLocation() );
 
 	const QString vertexCoordinatesInputFileName =
 	                        QFileDialog::getOpenFileName(nullptr,
@@ -659,7 +659,7 @@ bool MeshQtCSVImportExport::exportVertexCoordinatesToCSV(const QString& outputFi
 bool MeshQtCSVImportExport::exportVertexCoordinatesToCSVDialog(const bool selectedVerticesOnly)
 {
 	const QString vertexCoordinatesFileDirectory =
-	                            QString::fromStdString( m_meshGLPtr->getFileLocation() );
+	                            QString::fromStdWString( m_meshGLPtr->getFileLocation() );
 
 	const QString vertexCoordinatesFileName =
 	                            QFileDialog::getSaveFileName(nullptr,
@@ -802,7 +802,7 @@ bool MeshQtCSVImportExport::exportSelPrimsPositionsToCSV(const QString& outputFi
 bool MeshQtCSVImportExport::exportSelPrimsPositionsToCSVDialog()
 {
 	const QString selPrimsPositionsFileDirectory =
-	                            QString::fromStdString( m_meshGLPtr->getFileLocation() );
+	                            QString::fromStdWString( m_meshGLPtr->getFileLocation() );
 
 	const QString selPrimsPositionsFileName =
 	                            QFileDialog::getSaveFileName(nullptr,

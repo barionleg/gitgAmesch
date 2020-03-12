@@ -135,11 +135,11 @@ public slots:
 	// Screenshot - Views - Rendering
 	void screenshotViews();
 	void screenshotViews( const QString& rFileName );
-	void screenshotViews( const std::string&          rFilePattern,
-	                      const std::string&          rFilePrefix,
-	                      const bool                  rUseTiled,
-	                      std::vector<std::string>&   rImageFiles,
-	                      std::vector<double>&        rImageSizes );
+	void screenshotViews( const QString&          rFilePattern,
+	                      const QString&          rFilePrefix,
+	                      const bool              rUseTiled,
+	                      std::vector<QString>&   rImageFiles,
+	                      std::vector<double>&    rImageSizes );
 
 	// === LEGACY to be removed! ===========================================================================================================================
 	void screenshotDirectory();

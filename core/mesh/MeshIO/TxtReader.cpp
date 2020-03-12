@@ -7,7 +7,7 @@
 using namespace std;
 
 
-bool TxtReader::readFile(const std::string& rFilename, std::vector<sVertexProperties>& rVertexProps, std::vector<sFaceProperties>& rFaceProps, MeshSeedExt& rMeshSeed)
+bool TxtReader::readFile(const std::filesystem::path& rFilename, std::vector<sVertexProperties>& rVertexProps, std::vector<sFaceProperties>& rFaceProps, MeshSeedExt& rMeshSeed)
 {
 	//! Reads a simple ASCII file having X,Y,Z and R,G,B per line.
 
@@ -24,7 +24,7 @@ bool TxtReader::readFile(const std::string& rFilename, std::vector<sVertexProper
 	int timeStart, timeStop; // for performance mesurement
 
 	timeStart = clock();
-	filestr.open( rFilename.c_str(), fstream::in );
+	filestr.open( rFilename, fstream::in );
 
 	int   texR, texG, texB;
 	float texRf, texGf, texBf;

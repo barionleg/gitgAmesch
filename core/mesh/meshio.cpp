@@ -146,12 +146,12 @@ void triangulateFaces(std::vector<sFaceProperties>& rFaceProps, const std::vecto
 //!
 //! @returns false in case of an error. True otherwise.
 bool MeshIO::readFile(
-                const string& rFileName,
+                const filesystem::path& rFileName,
                 std::vector<sVertexProperties>& rVertexProps,
                 std::vector<sFaceProperties>& rFaceProps
 ) {
 	// Extension - lower case and without dot
-	std::string fileExtension = std::filesystem::path( rFileName ).extension().string();
+	std::string fileExtension = rFileName.extension().string();
 	for( char& character : fileExtension ) {
 		character = static_cast<char>( std::tolower( static_cast<unsigned char>( character ) ) );
 	}
@@ -226,7 +226,7 @@ bool MeshIO::readFile(
 	mExportFlags[EXPORT_TEXTURE_COORDINATES] = mModelMetaData.hasTextureCoordinates();
 
 	// Store filename with absolute path.
-	mFileNameFull = std::filesystem::absolute( rFileName ).string();
+	mFileNameFull = std::filesystem::absolute( rFileName );
 	LOG::debug() << "[MeshIO::" << __FUNCTION__ << "] File - Absolute:    " << mFileNameFull << "\n";
 	LOG::debug() << "[MeshIO::" << __FUNCTION__ << "] File - Stem:        " << std::filesystem::path( mFileNameFull ).stem() << "\n";
 	LOG::debug() << "[MeshIO::" << __FUNCTION__ << "] File - Extension:   " << std::filesystem::path( mFileNameFull ).extension() << "\n";
@@ -259,7 +259,7 @@ bool MeshIO::readIsRegularGrid( bool* rIsGrid ) {
 //! Note missing Vertex indices will get a default color (specified elsewhere).
 //!
 //! @returns false in case of an error. True otherwise.
-bool MeshIO::importTEXMap(const string&          rFileName,
+bool MeshIO::importTEXMap(const filesystem::path&          rFileName,
                            int*            rNrLines,
                            uint64_t** rRefToPrimitves,
                            unsigned char** rTexMap
@@ -270,7 +270,7 @@ bool MeshIO::importTEXMap(const string&          rFileName,
 	int timeStart, timeStop; // for performance mesurement
 
 	timeStart = clock();
-	filestr.open( rFileName.c_str(), fstream::in );
+	filestr.open( rFileName, fstream::in );
 	if( !filestr.is_open() ) {
 		LOG::error() << "[MeshIO::" << __FUNCTION__ << "] Could not open: '" << rFileName << "'!\n";
 		return( false );
@@ -309,7 +309,7 @@ bool MeshIO::importTEXMap(const string&          rFileName,
 			(*rTexMap)[i*3+1] = static_cast<unsigned char>(texGtmp*255);
 			(*rTexMap)[i*3+2] = static_cast<unsigned char>(texBtmp*255);
 		} else {
-			LOG::warn() << "[MeshIO::" << __FUNCTION__ << "] Problem in parsing line no. " << i << " of " << rFileName.c_str() << "\n";
+			LOG::warn() << "[MeshIO::" << __FUNCTION__ << "] Problem in parsing line no. " << i << " of " << rFileName << "\n";
 		}
 	}
 
@@ -323,11 +323,11 @@ bool MeshIO::importTEXMap(const string&          rFileName,
 
 //! Import an ASCII file with normal vectors.
 //! Expected format: <integer/primitive_id> <double/x-component> <double/y-component> <double/z-component>
-bool MeshIO::importNormals( const string& rFileName, vector<grVector3ID>* rNormals ) {
+bool MeshIO::importNormals( const filesystem::path& rFileName, vector<grVector3ID>* rNormals ) {
 	std::fstream fileStream;
 	fileStream.open( rFileName, std::fstream::in );
 	if( !fileStream.is_open() ) {
-		LOG::error() << "[MeshIO::" << __FUNCTION__ << "] ERROR: Could not open " << rFileName.c_str() << "!\n";
+		LOG::error() << "[MeshIO::" << __FUNCTION__ << "] ERROR: Could not open " << rFileName << "!\n";
 		return false;
 	}
 	LOG::debug() << "[MeshIO::" << __FUNCTION__ << "] Reading from '" << rFileName << "'\n";
@@ -343,7 +343,7 @@ bool MeshIO::importNormals( const string& rFileName, vector<grVector3ID>* rNorma
 		//cout << "[MeshIO::" << __FUNCTION__ << "] " << primID << " " << normalX << " " << normalY << " " << normalZ << endl;
 	}
 	if( !fileStream.eof() ) {
-		LOG::error() << "[MeshIO::" << __FUNCTION__ << "] ERROR: File '" << rFileName.c_str() << "' not parsed to its end!\n";
+		LOG::error() << "[MeshIO::" << __FUNCTION__ << "] ERROR: File '" << rFileName << "' not parsed to its end!\n";
 		fileStream.close();
 		return false;
 	}
@@ -371,18 +371,17 @@ bool MeshIO::writeFileUserInteract() {
 //! Write a Mesh to a file. The file type is automatically determined by the file
 //! extension. See methods like: MeshIO::writeOBJ, MeshIO::writePLY and MeshIO::writeVRML
 bool MeshIO::writeFile(
-                const string& rFileName,
+                const filesystem::path& rFileName,
                 std::vector<sVertexProperties>& rVertexProps,
                 std::vector<sFaceProperties>& rFaceProps
 ) {
-	size_t foundDot;
-	foundDot = rFileName.rfind( '.' );
-	if( foundDot == string::npos ) {
+	string fileExtension = rFileName.extension().string();
+
+	if(fileExtension.empty())
+	{
 		LOG::error() << "[MeshIO::" << __FUNCTION__ << "] No extension/type for file '" << rFileName << "' specified!\n";
 		return false;
 	}
-
-	string fileExtension = rFileName.substr( ++foundDot );
 
 	for(char& character : fileExtension)
 	{
@@ -423,7 +422,8 @@ bool MeshIO::writeFile(
 		{
 			for(size_t i = 0; i<mModelMetaData.getTexturefilesRef().size(); ++i)
 			{
-				std::string targetPath = std::filesystem::path(rFileName).parent_path().string() + "/" + std::filesystem::path(mModelMetaData.getTexturefilesRef()[i]).filename().string();
+				std::filesystem::path targetPath = rFileName.parent_path().wstring() + L"/" +
+				        mModelMetaData.getTexturefilesRef()[i].filename().wstring();
 				writer->getModelMetaDataRef().getTexturefilesRef()[i] = targetPath;
 			}
 		}
@@ -461,7 +461,7 @@ bool MeshIO::writeFile(
 				LOG::warn() << e.what() << " (target file may already exist)\n";
 			}
 
-			std::string targetPath = std::filesystem::path(rFileName).parent_path().string() + "/" + std::filesystem::path(textureFile).filename().string();
+			std::filesystem::path targetPath = rFileName.parent_path().wstring() + L"/" + textureFile.filename().wstring();
 			mModelMetaData.getTexturefilesRef()[texId++] = targetPath;
 		}
 	}
@@ -479,10 +479,10 @@ ModelMetaData& MeshIO::getModelMetaDataRef()
 //! Get the extension of the file name in lower case without dot.
 //!
 //! @returns extension of the file name in lower case without dot.
-string MeshIO::getFileExtension() {
+filesystem::path MeshIO::getFileExtension() const {
 	// Extension - lower case and without dot
-	std::string fileExtension = std::filesystem::path( mFileNameFull ).extension().string();
-	for( char& character : fileExtension ) {
+	std::wstring fileExtension = mFileNameFull.extension().wstring();
+	for( auto& character : fileExtension) {
 		character = static_cast<char>( std::tolower( static_cast<unsigned char>( character ) ) );
 	}
 	if( fileExtension.at(0) == '.' ) {
@@ -492,34 +492,25 @@ string MeshIO::getFileExtension() {
 }
 
 //! Returns the base name = rFileName without extension nor path.
-string MeshIO::getBaseName() {
-	return std::filesystem::path( mFileNameFull ).stem().string();
+filesystem::path MeshIO::getBaseName() const {
+	return mFileNameFull.stem();
 }
 
 //! Returns the path of the file.
-string MeshIO::getFileLocation() {
-	std::string fileLocation = std::filesystem::path( mFileNameFull ).parent_path().string();
-#ifndef WIN32
-	if(fileLocation.back() != '/')
-		fileLocation.push_back('/');
-#else
-	if(fileLocation.back() != '\\')
-		fileLocation.push_back('\\');
-#endif
-
-	return fileLocation;
+filesystem::path MeshIO::getFileLocation() const {
+	return mFileNameFull.parent_path();
 }
 
 //! Returns the full name and path of the file.
-string MeshIO::getFullName() {
+filesystem::path MeshIO::getFullName() const {
 	return mFileNameFull;
 }
 
-bool MeshIO::writeIcoNormalSphereData(const string& rFilename, const std::list<sVertexProperties>& rVertexProps, int subdivisions, bool sphereCoordinates)
+bool MeshIO::writeIcoNormalSphereData(const filesystem::path& rFilename, const std::list<sVertexProperties>& rVertexProps, int subdivisions, bool sphereCoordinates)
 {
 	fstream filestr;
 	filestr.imbue(std::locale("C"));
-	filestr.open( rFilename.c_str(), fstream::out );
+	filestr.open( rFilename, fstream::out );
 	if( !filestr.is_open() ) {
 		LOG::error() << "[MeshIO] Could not open file: '" << rFilename << "'.\n";
 		return false;

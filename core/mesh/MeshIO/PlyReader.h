@@ -10,7 +10,7 @@ class PlyReader : public MeshReader
 		PlyReader() = default;
 		~PlyReader() override = default;
 
-		bool readFile( const std::string& rFilename, std::vector<sVertexProperties>& rVertexProps, std::vector<sFaceProperties>& rFaceProps, MeshSeedExt& rMeshSeed ) override;
+		bool readFile( const std::filesystem::path& rFilename, std::vector<sVertexProperties>& rVertexProps, std::vector<sFaceProperties>& rFaceProps, MeshSeedExt& rMeshSeed ) override;
 
 		void setIsBigEndian(bool bigEndian);
 	private:

@@ -40,7 +40,7 @@ void writeMTL(const std::vector<std::filesystem::path>& textureFiles, const std:
 	filestr.close();
 }
 
-bool ObjWriter::writeFile(const std::string& rFilename, const std::vector<sVertexProperties>& rVertexProps, const std::vector<sFaceProperties>& rFaceProps, MeshSeedExt& rMeshSeed)
+bool ObjWriter::writeFile(const std::filesystem::path& rFilename, const std::vector<sVertexProperties>& rVertexProps, const std::vector<sFaceProperties>& rFaceProps, MeshSeedExt& rMeshSeed)
 {
 	fstream filestr;
 	filestr.imbue(std::locale("C"));
@@ -127,7 +127,7 @@ bool ObjWriter::writeFile(const std::string& rFilename, const std::vector<sVerte
 			std::filesystem::current_path(prevPath);
 		}
 
-		filestr << "mtllib " << std::filesystem::path(rFilename).stem().string() << ".mtl\n";
+		filestr << "mtllib " << rFilename.stem().string() << ".mtl\n";
 	}
 
 

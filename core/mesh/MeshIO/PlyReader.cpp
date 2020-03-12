@@ -263,12 +263,12 @@ bool parseBinary(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, st
                  std::vector<float>& vertexTextureCoordinates,
                  std::vector<sVertexProperties>& rVertexProps, std::vector<sFaceProperties>& rFaceProps,
                  bool hasVertexTexCoords,
-                 const std::string& rFilename, bool reverseByteOrder, MeshSeedExt& rMeshSeed)
+                 const std::filesystem::path& rFilename, bool reverseByteOrder, MeshSeedExt& rMeshSeed)
 {
 
 	// ReOpen file, when binary!
 	filestr.close();
-	filestr.open( rFilename.c_str(), std::fstream::in | std::ios_base::binary );
+	filestr.open( rFilename, std::fstream::in | std::ios_base::binary );
 	if( !filestr.is_open() ) {
 		LOG::error() << "[PlyReader::" << __FUNCTION__ << "] could not open: '" << rFilename << "'!\n";
 		return false;
@@ -649,7 +649,7 @@ bool parseBinary(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, st
 //!           http://paulbourke.net/dataformats/ply/
 //! [DEAD link] full specification: http://local.wasp.uwa.edu.au/~pbourke/dataformats/ply/
 //! [DEAD link] alternate specification document: http://www.cs.kuleuven.ac.be/~ares/libply/ply-0.1/doc/PLY_FILES.txt
-bool PlyReader::readFile(const std::string& rFilename,
+bool PlyReader::readFile(const std::filesystem::path& rFilename,
 				std::vector<sVertexProperties>& rVertexProps,
 				std::vector<sFaceProperties>& rFaceProps,
 				MeshSeedExt& rMeshSeed) {
@@ -664,7 +664,7 @@ bool PlyReader::readFile(const std::string& rFilename,
 	const auto timeStart = clock(); // for performance mesurement
 
 	std::cout << "[PlyReader::" << __FUNCTION__ << "] opening: '" << rFilename << "'\n";
-	filestr.open( rFilename.c_str(), std::fstream::in );
+	filestr.open( rFilename, std::fstream::in );
 	if( !filestr.is_open() ) {
 		LOG::error() << "[PlyReader::" << __FUNCTION__ << "] could not open: '" << rFilename << "'!\n";
 		return false;

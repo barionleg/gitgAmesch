@@ -15,10 +15,10 @@ enum eTxtRegularTags {
 	TXT_REGULAR_COUNT
 };
 
-bool RegularGridTxtReader::readFile(const std::string& rFilename, std::vector<sVertexProperties>& rVertexProps, std::vector<sFaceProperties>& rFaceProps, MeshSeedExt& rMeshSeed)
+bool RegularGridTxtReader::readFile(const std::filesystem::path& rFilename, std::vector<sVertexProperties>& rVertexProps, std::vector<sFaceProperties>& rFaceProps, MeshSeedExt& rMeshSeed)
 {
 	// Functionality:
-	ifstream fp( rFilename.c_str() );
+	ifstream fp( rFilename );
 	fp.imbue(std::locale("C"));
 	if( !fp.is_open() ) {
 		cerr << "[RegularGridTxtReader::" << __FUNCTION__ << "] Could not open file: '" << rFilename << "'." << endl;

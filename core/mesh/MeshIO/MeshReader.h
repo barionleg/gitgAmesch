@@ -10,7 +10,7 @@ class MeshReader
 		MeshReader();
 		virtual ~MeshReader() = default;
 
-		virtual bool readFile( const std::string& rFilename, std::vector<sVertexProperties>& rVertexProps, std::vector<sFaceProperties>& rFaceProps, MeshSeedExt& rMeshSeed ) = 0;
+		virtual bool readFile( const std::filesystem::path& rFilename, std::vector<sVertexProperties>& rVertexProps, std::vector<sFaceProperties>& rFaceProps, MeshSeedExt& rMeshSeed ) = 0;
 
 		ModelMetaData& getModelMetaDataRef();
 

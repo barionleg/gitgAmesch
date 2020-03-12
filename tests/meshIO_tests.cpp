@@ -85,7 +85,7 @@ TEST_CASE("MeshIO integration test", "[meshio]")
 		auto filePath = meshIO.getFileLocation();
 		auto fullName = meshIO.getFullName();
 
-		REQUIRE(fullName == filePath + baseName + "." + extension);
+		REQUIRE(fullName.wstring() == filePath.wstring() + baseName.wstring() + L"." + extension.wstring());
 	}
 }
 

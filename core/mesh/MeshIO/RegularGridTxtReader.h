@@ -10,7 +10,7 @@ class RegularGridTxtReader : public MeshReader
 
 		// MeshReader interface
 	public:
-		bool readFile(const std::string& rFilename, std::vector<sVertexProperties>& rVertexProps, std::vector<sFaceProperties>& rFaceProps, MeshSeedExt& rMeshSeed) override;
+		bool readFile(const std::filesystem::path& rFilename, std::vector<sVertexProperties>& rVertexProps, std::vector<sFaceProperties>& rFaceProps, MeshSeedExt& rMeshSeed) override;
 };
 
 #endif // REGULARGRIDTXTREADER_H

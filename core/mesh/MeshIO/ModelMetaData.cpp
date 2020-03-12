@@ -77,6 +77,7 @@ bool ModelMetaData::clearModelMetaStrings() {
 	mMetaDataStringNames[META_REFERENCE_WEB]    = "ModelReferenceWeb";
 	mMetaDataStringNames[META_TEXTUREFILE]      = "TextureFile";
 
+	mFileName = "ModelFileName";
 	// Done.
 	return( true );
 }
@@ -119,4 +120,14 @@ bool ModelMetaData::hasTextureFiles() const
 std::vector<std::filesystem::path>& ModelMetaData::getTexturefilesRef()
 {
 	return mTextureFiles;
+}
+
+std::filesystem::path ModelMetaData::getFileName() const
+{
+	return mFileName;
+}
+
+void ModelMetaData::setFileName(const std::filesystem::path& fileName)
+{
+	mFileName = fileName;
 }

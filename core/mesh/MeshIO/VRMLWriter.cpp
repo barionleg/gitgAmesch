@@ -5,11 +5,11 @@
 
 using namespace std;
 
-bool VRMLWriter::writeFile(const std::string& rFilename, const std::vector<sVertexProperties>& rVertexProps, const std::vector<sFaceProperties>& rFaceProps, MeshSeedExt& rMeshSeed)
+bool VRMLWriter::writeFile(const std::filesystem::path& rFilename, const std::vector<sVertexProperties>& rVertexProps, const std::vector<sFaceProperties>& rFaceProps, MeshSeedExt& rMeshSeed)
 {
 	fstream filestr;
 	filestr.imbue(std::locale("C"));
-	filestr.open( rFilename.c_str(), fstream::out );
+	filestr.open( rFilename, fstream::out );
 	if( !filestr.is_open() ) {
 		cerr << "[VRMLWriter] Could not open file: '" << rFilename << "'.\n";
 		return false;

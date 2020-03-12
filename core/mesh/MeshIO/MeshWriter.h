@@ -11,7 +11,7 @@ class MeshWriter
 	public:
 		MeshWriter();
 		virtual ~MeshWriter() = default;
-		virtual bool writeFile(const std::string& rFilename, const std::vector<sVertexProperties>& rVertexProps, const std::vector<sFaceProperties>& rFaceProps, MeshSeedExt& rMeshSeed) = 0;
+		virtual bool writeFile(const std::filesystem::path& rFilename, const std::vector<sVertexProperties>& rVertexProps, const std::vector<sFaceProperties>& rFaceProps, MeshSeedExt& rMeshSeed) = 0;
 
 		void setModelMetaData(const ModelMetaData& metaData);
 		ModelMetaData& getModelMetaDataRef();

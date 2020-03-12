@@ -42,36 +42,36 @@ class MeshIO : public MeshSeedExt {
 		};
 
 		// Read:
-		virtual bool readFile( const std::string& rFileName, std::vector<sVertexProperties>& rVertexProps, std::vector<sFaceProperties>& rFaceProps );
+		virtual bool readFile( const std::filesystem::path& rFileName, std::vector<sVertexProperties>& rVertexProps, std::vector<sFaceProperties>& rFaceProps );
 		virtual bool readIsRegularGrid( bool* rIsGrid );
 
 
-		bool importTEXMap( const std::string& rFileName, int* rNrLines, uint64_t** rRefToPrimitves, unsigned char** rTexMap );
-		bool importNormals( const std::string& rFileName, std::vector<grVector3ID> *rNormals );
+		bool importTEXMap( const std::filesystem::path& rFileName, int* rNrLines, uint64_t** rRefToPrimitves, unsigned char** rTexMap );
+		bool importNormals( const std::filesystem::path& rFileName, std::vector<grVector3ID> *rNormals );
 
 		// Write:
 		virtual bool setFlagExport( eExportFlags rFlag, bool rSetTo  );
 		virtual bool writeFileUserInteract();
-		virtual bool writeFile( const std::string& rFileName,
+		virtual bool writeFile( const std::filesystem::path& rFileName,
 			                std::vector<sVertexProperties>& rVertexProps,
-			                std::vector<sFaceProperties>& rFaceProps );
+		                    std::vector<sFaceProperties>& rFaceProps );
 
 		ModelMetaData& getModelMetaDataRef();
 
 		// Provide Information:
-		virtual std::string getFileExtension();
-		virtual std::string getBaseName();
-		virtual std::string getFileLocation();
-		virtual std::string getFullName();
+		virtual std::filesystem::path getFileExtension() const;
+		virtual std::filesystem::path getBaseName() const;
+		virtual std::filesystem::path getFileLocation() const;
+		virtual std::filesystem::path getFullName() const;
 
-		virtual bool writeIcoNormalSphereData(const std::string& rFilename, const std::list<sVertexProperties>& rVertexProps, int subdivisions, bool sphereCoordinates = false);
+		virtual bool writeIcoNormalSphereData(const std::filesystem::path& rFilename, const std::list<sVertexProperties>& rVertexProps, int subdivisions, bool sphereCoordinates = false);
 
 	private:
 		std::array<bool, EXPORT_FLAG_COUNT>   mExportFlags; //!< Handles export options.
 		bool   mSystemIsBigEndian; //!< Flag for proper Byte ordering during write/read.
 
 		// File properties
-		std::string mFileNameFull;      //!< Full name and path of the current file.
+		std::filesystem::path mFileNameFull;      //!< Full name and path of the current file.
 
 		// Meta-Data NEW with vector of strings
 		ModelMetaData mModelMetaData;
