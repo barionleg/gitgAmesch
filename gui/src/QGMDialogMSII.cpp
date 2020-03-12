@@ -177,13 +177,13 @@ void QGMDialogMSII::accept() {
 	newParamsMSII.cubeEdgeLengthInVoxels = getCubeEdgeLengthInVoxels();
 	newParamsMSII.dumpAsMatlabString     = getDumpAsMatlabString();
 	newParamsMSII.writeToMesh            = writeToMesh();
-	newParamsMSII.fileNameMesh           = getFileNameMesh().toStdString();
+	newParamsMSII.fileNameMesh           = getFileNameMesh().toStdWString();
 	newParamsMSII.writeRaster            = writeRaster();
-	newParamsMSII.fileNameRaster         = getFileNameRaster().toStdString();
+	newParamsMSII.fileNameRaster         = getFileNameRaster().toStdWString();
 	newParamsMSII.writeFilterMasks       = writeFilterMasks();
-	newParamsMSII.fileNameFilterMasks    = getFileNameFilterMasks().toStdString();
+	newParamsMSII.fileNameFilterMasks    = getFileNameFilterMasks().toStdWString();
 	newParamsMSII.writeFilterResult      = writeFilterResult();
-	newParamsMSII.fileNameFilterResult   = getFileNameFilterResult().toStdString();
+	newParamsMSII.fileNameFilterResult   = getFileNameFilterResult().toStdWString();
 	//cout << "[QGMMainWindow::accept] Emit Signal." << endl;
 	emit estimateMSIIFeat( newParamsMSII );
 

@@ -770,7 +770,7 @@ bool MeshQt::exportFaceNormalAngles() {
 	return false;
 }
 
-bool MeshQt::exportFaceNormalAngles( string filename ) {
+bool MeshQt::exportFaceNormalAngles( filesystem::path filename ) {
 	//! Handle GUI request to export normals in spherical coordinates.
 	//! see MeshGL::exportFaceNormalAngles
 	return MeshGL::exportFaceNormalAngles( filename );
@@ -2463,7 +2463,7 @@ void MeshQt::estimateMSIIFeat( ParamsMSII params ) {
 	if( params.writeToMesh ) {
 		Mesh tempMesh( &facesInSphereOLD );
 		char fileNameStr[512];
-		sprintf( fileNameStr, params.fileNameMesh.c_str(), params.seedVertexId );
+		sprintf( fileNameStr, params.fileNameMesh.string().c_str(), params.seedVertexId );
 		tempMesh.writeFile( string( fileNameStr ) );
 	}
 	if( params.dumpAsMatlabString ) {
@@ -2476,7 +2476,7 @@ void MeshQt::estimateMSIIFeat( ParamsMSII params ) {
 	if( !isnan( patchArea ) ) {
 		if( params.writeRaster ) {
 			char    fileNameStr[512];
-			QString fileNamePattern( params.fileNameRaster.c_str() );
+			QString fileNamePattern = QString::fromStdWString( params.fileNameRaster );
 			fileNamePattern.replace( QString( ".tif" ), QString( "_NEW.tif" ) );
 			sprintf( fileNameStr, fileNamePattern.toStdString().c_str(), params.seedVertexId );
 			Image2D someImage;
@@ -2538,7 +2538,7 @@ void MeshQt::estimateMSIIFeat( ParamsMSII params ) {
 	if( params.writeFilterMasks ) {
 		char    fileNameStr[512];
 		for( int i=0; i<params.multiscaleRadiiNr; i++ ) {
-			sprintf( fileNameStr, params.fileNameFilterMasks.c_str(), params.seedVertexId, i, params.multiscaleRadii[i] );
+			sprintf( fileNameStr, params.fileNameFilterMasks.string().c_str(), params.seedVertexId, i, params.multiscaleRadii[i] );
 			Image2D someImage;
 			//someImage.setSilent();
 			someImage.writeTIFF( fileNameStr, params.cubeEdgeLengthInVoxels, params.cubeEdgeLengthInVoxels, voxelFilters2D[i], 0.0, static_cast<double>(params.cubeEdgeLengthInVoxels)/2.0, false );
@@ -2583,7 +2583,7 @@ void MeshQt::estimateMSIIFeat( ParamsMSII params ) {
 		cout << "[MeshQt::" << __FUNCTION__ << "] Feature Vector (2Di) " << params.seedVertexId << ": ";
 		char    fileNameStr[512];
 		for( int i=0; i<params.multiscaleRadiiNr; i++ ) {
-			sprintf( fileNameStr, params.fileNameFilterResult.c_str(), params.seedVertexId, i, params.multiscaleRadii[i] );
+			sprintf( fileNameStr, params.fileNameFilterResult.string().c_str(), params.seedVertexId, i, params.multiscaleRadii[i] );
 			Image2D someImage;
 			someImage.writeTIFF( fileNameStr, params.cubeEdgeLengthInVoxels, params.cubeEdgeLengthInVoxels, filterResults2D[i], 0.0, static_cast<double>(params.cubeEdgeLengthInVoxels), false );
 			double sum = 0.0;
@@ -4454,7 +4454,7 @@ bool MeshQt::writeFile( const QString& rFileName ) {
 
 //! Write 3D-data to file
 //! Overloaded from MeshIO
-bool MeshQt::writeFile( const string& rFileName ) {
+bool MeshQt::writeFile( const filesystem::path& rFileName ) {
 	if( !editMetaData() ) {
 		return( false );
 	}

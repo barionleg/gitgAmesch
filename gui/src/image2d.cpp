@@ -1,5 +1,8 @@
 #include "image2d.h"
 
+#include <filesystem>
+#include <sstream>
+
 using namespace std;
 
 constexpr int WRITE_OK = 0;
@@ -28,7 +31,7 @@ void Image2D::setResolution( const double setXRes, const double setYRes, const s
 	yRes = setYRes;
 }
 
-int Image2D::writeTIFF( const string&  filename, //!< Name of the file to be written.
+int Image2D::writeTIFF( const filesystem::path&  filename, //!< Name of the file to be written.
             const uint32_t  width,                 //!< Image width (pixel).
             const uint32_t  height,                //!< Image height (pixel).
                     double* raster,              //!< Colour-data width*height*(3|1) [0.0..maxVal].
@@ -78,7 +81,7 @@ int Image2D::writeTIFF( const string&  filename, //!< Name of the file to be wri
 //!
 //! Shows a warning in case of over- and underflows.
 //! Sets pixels with under-/overflow to black/white
-int Image2D::writeTIFF( const string& filename, //!< Name of the file to be written.
+int Image2D::writeTIFF( const filesystem::path& filename, //!< Name of the file to be written.
             const uint32_t width,                 //!< Image width (pixel).
             const uint32_t height,                //!< Image height (pixel).
                     float* raster,              //!< Colour-data width*height*(3|1) [minVal...maxVal].
@@ -143,7 +146,7 @@ int Image2D::writeTIFF( const string& filename, //!< Name of the file to be writ
 	return retVal;
 }
 
-int Image2D::writeTIFF( const string&  filename, //!< Name of the file to be written.
+int Image2D::writeTIFF( const filesystem::path&  filename, //!< Name of the file to be written.
             uint32_t  width,    //!< Image width (pixel).
             uint32_t  height,   //!< Image height (pixel).
 	                double* raster,   //!< Colour-data width*height*(3|1) [minVal...maxVal].
@@ -215,7 +218,7 @@ int Image2D::writeTIFF( const string&  filename, //!< Name of the file to be wri
 	return retVal;
 }
 
-int Image2D::writeTIFF(string filename, //!< Name of the file to be written.
+int Image2D::writeTIFF(filesystem::path filename, //!< Name of the file to be written.
             uint32_t width,    //!< Image width (pixel).
             uint32_t height,   //!< Image height (pixel).
             unsigned char*  raster,   //!< Colour-data width*height*(3|1) [0..255].
@@ -230,33 +233,32 @@ int Image2D::writeTIFF(string filename, //!< Name of the file to be written.
 #ifndef LIBTIFF
 	//cerr << "[Image2D::" << __FUNCTION__ << "] ERROR: libtiff NOT present!" << endl;
 
-	auto foundDot = filename.rfind('.');
-
-	if(foundDot == filename.npos)
+	if(filename.extension().empty())
 	{
 		filename += ".png";
 	}
 
 	else
 	{
-		filename = filename.substr(0,foundDot) + ".png"; //substitude extension by png
+
+		filename = filename.parent_path().wstring() +
+		        filename.stem().wstring()
+		        + L"png"; //substitude extension by png
 	}
 
 	QImage img(raster, static_cast<int>(width),
 	           static_cast<int>(height),
 	           (isRGB ? QImage::Format_RGB888 : QImage::Format_Grayscale8));
 
-	img.save(filename.c_str());
+	img.save(QString::fromStdWString(filename));
 
 	return  WRITE_OK;
 #else
-	size_t foundDot;
-	foundDot = filename.rfind( '.' );
-	if( foundDot == string::npos ) {
+	if( filename.extension.empty() ) {
 		filename += ".tif";
 	}
 
-	TIFF* image = TIFFOpen( filename.c_str(), "w" );
+	TIFF* image = TIFFOpen( filename.string().c_str(), "w" );
 	if( image == nullptr ) {
 		cerr << "[Image2D] Could not open file: '" << filename << "'." << endl;		
 		return WRITE_ERROR;
@@ -311,14 +313,15 @@ int Image2D::writeTIFF( const string& filename,       //!< Name of the file to b
 }
 */
 
-int Image2D::writeTIFFStack( const string& filename, uint32_t width, uint32_t height, uint32_t stackheight, unsigned char* imageStack, bool isRGB ) {
+int Image2D::writeTIFFStack( const filesystem::path& filename, uint32_t width, uint32_t height, uint32_t stackheight, unsigned char* imageStack, bool isRGB ) {
 	//! Write a some 3D-data into a stack of single images.
 	//!
 	//! A sequence number and the file extension will be added.
-	char strNr[12];
+
 	for( uint32_t i=0; i<stackheight; i++ ) {
-		sprintf( strNr, "%03i", i );
-		writeTIFF( filename + "_stack_" + strNr, width, height, &imageStack[i*width*height], isRGB );
+		std::wstringstream sstream;
+		sstream << std::setw(3) << std::setfill(L'0') << i;
+		writeTIFF( filename.wstring() + L"_stack_" + sstream.str() , width, height, &imageStack[i*width*height], isRGB );
 	}
 	return 0;
 }

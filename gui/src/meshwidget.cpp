@@ -3328,20 +3328,14 @@ bool MeshWidget::screenshotSingle( const QString&   rFileName,   //!< Filename t
 	rWidthReal  = _NOT_A_NUMBER_DBL_;
 	rHeigthReal = _NOT_A_NUMBER_DBL_;
 
-	string fileName = rFileName.toStdString();
-	size_t foundDot;
-	foundDot = fileName.rfind( '.' );
-	if( foundDot == string::npos ) {
-		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: No extension/type for file '" << fileName << "' specified!" << endl;
+	QString fileExtension = QFileInfo(rFileName).completeSuffix().toLower();
+
+	if( fileExtension.isEmpty() ) {
+		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: No extension/type for file '" << rFileName.toStdString() << "' specified!" << endl;
 		return( false );
 	}
 
-	// Extension of the filename.
-	string fileExtension = fileName.substr( ++foundDot );
-	for( char& character : fileExtension ) {
-		character = std::tolower(character);
-	}
-	cout << "[MeshWidget::" << __FUNCTION__ << "] extension: " << fileExtension << endl;
+	cout << "[MeshWidget::" << __FUNCTION__ << "] extension: " << fileExtension.toStdString() << endl;
 
 	bool ret = false;
 
@@ -3358,7 +3352,7 @@ bool MeshWidget::screenshotSingle( const QString&   rFileName,   //!< Filename t
 				//! \todo add tiled rendering of TIFFs
 				cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: tiled rendering not implemented for TIFF!"<< endl;
 			} else {
-				ret = screenshotTIFF( fileName, &offscreenBuffer );
+				ret = screenshotTIFF( rFileName, &offscreenBuffer );
 			}
 		}
 
@@ -3375,7 +3369,7 @@ bool MeshWidget::screenshotSingle( const QString&   rFileName,   //!< Filename t
 					ret = screenshotTiledPNG( rFileName, rWidthReal, rHeigthReal, &offscreenBuffer, static_cast<int>(borderSize) );
 				}
 			} else {
-				ret = screenshotPNG( fileName, rWidthReal, rHeigthReal, &offscreenBuffer );
+				ret = screenshotPNG( rFileName, rWidthReal, rHeigthReal, &offscreenBuffer );
 			}
 		}
 
@@ -3385,7 +3379,7 @@ bool MeshWidget::screenshotSingle( const QString&   rFileName,   //!< Filename t
 		repaint();
 	}
 	if(!ret)
-		cerr << "[MeshIO::" << __FUNCTION__ << "] Unknown extension/type '" << fileExtension << "' specified!" << endl;
+		cerr << "[MeshIO::" << __FUNCTION__ << "] Unknown extension/type '" << fileExtension.toStdString() << "' specified!" << endl;
 	return( ret );
 }
 
@@ -3832,7 +3826,7 @@ bool MeshWidget::fetchFrameBuffer(
 // Write screenshots -------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Copies the Framebuffer to an RGB array, which can be stored as a TIFF Image.
-bool MeshWidget::screenshotTIFF( const string& rFileName , OffscreenBuffer* offscreenBuffer) {
+bool MeshWidget::screenshotTIFF(const QString& rFileName , OffscreenBuffer* offscreenBuffer) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
@@ -3855,25 +3849,25 @@ bool MeshWidget::screenshotTIFF( const string& rFileName , OffscreenBuffer* offs
 		//! Therefore it is printable in scale.
 		frameBufIm.setResolution( width()/realWidth*10.0, height()/realHeight*10.0 );
 	}
-	frameBufIm.writeTIFF( rFileName, imWidth, imHeight, imArray, true );
+	frameBufIm.writeTIFF( rFileName.toStdWString(), imWidth, imHeight, imArray, true );
 	delete[] imArray;
 	if( ( realWidth > 0.0 ) && ( realHeight > 0.0 ) ) {
 		cout << "[MeshWidget::" << __FUNCTION__ << "] Ortho Image Size: " << realWidth << " x " << realHeight << " mm (unit assumed)." << endl;
 	}
-	emit sStatusMessage( "Screenshot saved to: " + QString::fromStdString( rFileName ) );
+	emit sStatusMessage( "Screenshot saved to: " + rFileName );
 	return true;
 }
 
 //! Saves the PNG with transparency to the given filename.
-bool MeshWidget::screenshotPNG( const string&   rFileName,
+bool MeshWidget::screenshotPNG(const QString& rFileName,
                                 double&         rWidthReal,
-								double&         rHeigthReal,
-								OffscreenBuffer* offscreenBuffer
+                                double&         rHeigthReal,
+                                OffscreenBuffer* offscreenBuffer
 ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
-	cout << "[MeshWidget::" << __FUNCTION__ << "] " << rFileName << endl;
+	cout << "[MeshWidget::" << __FUNCTION__ << "] " << rFileName.toStdString() << endl;
 
 	// Set default for non-orthographic projection and errors:
 	rWidthReal  = _NOT_A_NUMBER_DBL_;
@@ -3909,10 +3903,10 @@ bool MeshWidget::screenshotPNG( const string&   rFileName,
 		if( orthoMode ) {
 			getViewPortResolution(rWidthReal, rHeigthReal);
 		}
-		emit sStatusMessage( "Screenshot saved as PNG with transparency to: " + QString( rFileName.c_str() ) );
+		emit sStatusMessage( "Screenshot saved as PNG with transparency to: " + rFileName );
 	} else {
-		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Could not save screenshot as PNG with transparency to: " << rFileName.c_str() << "!" << endl;
-		emit sStatusMessage( "ERROR: Could not save screenshot as PNG with transparency to: " + QString( rFileName.c_str() ) + "!" );
+		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Could not save screenshot as PNG with transparency to: " << rFileName.toStdString() << "!" << endl;
+		emit sStatusMessage( "ERROR: Could not save screenshot as PNG with transparency to: " + rFileName + "!" );
 	}
 
 	// Free arrays:
@@ -4733,7 +4727,7 @@ bool MeshWidget::screenshotSVG( const QString& rFileName, const QString& rFileNa
 	// Block RULER --- END ---------------------------------------------------------------------------------------------------------------------------------
 
 	// SVG:
-	svgWriter.writeToFile(rFileName.toStdString());
+	svgWriter.writeToFile(rFileName.toStdWString());
 	// PNG -- optional
 	if( rFileNamePNG.length() > 0 ) {
 		QImage img(imRGBA, imWidth, imHeight, 4 * imWidth * sizeof (unsigned char), QImage::Format_RGBA8888);
@@ -4910,7 +4904,7 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 	svgWriter.setSize(canvasWidth  * mParamFlt[SVG_SCALE], canvasHeight * mParamFlt[SVG_SCALE]);
 
 	// 7.) SVG final steps:
-	svgWriter.writeToFile(fileName.toStdString());
+	svgWriter.writeToFile(fileName.toStdWString());
 
 	std::string inkscapeCommand;
 	getParamStringMeshWidget(MeshWidgetParams::INKSCAPE_COMMAND, &inkscapeCommand);
@@ -5390,7 +5384,7 @@ bool MeshWidget::screenshotTiledPNG(
 					rFileNameSubImage.replace( extSeperator, 1, strDPI );
 				}
 				// Write file
-				if( !writePNG( rFileNameSubImage.toStdString(), subImageWidth, subImageHeight, imSubRGBA,
+				if( !writePNG( rFileNameSubImage, subImageWidth, subImageHeight, imSubRGBA,
 							   dpm, dpm ) ) {
 					cerr << "[MeshWidget::" << __FUNCTION__ << "] could not write to '" << rFileNameSubImage.toStdString() << "'!" << endl;
 					emit sStatusMessage( "ERROR: Could not save screenshot as PNG with transparency to: " + rFileNameSubImage + "!" );
@@ -5405,7 +5399,7 @@ bool MeshWidget::screenshotTiledPNG(
 			QString strDPI = QString( "_%1DPI." ).arg( resolutionDPI );
 			rFileName.replace( extSeperator, 1, strDPI );
 		}
-		if( !writePNG( rFileName.toStdString(), imWidth, imHeight, imRGBA, dpm, dpm ) ) {
+		if( !writePNG( rFileName, imWidth, imHeight, imRGBA, dpm, dpm ) ) {
 			cerr << "[MeshWidget::" << __FUNCTION__ << "] could not write to '" << rFileName.toStdString() << "'!" << endl;
 			emit sStatusMessage( "ERROR: Could not save screenshot as PNG with transparency to: " + rFileName + "!" );
 			return false;
@@ -5542,7 +5536,7 @@ bool MeshWidget::fetchRuler(
 
 //! Write an RGBA PNG to file.
 //! Using either Cairo or Qt.
-bool MeshWidget::writePNG( const string& rFileName,        //!< Filename for writing the image.
+bool MeshWidget::writePNG( const QString& rFileName,        //!< Filename for writing the image.
                            uint64_t rImWidth,  //!< Image height in pixel.
                            uint64_t rImHeight, //!< Image width in pixel.
                            unsigned char* rImRGBA,  //!< RGBA data.
@@ -5559,7 +5553,7 @@ bool MeshWidget::writePNG( const string& rFileName,        //!< Filename for wri
 	imageToWrite.setDotsPerMeterY( rDotsPerMeterHeight );
 	// Write image
 	QImageWriter imageWriter;
-	imageWriter.setFileName( rFileName.c_str() );
+	imageWriter.setFileName( rFileName );
 	imageWriter.setFormat( "png" );
 	imageWriter.setText( "Description", "Generated by GigaMesh" );
 	if( !imageWriter.write( imageToWrite ) ) {

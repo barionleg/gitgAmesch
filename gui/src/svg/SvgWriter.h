@@ -5,6 +5,7 @@
 #include <string>
 #include <list>
 #include <memory>
+#include <filesystem>
 
 //!
 //! \brief The SvgWriter class for writing simple SVG's
@@ -39,7 +40,7 @@ class SvgWriter
 		//! \brief writeToFile writes all registered elements to a file. The writer will not check if the SVG is actually valid, e.g. group tags my not be closed at the end
 		//! \param filename The filename the SVG is written to
 		//!
-		void writeToFile(const std::string& filename);
+		void writeToFile(const std::filesystem::path& filename);
 
 		//!
 		//! \brief starts a new objectgroup. Call endGroup() once all Elements of the group were added

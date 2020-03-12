@@ -6,6 +6,7 @@
 
 // C++ includes:
 #include <GigaMesh/mesh/gmcommon.h>
+#include <filesystem>
 
 // generic Qt includes:
 #include <QtGui>
@@ -19,6 +20,7 @@
 // Qt includes:
 #include "QGMMacros.h"
 
+
 struct ParamsMSII {
 	// Required information:
 	int     seedVertexId;
@@ -30,13 +32,13 @@ struct ParamsMSII {
 	// Debuging and testing:
 	bool    dumpAsMatlabString;
 	bool    writeToMesh;
-	std::string  fileNameMesh;
+	std::filesystem::path  fileNameMesh;
 	bool    writeRaster;
-	std::string  fileNameRaster;
+	std::filesystem::path  fileNameRaster;
 	bool    writeFilterMasks;
-	std::string  fileNameFilterMasks;
+	std::filesystem::path  fileNameFilterMasks;
 	bool    writeFilterResult;
-	std::string  fileNameFilterResult;
+	std::filesystem::path  fileNameFilterResult;
 };
 
 //!

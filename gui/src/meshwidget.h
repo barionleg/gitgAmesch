@@ -196,8 +196,8 @@ private:
 	bool fetchFrameAndZBuffer( unsigned char*& rImRGBA, uint64_t& rImWidth, uint64_t& rImHeight, bool rCropUsingZBuffer, OffscreenBuffer* offscreenBuffer );
 	bool fetchFrameBuffer( unsigned char** rImArray, int* rImWidth, int* rImHeight, bool rCropUsingZBuffer, OffscreenBuffer* offscreenBuffer );
 	// Write screenshots:
-	bool screenshotTIFF(const std::string& rFileName , OffscreenBuffer *offscreenBuffer);
-	bool screenshotPNG(const std::string& rFileName, double& rWidthReal, double& rHeigthReal , OffscreenBuffer *offscreenBuffer);
+	bool screenshotTIFF(const QString& rFileName , OffscreenBuffer *offscreenBuffer);
+	bool screenshotPNG(const QString& rFileName, double& rWidthReal, double& rHeigthReal , OffscreenBuffer *offscreenBuffer);
 
 
 public slots:
@@ -224,7 +224,7 @@ public slots:
 	bool screenshotRuler( const QString& rFileName );
 	bool screenshotTiledPNG(QString rFileName, double& rWidthReal, double& rHeigthReal, OffscreenBuffer *offscreenBuffer, int rBorderSize=0);
 	bool fetchRuler( unsigned char** rImArray, int* rImWidth, int* rImHeight, double& rPixelWidth, double& rPixelHeight );
-	bool writePNG( const std::string& rFileName, uint64_t rImWidth, uint64_t rImHeight, unsigned char* rImRGBA, int rDotsPerMeterWidth, int rDotsPerMeterHeight );
+	bool writePNG( const QString& rFileName, uint64_t rImWidth, uint64_t rImHeight, unsigned char* rImRGBA, int rDotsPerMeterWidth, int rDotsPerMeterHeight );
 
 	bool cropRGBAbyAlpha( uint64_t* rImWidth, uint64_t* rImHeight, unsigned char** rImRGBA, double& rRealWidth, double& rRealHeight );
 	//.

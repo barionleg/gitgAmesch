@@ -108,7 +108,7 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 				bool   exportPolyLinesFuncVals();
 				bool   exportFuncVals();
 		virtual bool   exportFaceNormalAngles();
-		virtual bool   exportFaceNormalAngles( std::string filename );
+		virtual bool   exportFaceNormalAngles( std::filesystem::path filename ) override;
 
 				void exportNormalSphereData();
 		// edit actions:
@@ -336,7 +336,7 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 	public slots:
 		virtual bool writeFileUserInteract();
 		virtual bool writeFile(const QString& rFileName );
-		virtual bool writeFile(const std::string& rFileName );
+	    virtual bool writeFile(const std::filesystem::path& rFileName ) override;
 		// Set flags:
 		virtual bool setFileSaveFlagBinary( bool rSetTo );
 		virtual bool setFileSaveFlagGMExtras( bool rSetTo );

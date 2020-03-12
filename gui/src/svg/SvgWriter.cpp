@@ -24,7 +24,7 @@ void SvgWriter::addElement(std::unique_ptr<SvgElement>&& element)
 	mElements.push_back(std::move(element));
 }
 
-void SvgWriter::writeToFile(const std::string& filename)
+void SvgWriter::writeToFile(const std::filesystem::path& filename)
 {
 	//write to filename
 	std::ofstream fStream(filename);
