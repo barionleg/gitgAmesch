@@ -2282,29 +2282,29 @@ void QGMMainWindow::openExternalProgramsDialog()
 	ExternalProgramsDialog dialog;
 	std::string temp;
 	mMeshWidget->getParamStringMeshWidget(MeshWidgetParams::INKSCAPE_COMMAND, &temp);
-	dialog.setInkscapePath(temp);
+	dialog.setInkscapePath(QString::fromStdString(temp));
 
 	mMeshWidget->getParamStringMeshWidget(MeshWidgetParams::PDF_LATEX_COMMAND, &temp);
-	dialog.setPdfLatexPath(temp);
+	dialog.setPdfLatexPath(QString::fromStdString(temp));
 
 	mMeshWidget->getParamStringMeshWidget(MeshWidgetParams::PDF_VIEWER_COMMAND, &temp);
-	dialog.setPdfViewerPath(temp);
+	dialog.setPdfViewerPath(QString::fromStdString(temp));
 
 	mMeshWidget->getParamStringMeshWidget(MeshWidgetParams::PYTHON3_COMMAND, &temp);
-	dialog.setPythonPath(temp);
+	dialog.setPythonPath(QString::fromStdString(temp));
 
 	if(dialog.exec() == QDialog::Accepted)
 	{
-		mMeshWidget->setParamStringMeshWidget(MeshWidgetParams::INKSCAPE_COMMAND, dialog.inkscapePath());
-		mMeshWidget->setParamStringMeshWidget(MeshWidgetParams::PDF_LATEX_COMMAND, dialog.pdfLatexPath());
-		mMeshWidget->setParamStringMeshWidget(MeshWidgetParams::PDF_VIEWER_COMMAND, dialog.pdfViewerPath());
-		mMeshWidget->setParamStringMeshWidget(MeshWidgetParams::PYTHON3_COMMAND, dialog.pythonPath());
+		mMeshWidget->setParamStringMeshWidget(MeshWidgetParams::INKSCAPE_COMMAND  , dialog.inkscapePath().toStdString());
+		mMeshWidget->setParamStringMeshWidget(MeshWidgetParams::PDF_LATEX_COMMAND , dialog.pdfLatexPath().toStdString());
+		mMeshWidget->setParamStringMeshWidget(MeshWidgetParams::PDF_VIEWER_COMMAND, dialog.pdfViewerPath().toStdString());
+		mMeshWidget->setParamStringMeshWidget(MeshWidgetParams::PYTHON3_COMMAND   , dialog.pythonPath().toStdString());
 
 		QSettings settings;
-		settings.setValue("Inkscape_Path", QString(dialog.inkscapePath().c_str()));
-		settings.setValue("PdfLatex_Path", QString(dialog.pdfLatexPath().c_str()));
-		settings.setValue("PdfViewer_Path", QString(dialog.pdfViewerPath().c_str()));
-		settings.setValue("Python3_Path", QString(dialog.pythonPath().c_str()));
+		settings.setValue("Inkscape_Path" , QString(dialog.inkscapePath()));
+		settings.setValue("PdfLatex_Path" , QString(dialog.pdfLatexPath()));
+		settings.setValue("PdfViewer_Path", QString(dialog.pdfViewerPath()));
+		settings.setValue("Python3_Path"  , QString(dialog.pythonPath()));
 	}
 }
 
