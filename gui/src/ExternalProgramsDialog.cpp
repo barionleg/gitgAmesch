@@ -30,75 +30,75 @@ ExternalProgramsDialog::~ExternalProgramsDialog()
 	delete ui;
 }
 
-std::string ExternalProgramsDialog::pdfLatexPath() const
+QString ExternalProgramsDialog::pdfLatexPath() const
 {
 	return mPdfLatexPath;
 }
 
-void ExternalProgramsDialog::setPdfLatexPath(const std::string& pdfLatexPath)
+void ExternalProgramsDialog::setPdfLatexPath(const QString& pdfLatexPath)
 {
 	mPdfLatexPath = pdfLatexPath;
-	ui->pdf_latex_lineEdit->setText(pdfLatexPath.c_str());
+	ui->pdf_latex_lineEdit->setText(pdfLatexPath);
 }
 
-std::string ExternalProgramsDialog::pdfViewerPath() const
+QString ExternalProgramsDialog::pdfViewerPath() const
 {
 	return mPdfViewerPath;
 }
 
-void ExternalProgramsDialog::setPdfViewerPath(const std::string& pdfViewerPath)
+void ExternalProgramsDialog::setPdfViewerPath(const QString& pdfViewerPath)
 {
 	mPdfViewerPath = pdfViewerPath;
-	ui->pdf_viewer_lineEdit->setText(pdfViewerPath.c_str());
+	ui->pdf_viewer_lineEdit->setText(pdfViewerPath);
 }
 
-std::string ExternalProgramsDialog::inkscapePath() const
+QString ExternalProgramsDialog::inkscapePath() const
 {
 	return mInkscapePath;
 }
 
-void ExternalProgramsDialog::setInkscapePath(const std::string& inkscapePath)
+void ExternalProgramsDialog::setInkscapePath(const QString& inkscapePath)
 {
 	mInkscapePath = inkscapePath;
-	ui->inkscape_lineEdit->setText(inkscapePath.c_str());
+	ui->inkscape_lineEdit->setText(inkscapePath);
 }
 
-std::string ExternalProgramsDialog::pythonPath() const
+QString ExternalProgramsDialog::pythonPath() const
 {
 	return mPythonPath;
 }
 
-void ExternalProgramsDialog::setPythonPath(const std::string& pythonPath)
+void ExternalProgramsDialog::setPythonPath(const QString& pythonPath)
 {
 	mPythonPath = pythonPath;
-	ui->python_lineEdit->setText(pythonPath.c_str());
+	ui->python_lineEdit->setText(pythonPath);
 }
 
 void ExternalProgramsDialog::inkscapePathChanged(const QString& string)
 {
-	mInkscapePath = string.toStdString();
+	mInkscapePath = string;
 }
 
 void ExternalProgramsDialog::pdfLatexPathChanged(const QString& string)
 {
-	mPdfLatexPath = string.toStdString();
+	mPdfLatexPath = string;
 }
 
 void ExternalProgramsDialog::pdfViewerPathChanged(const QString& string)
 {
-	mPdfViewerPath = string.toStdString();
+	mPdfViewerPath = string;
 }
 
 void ExternalProgramsDialog::pythonPathChanged(const QString& string)
 {
-	mPythonPath = string.toStdString();
+	mPythonPath = string;
 }
 
 void choosePath(const QString& header, QLineEdit* lineEditElement, QWidget* parent)
 {
 	auto fileName = QFileDialog::getOpenFileName(parent, header);
 
-	if(fileName.length() > 0)
+	if(!fileName.isNull())
 	{
 		#ifdef WIN32
 			fileName = "\"" + fileName + "\"";

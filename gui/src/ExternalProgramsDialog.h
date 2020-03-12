@@ -16,25 +16,25 @@ class ExternalProgramsDialog : public QDialog
 		explicit ExternalProgramsDialog(QWidget *parent = nullptr);
 		~ExternalProgramsDialog() override;
 
-		[[nodiscard]] std::string pdfLatexPath() const;
-		void setPdfLatexPath(const std::string& pdfLatexPath);
+		[[nodiscard]] QString pdfLatexPath() const;
+		void setPdfLatexPath(const QString& pdfLatexPath);
 
-		[[nodiscard]] std::string pdfViewerPath() const;
-		void setPdfViewerPath(const std::string& pdfViewerPath);
+		[[nodiscard]] QString pdfViewerPath() const;
+		void setPdfViewerPath(const QString& pdfViewerPath);
 
-		[[nodiscard]] std::string inkscapePath() const;
-		void setInkscapePath(const std::string& inkscapePath);
+		[[nodiscard]] QString inkscapePath() const;
+		void setInkscapePath(const QString& inkscapePath);
 
-		[[nodiscard]] std::string pythonPath() const;
-		void setPythonPath(const std::string& pythonPath);
+		[[nodiscard]] QString pythonPath() const;
+		void setPythonPath(const QString& pythonPath);
 
 	private:
 		Ui::ExternalProgramsDialog *ui;
 
-		std::string mPdfLatexPath;
-		std::string mPdfViewerPath;
-		std::string mInkscapePath;
-		std::string mPythonPath;
+		QString mPdfLatexPath;
+		QString mPdfViewerPath;
+		QString mInkscapePath;
+		QString mPythonPath;
 
 	private slots:
 		void inkscapePathChanged(const QString& string);
