@@ -134,7 +134,7 @@ Mesh::Mesh()
 
 }
 
-Mesh::Mesh( const std::string& rFileName, bool& rReadSuccess )
+Mesh::Mesh( const std::filesystem::path& rFileName, bool& rReadSuccess )
         : MESHINITDEFAULTS {
     showProgressStart( string( "Construct Mesh" ) );
 #ifdef THREADS
@@ -1103,7 +1103,7 @@ double Mesh::getZ() const {
 
 //! Write Mesh to file - overloaded from MeshIO.
 bool Mesh::writeFile(
-                const string& rFileName
+                const filesystem::path& rFileName
 ) {
 	cout << "[Mesh::" << __FUNCTION__ << "]" << endl;
 	//! \todo Add normals, facetex to MeshIO.
@@ -1161,7 +1161,7 @@ bool Mesh::writeFile(
 //!
 //! @returns false in case of an error or user cancel. True otherwise.
 bool Mesh::importFeatureVectorsFromFile(
-    const string& rFileName //!< Name of the file for import.
+    const filesystem::path& rFileName //!< Name of the file for import.
 ) {
 	// Ask for vertex index within the first colum
 	bool hasVertexIndex = true;
@@ -1191,7 +1191,7 @@ bool Mesh::importFeatureVectorsFromFile(
 
 //! Exports feature vectors to a file
 //! @returns false in case of an error or user cancel
-bool Mesh::exportFeatureVectors(const string& rFileName)
+bool Mesh::exportFeatureVectors(const filesystem::path& rFileName)
 {
 	// Ask for vertex index within the first colum
 	bool hasVertexIndex = true;
@@ -9808,7 +9808,7 @@ bool Mesh::removeVerticesSelected() {
 bool Mesh::removeUncleanSmall(
                 double          rPercentArea,   //!< Area relative to the whole mesh.
                 bool            rApplyErosion,  //!< Add extra border cleaning.
-                const string&   rFileName       //!< Filename to store intermediate results and the final mesh.
+                const filesystem::path&   rFileName       //!< Filename to store intermediate results and the final mesh.
 ) {
 
 	uint64_t vertNoPrev = getVertexNr();
@@ -9874,7 +9874,7 @@ bool Mesh::removeUncleanSmall(
 	removeVertices( &verticesToRemove );
 
 	cout << "[Mesh::" << __FUNCTION__ << "] removed " << vertNoPrev - getVertexNr() << " vertices and " << faceNoPrev - getFaceNr() << " faces." << endl;
-	if( rFileName.size() == 0 ) {
+	if( rFileName.empty() ) {
 		return( true );
 	}
 
@@ -10064,7 +10064,7 @@ bool Mesh::completeRestore() {
 //!
 //! @returns false in case of an error. True otherwise.
 bool Mesh::completeRestore(
-                const string& rFilename,            //!< Optional filname for storing the mesh after each operation. An empty string will prevent saving the mesh.
+                const filesystem::path& rFilename,            //!< Optional filname for storing the mesh after each operation. An empty string will prevent saving the mesh.
                 double        rPercentArea,         //!< Connected components with an area smaller are removed. See Mesh::removeUncleanSmall
                 bool          rApplyErosion,        //!< Optional border erosion.
                 bool          rPrevent,             //!< Prevent longest polyline from filling.
@@ -15312,17 +15312,17 @@ bool Mesh::fillPolyLines(
 //!   -) Vertex index within the mesh.
 //!   -) Normal of the edge.
 //! File extension: .pline
-bool Mesh::exportPolyLinesCoords( string rFileName, bool rWithNormals, bool rWithVertIdx ) {
+bool Mesh::exportPolyLinesCoords( filesystem::path rFileName, bool rWithNormals, bool rWithVertIdx ) {
 	fstream filestr;
 
 	int timeStart = clock(); // for performance mesurement
 
-	size_t foundDot = rFileName.rfind( '.' );
-	if( foundDot == string::npos ) {
+	if(rFileName.extension().empty())
+	{
 		rFileName += ".pline";
 	}
 
-	filestr.open( rFileName.c_str(), fstream::out );
+	filestr.open( rFileName, fstream::out );
 	if( !filestr.is_open() ) {
 		cerr << "[Mesh::" << __FUNCTION__ << "] Could not open file: '" << rFileName << "'." << endl;
 		return false;
@@ -15406,16 +15406,16 @@ bool Mesh::exportPolyLinesCoords( string rFileName, bool rWithNormals, bool rWit
 //! .) Optional value (strided):
 //!   -) Vertex index within the mesh.
 //! File extension: .pline
-bool Mesh::exportPolyLinesCoordsProjected( string rFileName, bool rWithVertIdx, double rAngleRot ) {
+bool Mesh::exportPolyLinesCoordsProjected( filesystem::path rFileName, bool rWithVertIdx, double rAngleRot ) {
 	fstream filestr;
 	int timeStart = clock(); // for performance mesurement
 
-	size_t foundDot = rFileName.rfind( '.' );
-	if( foundDot == string::npos ) {
+	if(rFileName.extension().empty())
+	{
 		rFileName += ".pline";
 	}
 
-	filestr.open( rFileName.c_str(), fstream::out );
+	filestr.open( rFileName, fstream::out );
 	if( !filestr.is_open() ) {
 		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Could not open file: '" << rFileName << "'!" << endl;
 		return false;
@@ -15507,7 +15507,7 @@ bool Mesh::exportPolyLinesCoordsProjected( string rFileName, bool rWithVertIdx, 
 }
 
 //! Export the run-length and the function value (e.g. curvature) of the polyline as ASCII file.
-bool Mesh::exportPolyLinesFuncVals( string rFileName ) {
+bool Mesh::exportPolyLinesFuncVals( filesystem::path rFileName ) {
 	fstream filestr;
 
 	int timeStart = clock(); // for performance mesurement
@@ -15522,12 +15522,12 @@ bool Mesh::exportPolyLinesFuncVals( string rFileName ) {
 		}
 	}
 
-	size_t foundDot = rFileName.rfind( '.' );
-	if( foundDot == string::npos ) {
+	if(rFileName.extension().empty())
+	{
 		rFileName += ".txt";
 	}
 
-	filestr.open( rFileName.c_str(), fstream::out );
+	filestr.open( rFileName, fstream::out );
 	if( !filestr.is_open() ) {
 		cerr << "[Mesh::" << __FUNCTION__ << "] Could not open file: '" << rFileName << "'." << endl;
 		return false;
@@ -15594,17 +15594,17 @@ bool Mesh::exportPolyLinesFuncVals( string rFileName ) {
 
 //! Exports the function values of the vertices.
 //! File extension: .txt
-bool Mesh::exportFuncVals( string rFileName, bool rWithVertIdx ) {
+bool Mesh::exportFuncVals( filesystem::path rFileName, bool rWithVertIdx ) {
 	fstream filestr;
 
 	int timeStart = clock(); // for performance mesurement
 
-	size_t foundDot = rFileName.rfind( '.' );
-	if( foundDot == string::npos ) {
+	if(rFileName.extension().empty())
+	{
 		rFileName += ".pline";
 	}
 
-	filestr.open( rFileName.c_str(), fstream::out );
+	filestr.open( rFileName, fstream::out );
 	if( !filestr.is_open() ) {
 		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Could not open file: '" << rFileName << "'!" << endl;
 		return false;
@@ -15657,7 +15657,7 @@ bool Mesh::exportFuncVals( string rFileName, bool rWithVertIdx ) {
 //! File extension: .txt or .mat
 //! assumes that the files are either single column with the functionValue, or double column with index + functionValue
 //! lines starting with # are treated as comments
-bool Mesh::importFuncValsFromFile(const string& rFileName, bool withVertIdx)
+bool Mesh::importFuncValsFromFile(const filesystem::path& rFileName, bool withVertIdx)
 {
 	ifstream filestr(rFileName);
 
@@ -15746,18 +15746,17 @@ bool Mesh::importFuncValsFromFile(const string& rFileName, bool withVertIdx)
 //! Exports the faces normals as sphereical coordinates as ASCII file in the format:
 //! Face Number Phi Theta Radius
 //! File extension: .facen
-bool Mesh::exportFaceNormalAngles( string filename ) {
+bool Mesh::exportFaceNormalAngles( filesystem::path filename ) {
 
 	fstream filestr;
 
 	int timeStart = clock(); // for performance mesurement
 
-	size_t foundDot = filename.rfind( '.' );
-	if( foundDot == string::npos ) {
+	if( filename.extension().empty()) {
 		filename += ".facen";
 	}
 
-	filestr.open( filename.c_str(), fstream::out );
+	filestr.open( filename, fstream::out );
 	if( !filestr.is_open() ) {
 		cerr << "[Mesh::exportFaceNormalAngles] Could not open file: '" << filename << "'." << endl;
 		return false;

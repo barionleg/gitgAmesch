@@ -61,7 +61,7 @@ using PglActiveTexture = void (*)(GLenum);
 //! Constructor
 MeshGLShader::MeshGLShader(
                 QGLContext* rGLContext,
-                const string& rFileName,
+                const filesystem::path& rFileName,
                 bool& rReadSuccess
 ) : MeshGL( rGLContext, rFileName, rReadSuccess ), MESHGLSHADERINITDEFAULTS {
 	// Show limits for emitting elements using the geometry shader:

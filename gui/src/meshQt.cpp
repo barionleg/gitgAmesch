@@ -30,7 +30,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 		QGMMainWindow*    setmMainWindow,      //!< required to connect signals
 		QGLContext*       rContext,            //!< OpenGL context for rendering
 		QObject*          rParent              //!< Qt default
-    ) : QObject( rParent ), MeshGLShader( rContext, rFileName.toStdString(), rReadSuccess ),
+    ) : QObject( rParent ), MeshGLShader( rContext, rFileName.toStdWString(), rReadSuccess ),
                                      MeshQtCSVImportExport(this,
                                                             [this](){return &(this->mVertices);},
                                                             [this](){return &(this->mSelectedPositions);},

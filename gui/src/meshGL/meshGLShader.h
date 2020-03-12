@@ -20,7 +20,7 @@
 class MeshGLShader : public MeshGL {
 
 public:
-	MeshGLShader( QGLContext* rGLContext, const std::string& rFileName, bool& rReadSuccess );
+	MeshGLShader( QGLContext* rGLContext, const std::filesystem::path& rFileName, bool& rReadSuccess );
 	~MeshGLShader();
 
 	virtual void glPaint();

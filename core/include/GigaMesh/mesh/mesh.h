@@ -72,7 +72,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 
 	public:
 		Mesh();
-		Mesh( const std::string& rFileName, bool& rReadSuccess );
+		Mesh( const std::filesystem::path& rFileName, bool& rReadSuccess );
 		Mesh( std::set<Face*>* someFaces );
 		~Mesh();
 
@@ -95,9 +95,9 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual double   getZ() const;
 
 		// IO Operations - overloaded from MeshIO and MeshSeedExt
-		virtual bool     writeFile( const std::string& rFileName );
-		virtual bool     importFeatureVectorsFromFile( const std::string& rFileName );
-		virtual bool     exportFeatureVectors(const std::string& rFileName);
+		virtual bool     writeFile( const std::filesystem::path& rFileName );
+		virtual bool     importFeatureVectorsFromFile( const std::filesystem::path& rFileName );
+		virtual bool     exportFeatureVectors(const std::filesystem::path& rFileName);
 	private:
 		        bool     assignFeatureVectors( const std::vector<double>& rFeatureVecs, const uint64_t& rMaxFeatVecLen );
 
@@ -537,7 +537,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		// --- Mesh manipulation - REMOVAL -------------------------------------------------------------------------------------------------------------
 		virtual bool   removeVertices( std::set<Vertex*>* verticesToRemove );    // removal of a list of vertices
 		virtual bool   removeVerticesSelected();
-		virtual bool   removeUncleanSmall( double rPercentArea, bool rApplyErosion, const std::string& rFileName );
+		virtual bool   removeUncleanSmall( double rPercentArea, bool rApplyErosion, const std::filesystem::path& rFileName );
 		virtual bool   removeSyntheticComponents( std::set<Vertex*>* rVerticesSeeds );
 		virtual bool   removeFacesSelected();
 				bool   removeFaces( std::set<Face*>* facesToRemove );            // removal of a list of faces
@@ -545,7 +545,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool   removeFacesBorderErosion();
 		// --- Mesh manipulation - MESH POLISHING ------------------------------------------------------------------------------------------------------
 		virtual bool   completeRestore(); // AKA Mesh polishing
-		virtual bool   completeRestore( const std::string& rFilename, double rPercentArea, bool rApplyErosion,
+		virtual bool   completeRestore( const std::filesystem::path& rFilename, double rPercentArea, bool rApplyErosion,
 				                        bool rPrevent, uint64_t rMaxNumberVertices, std::string* rResultMsg );
 		// --- Mesh manipulation - Manuall adding primitives -------------------------------------------------------------------------------------------
 		virtual bool   insertVerticesEnterManual();
@@ -683,12 +683,12 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 
 		// import / export
 		virtual bool fillPolyLines( const uint64_t& rMaxNrVertices, uint64_t& rFilled, uint64_t& rFail, uint64_t& rSkipped );
-				bool exportPolyLinesCoords( std::string rFileName, bool rWithNormals, bool rWithVertIdx );
-				bool exportPolyLinesCoordsProjected( std::string rFileName, bool rWithVertIdx, double rAngleRot=0.0 );
-				bool exportPolyLinesFuncVals( std::string rFileName );
-				bool exportFuncVals( std::string rFileName, bool rWithVertIdx );
-				bool importFuncValsFromFile( const std::string& rFileName, bool withVertIdx );
-		virtual bool exportFaceNormalAngles( std::string filename );
+				bool exportPolyLinesCoords( std::filesystem::path rFileName, bool rWithNormals, bool rWithVertIdx );
+				bool exportPolyLinesCoordsProjected( std::filesystem::path rFileName, bool rWithVertIdx, double rAngleRot=0.0 );
+				bool exportPolyLinesFuncVals( std::filesystem::path rFileName );
+				bool exportFuncVals( std::filesystem::path rFileName, bool rWithVertIdx );
+				bool importFuncValsFromFile( const std::filesystem::path& rFileName, bool withVertIdx );
+		virtual bool exportFaceNormalAngles( std::filesystem::path filename );
 
 		// Extra menu
 		virtual void cuneiformFigureLaTeX();

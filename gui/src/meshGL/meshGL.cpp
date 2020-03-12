@@ -25,9 +25,8 @@ using PglBindVertexArray = void (*)(GLuint);
 
 
 //! Constructor setting some defaults (e.g. colors).
-MeshGL::MeshGL(
-                QGLContext* rGLContext,
-                const string& rFileName,
+MeshGL::MeshGL(QGLContext* rGLContext,
+                const std::filesystem::path& rFileName,
                 bool& rReadSuccess
 ) : Mesh( rFileName, rReadSuccess ), mVBOPrepared( false ), mOpenGLContext( rGLContext ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS

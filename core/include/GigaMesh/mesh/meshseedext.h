@@ -7,6 +7,7 @@
 
 #include <cstdlib> // uint, calloc
 #include <cmath>    // pow, sqrt, floor, exp, ...
+#include <filesystem>
 
 // C++ includes:
 #include "gmcommon.h"
@@ -39,7 +40,7 @@ class MeshSeedExt {
 		virtual void clear();
 
 		// Import / Export - Feature Vectors
-		virtual bool importFeatureVectors( const std::string& rFileName, uint64_t rNrVerticesMax, std::vector<double>& rFeatureVecs, uint64_t& rMaxFeatVecLen, bool rVertexIdInFirstCol );
+		virtual bool importFeatureVectors( const std::filesystem::path& rFileName, uint64_t rNrVerticesMax, std::vector<double>& rFeatureVecs, uint64_t& rMaxFeatVecLen, bool rVertexIdInFirstCol );
 
 		// Feature std::vectors - STUB to be overloaded by Mesh
 		virtual uint64_t getFeatureVecLenMax( int rPrimitiveType );

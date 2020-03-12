@@ -42,7 +42,7 @@ class MeshWidgetParams;
 class MeshGL : public Mesh, public MeshGLParams {
 
 	public:
-		MeshGL( QGLContext* rGLContext, const std::string& rFileName, bool& rReadSuccess );
+		MeshGL( QGLContext* rGLContext, const std::filesystem::path& rFileName, bool& rReadSuccess );
 		~MeshGL();
 
 		// Menu interactions:

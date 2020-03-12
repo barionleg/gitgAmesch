@@ -52,7 +52,7 @@ void MeshSeedExt::clear() {
 //!
 //! @returns false in case of an error. True otherwise.
 bool MeshSeedExt::importFeatureVectors(
-                const string&         rFileName,            //!< Filename to parse.
+                const filesystem::path&         rFileName,            //!< Filename to parse.
 				uint64_t              rNrVertices,          //!< Maximum number of vertices within the Mesh.
                 vector<double>&       rFeatureVecs,         //!< Feature vectors.
 				uint64_t&             rMaxFeatVecLen,       //!< Length of the longest vector.
@@ -62,7 +62,7 @@ bool MeshSeedExt::importFeatureVectors(
 	const char* oldLocale = setlocale( LC_NUMERIC, "" );
 	setlocale( LC_NUMERIC, "C" );
 
-	ifstream fp( rFileName.c_str() );
+	ifstream fp( rFileName );
 	if( !fp.is_open() ) {
 		LOG::error() << "[MeshSeedExt::" << __FUNCTION__ << "] Could not open file: '" << rFileName << "'.\n";
 		setlocale(LC_NUMERIC, oldLocale);
