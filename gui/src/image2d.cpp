@@ -1,6 +1,5 @@
 #include "image2d.h"
 
-#include <filesystem>
 #include <sstream>
 
 using namespace std;
@@ -250,7 +249,8 @@ int Image2D::writeTIFF(filesystem::path filename, //!< Name of the file to be wr
 	           static_cast<int>(height),
 	           (isRGB ? QImage::Format_RGB888 : QImage::Format_Grayscale8));
 
-	img.save(QString::fromStdWString(filename));
+    if(!img.save(QString::fromStdWString(filename.wstring())))
+        return WRITE_ERROR;
 
 	return  WRITE_OK;
 #else

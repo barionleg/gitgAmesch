@@ -79,10 +79,10 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	emit statusMessage( "Mesh loaded and data structure established." );
 	// set fileNameBase for display purposes:
 	//! \bug Emitting inside constructor has no effect
-	emit sFileChanged( QString::fromStdWString( getFullName() ), QString::fromStdWString( getBaseName() ) );
+    emit sFileChanged( QString::fromStdWString( getFullName().wstring() ), QString::fromStdWString( getBaseName().wstring() ) );
 
 	QSettings settings;
-	settings.setValue( "lastPath", QString::fromStdWString( getFileLocation() ) );
+    settings.setValue( "lastPath", QString::fromStdWString( getFileLocation().wstring() ) );
 
 	// Setup signal connections TO the mMainWindow items
 	//=====================================================================================================================
@@ -656,7 +656,7 @@ bool MeshQt::exportPolyLinesCoords() {
 	//! Handle GUI request to export polylines as ASCII file.
 	//! 1. Ask for filename, etc.
 
-	QString filePath = QString::fromStdWString( getFileLocation() );
+    QString filePath = QString::fromStdWString( getFileLocation().wstring() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Export polygonal lines as vertex list" ), \
 													 filePath,    tr( "Polygonal lines ASCII (*.pline)" ) );
 	if( fileName.length() == 0 ) {
@@ -690,9 +690,9 @@ bool MeshQt::exportPolyLinesCoords() {
 
 //! Handle GUI request to export polylines as ASCII file projected to the mesh plane.
 bool MeshQt::exportPolyLinesCoordsProjected() {
-	QString filePath = QString::fromStdWString( getFileLocation() );
+    QString filePath = QString::fromStdWString( getFileLocation().wstring() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Export polygonal lines as vertex list" ),
-	                                                 filePath + QString::fromStdWString(getBaseName()) +
+                                                     filePath + QString::fromStdWString(getBaseName().wstring()) +
 	                                                 ".pline", tr( "Polygonal lines ASCII (*.pline)" ) );
 	if( fileName.length() == 0 ) {
 		return false;
@@ -716,10 +716,10 @@ bool MeshQt::exportPolyLinesCoordsProjected() {
 
 //! Handle GUI request to export the run-length and the function values of (selected) polylines.
 bool MeshQt::exportPolyLinesFuncVals() {
-	QString filePath = QString::fromStdWString( getFileLocation() );
+    QString filePath = QString::fromStdWString( getFileLocation().wstring() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Export polygonal lines as vertex list" ), \
 	                                                 filePath +
-	                                                 QString::fromStdWString(getBaseName()) + ".txt", tr( "Run-length and function values ASCII (*.txt)" ) );
+                                                     QString::fromStdWString(getBaseName().wstring()) + ".txt", tr( "Run-length and function values ASCII (*.txt)" ) );
 	if( fileName.length() == 0 ) {
 		return false;
 	}
@@ -735,10 +735,10 @@ bool MeshQt::exportPolyLinesFuncVals() {
 //! Handle GUI request to export the function values of the vertices as ASCII file.
 //! @returns false in case of an error. True otherwise.
 bool MeshQt::exportFuncVals() {
-	QString filePath = QString::fromStdWString( getFileLocation() );
+    QString filePath = QString::fromStdWString( getFileLocation().wstring() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Export function values" ),
 	                                                 filePath + "/" +
-	                                                 QString::fromStdWString(getBaseName()) + "_funcvals.txt",
+                                                     QString::fromStdWString(getBaseName().wstring()) + "_funcvals.txt",
 													 tr( "ASCII text (*.txt)" ) );
 	if( fileName.length() == 0 ) {
 		return false;
@@ -778,7 +778,7 @@ bool MeshQt::exportFaceNormalAngles( filesystem::path filename ) {
 
 void MeshQt::exportNormalSphereData()
 {
-	QString filePath = QString::fromStdWString( getFileLocation() );
+    QString filePath = QString::fromStdWString( getFileLocation().wstring() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Export normal data mapped on IcoSPhere" ), \
 													 filePath,    tr( "CSV file (*.csv)" ) );
 	if( fileName.length() == 0 ) {
@@ -917,7 +917,7 @@ bool MeshQt::removeUncleanSmallUser() {
 	QString fileName = "";
 	if( saveFile ) {
 		// Show file dialog
-		QString fileLocation = QString::fromStdWString( getFileLocation() );
+        QString fileLocation = QString::fromStdWString( getFileLocation().wstring() );
 		fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as" ), fileLocation, tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) );
 	}
 
@@ -2476,7 +2476,7 @@ void MeshQt::estimateMSIIFeat( ParamsMSII params ) {
 	if( !isnan( patchArea ) ) {
 		if( params.writeRaster ) {
 			char    fileNameStr[512];
-			QString fileNamePattern = QString::fromStdWString( params.fileNameRaster );
+            QString fileNamePattern = QString::fromStdWString( params.fileNameRaster.wstring() );
 			fileNamePattern.replace( QString( ".tif" ), QString( "_NEW.tif" ) );
 			sprintf( fileNameStr, fileNamePattern.toStdString().c_str(), params.seedVertexId );
 			Image2D someImage;
@@ -3853,7 +3853,7 @@ bool MeshQt::editMetaData() {
 	string modelID = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
 	if( modelID.empty() ) {
 		// Prepare suggestion
-		QString suggestId( QString::fromStdWString(getBaseName()) );
+        QString suggestId( QString::fromStdWString(getBaseName().wstring()) );
 		cout << "[MeshQt::" << __FUNCTION__ << "] Basename: " << suggestId.toStdString().c_str() << endl;
 		suggestId.replace( "_", " " );
 		suggestId.replace( QRegularExpression( "GM[oOcCfFpPxX]*$" ), "" );
@@ -4394,7 +4394,7 @@ bool MeshQt::writeFileUserInteract() {
 	QSettings settings;
 
 	QString filePath    = QString( settings.value( "lastPath" ).toString() ); // or: getFileLocation().c_str()
-	QString fileSuggest = QString::fromStdWString( getBaseName() );
+    QString fileSuggest = QString::fromStdWString( getBaseName().wstring() );
 
 	bool mostLikelyOrientated = false;
 	getParamFlagMesh( FILE_TRANSFORMATION_APPLIED, &mostLikelyOrientated );
@@ -4447,7 +4447,7 @@ bool MeshQt::writeFile( const QString& rFileName ) {
 	}
 	QSettings settings;
 	settings.setValue( "lastPath", rFileName );
-	emit sFileChanged( QString::fromStdWString( getFullName() ), QString::fromStdWString( getBaseName() ) );
+    emit sFileChanged( QString::fromStdWString( getFullName().wstring() ), QString::fromStdWString( getBaseName().wstring() ) );
 	emit statusMessage( "3D-data saved to " + rFileName );
 	return true;
 }
@@ -4594,7 +4594,7 @@ bool MeshQt::importFunctionValues( const QString& rFileName ) {
 //! Export feature vectors and emit statusMessage
 bool MeshQt::exportFeatureVectors()
 {
-	QString filePath = QString::fromStdWString( getFileLocation()) ;
+    QString filePath = QString::fromStdWString( getFileLocation().wstring() ) ;
 
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Export feature vectors" ),
 	                                                 filePath +

@@ -924,7 +924,7 @@ bool MeshWidget::reloadFile() {
 		return false;
 	}
 	auto fileName = mMeshVisual->getFullName();
-	return fileOpen( QString::fromStdWString( fileName ) );
+    return fileOpen( QString::fromStdWString( fileName.wstring() ) );
 }
 
 //! Ask to turn off settings, which usually are hindering the rendering of image stacks,
@@ -977,7 +977,7 @@ void MeshWidget::saveStillImages360( Vector3D rotCenter, Vector3D rotAxis ) {
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
 
-	QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation() );
+    QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation().wstring() );
 	QString savePath = QFileDialog::getExistingDirectory(mMainWindow, tr( "Folder for image stack" ),
 													 filePath);
 
@@ -1113,7 +1113,7 @@ void MeshWidget::sphericalImagesLight() {
 	}
 	string fileNamePattern;
 	getParamStringMeshWidget( FILENAME_EXPORT_VR, &fileNamePattern );
-	QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation() );
+    QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation().wstring() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as - Using a pattern for spherical images" ), \
 	                                                 filePath + QString( fileNamePattern.c_str() ), \
 													 tr( "Image (*.png *.tiff *.tif)" ),
@@ -1230,7 +1230,7 @@ void MeshWidget::sphericalImages() {
 	}
 	string fileNamePattern;
 	getParamStringMeshWidget( FILENAME_EXPORT_VR, &fileNamePattern );
-	QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation());
+    QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation().wstring());
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as - Using a pattern for spherical images" ), \
 	                                                 filePath + QString( fileNamePattern.c_str() ), \
 													 tr( "Image (*.png *.tiff *.tif)" ),
@@ -1649,7 +1649,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
 
         setParamFlagMeshWidget( SHOW_GRID_RECTANGULAR, false );
 
-		QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation());
+        QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation().wstring());
         string fileNamePattern;
         getParamStringMeshWidget( FILENAME_EXPORT_VIEWS, &fileNamePattern );
         // important name change !!!!
@@ -1667,7 +1667,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
 
 		std::vector<QString> imageFileNames;
 		std::vector<double> imageSizes;
-		const auto filePrefix = QString::fromStdWString(mMeshVisual->getBaseName());
+        const auto filePrefix = QString::fromStdWString(mMeshVisual->getBaseName().wstring());
 		screenshotViews( fileName.toLatin1(), filePrefix, rUseTiled, imageFileNames, imageSizes );
 
 		getViewPortPixelWorldSize( mmPerPixel_Width, mmPerPixel_Height );
@@ -2375,7 +2375,7 @@ QStringList MeshWidget::screenshotDirectory(const bool rUseTiled, const QString&
 
             setParamFlagMeshWidget( SHOW_GRID_RECTANGULAR, false );
 
-			QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation());
+            QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation().wstring());
             string fileNamePattern;
             getParamStringMeshWidget( FILENAME_EXPORT_VIEWS, &fileNamePattern );
 			fileNamePattern.insert( fileNamePattern.find_last_of('.'), suffix.toStdString() );
@@ -2390,7 +2390,7 @@ QStringList MeshWidget::screenshotDirectory(const bool rUseTiled, const QString&
 
 			std::vector<QString> imageFileNames;
 			std::vector<double> imageSizes;
-			const auto filePrefix = QString::fromStdWString(mMeshVisual->getBaseName());
+            const auto filePrefix = QString::fromStdWString(mMeshVisual->getBaseName().wstring());
 			screenshotViews( fileName.toLatin1(), filePrefix, rUseTiled, imageFileNames, imageSizes );
 
             cout << "done " << (i+1) << " of " << files.size() << endl;
@@ -2435,7 +2435,7 @@ QStringList MeshWidget::screenshotDirectory(const bool rUseTiled, const QString&
             fileNamePattern += ".png";
 
             // filePath should be equal to path path+'/'+files.at(i)
-			QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation() );
+            QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation().wstring() );
 
 			QString fileName = filePath + QString( fileNamePattern.c_str() );
 
@@ -2765,8 +2765,8 @@ bool MeshWidget::screenshotViewsPDFUser() {
 	if( mMeshVisual == nullptr ) {
 		return( false );
 	}
-	const QString filePrefix = QString::fromStdWString(mMeshVisual->getBaseName());
-	const QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation());
+    const QString filePrefix = QString::fromStdWString(mMeshVisual->getBaseName().wstring());
+    const QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation().wstring());
 	std::cout << "[MeshWidget::" << __FUNCTION__ << "] filePath:        " << filePath.toStdString() << std::endl;
 	//qDebug() << filePath + QString( fileNamePattern.c_str() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as - Using a pattern for side, top and bottom views" ), \
@@ -2968,7 +2968,7 @@ void MeshWidget::screenshotViews() {
 	}
 	string fileNamePattern;
 	getParamStringMeshWidget( FILENAME_EXPORT_VIEWS, &fileNamePattern );
-	QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation());
+    QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation().wstring());
 	cout << "[MeshWidget::" << __FUNCTION__ << "] fileNamePattern: " << fileNamePattern << endl;
 	cout << "[MeshWidget::" << __FUNCTION__ << "] filePath:        " << filePath.toStdString() << endl;
 	//qDebug() << filePath + QString( fileNamePattern.c_str() );
@@ -3026,7 +3026,7 @@ void MeshWidget::screenshotViews( const QString& rFileName ) {
 	//! 4.) Execute
 	std::vector<QString> imageFileNames;
 	std::vector<double> imageSizes;
-	auto filePrefix = QString::fromStdWString(mMeshVisual->getBaseName());
+    auto filePrefix = QString::fromStdWString(mMeshVisual->getBaseName().wstring());
 	screenshotViews( rFileName.toLatin1().data(), filePrefix, useTiled, imageFileNames, imageSizes );
 	for( uint64_t i=0; i<imageFileNames.size(); i++ ) {
 		wcout << "[MeshWidget::" << __FUNCTION__ << "] File written: " << imageFileNames.at( i ).toStdWString() <<
@@ -3238,8 +3238,8 @@ bool MeshWidget::screenshotSingle() {
 		return false;
 	}
 
-	QString filePath    = QString::fromStdWString( mMeshVisual->getFileLocation());
-	QString fileSuggest = QString::fromStdWString( mMeshVisual->getBaseName() ) + ".png";
+    QString filePath    = QString::fromStdWString( mMeshVisual->getFileLocation().wstring());
+    QString fileSuggest = QString::fromStdWString( mMeshVisual->getBaseName().wstring() ) + ".png";
 
 	QStringList filters;
 	filters << tr("Image (*.png *.tiff *.tif)");
@@ -3395,8 +3395,8 @@ bool MeshWidget::screenshotPDFUser() {
 	if( mMeshVisual == nullptr ) {
 		return( false );
 	}
-	QString filePrefix = QString::fromStdWString(mMeshVisual->getBaseName());
-	QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation() );
+    QString filePrefix = QString::fromStdWString(mMeshVisual->getBaseName().wstring());
+    QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation().wstring() );
 	std::cout << "[MeshWidget::" << __FUNCTION__ << "] filePath:        " << filePath.toStdString() << std::endl;
 	//qDebug() << filePath + QString( fileNamePattern.c_str() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as - Using a pattern for side, top and bottom views" ), \
@@ -4170,10 +4170,10 @@ bool MeshWidget::screenshotSVG() {
 	}
 
 	//! 1.) Ask for the filename
-	QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation());
+    QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation().wstring());
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save screenshot as" ),
 	                                                 filePath +
-	                                                 QString::fromStdWString( mMeshVisual->getBaseName() ) +
+                                                     QString::fromStdWString( mMeshVisual->getBaseName().wstring() ) +
 	                                                 ".svg",
 													 tr( "Scaleable Vector Graphic (*.svg)" ) );
 	if( fileName == nullptr ) { // Cancel pressed
@@ -4784,8 +4784,8 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 	}
 
 	// 3.) Ask for the filename
-	QString baseName = QString::fromStdWString( mMeshVisual->getBaseName() );
-	QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation() );
+    QString baseName = QString::fromStdWString( mMeshVisual->getBaseName().wstring() );
+    QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation().wstring() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save intersections as" ), \
 	                                                 filePath + baseName + "_profiles.svg", \
 	                                                 tr( "Scaleable Vector Graphic (*.svg)" ) );
