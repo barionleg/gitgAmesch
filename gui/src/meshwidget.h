@@ -326,7 +326,7 @@ private:
 
 	// performance evaluation (frames per second):
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
-	QTime mFrameTime;  //!< Timer to estimate the frames per second (OpenGL).
+	QElapsedTimer mFrameTime;  //!< Timer to estimate the frames per second (OpenGL).
 	int   mFrameCount; //!< Counter to estimate the frames per second (OpenGL).
 
 	// Vertex Buffer Objects and Shaders for the widget's background
