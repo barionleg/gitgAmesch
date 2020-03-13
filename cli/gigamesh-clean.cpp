@@ -186,12 +186,12 @@ bool cleanupGigaMeshData(
 	MeshInfoData rFileInfos;
 	someMesh.getMeshInfoData( rFileInfos, true );
 	// Set filename for meta-data
-	std::wstring fileNameOutMeta = fileNameOut.wstring();
-	fileNameOutMeta.replace( fileNameOutMeta.end()-3, fileNameOutMeta.end(), L"info-clean.txt" );
+    std::filesystem::path fileNameOutMeta = fileNameOut;
+    fileNameOutMeta.replace_extension("info-clean.txt" );
 	//fileNameOutMeta += suffix + ".info-clean.txt";
 	// Open file for meta-data
 	std::fstream fileStrOutMeta;
-	fileStrOutMeta.open( fileNameOutMeta, std::fstream::out );
+    fileStrOutMeta.open( fileNameOutMeta, std::fstream::out );
 #ifdef VERSION_PACKAGE
 	fileStrOutMeta << "[GigaMesh] CLEAN v." << VERSION_PACKAGE << std::endl;
 #else
