@@ -207,8 +207,8 @@ int main( int argc, char *argv[] ) {
 	// SHOW Build information
 	printBuildInfo();
 
-	string       fileNameIn;
-	string       fileNameOut;
+	std::filesystem::path       fileNameIn;
+	std::filesystem::path       fileNameOut;
 	double       radius{_DEFAULT_FEATUREGEN_RADIUS_};
 	unsigned int xyzDim{_DEFAULT_FEATUREGEN_XYZDIM_};
 	unsigned int radiiCount{_DEFAULT_FEATUREGEN_RADIICOUNT_};
@@ -290,19 +290,18 @@ int main( int argc, char *argv[] ) {
 	if( !radiusSet ) {
 		cout << "[GigaMesh] Warning: default radius is used (option -r missing)!" << endl;
 	}
-	if( fileNameIn.length() == 0 ) {
+	if( fileNameIn.empty() ) {
 		cerr << "[GigaMesh] Error: no filename for input given (option -f)!" << endl;
 		exit( EXIT_FAILURE );
 	}
-	// Check file extension for input file
-	size_t foundDot = fileNameIn.rfind( "." );
-	if( foundDot == string::npos ) {
+	if( !fileNameIn.has_extension() ) {
 		cerr << "[GigaMesh] Error: No extension/type for input file '" << fileNameIn << "' specified!" << endl;
 		exit( EXIT_FAILURE );
 	}
 	// Check fileprefix for output - when not given use the name of the input file
-	if( fileNameOut.length() == 0 ) {
-		fileNameOut = fileNameIn.substr( 0, foundDot );
+	if( fileNameOut.empty() ) {
+		fileNameOut = fileNameIn;
+		fileNameOut.replace_extension("");
 		// Warning message see a few lines below.
 	}
 	// Add parameters to output prefix
@@ -310,33 +309,31 @@ int main( int argc, char *argv[] ) {
 	sprintf( tmpBuffer, "_r%0.2f_n%i_v%i", radius, radiiCount, xyzDim );
 	fileNameOut += string( tmpBuffer );
 	// Warning message, for option -o missing
-	if( fileNameOut.length() == 0 ) {
+	if( fileNameOut.empty() ) {
 		cerr << "[GigaMesh] Warning: no prefix for output given (option -o) using: '" << fileNameOut << "'!" << endl;
 	}
-	// Check files using file statistics
-	struct stat stFileInfo;
-	// Check: Input file exists?
-	if( stat( fileNameIn.c_str(), &stFileInfo ) != 0 ) {
+
+	if( !std::filesystem::exists(fileNameIn) ) {
 		cerr << "[GigaMesh] Error: File '" << fileNameIn << "' not found!" << endl;
 		exit( EXIT_FAILURE );
 	}
 	// Check: Output file for normal used to rotate the local patch
-	string fileNameOutPatchNormal( fileNameOut );
+	std::filesystem::path fileNameOutPatchNormal( fileNameOut );
 	fileNameOutPatchNormal += ".normal.mat";
-	if( stat( fileNameOutPatchNormal.c_str(), &stFileInfo ) == 0 ) {
+	if( std::filesystem::exists(fileNameOutPatchNormal) ) {
 		if( !replaceFiles ) {
 			cerr << "[GigaMesh] File '" << fileNameOutPatchNormal << "' already exists!" << endl;
 			exit( EXIT_FAILURE );
 		}
 		cerr << "[GigaMesh] Warning: File '" << fileNameOutPatchNormal << "' will be replaced!" << endl;
 	}
-	string fileNameOutVS;
-	string fileNameOutVol;
+	std::filesystem::path fileNameOutVS;
+	std::filesystem::path fileNameOutVol;
 	if( !areaOnly ) {
 		// Check: Output file for volume AND surface descriptor
 		fileNameOutVS = fileNameOut;
 		fileNameOutVS += ".vs.mat";
-		if( stat( fileNameOutVS.c_str(), &stFileInfo ) == 0 ) {
+		if( std::filesystem::exists(fileNameOutVS)) {
 			if( !replaceFiles ) {
 				cerr << "[GigaMesh] File '" << fileNameOutVS << "' already exists!" << endl;
 				exit( EXIT_FAILURE );
@@ -346,7 +343,7 @@ int main( int argc, char *argv[] ) {
 		// Check: Output file for volume descriptor
 		fileNameOutVol = fileNameOut;
 		fileNameOutVol += ".volume.mat";
-		if( stat( fileNameOutVol.c_str(), &stFileInfo ) == 0 ) {
+		if( std::filesystem::exists( fileNameOutVol ) ) {
 			if( !replaceFiles ) {
 				cerr << "[GigaMesh] File '" << fileNameOutVol << "' already exists!" << endl;
 				exit( EXIT_FAILURE );
@@ -355,9 +352,9 @@ int main( int argc, char *argv[] ) {
 		}
 	}
 	// Output file for surface descriptor
-	string fileNameOutSurf( fileNameOut );
+	std::filesystem::path fileNameOutSurf( fileNameOut );
 	fileNameOutSurf += ".surface.mat";
-	if( stat( fileNameOutSurf.c_str(), &stFileInfo ) == 0 ) {
+	if( std::filesystem::exists( fileNameOutSurf ) ) {
 		if( !replaceFiles ) {
 			cerr << "[GigaMesh] File '" << fileNameOutSurf << "' already exists!" << endl;
 			exit( EXIT_FAILURE );
@@ -365,9 +362,9 @@ int main( int argc, char *argv[] ) {
 		cerr << "[GigaMesh] Warning: File '" << fileNameOutSurf << "' will be replaced!" << endl;
 	}
 	// Output file for meta-information
-	string fileNameOutMeta( fileNameOut );
+	std::filesystem::path fileNameOutMeta( fileNameOut );
 	fileNameOutMeta += ".info.txt";
-	if( stat( fileNameOutMeta.c_str(), &stFileInfo ) == 0 ) {
+	if( std::filesystem::exists( fileNameOutMeta ) ) {
 		if( !replaceFiles ) {
 			cerr << "[GigaMesh] File '" << fileNameOutMeta << "' already exists!" << endl;
 			exit( EXIT_FAILURE );
@@ -375,9 +372,9 @@ int main( int argc, char *argv[] ) {
 		cerr << "[GigaMesh] Warning: File '" << fileNameOutMeta << "' will be replaced!" << endl;
 	}
 	// Output file for 3D data including the volumetric feature vectors.
-	string fileNameOut3D( fileNameOut );
+	std::filesystem::path fileNameOut3D( fileNameOut );
 	fileNameOut3D += ".ply";
-	if( stat( fileNameOut3D.c_str(), &stFileInfo ) == 0 ) {
+	if( std::filesystem::exists( fileNameOut3D )  ) {
 		if( !replaceFiles ) {
 			cerr << "[GigaMesh] File '" << fileNameOut3D << "' already exists!" << endl;
 			exit( EXIT_FAILURE );
@@ -390,7 +387,7 @@ int main( int argc, char *argv[] ) {
 	}
 	// All parameters OK => infos to stdout and file with metadata  -----------------------------------------------------------
 	fstream fileStrOutMeta;
-	fileStrOutMeta.open( fileNameOutMeta.c_str(), fstream::out );
+	fileStrOutMeta.open( fileNameOutMeta, fstream::out );
 	cout << "[GigaMesh] File IN:         " << fileNameIn << endl;
 	cout << "[GigaMesh] File OUT/Prefix: " << fileNameOut << endl;
 	cout << "[GigaMesh] Radius:          " << radius << " mm (unit assumed)" << endl;
@@ -678,7 +675,7 @@ int main( int argc, char *argv[] ) {
 #ifndef GIGAMESH_PUBLIC_METHODS_ONLY
 	// File for normal estimated:
 	fstream filestrNormal;
-	filestrNormal.open( fileNameOutPatchNormal.c_str(), fstream::out );
+	filestrNormal.open( fileNameOutPatchNormal, fstream::out );
 	filestrNormal << fixed << setprecision( 10 );
 	for( uint64_t i=0; i<someMesh.getVertexNr(); i++ ) {
 		if( featureIndicies[i] < 0 ) {
@@ -704,7 +701,7 @@ int main( int argc, char *argv[] ) {
 	// Feature vector file for BOTH descriptors (volume and surface)
 	if( ( descriptSurface != NULL ) && ( descriptVolume != NULL ) ) {
 		fstream filestrVS;
-		filestrVS.open( fileNameOutVS.c_str(), fstream::out );
+		filestrVS.open( fileNameOutVS, fstream::out );
 		filestrVS << fixed << setprecision( 10 );
 		for( uint64_t i=0; i<someMesh.getVertexNr(); i++ ) {
 			if( featureIndicies[i] < 0 ) {
@@ -729,7 +726,7 @@ int main( int argc, char *argv[] ) {
 	// Feature vector file for volume descriptor
 	if( descriptVolume != NULL ) {
 		fstream filestrVol;
-		filestrVol.open( fileNameOutVol.c_str(), fstream::out );
+		filestrVol.open( fileNameOutVol, fstream::out );
 		filestrVol << fixed << setprecision( 10 );
 		for( uint64_t i=0; i<someMesh.getVertexNr(); i++ ) {
 			if( featureIndicies[i] < 0 ) {
@@ -765,7 +762,7 @@ int main( int argc, char *argv[] ) {
 	// Feature vector file for surface descriptor
 	if( descriptSurface != NULL ) {
 		fstream filestrSurf;
-		filestrSurf.open( fileNameOutSurf.c_str(), fstream::out );
+		filestrSurf.open( fileNameOutSurf, fstream::out );
 		filestrSurf << fixed << setprecision( 10 );
 		for( uint64_t i=0; i<someMesh.getVertexNr(); i++ ) {
 			if( featureIndicies[i] < 0 ) {

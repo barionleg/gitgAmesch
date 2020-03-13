@@ -498,18 +498,8 @@ filesystem::path MeshIO::getBaseName() const {
 
 //! Returns the path of the file.
 filesystem::path MeshIO::getFileLocation() const {
-	auto retPath = mFileNameFull.parent_path();
-
-	if(retPath.wstring().back() != L'/')
-	{
-#ifdef WIN32
-		retPath += L'\\';
-#else
-		retPath += L'/';
-#endif
-	}
-
-	return retPath;
+	auto retPath = mFileNameFull;
+	return retPath.remove_filename();
 }
 
 //! Returns the full name and path of the file.

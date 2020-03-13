@@ -28,62 +28,38 @@
 using namespace std;
 
 bool convertMeshData(
-                const string&   rFileName,
-                const string&   rFileSuffix,
+                const filesystem::path&   rFileName,
+                const filesystem::path&   rFileSuffix,
                 const bool      rWriteBinary,
                 const bool      rWriteNormals,
                 const bool      rReplaceFiles
 ) {
-	std::string fileExtension = std::filesystem::path( rFileName ).extension().string();
-	// Check file extension for input file
-	if( fileExtension.size() != 4 ) {
-		cerr << "[GigaMesh] ERROR: File extension '" << fileExtension << "' is faulty!" << endl;
+	if( rFileName.extension().wstring().size() != 4 ) {
+		cerr << "[GigaMesh] ERROR: File extension '" << rFileName.extension().string() << "' is faulty!" << endl;
 		return( false );
 	}
 
 	// Add parameters to output prefix
-	std::string fileNameOut = std::filesystem::path( rFileName ).stem().string();
+	std::filesystem::path fileNameOut = rFileName.stem();
 	fileNameOut += rFileSuffix;
 
-#ifndef WIN32
-	// Check files using file statistics
-	struct stat stFileInfo;
 	// Check: Input file exists?
-	if( stat( rFileName.c_str(), &stFileInfo ) != 0 ) {
+	if( !std::filesystem::exists( rFileName ) ) {
 		cerr << "[GigaMesh] Error: File '" << rFileName << "' not found!" << endl;
 		return( false );
 	}
 
 	// Output file for 3D data including the volumetric feature vectors.
-	string fileNameOut3D( fileNameOut );
+	std::filesystem::path fileNameOut3D( fileNameOut );
 	fileNameOut3D += ".ply";
-	if( stat( fileNameOut3D.c_str(), &stFileInfo ) == 0 ) {
+	if( std::filesystem::exists( fileNameOut3D ) ) {
 		if( !rReplaceFiles ) {
 			cerr << "[GigaMesh] File '" << fileNameOut3D << "' already exists!" << endl;
 			return( false );
 		}
-		cerr << "[GigaMesh] Warning: File '" << fileNameOut3D << "' will be replaced!" << endl;
-	}
-#else
-	// Check files using file statistics
-	struct _stat64 stFileInfo;
-	// Check: Input file exists?
-	if( _stat64( rFileName.c_str(), &stFileInfo ) != 0 ) {
-		cerr << "[GigaMesh] Error: File '" << rFileName << "' not found!" << endl;
-		return( false );
+		cout << "[GigaMesh] Warning: File '" << fileNameOut3D << "' will be replaced!" << endl;
 	}
 
-	// Output file for 3D data including the volumetric feature vectors.
-	string fileNameOut3D( fileNameOut );
-	fileNameOut3D += ".ply";
-	if( _stat64( fileNameOut3D.c_str(), &stFileInfo ) == 0 ) {
-		if( !rReplaceFiles ) {
-			cerr << "[GigaMesh] File '" << fileNameOut3D << "' already exists!" << endl;
-			return( false );
-		}
-		cerr << "[GigaMesh] Warning: File '" << fileNameOut3D << "' will be replaced!" << endl;
-	}
-#endif
 	// All parameters OK => infos to stdout and file with metadata  -----------------------------------------------------------
 	cout << "[GigaMesh] File IN:         " << rFileName << endl;
 	cout << "[GigaMesh] File OUT/Prefix: " << fileNameOut << endl;
@@ -169,7 +145,7 @@ int main( int argc, char *argv[] ) {
 	LOG::initLogging();
 
 	// Default string parameter
-	std::string optFileSuffix;
+	std::filesystem::path optFileSuffix;
 
 	// Default flags
 	bool optReplaceFiles = false;
@@ -200,7 +176,7 @@ int main( int argc, char *argv[] ) {
 				// printf ("option %s", long_options[option_index].name);
 				// if (optarg) printf (" with arg %s", optarg);
 
-				if(longOptions[optionIndex].name == "log-level")
+				if(std::string(longOptions[optionIndex].name) == "log-level")
 				{
 					unsigned int arg = optarg[0] - '0';
 					if(arg <= 5)
@@ -262,7 +238,7 @@ int main( int argc, char *argv[] ) {
 	}
 
 	// Add default suffix
-	if( optFileSuffix.size() == 0 ) {
+	if( optFileSuffix.empty() ) {
 		optFileSuffix = "_ASCII";
 		if( optWriteBinary ) {
 			optFileSuffix = "_Legacy";
@@ -277,7 +253,7 @@ int main( int argc, char *argv[] ) {
 	for( int nonOptionArgumentCount = optind;
 	     nonOptionArgumentCount < argc; nonOptionArgumentCount++ ) {
 
-		std::string nonOptionArgumentString = std::string( argv[nonOptionArgumentCount] );
+		std::filesystem::path nonOptionArgumentString ( argv[nonOptionArgumentCount] );
 
 		if( !nonOptionArgumentString.empty() ) {
 			std::cout << "[GigaMesh] Processing file " << nonOptionArgumentString << "..." << std::endl;

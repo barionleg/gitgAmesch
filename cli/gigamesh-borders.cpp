@@ -29,12 +29,12 @@
 using namespace std;
 
 bool convertMeshData(
-		     const string&   rFileName,
+             const std::filesystem::path&   rFileName,
 		     const bool      rWriteVertexId,
 		     const bool      rWriteNormals,
 		     const bool      rReplaceFiles
 ) {
-	std::string fileExtension = std::filesystem::path( rFileName ).extension().string();
+	std::filesystem::path fileExtension =  rFileName .extension();
 	// Check file extension for input file
 	if( !(fileExtension == ".obj" || fileExtension == ".ply") ) {
 		LOG::error() << "[GigaMesh] ERROR: File extension '" << fileExtension << "' is faulty!\n";
@@ -42,50 +42,30 @@ bool convertMeshData(
 	}
 
 	// Add parameters to output prefix
-	std::string fileNameOut = std::filesystem::path( rFileName ).stem().string() + ".pline";
+	std::filesystem::path fileNameOut = std::filesystem::path( rFileName ).stem();
+	fileNameOut += L".pline";
 
-#ifndef WIN32
-	// Check files using file statistics
-	struct stat stFileInfo;
 	// Check: Input file exists?
-	if( stat( rFileName.c_str(), &stFileInfo ) != 0 ) {
+	if( !std::filesystem::exists( rFileName ) ) {
 		LOG::error() << "[GigaMesh] Error: File '" << rFileName << "' not found!\n";
 		return( false );
 	}
 
 	// Output file for 3D data including the volumetric feature vectors.
-	std::string pathOut = std::filesystem::absolute( std::filesystem::path( rFileName )).remove_filename().string();
-	std::string fileNameOut3D = pathOut + fileNameOut;
-	if( stat( fileNameOut3D.c_str(), &stFileInfo ) == 0 ) {
+	std::filesystem::path pathOut = std::filesystem::absolute(  rFileName ).remove_filename();
+	std::filesystem::path fileNameOut3D = pathOut;
+	fileNameOut += fileNameOut;
+	if( std::filesystem::exists(fileNameOut3D) ) {
 		if( !rReplaceFiles ) {
 			LOG::error() << "[GigaMesh] File '" << fileNameOut3D << "' already exists!\n";
 			return( false );
 		}
 		LOG::error() << "[GigaMesh] Warning: File '" << fileNameOut3D << "' will be replaced!\n";
 	}
-#else
-	// Check files using file statistics
-	struct _stat64 stFileInfo;
-	// Check: Input file exists?
-	if( _stat64( rFileName.c_str(), &stFileInfo ) != 0 ) {
-		LOG::error() << "[GigaMesh] Error: File '" << rFileName << "' not found!\n";
-		return( false );
-	}
 
-	// Output file for 3D data including the volumetric feature vectors.
-	std::string pathOut = std::filesystem::absolute( std::filesystem::path( rFileName )).remove_filename().string();
-	std::string fileNameOut3D = pathOut + fileNameOut;
-	if( _stat64( fileNameOut3D.c_str(), &stFileInfo ) == 0 ) {
-		if( !rReplaceFiles ) {
-			LOG::error() << "[GigaMesh] File '" << fileNameOut3D << "' already exists!\n";
-			return( false );
-		}
-		LOG::error() << "[GigaMesh] Warning: File '" << fileNameOut3D << "' will be replaced!\n";
-	}
-#endif
 	// All parameters OK => infos to stdout and file with metadata  -----------------------------------------------------------
 	cout << "[GigaMesh] File IN:         " << rFileName << endl;
-	cout << "[GigaMesh] File OUT/Prefix: " << fileNameOut << endl;
+	wcout << "[GigaMesh] File OUT/Prefix: " << fileNameOut << endl;
 
 	// Prepare data structures
 	//--------------------------------------------------------------------------
@@ -134,7 +114,7 @@ bool convertMeshData(
 
 	bool writeSuccess = someMesh.exportPolyLinesCoords(fileNameOut3D,rWriteNormals,rWriteVertexId);
 	if( !writeSuccess ) {
-		cerr << "[GigaMesh] Error: Could not write file '" << fileNameOut3D << "'!" << endl;
+		wcerr << L"[GigaMesh] Error: Could not write file '" << fileNameOut3D << "'!" << endl;
 		return( false );
 	}
 
@@ -198,7 +178,7 @@ int main( int argc, char *argv[] ) {
 				// printf ("option %s", long_options[option_index].name);
 				// if (optarg) printf (" with arg %s", optarg);
 
-				if(longOptions[optionIndex].name == "log-level")
+				if(std::string(longOptions[optionIndex].name) == "log-level")
 				{
 					unsigned int arg = optarg[0] - '0';
 					if(arg <= 5)
@@ -267,12 +247,12 @@ int main( int argc, char *argv[] ) {
 	for( int nonOptionArgumentCount = optind;
 	     nonOptionArgumentCount < argc; nonOptionArgumentCount++ ) {
 
-		std::string nonOptionArgumentString = std::string( argv[nonOptionArgumentCount] );
+		std::filesystem::path filePath( argv[nonOptionArgumentCount] );
 
-		if( !nonOptionArgumentString.empty() ) {
-			std::cout << "[GigaMesh] Processing file " << nonOptionArgumentString << "..." << std::endl;
+		if( filePath.empty() ) {
+			std::cout << "[GigaMesh] Processing file " << filePath << "..." << std::endl;
 
-			if( !convertMeshData( nonOptionArgumentString, optWriteVertexId,
+			if( !convertMeshData( filePath, optWriteVertexId,
 					      optWriteNormals, optReplaceFiles ) ) {
 				std::cerr << "[GigaMesh] ERROR: convertMeshData failed!" << std::endl;
 				std::exit( EXIT_FAILURE );

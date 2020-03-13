@@ -22,15 +22,12 @@
 #include <GigaMesh/logging/Logging.h>
 
 bool infoGigaMeshData(
-                const std::string&   rFileNameIn,    //!< Input - filename.
+                const std::filesystem::path&   rFileNameIn,    //!< Input - filename.
                 MeshInfoData&        rFileInfos,     //!< Output - data properties.
                 bool                 rAbsolutePath   //!< Option: display absolute path or stem only.
 ) {
-	// Check files using file statistics
-	struct stat stFileInfo;
-
 	// Check: Input file exists
-	if( stat( rFileNameIn.c_str(), &stFileInfo ) != 0 ) {
+	if( std::filesystem::exists( rFileNameIn) ) {
 		std::cerr << "[GigaMesh] ERROR: File '" << rFileNameIn << "' not found!" << std::endl;
 		return( false );
 	}
@@ -85,7 +82,7 @@ int main( int argc, char* argv[] ) {
 	LOG::initLogging();
 
 	// Default string parameter
-	std::string fileNameCSVOut;
+	std::filesystem::path fileNameCSVOut;
 
 	// Default flags
 	//! \todo integrate bool optReplaceFiles = false;
@@ -116,7 +113,7 @@ int main( int argc, char* argv[] ) {
 				// printf ("option %s", long_options[option_index].name);
 				// if (optarg) printf (" with arg %s", optarg);	
 
-				if(longOptions[optionIndex].name == "log-level")
+				if(std::string(longOptions[optionIndex].name) == "log-level")
 				{
 					unsigned int arg = optarg[0] - '0';
 					if(arg <= 5)
@@ -200,15 +197,15 @@ int main( int argc, char* argv[] ) {
 			if( optSideCarHTML ) {
 				//! \todo integrate optReplaceFiles (bool)
 				// Determine filename for HTML sidecar file
-				std::string htmlFileName = std::filesystem::path( nonOptionArgumentString ).parent_path().string();
-				htmlFileName += std::filesystem::path( nonOptionArgumentString ).stem().string();
+				std::filesystem::path htmlFileName = std::filesystem::path( nonOptionArgumentString ).parent_path();
+				htmlFileName += std::filesystem::path( nonOptionArgumentString ).stem();
 				htmlFileName += ".html";
 				// Fetch HTML string
 				std::string htmlStr;
 				fileInfoSingle.getMeshInfoHTML( htmlStr );
 				// Write HTML to file.
 				std::fstream fileStrOutHTML;
-				fileStrOutHTML.open( htmlFileName.c_str(), std::fstream::out );
+				fileStrOutHTML.open( htmlFileName, std::fstream::out );
 				fileStrOutHTML << htmlStr;
 				fileStrOutHTML.close();
 			}
@@ -252,13 +249,13 @@ int main( int argc, char* argv[] ) {
 	}
 
 	// Output fetched data
-	if( fileNameCSVOut.size() == 0 ) {
+	if( fileNameCSVOut.empty() ) {
 		std::cout << csvHeaderLine << std::endl;
 		std::cout << csvContent << std::endl;
 	} else {
 		// Write HTML to file.
 		std::fstream fileStrOutCSV;
-		fileStrOutCSV.open( fileNameCSVOut.c_str(), std::fstream::out );
+		fileStrOutCSV.open( fileNameCSVOut, std::fstream::out );
 		if( fileStrOutCSV.is_open() ) {
 			fileStrOutCSV << csvHeaderLine << std::endl;
 			fileStrOutCSV << csvContent;

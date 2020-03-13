@@ -26,8 +26,8 @@
 #include <GigaMesh/logging/Logging.h>
 
 bool cleanupGigaMeshData(
-                const  std::string& fileNameIn,
-                const  std::string& fileNameOutSuffix,
+                const  std::filesystem::path& fileNameIn,
+                const  std::filesystem::path& fileNameOutSuffix,
                 const  std::string& rMaterialWhenEmpty,
                 bool                rMaterialWhenEmptySet,
                 bool                rFileNameAsIdWhenEmpty,
@@ -42,58 +42,37 @@ bool cleanupGigaMeshData(
                 unsigned long   maxNumberVertices = 3000
 ) {
 	// Check file extension for input file
-	size_t foundDot = fileNameIn.rfind(".");
-	if( foundDot == std::string::npos ) {
+	if( !fileNameIn.has_extension() ) {
 		std::cerr << "[GigaMesh] ERROR: No extension/type for input file '" << fileNameIn << "' specified!" << std::endl;
 		return( false );
 	}
 
 	// Prepare filename for output.
-	std::string suffix = fileNameOutSuffix;
-	std::string fileNameOut( std::filesystem::path( fileNameIn ).stem().string() );
-	if( std::regex_match( fileNameOut, std::regex( ".*_GM[oOxXcCfFpP]*" ) ) ) {
+	std::filesystem::path suffix      = fileNameOutSuffix;
+	std::filesystem::path fileNameOut = fileNameIn.stem();
+	if( std::regex_match( fileNameOut.wstring(), std::wregex( L".*_GM[oOxXcCfFpP]*" ) ) ) {
 		// Seems to be already processed, so check for Orientation
-		std::regex rgxGMOrientated( "(.*)(_GM)(o|O)(.*)" );
-		if( std::regex_match( fileNameOut, rgxGMOrientated ) ) {
-			suffix.insert( 3, 1, 'O' );
+		std::wregex rgxGMOrientated( L"(.*)(_GM)(o|O)(.*)" );
+		if( std::regex_match( fileNameOut.wstring(), rgxGMOrientated ) ) {
+			suffix = suffix.wstring().insert( 3, 1, L'O' );
 		}
-		fileNameOut = std::regex_replace( fileNameOut, std::regex("_GM[oOxXcCfFpP]*") , "" );
+		fileNameOut = std::regex_replace( fileNameOut.wstring(), std::wregex(L"_GM[oOxXcCfFpP]*") , L"" );
 	}
-	fileNameOut += suffix + ".ply";
+	fileNameOut += suffix;
+	fileNameOut += L".ply";
 
-#ifndef WIN32
-	// Check: Input file exists using file statistics
-	struct stat stFileInfo;
-	if( stat( fileNameIn.c_str(), &stFileInfo ) != 0 ) {
+	if( !std::filesystem::exists(fileNameIn)) {
 		std::cerr << "[GigaMesh] ERROR: Input file '" << fileNameIn << "' not found!" << std::endl;
 		return( false );
 	}
 
-	// Check file existance.
-	if( stat( fileNameOut.c_str(), &stFileInfo ) == 0 ) {
+	if( std::filesystem::exists(fileNameOut) ) {
 		if(!replaceFiles) {
 			std::cerr << "[GigaMesh] File '" << fileNameOut << "' already exists - SKIPPED!" << std::endl;
 			return( true );
 		}
 		std::cerr << "[GigaMesh] Warning: File '" << fileNameOut << "' will be replaced!" << std::endl;
 	}
-#else
-	// Check: Input file exists using file statistics
-	struct _stat64 stFileInfo;
-	if( _stat64( fileNameIn.c_str(), &stFileInfo ) != 0 ) {
-		std::cerr << "[GigaMesh] ERROR: Input file '" << fileNameIn << "' not found!" << std::endl;
-		return( false );
-	}
-
-	// Check file existance.
-	if( _stat64( fileNameOut.c_str(), &stFileInfo ) == 0 ) {
-		if(!replaceFiles) {
-			std::cerr << "[GigaMesh] File '" << fileNameOut << "' already exists - SKIPPED!" << std::endl;
-			return( true );
-		}
-		std::cerr << "[GigaMesh] Warning: File '" << fileNameOut << "' will be replaced!" << std::endl;
-	}
-#endif
 
 	// Filenames without path
 	std::string fileNameInName  = std::filesystem::path( fileNameIn ).filename().string();
@@ -154,7 +133,7 @@ bool cleanupGigaMeshData(
 		// Select and remove everything except the largest component
 		//----------------------------------------------------------
 		std::cout << "[GigaMesh] Label kept: " << largestLabelId << std::endl;
-		labelNrs.insert( -static_cast<int64_t>(largestLabelId) );
+		labelNrs.insert( -static_cast<long>(largestLabelId) );
 
 		someMesh.deSelMVertsAll();
 		someMesh.selectVertLabelNo( labelNrs );
@@ -162,8 +141,8 @@ bool cleanupGigaMeshData(
 	}
 
 	// Initial numbers of primitives
-	unsigned long oldVertexNr = someMesh.getVertexNr();
-	unsigned long oldFaceNr = someMesh.getFaceNr();
+	auto oldVertexNr = someMesh.getVertexNr();
+	auto oldFaceNr = someMesh.getFaceNr();
 
 	// MAIN cleaning procedure
 	//----------------------------------------------------------
@@ -207,13 +186,12 @@ bool cleanupGigaMeshData(
 	MeshInfoData rFileInfos;
 	someMesh.getMeshInfoData( rFileInfos, true );
 	// Set filename for meta-data
-	std::string fileNameOutMeta( std::filesystem::path( fileNameIn ).stem().string() );
-	fileNameOutMeta = fileNameOut;
-	fileNameOutMeta.replace( fileNameOutMeta.end()-3, fileNameOutMeta.end(), "info-clean.txt" );
+	std::wstring fileNameOutMeta = fileNameOut.wstring();
+	fileNameOutMeta.replace( fileNameOutMeta.end()-3, fileNameOutMeta.end(), L"info-clean.txt" );
 	//fileNameOutMeta += suffix + ".info-clean.txt";
 	// Open file for meta-data
 	std::fstream fileStrOutMeta;
-	fileStrOutMeta.open( fileNameOutMeta.c_str(), std::fstream::out );
+	fileStrOutMeta.open( fileNameOutMeta, std::fstream::out );
 #ifdef VERSION_PACKAGE
 	fileStrOutMeta << "[GigaMesh] CLEAN v." << VERSION_PACKAGE << std::endl;
 #else
@@ -348,7 +326,7 @@ int main( int argc, char* argv[] ) {
 		switch(character) {
 			case 0:
 
-				if(longOptions[optionIndex].name == "log-level")
+				if(std::string(longOptions[optionIndex].name) == "log-level")
 				{
 					unsigned int arg = optarg[0] - '0';
 					if(arg <= 5)
