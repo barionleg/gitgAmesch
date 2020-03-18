@@ -21,33 +21,33 @@ bool intersectTriangle(const Vector3D& rayOrigin, const Vector3D& rayDir,
 {
 	const double eps = 0.000001;
 	/* find vectors for two edges sharing vert0 */
-	Vector3D edge1 = t1 - t0;
-	Vector3D edge2 = t2 - t0;
+	const Vector3D edge1 = t1 - t0;
+	const Vector3D edge2 = t2 - t0;
 
 	/* begin calculating determinant - also used to calculate U parameter */
-	Vector3D pvec = rayDir % edge2;
+	const Vector3D pvec = rayDir % edge2;
 
 	/* if determinant is near zero, ray lies in plane of triangle */
-	double det = dot3(edge1, pvec);
+	const double det = dot3(edge1, pvec);
 
 	if(det > -eps && det < eps)
 		return false;
 
-	double inv_det = 1.0 / det;
+	const double inv_det = 1.0 / det;
 
 	/* calculate distance from vert0 to ray origin */
-	Vector3D tvec = rayOrigin - t0;
+	const Vector3D tvec = rayOrigin - t0;
 
 	/* calculate U parameter and test bounds */
-	double u = dot3(tvec, pvec) * inv_det;
+	const double u = dot3(tvec, pvec) * inv_det;
 	if(u < 0.0 || u > 1.0)
 		return false;
 
 	/* prepare to test V parameter */
-	Vector3D qvec = tvec % edge1;
+	const Vector3D qvec = tvec % edge1;
 
 	/* calculate V parameter and test bounds */
-	double v = dot3(rayDir, qvec) * inv_det;
+	const double v = dot3(rayDir, qvec) * inv_det;
 	if( v < 0.0 || u + v > 1.0)
 		return false;
 
@@ -61,7 +61,7 @@ IcoSphereTree::IcoSphereTree(unsigned int subdivision)
 {
 	mVertices.resize(12);
 	//initialise root icosahedron, t == golden ratio
-	double t = (1.0F + sqrtf(5.0F)) / 2.0F;
+	const double t = (1.0 + sqrt(5.0)) / 2.0;
 
 	// create 12 vertices of a icosahedron
 	mVertices[ 0] = normalize3(Vector3D(-1.0,  t, 0.0));
@@ -119,18 +119,18 @@ void IcoSphereTreeFaceNode::setVertIndices(size_t v0, size_t v1, size_t v2)
 
 size_t getMidPoint(size_t p1, size_t p2, std::vector<Vector3D>& vertices, std::unordered_map<uint64_t, size_t>& cache)
 {
-	uint64_t minIndex = std::min(p1, p2);
-	uint64_t maxIndex = std::max(p1, p2);
-	uint64_t key = (minIndex << 32) + maxIndex;
+	const uint64_t minIndex = std::min(p1, p2);
+	const uint64_t maxIndex = std::max(p1, p2);
+	const uint64_t key = (minIndex << 32) + maxIndex;
 
-	auto item = cache.find(key);
+	const auto item = cache.find(key);
 	if(item != cache.end())
 	{
 		return item->second;
 	}
 
 	Vector3D middle = (vertices[p1] + vertices[p2]) * 0.5F;
-	unsigned int retVal = vertices.size();
+	const unsigned int retVal = vertices.size();
 
 	vertices.emplace_back(normalize3(middle));
 	cache.emplace(std::make_pair(key, retVal));
@@ -409,7 +409,7 @@ void IcoSphereTree::clearSelection()
 	mSelectedVertices.clear();
 }
 
-bool IcoSphereTree::isSelected(size_t index)
+bool IcoSphereTree::isSelected(size_t index) const
 {
 	return mSelectedVertices.find(index) != mSelectedVertices.end();
 }

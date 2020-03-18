@@ -33,7 +33,7 @@ class IcoSphereTree
 		void selectVertex(size_t index);
 		void deselectVertex(size_t index);
 		void clearSelection();
-		bool isSelected(size_t index);
+		bool isSelected(size_t index) const;
 
 		void incData(size_t index, double value = 1.0);
 		double getMaxData() const;
