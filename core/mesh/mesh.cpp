@@ -13090,7 +13090,7 @@ bool Mesh::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool 
 	applyTransfromToPlane(rTrans);
 
 	//! .) Write the transformation to the side-car file, because HiWis tend to forget this.
-	string transMatFName = getFileLocation().string() + getBaseName().string() + "_transmat.txt";
+	wstring transMatFName = getFileLocation().wstring() + getBaseName().wstring() + L"_transmat.txt";
 	ofstream transMatFile;
 	transMatFile.open( transMatFName, ios::app );
 	if( transMatFile.is_open() ) {
@@ -13111,9 +13111,9 @@ bool Mesh::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool 
 		transMatFile << "#------------------------------------------------------" << endl;
 		transMatFile << endl;
 		transMatFile.close();
-		cout << "[Mesh::" << __FUNCTION__ << "] Transformation matrix written to: " << transMatFName << endl;
+		wcout << L"[Mesh::" << __FUNCTION__ << "] Transformation matrix written to: " << transMatFName << endl;
 	} else {
-		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: writing transformation matrix to: " << transMatFName << "!" << endl;
+		wcerr << L"[Mesh::" << __FUNCTION__ << "] ERROR: writing transformation matrix to: " << transMatFName << "!" << endl;
 	}
 
 	showProgressStop("Apply Transformation");
