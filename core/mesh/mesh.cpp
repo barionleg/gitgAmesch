@@ -3434,7 +3434,7 @@ bool Mesh::setPlaneHNF( Vector3D* rPlaneHNF ) {
 //!
 //! @returns false in case of an error e.g. degenarted positions or missing axis. True otherwise.
 bool Mesh::setPlaneHNFbyAxisSelPrim() {
-	if(!mPlane.isValid())
+	if(!mPlane.isValid() || mPrimSelected == nullptr)
 		return false;
 
 	Vector3D axisTop, axisBottom;
