@@ -1,36 +1,20 @@
-[![pipeline status](https://fcgitlab.iwr.uni-heidelberg.de/gigamesh/GigaMesh/badges/master/pipeline.svg)](https://fcgitlab.iwr.uni-heidelberg.de/gigamesh/GigaMesh/commits/master)
+<!-- [![pipeline status](https://fcgitlab.iwr.uni-heidelberg.de/gigamesh/GigaMesh/badges/master/pipeline.svg)](https://fcgitlab.iwr.uni-heidelberg.de/gigamesh/GigaMesh/commits/master) -->
 # NAME
 
 **GigaMesh** - GigaMesh Software Framework for processing large meshes.
 
 ## DESCRIPTION
 
-**GigaMesh** is a software Framework for processing large meshes.
-Feature vecotors... MSII....
-
-What can the users do?
-
-gigamesh_featurevectors .
+The **GigaMesh Software Framework** is a modular software for display, editing and visualization of 3D-data typically acquired with structured light or structure from motion.
 
 
 ## EXAMPLES 
 
 #### How to clone the project with submodules
 ```sh
-git clone --recurse-submodules ssh://git@fcgitlab.iwr.uni-heidelberg.de:2222/gigamesh/GigaMesh.git
-```
-Make sure to get the master branch of the submodules by running the following
-command inside the GigaMesh repo:
-```sh
-git submodule foreach git pull origin master
+git clone https://gitlab.com/fcgl/GigaMesh.git
 ```
 
-#### How to get Submodules after cloning (without cloning submodules)
-```sh
-cd FOLDER_OF_SUBMODULE
-git submodule init
-git submodule update
-```
 #### FEATURE EXTRACTION
 
 For computing the `MSII Featurevectors` a radius and a mesh file need to be given
@@ -44,18 +28,8 @@ BUILDING GigaMesh
 The following packages are required for building GigaMesh:
 
 * Recent version of cmake
-* libtiff
 * qt5
-* ...
-
-The following packages are recommended:
-* Libpsalm (Submodule)
-* ALGLIB
-* ...
-
-Explain steps...
-
-
+* libtiff (optional)
 
 AUTHOR
 ------
@@ -64,9 +38,6 @@ AUTHOR
 
 *psalm* is developed by Bastian Rieck (onfgvna@evrpx.eh; use `rot13` to
 descramble).
-
-*ALGLIB* is developed by ...
-
 
 FILES
 -----
