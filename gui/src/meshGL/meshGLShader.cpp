@@ -1993,7 +1993,7 @@ void MeshGLShader::vboPaintFacesIndexed( eTexMapType rRenderColor ) {
 		std::array<GLubyte,3> planeColor;
 		if(getPlaneDefinition() == Plane::AXIS_POINTS_AND_POSITION)
 		{
-			planeColor = {255,0,170};
+			planeColor = {202,178,214};
 		}
 		else
 		{
@@ -2797,7 +2797,7 @@ void MeshGLShader::vboPaintPolylines() {
 		std::array<GLubyte,3> planeColor;
 		if(getPlaneDefinition() == Plane::AXIS_POINTS_AND_POSITION)
 		{
-			planeColor = {255,0,170};
+			planeColor = {202,178,214};
 		}
 		else
 		{
