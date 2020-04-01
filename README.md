@@ -7,10 +7,9 @@
 
 The **GigaMesh Software Framework** is a modular software for display, editing and visualization of 3D-data typically acquired with structured light or structure from motion.
 
-
 ## EXAMPLES 
 
-#### How to clone the project with submodules
+#### How to clone the project
 ```sh
 git clone https://gitlab.com/fcgl/GigaMesh.git
 ```
@@ -30,6 +29,35 @@ The following packages are required for building GigaMesh:
 * Recent version of cmake
 * qt5
 * libtiff (optional)
+* A recent C++ compiler that supports C++17
+
+GigaMesh ist build via CMake:
+
+```sh
+mkdir build
+cd build
+cmake ..
+cmake --build .
+```
+
+To build for release, use the appropriate build flags.
+
+For single-configuration build files, like Makefiles, this changes the cmake commands to:
+```sh
+cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake --build .
+```
+
+For multi-configuration build files, like MSVC solution files, the cmake commands are:
+```sh
+cmake ..
+cmake --build . --config Release
+```
+
+GigaMesh is ideally build with the qtcreator IDE. To load the project, open the CMakeLists.txt in the root directory.
+Please make sure you have a kit selected, that has a C++17 compatible compiler. For further information see:
+* https://doc.qt.io/qtcreator/creator-targets.html
+* https://doc.qt.io/qtcreator/creator-tool-chains.html
 
 AUTHOR
 ------
@@ -38,14 +66,3 @@ AUTHOR
 
 *psalm* is developed by Bastian Rieck (onfgvna@evrpx.eh; use `rot13` to
 descramble).
-
-FILES
------
-
-*GigaMesh* is shipped with several example meshes:
-
-- `test.ply`: Extra weights from U. Reif's publication *A
-  unified approach to subdivision algorithms near extraordinary
-  vertices*
-- `Hexahedron.ply`: A cube in `PLY` format. The mesh is used courtesy of
-  [John Burkardt](http://people.sc.fsu.edu/~jburkardt).
