@@ -14,7 +14,7 @@ fi
 STARTDIR=$(pwd)
 cd /tmp/
 NAME=gigamesh$(uuidgen)
-git clone --recurse-submodules ssh://git@fcgitlab.iwr.uni-heidelberg.de:2222/gigamesh/GigaMesh.git $NAME
+git clone --recurse-submodules https://gitlab.com/fcgl/GigaMesh.git $NAME
 wait
 # Make sure all submodules are up to date!
 cd $NAME

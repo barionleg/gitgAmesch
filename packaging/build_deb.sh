@@ -38,7 +38,7 @@ cd "$(dirname "$0")/.."
 
 cd /tmp/
 NAME=gigamesh$(uuidgen)
-git clone ssh://git@fcgitlab.iwr.uni-heidelberg.de:2222/gigamesh/GigaMesh.git $NAME
+git clone https://gitlab.com/fcgl/GigaMesh.git $NAME
 wait
 cd $NAME
 

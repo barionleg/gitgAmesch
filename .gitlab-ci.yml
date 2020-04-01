@@ -7,7 +7,7 @@ windows:
   image: rkuehl83/ubuntu_bionic_mxe_qt_static:latest
   stage: build
   # install the necessary build tools when needed
-  before_script:
+  #before_script:
    #- apt update && apt -y install cmake libtiff5-dev #make autoconf g++ git cmake unzip
    #- apt -y install qtbase5-dev libcairo2-dev libtiff5-dev g++-8 sudo
   script:
