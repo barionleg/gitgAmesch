@@ -1,5 +1,23 @@
 Current version
++) New: Support for meshes with n-gon faces.
++) New: Move plane by set axis.
++) New: Rotate axis-plane around axis.
++) New: Spherical intersection.
 +) Bugfix: Mesh volume for dy was wrong, because it was overwritten by the result for dx.
++) Bugfix: Trying to set axis-plane by primitive and axis will not crash anymore, when no primitive is selected.
++) Bugfix: Apply transformation now exports the transformation matrix to the correct path.
++) Bugfix: Log-level can now correctly be set for CLI-tools.
++) Bugfix: The missing textures dialog now works correctly.
++) Bugfix: Time estimations should now be more accurate.
++) Bugfix: Fixed potential crash when exiting GigaMesh.
++) Bugfix: Crosshair no longer causes issues with selection.
++) Improved: Normal planes and axis-planes are now visually sapareted by different colors.
++) Improved: Filling holes should now produce less zero-area faces, resulting in less iterations.
++) Improved: The missing textures dialog now contains all missing textures.
++) Improved: Filenames may now contain unicode-characters.
++) Improved: General loading times.
++) Improved: Loading times of binary ply-files.
++) Improved: Multithreading when loading a mesh is now based on the hardware-concurrency.
 
 Version 200115
 +) Bugfix: Export of SVGs from planes defined by an axis and by other means are separatly positioned within the exported SVG.
