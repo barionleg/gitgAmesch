@@ -1,4 +1,5 @@
-<!-- [![pipeline status](https://fcgitlab.iwr.uni-heidelberg.de/gigamesh/GigaMesh/badges/master/pipeline.svg)](https://fcgitlab.iwr.uni-heidelberg.de/gigamesh/GigaMesh/commits/master) -->
+[![pipeline status](https://gitlab.com/fcgl/GigaMesh/badges/master/pipeline.svg)](https://gitlab.com/fcgl/GigaMesh/-/commits/master)
+
 # NAME
 
 **GigaMesh** - GigaMesh Software Framework for processing large meshes.
