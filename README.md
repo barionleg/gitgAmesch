@@ -5,7 +5,42 @@
 
 ## DESCRIPTION
 
-The **GigaMesh Software Framework** is a modular software for display, editing and visualization of 3D-data typically acquired with structured light or structure from motion.
+The **GigaMesh Software Framework** is a modular software for display, editing and visualization of 3D-data 
+typically acquired with structured light scanning (SLS) or structure from motion (SfM).
+
+It provides numerous functions for analysis of archaeological objects like cuneiform tablets, ceramics or converted LiDAR data.
+Typically applications are unwrappings (or rollouts), profile cuts (or cross sections) as well as visualizations of distances and curvature, 
+which can be exported as raster graphics or vector graphics.
+
+The retrieval of text in 3D like damaged cuneiform tablets or weathered medieval headstones using Multi Scale Integral Invariant (MSII) filtering, 
+which is a core function of the software. Furthermore small or faint surface details like fingerprints can be visualized.
+The polygonal meshes of the 3D-models can be inspected, cleaned and repaired to provide optimal filtering results. 
+The repaired datasets are suitable for 3D printing and for digital publishing in a dataverse.
+
+Source: [Wikipedia article about GigaMesh](https://en.wikipedia.org/wiki/GigaMesh_Software_Framework)
+
+WebSites: 
+- [GigaMesh](https://gigamesh.eu) (official, with [tutorials](https://gigamesh.eu/tutorials) and [package downloads](https://gigamesh.eu/downloads))
+- [Project on ResearchGate](https://www.researchgate.net/project/GigaMesh-Software-Framework)
+- [Open Access 3D Datasets](https://heidata.uni-heidelberg.de/dataverse/iwrgraphics)
+
+Video Tutorials:
+- [YouTube Channel](https://www.youtube.com/channel/UCJSOsw9GX8DnkqnciyVwmLw)
+- [Heidelberg University Document Server (HeiDOk)](http://archiv.ub.uni-heidelberg.de/volltextserver/cgi/search/simple?q=+GigaMesh+Software+Framework+Tutorial&_action_search=Search&_action_search=Search&_order=bytitle&basic_srchtype=ALL&_satisfyall=ALL)
+
+# Executables
+
+All executables provide details by adding `--help` or `-h` on the command line.
+
+## Graphical user interface (GUI)
+- `gigamesh` ... for all functions except the MSII filter.
+
+## Command line interface (CLI)
+- `gigamesh-featurevectors` ...  MSII filter for single files.
+- `gigamesh-clean` ... batch cleaning and repairing multiple files.
+- `gigamesh-info` ... to retrieve mesh properties for multiple files. Output as CSV or multiple sidecar files.
+- `gigamesh-tolegacy` ... convert multiple files to legacy Stanford Polygon (PLY) as ASCII and binary.
+- `gigamesh-border` ... extraction of mesh borders as polylines (ASCII formatted .pline files).
 
 ## EXAMPLES 
 
@@ -62,7 +97,9 @@ Please make sure you have a kit selected, that has a C++17 compatible compiler. 
 AUTHOR
 ------
 
-*GigaMesh* is developed by Hubert Mara
+*GigaMesh* is developed by Hubert Mara.
+
+Robert Kühl is the senior developer.
 
 *psalm* is developed by Bastian Rieck (onfgvna@evrpx.eh; use `rot13` to
-descramble).
+descramble). The original code is available via [GitHub](https://github.com/Pseudomanifold/psalm).
