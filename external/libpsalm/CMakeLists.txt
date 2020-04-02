@@ -1,101 +1,31 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-PROJECT( psalm ) 
+cmake_minimum_required(VERSION 3.10)
 
-ADD_DEFINITIONS(
-  -Wall
-  -Wextra
-  -pedantic
-  -O11
+project(libpsalm LANGUAGES CXX)
+
+add_library(psalm STATIC
+	src/libpsalm.cpp		include/libpsalm/libpsalm.h
+	src/directed_edge.cpp	src/directed_edge.h
+	src/edge.cpp			src/edge.h
+	src/face.cpp			src/face.h
+	src/mesh.cpp			src/mesh.h
+	src/v3ctor.cpp			src/v3ctor.h
+	src/vertex.cpp			src/vertex.h
+	src/FairingAlgorithms/FairingAlgorithm.cpp	src/FairingAlgorithms/FairingAlgorithm.h
+	src/SegmentationAlgorithms/PlanarSegmentation.cpp src/SegmentationAlgorithms/PlanarSegmentation.h
+	src/SegmentationAlgorithms/SegmentationAlgorithm.cpp src/SegmentationAlgorithms/SegmentationAlgorithm.h
+	src/SubdivisionAlgorithms/BsplineSubdivisionAlgorithm.cpp src/SubdivisionAlgorithms/BsplineSubdivisionAlgorithm.h
+	src/SubdivisionAlgorithms/CatmullClark.cpp src/SubdivisionAlgorithms/CatmullClark.h
+	src/SubdivisionAlgorithms/DooSabin.cpp	src/SubdivisionAlgorithms/DooSabin.h
+	src/SubdivisionAlgorithms/Liepa.cpp		src/SubdivisionAlgorithms/Liepa.h
+	src/SubdivisionAlgorithms/Loop.cpp		src/SubdivisionAlgorithms/Loop.h
+	src/SubdivisionAlgorithms/SubdivisionAlgorithm.cpp	src/SubdivisionAlgorithms/SubdivisionAlgorithm.h
+	src/TriangulationAlgorithms/MinimumWeightTriangulation.cpp	src/TriangulationAlgorithms/MinimumWeightTriangulation.h
+	src/TriangulationAlgorithms/TriangulationAlgorithm.cpp		src/TriangulationAlgorithms/TriangulationAlgorithm.h
 )
 
-FIND_PACKAGE( Boost 1.42 COMPONENTS program_options )
-LINK_DIRECTORIES( ${Boost_LIBRARY_DIRS} )
-INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIRS} )
+target_compile_features(psalm PRIVATE cxx_std_17)
 
-ADD_SUBDIRECTORY( FairingAlgorithms )
-ADD_SUBDIRECTORY( SegmentationAlgorithms )
-ADD_SUBDIRECTORY( SubdivisionAlgorithms )
-ADD_SUBDIRECTORY( TriangulationAlgorithms )
-
-ADD_SUBDIRECTORY( Tests )
-
-INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}
-  external
-  #
-  FairingAlgorithms
-  SegmentationAlgorithms
-  SubdivisionAlgorithms
-  TriangulationAlgorithms
-)
-
-#
-# Build psalm command-line interface; the target `psalm_cli` will be renamed
-# later on. Otherwise, name clashes with libpsalm would occur.
-#
-
-SET( PSALM_SRC
-  psalm.cpp
-  v3ctor.cpp
-  mesh.cpp
-  face.cpp
-  vertex.cpp
-  edge.cpp
-  directed_edge.cpp
-)
-
-ADD_EXECUTABLE( psalm_cli ${PSALM_SRC} )
-TARGET_LINK_LIBRARIES( psalm_cli SubdivisionAlgorithms FairingAlgorithms SegmentationAlgorithms ${Boost_LIBRARIES} )
-SET_TARGET_PROPERTIES( psalm_cli PROPERTIES OUTPUT_NAME psalm )
-
-MESSAGE( STATUS ${Boost_LIBRARIES} )
-
-#
-# Build `libpsalm` _without_ relying on any libraries; this makes inclusion of
-# the library easier.
-#
-
-SET( LIBPSALM_SRC
-  libpsalm.cpp
-  v3ctor.cpp
-  mesh.cpp
-  face.cpp
-  edge.cpp
-  vertex.cpp
-  directed_edge.cpp
-  #
-  SubdivisionAlgorithms/Liepa.cpp
-  SubdivisionAlgorithms/SubdivisionAlgorithm.cpp
-  #
-  TriangulationAlgorithms/MinimumWeightTriangulation.cpp
-  TriangulationAlgorithms/TriangulationAlgorithm.cpp
-)
-
-ADD_LIBRARY( psalm ${LIBPSALM_SRC} )
-
-#
-# Create subdivided test data using "meshlab"
-#
-
-ADD_CUSTOM_TARGET( data_test
-  echo "Catmull-Clark subdivision"
-  ./psalm -a cc -n 1 -o ICO_CC_01.ply ../Meshes/Icosahedron.ply
-  ./psalm -a cc -n 2 -o ICO_CC_02.ply ../Meshes/Icosahedron.ply
-  ./psalm -a cc -n 3 -o ICO_CC_03.ply ../Meshes/Icosahedron.ply
-  echo "Doo-Sabin subdivision"
-  ./psalm -a ds -n 1 -o Meshes/ICO_DS_01.ply Meshes/Icosahedron.ply
-  ./psalm -a ds -n 2 -o Meshes/ICO_DS_02.ply Meshes/Icosahedron.ply
-  ./psalm -a ds -n 3 -o Meshes/ICO_DS_03.ply Meshes/Icosahedron.ply
-)
-
-
-#
-# Valgrind test run for memory leaks
-#
-
-FIND_PROGRAM(VALGRIND valgrind)
-
-IF(VALGRIND)
-  ADD_CUSTOM_TARGET( memcheck
-    ${VALGRIND} --suppressions=psalm.supp --leak-check=full --show-reachable=yes --track-origins=yes ./psalm -n 2 Tetrahedron.ply
-    rm Tetrahedron_subdivided.ply)
-ENDIF(VALGRIND)
+target_include_directories(psalm PUBLIC
+							$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+							$<INSTALL_INTERFACE:include>
+							PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)

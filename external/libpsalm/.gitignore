@@ -1,9 +1,0 @@
-*.o
-*.swp
-*.a
-
-psalm.html
-psalm
-
-Doxygen/*
-build/*
