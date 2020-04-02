@@ -17,8 +17,6 @@ set(SOURCES_CORE mesh/geodentry.cpp
 	mesh/plane.cpp
 	mesh/triangularprism.cpp
 	mesh/cube.cpp
-	mesh/triangle/triangle.c
-	mesh/triangle/triangleTriangleIntersection.cpp
 	mesh/edgegeodesic.cpp
 	mesh/marchingfront.cpp
 	mesh/meshio.cpp
@@ -61,8 +59,6 @@ set(HEADERS_CORE
 	mesh/MeshIO/VRMLWriter.h
 	mesh/MeshIO/PlyEnums.h
 	mesh/MeshIO/MtlParser.h
-	mesh/triangle/triangle.h
-	mesh/triangle/triangleTriangleIntersection.h
 	mesh/util/triangulation.h
 	)
 
@@ -105,13 +101,13 @@ target_compile_options(gigameshCore PUBLIC -DTHREADS -DCOMP_USER=\"${COMP_USER}\
 if(UNIX)
 	target_link_libraries(gigameshCore PUBLIC stdc++fs pthread)
 elseif(MSVC)
-	target_compile_options(gigameshCore PUBLIC /permissive- -DNO_TIMER -DNOMINMAX)
+        target_compile_options(gigameshCore PUBLIC /permissive- -DNOMINMAX)
 	target_link_libraries(gigameshCore PUBLIC Advapi32 Ws2_32)
 elseif(MINGW)
 	target_link_libraries(gigameshCore PUBLIC ws2_32)
 endif()
 
-target_link_libraries(gigameshCore PRIVATE alg psalm spherical_intersection)
+target_link_libraries(gigameshCore PRIVATE alg psalm spherical_intersection triangle)
 
 target_include_directories(gigameshCore PUBLIC
 							$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

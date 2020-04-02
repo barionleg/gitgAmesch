@@ -1,4 +1,4 @@
-#include "triangleTriangleIntersection.h"
+#include <triangle/triangleTriangleIntersection.h>
 // ------------------------------------------------------------------------
 
 /* Triangle/triangle intersection test routine,

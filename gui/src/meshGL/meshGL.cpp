@@ -34,6 +34,12 @@
 
 #include <GigaMesh/mesh/ellipsedisc.h>
 
+extern "C"
+{
+    #include <triangle/triangle.h>
+}
+#include <triangle/triangleTriangleIntersection.h>
+
 #include "../MeshQtCSVImportExport.h"
 
 // #define DEBUG_SHOW_ALL_METHOD_CALLS
@@ -1264,7 +1270,6 @@ bool MeshGL::normalizeFunctionValues()
 //call triangle lib, to triangulate a Planar straight-line graph (PLSG) given in p
 //result is returned to tri
 bool MeshGL::callTriangle(vector<PixCoord> &p, vector<PixCoord> &tri) {
-	/*
 		struct triangulateio in, mid;
 
 		// Define input points.
@@ -1345,7 +1350,7 @@ bool MeshGL::callTriangle(vector<PixCoord> &p, vector<PixCoord> &tri) {
 		free(mid.triangleattributelist);
 		free(mid.segmentlist);
 		free(mid.segmentmarkerlist);
-		*/
+
 		return true;
 }
 

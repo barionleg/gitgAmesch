@@ -57,9 +57,9 @@
 
 extern "C"
 {
-    #include "triangle/triangle.h"
+    #include <triangle/triangle.h>
 }
-#include "triangle/triangleTriangleIntersection.h"
+#include <triangle/triangleTriangleIntersection.h>
 
 #ifdef LIBPSALM
 	#include <libpsalm/libpsalm.h>
