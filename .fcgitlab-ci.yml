@@ -3,9 +3,6 @@ stages:
   - test
 
 windows:
-  only:
-    - master
-
   # Use created image for mxe
   image: rkuehl83/ubuntu_bionic_mxe_qt_static:latest
   stage: build
@@ -41,15 +38,13 @@ windows:
       - build/cli/gigamesh-info.exe
       - build/cli/gigamesh-borders.exe
     expire_in: 4 hours
-   
+
 ubuntu bionic:
-  only:
-    - master
   # Use ubuntu 18.04 LTS
   image: ubuntu:bionic
   stage: build
   # install the necessary build tools when needed
-  before_script: 
+  before_script:
    - apt update && apt -y install make autoconf g++ git cmake unzip
    - apt -y install qtbase5-dev libcairo2-dev libtiff5-dev g++-8 sudo
   script:
@@ -80,16 +75,13 @@ ubuntu bionic:
       - build/cli/gigamesh-info
       - build/cli/gigamesh-borders
     expire_in: 4 hours
-    
+
 manjaro arch:
-  only:
-    - master
-    - develop
   # Use latest manjaro release
   image: archlinux/base
   stage: build
   # install the necessary build tools when needed
-  before_script: 
+  before_script:
    - pacman -Sy
    - pacman -S gcc glibc cmake boost unzip qtcreator make cairo git --noconfirm
   script:
@@ -120,9 +112,6 @@ manjaro arch:
     expire_in: 4 hours
 
 manjaro arch test:
-  only:
-    - master
-    - develop
   # Use latest manjaro release
   image: archlinux/base
   stage: test
@@ -135,5 +124,5 @@ manjaro arch test:
   artifacts:
     reports:
       junit: report.xml
-    
+
     expire_in: 4 hours
