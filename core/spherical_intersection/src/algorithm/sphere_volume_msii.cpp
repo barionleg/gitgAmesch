@@ -35,7 +35,7 @@
 #include "graph.h"
 #include "graph_geometry.h"
 #include "math3d/math3d.h"
-#include "mesh.h"
+#include "mesh_spherical.h"
 
 //! @cond DEV
 

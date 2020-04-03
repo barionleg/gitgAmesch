@@ -115,7 +115,7 @@ target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 #needed, if ui-header files need references to custom classes (e.g. NormalSphereSelectionRenderWidget.h)
 target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-target_link_libraries(gigamesh PRIVATE ${Qt5Widgets_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Network_LIBRARIES} psalm spherical_intersection OpenGL::GL gigameshCore triangle)
+target_link_libraries(gigamesh PRIVATE ${Qt5Widgets_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Network_LIBRARIES} psalm OpenGL::GL gigameshCore triangle)
 
 #extras for static linking using the MXE mingw static build (set this via "export MINGW_CI_BUILD=True" on the command line)
 if(MINGW_CI_BUILD)

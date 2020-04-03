@@ -75,7 +75,7 @@ extern "C"
     #include <spherical_intersection/algorithm/sphere_surface_msii.h>
     #include <spherical_intersection/algorithm/sphere_volume_msii.h>
     #include <spherical_intersection/graph.h>
-    #include <spherical_intersection/mesh.h>
+    #include <spherical_intersection/mesh_spherical.h>
 #endif
 
 using namespace std;

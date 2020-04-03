@@ -107,9 +107,11 @@ elseif(MINGW)
 	target_link_libraries(gigameshCore PUBLIC ws2_32)
 endif()
 
-target_link_libraries(gigameshCore PRIVATE alg psalm spherical_intersection triangle)
+target_link_libraries(gigameshCore PRIVATE alg psalm triangle)
 
 target_include_directories(gigameshCore PUBLIC
 							$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 							$<INSTALL_INTERFACE:include>
 							PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+add_subdirectory(spherical_intersection)

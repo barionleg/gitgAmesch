@@ -27,7 +27,7 @@
 #include <tuple>
 #include <vector>
 
-#include "mesh.h"
+#include "mesh_spherical.h"
 
 namespace spherical_intersection {
 //! @brief Directed Multigraph embedded into a sphere that represents that

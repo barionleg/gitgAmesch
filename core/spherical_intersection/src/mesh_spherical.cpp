@@ -26,7 +26,7 @@
 #include <sstream>
 #include <unordered_map>
 
-#include "mesh.h"
+#include "mesh_spherical.h"
 #include "utility/hash_combine.h" 
 
 using namespace spherical_intersection;

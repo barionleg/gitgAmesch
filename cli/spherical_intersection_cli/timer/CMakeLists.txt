@@ -1,0 +1,8 @@
+cmake_minimum_required (VERSION 3.1)
+set (CMAKE_CXX_STANDARD 17)
+project (Timer VERSION 1.0.0 DESCRIPTION "A simple timer library")
+add_library(timer src/timer.cpp)
+target_include_directories(timer PRIVATE include)
+
+target_compile_options(timer PRIVATE "$<$<CONFIG:Debug>:${DEBUG_OPTIONS}>")
+target_compile_options(timer PRIVATE "$<$<CONFIG:Release>:${RELEASE_OPTIONS}>")

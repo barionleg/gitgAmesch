@@ -33,12 +33,6 @@
 
 #include "math3d/math3d.h" //TODO limit includes in header files everywhere
 
-namespace mesh { // TODO in general: return const ref to member or return by
-// copied value in certain cases?
-class Mesh;
-class Triangle;
-} // namespace mesh
-
 // TODO use reference wrappers to
 // enforce non nullity? this woul
 // also hide the fact that i want to

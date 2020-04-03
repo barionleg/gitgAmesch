@@ -21,11 +21,15 @@ add_executable(gigamesh-borders gigamesh-borders.cpp)
 target_link_libraries(gigamesh-borders PRIVATE gigameshCore)
 
 install(TARGETS gigamesh-tolegacy
-				gigamesh-clean
-				gigamesh-info
-				gigamesh-featurevectors
-				gigamesh-borders
-		DESTINATION bin)
+                gigamesh-clean
+                gigamesh-info
+                gigamesh-featurevectors
+                gigamesh-borders
+        DESTINATION bin)
+
+
+add_subdirectory(spherical_intersection_cli)
+
 
 #add_executable(meshgeneratefeaturevectors25d mesh/meshgeneratefeaturevectors25d.cpp ${SOURCES_COMMON} ${HEADERS_COMMON})
 #target_link_libraries(meshgeneratefeaturevectors25d)
