@@ -1,8 +1,6 @@
-cmake_minimum_required (VERSION 3.1)
-set (CMAKE_CXX_STANDARD 17)
-project (Input_Parser VERSION 1.0.0 DESCRIPTION "A simple command line argument parser library")
-add_library(input_parser src/input_parser.cpp)
-target_include_directories(input_parser PRIVATE include)
+cmake_minimum_required (VERSION 3.10)
 
-target_compile_options(input_parser PRIVATE "$<$<CONFIG:Debug>:${DEBUG_OPTIONS}>")
-target_compile_options(input_parser PRIVATE "$<$<CONFIG:Release>:${RELEASE_OPTIONS}>")
+project (Input_Parser VERSION 1.0.0 DESCRIPTION "A simple command line argument parser library")
+add_library(input_parser STATIC src/input_parser.cpp)
+target_compile_features(input_parser PUBLIC cxx_std_17)
+target_include_directories(input_parser PRIVATE include)
