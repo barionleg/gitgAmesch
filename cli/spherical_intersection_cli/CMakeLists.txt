@@ -10,8 +10,8 @@ add_subdirectory(input_parser)
 add_subdirectory(timer)
 add_subdirectory(object_io)
 
-target_link_libraries(gigamesh-featurevectors-sl PRIVATE Threads::Threads gigameshCore input_parser timer object_io)
-target_link_libraries(gigamesh-sphere-profiles PRIVATE Threads::Threads gigameshCore input_parser timer object_io)
+target_link_libraries(gigamesh-featurevectors-sl PRIVATE Threads::Threads gigameshCore $<TARGET_OBJECTS:input_parser> $<TARGET_OBJECTS:timer> $<TARGET_OBJECTS:object_io>)
+target_link_libraries(gigamesh-sphere-profiles PRIVATE Threads::Threads gigameshCore $<TARGET_OBJECTS:input_parser> $<TARGET_OBJECTS:timer> $<TARGET_OBJECTS:object_io>)
 target_include_directories(gigamesh-featurevectors-sl PRIVATE input_parser/include object_io/include timer/include)
 target_include_directories(gigamesh-sphere-profiles PRIVATE input_parser/include object_io/include timer/include)
 
