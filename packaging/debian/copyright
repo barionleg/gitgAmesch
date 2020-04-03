@@ -3,11 +3,11 @@ Upstream-Name: GigaMesh
 Upstream-Contact: Hubert Mara <hubert.mara@iwr.uni-heidelberg.de>
 
 Files: cli/*
-Copyright: 2012-2020 Hubert Mara, IWR 
+Copyright: 2009-2020 Hubert Mara, IWR 
 License: GPL-3+
 
 Files: core/*
-Copyright: 2012-2020 Hubert Mara, IWR 
+Copyright: 2009-2020 Hubert Mara, IWR 
 License: GPL-3+
 
 Files: core/mesh/triangle/*
@@ -28,11 +28,11 @@ License: permissive
  free, then you are not required to make any arrangement with me.)      
 
 Files: tests/*
-Copyright: 2012-2020 Hubert Mara, IWR 
+Copyright: 2009-2020 Hubert Mara, IWR 
 License: GPL-3+
 
 Files: gui/*
-Copyright: 2012-2020 Hubert Mara, IWR 
+Copyright: 2009-2020 Hubert Mara, IWR 
 License: GPL-3+
 
 Files: external/libAlg/*
@@ -42,7 +42,7 @@ License: GPL-2+
  A copy of the GNU General Public License is available at http://www.fsf.org/licensing/licenses
 
 Files: external/spherical_intersection/*
-Copyright: 2012-2020 Hubert Mara, IWR 
+Copyright: 2009-2020 Hubert Mara, IWR 
 License: GPL-3+
 
 Files: external/libpsalmBoostless/*
