@@ -1,8 +1,10 @@
 Current version
 +) New: Support for meshes with n-gon faces.
-+) New: Move plane by set axis.
-+) New: Rotate axis-plane around axis.
-+) New: Spherical intersection.
++) New: Move plane by set axis. See "Right side pane -> pull down menu".
++) New: Rotate axis-plane around axis. See "Right side pane -> pull down menu".
++) New: Spherical intersection. See "Functions -> spherical intersection".
++) New: Spherical intersection cli-tool. See "gigamesh-gigamesh-sphere-profiles".
++) New: Spherical intersection cli-tool. See "gigamesh-featurevectors-sl".
 +) Bugfix: Mesh volume for dy was wrong, because it was overwritten by the result for dx.
 +) Bugfix: Trying to set axis-plane by primitive and axis will not crash anymore, when no primitive is selected.
 +) Bugfix: Apply transformation now exports the transformation matrix to the correct path.
