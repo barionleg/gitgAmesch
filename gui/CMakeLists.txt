@@ -121,7 +121,12 @@ target_link_libraries(gigamesh PRIVATE ${Qt5Widgets_LIBRARIES} ${Qt5OpenGL_LIBRA
 if(MINGW_CI_BUILD)
 	qt5_import_plugins(gigamesh INCLUDE Qt5::QSvgIconPlugin Qt5::QSvgPlugin)
 	target_link_libraries(gigamesh PRIVATE ssl crypto crypt32 iphlpapi)
-	target_sources(gigamesh PRIVATE GigaMesh_Logo.rc)
+endif()
+
+if(MSVC)
+    target_sources(gigamesh PRIVATE GigaMesh_Logo.rc)
+elseif(MINGW)
+    target_sources(gigamesh PRIVATE GigaMesh_Logo.rc)
 endif()
 
 install(TARGETS gigamesh DESTINATION bin)
