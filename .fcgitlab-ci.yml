@@ -20,7 +20,7 @@ windows:
     - mkdir build
     - cd build
     - x86_64-w64-mingw32.static-cmake .. -DCMAKE_BUILD_TYPE=Release -G"Unix Makefiles" -DMINGW_CI_BUILD=1
-    - make
+    - make -j
     - strip gui/gigamesh.exe
     - strip cli/gigamesh-featurevectors.exe
     - strip cli/gigamesh-tolegacy.exe
@@ -61,7 +61,7 @@ ubuntu bionic:
     - mkdir build
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release -G"Unix Makefiles"
-    - make
+    - make -j
     - strip gui/gigamesh
     - strip cli/gigamesh-featurevectors
     - strip cli/gigamesh-tolegacy
@@ -99,7 +99,7 @@ manjaro arch:
     - mkdir build
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release -G"Unix Makefiles"
-    - make
+    - make -j
     - strip gui/gigamesh
     - strip cli/gigamesh-featurevectors
     - strip cli/gigamesh-tolegacy
