@@ -6868,7 +6868,7 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 
 		const Vector3D rotPoint = planeZPoint.projectOntoLine(axisTop, axisBottom);
 
-		const Matrix4D rotMat(rotPoint,rotAxis, dLen);
+		const Matrix4D rotMat(rotPoint,rotAxis, dLen * 0.1);
 
 		planeZPoint = rotMat * planeZPoint;
 
