@@ -30,6 +30,8 @@ windows:
     - strip cli/gigamesh-clean.exe
     - strip cli/gigamesh-info.exe
     - strip cli/gigamesh-borders.exe
+    - strip cli/spherical_intersection_cli/gigamesh-featurevectors-sl.exe
+    - strip cli/spherical_intersection_cli/gigamesh-sphere-profiles.exe
 
   artifacts:
     name: "gigamesh_windows"
@@ -40,6 +42,8 @@ windows:
       - build/cli/gigamesh-clean.exe
       - build/cli/gigamesh-info.exe
       - build/cli/gigamesh-borders.exe
+      - build/cli/spherical_intersection_cli/gigamesh-featurevectors-sl.exe
+      - build/cli/spherical_intersection_cli/gigamesh-sphere-profiles.exe
     expire_in: 4 hours
    
 ubuntu bionic:
@@ -69,6 +73,8 @@ ubuntu bionic:
     - strip cli/gigamesh-clean
     - strip cli/gigamesh-info
     - strip cli/gigamesh-borders
+    - strip cli/spherical_intersection_cli/gigamesh-featurevectors-sl
+    - strip cli/spherical_intersection_cli/gigamesh-sphere-profiles
 
   artifacts:
     name: "gigamesh_bionic"
@@ -79,6 +85,8 @@ ubuntu bionic:
       - build/cli/gigamesh-clean
       - build/cli/gigamesh-info
       - build/cli/gigamesh-borders
+      - build/cli/spherical_intersection_cli/gigamesh-featurevectors-sl
+      - build/cli/spherical_intersection_cli/gigamesh-sphere-profiles
     expire_in: 4 hours
     
 manjaro arch:
@@ -106,6 +114,8 @@ manjaro arch:
     - strip cli/gigamesh-clean
     - strip cli/gigamesh-info
     - strip cli/gigamesh-borders
+    - strip cli/spherical_intersection_cli/gigamesh-featurevectors-sl
+    - strip cli/spherical_intersection_cli/gigamesh-sphere-profiles
 
   artifacts:
     name: "gigamesh_arch_manjaro"
@@ -116,6 +126,8 @@ manjaro arch:
       - build/cli/gigamesh-clean
       - build/cli/gigamesh-info
       - build/cli/gigamesh-borders
+      - build/cli/spherical_intersection_cli/gigamesh-featurevectors-sl
+      - build/cli/spherical_intersection_cli/gigamesh-sphere-profiles
       - build/tests/gigameshCore_tests
     expire_in: 4 hours
 

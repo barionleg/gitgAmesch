@@ -49,6 +49,8 @@ cp -a ../build/cli/gigamesh-clean $ND
 cp -a ../build/cli/gigamesh-tolegacy $ND
 cp -a ../build/cli/gigamesh-featurevectors $ND
 cp -a ../build/cli/gigamesh-borders $ND
+cp -a ../build/cli/spherical_intersection_cli/gigamesh-sphere-profiles $ND
+cp -a ../build/cli/spherical_intersection_cli/gigamesh-featurevectors-sl $ND
 # --- Scripts ---
 # None for now, which is a good thing.
 
