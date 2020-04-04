@@ -219,113 +219,31 @@ using namespace std;
 		}
 	}
 
-//! Main routine for generating an array of feature vectors
-//!
-//! Remark: prefer MeshSeed over Mesh as it is faster by a factor of 3+
-//==========================================================================
-int main( int argc, char *argv[] ) {
+void printHelp(const char* rExecName)
+{
+	//!TODO!
+}
 
-	LOG::initLogging();
-	// SHOW Build information
-	printBuildInfo();
+bool generateFeatureVectors( const std::filesystem::path& fileNameIn,
+                             double       radius,
+                             unsigned int xyzDim,
+                             unsigned int radiiCount,
+                             bool         replaceFiles,
+                             bool         areaOnly
+                             )
+{
 
-	std::filesystem::path       fileNameIn;
-	std::filesystem::path       fileNameOut;
-	double       radius{_DEFAULT_FEATUREGEN_RADIUS_};
-	unsigned int xyzDim{_DEFAULT_FEATUREGEN_XYZDIM_};
-	unsigned int radiiCount{_DEFAULT_FEATUREGEN_RADIICOUNT_};
-	bool         replaceFiles{false};
-	bool         areaOnly{false};
 
-	// PARSE command line options
-	//--------------------------------------------------------------------------
-	opterr = 0;
-	int c{0};
-	int tmpInt{0};
-	bool radiusSet{false};
-	while( ( c = getopt( argc, argv, "f:o:r:v:n:kal:" ) ) != -1 ) {
-		switch( c ) {
-			//! Option f: filename for input data (required)
-			case 'f':
-				fileNameIn = optarg;
-				break;
-			//! Option o: prefix for files with filter results and metadata (optional/automatic)
-			case 'o':
-				fileNameOut = optarg;
-				break;
-			//! Option r: absolut radius (in units, default: 1.0)
-			case 'r':
-				radius = atof( optarg );
-				radiusSet = true;
-				break;
-			//! Option v: edge length of the voxel cube (in voxels, default: 256)
-			case 'v':
-				tmpInt = atof( optarg );
-				if( tmpInt <= 0 ) {
-					cerr << "[GigaMesh] Error: negative or zero value given: " << tmpInt << " for the number of voxels (option -v)!" << endl;
-					exit( EXIT_FAILURE );
-				}
-				xyzDim = static_cast<unsigned int>(tmpInt);
-				break;
-			//! Option n: 2^n scales (default: 4 => 16 scales)
-			case 'n':
-				tmpInt = atof( optarg );
-				if( tmpInt < 0 ) {
-					cerr << "[GigaMesh] Error: negative value given: " << tmpInt << " for the number of radii (option -n)!" << endl;
-					exit( EXIT_FAILURE );
-				}
-				radiiCount = static_cast<unsigned int>(tmpInt);
-				break;
-			//! Option k: replaces output files
-			case 'k':
-				cout << "[GigaMesh] Warning: files might be replaced!" << endl;
-				replaceFiles = true;
-				break;
-			//! Option a: compute area/surface based integral onyl
-			case 'a':
-				cout << "[GigaMesh] Warning: Only area integrals will be computed!" << endl;
-				areaOnly = true;
-				break;
-			case 'l':
-				tmpInt = atoi( optarg );
-				if(tmpInt < 0 || tmpInt > 4)
-				{
-					cerr << "[GigaMesh] Error: logging value not in range of [0-4]\n";
-				}
-				else
-				{
-					LOG::setLogLevel(static_cast<LOG::LogLevel>(tmpInt));
-				}
-			case '?':
-				cerr << "[GigaMesh] Error: Unknown option!" << endl;
-				break;
-			default:
-				cerr << "[GigaMesh] Error: Unknown option '" << c << "'!" << endl;
-				exit( EXIT_FAILURE );
-		}
-	}
-	// Check argument ranges
-	if( radius <= 0.0 ) {
-		cerr << "[GigaMesh] Error: negative or zero radius given: " << radius << " (option -r)!" << endl;
-		exit( EXIT_FAILURE );
-	}
-	if( !radiusSet ) {
-		cout << "[GigaMesh] Warning: default radius is used (option -r missing)!" << endl;
-	}
-	if( fileNameIn.empty() ) {
-		cerr << "[GigaMesh] Error: no filename for input given (option -f)!" << endl;
-		exit( EXIT_FAILURE );
-	}
 	if( !fileNameIn.has_extension() ) {
 		cerr << "[GigaMesh] Error: No extension/type for input file '" << fileNameIn << "' specified!" << endl;
 		exit( EXIT_FAILURE );
 	}
-	// Check fileprefix for output - when not given use the name of the input file
-	if( fileNameOut.empty() ) {
-		fileNameOut = fileNameIn;
-		fileNameOut.replace_extension("");
-		// Warning message see a few lines below.
-	}
+
+	//fileprefix for output
+	std::filesystem::path       fileNameOut;
+	fileNameOut = fileNameIn;
+	fileNameOut.replace_extension("");
+
 	// Add parameters to output prefix
 	char tmpBuffer[512];
 	sprintf( tmpBuffer, "_r%0.2f_n%i_v%i", radius, radiiCount, xyzDim );
@@ -403,10 +321,7 @@ int main( int argc, char *argv[] ) {
 		}
 		cerr << "[GigaMesh] Warning: File '" << fileNameOut3D << "' will be replaced!" << endl;
 	}
-	// Invalid/unexpected paramters
-	for( int i = optind; i < argc; i++ ) {
-		cerr << "[GigaMesh] Warning: Non-option argument '" << argv[i] << "' given and ignored!" << endl;
-	}
+
 	// All parameters OK => infos to stdout and file with metadata  -----------------------------------------------------------
 	fstream fileStrOutMeta;
 	fileStrOutMeta.open( fileNameOutMeta, fstream::out );
@@ -815,6 +730,149 @@ int main( int argc, char *argv[] ) {
 	delete[] multiscaleRadii;
 
 	fileStrOutMeta.close();
+}
+//! Main routine for generating an array of feature vectors
+//!
+//! Remark: prefer MeshSeed over Mesh as it is faster by a factor of 3+
+//==========================================================================
+int main( int argc, char *argv[] ) {
+
+	LOG::initLogging();
+	// SHOW Build information
+	printBuildInfo();
+
+	std::filesystem::path       fileNameIn;
+	//std::filesystem::path       fileNameOut;
+	double       radius{_DEFAULT_FEATUREGEN_RADIUS_};
+	unsigned int xyzDim{_DEFAULT_FEATUREGEN_XYZDIM_};
+	unsigned int radiiCount{_DEFAULT_FEATUREGEN_RADIICOUNT_};
+	bool         replaceFiles{false};
+	bool         areaOnly{false};
+
+	static struct option longOptions[] = {
+			//{"outFile"           , required_argument, nullptr, 'o' },
+	    {"radius"            , required_argument, nullptr, 'r' },
+	    {"voxelSize"         , required_argument, nullptr, 'v' },
+	    {"numScales"         , required_argument, nullptr, 'n' },
+	    {"overwrite-existing", no_argument      , nullptr, 'k' },
+	    {"areaintegralOnly"  , no_argument      , nullptr, 'a' },
+	    {"help"              , no_argument      , nullptr, 'h' },
+	    { "log-level"        , required_argument, nullptr,  0  },
+	    {nullptr, 0, nullptr, 0}
+    };
+
+	// PARSE command line options
+	//--------------------------------------------------------------------------
+	opterr = 0;
+	int c{0};
+	int optionIndex{0};
+	int tmpInt{0};
+	bool radiusSet{false};
+	while( ( c = getopt_long_only( argc, argv, "o:r:v:n:ka:",
+	                               longOptions, &optionIndex) ) != -1 ) {
+		switch( c ) {
+			//! Option o: prefix for files with filter results and metadata (optional/automatic)
+			//case 'o':
+//				fileNameOut = optarg;
+//				break;
+			//! Option r: absolut radius (in units, default: 1.0)
+			case 'r':
+				radius = atof( optarg );
+				radiusSet = true;
+				break;
+			//! Option v: edge length of the voxel cube (in voxels, default: 256)
+			case 'v':
+				tmpInt = atof( optarg );
+				if( tmpInt <= 0 ) {
+					cerr << "[GigaMesh] Error: negative or zero value given: " << tmpInt << " for the number of voxels (option -v)!" << endl;
+					exit( EXIT_FAILURE );
+				}
+				xyzDim = static_cast<unsigned int>(tmpInt);
+				break;
+			//! Option n: 2^n scales (default: 4 => 16 scales)
+			case 'n':
+				tmpInt = atof( optarg );
+				if( tmpInt < 0 ) {
+					cerr << "[GigaMesh] Error: negative value given: " << tmpInt << " for the number of radii (option -n)!" << endl;
+					exit( EXIT_FAILURE );
+				}
+				radiiCount = static_cast<unsigned int>(tmpInt);
+				break;
+			//! Option k: replaces output files
+			case 'k':
+				cout << "[GigaMesh] Warning: files might be replaced!" << endl;
+				replaceFiles = true;
+				break;
+			//! Option a: compute area/surface based integral onyl
+			case 'a':
+				cout << "[GigaMesh] Warning: Only area integrals will be computed!" << endl;
+				areaOnly = true;
+				break;
+
+			case '?':
+				cerr << "[GigaMesh] Error: Unknown option!" << endl;
+				break;
+			case 'h':
+				printHelp( argv[0] );
+				std::exit(EXIT_SUCCESS);
+				break;
+			case 0:
+				if(std::string(longOptions[optionIndex].name) == "log-level")
+				{
+					unsigned int arg = optarg[0] - '0';
+					if(arg <= 5)
+					{
+						LOG::setLogLevel(static_cast<LOG::LogLevel>(arg));
+					}
+					else
+					{
+						std::cerr << "[GigaMesh] WARNING: Log level is out of range [0-4]!" << std::endl;
+					}
+				}
+
+				break;
+			default:
+				cerr << "[GigaMesh] Error: Unknown option '" << c << "'!" << endl;
+				exit( EXIT_FAILURE );
+		}
+	}
+	// Check argument ranges
+	if( radius <= 0.0 ) {
+		cerr << "[GigaMesh] Error: negative or zero radius given: " << radius << " (option -r)!" << endl;
+		exit( EXIT_FAILURE );
+	}
+	if( !radiusSet ) {
+		cout << "[GigaMesh] Warning: default radius is used (option -r missing)!" << endl;
+	}
+
+	unsigned long filesProcessed = 0UL;
+
+	for(auto nonOptionArgumentIndex = optind; nonOptionArgumentIndex < argc; ++nonOptionArgumentIndex)
+	{
+		std::filesystem::path nonOptionArgumentPath(argv[nonOptionArgumentIndex]);
+
+		if(std::filesystem::exists(nonOptionArgumentPath))
+		{
+			std::wcout << L"[GigaMesh] Processing file " << nonOptionArgumentPath.wstring() << L"..." << std::endl;
+
+			if(!generateFeatureVectors(nonOptionArgumentPath,
+			                           radius,
+			                           xyzDim,
+			                           radiiCount,
+			                           replaceFiles,
+			                           areaOnly))
+			{
+				LOG::error() << "[GigaMesh] ERROR: generate featurevectors failed for: " << nonOptionArgumentPath.string() << " !\n";
+				std::exit(EXIT_FAILURE);
+			}
+			++filesProcessed;
+		}
+	}
+
+	if( filesProcessed == 0 ) {
+		cerr << "[GigaMesh] Error: no filename for input given!" << endl;
+		exit( EXIT_FAILURE );
+	}
 
 	exit( EXIT_SUCCESS );
 }

@@ -23,7 +23,7 @@
 #include <cstdio>
 #include <cstdlib> // calloc
 #include <string>
-#ifdef WIN32	//windows version for hostname and login
+#ifdef _MSC_VER	//windows version for hostname and login
 //#include <winsock.h>
 //#include <WinBase.h>
 //#include <lmcons.h>
