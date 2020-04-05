@@ -410,6 +410,10 @@ bool MeshIO::writeFile(
 		character = std::tolower(character);
 	}
 
+	if( fileExtension.at(0) == '.') {
+		fileExtension.erase( fileExtension.begin() );
+	}
+
 	LOG::debug() << "[MeshIO::" << __FUNCTION__ << "] extension: " << fileExtension << "\n";
 	if( mExportFlags[EXPORT_BINARY] ) {
 		LOG::debug() << "[MeshIO::" << __FUNCTION__ << "] BINARY.\n";

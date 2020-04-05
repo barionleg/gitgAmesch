@@ -1,7 +1,30 @@
+//
+// GigaMesh - The GigaMesh Software Framework is a modular software for display,
+// editing and visualization of 3D-data typically acquired with structured light or
+// structure from motion.
+// Copyright (C) 2009-2020 Hubert Mara
+//
+// This file is part of GigaMesh.
+//
+// GigaMesh is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// GigaMesh is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with GigaMesh.  If not, see <http://www.gnu.org/licenses/>.
+//
+
 #include <catch.hpp>
 #include "../core/mesh/MeshIO/ObjReader.h"
 #include "../core/mesh/MeshIO/PlyReader.h"
-#include "../core/mesh/MeshIO/TxtWriter.h"
+#include "../core/mesh/MeshIO/PlyWriter.h"
+#include "../core/mesh/MeshIO/ObjWriter.h"
 #include <GigaMesh/mesh/meshio.h>
 #include <GigaMesh/mesh/vector3d.h>
 #include "../core/mesh/util/triangulation.h"
@@ -61,6 +84,45 @@ TEST_CASE("Mesh Reader Tests", "[meshio]")
 	}
 }
 
+TEST_CASE("MeshIO Write Tests", "[meshio]")
+{
+	MeshIO meshIO;
+	std::vector<sVertexProperties> vertexProperties;
+	std::vector<sFaceProperties> faceProperties;
+
+
+	meshIO.readFile(gTestFilesPath + "singletriangle.obj", vertexProperties, faceProperties);
+
+	SECTION("MeshIO ply saving")
+	{
+		std::filesystem::path outFile(gTestFilesPath + "tmpPly.ply");
+		if(std::filesystem::exists(outFile))
+		{
+			std::filesystem::remove(outFile);
+		}
+
+		meshIO.writeFile(outFile,vertexProperties,faceProperties);
+
+		REQUIRE(std::filesystem::exists(outFile) == true);
+
+		std::filesystem::remove(outFile);
+	}
+
+	SECTION("MeshIO obj saving")
+	{
+		std::filesystem::path outFile(gTestFilesPath + "tmpObj.obj");
+		if(std::filesystem::exists(outFile))
+		{
+			std::filesystem::remove(outFile);
+		}
+
+		meshIO.writeFile(outFile,vertexProperties,faceProperties);
+
+		REQUIRE(std::filesystem::exists(outFile) == true);
+
+		std::filesystem::remove(outFile);
+	}
+}
 
 //unit test => no need to check if the mesh was loaded correctly, only that it was loaded
 //==> correct functionality is checked by the unit test

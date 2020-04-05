@@ -98,8 +98,7 @@ bool MeshSeedExt::importFeatureVectors(
 	char   nextByte;
 	rMaxFeatVecLen = _NOT_A_NUMBER_UINT_;
 	uint64_t vertID = 0;
-	uint64_t totalValues  = 0;
-	uint64_t finiteValues = 0;
+
 	while( fp.good() ) {
 		line.clear();
 		nextByte = fp.peek();
@@ -210,7 +209,7 @@ bool MeshSeedExt::importFeatureVectors(
 //! Returns 0 (zero) as there are no feature vectors.
 //! Stub to be used by MeshIO::write*
 uint64_t MeshSeedExt::getFeatureVecLenMax( int rPrimitiveType ) {
-	std::cerr << "[MeshSeed::" << __FUNCTION__ << "] can not get maximum length of feature vectors for primitve type " << rPrimitiveType << "!" << std::endl;
+	LOG::warn() << "[MeshSeed::" << __FUNCTION__ << "] can not get maximum length of feature vectors for primitve type " << rPrimitiveType << "!\n";
 	return 0;
 }
 
