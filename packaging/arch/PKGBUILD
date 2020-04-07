@@ -51,6 +51,8 @@ package() {
 	cp build/cli/gigamesh-tolegacy $pkgdir/usr/bin
 	cp build/cli/gigamesh-featurevectors $pkgdir/usr/bin
 	cp build/cli/gigamesh-borders $pkgdir/usr/bin
+	cp build/cli/spherical_intersection_cli/gigamesh-sphere-profiles $pkgdir/usr/bin
+	cp build/cli/spherical_intersection_cli/gigamesh-featurevectors-sl $pkgdir/usr/bin
 
 	mkdir -p $pkgdir/usr/share/pixmaps
 	cp gui/forms/gigamesh_logo.svg $pkgdir/usr/share/pixmaps
