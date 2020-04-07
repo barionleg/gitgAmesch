@@ -322,10 +322,10 @@
          </item>
          <item row="4" column="1">
           <layout class="QHBoxLayout" name="horizontalLayout_5">
-           <item>
+           <item alignment="Qt::AlignTop">
             <widget class="QLineEdit" name="lineEdit_angle"/>
            </item>
-           <item>
+           <item alignment="Qt::AlignTop">
             <widget class="QSlider" name="horizontalSlider_angle">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
