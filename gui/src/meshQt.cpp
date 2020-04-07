@@ -29,6 +29,7 @@
 #include "QGMDialogNprSettings.h"
 #include "QGMDialogTransparencySettings.h"
 #include "qruntpsrpmscriptdialog.h"
+#include "QGMDialogMatrix.h"
 
 #include <QFileDialog>
 #include <QInputDialog>
@@ -607,25 +608,20 @@ bool MeshQt::showEnterText(
 
 //! Let the user enter a 4x4 matrix i.e. 16 floating point values.
 bool MeshQt::showEnterText( Matrix4D* rMatrix4x4 ) {
-	QGMDialogEnterText dlgEnterTxt;
-	dlgEnterTxt.setWindowTitle( tr("Enter 4x4 Matrix (16 floating point values)") );
-	dlgEnterTxt.fetchClipboard( QGMDialogEnterText::CHECK_DOUBLE_MULTIPLE );
-	if( dlgEnterTxt.exec() == QDialog::Rejected ) {
-		return false;
-	}
-	vector<double> floatValues;
-	if( !dlgEnterTxt.getText( floatValues ) ) {
-		showWarning( tr("No matrix entered").toStdString(), tr("A 4x4 transformation matrix requires 16 floating point values!").toStdString() );
-		cerr << "[MeshQt::" << __FUNCTION__ << "] ERROR: No (proper) floating point values entered!" << endl;
-		return false;
-	}
-	if( floatValues.size() != 16 ) {
-		showWarning( tr("Wrong number of elements").toStdString(), tr( "A 4x4 transformation matrix requires 16 elements.\n\n%1 were entered!" ).arg( floatValues.size() ).toStdString() );
-		cerr << "[MeshQt::" << __FUNCTION__ << "] ERROR: Wrong number of elementes entered!" << endl;
-		return false;
-	}
-	rMatrix4x4->set( floatValues );
 
+	QGMDialogMatrix dlgEnterMatrix;
+	dlgEnterMatrix.setWindowTitle( tr("Enter 4x4 Matrix"));
+	dlgEnterMatrix.fetchClipboard();
+
+	if(dlgEnterMatrix.exec() == QDialog::Rejected )
+	{
+		return false;
+	}
+
+	vector<double> returnValues;
+
+	dlgEnterMatrix.getValues(returnValues);
+	rMatrix4x4->set( returnValues );
 	return true;
 }
 

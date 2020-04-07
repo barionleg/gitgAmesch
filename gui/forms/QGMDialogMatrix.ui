@@ -26,6 +26,9 @@
            <height>16777215</height>
           </size>
          </property>
+         <property name="text">
+          <string>0.0</string>
+         </property>
         </widget>
        </item>
        <item row="0" column="2">
@@ -35,6 +38,9 @@
            <width>80</width>
            <height>16777215</height>
           </size>
+         </property>
+         <property name="text">
+          <string>0.0</string>
          </property>
         </widget>
        </item>
@@ -46,6 +52,9 @@
            <height>16777215</height>
           </size>
          </property>
+         <property name="text">
+          <string>0.0</string>
+         </property>
         </widget>
        </item>
        <item row="1" column="1">
@@ -55,6 +64,9 @@
            <width>80</width>
            <height>16777215</height>
           </size>
+         </property>
+         <property name="text">
+          <string>1.0</string>
          </property>
         </widget>
        </item>
@@ -72,6 +84,9 @@
            <height>16777215</height>
           </size>
          </property>
+         <property name="text">
+          <string>0.0</string>
+         </property>
         </widget>
        </item>
        <item row="3" column="0">
@@ -81,6 +96,9 @@
            <width>80</width>
            <height>16777215</height>
           </size>
+         </property>
+         <property name="text">
+          <string>0.0</string>
          </property>
         </widget>
        </item>
@@ -92,6 +110,9 @@
            <height>16777215</height>
           </size>
          </property>
+         <property name="text">
+          <string>0.0</string>
+         </property>
         </widget>
        </item>
        <item row="0" column="3">
@@ -101,6 +122,9 @@
            <width>80</width>
            <height>16777215</height>
           </size>
+         </property>
+         <property name="text">
+          <string>0.0</string>
          </property>
         </widget>
        </item>
@@ -112,6 +136,9 @@
            <height>16777215</height>
           </size>
          </property>
+         <property name="text">
+          <string>0.0</string>
+         </property>
         </widget>
        </item>
        <item row="3" column="1">
@@ -121,6 +148,9 @@
            <width>80</width>
            <height>16777215</height>
           </size>
+         </property>
+         <property name="text">
+          <string>0.0</string>
          </property>
         </widget>
        </item>
@@ -132,6 +162,9 @@
            <height>16777215</height>
           </size>
          </property>
+         <property name="text">
+          <string>0.0</string>
+         </property>
         </widget>
        </item>
        <item row="2" column="0">
@@ -141,6 +174,9 @@
            <width>80</width>
            <height>16777215</height>
           </size>
+         </property>
+         <property name="text">
+          <string>0.0</string>
          </property>
         </widget>
        </item>
@@ -152,6 +188,9 @@
            <height>16777215</height>
           </size>
          </property>
+         <property name="text">
+          <string>1.0</string>
+         </property>
         </widget>
        </item>
        <item row="1" column="3">
@@ -162,6 +201,9 @@
            <height>16777215</height>
           </size>
          </property>
+         <property name="text">
+          <string>0.0</string>
+         </property>
         </widget>
        </item>
        <item row="3" column="3">
@@ -171,6 +213,9 @@
            <width>80</width>
            <height>16777215</height>
           </size>
+         </property>
+         <property name="text">
+          <string>1.0</string>
          </property>
         </widget>
        </item>
@@ -187,6 +232,9 @@
            <width>80</width>
            <height>16777215</height>
           </size>
+         </property>
+         <property name="text">
+          <string>1.0</string>
          </property>
         </widget>
        </item>
