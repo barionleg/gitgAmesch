@@ -273,9 +273,10 @@ void printHelp( const char* rExecName ) {
 	std::cout << "  -l, --keep-largest-component            Keep only the largest connected component." << std::endl;
 	std::cout << "  -s, --skip-largest-hole                 Do not fill the largest hole. Has no effect, when -r is used." << std::endl;
 	std::cout << "                                          Typically used for partial 3D-scans, where e.g. the backside is missing." << std::endl;
-	std::cout << "  -g, --skip-holes-larger SIZE            Holes with more than SIZE vertices are not filled. Has no effect, when -r is used." << std::endl;
+	std::cout << "  -g, --skip-holes-larger SIZE            Holes with more than SIZE vertices along its border are not filled." << std::endl;
 	std::cout << "                                          Typically used for surface with large holes, which often have a complex shape." << std::endl;
 	std::cout << "                                          The default for SIZE is 3000. Set 0 (zero) to attempted all holes to be filled." << std::endl;
+	std::cout << "                                          Has no effect, when -r is used." << std::endl;
 	std::cout << "  -n, --no-border-erosion                 Do not apply border erosion i.e. keep dangling faces along the border." << std::endl;
 	std::cout << std::endl;
 	std::cout << "Options to (pre)set the embedded Meta-data:" << std::endl;
