@@ -29,6 +29,7 @@ set(GUI_SOURCES src/main.cpp
 				src/QGMDialogSliderHD.cpp             src/QGMDialogSliderHD.h
 				src/QGMDialogConeParam.cpp            src/QGMDialogConeParam.h
 				src/QGMDialogEnterText.cpp            src/QGMDialogEnterText.h
+                                src/QGMDialogMatrix.cpp               src/QGMDialogMatrix.h
 				src/QGMDialogPlaneParam.cpp           src/QGMDialogPlaneParam.h
 				src/QGMDialogNprSettings.cpp          src/QGMDialogNprSettings.h
 				src/MeshQtCSVImportExport.cpp         src/MeshQtCSVImportExport.h
@@ -81,6 +82,7 @@ set(GUI_UI_FILES
 	forms/qgmdocksidebar.ui
 	forms/dialogCutOffValues.ui
 	forms/DialogFindTextures.ui
+        forms/QGMDialogMatrix.ui
 )
 
 #NOTE: instead of adding translations via resources, the ts-files can also be build by
