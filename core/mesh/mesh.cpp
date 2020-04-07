@@ -9033,7 +9033,7 @@ vector<double> calculateSphericalIntersectionFuncValues(
 //! @param values the given values
 //! @returns False in case of an error. True otherwise.
 bool applyFuncValues( Mesh &mesh, vector<double> values ) {
-	for( size_t vertexIndex = 0; vertexIndex < min(mesh.getVertexNr(), values.size()); vertexIndex++ ) {
+	for( size_t vertexIndex = 0; vertexIndex < min(static_cast<size_t>(mesh.getVertexNr()), values.size()); vertexIndex++ ) {
 		if ( !mesh.getVertexPos( vertexIndex )->setFuncValue( values[vertexIndex] ) ) {
 			return false;
 		}

@@ -261,7 +261,7 @@ void printHelp( const char* rExecName ) {
 	std::cout << "Options:" << std::endl;
 	std::cout << "  -h, --help                              Displays this help." << std::endl;
 	std::cout << "  -v, --version                           Displays version information." << std::endl;
-	std::cout << "  -k, --overwrite-existing                Overwrite exisitng files, which is not done by default" << std::endl;
+	std::cout << "  -k, --overwrite-existing                Overwrite existing files, which is not done by default" << std::endl;
 	std::cout << "                                          to prevent accidental data loss. If this option is not set" << std::endl;
 	std::cout << "                                          and the output file exists, the file will be skipped." << std::endl;
 	std::cout << std::endl;
