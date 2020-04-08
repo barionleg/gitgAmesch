@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <array>
+#include <memory>
 
 class QLineEdit;
 class QDoubleValidator;
