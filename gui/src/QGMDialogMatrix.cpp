@@ -14,8 +14,7 @@
 
 QGMDialogMatrix::QGMDialogMatrix(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::QGMDialogMatrix),
-    mValidator(new QDoubleValidator)
+    ui(new Ui::QGMDialogMatrix)
 {
 	ui->setupUi(this);
 
@@ -42,7 +41,7 @@ QGMDialogMatrix::QGMDialogMatrix(QWidget *parent) :
 	uint8_t index = 0;
 	for(auto lineEditPtr : mLineEditPtrs)
 	{
-		lineEditPtr->setValidator(mValidator.get());
+		lineEditPtr->setValidator(&mValidator);
 		lineEditPtr->setProperty("index", index++);
 	}
 

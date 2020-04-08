@@ -2,11 +2,11 @@
 #define QGMDIALOGMATRIX_H
 
 #include <QDialog>
+#include <QDoubleValidator>
 #include <array>
 #include <memory>
 
 class QLineEdit;
-class QDoubleValidator;
 
 namespace Ui {
 	class QGMDialogMatrix;
@@ -36,7 +36,7 @@ class QGMDialogMatrix : public QDialog
 		                                     0.0,0.0,0.0,1.0};
 		std::array<QLineEdit*,16> mLineEditPtrs;
 
-		std::unique_ptr<QDoubleValidator> mValidator;
+		QDoubleValidator mValidator;
 	private slots:
 		void updateMatrixValues();
 		void tabChanged(int index);
