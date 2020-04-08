@@ -43,6 +43,7 @@ class QGMDialogMatrix : public QDialog
 		void updateTranslate();
 		void updateRotate(double angle);
 		void updateRotateBySlider(int value);
+		void resetValues();
 };
 
 #endif // QGMDIALOGMATRIX_H

@@ -72,6 +72,8 @@ QGMDialogMatrix::QGMDialogMatrix(QWidget *parent) :
 	connect(ui->doubleSpinBox_angle, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &QGMDialogMatrix::updateRotate);
 	connect(ui->horizontalSlider_angle, &QSlider::valueChanged, this, &QGMDialogMatrix::updateRotateBySlider);
 
+	connect(ui->buttonBox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, &QGMDialogMatrix::resetValues);
+
 	updateMatrixValues();
 }
 
@@ -263,6 +265,16 @@ void QGMDialogMatrix::updateRotateBySlider(int value)
 	const double valueRange = static_cast<double>(ui->horizontalSlider_angle->maximum() - ui->horizontalSlider_angle->minimum());
 
 	ui->doubleSpinBox_angle->setValue( (valRel / valueRange * angleRange) + angleMin );
+}
+
+void QGMDialogMatrix::resetValues()
+{
+	mMatrixData = {1.0,0.0,0.0,0.0,
+	               0.0,1.0,0.0,0.0,
+	               0.0,0.0,1.0,0.0,
+	               0.0,0.0,0.0,1.0};
+
+	updateMatrixValues();
 }
 
 void QGMDialogMatrix::copyToClipboard() const
