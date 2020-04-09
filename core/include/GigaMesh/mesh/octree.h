@@ -486,9 +486,9 @@ public:
 		std::cout<<"Octree maximum number of "<<typeid(T).name()<<" per cube: "<<mmaxnr<<std::endl;
 		std::cout<<"Octree maximum depth:       "<<mmaxlevel<<std::endl;
 		std::vector<Octnode<T>*> nodelist;
-		unsigned int temp = 0;
+		size_t temp = 0;
 		unsigned int i = 0;
-		unsigned int totalnodes=0;
+		size_t totalnodes=0;
 		do {
 			temp = nodelist.size();
 			getnodesinlevel(nodelist, i);

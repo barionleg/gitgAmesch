@@ -426,7 +426,7 @@ void NormalSphereSelectionRenderWidget::initializeGL()
 	mSelectionTexture.setWrapMode(QOpenGLTexture::ClampToEdge);
 	mSelectionTexture.allocateStorage();
 
-	mSelectionTexture.setData(0,QOpenGLTexture::Red,QOpenGLTexture::UInt8, mSelectionBuffer.data());
+	mSelectionTexture.setData(0,QOpenGLTexture::Red,QOpenGLTexture::UInt8, const_cast<const unsigned char*>(mSelectionBuffer.data()));
 }
 
 void NormalSphereSelectionRenderWidget::resizeGL(int w, int h)
@@ -470,7 +470,7 @@ void NormalSphereSelectionRenderWidget::paintGL()
 	if(mUpdateSelectionTexture)
 	{
 		mUpdateSelectionTexture = false;
-		mSelectionTexture.setData(0,QOpenGLTexture::Red,QOpenGLTexture::UInt8, mSelectionBuffer.data());
+		mSelectionTexture.setData(0,QOpenGLTexture::Red,QOpenGLTexture::UInt8, const_cast<const unsigned char*>(mSelectionBuffer.data()));
 	}
 
 	assert(glGetError() == GL_NO_ERROR);

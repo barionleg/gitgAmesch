@@ -214,7 +214,7 @@ inline vertex* mesh::add_vertex(const v3ctor& pos, size_t id)
 
 inline void mesh::remove_vertex(vertex* v)
 {
-	std::remove(V.begin(), V.end(), v);
+	V.erase(std::remove(V.begin(), V.end(), v));
 	delete v;
 }
 

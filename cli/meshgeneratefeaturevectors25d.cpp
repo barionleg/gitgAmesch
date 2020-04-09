@@ -730,6 +730,8 @@ bool generateFeatureVectors( const std::filesystem::path& fileNameIn,
 	delete[] multiscaleRadii;
 
 	fileStrOutMeta.close();
+
+	return true;
 }
 //! Main routine for generating an array of feature vectors
 //!

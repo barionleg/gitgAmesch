@@ -975,20 +975,20 @@ void Mesh::establishStructure(
 	//pthread_mutex_init( &mutexVertexPtr, NULL );
 
 	std::vector<faceDataStruct> setFaceData(NUM_THREADS);
-	for( long t=0; t<NUM_THREADS; ++t ) {
+	for( unsigned int t=0; t<NUM_THREADS; ++t ) {
 		//cout << "[Mesh::" << __FUNCTION__ << "] Preparing data for thread " << t << endl;
 		setFaceData[t].mThreadID               = t;
 		setFaceData[t].mMesh                   = this;
 		setFaceData[t].mAreaProc               = 0.0;
 	}
 
-	for( long t=0; t<NUM_THREADS; t++ ) {
+	for( unsigned int t=0; t<NUM_THREADS; t++ ) {
 		threads[t] = std::thread(estMultiFaceConnection, &setFaceData[t]);
 	}
 
 	/* wait for the other threads */
 	double areaTotal = 0.0;
-	for( long t=0; t<NUM_THREADS; t++ ) {
+	for( unsigned int t=0; t<NUM_THREADS; t++ ) {
 		threads[t].join();
 		//cout << "[Mesh::" << __FUNCTION__ << "] Thread " << t << " processed faces with an area of: " << setMeshData[t].mAreaProc << " mm² (unit assumed)." << endl;
 		areaTotal += setFaceData[t].mAreaProc;
@@ -2373,7 +2373,7 @@ bool Mesh::selectVertInvert() {
 			mSelectedMVerts.insert( currVertex );
 		}
 	}
-	retVal |= selectedMVertsChanged();
+	retVal |= selectedMVertsChanged() != 0;
 	return retVal;
 }
 
@@ -2387,7 +2387,7 @@ bool Mesh::selectVertFromFaces() {
 			currFace->getVertABC( &mSelectedMVerts );
 		}
 	}
-	retVal |= selectedMVertsChanged();
+	retVal |= selectedMVertsChanged() != 0;
 	return retVal;
 }
 
@@ -2399,7 +2399,7 @@ bool Mesh::selectVertFromFacesRidges() {
 	for( auto const& currFace: mFaces ) {
 		currFace->getFuncValVertRidge( &mSelectedMVerts );
 	}
-	retVal |= selectedMVertsChanged();
+	retVal |= selectedMVertsChanged() != 0;
 	return retVal;
 }
 
@@ -10719,7 +10719,7 @@ bool Mesh::getVertLabelNo(
 			if( labelNrsPositive && ( labelsToSelect.find( labelNr ) != labelsToSelect.end() ) ) {
 				rSomeVerts->insert( currVertex );
 			}
-			if( labelNrsNegative && ( labelsToSelect.find( -labelNr ) == labelsToSelect.end() ) ) {
+			if( labelNrsNegative && ( labelsToSelect.find( -static_cast<int64_t>(labelNr) ) == labelsToSelect.end() ) ) {
 				rSomeVerts->insert( currVertex );
 			}
 		}
