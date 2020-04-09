@@ -1,4 +1,7 @@
 Current version
++) Improved: Matrix Dialog
+
+Version 200405
 +) New: Support for meshes with n-gon faces.
 +) New: Move plane by set axis. See "Right side pane -> pull down menu".
 +) New: Rotate axis-plane around axis. See "Right side pane -> pull down menu".
