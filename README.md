@@ -37,11 +37,13 @@ All executables provide details by adding `--help` or `-h` on the command line.
 - `gigamesh` ... for all functions except the MSII filter.
 
 ## Command line interface (CLI)
-- `gigamesh-featurevectors` ...  MSII filter for single files.
+- `gigamesh-featurevectors` ...  MSII filter for single files. Computes **V**olume and surface **P**atch integral invariants for multiple scales.
+- `gigamesh-featurevectors-sl` ...  II filter for single files. Computes **S**pherical surface and **L**ine integral invariants for one scale/radius.
 - `gigamesh-clean` ... batch cleaning and repairing multiple files.
 - `gigamesh-info` ... to retrieve mesh properties for multiple files. Output as CSV or multiple sidecar files.
 - `gigamesh-tolegacy` ... convert multiple files to legacy Stanford Polygon (PLY) as ASCII and binary.
 - `gigamesh-border` ... extraction of mesh borders as polylines (ASCII formatted .pline files).
+- `gigamesh-sphere-profiles` ... extraction of spherical intersections with the mesh as polylines. Related to `gigamesh-featurevectors-sl`.
 
 ## EXAMPLES 
 
