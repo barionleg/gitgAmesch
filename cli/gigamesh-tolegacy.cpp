@@ -154,9 +154,11 @@ void printHelp( const char* rExecName ) {
 	std::cout << "                                          Default suffices are '_ASCII' and '_Legacy'." << std::endl;
 	std::cout << "  -k, --overwrite-existing                Overwrite exisitng files, which is not done by default" << std::endl;
 	std::cout << "                                          to prevent accidental data loss." << std::endl;
+	std::cout << std::endl;
+	std::cout << "Options for testing and debugging:" << std::endl;
 	std::cout << "    , --log-level [0-4]                   Sets the log level of this application.\n"
-				 "                                          Higher numbers increases verbosity.\n"
-				 "                                          (Default: 1)" << std::endl;
+	             "                                          Higher numbers increases verbosity.\n"
+	             "                                          (Default: 1)" << std::endl;
 	//std::cout << "" << endl;
 }
 

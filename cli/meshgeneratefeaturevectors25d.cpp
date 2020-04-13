@@ -219,24 +219,63 @@ using namespace std;
 		}
 	}
 
-void printHelp(const char* rExecName)
+//! Help i.e. usage of paramters.
+void printHelp( const char* rExecName )
 {
-	//!TODO!
+	std::cout << "Usage: " << rExecName << " [options] (<file>)" << std::endl;
+	std::cout << "GigaMesh Software Framework FEATUREVECTORS (1st and 2nd or V and P)" << std::endl << std::endl;
+	std::cout << "Computes the first and second integral invariants for the given meshes on multiple scales\n"
+	             "shortly known as MSII filtering. The first integral invariant computes the Volume, while \n"
+	             "the second computes the Patch surface integral invariant." << std::endl;
+	std::cout << "Note: for the 3rd and 4th integral invariant see 'gigamesh-featurevectors-sl'." << std::endl;
+	std::cout << std::endl;
+	std::cout << "The output file(s) will be namend the same as the input file " << std::endl;
+	std::cout << "using the following suffix:" << std::endl;
+	std::cout << std::endl;
+	std::cout << "  _r<number> ... radius of the largest sphere/scale" << std::endl;
+	std::cout << "  _n<number> ... 2^<number> of scales" << std::endl;
+	std::cout << "  _v<number> ... discretization for the largest scale. Large numbers are more precise\n"
+	             "                 resulting in slower computation" << std::endl;
+	std::cout << std::endl;
+	std::cout << "Options:" << std::endl;
+	std::cout << "  -h, --help                              Displays this help." << std::endl;
+//	std::cout << "  -v, --version                           Displays version information." << std::endl;
+	std::cout << "  -k, --overwrite-existing                Overwrite exisitng files, which is not done by default" << std::endl;
+	std::cout << "                                          to prevent accidental data loss. If this option is not set" << std::endl;
+	std::cout << "                                          and the output file exists, the file will be skipped." << std::endl;
+//	std::cout << "  -s, --output-suffix <string>            Write the converted file using the given <string> as suffix for its name." << std::endl;
+
+	std::cout << std::endl;
+	std::cout << "Options for MSII filtering:" << std::endl;
+	std::cout << "  -r, --radius SIZE                       Radius of the largest sphere/scale. Default is 1.0 (mm, unit assumed!)" << std::endl;
+	std::cout << "                                          Recommended: should be equal or larger than the largest feature to be detected." << std::endl;
+	std::cout << "  -n, --numScales SIZE                    Power of two for the number of scales. Default is 4 i.e. 16 scales." << std::endl;
+	std::cout << "                                          Recommended: The default works well for most applications." << std::endl;
+	std::cout << "  -v, --voxelSize SIZE                    Discretization for the (1st) volume integral invariant. Default is 256." << std::endl;
+	std::cout << "                                          Recommended: should be a power of two. Values of 512 and 1024 can increase the results" << std::endl;
+	std::cout << "                                          slightly at the cost of extra compute time." << std::endl;
+	std::cout << "  -a, --areaintegralOnly                  Compute only the (2nd) patch area integral invariant." << std::endl;
+	std::cout << std::endl;
+	std::cout << "Options for testing and debugging:" << std::endl;
+	std::cout << "    , --log-level [0-4]                   Sets the log level of this application.\n"
+	             "                                          Higher numbers increases verbosity.\n"
+	             "                                          (Default: 1)" << std::endl;
+	//std::cout << "" << std::endl;
 }
 
-bool generateFeatureVectors( const std::filesystem::path& fileNameIn,
-                             double       radius,
-                             unsigned int xyzDim,
-                             unsigned int radiiCount,
-                             bool         replaceFiles,
-                             bool         areaOnly
-                             )
-{
-
-
+//! Process one file with the given paramters.
+bool generateFeatureVectors(
+                const std::filesystem::path& fileNameIn,
+                double       radius,
+                unsigned int xyzDim,
+                unsigned int radiiCount,
+                bool         replaceFiles,
+                bool         areaOnly
+) {
+	// Check extension:
 	if( !fileNameIn.has_extension() ) {
 		cerr << "[GigaMesh] Error: No extension/type for input file '" << fileNameIn << "' specified!" << endl;
-		exit( EXIT_FAILURE );
+		return( false );
 	}
 
 	//fileprefix for output
@@ -255,7 +294,7 @@ bool generateFeatureVectors( const std::filesystem::path& fileNameIn,
 
 	if( !std::filesystem::exists(fileNameIn) ) {
 		cerr << "[GigaMesh] Error: File '" << fileNameIn << "' not found!" << endl;
-		exit( EXIT_FAILURE );
+		return( false );
 	}
 	// Check: Output file for normal used to rotate the local patch
 	std::filesystem::path fileNameOutPatchNormal( fileNameOut );
@@ -263,7 +302,7 @@ bool generateFeatureVectors( const std::filesystem::path& fileNameIn,
 	if( std::filesystem::exists(fileNameOutPatchNormal) ) {
 		if( !replaceFiles ) {
 			cerr << "[GigaMesh] File '" << fileNameOutPatchNormal << "' already exists!" << endl;
-			exit( EXIT_FAILURE );
+			return( false );
 		}
 		cerr << "[GigaMesh] Warning: File '" << fileNameOutPatchNormal << "' will be replaced!" << endl;
 	}
@@ -276,7 +315,7 @@ bool generateFeatureVectors( const std::filesystem::path& fileNameIn,
 		if( std::filesystem::exists(fileNameOutVS)) {
 			if( !replaceFiles ) {
 				cerr << "[GigaMesh] File '" << fileNameOutVS << "' already exists!" << endl;
-				exit( EXIT_FAILURE );
+				return( false );
 			}
 			cerr << "[GigaMesh] Warning: File '" << fileNameOutVS << "' will be replaced!" << endl;
 		}
@@ -286,7 +325,7 @@ bool generateFeatureVectors( const std::filesystem::path& fileNameIn,
 		if( std::filesystem::exists( fileNameOutVol ) ) {
 			if( !replaceFiles ) {
 				cerr << "[GigaMesh] File '" << fileNameOutVol << "' already exists!" << endl;
-				exit( EXIT_FAILURE );
+				return( false );
 			}
 			cerr << "[GigaMesh] Warning: File '" << fileNameOutVol << "' will be replaced!" << endl;
 		}
@@ -297,7 +336,7 @@ bool generateFeatureVectors( const std::filesystem::path& fileNameIn,
 	if( std::filesystem::exists( fileNameOutSurf ) ) {
 		if( !replaceFiles ) {
 			cerr << "[GigaMesh] File '" << fileNameOutSurf << "' already exists!" << endl;
-			exit( EXIT_FAILURE );
+			return( false );
 		}
 		cerr << "[GigaMesh] Warning: File '" << fileNameOutSurf << "' will be replaced!" << endl;
 	}
@@ -307,7 +346,7 @@ bool generateFeatureVectors( const std::filesystem::path& fileNameIn,
 	if( std::filesystem::exists( fileNameOutMeta ) ) {
 		if( !replaceFiles ) {
 			cerr << "[GigaMesh] File '" << fileNameOutMeta << "' already exists!" << endl;
-			exit( EXIT_FAILURE );
+			return( false );
 		}
 		cerr << "[GigaMesh] Warning: File '" << fileNameOutMeta << "' will be replaced!" << endl;
 	}
@@ -317,7 +356,7 @@ bool generateFeatureVectors( const std::filesystem::path& fileNameIn,
 	if( std::filesystem::exists( fileNameOut3D )  ) {
 		if( !replaceFiles ) {
 			cerr << "[GigaMesh] File '" << fileNameOut3D << "' already exists!" << endl;
-			exit( EXIT_FAILURE );
+			return( false );
 		}
 		cerr << "[GigaMesh] Warning: File '" << fileNameOut3D << "' will be replaced!" << endl;
 	}
@@ -389,7 +428,7 @@ bool generateFeatureVectors( const std::filesystem::path& fileNameIn,
 	Mesh someMesh( fileNameIn, readSucess );
 	if( !readSucess ) {
 		cerr << "[GigaMesh] Error: Could not open file '" << fileNameIn << "'!" << endl;
-		exit( EXIT_FAILURE );
+		return( false );
 	}
 
 	// Fetch mesh data
@@ -609,7 +648,6 @@ bool generateFeatureVectors( const std::filesystem::path& fileNameIn,
 
 	timeStampParallel = time( nullptr );
 
-#ifndef GIGAMESH_PUBLIC_METHODS_ONLY
 	// File for normal estimated:
 	fstream filestrNormal;
 	filestrNormal.open( fileNameOutPatchNormal, fstream::out );
@@ -628,12 +666,6 @@ bool generateFeatureVectors( const std::filesystem::path& fileNameIn,
 	}
 	filestrNormal.close();
 	cout << "[GigaMesh] Patch normal stored in:                   " << fileNameOutPatchNormal << endl;
-#endif
-
-#ifdef GIGAMESH_PUBLIC_METHODS_ONLY
-	delete descriptSurface;
-	descriptSurface = NULL;
-#endif
 
 	// Feature vector file for BOTH descriptors (volume and surface)
 	if( ( descriptSurface != NULL ) && ( descriptVolume != NULL ) ) {
@@ -685,12 +717,15 @@ bool generateFeatureVectors( const std::filesystem::path& fileNameIn,
 		filestrVol.close();
 		cout << "[GigaMesh] Volume descriptors stored in:             " << fileNameOutVol << endl;
 
-		// Apply feature vector metric.
-		vector<double> referenceVector;
-		double pNorm = 2.0;
-		Mesh::eFuncFeatureVecPNormWeigth weigthChoosen = Mesh::FEATURE_VECTOR_PNORM_WEIGTH_CUBIC;
-		referenceVector.resize( multiscaleRadiiSize, 0.0 );
-		someMesh.funcVertFeatureVecPNorm( referenceVector, pNorm, weigthChoosen );
+		// Apply feature vector metric:
+		//vector<double> referenceVector;
+		//double pNorm = 2.0;
+		//Mesh::eFuncFeatureVecPNormWeigth weigthChoosen = Mesh::FEATURE_VECTOR_PNORM_WEIGTH_CUBIC;
+		//referenceVector.resize( multiscaleRadiiSize, 0.0 );
+		//someMesh.funcVertFeatureVecPNorm( referenceVector, pNorm, weigthChoosen );
+
+		// Apply (simple) feature vector metric.
+		someMesh.funcVertFeatureVecMax();
 
 		// Save mesh having volumetric feature vectors.
 		someMesh.writeFile( fileNameOut3D );
@@ -730,7 +765,9 @@ bool generateFeatureVectors( const std::filesystem::path& fileNameIn,
 	delete[] multiscaleRadii;
 
 	fileStrOutMeta.close();
+	return( true );
 }
+
 //! Main routine for generating an array of feature vectors
 //!
 //! Remark: prefer MeshSeed over Mesh as it is faster by a factor of 3+
@@ -741,25 +778,27 @@ int main( int argc, char *argv[] ) {
 	// SHOW Build information
 	printBuildInfo();
 
-	std::filesystem::path       fileNameIn;
-	//std::filesystem::path       fileNameOut;
 	double       radius{_DEFAULT_FEATUREGEN_RADIUS_};
 	unsigned int xyzDim{_DEFAULT_FEATUREGEN_XYZDIM_};
 	unsigned int radiiCount{_DEFAULT_FEATUREGEN_RADIICOUNT_};
 	bool         replaceFiles{false};
 	bool         areaOnly{false};
 
+	//! \todo outFile does not work well with wildcads, so a suffix should be added - similar to gigamesh-tolegacy.
+	//! \todo add '-v' and '--version'. Attn: conflict with '-v' for voxel size.
 	static struct option longOptions[] = {
-			//{"outFile"           , required_argument, nullptr, 'o' },
-	    {"radius"            , required_argument, nullptr, 'r' },
-	    {"voxelSize"         , required_argument, nullptr, 'v' },
-	    {"numScales"         , required_argument, nullptr, 'n' },
-	    {"overwrite-existing", no_argument      , nullptr, 'k' },
-	    {"areaintegralOnly"  , no_argument      , nullptr, 'a' },
-	    {"help"              , no_argument      , nullptr, 'h' },
-	    { "log-level"        , required_argument, nullptr,  0  },
-	    {nullptr, 0, nullptr, 0}
-    };
+		//{ "outFile"           , required_argument, nullptr, 'o' }, // <- to be removed
+		//{ "output-suffix"     , required_argument, nullptr, 's' }, // <- to be implemented
+		{ "radius"            , required_argument, nullptr, 'r' },
+		{ "voxelSize"         , required_argument, nullptr, 'v' },
+		{ "numScales"         , required_argument, nullptr, 'n' },
+		{ "overwrite-existing", no_argument      , nullptr, 'k' },
+		{ "areaintegralOnly"  , no_argument      , nullptr, 'a' },
+		//{ "version"           , no_argument,       nullptr, 'v' }, // <- to be added and fixed
+		{ "help"              , no_argument      , nullptr, 'h' },
+		{ "log-level"         , required_argument, nullptr,  0  },
+		{ nullptr, 0, nullptr, 0 }
+	};
 
 	// PARSE command line options
 	//--------------------------------------------------------------------------
@@ -814,7 +853,7 @@ int main( int argc, char *argv[] ) {
 				break;
 			case 'h':
 				printHelp( argv[0] );
-				std::exit(EXIT_SUCCESS);
+				std::exit( EXIT_SUCCESS );
 				break;
 			case 0:
 				if(std::string(longOptions[optionIndex].name) == "log-level")
@@ -846,6 +885,7 @@ int main( int argc, char *argv[] ) {
 	}
 
 	unsigned long filesProcessed = 0UL;
+	unsigned long filesFailed    = 0UL;
 
 	for(auto nonOptionArgumentIndex = optind; nonOptionArgumentIndex < argc; ++nonOptionArgumentIndex)
 	{
@@ -863,16 +903,25 @@ int main( int argc, char *argv[] ) {
 			                           areaOnly))
 			{
 				LOG::error() << "[GigaMesh] ERROR: generate featurevectors failed for: " << nonOptionArgumentPath.string() << " !\n";
-				std::exit(EXIT_FAILURE);
+				filesFailed++;
 			}
 			++filesProcessed;
 		}
 	}
 
+	// No file was processed:
 	if( filesProcessed == 0 ) {
-		cerr << "[GigaMesh] Error: no filename for input given!" << endl;
+		std::cerr << "[GigaMesh] ERROR: no filename for input given!" << std::endl;
 		exit( EXIT_FAILURE );
 	}
 
+	// Some files were not processed:
+	if( filesFailed > 0 ) {
+		std::cerr << "[GigaMesh] ERROR: " << filesFailed << " of " << filesProcessed << " files could not be processed!" << std::endl;
+		exit( EXIT_FAILURE );
+	}
+
+	// Everything fine:
+	std::cout << "[GigaMesh] successfully processed " << filesProcessed << " files." << std::endl;
 	exit( EXIT_SUCCESS );
 }
