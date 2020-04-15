@@ -1,5 +1,7 @@
 Current version
 +) Improved: Matrix Dialog
++) Bugfix: missing text for 'gigamesh-featurevectors --help' added.
++) Changed: gigamesh-featurevectors stores the maximum element of the feature vector into the function value i.e. quality field.
 
 Version 200405
 +) New: Support for meshes with n-gon faces.

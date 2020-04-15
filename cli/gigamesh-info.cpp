@@ -89,9 +89,11 @@ void printHelp( const char* rExecName ) {
 	std::cout << "  -a, --show-absolute-filename            Show the filename with extenstion and absolute path." << std::endl;
 	std::cout << "                                          If not given only the stem of the filename is printed." << std::endl;
 	std::cout << "                                          Affects all types of output i.e. side car files and tabular." << std::endl;
+	std::cout << std::endl;
+	std::cout << "Options for testing and debugging:" << std::endl;
 	std::cout << "    , --log-level [0-4]                   Sets the log level of this application.\n"
-				 "                                          Higher numbers increases verbosity.\n"
-				 "                                          (Default: 1)" << std::endl;
+	             "                                          Higher numbers increases verbosity.\n"
+	             "                                          (Default: 1)" << std::endl;
 	//std::cout << "" << std::endl;
 }
 

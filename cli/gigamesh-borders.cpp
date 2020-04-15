@@ -160,9 +160,11 @@ void printHelp( const char* rExecName ) {
 	std::cout << "  -k, --overwrite-existing                Overwrite exisitng files, which is" << std::endl;
 	std::cout << "                                          not done by default to prevent" << std::endl;
 	std::cout << "                                          accidental data loss." << std::endl;
+	std::cout << std::endl;
+	std::cout << "Options for testing and debugging:" << std::endl;
 	std::cout << "    , --log-level [0-4]                   Sets the log level of this application.\n"
-				 "                                          Higher numbers increases verbosity.\n"
-				 "                                          (Default: 1)" << std::endl;
+	             "                                          Higher numbers increases verbosity.\n"
+	             "                                          (Default: 1)" << std::endl;
 	//std::cout << "" << endl;
 }
 

@@ -285,10 +285,28 @@ void printHelp( const char* rExecName ) {
 	std::cout << "  -j, --set-id-remove-trailing-chars SIZE Remove SIZE trailing characters from the filename stem for the id."<< std::endl;
 	std::cout << "                                          Will be ignored if -i is not used." << std::endl;
 	std::cout << "  -o, --set-material-id-forced            Enforce id and material, even when NOT empty." << std::endl;
+	std::cout << std::endl;
+	std::cout << "Options for testing and debugging:" << std::endl;
 	std::cout << "    , --log-level [0-4]                   Sets the log level of this application.\n"
-				 "                                          Higher numbers increases verbosity.\n"
-				 "                                          (Default: 1)" << std::endl;
+	             "                                          Higher numbers increases verbosity.\n"
+	             "                                          (Default: 1)" << std::endl;
 	//std::cout << "" << std::endl;
+}
+
+//! Show software version.
+void printVersion() {
+	std::cout << "GigaMesh Software Framework CLEAN 3D-data " << VERSION_PACKAGE << std::endl;
+#ifdef THREADS
+	std::cout << "Multi-threading with " << std::thread::hardware_concurrency() * 2 << " (fixed) threads." << std::endl;
+#else
+	std::cout << "Single-threading. " << std::endl;
+#endif
+	std::cout << "Multi-threading with " << std::thread::hardware_concurrency() - 1 << " (dynamic) threads." << std::endl;
+#ifdef LIBPSALM
+	std::cout << "Hole filling enabled. POLISH possible." << std::endl;
+#else
+	std::cout << "Hole filling disabled. CLEAN only." << std::endl;
+#endif
 }
 
 
@@ -415,18 +433,7 @@ int main( int argc, char* argv[] ) {
 				break;
 
 			case 'v':
-				std::cout << "GigaMesh Software Framework CLEAN 3D-data " << VERSION_PACKAGE << std::endl;
-#ifdef THREADS
-				std::cout << "Multi-threading with " << std::thread::hardware_concurrency() * 2 << " (fixed) threads." << std::endl;
-#else
-				std::cout << "Single-threading. " << std::endl;
-#endif
-				std::cout << "Multi-threading with " << std::thread::hardware_concurrency() - 1 << " (dynamic) threads." << std::endl;
-#ifdef LIBPSALM
-				std::cout << "Hole filling enabled. POLISH possible." << std::endl;
-#else
-				std::cout << "Hole filling disabled. CLEAN only." << std::endl;
-#endif
+				printVersion();
 				std::exit( EXIT_SUCCESS );
 				break;
 
