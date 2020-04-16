@@ -1127,9 +1127,6 @@ double Mesh::getZ() const {
 bool Mesh::writeFile(
                 const filesystem::path& rFileName
 ) {
-	cout << "[Mesh::" << __FUNCTION__ << "]" << endl;
-	//! \todo Add normals, facetex to MeshIO.
-
 	//! 1. Clear anr Re-Create arrays
 	MeshSeedExt::clear();
 
@@ -1139,13 +1136,7 @@ bool Mesh::writeFile(
 	std::vector<sFaceProperties> faceProps;
 	faceProps.resize( getFaceNr() );
 
-	// Polygonal lines:
-	//polyLinesNr;           //!< Number of polygonal lines
-	//polyLineLabel;         //!< Label of each polygonal line - the array is of length polyLinesNr.
-	//polyLinesLength;       //!< Length of each polygonal line - the array is of length polyLinesNr.
-	//polyLineVertices;      //!< References to the vertices of the polygonal lines.
-
-	//! 1. Fill arrays - some will stay empty! \todo try to store as much data as possible.
+	//! 2. Fill arrays - some will stay empty! \todo try to store as much data as possible.
 	uint64_t vertCount = getVertexNr();
 	uint64_t featVecLenMax = getFeatureVecLenMax( Primitive::IS_VERTEX );
 	mFeatureVecVertices.clear();
@@ -1172,9 +1163,9 @@ bool Mesh::writeFile(
 		currFace = getFacePos( faceIdx );
 		currFace->copyFacePropsTo( faceProps[faceIdx] );
 	}
-	//! 2. Write arrays to file.
+	//! 3. Write arrays to file.
 	bool retVal = MeshIO::writeFile( rFileName, vertexProps, faceProps );
-	//! 3. Remove arrays.
+	//! 4. Remove arrays.
 	MeshSeedExt::clear();
 	return retVal;
 }

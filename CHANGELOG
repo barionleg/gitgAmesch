@@ -1,5 +1,6 @@
 Current version
 +) Improved: Matrix Dialog
++) Improved: options of 'gigamesh-featurevectors'.
 +) Bugfix: missing text for 'gigamesh-featurevectors --help' added.
 +) Changed: gigamesh-featurevectors stores the maximum element of the feature vector into the function value i.e. quality field.
 

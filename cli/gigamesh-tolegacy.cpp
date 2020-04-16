@@ -215,7 +215,7 @@ int main( int argc, char *argv[] ) {
 
 				break;
 
-			case 's':
+			case 's': // optional file suffix
 				optFileSuffix = std::string( optarg );
 				break;
 
