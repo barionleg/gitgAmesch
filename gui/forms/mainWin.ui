@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -203,6 +203,8 @@
      <addaction name="actionFuncValFeatureVecMahalanobis"/>
      <addaction name="separator"/>
      <addaction name="actionFuncValToFeatureVector"/>
+     <addaction name="separator"/>
+     <addaction name="actionExperimentalNonMaximumSuppression"/>
     </widget>
     <widget class="QMenu" name="menuColorPerVertexToFunctionValue">
      <property name="title">
@@ -492,6 +494,7 @@
     <addaction name="actionBad_Lit_Areas"/>
     <addaction name="actionBad_Lit_Areas_Upper_Threshold"/>
     <addaction name="actionBad_Lit_Areas_Lower_Threshold"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuSelect">
     <property name="title">
@@ -4365,6 +4368,21 @@ p, li { white-space: pre-wrap; }
   <action name="actionPlaneOrientTowardsAxis">
    <property name="text">
     <string>Plane - Set orientation using Axis</string>
+   </property>
+  </action>
+  <action name="actionNon_Maximum_Suppression">
+   <property name="text">
+    <string>Non Maximum Suppression</string>
+   </property>
+  </action>
+  <action name="actionExperimental_Non_Maximum_Suppression">
+   <property name="text">
+    <string>Experimental Non Maximum Suppression</string>
+   </property>
+  </action>
+  <action name="actionExperimentalNonMaximumSuppression">
+   <property name="text">
+    <string>Experimental Non Maximum Suppression</string>
    </property>
   </action>
  </widget>

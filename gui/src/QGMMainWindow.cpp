@@ -125,7 +125,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	//.
 	QObject::connect( actionCutOffFeatureVertex,    SIGNAL(triggered()), this,       SIGNAL(cutOffFeatureVertex())     );
 	QObject::connect( actionCutOffFeatureFace,      SIGNAL(triggered()), this,       SIGNAL(cutOffFeatureFace())       );
-	//. 
+	//.
 	QObject::connect( actionFuncValSet,             SIGNAL(triggered()), this,       SIGNAL(funcValSet())              );
 	QObject::connect( actionFuncValueCutOff,        SIGNAL(triggered()), this,       SIGNAL(funcValueCutOff())         );
 	QObject::connect( actionFuncValsNormalize,      SIGNAL(triggered()), this,       SIGNAL(funcValsNormalize())       );
@@ -159,7 +159,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionSelVertFuncGT,          SIGNAL(triggered()),         this, SIGNAL(selectVertFuncGT())      );
     //.
     QObject::connect( actionSelVertNonMax,          SIGNAL(triggered()),         this, SIGNAL(selectVertNonMax())      );
-	//. 
+	//.
 	QObject::connect( actionSelVertLocalMin,        SIGNAL(triggered()),         this, SIGNAL(selectVertLocalMin())      );
 	QObject::connect( actionSelVertLocalMax,        SIGNAL(triggered()),         this, SIGNAL(selectVertLocalMax())      );
 	//.
@@ -203,7 +203,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 
 	QObject::connect( actionViewActivateInspectionOptions,      SIGNAL(triggered()), this, SLOT(activateInspectionOptions())     );
 
-	// ... Vertices 
+	// ... Vertices
 	QObject::connect( actionViewPolylinesCurvScale,      SIGNAL(triggered()),   this, SIGNAL(polylinesCurvScale())               );
 	//.
 	QObject::connect( actionScreenshotsCrop,         SIGNAL(toggled(bool)), this,       SIGNAL(screenshotsCrop(bool))  );
@@ -225,6 +225,10 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionRotOrthoPlane,           SIGNAL(triggered()),   this,       SIGNAL(rotOrthoPlane())         );
 	//.
 	QObject::connect( actionSelPrimViewReference,     SIGNAL(triggered()),  this,       SIGNAL(sSelPrimViewReference()) );
+
+        //MSExp
+    //QObject::connect( actionNon_Maximum_Suppression,         SIGNAL(triggered()),         this, SLOT(customNonMaximumSuppression())             );
+
 
 	// --- Analyze------------------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( actionLabelFaces,                    SIGNAL(triggered()), this, SIGNAL(labelFaces())            );
@@ -290,6 +294,11 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionFeatAutoCorrelationVert,        SIGNAL(triggered()),   this,       SIGNAL(sFuncVertFeatAutoCorrVert())            ); // <- NEW naming convention based on new menu structure!
 	QObject::connect( actionFeatAutoSelectedVertCorr,       SIGNAL(triggered()),   this,       SIGNAL(sFuncVertFeatAutoCorrSelVert())         ); // <- NEW naming convention based on new menu structure!
 	QObject::connect( actionFuncValToFeatureVector,         SIGNAL(triggered()),   this,       SIGNAL(sFuncValToFeatureVector())              );
+
+	// MSExp
+	QObject::connect( actionExperimentalNonMaximumSuppression,         SIGNAL(triggered()),         this, SIGNAL(sFuncExperimentalNonMaximumSuppression())             );
+
+
 	//! \todo Rename regarding new menu structure.
 	// # Distance to plane, line, selected primitive and cone
 	QObject::connect( actionDistanceToPlane,                SIGNAL(triggered()),   this,       SIGNAL(visualizeDistanceToPlane())             ); // <- OLD
@@ -974,7 +983,7 @@ void QGMMainWindow::initMeshSignals() {
 	actionPin_Line_Height->setProperty( "gmMeshGLParamValue", 0.5f);
 	actionPin_Line_Height->setProperty( "gmParamValueMin",  0.0f );
 	actionPin_Line_Height->setProperty( "gmParamValueMax",  1.0f );
-	
+
 	actionPointcloud_pointsize->setProperty( "gmMeshGLParamFloat", MeshGLParams::POINTCLOUD_POINTSIZE);
 	actionPointcloud_pointsize->setProperty( " gmMeshGLParamValue", 3.0f);
 	actionPointcloud_pointsize->setProperty( "gmParamValueMin", 1.0f);
@@ -1238,7 +1247,7 @@ void QGMMainWindow::load() {
 													 tr( "3D mesh files (*.ply *.PLY *.obj *.OBJ);;Other 3D files (*.txt *.TXT *.xyz *.XYZ)" )
 	                                                );
 	if( fileName.size() > 0 ) {
-		emit sFileOpen( fileName );
+                emit sFileOpen( fileName );
 	}
 
     mMeshWidget->setFocus();
@@ -1254,7 +1263,7 @@ void QGMMainWindow::load( const QString& rFileName ) {
 }
 
 //! Will emit a signal to load the last file opened (before).
-//! 
+//!
 //! @returns in case of an error e.g. no last file. True otherwise.
 bool QGMMainWindow::loadLast() {
 	// Fetch first entry from the .config
@@ -2182,9 +2191,9 @@ void QGMMainWindow::slotHttpCheckVersion( QNetworkReply* rReply ) {
 		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Version (online) is not an unsigned integer!" << endl;
 		return;
 	}
-	
+
 	convOk = false;
-	
+
 	unsigned int versionCurrent = QString( "%1" ).arg( VERSION_PACKAGE ).toUInt( &convOk );
 	if( !convOk ) {
 		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Version (current) is not an unsigned integer!" << endl;
