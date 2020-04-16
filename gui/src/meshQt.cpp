@@ -184,6 +184,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	QObject::connect( mMainWindow, SIGNAL(funcValsAbs()),                this, SLOT(funcValsAbs())            );
 	QObject::connect( mMainWindow, SIGNAL(funcValsAdd()),                this, SLOT(funcValsAdd())            );
 	QObject::connect( mMainWindow, SIGNAL(sFuncValToFeatureVector()),    this, SLOT(funcValsToFeatureVector()));
+
 	//.
 	QObject::connect( mMainWindow, SIGNAL(setConeData()),                this, SLOT(setConeData()));
 	QObject::connect( mMainWindow, SIGNAL(centerAroundCone()),           this, SLOT(centerAroundCone()));
@@ -310,6 +311,9 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	QObject::connect( mMainWindow, SIGNAL(visualizeVertexOctree()),               this, SLOT(visualizeVertexOctree())                );
 	QObject::connect( mMainWindow, SIGNAL(visualizeVertexFaceSphereAngleMax()),   this, SLOT(visualizeVertexFaceSphereAngleMax())    );
 	QObject::connect( mMainWindow, SIGNAL(visualizeVertFaceSphereMeanAngleMax()), this, SLOT(visualizeVertFaceSphereMeanAngleMax())  );
+
+		//MSEx
+	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalNonMaximumSuppression()),    this, SLOT(funcExperimentalNonMaximumSuppression()));
 	// #####################################################################################################################################################
 
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -955,8 +959,8 @@ bool MeshQt::removeUncleanSmallUser() {
 //! Automatic mesh polishing.
 //!
 //! Iterativly applies Mesh::removeUncleanSmall and Mesh::fillPolyLines
-//! 
-//! This method loops till mesh is fully restored 
+//!
+//! This method loops till mesh is fully restored
 //! tracking the changes of the number of vertices and faces.
 //!
 //! @returns false in case of an error. True otherwise.
@@ -1154,6 +1158,21 @@ bool MeshQt::funcValsToFeatureVector()
 	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int dim) {this->funcValToFeatureVector(dim);});
 
 	return dlgEnterTextVal.exec() == QDialog::Accepted;
+}
+
+//MSExp
+
+bool MeshQt::funcExperimentalNonMaximumSuppression()
+{
+    QGMDialogEnterText dlgEnterTextVal;
+	dlgEnterTextVal.setInt(1); //1-Ring is standard
+	dlgEnterTextVal.setWindowTitle( tr("Please give a Ring Size") );
+
+	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int ringSize) {this->funcExpNonMaxSupp(ringSize);});
+
+	//I am not sure, if this does anything else than return true, if all went well
+	return dlgEnterTextVal.exec() == QDialog::Accepted;
+	//return true;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3053,12 +3072,12 @@ void MeshQt::drawOctree() {
 }
 
 void MeshQt::removeOctreedraw() {
-	
+
 	for(RectBox* rectBoxPtr : mDatumBoxes)
 	{
 		delete rectBoxPtr;
 	}
-	
+
 	mDatumBoxes.clear();
 }
 

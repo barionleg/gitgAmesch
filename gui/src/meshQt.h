@@ -151,6 +151,9 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		virtual bool   funcValsAdd();
 		virtual bool   funcValsAdd( double rVal );
 		virtual bool   funcValsToFeatureVector();
+
+		//MSExp
+		virtual bool   funcExperimentalNonMaximumSuppression();
 		//.
 		virtual bool   setConeData();
 		virtual bool   setConeParameters( const Vector3D& rAxisTop, const Vector3D& rAxisBot,

@@ -16103,7 +16103,7 @@ bool Mesh::getMeshInfoData(
 	this->getFaceSurfSum( &areaAcq );
 	rMeshInfos.mCountDouble[MeshInfoData::TOTAL_AREA] = std::round( areaAcq );
 	rMeshInfos.mCountDouble[MeshInfoData::TOTAL_AREA] /= 100.0; // cm^2
-	
+
 	// Fetch Bounding Box
 	rMeshInfos.mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_X]  = static_cast<double>( std::round( mMinX*10000.0 ) )/10000.0;
 	rMeshInfos.mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Y]  = static_cast<double>( std::round( mMinY*10000.0 ) )/10000.0;
@@ -16623,3 +16623,553 @@ bool Mesh::getAxisFromCircleCenters( Vector3D* rTop, Vector3D* rBottom ) {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+//MSExp
+
+/*
+ich baue hier den Algorithmus rein.
+
+1. Wie wurde NonMaxSupp 1-er Ring implementiert?
+
+2. Enthält meshQt.cpp Methoden, die uns nuetzen?
+
+3. Enthält mesh.cpp Methoden, die uns nuetzen?
+
+4. Da sei ein Mesh, in welcher Form?
+Wie ist .obj aufgebaut? Welche Endung haben andere Testobjekte im GigaMesh-ordner? Und wie ist diese Art aufgebaut, sind es z.B. Listen?
+
+5. Der MSII Wert sei maximal oder minimal?
+Annahme maximaler MSII-Wert
+
+6. Wie hat Bartosz im Pythoncode gearbeitet?
+
+7. Wie erhält man für eine Vertex die angrenzenden?
+
+8. Vorschlag: Algorithmus:
+
+Abstand in dem gesucht wird: a (soll nicht 0 sein oder so)
+Durchführen für jeden Vertex:
+
+V
+
+Liste 0: Input, V drinne
+Liste 1: abgeschritten, anfangs leer
+Liste 2: Kandidaten
+
+solange a nicht 0
+
+guck durch Input.
+Schreibe jeden Nachbarn der Inputs in Kandidaten.
+Delete abgeschritten von Kandidaten (oder ziehe während Reinschreiben schon ab, falls schon enthalten)
+Verschiebe Input in abgeschritten.
+Verschiebe Kandidaten in Input. (jetzt ist ein Zustand erreicht, mit dem neuer Schleifendurchlauf gefuettert werden kann)
+
+Verringere a um 1.
+
+
+Die Input und Abgeschrittenen sind jetzt zu Truth geworden. Truth sind alle, deren MSII-Werte angeguckt werden müssen.
+
+(Falls mich Zwischenergebnisse nicht interessieren, z.B. weil ich KEINE Farbabstufungen will)
+Diesen Algorithmus verwebe ich jetzt mit der NonMaxSupp.
+wann immer ein Kandidat gefunden wird, wird sein MSII mit Vs MSII abgeglichen.
+Ist der andere groesser, wird sofort gebreaked.
+
+*/
+//! an experimental non maximum suppression method.
+//! Takes as input the distance, how far NMS should look
+//! maybe I should think about datatypes that don't allow duplicates (sets) (and keep their ordering?)
+//! Data will be written at Feature Vector Position 17
+bool Mesh::funcExpNonMaxSupp(unsigned int ringSize)
+{
+    //generally
+    //I should check more often, if lists are empty
+
+    //different types to loop over vertices (?)
+    //for(auto pVertex : mVertices)
+    //for( uint64_t vertIdx = 0; vertIdx<getVertexNr(); vertIdx++ )
+
+    //loop over all vertices
+    for(auto pVertex : mVertices){
+
+        //if the feature vector has less than 17 elements, resize it to length 17
+        if(17 > pVertex->getFeatureVectorLen())
+		{
+			pVertex->resizeFeatureVector(17);
+		}
+		//per default, it is not the (local) maximum, currently resizing does the same, as at Position 17 is a zero.
+		double isMax = 0.0;
+
+		//acquire the MSII-value for this vertex
+
+		double precomputedMSIIValue;
+		//assumption: the MSII-value (we want) is located at position 0. (Possibly 0 till 4 have the values because of multi scale)
+		//I use it again in Line 16732
+		pvertex->getFeatureElement(0, &precomputedMSIIValue);
+
+
+        //Vertices, which will be the input for every search
+        set<Vertex*> inputSet;
+        inputVector.insert(pVertex);
+
+         //Vertices, which have been searched for neighbours
+        set<Vertex*> haveBeenSearched;
+
+        //Vertices, which are candidates for neighbour-search in the next iteration
+        set<Vertex*> candidates;
+
+        // ringSize input should be checked, not to be 0
+        for( int currentRing = 1; currentRing <= ringSize; currentRing++){
+
+            //add every neighbour of the inputs to candidates
+            for (set<Vertex*>::iterator it1 = inputSet.begin(); it1 != inputSet.end(); ++it1){
+                list<Vertex*> adjacentVertsInOrder;
+                getSurroundingVerticesInOrder(adjacentVertsInOrder, pvertex, false);
+
+                //check if the neighbours already have bigger values, than the one in question
+                list<Vertex*>::iterator it2;
+                for (list<Vertex*>::iterator it2 = adjacentVertsInOrder.begin(); it2 != adjacentVertsInOrder.end(); ++it2){
+
+                    double adjacentVertexsValue;
+                    it2->getFeatureElement(0,adjacentVertexsValue);
+
+
+                    if(precomputedMSIIValue < adjacentVertexsValue){
+                        goto cnt;
+                    }
+                }
+                //if the loop survived this step, the close neighbours have smaller values than the current candidate.
+
+                //add the neighbours to candidates
+                candidates.insert( adjacentVertsInOrder.begin(), adjacentVertsInOrder.end());
+
+            }
+
+        }
+        cnt:;
+
+
+
+
+
+
+
+            }
+
+
+            // experimental: don't use the vertices itself, but their vertIdx
+            //the vectors are now no longer vectors<Vertex*> but vectors<uint64_t>
+
+            //delete all those vertices, that have already been searched
+            sort(candidates.begin(), candidates.end());
+            sort(haveBeenSearched.begin(), haveBeenSearched.end());
+
+            vector<uint64_t> difference;
+            //this appends to differences the elements found in vector1, that are not found in vector2
+            set_difference(candidates.begin(), candidates.end(), haveBeenSearched.begin(), haveBeenSearched.end(), back_inserter( difference ));
+
+            //move the elements from input to haveBeenSearched and clear input
+            haveBeenSearched.insert(haveBeenSearched.end(), inputSet.begin(), inputSet.end());
+            inputSet.clear();
+
+            //move the candidates to input as new input for further iterations and clear candidates
+            inputSet.insert(inputSet.end(), candidates.begin(), candidates.end());
+            candidates.clear();
+
+        }
+
+
+
+
+		//Vertices
+
+
+
+        //let's say: currentVal is the value
+        float currentVal = 0.0; //get it from somewhere
+
+
+
+
+
+
+
+
+
+
+        //IF I CHECK DURING THE ALGORITHM, whether or not the currentVertex has the maximum value (so no breaks happen).
+        //AND The algorithm reaches this point
+        //THEN: NO OTHER VERTEX HAS a higher Value
+
+        verticesWithMaximumValue.push_back(currentVertex);
+
+
+    }
+
+    //Communicate the VerticesWithMaximumValue to GigaMesh
+
+    return true;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		pVertex->setFeatureElement(16, isMax); //remember position 17 has index 16.
+
+    }
+    cout << ringSize << "Done" << endl;
+
+
+
+	return true;
+
+
+
+
+	//dim ist hier die Zielposition
+    for(auto pVertex : mVertices)
+	{
+		if(dim >= pVertex->getFeatureVectorLen())
+		{
+			pVertex->resizeFeatureVector(dim + 1);
+		}
+		double funcVal;
+		pVertex->getFuncValue(&funcVal);
+		pVertex->setFeatureElement(dim, funcVal);
+	}
+
+	return true;
+
+
+
+
+
+	Vertex* pi;
+		vector<Vertex*> Lmax;
+		list<Vertex*> adjacentVertsInOrder;
+
+		clock_t timerBegin = clock();
+
+	//loop over all vertices
+	for( uint64_t vertIdx = 0; vertIdx<getVertexNr(); vertIdx++ ) {
+
+		        pi = getVertexPos( vertIdx );
+
+				//calculate function value of current vertex pi
+				double fpi = 0;
+				pi->getFuncValue(&fpi);
+
+				//if the current vertex FuncValue or Normal is NaN, skip it
+				if( std::isnan(fpi) || std::isnan(pi->getNormalX())) {
+					continue;
+				}
+
+				//getting the sourrounding vertices in order, saved in list (because set orders randomly and vector iterators are invalidated by deletion)
+				getSurroundingVerticesInOrder(adjacentVertsInOrder, pi, false);
+
+				//mesh gets simplified here
+				temporaryMeshSimplification(adjacentVertsInOrder, eps, false);
+
+				//the 1-ring needs to contain at least 3 vertices to be considered a manifold (2 if on a mesh border), it is skipped otherwise
+				if(pi->isBorder()) {
+					if(adjacentVertsInOrder.size() < 2) continue;
+				}
+				else {
+					if(adjacentVertsInOrder.size() < 3) continue;
+				}
+
+				//Find the maximum gradient aka the principal direction by calculating the dot product between vert pi and all verts pj
+				double dotmax = -DBL_MAX;
+				Vertex* pj = nullptr;
+				Vector3D nj = pi->getNormal( true );
+				for (auto& vert : adjacentVertsInOrder) {
+					double dot = dot3(vert->getNormal (true), nj);
+
+					if(dot > dotmax) {
+						dotmax = dot;
+						pj = vert;
+					}
+				}
+
+				Vector3D principalDirection;
+
+				if(pj)
+				{
+					principalDirection = pj->getPositionVector() - pi->getPositionVector();
+				}
+
+				//find all vertices which lie on the secondary direction
+				vector<double> vertsSecDir;
+				findVerticesOnSecondaryDirection(pi, principalDirection, vertsSecDir, pj, false);
+
+				//Perform actual non-max suppression
+				if(vertsSecDir.size() > 0) {
+					if(fpi > *max_element(vertsSecDir.begin(), vertsSecDir.end()))
+						Lmax.push_back(pi);
+				}
+				vertsSecDir.clear();
+
+				for(auto vert : adjacentVertsInOrder) {
+					delete vert;
+				}
+
+				adjacentVertsInOrder.clear();
+
+	    }
+
+	    //add found maxima to the selection which is going to be displayed
+	    addToSelection(&Lmax);
+		Lmax.clear();
+
+		clock_t timerEnd = clock();
+		double elapsed_secs = double(timerEnd - timerBegin) / CLOCKS_PER_SEC;
+		cout << "nonMaximum computation took: " << elapsed_secs << " seconds for " << getVertexNr() << " vertices." << endl;
+		cout << "________________DONE______________" << endl;
+
+
+		return true;
+
+
+}
+
+/*bool Mesh::experimentalNonMaximumSuppression(int ringSize) {
+
+    //Result
+    vector<Vertex*> verticesWithMaximumValue; //MSII, Gradient?
+
+    //question 1: calculate the value we want NOW for every vertex? And then compare?
+    //this means: NOW one big calculation step, maybe it is already implemented somewhere
+
+    //loop over all vertices
+    for( uint64_t vertIdx = 0; vertIdx<getVertexNr(); vertIdx++ ){
+
+        Vertex* currentVertex = getVertexPos( vertIdx );
+
+
+        //get the value we want? Maybe it is precalculated
+        //unsure, if this does the right thing
+
+        //let's say: currentVal is the value
+        float currentVal = 0.0; //get it from somewhere
+
+        //calculate function value of current vertex pi
+        */
+        /*
+        double fpi = 0;
+        pi->getFuncValue(&fpi);
+        */
+
+
+
+
+
+
+        //Vertices, which will be the input for every search
+        /*
+        vector<Vertex*> inputVector;
+        inputVector.push_back(currentVertex);
+
+
+        //Vertices, which have been searched for neighbours
+        vector<Vertex*> haveBeenSearched;
+
+        //Vertices, which are candidates for neighbour-search in the next iteration
+        vector<Vertex*> candidates;
+
+        // ringSize input should be checked, not to be 0
+
+
+        for( int currentRing = 1; currentRing < ringSize; currentRing++){
+
+            //add every neighbour of the inputs to candidates
+            //possibly break, if the neighbour already has a higher value, that current Vertex
+            for (vector<Vertex*>::iterator it = inputVector.begin(); it != inputVector.end(); ++it){
+                list<Vertex*> adjacentVertsInOrder;
+                getSurroundingVerticesInOrder(adjacentVertsInOrder, pi, false);
+
+                //BIG CHECK Step
+
+                //CHECK if candidates have higher values than current Vertex
+                // if YES, then BREAK, because this vertex is not a maximum
+
+
+
+                candidates.insert(candidates.end(), adjacentVertsInOrder.begin(), adjacentVertsInOrder.end());
+
+            }
+
+
+            // experimental: don't use the vertices itself, but their vertIdx
+            //the vectors are now no longer vectors<Vertex*> but vectors<uint64_t>
+
+            //delete all those vertices, that have already been searched
+            sort(candidates.begin(), candidates.end());
+            sort(haveBeenSearched.begin(), haveBeenSearched.end());
+
+            vector<uint64_t> difference;
+            //this appends to differences the elements found in vector1, that are not found in vector2
+            set_difference(candidates.begin(), candidates.end(), haveBeenSearched.begin(), haveBeenSearched.end(), back_inserter( difference ));
+
+            //move the elements from input to haveBeenSearched and clear input
+            haveBeenSearched.insert(haveBeenSearched.end(), inputVector.begin(), inputVector.end());
+            inputVector.clear();
+
+            //move the candidates to input as new input for further iterations and clear candidates
+            inputVector.insert(inputVector.end(), candidates.begin(), candidates.end());
+            candidates.clear();
+
+        }
+
+        //IF I CHECK DURING THE ALGORITHM, whether or not the currentVertex has the maximum value (so no breaks happen).
+        //AND The algorithm reaches this point
+        //THEN: NO OTHER VERTEX HAS a higher Value
+
+        verticesWithMaximumValue.push_back(currentVertex);
+
+
+    }
+
+    //Communicate the VerticesWithMaximumValue to GigaMesh
+
+    return true;
+
+}
+*/
+
+//bereits implementiere Funktionen zur Orientierung
+/*
+//! Copies the function value from each vertex to the nth component of its feature vector
+//! @param dim the component of the feature vector, where the function value is written to. If dim > featureVecSize, then the vector gets padded with zeros to fit dim
+//! @returns False in case of an error
+bool Mesh::funcValToFeatureVector(unsigned int dim)
+{
+	for(auto pVertex : mVertices)
+	{
+		if(dim >= pVertex->getFeatureVectorLen())
+		{
+			pVertex->resizeFeatureVector(dim + 1);
+		}
+		double funcVal;
+		pVertex->getFuncValue(&funcVal);
+		pVertex->setFeatureElement(dim, funcVal);
+	}
+
+	return true;
+}*/
+//non-maximum selection main function
+//based on AAPR16 Paper "Schönpflug, Mara: Ridge Point Extraction with Non-Maximum Suppression on Irregular Grids"
+//http://archiv.ub.uni-heidelberg.de/volltextserver/20734/1/aapr16_richard_schonpflug_hubert_mara_FINAL_20160430.pdf
+/*
+bool Mesh::selectVertNonMaximum(double eps) {
+
+	    Vertex* pi;
+		vector<Vertex*> Lmax;
+		list<Vertex*> adjacentVertsInOrder;
+
+		clock_t timerBegin = clock();
+
+	//loop over all vertices
+	for( uint64_t vertIdx = 0; vertIdx<getVertexNr(); vertIdx++ ) {
+
+		        pi = getVertexPos( vertIdx );
+
+				//calculate function value of current vertex pi
+				double fpi = 0;
+				pi->getFuncValue(&fpi);
+
+				//if the current vertex FuncValue or Normal is NaN, skip it
+				if( std::isnan(fpi) || std::isnan(pi->getNormalX())) {
+					continue;
+				}
+
+				//getting the sourrounding vertices in order, saved in list (because set orders randomly and vector iterators are invalidated by deletion)
+				getSurroundingVerticesInOrder(adjacentVertsInOrder, pi, false);
+
+				//mesh gets simplified here
+				temporaryMeshSimplification(adjacentVertsInOrder, eps, false);
+
+				//the 1-ring needs to contain at least 3 vertices to be considered a manifold (2 if on a mesh border), it is skipped otherwise
+				if(pi->isBorder()) {
+					if(adjacentVertsInOrder.size() < 2) continue;
+				}
+				else {
+					if(adjacentVertsInOrder.size() < 3) continue;
+				}
+
+				//Find the maximum gradient aka the principal direction by calculating the dot product between vert pi and all verts pj
+				double dotmax = -DBL_MAX;
+				Vertex* pj = nullptr;
+				Vector3D nj = pi->getNormal( true );
+				for (auto& vert : adjacentVertsInOrder) {
+					double dot = dot3(vert->getNormal (true), nj);
+
+					if(dot > dotmax) {
+						dotmax = dot;
+						pj = vert;
+					}
+				}
+
+				Vector3D principalDirection;
+
+				if(pj)
+				{
+					principalDirection = pj->getPositionVector() - pi->getPositionVector();
+				}
+
+				//find all vertices which lie on the secondary direction
+				vector<double> vertsSecDir;
+				findVerticesOnSecondaryDirection(pi, principalDirection, vertsSecDir, pj, false);
+
+				//Perform actual non-max suppression
+				if(vertsSecDir.size() > 0) {
+					if(fpi > *max_element(vertsSecDir.begin(), vertsSecDir.end()))
+						Lmax.push_back(pi);
+				}
+				vertsSecDir.clear();
+
+				for(auto vert : adjacentVertsInOrder) {
+					delete vert;
+				}
+
+				adjacentVertsInOrder.clear();
+
+	    }
+
+	    //add found maxima to the selection which is going to be displayed
+	    addToSelection(&Lmax);
+		Lmax.clear();
+
+		clock_t timerEnd = clock();
+		double elapsed_secs = double(timerEnd - timerBegin) / CLOCKS_PER_SEC;
+		cout << "nonMaximum computation took: " << elapsed_secs << " seconds for " << getVertexNr() << " vertices." << endl;
+		cout << "________________DONE______________" << endl;
+
+
+		return true;
+}*/

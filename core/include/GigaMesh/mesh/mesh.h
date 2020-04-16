@@ -536,6 +536,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool funcVertSphereVolumeArea();
 				bool funcVertSphereSurfaceNumberOfComponents();
 				bool funcValToFeatureVector(unsigned int dim);
+				//MSExp
+				bool funcExpNonMaxSupp(unsigned int ringSize);
 		// Again some old style function value calls:
 				bool setVertFuncValCorrTo( std::vector<double>* rFeatVector );
 				bool setVertFuncValDistanceToSelPrim();
