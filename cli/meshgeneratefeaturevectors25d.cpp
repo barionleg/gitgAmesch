@@ -231,6 +231,7 @@ bool generateFeatureVectors(
                 unsigned int radiiCount,
                 bool         replaceFiles,
                 bool                           rAreaOnly,
+                bool                           rNoNormalsFile,
                 bool                           rConcatResults,
                 const string&                  rHostname,
                 const string&                  rUsername
@@ -259,13 +260,17 @@ bool generateFeatureVectors(
 
 	// Check: Output file for normal used to rotate the local patch
 	std::filesystem::path fileNameOutPatchNormal( fileNameOut );
-	fileNameOutPatchNormal += ".normal.mat";
-	if( std::filesystem::exists(fileNameOutPatchNormal) ) {
-		if( !replaceFiles ) {
-			cerr << "[GigaMesh] File '" << fileNameOutPatchNormal << "' already exists!" << endl;
-			return( false );
+	if( rNoNormalsFile ) {
+		fileNameOutPatchNormal.clear();
+	} else {
+		fileNameOutPatchNormal += ".normal.mat";
+		if( std::filesystem::exists(fileNameOutPatchNormal) ) {
+			if( !replaceFiles ) {
+				std::cerr << "[GigaMesh] File '" << fileNameOutPatchNormal << "' already exists!" << std::endl;
+				return( false );
+			}
+			std::cerr << "[GigaMesh] Warning: File '" << fileNameOutPatchNormal << "' will be replaced!" << std::endl;
 		}
-		cerr << "[GigaMesh] Warning: File '" << fileNameOutPatchNormal << "' will be replaced!" << endl;
 	}
 
 	// Output file for volume descriptor (1st integral invariant)
@@ -466,7 +471,9 @@ bool generateFeatureVectors(
 	descriptSurface = new double[someMesh.getVertexNr()*multiscaleRadiiSize];
 
 	double* patchNormal{nullptr};
-	patchNormal     = new double[someMesh.getVertexNr()*3];
+	if( !rNoNormalsFile ) {
+		patchNormal     = new double[someMesh.getVertexNr()*3];
+	}
 
 	// Initialize array, when required=allocated.
 	if( descriptVolume != NULL ) {
@@ -807,6 +814,8 @@ void printHelp( const char* rExecName )
 	std::cout << "    , --concat-results                    Concatenate 1st and 2nd feature vector and store it in one file." << std::endl;
 	std::cout << "                                          The file has the extenstion .vs.mat." << std::endl;
 	std::cout << "                                          Has no effect, when only one integral invariant is computed." << std::endl;
+	std::cout << "    , --no-normals-file                   Do not write the file with the normal vectors averaged per vertex" << std::endl;
+	std::cout << "                                          of the triangles within the largest sphere." << std::endl;
 	std::cout << std::endl;
 	std::cout << "Options for MSII filtering:" << std::endl;
 	std::cout << "  -r, --radius SIZE                       Radius of the largest sphere/scale. Default is 1.0 (mm, unit assumed!)" << std::endl;
@@ -840,6 +849,7 @@ int main( int argc, char *argv[] ) {
 	unsigned int radiiCount{_DEFAULT_FEATUREGEN_RADIICOUNT_};
 	bool         replaceFiles{false};
 	bool         areaOnly{false};
+	bool         noNormalsFile{false};
 	bool         concatResults{false};
 
 	static struct option longOptions[] = {
@@ -848,6 +858,7 @@ int main( int argc, char *argv[] ) {
 		{ "numScales"         , required_argument, nullptr, 'n' },
 		{ "overwrite-existing", no_argument      , nullptr, 'k' },
 		{ "areaintegralOnly"  , no_argument      , nullptr, '2' },
+		{ "no-normals-file"   , no_argument      , nullptr,  0  },
 		{ "output-suffix"     , required_argument, nullptr, 's' },
 		{ "concat-results"    , no_argument      , nullptr,  0  },
 		{ "version"           , no_argument,       nullptr, 'v' },
@@ -931,6 +942,9 @@ int main( int argc, char *argv[] ) {
 				if( std::string(longOptions[optionIndex].name) == "concat-results" ) {
 					concatResults = true;
 				}
+				if( std::string(longOptions[optionIndex].name) == "no-normals-file" ) {
+					noNormalsFile = true;
+				}
 				break;
 			default:
 				std::cerr << "[GigaMesh] Error: Unknown option '" << c << "'!" << std::endl;
@@ -972,6 +986,7 @@ int main( int argc, char *argv[] ) {
 			                             radiiCount,
 			                             replaceFiles,
 			                             areaOnly,
+			                             noNormalsFile,
 			                             concatResults,
 			                             hostName, userName
 			                           ) )
