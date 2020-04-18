@@ -3943,13 +3943,13 @@ void MeshWidget::selectColorBackground() {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
-	QColor colorBackground; //!< Background Color of the Widget.
-	bool   okChoosen;       //!< True, when the OK button was pressed.
-	QRgb   rgbNew = QColorDialog::getRgba( colorBackground.rgba(), &okChoosen, nullptr );
-	if( okChoosen ) {
-		colorBackground.setRgb( rgbNew );
+	QColor rgbNew = QColorDialog::getColor( Qt::white, nullptr, 
+	                                        QString( "Background Color"), 
+	                                        QColorDialog::ShowAlphaChannel );
+	if( !rgbNew.isValid() ) { // Cancel was pressed.
+		return;
 	}
-	qglClearColor( colorBackground );
+	qglClearColor( rgbNew );
 	update();
 }
 

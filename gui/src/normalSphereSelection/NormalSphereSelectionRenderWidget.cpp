@@ -91,7 +91,7 @@ float raySphereIntersect(const QVector3D& r0, const QVector3D& rd)
 NormalSphereSelectionRenderWidget::NormalSphereSelectionRenderWidget(QWidget* parent)
 	: QOpenGLWidget(parent),  mFuncValTexture(QOpenGLTexture::Target2D), mSelectionTexture(QOpenGLTexture::Target2D),
 	  mIcosphereIndices(QOpenGLBuffer::IndexBuffer),
-      mIcoSphereTree(6), mSelectionBuffer(0,0)
+	  mSelectionBuffer(0,0), mIcoSphereTree(6)
 {
 }
 
@@ -413,7 +413,7 @@ void NormalSphereSelectionRenderWidget::initializeGL()
 	int maxTexSize;
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSize);
 
-	while(texWidth < maxTexSize && texWidth * texHeight < vertexData.size() / 3)
+	while(texWidth < static_cast<unsigned int>(maxTexSize) && texWidth * texHeight < vertexData.size() / 3)
 	{
 		texWidth <= texHeight ? texWidth *= 2 : texHeight *= 2;
 	}
