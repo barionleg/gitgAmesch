@@ -81,8 +81,7 @@ using namespace std;
 		double* patchNormal{nullptr};     //!< Normal used for orientation into 2.5D representation
 		double* descriptVolume{nullptr};  //!< Volume descriptors
 		double* descriptSurface{nullptr}; //!< Surface descriptors
-		// and the original vertex indicies
-		int*    featureIndicies{nullptr};
+		// and the voxel filter
 		voxelFilter2DElements** sparseFilters{nullptr};
 	};
 
@@ -458,11 +457,6 @@ bool generateFeatureVectors(
 	fileStrOutMeta << "Hostname:           " << rHostname << std::endl;
 	fileStrOutMeta << "Username:           " << rUsername << std::endl;
 
-	int*    featureIndicies = new int[someMesh.getVertexNr()];
-	for( uint64_t i=0; i<someMesh.getVertexNr(); i++ ) {
-		featureIndicies[i] = i;
-	}
-
 	double* descriptVolume{nullptr};
 	if( !rAreaOnly ) {
 		descriptVolume  = new double[someMesh.getVertexNr()*multiscaleRadiiSize];
@@ -522,7 +516,6 @@ bool generateFeatureVectors(
 		setMeshData[t].multiscaleRadii        = multiscaleRadii;
 		setMeshData[t].sparseFilters          = &sparseFilters;
 		setMeshData[t].vertexOriIdxInProgress = &vertexOriIdxInProgress;
-		setMeshData[t].featureIndicies        = featureIndicies;
 		setMeshData[t].patchNormal            = patchNormal;
 		setMeshData[t].descriptVolume         = descriptVolume;
 		setMeshData[t].descriptSurface        = descriptSurface;
@@ -533,14 +526,9 @@ bool generateFeatureVectors(
 
 	if(availableConcurrentThreads < 2)
 	{
-		cout << "[GigaMesh] Thread 0 started" << endl;
-
+		std::cout << "[GigaMesh] Thread 0 started" << std::endl;
 		estFeatureVectors(setMeshData, 0, someMesh.getVertexNr());
-	}
-
-	else
-	{
-
+	} else {
 		const uint64_t offsetPerThread{someMesh.getVertexNr()/
 			                                        availableConcurrentThreads};
 
@@ -611,17 +599,14 @@ bool generateFeatureVectors(
 		} else {
 			filestrVol << fixed << setprecision( 10 );
 			for( uint64_t i=0; i<someMesh.getVertexNr(); i++ ) {
-				if( featureIndicies[i] < 0 ) {
-					//cout << "[GigaMesh] skip" << endl;
-					continue;
-				}
 				Vertex* currVert = someMesh.getVertexPos( i );
 				if( !currVert->assignFeatureVec( &descriptVolume[i*multiscaleRadiiSize],
-								 multiscaleRadiiSize ) ) {
+				                                 multiscaleRadiiSize ) ) {
 					std::cerr << "[GigaMesh] Assignment of volume based feature vectors to vertices failed for Vertex No. " << i << "!" << std::endl;
 				}
-				filestrVol << featureIndicies[i];
-				// Scales:
+				// Index:
+				filestrVol << i;
+				// Scales or elements of the feature vector:
 				for( uint j=0; j<multiscaleRadiiSize; j++ ) {
 					filestrVol << " " << descriptVolume[i*multiscaleRadiiSize+j];
 				}
@@ -642,13 +627,9 @@ bool generateFeatureVectors(
 		} else {
 			filestrSurf << fixed << setprecision( 10 );
 			for( uint64_t i=0; i<someMesh.getVertexNr(); i++ ) {
-				if( featureIndicies[i] < 0 ) {
-					//cout << "[GigaMesh] skip" << endl;
-					continue;
-				}
 				//Vertex* currVert = someMesh.getVertexPos( i );
-				//currVert->assignFeatureVec( &descriptVolume[i*multiscaleRadiiSize], multiscaleRadiiSize );
-				filestrSurf << featureIndicies[i];
+				//currVert->assignFeatureVec( &descriptSurface[i*multiscaleRadiiSize], multiscaleRadiiSize );
+				filestrSurf << i;
 				// Scales:
 				for( uint j=0; j<multiscaleRadiiSize; j++ ) {
 					filestrSurf << " " << descriptSurface[i*multiscaleRadiiSize+j];
@@ -670,11 +651,8 @@ bool generateFeatureVectors(
 		} else {
 			filestrNormal << fixed << setprecision( 10 );
 			for( uint64_t i=0; i<someMesh.getVertexNr(); i++ ) {
-				if( featureIndicies[i] < 0 ) {
-					//cout << "[GigaMesh] skip" << endl;
-					continue;
-				}
-				filestrNormal << featureIndicies[i];
+				// Index of the vertex
+				filestrNormal << i;
 				// Normal - always three elements
 				filestrNormal << " " << patchNormal[i*3];
 				filestrNormal << " " << patchNormal[i*3+1];
@@ -696,11 +674,7 @@ bool generateFeatureVectors(
 		} else {
 			filestrVS << fixed << setprecision( 10 );
 			for( uint64_t i=0; i<someMesh.getVertexNr(); i++ ) {
-				if( featureIndicies[i] < 0 ) {
-					//cout << "skip" << endl;
-					continue;
-				}
-				filestrVS << featureIndicies[i];
+				filestrVS << i;
 				// Scales - Volume:
 				for( uint j=0; j<multiscaleRadiiSize; j++ ) {
 					filestrVS << " " << descriptVolume[i*multiscaleRadiiSize+j];
@@ -741,7 +715,6 @@ bool generateFeatureVectors(
 	// Done
 	std::cout << "[GigaMesh] Writing the files took " << static_cast<int>( time( nullptr ) ) - static_cast<int>( timeStampParallel ) << " seconds." << std::endl;
 
-	delete[] featureIndicies;
 	if( descriptVolume ) {
 		delete[] descriptVolume;
 	}
