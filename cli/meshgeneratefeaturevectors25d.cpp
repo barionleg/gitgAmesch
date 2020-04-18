@@ -232,8 +232,8 @@ bool generateFeatureVectors(
                 bool         replaceFiles,
                 bool                           rAreaOnly,
                 bool                           rConcatResults,
-                const char*                    rHostname,
-                const char*                    rUsername
+                const string&                  rHostname,
+                const string&                  rUsername
 ) {
 	// Check existance of the input file:
 	if( !std::filesystem::exists(fileNameIn) ) {
@@ -727,6 +727,45 @@ bool generateFeatureVectors(
 	return( retVal );
 }
 
+//! System indipendent retrieval of username and hostname
+//! as part of the technical meta-data
+void getUserAndHostName(
+        string& rUserName,
+        string& rHostName
+) {
+#ifdef WIN32
+	WSAData wsaData;
+	WSAStartup(MAKEWORD(2,2),&wsaData);
+	char hostname[256] = {0};
+	auto error = gethostname(hostname, 256);
+
+	if(error != 0)
+	{
+		std::cerr << "[GigaMesh] ERROR: Could not get hostname!" << std::endl;
+	}
+	char username[UNLEN- 1] = {0};
+	DWORD len = UNLEN - 1;
+	if(!GetUserNameA(username,&len))
+	{
+		std::cerr << "[GigaMesh] ERROR: Could not get username!" << std::endl;
+	}
+	WSACleanup();
+#else
+	// Write hostname and username - see: https://stackoverflow.com/questions/27914311/get-computer-name-and-logged-user-name
+	char hostname[HOST_NAME_MAX] = {0};
+	char username[LOGIN_NAME_MAX] = {0};
+	gethostname( hostname, HOST_NAME_MAX );
+	auto error = getlogin_r( username, LOGIN_NAME_MAX );
+
+	if(error != 0)
+	{
+		std::cerr << "[GigaMesh] ERROR: Could not get username!" << std::endl;
+	}
+#endif
+	rUserName = username;
+	rHostName = hostname;
+}
+
 //! Show software version.
 void printVersion() {
 	std::cout << "GigaMesh Software Framework FEATUREVECTORS 3D-data " << VERSION_PACKAGE << std::endl;
@@ -911,35 +950,9 @@ int main( int argc, char *argv[] ) {
 	printBuildInfo();
 
 	// Fetch username and host for the technical meta-data
-#ifdef WIN32
-	WSAData wsaData;
-	WSAStartup(MAKEWORD(2,2),&wsaData);
-	char hostname[256] = {0};
-	auto error = gethostname(hostname, 256);
-
-	if(error != 0)
-	{
-		std::cerr << "[GigaMesh] ERROR: Could not get hostname!" << std::endl;
-	}
-	char username[UNLEN- 1] = {0};
-	DWORD len = UNLEN - 1;
-	if(!GetUserNameA(username,&len))
-	{
-		std::cerr << "[GigaMesh] ERROR: Could not get username!" << std::endl;
-	}
-	WSACleanup();
-#else
-	// Write hostname and username - see: https://stackoverflow.com/questions/27914311/get-computer-name-and-logged-user-name
-	char hostname[HOST_NAME_MAX] = {0};
-	char username[LOGIN_NAME_MAX] = {0};
-	gethostname( hostname, HOST_NAME_MAX );
-	auto error = getlogin_r( username, LOGIN_NAME_MAX );
-
-	if(error != 0)
-	{
-		std::cerr << "[GigaMesh] ERROR: Could not get username!" << std::endl;
-	}
-#endif
+	string userName( "unknown" );
+	string hostName( "unknown" );
+	getUserAndHostName( userName, hostName );
 
 	unsigned long filesProcessed = 0UL;
 	unsigned long filesFailed    = 0UL;
@@ -960,7 +973,7 @@ int main( int argc, char *argv[] ) {
 			                             replaceFiles,
 			                             areaOnly,
 			                             concatResults,
-			                             hostname, username
+			                             hostName, userName
 			                           ) )
 			{
 				LOG::error() << "[GigaMesh] ERROR: generate featurevectors failed for: " << nonOptionArgumentPath.string() << " !\n";
