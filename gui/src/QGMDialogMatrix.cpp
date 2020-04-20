@@ -71,7 +71,17 @@ QGMDialogMatrix::QGMDialogMatrix(QWidget *parent) :
 	ui->buttonGroup_axisSel->setId(ui->radioButton_axisZ   , 2);
 	ui->buttonGroup_axisSel->setId(ui->radioButton_axisFree, 3);
 	connect(ui->doubleSpinBox_angle, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &QGMDialogMatrix::updateRotate);
+
+	auto updateRotValue = [this]() {updateRotate(ui->doubleSpinBox_angle->value());};
+
+	connect(ui->doubleSpinBox_axisX, QOverload<double>::of(&QDoubleSpinBox::valueChanged), updateRotValue);
+	connect(ui->doubleSpinBox_axisY, QOverload<double>::of(&QDoubleSpinBox::valueChanged), updateRotValue);
+	connect(ui->doubleSpinBox_axisZ, QOverload<double>::of(&QDoubleSpinBox::valueChanged), updateRotValue);
+
+	connect(ui->buttonGroup_axisSel, QOverload<int>::of(&QButtonGroup::buttonClicked), updateRotValue);
+
 	connect(ui->horizontalSlider_angle, &QSlider::valueChanged, this, &QGMDialogMatrix::updateRotateBySlider);
+
 
 	connect(ui->buttonBox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, &QGMDialogMatrix::resetValues);
 
