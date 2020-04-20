@@ -99,7 +99,7 @@ manjaro arch:
   # install the necessary build tools when needed
   before_script: 
    - pacman -Sy
-   - pacman -S gcc glibc cmake boost unzip qtcreator make cairo git --noconfirm
+   - pacman -S gcc glibc cmake boost unzip qtcreator make cairo git libffi-devel --noconfirm
   script:
     - export QT_SELECT=qt5
 
