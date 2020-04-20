@@ -245,27 +245,6 @@
        <property name="currentIndex">
         <number>0</number>
        </property>
-       <widget class="QWidget" name="tab_free">
-        <attribute name="title">
-         <string>Free Edit</string>
-        </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_2">
-         <item>
-          <widget class="QPushButton" name="pushButton_loadFromClipboard">
-           <property name="text">
-            <string>Load from clipboard</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_CopyToClipboard">
-           <property name="text">
-            <string>Copy to clipboard</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
        <widget class="QWidget" name="tab_trans">
         <attribute name="title">
          <string>Translate</string>
@@ -287,6 +266,9 @@
          </item>
          <item row="0" column="1">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_transX">
+           <property name="locale">
+            <locale language="C" country="AnyCountry"/>
+           </property>
            <property name="decimals">
             <number>4</number>
            </property>
@@ -300,6 +282,9 @@
          </item>
          <item row="1" column="1">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_transY">
+           <property name="locale">
+            <locale language="C" country="AnyCountry"/>
+           </property>
            <property name="decimals">
             <number>4</number>
            </property>
@@ -313,6 +298,9 @@
          </item>
          <item row="2" column="1">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_transZ">
+           <property name="locale">
+            <locale language="C" country="AnyCountry"/>
+           </property>
            <property name="decimals">
             <number>4</number>
            </property>
@@ -385,6 +373,9 @@
           <layout class="QHBoxLayout" name="horizontalLayout_4">
            <item>
             <widget class="QDoubleSpinBox" name="doubleSpinBox_axisX">
+             <property name="locale">
+              <locale language="C" country="AnyCountry"/>
+             </property>
              <property name="decimals">
               <number>3</number>
              </property>
@@ -404,6 +395,9 @@
            </item>
            <item>
             <widget class="QDoubleSpinBox" name="doubleSpinBox_axisY">
+             <property name="locale">
+              <locale language="C" country="AnyCountry"/>
+             </property>
              <property name="decimals">
               <number>3</number>
              </property>
@@ -420,6 +414,12 @@
            </item>
            <item>
             <widget class="QDoubleSpinBox" name="doubleSpinBox_axisZ">
+             <property name="locale">
+              <locale language="C" country="AnyCountry"/>
+             </property>
+             <property name="decimals">
+              <number>3</number>
+             </property>
              <property name="minimum">
               <double>-1.000000000000000</double>
              </property>
@@ -444,6 +444,9 @@
           <layout class="QHBoxLayout" name="horizontalLayout_5">
            <item alignment="Qt::AlignTop">
             <widget class="QDoubleSpinBox" name="doubleSpinBox_angle">
+             <property name="locale">
+              <locale language="C" country="AnyCountry"/>
+             </property>
              <property name="alignment">
               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
              </property>
@@ -457,11 +460,14 @@
            </item>
            <item alignment="Qt::AlignTop">
             <widget class="QSlider" name="horizontalSlider_angle">
+             <property name="minimum">
+              <number>-3600</number>
+             </property>
              <property name="maximum">
-              <number>7200</number>
+              <number>3600</number>
              </property>
              <property name="value">
-              <number>3600</number>
+              <number>0</number>
              </property>
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
@@ -486,6 +492,9 @@
          </item>
          <item row="0" column="1">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_scaleX">
+           <property name="locale">
+            <locale language="C" country="AnyCountry"/>
+           </property>
            <property name="decimals">
             <number>4</number>
            </property>
@@ -509,6 +518,9 @@
          </item>
          <item row="1" column="1">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_scaleY">
+           <property name="locale">
+            <locale language="C" country="AnyCountry"/>
+           </property>
            <property name="decimals">
             <number>4</number>
            </property>
@@ -532,6 +544,9 @@
          </item>
          <item row="2" column="1">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_scaleZ">
+           <property name="locale">
+            <locale language="C" country="AnyCountry"/>
+           </property>
            <property name="decimals">
             <number>4</number>
            </property>
@@ -562,6 +577,27 @@
          </item>
         </layout>
        </widget>
+       <widget class="QWidget" name="tab_free">
+        <attribute name="title">
+         <string>Free Edit</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <widget class="QPushButton" name="pushButton_loadFromClipboard">
+           <property name="text">
+            <string>Load from clipboard</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_CopyToClipboard">
+           <property name="text">
+            <string>Copy to clipboard</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </widget>
      </item>
     </layout>
@@ -585,6 +621,43 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>lineEdit_mat00</tabstop>
+  <tabstop>lineEdit_mat01</tabstop>
+  <tabstop>lineEdit_mat02</tabstop>
+  <tabstop>lineEdit_mat03</tabstop>
+  <tabstop>lineEdit_mat10</tabstop>
+  <tabstop>lineEdit_mat11</tabstop>
+  <tabstop>lineEdit_mat12</tabstop>
+  <tabstop>lineEdit_mat13</tabstop>
+  <tabstop>lineEdit_mat20</tabstop>
+  <tabstop>lineEdit_mat21</tabstop>
+  <tabstop>lineEdit_mat22</tabstop>
+  <tabstop>lineEdit_mat23</tabstop>
+  <tabstop>lineEdit_mat30</tabstop>
+  <tabstop>lineEdit_mat31</tabstop>
+  <tabstop>lineEdit_mat32</tabstop>
+  <tabstop>lineEdit_mat33</tabstop>
+  <tabstop>pushButton_loadFromClipboard</tabstop>
+  <tabstop>pushButton_CopyToClipboard</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>doubleSpinBox_transX</tabstop>
+  <tabstop>doubleSpinBox_transY</tabstop>
+  <tabstop>doubleSpinBox_transZ</tabstop>
+  <tabstop>radioButton_axisX</tabstop>
+  <tabstop>radioButton_axisY</tabstop>
+  <tabstop>radioButton_axisZ</tabstop>
+  <tabstop>radioButton_axisFree</tabstop>
+  <tabstop>doubleSpinBox_axisX</tabstop>
+  <tabstop>doubleSpinBox_axisY</tabstop>
+  <tabstop>doubleSpinBox_axisZ</tabstop>
+  <tabstop>doubleSpinBox_angle</tabstop>
+  <tabstop>horizontalSlider_angle</tabstop>
+  <tabstop>doubleSpinBox_scaleX</tabstop>
+  <tabstop>doubleSpinBox_scaleY</tabstop>
+  <tabstop>doubleSpinBox_scaleZ</tabstop>
+  <tabstop>checkBox_scaleUniform</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

@@ -26,6 +26,15 @@ class QGMDialogMatrix : public QDialog
 		void copyToClipboard() const;
 		void fetchClipboard( );
 
+	private slots:
+		void updateMatrixValues();
+		void tabChanged(int index);
+		void updateScale(double value);
+		void updateTranslate();
+		void updateRotate(double angle);
+		void updateRotateBySlider(int value);
+		void resetValues();
+
 	private:
 		Ui::QGMDialogMatrix *ui;
 
@@ -37,14 +46,9 @@ class QGMDialogMatrix : public QDialog
 		std::array<QLineEdit*,16> mLineEditPtrs;
 
 		QDoubleValidator mValidator;
-	private slots:
-		void updateMatrixValues();
-		void tabChanged(int index);
-		void updateScale(double value);
-		void updateTranslate();
-		void updateRotate(double angle);
-		void updateRotateBySlider(int value);
-		void resetValues();
+
+
+
 };
 
 #endif // QGMDIALOGMATRIX_H
