@@ -38,6 +38,8 @@ QGMDialogMatrix::QGMDialogMatrix(QWidget *parent) :
 	mLineEditPtrs[14] = ui->lineEdit_mat23;
 	mLineEditPtrs[15] = ui->lineEdit_mat33;
 
+	mValidator.setLocale(QLocale::c());
+
 	uint8_t index = 0;
 	for(auto lineEditPtr : mLineEditPtrs)
 	{

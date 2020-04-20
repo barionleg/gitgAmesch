@@ -287,6 +287,9 @@
          </item>
          <item row="0" column="1">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_transX">
+           <property name="locale">
+            <locale language="C" country="AnyCountry"/>
+           </property>
            <property name="decimals">
             <number>4</number>
            </property>
@@ -300,6 +303,9 @@
          </item>
          <item row="1" column="1">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_transY">
+           <property name="locale">
+            <locale language="C" country="AnyCountry"/>
+           </property>
            <property name="decimals">
             <number>4</number>
            </property>
@@ -313,6 +319,9 @@
          </item>
          <item row="2" column="1">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_transZ">
+           <property name="locale">
+            <locale language="C" country="AnyCountry"/>
+           </property>
            <property name="decimals">
             <number>4</number>
            </property>
@@ -385,8 +394,11 @@
           <layout class="QHBoxLayout" name="horizontalLayout_4">
            <item>
             <widget class="QDoubleSpinBox" name="doubleSpinBox_axisX">
+             <property name="locale">
+              <locale language="C" country="AnyCountry"/>
+             </property>
              <property name="decimals">
-              <number>3</number>
+              <number>2</number>
              </property>
              <property name="minimum">
               <double>-1.000000000000000</double>
@@ -404,8 +416,11 @@
            </item>
            <item>
             <widget class="QDoubleSpinBox" name="doubleSpinBox_axisY">
+             <property name="locale">
+              <locale language="C" country="AnyCountry"/>
+             </property>
              <property name="decimals">
-              <number>3</number>
+              <number>2</number>
              </property>
              <property name="minimum">
               <double>-1.000000000000000</double>
@@ -420,6 +435,9 @@
            </item>
            <item>
             <widget class="QDoubleSpinBox" name="doubleSpinBox_axisZ">
+             <property name="locale">
+              <locale language="C" country="AnyCountry"/>
+             </property>
              <property name="minimum">
               <double>-1.000000000000000</double>
              </property>
@@ -444,6 +462,9 @@
           <layout class="QHBoxLayout" name="horizontalLayout_5">
            <item alignment="Qt::AlignTop">
             <widget class="QDoubleSpinBox" name="doubleSpinBox_angle">
+             <property name="locale">
+              <locale language="C" country="AnyCountry"/>
+             </property>
              <property name="alignment">
               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
              </property>
@@ -486,6 +507,9 @@
          </item>
          <item row="0" column="1">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_scaleX">
+           <property name="locale">
+            <locale language="C" country="AnyCountry"/>
+           </property>
            <property name="decimals">
             <number>4</number>
            </property>
@@ -509,6 +533,9 @@
          </item>
          <item row="1" column="1">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_scaleY">
+           <property name="locale">
+            <locale language="C" country="AnyCountry"/>
+           </property>
            <property name="decimals">
             <number>4</number>
            </property>
@@ -532,6 +559,9 @@
          </item>
          <item row="2" column="1">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_scaleZ">
+           <property name="locale">
+            <locale language="C" country="AnyCountry"/>
+           </property>
            <property name="decimals">
             <number>4</number>
            </property>
