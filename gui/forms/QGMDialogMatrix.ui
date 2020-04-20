@@ -585,6 +585,43 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>lineEdit_mat00</tabstop>
+  <tabstop>lineEdit_mat01</tabstop>
+  <tabstop>lineEdit_mat02</tabstop>
+  <tabstop>lineEdit_mat03</tabstop>
+  <tabstop>lineEdit_mat10</tabstop>
+  <tabstop>lineEdit_mat11</tabstop>
+  <tabstop>lineEdit_mat12</tabstop>
+  <tabstop>lineEdit_mat13</tabstop>
+  <tabstop>lineEdit_mat20</tabstop>
+  <tabstop>lineEdit_mat21</tabstop>
+  <tabstop>lineEdit_mat22</tabstop>
+  <tabstop>lineEdit_mat23</tabstop>
+  <tabstop>lineEdit_mat30</tabstop>
+  <tabstop>lineEdit_mat31</tabstop>
+  <tabstop>lineEdit_mat32</tabstop>
+  <tabstop>lineEdit_mat33</tabstop>
+  <tabstop>pushButton_loadFromClipboard</tabstop>
+  <tabstop>pushButton_CopyToClipboard</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>doubleSpinBox_transX</tabstop>
+  <tabstop>doubleSpinBox_transY</tabstop>
+  <tabstop>doubleSpinBox_transZ</tabstop>
+  <tabstop>radioButton_axisX</tabstop>
+  <tabstop>radioButton_axisY</tabstop>
+  <tabstop>radioButton_axisZ</tabstop>
+  <tabstop>radioButton_axisFree</tabstop>
+  <tabstop>doubleSpinBox_axisX</tabstop>
+  <tabstop>doubleSpinBox_axisY</tabstop>
+  <tabstop>doubleSpinBox_axisZ</tabstop>
+  <tabstop>doubleSpinBox_angle</tabstop>
+  <tabstop>horizontalSlider_angle</tabstop>
+  <tabstop>doubleSpinBox_scaleX</tabstop>
+  <tabstop>doubleSpinBox_scaleY</tabstop>
+  <tabstop>doubleSpinBox_scaleZ</tabstop>
+  <tabstop>checkBox_scaleUniform</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

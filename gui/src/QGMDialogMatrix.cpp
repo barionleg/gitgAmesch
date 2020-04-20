@@ -280,9 +280,9 @@ void QGMDialogMatrix::copyToClipboard() const
 {
 	QString clipBoardText;
 
-	for(auto value : mMatrixData)
+	for(auto value : mLineEditPtrs)
 	{
-		clipBoardText += QString("%1 ").arg(value);
+		clipBoardText += QString("%1 ").arg(value->text());
 	}
 
 	QApplication::clipboard()->setText(clipBoardText);
