@@ -38,7 +38,10 @@ QGMDialogMatrix::QGMDialogMatrix(QWidget *parent) :
 	mLineEditPtrs[14] = ui->lineEdit_mat23;
 	mLineEditPtrs[15] = ui->lineEdit_mat33;
 
-	mValidator.setLocale(QLocale::c());
+	auto validatorLocale = QLocale::c();
+	validatorLocale.setNumberOptions(QLocale::RejectGroupSeparator);
+
+	mValidator.setLocale(validatorLocale);
 
 	uint8_t index = 0;
 	for(auto lineEditPtr : mLineEditPtrs)
@@ -161,17 +164,13 @@ void QGMDialogMatrix::updateScale(double value)
 {
 	if(ui->checkBox_scaleUniform->isChecked())
 	{
-		ui->doubleSpinBox_scaleX->blockSignals(true);
-		ui->doubleSpinBox_scaleY->blockSignals(true);
-		ui->doubleSpinBox_scaleZ->blockSignals(true);
+		QSignalBlocker blockScaleX(ui->doubleSpinBox_scaleX);
+		QSignalBlocker blockScaleY(ui->doubleSpinBox_scaleX);
+		QSignalBlocker blockScaleZ(ui->doubleSpinBox_scaleX);
 
 		ui->doubleSpinBox_scaleX->setValue(value);
 		ui->doubleSpinBox_scaleY->setValue(value);
 		ui->doubleSpinBox_scaleZ->setValue(value);
-
-		ui->doubleSpinBox_scaleX->blockSignals(false);
-		ui->doubleSpinBox_scaleY->blockSignals(false);
-		ui->doubleSpinBox_scaleZ->blockSignals(false);
 	}
 
 	const double scaleX = ui->doubleSpinBox_scaleX->value();
@@ -218,13 +217,13 @@ std::array<double,16> getAngleAxisMat(double aX, double aY, double aZ, double s,
 void QGMDialogMatrix::updateRotate(double angle)
 {
 	//update slider
-	ui->horizontalSlider_angle->blockSignals(true);
+	QSignalBlocker blockAngleSlider(ui->horizontalSlider_angle);
+
 	const double sliderMax = static_cast<double>(ui->horizontalSlider_angle->maximum());
 	const double sliderMin = static_cast<double>(ui->horizontalSlider_angle->minimum());
 	const double percent = (angle - ui->doubleSpinBox_angle->minimum()) / (ui->doubleSpinBox_angle->maximum() - ui->doubleSpinBox_angle->minimum());
 
 	ui->horizontalSlider_angle->setValue(percent * (sliderMax - sliderMin) + sliderMin);
-	ui->horizontalSlider_angle->blockSignals(false);
 
 	const double s = sin(angle * M_PI / 180.0);
 	const double c = cos(angle * M_PI / 180.0);
@@ -280,6 +279,34 @@ void QGMDialogMatrix::updateRotateBySlider(int value)
 
 void QGMDialogMatrix::resetValues()
 {
+	QSignalBlocker blockAngle(ui->doubleSpinBox_angle);
+	QSignalBlocker blockAxisX(ui->doubleSpinBox_axisX);
+	QSignalBlocker blockAxisY(ui->doubleSpinBox_axisY);
+	QSignalBlocker blockAxisZ(ui->doubleSpinBox_axisZ);
+	QSignalBlocker blockAngleSlider(ui->horizontalSlider_angle);
+
+	QSignalBlocker blockScaleX(ui->doubleSpinBox_scaleX);
+	QSignalBlocker blockScaleY(ui->doubleSpinBox_scaleY);
+	QSignalBlocker blockScaleZ(ui->doubleSpinBox_scaleZ);
+
+	QSignalBlocker blockTransX(ui->doubleSpinBox_transX);
+	QSignalBlocker blockTransY(ui->doubleSpinBox_transY);
+	QSignalBlocker blockTransZ(ui->doubleSpinBox_transZ);
+
+	ui->doubleSpinBox_angle->setValue(0.0);
+	ui->doubleSpinBox_axisX->setValue(1.0);
+	ui->doubleSpinBox_axisY->setValue(0.0);
+	ui->doubleSpinBox_axisZ->setValue(0.0);
+	ui->horizontalSlider_angle->setValue(0);
+
+	ui->doubleSpinBox_scaleX->setValue(1.0);
+	ui->doubleSpinBox_scaleY->setValue(1.0);
+	ui->doubleSpinBox_scaleZ->setValue(1.0);
+
+	ui->doubleSpinBox_transX->setValue(0.0);
+	ui->doubleSpinBox_transY->setValue(0.0);
+	ui->doubleSpinBox_transZ->setValue(0.0);
+
 	mMatrixData = {1.0,0.0,0.0,0.0,
 	               0.0,1.0,0.0,0.0,
 	               0.0,0.0,1.0,0.0,
