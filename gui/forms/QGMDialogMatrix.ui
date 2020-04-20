@@ -245,27 +245,6 @@
        <property name="currentIndex">
         <number>0</number>
        </property>
-       <widget class="QWidget" name="tab_free">
-        <attribute name="title">
-         <string>Free Edit</string>
-        </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_2">
-         <item>
-          <widget class="QPushButton" name="pushButton_loadFromClipboard">
-           <property name="text">
-            <string>Load from clipboard</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_CopyToClipboard">
-           <property name="text">
-            <string>Copy to clipboard</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
        <widget class="QWidget" name="tab_trans">
         <attribute name="title">
          <string>Translate</string>
@@ -398,7 +377,7 @@
               <locale language="C" country="AnyCountry"/>
              </property>
              <property name="decimals">
-              <number>2</number>
+              <number>3</number>
              </property>
              <property name="minimum">
               <double>-1.000000000000000</double>
@@ -420,7 +399,7 @@
               <locale language="C" country="AnyCountry"/>
              </property>
              <property name="decimals">
-              <number>2</number>
+              <number>3</number>
              </property>
              <property name="minimum">
               <double>-1.000000000000000</double>
@@ -437,6 +416,9 @@
             <widget class="QDoubleSpinBox" name="doubleSpinBox_axisZ">
              <property name="locale">
               <locale language="C" country="AnyCountry"/>
+             </property>
+             <property name="decimals">
+              <number>3</number>
              </property>
              <property name="minimum">
               <double>-1.000000000000000</double>
@@ -590,6 +572,27 @@
           <widget class="QCheckBox" name="checkBox_scaleUniform">
            <property name="text">
             <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tab_free">
+        <attribute name="title">
+         <string>Free Edit</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <widget class="QPushButton" name="pushButton_loadFromClipboard">
+           <property name="text">
+            <string>Load from clipboard</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_CopyToClipboard">
+           <property name="text">
+            <string>Copy to clipboard</string>
            </property>
           </widget>
          </item>

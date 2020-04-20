@@ -152,7 +152,7 @@ void QGMDialogMatrix::updateMatrixValues()
 
 void QGMDialogMatrix::tabChanged(int index)
 {
-	bool enable = index == 0;
+	bool enable = index == 3;
 
 	for(auto matrixField : mLineEditPtrs)
 	{
