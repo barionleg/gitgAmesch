@@ -876,6 +876,9 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 	checkMeshSanity();
 
 	// Guess some initial distance for fog:
+	double minDist;
+	double maxDist;
+
 	double bboxLength = mMeshVisual->getBoundingBoxRadius() * 2.0;
 
 	setParamFloatMeshWidget( FOG_LINEAR_START, bboxLength  * 0.75);
@@ -3940,12 +3943,13 @@ void MeshWidget::selectColorBackground() {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
-	QColor colorBackground; //!< Background Color of the Widget.
-	auto   rgbNew = QColorDialog::getColor( colorBackground, nullptr );
-	if( rgbNew.isValid() ) {
-		colorBackground = rgbNew;
+	QColor rgbNew = QColorDialog::getColor( Qt::white, nullptr, 
+	                                        QString( "Background Color"), 
+	                                        QColorDialog::ShowAlphaChannel );
+	if( !rgbNew.isValid() ) { // Cancel was pressed.
+		return;
 	}
-	qglClearColor( colorBackground );
+	qglClearColor( rgbNew );
 	update();
 }
 

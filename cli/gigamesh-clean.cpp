@@ -247,6 +247,23 @@ bool cleanupGigaMeshData(
 	return( true );
 }
 
+
+//! Show software version.
+void printVersion() {
+	std::cout << "GigaMesh Software Framework CLEAN 3D-data " << VERSION_PACKAGE << std::endl;
+#ifdef THREADS
+	std::cout << "Multi-threading with " << std::thread::hardware_concurrency() * 2 << " (fixed) threads." << std::endl;
+#else
+	std::cout << "Single-threading. " << std::endl;
+#endif
+	std::cout << "Multi-threading with " << std::thread::hardware_concurrency() - 1 << " (dynamic) threads." << std::endl;
+#ifdef LIBPSALM
+	std::cout << "Hole filling enabled. POLISH possible." << std::endl;
+#else
+	std::cout << "Hole filling disabled. CLEAN only." << std::endl;
+#endif
+}
+
 //! Help i.e. usage of paramters.
 void printHelp( const char* rExecName ) {
 	std::cout << "Usage: " << rExecName << " [options] (<file>)" << std::endl;
@@ -293,21 +310,6 @@ void printHelp( const char* rExecName ) {
 	//std::cout << "" << std::endl;
 }
 
-//! Show software version.
-void printVersion() {
-	std::cout << "GigaMesh Software Framework CLEAN 3D-data " << VERSION_PACKAGE << std::endl;
-#ifdef THREADS
-	std::cout << "Multi-threading with " << std::thread::hardware_concurrency() * 2 << " (fixed) threads." << std::endl;
-#else
-	std::cout << "Single-threading. " << std::endl;
-#endif
-	std::cout << "Multi-threading with " << std::thread::hardware_concurrency() - 1 << " (dynamic) threads." << std::endl;
-#ifdef LIBPSALM
-	std::cout << "Hole filling enabled. POLISH possible." << std::endl;
-#else
-	std::cout << "Hole filling disabled. CLEAN only." << std::endl;
-#endif
-}
 
 
 //! Main routine for loading a (binary) PLY and store it after cleaning the mesh.
