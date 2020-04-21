@@ -3350,7 +3350,7 @@ bool MeshWidget::screenshotSingle( const QString&   rFileName,   //!< Filename t
 	rWidthReal  = _NOT_A_NUMBER_DBL_;
 	rHeigthReal = _NOT_A_NUMBER_DBL_;
 
-	QString fileExtension = QFileInfo(rFileName).completeSuffix().toLower();
+	QString fileExtension = QFileInfo(rFileName).suffix().toLower();
 
 	if( fileExtension.isEmpty() ) {
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: No extension/type for file '" << rFileName.toStdString() << "' specified!" << endl;

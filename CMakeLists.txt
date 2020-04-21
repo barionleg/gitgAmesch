@@ -2,17 +2,26 @@ cmake_minimum_required(VERSION 3.10)
 
 # CMAKEFile for building gigamesh
 
-# note for building on Ubuntu, if g++-8 is not the default compiler, you have two options:
-# 1. Export CC and CXX before calling cmake:
+# note: building GigaMesh requires a compiler which supports C++17 features. So please
+# make sure that your compiler has the following version or newer:
+# gcc        : 8
+# clang      : 7
+# msvc stl   : 19.14
+# apple clang: 11.0.0
+#
+# on ubuntu for example, you have the following options to set the gcc8 compiler, assuming it is in usr/bin/:
+# 1. Running cmake with:
+# cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-8 -DCMAKE_CC_COMPILER=/usr/bin/gcc-8
+#
+# 2. Export CC and CXX before calling cmake:
 # export CC=/usr/bin/gcc-8
 # export CXX=/usr/bin/g++-8
 #
-# 2. set g++-8 as alternative permanently:
+# 3. Set g++-8 as alternative permanently:
 # sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 10
 # sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 10
 #
-# 3. Tested alternative to 1, running cmake with:
-# cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-8 -DCMAKE_CC_COMPILER=/usr/bin/gcc-8
+
 
 project(GigaMesh LANGUAGES CXX C
 			DESCRIPTION "GigaMesh is a software Framework for processing large meshes.")
