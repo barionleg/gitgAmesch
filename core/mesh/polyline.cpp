@@ -996,7 +996,7 @@ bool PolyLine::extrudeAxis(
 	vector<Vertex*>*       rVerticesToAppend, // actually: VertexOfFace
 	vector<Face*>*         rFacesToAppend
 ) {
-	//cout << "[PolyLine::" << __FUNCTION__ << "] Start" << endl;
+	//std::cout << "[PolyLine::" << __FUNCTION__ << "] Start" << std::endl;
 
 	constexpr int angleCount = 100;
 	constexpr double angleStep  = 2.0*M_PI/static_cast<double>(angleCount);
@@ -1070,7 +1070,7 @@ bool PolyLine::extrudeAxis(
 
 	delete[] meshGrid;
 
-	return false;
+	return( false );
 }
 
 // modification of the polyline -----------------------------------------------------------------------------------
