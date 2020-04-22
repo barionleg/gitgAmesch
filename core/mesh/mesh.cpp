@@ -7065,12 +7065,21 @@ bool Mesh::isolineToPolyline(
 //! Use the rotational axis to extrude the poylines.
 //! @returns false in case of an error. True otherwise.
 bool Mesh::extrudePolylines() {
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Extruding polylines ..." << std::endl;
+
 	// Fetch axis, if present
 	Vector3D axisTop;
 	Vector3D axisBottom;
 	if( !getConeAxis( &axisTop, &axisBottom ) ) {
-		return false;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: No axis defined!" << std::endl;
+		return( false );
 	}
+
+	if( getPolyLineNr() <= 0 ) {
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: No polylines defined!" << std::endl;
+		return( false );
+	}
+
 	// Apply to all polylines
 	bool retVal = true;
 	PolyLine* currPoly;
@@ -7083,13 +7092,18 @@ bool Mesh::extrudePolylines() {
 			retVal = false;
 		}
 	}
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Polylines processed." << std::endl;
 
 	// Insert Faces
 	for( auto const& currFace: facesToAppend ) {
 		currFace->reconnectToFaces();
 		mFaces.push_back( currFace );
 	}
-	insertVertices( &verticesToAppend );
+	// and vertices
+	if( !insertVertices( &verticesToAppend ) ) {
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: insertVertices failed!" << std::endl;
+		return( false );
+	}
 
 	return retVal;
 }
