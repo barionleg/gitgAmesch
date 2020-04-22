@@ -1032,7 +1032,7 @@ bool PolyLine::extrudeAxis(
 			}
 			sectionVertex->applyTransfrom( &reBaseTrans );
 			rVerticesToAppend->push_back( sectionVertex );
-			meshGrid[i*angleCount + s] = sectionVertex;
+			meshGrid[i*sliceCount + s] = sectionVertex;
 			currPos    *= rotateMat;
 			currNormal *= rotateMat;
 		}
@@ -1047,10 +1047,10 @@ bool PolyLine::extrudeAxis(
 			if( nextAngleIdx >= angleCount ) {
 				nextAngleIdx = 0;
 			}
-			VertexOfFace* vertA = meshGrid[i*angleCount + s];
-			VertexOfFace* vertB = meshGrid[i*angleCount + s + 1];
-			VertexOfFace* vertC = meshGrid[nextAngleIdx*angleCount + s];
-			VertexOfFace* vertD = meshGrid[nextAngleIdx*angleCount + s + 1];
+			VertexOfFace* vertA = meshGrid[i* sliceCount + s];
+			VertexOfFace* vertB = meshGrid[i* sliceCount + s + 1];
+			VertexOfFace* vertC = meshGrid[nextAngleIdx* sliceCount + s];
+			VertexOfFace* vertD = meshGrid[nextAngleIdx* sliceCount + s + 1];
 			Face* faceA = new Face( 0, vertA, vertC, vertB );
 			Face* faceB = new Face( 0, vertB, vertC, vertD );
 			faceA->setFlag( FLAG_SYNTHETIC );
