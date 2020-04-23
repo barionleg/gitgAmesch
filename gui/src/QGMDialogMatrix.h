@@ -27,6 +27,7 @@
 #include <QDoubleValidator>
 #include <array>
 #include <memory>
+#include <GigaMesh/mesh/vector3d.h>
 
 class QLineEdit;
 
@@ -44,12 +45,15 @@ class QGMDialogMatrix : public QDialog
 
 		void getValues(std::vector<double>& values) const;
 
+		void setMeshCog(const Vector3D& meshCog);
+		void setMeshBBoxCenter(const Vector3D& meshBBoxCenter);
+
 	public slots:
 		void copyToClipboard() const;
 		void fetchClipboard( );
 
 	private slots:
-		void updateMatrixValues();
+		void updateMatrixValues(const std::array<double, 16>& values);
 		void tabChanged(int index);
 		void updateScale(double value);
 		void updateTranslate();
@@ -60,15 +64,12 @@ class QGMDialogMatrix : public QDialog
 	private:
 		Ui::QGMDialogMatrix *ui;
 
-		//mMatrixData stores the matrix in column-major order
-		std::array<double,16> mMatrixData = {1.0,0.0,0.0,0.0,
-		                                     0.0,1.0,0.0,0.0,
-		                                     0.0,0.0,1.0,0.0,
-		                                     0.0,0.0,0.0,1.0};
 		std::array<QLineEdit*,16> mLineEditPtrs;
 
 		QDoubleValidator mValidator;
 
+		Vector3D mMeshCog;
+		Vector3D mMeshBBoxCenter;
 
 
 };

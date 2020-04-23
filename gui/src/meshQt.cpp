@@ -613,6 +613,12 @@ bool MeshQt::showEnterText( Matrix4D* rMatrix4x4 ) {
 	dlgEnterMatrix.setWindowTitle( tr("Enter 4x4 Matrix"));
 	dlgEnterMatrix.fetchClipboard();
 
+	const auto cog = getCenterOfGravity();
+	const auto bboxCenter = getBoundingBoxCenter();
+
+	dlgEnterMatrix.setMeshCog(cog);
+	dlgEnterMatrix.setMeshBBoxCenter(bboxCenter);
+
 	if(dlgEnterMatrix.exec() == QDialog::Rejected )
 	{
 		return false;

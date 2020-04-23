@@ -85,6 +85,18 @@ QGMDialogMatrix::QGMDialogMatrix(QWidget *parent) :
 	connect(ui->doubleSpinBox_transY, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &QGMDialogMatrix::updateTranslate);
 	connect(ui->doubleSpinBox_transZ, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &QGMDialogMatrix::updateTranslate);
 
+	connect(ui->pushButton_COGCenter, &QPushButton::clicked, [this]() {
+		ui->doubleSpinBox_transX->setValue(-mMeshCog.getX());
+		ui->doubleSpinBox_transY->setValue(-mMeshCog.getY());
+		ui->doubleSpinBox_transZ->setValue(-mMeshCog.getZ());
+	});
+
+	connect(ui->pushButton_BBoxCenter, &QPushButton::clicked, [this]() {
+		ui->doubleSpinBox_transX->setValue(-mMeshBBoxCenter.getX());
+		ui->doubleSpinBox_transY->setValue(-mMeshBBoxCenter.getY());
+		ui->doubleSpinBox_transZ->setValue(-mMeshBBoxCenter.getZ());
+	});
+
 	//scale
 	connect(ui->doubleSpinBox_scaleX, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &QGMDialogMatrix::updateScale);
 	connect(ui->doubleSpinBox_scaleY, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &QGMDialogMatrix::updateScale);
@@ -110,7 +122,10 @@ QGMDialogMatrix::QGMDialogMatrix(QWidget *parent) :
 
 	connect(ui->buttonBox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, &QGMDialogMatrix::resetValues);
 
-	updateMatrixValues();
+	updateMatrixValues({1.0, 0.0, 0.0, 0.0,
+	                    0.0, 1.0, 0.0, 0.0,
+	                    0.0, 0.0, 1.0, 0.0,
+	                    0.0, 0.0, 0.0, 1.0});
 }
 
 QGMDialogMatrix::~QGMDialogMatrix()
@@ -145,9 +160,7 @@ void QGMDialogMatrix::fetchClipboard()
 		(*matIt++) = val;
 	}
 
-	mMatrixData = std::move(tempVals);
-
-	updateMatrixValues();
+	updateMatrixValues(tempVals);
 }
 
 
@@ -162,11 +175,11 @@ void QGMDialogMatrix::getValues(std::vector<double>& values) const
 	}
 }
 
-void QGMDialogMatrix::updateMatrixValues()
+void QGMDialogMatrix::updateMatrixValues(const std::array<double, 16>& values)
 {
 	auto it = mLineEditPtrs.begin();
 
-	for(auto value : mMatrixData)
+	for(auto value : values)
 	{
 		(*it++)->setText(QString::number(value));
 	}
@@ -199,12 +212,11 @@ void QGMDialogMatrix::updateScale(double value)
 	const double scaleY = ui->doubleSpinBox_scaleY->value();
 	const double scaleZ = ui->doubleSpinBox_scaleZ->value();
 
-	mMatrixData = {scaleX,    0.0,    0.0, 0.0,
-	                  0.0, scaleY,    0.0, 0.0,
-	                  0.0,    0.0, scaleZ, 0.0,
-	                  0.0,    0.0,    0.0, 1.0};
 
-	updateMatrixValues();
+	updateMatrixValues({scaleX,    0.0,    0.0, 0.0,
+	                       0.0, scaleY,    0.0, 0.0,
+	                       0.0,    0.0, scaleZ, 0.0,
+	                       0.0,    0.0,    0.0, 1.0});
 }
 
 void QGMDialogMatrix::updateTranslate()
@@ -213,12 +225,10 @@ void QGMDialogMatrix::updateTranslate()
 	const double yVal = ui->doubleSpinBox_transY->value();
 	const double zVal = ui->doubleSpinBox_transZ->value();
 
-	mMatrixData = {1.0 ,0.0 ,0.0 ,0.0,
-	               0.0 ,1.0 ,0.0 ,0.0,
-	               0.0 ,0.0 ,1.0 ,0.0,
-	               xVal,yVal,zVal,1.0};
-
-	updateMatrixValues();
+	updateMatrixValues({1.0 ,0.0 ,0.0 ,0.0,
+	                    0.0 ,1.0 ,0.0 ,0.0,
+	                    0.0 ,0.0 ,1.0 ,0.0,
+	                    xVal,yVal,zVal,1.0});
 }
 
 std::array<double,16> getAngleAxisMat(double aX, double aY, double aZ, double s, double c)
@@ -252,39 +262,38 @@ void QGMDialogMatrix::updateRotate(double angle)
 
 	switch (ui->buttonGroup_axisSel->checkedId()) {
 		case 0: // x-axis
-			mMatrixData = {1.0, 0.0, 0.0, 0.0,
-			               0.0,   c,   s, 0.0,
-			               0.0,  -s,   c, 0.0,
-			               0.0, 0.0, 0.0, 1.0};
+			updateMatrixValues( {1.0, 0.0, 0.0, 0.0,
+			                     0.0,   c,   s, 0.0,
+			                     0.0,  -s,   c, 0.0,
+			                     0.0, 0.0, 0.0, 1.0});
 			break;
 		case 1: // y-axis
-			mMatrixData = {  c, 0.0,  -s, 0.0,
-			               0.0, 1.0, 0.0, 0.0,
-			                 s, 0.0,   c, 0.0,
-			               0.0, 0.0, 0.0, 1.0};
+			updateMatrixValues( {  c, 0.0,  -s, 0.0,
+			                     0.0, 1.0, 0.0, 0.0,
+			                       s, 0.0,   c, 0.0,
+			                     0.0, 0.0, 0.0, 1.0});
 			break;
 		case 2: // z-axis
-			mMatrixData = {  c,   s, 0.0, 0.0,
-			                -s,   c, 0.0, 0.0,
-			               0.0, 0.0, 1.0, 0.0,
-			               0.0, 0.0, 0.0, 1.0};
+			updateMatrixValues( {  c,   s, 0.0, 0.0,
+			                      -s,   c, 0.0, 0.0,
+			                     0.0, 0.0, 1.0, 0.0,
+			                     0.0, 0.0, 0.0, 1.0});
 			break;
 		case 3: // free-axis
-			//avoid case, where all axis values are 0.0
+			//avoid case, where all axis values are 0.0 and free axis is selected
 			if(std::abs(ui->doubleSpinBox_axisX->value()) <= std::numeric_limits<double>::epsilon() &&
 			   std::abs(ui->doubleSpinBox_axisY->value()) <= std::numeric_limits<double>::epsilon() &&
 			   std::abs(ui->doubleSpinBox_axisZ->value()) <= std::numeric_limits<double>::epsilon())
 			{
 				return;
 			}
-			mMatrixData = getAngleAxisMat(ui->doubleSpinBox_axisX->value(),
-			                              ui->doubleSpinBox_axisY->value(),
-			                              ui->doubleSpinBox_axisZ->value(),
-			                              s,c);
+			updateMatrixValues( getAngleAxisMat(ui->doubleSpinBox_axisX->value(),
+			                                    ui->doubleSpinBox_axisY->value(),
+			                                    ui->doubleSpinBox_axisZ->value(),
+			                                    s,c));
 			break;
 	}
 
-	updateMatrixValues();
 }
 
 void QGMDialogMatrix::updateRotateBySlider(int value)
@@ -329,12 +338,20 @@ void QGMDialogMatrix::resetValues()
 	ui->doubleSpinBox_transY->setValue(0.0);
 	ui->doubleSpinBox_transZ->setValue(0.0);
 
-	mMatrixData = {1.0,0.0,0.0,0.0,
-	               0.0,1.0,0.0,0.0,
-	               0.0,0.0,1.0,0.0,
-	               0.0,0.0,0.0,1.0};
+	updateMatrixValues({1.0,0.0,0.0,0.0,
+	                    0.0,1.0,0.0,0.0,
+	                    0.0,0.0,1.0,0.0,
+	                    0.0,0.0,0.0,1.0});
+}
 
-	updateMatrixValues();
+void QGMDialogMatrix::setMeshBBoxCenter(const Vector3D& meshBBoxCenter)
+{
+	mMeshBBoxCenter = meshBBoxCenter;
+}
+
+void QGMDialogMatrix::setMeshCog(const Vector3D& meshCog)
+{
+	mMeshCog = meshCog;
 }
 
 void QGMDialogMatrix::copyToClipboard() const
