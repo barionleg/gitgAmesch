@@ -16676,11 +16676,16 @@ Ist der andere groesser, wird sofort gebreaked.
 
 */
 //! an experimental non maximum suppression method.
-//! Takes as input the distance, how far NMS should look
-//! maybe I should think about datatypes that don't allow duplicates (sets) (and keep their ordering?)
-//! Data will be written at Feature Vector Position 17
+//! Takes as input the distance, how far NMS should look (how often the frontier progresses)
+//! will enlarge the feature vectors of all vertices to size 18
+//! CAREFUL maybe I should think about datatypes that don't allow duplicates (sets) (and keep their ordering?)
+//! CAREFUL only meshes with 100000 Vertices allowed
+//! CAREFUL A check should be implemented which aborts, when the mesh has more than 100000 vertices
+//! Data will be written at Feature Vector Position 17 (boolean if maximum) and 18 (if maximum, then averaged MSII)
 bool Mesh::funcExpNonMaxSupp(unsigned int ringSize)
 {
+    int numberOfVertices = 100000;
+
     //generally
     //I should check more often, if lists are empty
 
@@ -16691,185 +16696,147 @@ bool Mesh::funcExpNonMaxSupp(unsigned int ringSize)
     //loop over all vertices
     for(auto pVertex : mVertices){
 
-        //if the feature vector has less than 17 elements, resize it to length 17
-        if(17 > pVertex->getFeatureVectorLen())
+        //works only with GCC Compilers, did not seem to work
+        //bool checkVisited[100000]={[0 . . . 99999] = false };
+
+        //initialize the checks for visited vertices with false
+        //maybe use methods that already exist in vertex.cpp
+        bool checkVisited[numberOfVertices];
+        for (int i = 0; i < numberOfVertices ; i++){
+            checkVisited[i] = false;
+        }
+
+        //if the feature vector has less than 17 elements, resize it to length 18
+        if(18 > pVertex->getFeatureVectorLen())
 		{
-			pVertex->resizeFeatureVector(17);
+			pVertex->resizeFeatureVector(18);
 		}
 		//per default, it is not the (local) maximum, currently resizing does the same, as at Position 17 is a zero.
 		double isMax = 0.0;
+		bool biggerValueFound = false;
 
 		//acquire the MSII-value for this vertex
 
 		double precomputedMSIIValue;
 		//assumption: the MSII-value (we want) is located at position 0. (Possibly 0 till 4 have the values because of multi scale)
-		//I use it again in Line 16732
-		pvertex->getFeatureElement(0, &precomputedMSIIValue);
+		//I use it again near Line 16761
+		//I use it again near Line 16804
+		pVertex->getFeatureElement(0, &precomputedMSIIValue);
+
+		//optional: todo: get 5 MSII values and average them.
+
+
 
 
         //Vertices, which will be the input for every search
-        set<Vertex*> inputSet;
-        inputVector.insert(pVertex);
-
-         //Vertices, which have been searched for neighbours
-        set<Vertex*> haveBeenSearched;
+        list<Vertex*> marchingFrontier;
+        marchingFrontier.push_back(pVertex);
 
         //Vertices, which are candidates for neighbour-search in the next iteration
-        set<Vertex*> candidates;
+        //is cleared after every frontier step
+        list<Vertex*> nextCandidates;
 
         // ringSize input should be checked, not to be 0
         for( int currentRing = 1; currentRing <= ringSize; currentRing++){
 
-            //add every neighbour of the inputs to candidates
-            for (set<Vertex*>::iterator it1 = inputSet.begin(); it1 != inputSet.end(); ++it1){
-                list<Vertex*> adjacentVertsInOrder;
-                getSurroundingVerticesInOrder(adjacentVertsInOrder, pvertex, false);
+            //only perform the algorithm when no bigger MSII value than the one from the current vertex (pvertex) has been found
+            if(!biggerValueFound){
 
-                //check if the neighbours already have bigger values, than the one in question
-                list<Vertex*>::iterator it2;
-                for (list<Vertex*>::iterator it2 = adjacentVertsInOrder.begin(); it2 != adjacentVertsInOrder.end(); ++it2){
+                //add every neighbour of the inputs to candidates
+                for(auto& marchingInputIterator : marchingFrontier){
 
-                    double adjacentVertexsValue;
-                    it2->getFeatureElement(0,adjacentVertexsValue);
+                    //only perform the algorithm when no bigger MSII value than the one from the current vertex (pvertex) has been found
+                    if(!biggerValueFound){
+
+                        list<Vertex*> adjacentVertsInOrder;
+
+                        getSurroundingVerticesInOrder(adjacentVertsInOrder, marchingInputIterator, false);
+
+                        //check if the neighbours already have bigger values, than the one in question
+                        //and add them if( their value is not bigger AND they haven't been visited yet)
+                        for(auto& candidatesIterator : adjacentVertsInOrder){
+
+                            //only perform the algorithm when no bigger MSII value than the one from the current vertex (pvertex) has been found
+                            if(!biggerValueFound){
+
+                                double adjacentVertexsValue;
+                                candidatesIterator->getFeatureElement(0, &adjacentVertexsValue);
 
 
-                    if(precomputedMSIIValue < adjacentVertexsValue){
-                        goto cnt;
+                                if(precomputedMSIIValue < adjacentVertexsValue){
+
+                                    biggerValueFound = true;
+                                    isMax = 0.0;
+                                }
+                                else{
+                                    //highly experimental, as I do not know, if this index can be used
+                                    int candidateIndex = candidatesIterator->getIndexOriginal();
+
+                                    if(!checkVisited[candidateIndex]){
+
+                                        nextCandidates.push_back(candidatesIterator);
+
+                                    }
+                                    isMax = 1.0; //the current Vertex seems to be a maximum
+
+                                }
+                            }
+                        }
+                        //now everything has been done with the input of the marching frontier, mark it as visited
+
+                        int frontierVertexIndex = marchingInputIterator->getIndexOriginal();
+
+                        checkVisited[frontierVertexIndex] = true;
+
                     }
+
                 }
-                //if the loop survived this step, the close neighbours have smaller values than the current candidate.
 
-                //add the neighbours to candidates
-                candidates.insert( adjacentVertsInOrder.begin(), adjacentVertsInOrder.end());
+                //add the "list of next candidates" to the marching frontier and clear the "list of next candidates"
 
+                marchingFrontier.insert(marchingFrontier.end(), nextCandidates.begin(), nextCandidates.end());
+                nextCandidates.clear();
             }
 
         }
-        cnt:;
 
+        //if the current vertex is the maximum
+        //write at Feature Vector Position 17, a pseudo boolean state.
+        //write at Feature Vector Position 18 its MSII value.
+        //checking a double for equal is something I don't like doing, so I'll do it this way
+        if(isMax > 0.0){
 
+            pVertex->setFeatureElement(16, isMax);
+            pVertex->setFeatureElement(17, precomputedMSIIValue);
 
-
-
-
-
-            }
-
-
-            // experimental: don't use the vertices itself, but their vertIdx
-            //the vectors are now no longer vectors<Vertex*> but vectors<uint64_t>
-
-            //delete all those vertices, that have already been searched
-            sort(candidates.begin(), candidates.end());
-            sort(haveBeenSearched.begin(), haveBeenSearched.end());
-
-            vector<uint64_t> difference;
-            //this appends to differences the elements found in vector1, that are not found in vector2
-            set_difference(candidates.begin(), candidates.end(), haveBeenSearched.begin(), haveBeenSearched.end(), back_inserter( difference ));
-
-            //move the elements from input to haveBeenSearched and clear input
-            haveBeenSearched.insert(haveBeenSearched.end(), inputSet.begin(), inputSet.end());
-            inputSet.clear();
-
-            //move the candidates to input as new input for further iterations and clear candidates
-            inputSet.insert(inputSet.end(), candidates.begin(), candidates.end());
-            candidates.clear();
 
         }
 
 
-
-
-		//Vertices
-
-
-
-        //let's say: currentVal is the value
-        float currentVal = 0.0; //get it from somewhere
-
-
-
-
-
-
-
-
-
-
-        //IF I CHECK DURING THE ALGORITHM, whether or not the currentVertex has the maximum value (so no breaks happen).
-        //AND The algorithm reaches this point
-        //THEN: NO OTHER VERTEX HAS a higher Value
-
-        verticesWithMaximumValue.push_back(currentVertex);
-
-
-    }
-
-    //Communicate the VerticesWithMaximumValue to GigaMesh
+    } // all vertices were looped over
 
     return true;
 
+    //possible additions? If I want to communicate with the clock
+    //Result will be written to terminal
+    /*
+
+    clock_t timerBegin = clock(); //needs to be put at beginning of method call
+
+    clock_t timerEnd = clock();
+    double elapsed_secs = double(timerEnd - timerBegin) / CLOCKS_PER_SEC;
+    cout << "nonMaximum computation took: " << elapsed_secs << " seconds for " << getVertexNr() << " vertices." << endl;
+    cout << "________________DONE______________" << endl;
 
 
 
 
+    */
 
 
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-		pVertex->setFeatureElement(16, isMax); //remember position 17 has index 16.
-
-    }
-    cout << ringSize << "Done" << endl;
-
-
-
-	return true;
-
-
-
-
-	//dim ist hier die Zielposition
-    for(auto pVertex : mVertices)
-	{
-		if(dim >= pVertex->getFeatureVectorLen())
-		{
-			pVertex->resizeFeatureVector(dim + 1);
-		}
-		double funcVal;
-		pVertex->getFuncValue(&funcVal);
-		pVertex->setFeatureElement(dim, funcVal);
-	}
-
-	return true;
-
-
-
-
-
+/*
 	Vertex* pi;
 		vector<Vertex*> Lmax;
 		list<Vertex*> adjacentVertsInOrder;
@@ -16957,6 +16924,7 @@ bool Mesh::funcExpNonMaxSupp(unsigned int ringSize)
 
 
 }
+*/
 
 /*bool Mesh::experimentalNonMaximumSuppression(int ringSize) {
 

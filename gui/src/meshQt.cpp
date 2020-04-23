@@ -1166,7 +1166,7 @@ bool MeshQt::funcExperimentalNonMaximumSuppression()
 {
     QGMDialogEnterText dlgEnterTextVal;
 	dlgEnterTextVal.setInt(1); //1-Ring is standard
-	dlgEnterTextVal.setWindowTitle( tr("Please give a Ring Size") );
+	dlgEnterTextVal.setWindowTitle( tr("How many steps do you want the marching frontier to take?") );
 
 	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int ringSize) {this->funcExpNonMaxSupp(ringSize);});
 
