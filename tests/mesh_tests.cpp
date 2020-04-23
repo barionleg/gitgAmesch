@@ -64,7 +64,7 @@ class MockMesh : public Mesh
 		{
 			return true;
 		}
-		bool showEnterText(Matrix4D* rMatrix4x4) override
+		bool showEnterText(Matrix4D* rMatrix4x4, bool selectedVerticesOnly = false) override
 		{
 			return true;
 		}

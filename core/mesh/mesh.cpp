@@ -567,7 +567,7 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 		    } break;
 		case APPLY_TRANSMAT_SELMVERT: {
 			Matrix4D valuesMatrix4x4;
-			if( !showEnterText( &valuesMatrix4x4 ) ) {
+			if( !showEnterText( &valuesMatrix4x4, true ) ) {
 				break;
 			}
 			retVal = applyTransformation( valuesMatrix4x4, &mSelectedMVerts );

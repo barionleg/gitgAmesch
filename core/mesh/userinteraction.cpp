@@ -85,7 +85,7 @@ bool UserInteraction::showEnterText( vector<double>& rDoubles ,  const char* rTi
 }
 
 //! Stub for higher level methods to enter 16 floating point values for a 4x$ Matrix e.g. using QGMDialogEnterText.
-bool UserInteraction::showEnterText( Matrix4D* rMatrix4x4  ) {
+bool UserInteraction::showEnterText(Matrix4D* rMatrix4x4  , bool selectedVerticesOnly) {
 	cerr << "[UserInteraction::" << __FUNCTION__ << "] ERROR: not implemented for commandlines use!" << endl;
 	return false;
 }

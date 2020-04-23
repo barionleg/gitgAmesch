@@ -48,6 +48,8 @@ class QGMDialogMatrix : public QDialog
 		void setMeshCog(const Vector3D& meshCog);
 		void setMeshBBoxCenter(const Vector3D& meshBBoxCenter);
 
+	signals:
+		void applyClicked();
 	public slots:
 		void copyToClipboard() const;
 		void fetchClipboard( );

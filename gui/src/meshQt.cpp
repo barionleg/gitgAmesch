@@ -607,7 +607,7 @@ bool MeshQt::showEnterText(
 }
 
 //! Let the user enter a 4x4 matrix i.e. 16 floating point values.
-bool MeshQt::showEnterText( Matrix4D* rMatrix4x4 ) {
+bool MeshQt::showEnterText(Matrix4D* rMatrix4x4 , bool selectedVerticesOnly) {
 
 	QGMDialogMatrix dlgEnterMatrix;
 	dlgEnterMatrix.setWindowTitle( tr("Enter 4x4 Matrix"));
@@ -618,6 +618,20 @@ bool MeshQt::showEnterText( Matrix4D* rMatrix4x4 ) {
 
 	dlgEnterMatrix.setMeshCog(cog);
 	dlgEnterMatrix.setMeshBBoxCenter(bboxCenter);
+
+	connect(&dlgEnterMatrix, &QGMDialogMatrix::applyClicked, [this, &dlgEnterMatrix, selectedVerticesOnly](){
+		vector<double> values;
+		dlgEnterMatrix.getValues(values);
+		Matrix4D matrix(values);
+		if(selectedVerticesOnly)
+		{
+			applyTransformation(matrix, &mSelectedMVerts);
+		}
+		else
+		{
+			applyTransformationToWholeMesh(matrix);
+		}
+	});
 
 	if(dlgEnterMatrix.exec() == QDialog::Rejected )
 	{

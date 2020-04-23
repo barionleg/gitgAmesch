@@ -121,6 +121,7 @@ QGMDialogMatrix::QGMDialogMatrix(QWidget *parent) :
 
 
 	connect(ui->buttonBox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, &QGMDialogMatrix::resetValues);
+	connect(ui->buttonBox->button(QDialogButtonBox::Apply), &QPushButton::clicked, this, &QGMDialogMatrix::applyClicked);
 
 	updateMatrixValues({1.0, 0.0, 0.0, 0.0,
 	                    0.0, 1.0, 0.0, 0.0,
