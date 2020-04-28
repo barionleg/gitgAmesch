@@ -230,7 +230,8 @@ bool generateFeatureVectors(
                 unsigned int xyzDim,
                 unsigned int radiiCount,
                 bool         replaceFiles,
-                bool                           rAreaOnly,
+                bool                           rNoVolumeIntInv,
+                bool                           rNoAreaIntInv,
                 bool                           rNoNormalsFile,
                 bool                           rConcatResults,
                 const string&                  rHostname,
@@ -275,43 +276,45 @@ bool generateFeatureVectors(
 
 	// Output file for volume descriptor (1st integral invariant)
 	std::filesystem::path fileNameOutVol;
-	if( !rAreaOnly ) {
+	if( !rNoVolumeIntInv ) {
 		// Check: Output file for volume descriptor
 		fileNameOutVol = fileNameOut;
 		fileNameOutVol += ".volume.mat";
 		if( std::filesystem::exists( fileNameOutVol ) ) {
 			if( !replaceFiles ) {
-				cerr << "[GigaMesh] File '" << fileNameOutVol << "' already exists!" << endl;
+				std::cerr << "[GigaMesh] File '" << fileNameOutVol << "' already exists!" << std::endl;
 				return( false );
 			}
-			cerr << "[GigaMesh] Warning: File '" << fileNameOutVol << "' will be replaced!" << endl;
+			std::cerr << "[GigaMesh] Warning: File '" << fileNameOutVol << "' will be replaced!" << std::endl;
 		}
 	}
 
 	// Output for the concatenated results (1st and 2nd integral invariant)
 	std::filesystem::path fileNameOutVS;
-	if( !rAreaOnly & rConcatResults ) {
+	if( !rNoVolumeIntInv & !rNoAreaIntInv & rConcatResults ) {
 		// Check: Output file for volume AND surface descriptor
 		fileNameOutVS = fileNameOut;
 		fileNameOutVS += ".vs.mat";
 		if( std::filesystem::exists(fileNameOutVS)) {
 			if( !replaceFiles ) {
-				cerr << "[GigaMesh] File '" << fileNameOutVS << "' already exists!" << endl;
+				std::cerr << "[GigaMesh] File '" << fileNameOutVS << "' already exists!" << std::endl;
 				return( false );
 			}
-			cerr << "[GigaMesh] Warning: File '" << fileNameOutVS << "' will be replaced!" << endl;
+			std::cerr << "[GigaMesh] Warning: File '" << fileNameOutVS << "' will be replaced!" << std::endl;
 		}
 	}
 
 	// Output file for surface descriptor (2nd integral invariant)
 	std::filesystem::path fileNameOutSurf( fileNameOut );
-	fileNameOutSurf += ".surface.mat";
-	if( std::filesystem::exists( fileNameOutSurf ) ) {
-		if( !replaceFiles ) {
-			cerr << "[GigaMesh] File '" << fileNameOutSurf << "' already exists!" << endl;
-			return( false );
+	if( !rNoAreaIntInv ) {
+		fileNameOutSurf += ".surface.mat";
+		if( std::filesystem::exists( fileNameOutSurf ) ) {
+			if( !replaceFiles ) {
+				std::cerr << "[GigaMesh] File '" << fileNameOutSurf << "' already exists!" << std::endl;
+				return( false );
+			}
+			std::cerr << "[GigaMesh] Warning: File '" << fileNameOutSurf << "' will be replaced!" << std::endl;
 		}
-		cerr << "[GigaMesh] Warning: File '" << fileNameOutSurf << "' will be replaced!" << endl;
 	}
 
 	// Output file for the technical meta-data
@@ -319,21 +322,26 @@ bool generateFeatureVectors(
 	fileNameOutMeta += ".info.txt";
 	if( std::filesystem::exists( fileNameOutMeta ) ) {
 		if( !replaceFiles ) {
-			cerr << "[GigaMesh] File '" << fileNameOutMeta << "' already exists!" << endl;
+			std::cerr << "[GigaMesh] File '" << fileNameOutMeta << "' already exists!" << std::endl;
 			return( false );
 		}
-		cerr << "[GigaMesh] Warning: File '" << fileNameOutMeta << "' will be replaced!" << endl;
+		std::cerr << "[GigaMesh] Warning: File '" << fileNameOutMeta << "' will be replaced!" << std::endl;
 	}
 
 	// Output file for 3D data including the (1st) volumetric feature vectors.
 	std::filesystem::path fileNameOut3D( fileNameOut );
+	if( rNoVolumeIntInv ) {
+		fileNameOut3D += ".surface";
+	} else {
+		fileNameOut3D += ".volume";
+	}
 	fileNameOut3D += ".ply";
 	if( std::filesystem::exists( fileNameOut3D )  ) {
 		if( !replaceFiles ) {
-			cerr << "[GigaMesh] File '" << fileNameOut3D << "' already exists!" << endl;
+			std::cerr << "[GigaMesh] File '" << fileNameOut3D << "' already exists!" << std::endl;
 			return( false );
 		}
-		cerr << "[GigaMesh] Warning: File '" << fileNameOut3D << "' will be replaced!" << endl;
+		std::cerr << "[GigaMesh] Warning: File '" << fileNameOut3D << "' will be replaced!" << std::endl;
 	}
 
 	// All parameters OK => infos to stdout and file with metadata  -----------------------------------------------------------
@@ -359,32 +367,42 @@ bool generateFeatureVectors(
 	fileStrOutMeta << "Radius:             " << radius << " mm (unit assumed)" << endl;
 	fileStrOutMeta << "Radii:              2^" << radiiCount << " = " << std::pow( 2.0, static_cast<float>(radiiCount) ) << endl;
 	fileStrOutMeta << "Rastersize:         " << xyzDim << "^3" << endl;
+	if( rNoVolumeIntInv ) {
+		fileStrOutMeta << "Volume integral:    No" << std::endl;
+	} else {
+		fileStrOutMeta << "Volume integral:    Yes" << std::endl;
+	}
+	if( rNoAreaIntInv ) {
+		fileStrOutMeta << "Area integral:      No" << std::endl;
+	} else {
+		fileStrOutMeta << "Area integral:      Yes" << std::endl;
+	}
 
 	// Compute relative radii:
 	uint64_t multiscaleRadiiSize = std::pow( 2.0, static_cast<double>(radiiCount) );
 	double*       multiscaleRadii     = new double[multiscaleRadiiSize];
 	for( uint i=0; i<multiscaleRadiiSize; i++ ) {
-		multiscaleRadii[i] = 1.0 - static_cast<double>(i)/
-		                            static_cast<double>(multiscaleRadiiSize);
+		multiscaleRadii[i] = 1.0 - static_cast<double>(i) /
+		                           static_cast<double>(multiscaleRadiiSize);
 	}
 
 	// Set the formatting properties of the output
 	std::cout << setprecision( 2 ) << std::fixed;
 	fileStrOutMeta << setprecision( 2 ) << std::fixed;
 
-	cout << "[GigaMesh] Radii: (realtive)          ";
-	fileStrOutMeta << "Radii (realtive):  ";
+	std::cout << "[GigaMesh] Radii: (relative)          ";
+	fileStrOutMeta << "Radii (relative):  ";
 	for( uint i=0; i<multiscaleRadiiSize; i++ ) {
-		cout << " " << multiscaleRadii[i];
+		std::cout << " " << multiscaleRadii[i];
 		fileStrOutMeta << " " << multiscaleRadii[i];
 	}
-	cout << endl;
-	fileStrOutMeta << endl;
-	fileStrOutMeta << "Radii (ansolute):  ";
+	std::cout << std::endl;
+	fileStrOutMeta << std::endl;
+	fileStrOutMeta << "Radii (absolute):  ";
 	for( uint i=0; i<multiscaleRadiiSize; i++ ) {
 		fileStrOutMeta << " " << ( multiscaleRadii[i] * radius );
 	}
-	fileStrOutMeta << endl;
+	fileStrOutMeta << std::endl;
 
 	// Info about files
 	std::cout << "[GigaMesh] File to write technical Meta-Data:   " << fileNameOutMeta << std::endl;
@@ -406,7 +424,7 @@ bool generateFeatureVectors(
 	bool readSucess;
 	Mesh someMesh( fileNameIn, readSucess );
 	if( !readSucess ) {
-		cerr << "[GigaMesh] Error: Could not open file '" << fileNameIn << "'!" << endl;
+		std::cerr << "[GigaMesh] Error: Could not open file '" << fileNameIn << "'!" << std::endl;
 		return( false );
 	}
 
@@ -463,12 +481,14 @@ bool generateFeatureVectors(
 	fileStrOutMeta << "Username:           " << rUsername << std::endl;
 
 	double* descriptVolume{nullptr};
-	if( !rAreaOnly ) {
+	if( !rNoVolumeIntInv ) {
 		descriptVolume  = new double[someMesh.getVertexNr()*multiscaleRadiiSize];
 	}
 
 	double* descriptSurface{nullptr};
-	descriptSurface = new double[someMesh.getVertexNr()*multiscaleRadiiSize];
+	if( !rNoAreaIntInv ) {
+		descriptSurface = new double[someMesh.getVertexNr()*multiscaleRadiiSize];
+	}
 
 	double* patchNormal{nullptr};
 	if( !rNoNormalsFile ) {
@@ -502,7 +522,7 @@ bool generateFeatureVectors(
 	struct tm* timeinfo{nullptr};
 	time( &rawtime );
 	timeinfo = localtime( &rawtime );
-	cout << "[GigaMesh] Start date/time is: " << asctime( timeinfo );// << endl;
+	std::cout << "[GigaMesh] Start date/time is: " << asctime( timeinfo );// << std::endl;
 	fileStrOutMeta << "Start date/time is: " << asctime( timeinfo ); // no endl required as asctime will add a linebreak
 
 	time_t timeStampParallel = time( nullptr ); // clock() is not multi-threading save (to measure the non-CPU or real time ;) )
@@ -634,21 +654,28 @@ bool generateFeatureVectors(
 		} else {
 			filestrSurf << fixed << setprecision( 10 );
 			for( uint64_t i=0; i<someMesh.getVertexNr(); i++ ) {
-				//Vertex* currVert = someMesh.getVertexPos( i );
-				//currVert->assignFeatureVec( &descriptSurface[i*multiscaleRadiiSize], multiscaleRadiiSize );
+				// Assign 2nd feature vector only in case the 1st is not present!
+				if( descriptVolume == NULL ) {
+					Vertex* currVert = someMesh.getVertexPos( i );
+					if( !currVert->assignFeatureVec( &descriptSurface[i*multiscaleRadiiSize],
+					                                 multiscaleRadiiSize ) ) {
+						std::cerr << "[GigaMesh] Assignment of area based feature vectors to vertices failed for Vertex No. " << i << "!" << std::endl;
+					}
+				}
+				// Index:
 				filestrSurf << i;
 				// Scales:
 				for( uint j=0; j<multiscaleRadiiSize; j++ ) {
 					filestrSurf << " " << descriptSurface[i*multiscaleRadiiSize+j];
 				}
-				filestrSurf << endl;
+				filestrSurf << std::endl;
 			}
 			filestrSurf.close();
 			std::cout << "[GigaMesh] Surface descriptors stored in:            " << fileNameOutSurf << std::endl;
 		}
 	}
 
-	// File for normal estimated as byproduct of the 2nd integral invariant:
+	// File for normal estimated as byproduct of the integral invariants:
 	if( (!fileNameOutPatchNormal.empty()) && ( patchNormal != NULL ) ) {
 		fstream filestrNormal;
 		filestrNormal.open( fileNameOutPatchNormal, fstream::out );
@@ -656,6 +683,7 @@ bool generateFeatureVectors(
 			std::cerr << "[GigaMesh] ERROR: Could not open '" << fileNameOutPatchNormal << "' for writing!" << std::endl;
 			retVal = false;
 		} else {
+//			vector<MeshIO::grVector3ID> patchNormalsToAssign;
 			filestrNormal << fixed << setprecision( 10 );
 			for( uint64_t i=0; i<someMesh.getVertexNr(); i++ ) {
 				// Index of the vertex
@@ -665,9 +693,16 @@ bool generateFeatureVectors(
 				filestrNormal << " " << patchNormal[i*3+1];
 				filestrNormal << " " << patchNormal[i*3+2];
 				filestrNormal << std::endl;
+//				MeshIO::grVector3ID newPatchNormal;
+//				newPatchNormal.mId = i;
+//				newPatchNormal.mX = patchNormal[i*3];
+//				newPatchNormal.mY = patchNormal[i*3+1];
+//				newPatchNormal.mZ = patchNormal[i*3+2];
+//				patchNormalsToAssign.push_back( newPatchNormal );
 			}
 			filestrNormal.close();
 			std::cout << "[GigaMesh] Patch normal stored in:                   " << fileNameOutPatchNormal << std::endl;
+//			someMesh.assignImportedNormalsToVertices(&patchNormalsToAssign);
 		}
 	}
 
@@ -697,9 +732,12 @@ bool generateFeatureVectors(
 		}
 	}
 
-	// PLY file INCLUDING the feature vector for volume descriptor (1st integral invariant)
-	// as well as a newly computed function value.
-	if( (!fileNameOut3D.empty()) && ( descriptVolume != NULL ) ) {
+	// PLY file INCLUDING ONE feature vector using the
+	// volume descriptor (1st integral invariant), when both are present -- see above.
+	// Additionally a function value is computed using the feature vector.
+	if( (!fileNameOut3D.empty()) && 
+	    ( ( descriptVolume != NULL ) || ( descriptSurface != NULL ) )
+	    ) {
 		// Apply feature vector metric:
 		//--------------------------------------
 		//vector<double> referenceVector;
@@ -720,6 +758,7 @@ bool generateFeatureVectors(
 	}
 
 	// Done
+	fileStrOutMeta.close();
 	std::cout << "[GigaMesh] Writing the files took " << static_cast<int>( time( nullptr ) ) - static_cast<int>( timeStampParallel ) << " seconds." << std::endl;
 
 	if( descriptVolume ) {
@@ -728,9 +767,11 @@ bool generateFeatureVectors(
 	if( descriptSurface  ) {
 		delete[] descriptSurface;
 	}
+	if( patchNormal  ) {
+		delete[] patchNormal;
+	}
 	delete[] multiscaleRadii;
 
-	fileStrOutMeta.close();
 	return( retVal );
 }
 
@@ -825,7 +866,8 @@ void printHelp( const char* rExecName )
 	std::cout << "  -l, --voxelSize SIZE                    Discretization for the (1st) volume integral invariant. Default is 256." << std::endl;
 	std::cout << "                                          Recommended: should be a power of two. Values of 512 and 1024 can increase the results" << std::endl;
 	std::cout << "                                          slightly at the cost of extra compute time." << std::endl;
-	std::cout << "  -2, --areaintegralOnly                  Compute only the (2nd) patch area integral invariant." << std::endl;
+	std::cout << "  -1, --no-volume-integral                Skip the (1st) volume integral invariant." << std::endl;
+	std::cout << "  -2, --no-area-integral                  Skip the (2nd) patch area integral invariant." << std::endl;
 	std::cout << std::endl;
 	std::cout << "Options for testing and debugging:" << std::endl;
 	std::cout << "    , --log-level [0-4]                   Sets the log level of this application.\n"
@@ -848,7 +890,8 @@ int main( int argc, char *argv[] ) {
 	unsigned int xyzDim{_DEFAULT_FEATUREGEN_XYZDIM_};
 	unsigned int radiiCount{_DEFAULT_FEATUREGEN_RADIICOUNT_};
 	bool         replaceFiles{false};
-	bool         areaOnly{false};
+	bool         noVolumeIntegral{false};
+	bool         noAreaIntegral{false};
 	bool         noNormalsFile{false};
 	bool         concatResults{false};
 
@@ -857,7 +900,8 @@ int main( int argc, char *argv[] ) {
 		{ "voxelSize"         , required_argument, nullptr, 'l' },
 		{ "numScales"         , required_argument, nullptr, 'n' },
 		{ "overwrite-existing", no_argument      , nullptr, 'k' },
-		{ "areaintegralOnly"  , no_argument      , nullptr, '2' },
+		{ "no-volume-integral", no_argument      , nullptr, '1' },
+		{ "no-area-integral"  , no_argument      , nullptr, '2' },
 		{ "no-normals-file"   , no_argument      , nullptr,  0  },
 		{ "output-suffix"     , required_argument, nullptr, 's' },
 		{ "concat-results"    , no_argument      , nullptr,  0  },
@@ -874,7 +918,7 @@ int main( int argc, char *argv[] ) {
 	int optionIndex{0};
 	int tmpInt{0};
 	bool radiusSet{false};
-	while( ( c = getopt_long_only( argc, argv, "r:l:n:k2s:vh",
+	while( ( c = getopt_long_only( argc, argv, "r:l:n:k12s:vh",
 	                               longOptions, &optionIndex) ) != -1 ) {
 		switch( c ) {
 			//! Option r: absolut radius (in units, default: 1.0)
@@ -905,20 +949,26 @@ int main( int argc, char *argv[] ) {
 				cout << "[GigaMesh] Warning: files might be replaced!" << endl;
 				replaceFiles = true;
 				break;
-			//! Option a: compute area/surface based integral onyl
+			//! Option 2: skip area/surface based integral invariant
+			case '1':
+				std::cout << "[GigaMesh] Warning: volume (1st) integral invariant will NOT be computed!" << std::endl;
+				noVolumeIntegral = true;
+				break;
+			//! Option 2: skip area/surface based integral invariant
 			case '2':
-				cout << "[GigaMesh] Warning: Only area integrals will be computed!" << endl;
-				areaOnly = true;
+				std::cout << "[GigaMesh] Warning: area (2nd) integral invariant will NOT be computed!" << std::endl;
+				noAreaIntegral = true;
 				break;
 			//! Option s: output file suffix
 			case 's':
 				optFileSuffix = std::string( optarg );
 				break;
-
+			//! Option h: print help
 			case 'h':
 				printHelp( argv[0] );
 				std::exit( EXIT_SUCCESS );
 				break;
+			//! Option v: print version
 			case 'v':
 				printVersion();
 				std::exit( EXIT_SUCCESS );
@@ -951,6 +1001,11 @@ int main( int argc, char *argv[] ) {
 				std::exit( EXIT_FAILURE );
 		}
 	}
+	// Check disable options
+	if( noVolumeIntegral && noAreaIntegral && noNormalsFile ) {
+		std::cerr << "[GigaMesh] ERROR: Nothing to do, because all computation were deactivated!" << std::endl;
+		std::exit( EXIT_FAILURE );
+	} 
 	// Check argument ranges
 	if( radius <= 0.0 ) {
 		std::cerr << "[GigaMesh] Error: negative or zero radius given: " << radius << " (option -r)!" << std::endl;
@@ -985,7 +1040,8 @@ int main( int argc, char *argv[] ) {
 			                             xyzDim,
 			                             radiiCount,
 			                             replaceFiles,
-			                             areaOnly,
+			                             noVolumeIntegral,
+			                             noAreaIntegral,
 			                             noNormalsFile,
 			                             concatResults,
 			                             hostName, userName
