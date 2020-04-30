@@ -51,8 +51,10 @@ class TexturedMeshRenderer
 				QVector4D fixedWorldDiffuse;
 				QVector4D fixedWorldSpecular;
 				QVector4D ambient;
+				QVector4D clipPlane;
 				QVector3D lightDirFixedCam;
 				QVector3D lightDirFixedWorld;
+				QVector3D clipVertexPos;
 				double shininess = 1.0;
 				bool lightEnabled = false;
 		};

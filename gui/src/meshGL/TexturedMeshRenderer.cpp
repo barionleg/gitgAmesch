@@ -134,6 +134,8 @@ void TexturedMeshRenderer::render(const QMatrix4x4& projectionMatrix, const QMat
 	mShader->setUniformValue("AmbientProduct"            , lightInfo.ambient           );
 	mShader->setUniformValue("Shininess"                 , static_cast<GLfloat>(lightInfo.shininess));
 	mShader->setUniformValue("uBackFaceColor"            , mBackFaceColor              );
+	mShader->setUniformValue("uClipPlane0"               , lightInfo.clipPlane         );
+	mShader->setUniformValue("uClipBefore"               , lightInfo.clipVertexPos     );
 
 	mGL.glActiveTexture(GL_TEXTURE0);
 	PRINT_OPENGL_ERROR("active texture");

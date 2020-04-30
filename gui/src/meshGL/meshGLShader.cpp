@@ -3917,6 +3917,21 @@ void MeshGLShader::vboPaintTextured()
 	}
 	// ----------------------------------------------------
 	PRINT_OPENGL_ERROR("unknown error");
+
+	// Set the mesh plane as clipping plane:
+	double clipPlane[4];
+	getPlaneHNF( clipPlane );
+	lightInfo.clipPlane = QVector4D(clipPlane[0], clipPlane[1], clipPlane[2], clipPlane[3]);
+	// Set the COG of the selected primitve as clip plane (implictly using the camera's view direction):
+	if( mPrimSelected != nullptr ) {
+		Vector3D selPrimCog = mPrimSelected->getCenterOfGravity();
+		lightInfo.clipVertexPos = QVector3D( selPrimCog.getX(), selPrimCog.getY(), selPrimCog.getZ() );
+	}
+	else
+	{
+		lightInfo.clipVertexPos = QVector3D(0.0,0.0,0.0);
+	}
+
 	mTexturedMeshRenderer.render(ppvMatrix, pmvMatrix, *mMeshTextured, lightInfo);
 
 }
