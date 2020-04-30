@@ -205,6 +205,7 @@
      <addaction name="actionFuncValToFeatureVector"/>
      <addaction name="separator"/>
      <addaction name="actionExperimentalNonMaximumSuppression"/>
+     <addaction name="actionExperimentalWatershed"/>
     </widget>
     <widget class="QMenu" name="menuColorPerVertexToFunctionValue">
      <property name="title">
@@ -4383,6 +4384,11 @@ p, li { white-space: pre-wrap; }
   <action name="actionExperimentalNonMaximumSuppression">
    <property name="text">
     <string>Experimental Non Maximum Suppression</string>
+   </property>
+  </action>
+  <action name="actionExperimentalWatershed">
+   <property name="text">
+    <string>Experimental Watershed</string>
    </property>
   </action>
  </widget>

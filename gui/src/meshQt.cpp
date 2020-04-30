@@ -314,6 +314,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 
 		//MSEx
 	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalNonMaximumSuppression()),    this, SLOT(funcExperimentalNonMaximumSuppression()));
+	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalWatershed()),                this, SLOT(funcExperimentalWatershed())            );
 	// #####################################################################################################################################################
 
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1165,10 +1166,24 @@ bool MeshQt::funcValsToFeatureVector()
 bool MeshQt::funcExperimentalNonMaximumSuppression()
 {
     QGMDialogEnterText dlgEnterTextVal;
-	dlgEnterTextVal.setInt(1); //1-Ring is standard
-	dlgEnterTextVal.setWindowTitle( tr("How many steps do you want the marching frontier to take?") );
+	dlgEnterTextVal.setDouble(5.0); //5 mm is standard for non maximum suppression distance
+	dlgEnterTextVal.setWindowTitle( tr("At what distance in millimeter do you want non maxima to be suppressed?") );
 
-	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int ringSize) {this->funcExpNonMaxSupp(ringSize);});
+	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double NMSDistance) {this->funcExpNonMaxSupp(NMSDistance);});
+
+	//I am not sure, if this does anything else than return true, if all went well
+	return dlgEnterTextVal.exec() == QDialog::Accepted;
+	//return true;
+}
+
+//watershed likely needs no input
+bool MeshQt::funcExperimentalWatershed()
+{
+    QGMDialogEnterText dlgEnterTextVal;
+	dlgEnterTextVal.setDouble(1.0);
+	dlgEnterTextVal.setWindowTitle( tr("Input not needed right now") );
+
+	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double deletableInput) {this->funcExpWatershed(deletableInput);});
 
 	//I am not sure, if this does anything else than return true, if all went well
 	return dlgEnterTextVal.exec() == QDialog::Accepted;

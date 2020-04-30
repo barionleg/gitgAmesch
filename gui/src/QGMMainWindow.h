@@ -301,9 +301,6 @@ signals:
 	//.
 	void sSelPrimViewReference();                            //!< signal to set the selected primitive as reference point of the camera's view.
 
-        //MSExp
-        //void sNonMaxSupp();
-
 	// --- Analyze -----------------------------------------------------------------------------------------------------------------------------------------
 	void labelFaces();                                       //!< trigger labeling with optional removal of small areas.
 	void labelSelectionToSeeds();                            //!< triggers the storage of selected vertices as seeds for labeling.
@@ -370,7 +367,8 @@ signals:
 	void sFuncVertFeatAutoCorrSelVert();                     //!< Visualize Auto-Correlation and Correlation to a selected Vertex using OpenGL.
 	void sFuncValToFeatureVector();                          //!< Assign function value to Nth feature vector component
 	//MSExp
-	void sFuncExperimentalNonMaximumSuppression();              //!< Experimental Non Maximum Suppression
+	void sFuncExperimentalNonMaximumSuppression();           //!< Experimental Non Maximum Suppression
+	void sFuncExperimentalWatershed();                       //!< Experimental Watershed
 	// # Distance to plane, line, selected primitive and cone
 	void visualizeDistanceToPlane();                         //!< triggers the plane distance estimation.
 	void visualizeDistanceToCone();                          //!< triggers distance to cone estimation (if cone has been selected)

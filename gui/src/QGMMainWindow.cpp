@@ -226,10 +226,6 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	//.
 	QObject::connect( actionSelPrimViewReference,     SIGNAL(triggered()),  this,       SIGNAL(sSelPrimViewReference()) );
 
-        //MSExp
-    //QObject::connect( actionNon_Maximum_Suppression,         SIGNAL(triggered()),         this, SLOT(customNonMaximumSuppression())             );
-
-
 	// --- Analyze------------------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( actionLabelFaces,                    SIGNAL(triggered()), this, SIGNAL(labelFaces())            );
 	QObject::connect( actionLabelSelectionToSeeds,         SIGNAL(triggered()), this, SIGNAL(labelSelectionToSeeds()) );
@@ -296,7 +292,8 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionFuncValToFeatureVector,         SIGNAL(triggered()),   this,       SIGNAL(sFuncValToFeatureVector())              );
 
 	// MSExp
-	QObject::connect( actionExperimentalNonMaximumSuppression,         SIGNAL(triggered()),         this, SIGNAL(sFuncExperimentalNonMaximumSuppression())             );
+	QObject::connect( actionExperimentalNonMaximumSuppression,  SIGNAL(triggered()),         this, SIGNAL(sFuncExperimentalNonMaximumSuppression()) );
+    QObject::connect( actionExperimentalWatershed,              SIGNAL(triggered()),         this, SIGNAL(sFuncExperimentalWatershed())             );
 
 
 	//! \todo Rename regarding new menu structure.

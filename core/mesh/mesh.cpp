@@ -16626,65 +16626,232 @@ bool Mesh::getAxisFromCircleCenters( Vector3D* rTop, Vector3D* rBottom ) {
 
 //MSExp
 
+//! An experimental non maximum suppression method.
+//! Takes as input the distance, how far NMS should look (how often the frontier progresses)
+//! will enlarge the feature vectors of all vertices to size 18
+//! CAREFUL maybe I should think about datatypes that don't allow duplicates (sets) (and keep their ordering?)
+//! CAREFUL I should check more often if lists are empty
+//! (CAREFUL only meshes with no more than 10000000 Vertices allowed) legacy
+//! Data will be written at Feature Vector Position 17 (boolean if maximum) and 18 (if maximum, then averaged MSII)
+bool Mesh::funcExpNonMaxSupp(double NMSDistance)
+{
+    //for measuring the time it took to carry out NMS
+    clock_t timerBegin = clock();
+
+    //legacy
+    /*
+    int allowedNumberOfVertices = 10000000;
+    uint64_t actualNumberOfVertices = getVertexNr();
+
+    if(actualNumberOfVertices > allowedNumberOfVertices){
+        cout << "Apologies, this method can only handle meshes with no more than " + allowedNumberOfVertices + " vertices." << endl;
+        return false;
+    }
+    */
+
+    //loop over all vertices
+    for(auto pVertex : mVertices){
+
+        //legacy
+        //initialize the checks for visited vertices with false
+        //maybe use methods that already exist in vertex.cpp
+        /*
+        bool checkVisited[allowedNumberOfVertices];
+        for (int i = 0; i < allowedNumberOfVertices ; i++){
+            checkVisited[i] = false;
+        }
+        */
+
+        //if the feature vector has less than 18 elements, resize it to length 18
+        if(18 > pVertex->getFeatureVectorLen())
+		{
+			pVertex->resizeFeatureVector(18);
+		}
+		//per default, it is guessed not to be the (local) maximum, currently resizing does the same, as at Positions 17 and 18 a zero gets written.
+		double isMax = 0.0;
+		bool biggerValueFound = false;
+
+		//acquire the MSII-value for this vertex
+
+		double averagedPrecomputedMSIIValue;
+		double MSIIComponent1;
+		double MSIIComponent2;
+		double MSIIComponent3;
+		double MSIIComponent4;
+		double MSIIComponent5;
+
+		//assumption: the MSII-value (we want) is located at position 0. (Possibly 0 till 4 have the values because of multi scale)
+		pVertex->getFeatureElement(0, &MSIIComponent1);
+		pVertex->getFeatureElement(1, &MSIIComponent2);
+		pVertex->getFeatureElement(2, &MSIIComponent3);
+		pVertex->getFeatureElement(3, &MSIIComponent4);
+		pVertex->getFeatureElement(4, &MSIIComponent5);
+
+		//average 5 MSII values.
+		averagedPrecomputedMSIIValue = (MSIIComponent1 + MSIIComponent2 + MSIIComponent3 + MSIIComponent4 + MSIIComponent5)/5.0;
+
+		//avoid using square root to speed things up
+		double squaredDistance = NMSDistance * NMSDistance;
+
+		//add every vertex to the candidate list, that is within the distance we want
+		list<Vertex*> verticesToExamine;
+
+		//loop over all vertices, they may be candidates
+		for (auto pEVertex : mVertices){
+
+            //only consider vertices which are not the current vertex
+            if(pVertex!=pEVertex){
+
+                double calculatedDistanceComponentX = (pEVertex->getX() - pVertex->getX()) * (pEVertex->getX() - pVertex->getX());
+                double calculatedDistanceComponentY = (pEVertex->getY() - pVertex->getY()) * (pEVertex->getY() - pVertex->getY());
+                double calculatedDistanceComponentZ = (pEVertex->getZ() - pVertex->getZ()) * (pEVertex->getZ() - pVertex->getZ());
+
+                //add the candidate vertex to candidate list, if the calculated distance to current vertex is not bigger the the input distance
+
+                if((calculatedDistanceComponentX + calculatedDistanceComponentY + calculatedDistanceComponentZ) <= squaredDistance){
+
+                    verticesToExamine.push_back(pEVertex);
+
+                }
+            }
+		}
+
+
+		//loop over candidates to investigate if current Vertex is maximum
+		for(auto& candidatesIterator : verticesToExamine){
+
+            if(!biggerValueFound){
+
+                double candidateAveragedMSIIValue;
+
+                double candidateMSIIComponent1;
+            	double candidateMSIIComponent2;
+            	double candidateMSIIComponent3;
+            	double candidateMSIIComponent4;
+            	double candidateMSIIComponent5;
+
+
+                candidatesIterator->getFeatureElement(0, &candidateMSIIComponent1);
+                candidatesIterator->getFeatureElement(0, &candidateMSIIComponent2);
+                candidatesIterator->getFeatureElement(0, &candidateMSIIComponent3);
+                candidatesIterator->getFeatureElement(0, &candidateMSIIComponent4);
+                candidatesIterator->getFeatureElement(0, &candidateMSIIComponent5);
+
+                candidateAveragedMSIIValue = (candidateMSIIComponent1 + candidateMSIIComponent2 + candidateMSIIComponent3 + candidateMSIIComponent4 + candidateMSIIComponent5)/5;
+
+                //is smaller EQUAL really correct here?
+                if(averagedPrecomputedMSIIValue <= candidateAveragedMSIIValue){
+
+                    biggerValueFound = true;
+                    isMax = 0.0;
+
+                } else {
+
+                    isMax = 1.0; //the current Vertex seems to be a maximum
+
+                }
+            }
+		}
+		//if after this loop the current vertex has a isMax status of 1.0, it was found to be the maximunm.
+
+		//if the current vertex is the maximum
+        //write at Feature Vector Position 17, a pseudo boolean state.
+        //write at Feature Vector Position 18 its MSII value.
+        //checking a double for equal is something I don't like doing, so I'll do it this way
+        if(isMax > 0.0){
+
+            pVertex->setFeatureElement(16, isMax);
+            pVertex->setFeatureElement(17, averagedPrecomputedMSIIValue);
+
+
+        }
+        //this else-block is important to update the values calculated by this method for example in case another distance is chosen.
+        //without this else-block outdated values may remain in the feature vector.
+        //alternatively the reset to zero could be implemented at the beginning of the method.
+        else {
+
+            pVertex->setFeatureElement(16, 0.0);
+            pVertex->setFeatureElement(17, 0.0);
+
+        }
+    } // all vertices were looped over
+
+    return true;
+
+    //possible additions? If I want to communicate with the clock
+    //Result will be written to terminal
+
+
+
+    clock_t timerEnd = clock();
+    double elapsed_secs = double(timerEnd - timerBegin) / CLOCKS_PER_SEC;
+    cout << "Non Maximum Suppression computation took: " << elapsed_secs << " seconds for " << getVertexNr() << " vertices." << endl;
+    cout << "________________DONE______________" << endl;
+}
+
+//! An experimental Watershed method using values computed in the Non Maximum Suppression Method
+//! CAREFUL this method may need some memory
+bool Mesh::funcExpWatershed(double deletableInput){
+
+    //retrieve all vertices which are maxima
+    //they have 1.0 at feature vector position 17 (index 16)
+
+    //they form the MSIImaxima list
+    //get the size of this list: these many clusters will exist
+
+    //discarded idea
+    //(I want to take just the adjacent vertices, but when adding the vertices I need to update the list.)
+
+    //resize all feature vectors to size 19
+    //at Position 19 the label will be written
+
+    //subtract the list of maxima from all vertices
+    //call it WatershedInput
+
+    //create an array of booleans to look up, if a vertex was labeled.
+
+    //for every vertex compute its distance to every maximum
+    //result
+    //a vector the size of WaterShedInput filled with vectors the size of maxima.
+
+    //das folgende muss nur so oft durchgefuert werden: size of WatershedInput.
+    //Alternativ: Nimm eine Liste und loesche angeguckte Elemente. Ende, sobald die Liste leer ist.
+
+    //Jetzt: jedes Maxima holt sich den euklidisch naechsten Vertex, label wird vergeben, look up fuer den Vertex wird auf zero gesetzt
+    //Hoert auf, sobald alle vertices gelabeled sind
+
+
+
+
+
+
+
+    //maybe cut away whatever does not belong to a wedge
+    //or maybe do this in a following step
+
+    return true;
+
+}
+
+//Below: Legacy Version with Ringsize instead of euclidian distance
+
 /*
-ich baue hier den Algorithmus rein.
-
-1. Wie wurde NonMaxSupp 1-er Ring implementiert?
-
-2. Enthält meshQt.cpp Methoden, die uns nuetzen?
-
-3. Enthält mesh.cpp Methoden, die uns nuetzen?
-
-4. Da sei ein Mesh, in welcher Form?
-Wie ist .obj aufgebaut? Welche Endung haben andere Testobjekte im GigaMesh-ordner? Und wie ist diese Art aufgebaut, sind es z.B. Listen?
-
-5. Der MSII Wert sei maximal oder minimal?
-Annahme maximaler MSII-Wert
-
-6. Wie hat Bartosz im Pythoncode gearbeitet?
-
-7. Wie erhält man für eine Vertex die angrenzenden?
-
-8. Vorschlag: Algorithmus:
-
-Abstand in dem gesucht wird: a (soll nicht 0 sein oder so)
-Durchführen für jeden Vertex:
-
-V
-
-Liste 0: Input, V drinne
-Liste 1: abgeschritten, anfangs leer
-Liste 2: Kandidaten
-
-solange a nicht 0
-
-guck durch Input.
-Schreibe jeden Nachbarn der Inputs in Kandidaten.
-Delete abgeschritten von Kandidaten (oder ziehe während Reinschreiben schon ab, falls schon enthalten)
-Verschiebe Input in abgeschritten.
-Verschiebe Kandidaten in Input. (jetzt ist ein Zustand erreicht, mit dem neuer Schleifendurchlauf gefuettert werden kann)
-
-Verringere a um 1.
-
-
-Die Input und Abgeschrittenen sind jetzt zu Truth geworden. Truth sind alle, deren MSII-Werte angeguckt werden müssen.
-
-(Falls mich Zwischenergebnisse nicht interessieren, z.B. weil ich KEINE Farbabstufungen will)
-Diesen Algorithmus verwebe ich jetzt mit der NonMaxSupp.
-wann immer ein Kandidat gefunden wird, wird sein MSII mit Vs MSII abgeglichen.
-Ist der andere groesser, wird sofort gebreaked.
-
-*/
 //! an experimental non maximum suppression method.
 //! Takes as input the distance, how far NMS should look (how often the frontier progresses)
 //! will enlarge the feature vectors of all vertices to size 18
 //! CAREFUL maybe I should think about datatypes that don't allow duplicates (sets) (and keep their ordering?)
-//! CAREFUL only meshes with 100000 Vertices allowed
-//! CAREFUL A check should be implemented which aborts, when the mesh has more than 100000 vertices
+//! CAREFUL only meshes with no more than 10000000 Vertices allowed
 //! Data will be written at Feature Vector Position 17 (boolean if maximum) and 18 (if maximum, then averaged MSII)
-bool Mesh::funcExpNonMaxSupp(unsigned int ringSize)
+bool Mesh::funcExpNonMaxSupp(double NMSDistance)
 {
-    int numberOfVertices = 100000;
+
+    int allowedNumberOfVertices = 10000000;
+    uint64_t actualNumberOfVertices = getVertexNr();
+
+    if(actualNumberOfVertices > allowedNumberOfVertices){
+        cout << "Apologies, this method can only handle meshes with no more than " + allowedNumberOfVertices + " vertices." << endl;
+        return false;
+    }
 
     //generally
     //I should check more often, if lists are empty
@@ -16701,32 +16868,38 @@ bool Mesh::funcExpNonMaxSupp(unsigned int ringSize)
 
         //initialize the checks for visited vertices with false
         //maybe use methods that already exist in vertex.cpp
-        bool checkVisited[numberOfVertices];
-        for (int i = 0; i < numberOfVertices ; i++){
+        bool checkVisited[allowedNumberOfVertices];
+        for (int i = 0; i < allowedNumberOfVertices ; i++){
             checkVisited[i] = false;
         }
 
-        //if the feature vector has less than 17 elements, resize it to length 18
+        //if the feature vector has less than 18 elements, resize it to length 18
         if(18 > pVertex->getFeatureVectorLen())
 		{
 			pVertex->resizeFeatureVector(18);
 		}
-		//per default, it is not the (local) maximum, currently resizing does the same, as at Position 17 is a zero.
+		//per default, it is guessed not to be the (local) maximum, currently resizing does the same, as at Positions 17 and 18 a zero gets written.
 		double isMax = 0.0;
 		bool biggerValueFound = false;
 
 		//acquire the MSII-value for this vertex
 
-		double precomputedMSIIValue;
+		double averagedPrecomputedMSIIValue;
+		double MSIIcomponent1;
+		double MSIIcomponent2;
+		double MSIIcomponent3;
+		double MSIIcomponent4;
+		double MSIIcomponent5;
+
 		//assumption: the MSII-value (we want) is located at position 0. (Possibly 0 till 4 have the values because of multi scale)
-		//I use it again near Line 16761
-		//I use it again near Line 16804
-		pVertex->getFeatureElement(0, &precomputedMSIIValue);
+		pVertex->getFeatureElement(0, &MSIIcomponent1);
+		pVertex->getFeatureElement(1, &MSIIcomponent2);
+		pVertex->getFeatureElement(2, &MSIIcomponent3);
+		pVertex->getFeatureElement(3, &MSIIcomponent4);
+		pVertex->getFeatureElement(4, &MSIIcomponent5);
 
-		//optional: todo: get 5 MSII values and average them.
-
-
-
+		//average 5 MSII values.
+		averagedPrecomputedMSIIValue = (MSIIcomponent1 + MSIIcomponent2 + MSIIcomponent3 + MSIIcomponent4 + MSIIcomponent5)/5.0;
 
         //Vertices, which will be the input for every search
         list<Vertex*> marchingFrontier;
@@ -16763,7 +16936,7 @@ bool Mesh::funcExpNonMaxSupp(unsigned int ringSize)
                                 candidatesIterator->getFeatureElement(0, &adjacentVertexsValue);
 
 
-                                if(precomputedMSIIValue < adjacentVertexsValue){
+                                if(averagedPrecomputedMSIIValue < adjacentVertexsValue){
 
                                     biggerValueFound = true;
                                     isMax = 0.0;
@@ -16807,8 +16980,17 @@ bool Mesh::funcExpNonMaxSupp(unsigned int ringSize)
         if(isMax > 0.0){
 
             pVertex->setFeatureElement(16, isMax);
-            pVertex->setFeatureElement(17, precomputedMSIIValue);
+            pVertex->setFeatureElement(17, averagedPrecomputedMSIIValue);
 
+
+        }
+        //this else-block is important to update the values calculated by this method for example in case another distance is chosen.
+        //without this else-block outdated values may remain in the feature vector.
+        //alternatively the reset to zero could be implemented at the beginning of the method.
+        else {
+
+            pVertex->setFeatureElement(16, 0.0);
+            pVertex->setFeatureElement(17, 0.0);
 
         }
 
@@ -16817,24 +16999,9 @@ bool Mesh::funcExpNonMaxSupp(unsigned int ringSize)
 
     return true;
 
-    //possible additions? If I want to communicate with the clock
-    //Result will be written to terminal
-    /*
-
-    clock_t timerBegin = clock(); //needs to be put at beginning of method call
-
-    clock_t timerEnd = clock();
-    double elapsed_secs = double(timerEnd - timerBegin) / CLOCKS_PER_SEC;
-    cout << "nonMaximum computation took: " << elapsed_secs << " seconds for " << getVertexNr() << " vertices." << endl;
-    cout << "________________DONE______________" << endl;
-
-
-
-
-    */
-
 
 }
+*/
 
 /*
 	Vertex* pi;
