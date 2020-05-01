@@ -13310,8 +13310,6 @@ bool Mesh::normalsVerticesComputeSphere(
 		patchNormal[i] = 0.0;
 	}
 
-	uint64_t vertexOriIdxInProgress = 0;
-
 	sMeshDataStruct* setMeshData = new sMeshDataStruct[availableConcurrentThreads];
 	for( size_t t = 0; t < availableConcurrentThreads; t++ )
 	{
@@ -13323,7 +13321,6 @@ bool Mesh::normalsVerticesComputeSphere(
 		setMeshData[t].multiscaleRadiiSize    = 0;
 		setMeshData[t].multiscaleRadii        = nullptr;
 		setMeshData[t].sparseFilters          = nullptr;
-		setMeshData[t].vertexOriIdxInProgress = &vertexOriIdxInProgress;
 		setMeshData[t].patchNormal            = patchNormal;
 		setMeshData[t].descriptVolume         = nullptr;
 		setMeshData[t].descriptSurface        = nullptr;

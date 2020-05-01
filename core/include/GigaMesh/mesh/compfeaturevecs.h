@@ -31,7 +31,6 @@ struct sMeshDataStruct {
 	uint    xyzDim{0};
 	uint    multiscaleRadiiSize{0};
 	double* multiscaleRadii{nullptr};
-	uint64_t*  vertexOriIdxInProgress{nullptr};
 	// output:
 	int     ctrIgnored{0};
 	int     ctrProcessed{0};

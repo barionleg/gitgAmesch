@@ -358,8 +358,6 @@ bool generateFeatureVectors(
 	voxelFilter2DElements* sparseFilters;
 	generateVoxelFilters2D( multiscaleRadiiSize, multiscaleRadii, xyzDim, &sparseFilters );
 
-	uint64_t vertexOriIdxInProgress = 0;
-
 	sMeshDataStruct* setMeshData = new sMeshDataStruct[availableConcurrentThreads];
 	for( size_t t = 0; t < availableConcurrentThreads; t++ )
 	{
@@ -371,7 +369,6 @@ bool generateFeatureVectors(
 		setMeshData[t].multiscaleRadiiSize    = multiscaleRadiiSize;
 		setMeshData[t].multiscaleRadii        = multiscaleRadii;
 		setMeshData[t].sparseFilters          = &sparseFilters;
-		setMeshData[t].vertexOriIdxInProgress = &vertexOriIdxInProgress;
 		setMeshData[t].patchNormal            = patchNormal;
 		setMeshData[t].descriptVolume         = descriptVolume;
 		setMeshData[t].descriptSurface        = descriptSurface;
