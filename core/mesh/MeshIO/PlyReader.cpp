@@ -377,9 +377,6 @@ bool parseBinary(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, st
 			auto plyPropSize          = sectionProps[PLY_VERTEX].propertyDataType.begin();
 			auto plyPropListCountSize = sectionProps[PLY_VERTEX].propertyListCountDataType.begin();
 			auto plyPropListSize      = sectionProps[PLY_VERTEX].propertyListDataType.begin();
-			double vertNormalX = _NOT_A_NUMBER_DBL_;
-			double vertNormalY = _NOT_A_NUMBER_DBL_;
-			double vertNormalZ = _NOT_A_NUMBER_DBL_;
 			for(auto currProperty : sectionProps[PLY_VERTEX].propertyType) {
 				    switch( currProperty ) {
 					case PLY_COORD_X:
@@ -402,15 +399,15 @@ bool parseBinary(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, st
 						break;
 					case PLY_VERTEX_NORMAL_X:
 						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
-						vertNormalX = static_cast<double>(someFloat);
+						rVertexProps[ verticesRead ].mNormalX = static_cast<double>(someFloat);
 						break;
 					case PLY_VERTEX_NORMAL_Y:
 						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
-						vertNormalY = static_cast<double>(someFloat);
+						rVertexProps[ verticesRead ].mNormalY = static_cast<double>(someFloat);
 						break;
 					case PLY_VERTEX_NORMAL_Z:
 						READ_IN_PROPER_BYTE_ORDER( filestr, &someFloat, (*plyPropSize), reverseByteOrder );
-						vertNormalZ = static_cast<double>(someFloat);
+						rVertexProps[ verticesRead ].mNormalZ = static_cast<double>(someFloat);
 						break;
 					case PLY_FLAGS: {
 						unsigned int someFlags;
