@@ -43,7 +43,7 @@ class MeshIO : public MeshSeedExt {
 
 		//! Simple struct for parsing and passing points and vectors in R3
 		struct grVector3ID {
-			int    mId;  //! Unique identifier
+			unsigned long mId;  //! Unique identifier
 			double mX;   //! x-coordinate
 			double mY;   //! y-coordinate
 			double mZ;   //! z-coordinate

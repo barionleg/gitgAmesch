@@ -786,6 +786,23 @@ void Primitive::addNormalTo( double* someVec ) {
 	someVec[2] += getNormalZ();
 }
 
+//! Add the normal to a given array of size 3.
+//!
+//! @returns false in case of an error. True otherwise.
+bool Primitive::addNormalXYZTo( double (&rNormalXYZ)[3], bool rNormalized ) {
+	if( rNormalized ) {
+		double normalLen = getNormalLen();
+		rNormalXYZ[0] += getNormalX()/normalLen;
+		rNormalXYZ[1] += getNormalY()/normalLen;
+		rNormalXYZ[2] += getNormalZ()/normalLen;
+		return( true );
+	}
+	rNormalXYZ[0] += getNormalX();
+	rNormalXYZ[1] += getNormalY();
+	rNormalXYZ[2] += getNormalZ();
+	return( true );
+}
+
 //! Returns the length of the normal - e.g. for normalization.
 //! Face normals have 2x the length of the area of the Face.
 double Primitive::getNormalLen() {

@@ -4583,7 +4583,7 @@ bool MeshQt::importNormalVectorsFile( const QString& rFileName ) {
 		emit statusMessage( "ERROR - No normals imported (2)!" );
 		return false;
 	}
-	if( !assignImportedNormalsToVertices( &normalsFromFile ) ) {
+	if( !assignImportedNormalsToVertices( normalsFromFile ) ) {
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: No normals assigned!" << endl;
 		emit statusMessage( "ERROR - No normals assigned!" );
 		return false;

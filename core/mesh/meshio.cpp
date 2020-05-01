@@ -353,7 +353,7 @@ bool MeshIO::importNormals( const filesystem::path& rFileName, vector<grVector3I
 		return false;
 	}
 	LOG::debug() << "[MeshIO::" << __FUNCTION__ << "] Reading from '" << rFileName << "'\n";
-	int primID;
+	unsigned long primID;
 	while( fileStream >> primID ) {
 		double normalX;
 		double normalY;

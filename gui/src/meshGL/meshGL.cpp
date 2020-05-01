@@ -362,7 +362,9 @@ bool MeshGL::assignImportedTexture( int              rLineCount,
 }
 
 //! Handles changes of normals per vertex, when new ones were imported.
-bool MeshGL::assignImportedNormalsToVertices( vector<MeshIO::grVector3ID>* rNormals ) {
+bool MeshGL::assignImportedNormalsToVertices(
+                const vector<MeshIO::grVector3ID>& rNormals
+) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif

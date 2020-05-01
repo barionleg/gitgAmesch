@@ -150,6 +150,7 @@ class Primitive : public BitFlagArray  {
 
 		// Normal
 		void     addNormalTo( double* someVec );
+		bool     addNormalXYZTo( double (&rNormalXYZ)[3], bool rNormalized=false );
 		double   getNormalLen();
 		double   angleToNormal( Vector3D someVec );
 

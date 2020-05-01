@@ -34,8 +34,10 @@ struct sMeshDataStruct {
 	// output:
 	int     ctrIgnored{0};
 	int     ctrProcessed{0};
-	// our most precious feature vectors (as array):
+	// Smooth normal of the largest spherical neighbourhood i.e. largest scale
+	std::vector<MeshIO::grVector3ID>* mPatchNormal{nullptr}; //!< Normal used for orientation into 2.5D representation
 	double* patchNormal{nullptr};     //!< Normal used for orientation into 2.5D representation
+	// our most precious feature vectors (as array):
 	double* descriptVolume{nullptr};  //!< Volume descriptors
 	double* descriptSurface{nullptr}; //!< Surface descriptors
 	// and the voxel filter

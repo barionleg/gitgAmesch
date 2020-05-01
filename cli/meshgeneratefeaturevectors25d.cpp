@@ -371,6 +371,7 @@ bool generateFeatureVectors(
 		setMeshData[t].multiscaleRadiiSize    = multiscaleRadiiSize;
 		setMeshData[t].multiscaleRadii        = multiscaleRadii;
 		setMeshData[t].sparseFilters          = &sparseFilters;
+		setMeshData[t].mPatchNormal           = nullptr;
 		setMeshData[t].patchNormal            = patchNormal;
 		setMeshData[t].descriptVolume         = descriptVolume;
 		setMeshData[t].descriptSurface        = descriptSurface;

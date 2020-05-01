@@ -54,10 +54,11 @@ void compFeatureVectors(
 	double* tDescriptVolume     = rMeshData->descriptVolume;  //!< Volume descriptors
 	double* tDescriptSurface    = rMeshData->descriptSurface; //!< Surface descriptors
 	double* tSurfacePatchNormal = rMeshData->patchNormal;     //!< Surface patch normal
+	std::vector<MeshIO::grVector3ID>* tNormalSurfacePatch = rMeshData->mPatchNormal;   //!< Surface patch normal
 
 	// setup memory for rastered surface:
-	const uint    rasterSize = rMeshData->xyzDim * rMeshData->xyzDim;
-	double* rasterArray = new double[rasterSize];
+	const uint   rasterSize  = rMeshData->xyzDim * rMeshData->xyzDim;
+	double*      rasterArray = new double[rasterSize];
 
 	// Processing time
 	std::chrono::system_clock::time_point tStart = std::chrono::system_clock::now();
@@ -81,11 +82,15 @@ void compFeatureVectors(
 	std::vector<Face*> facesInSphere; // temp variable to store local surface patches - returned by fetchSphereMarching
 
 	for( size_t vertexOriIdxInProgress = rThreadOffset;
-	                vertexOriIdxInProgress < (rThreadOffset + rThreadVertexCount);
+	            vertexOriIdxInProgress < (rThreadOffset + rThreadVertexCount);
 	                                                    ++vertexOriIdxInProgress )
 	{
 
 		currentVertex = rMeshData->meshToAnalyze->getVertexPos( vertexOriIdxInProgress );
+		if( currentVertex == nullptr ) {
+			std::cout << "[GigaMesh] ERROR: Thread " << threadID  << " bad vertex id!" << std::endl;
+			continue;
+		}
 
 		// Fetch faces within the largest sphere
 		facesInSphere.clear();
@@ -96,12 +101,24 @@ void compFeatureVectors(
 		rMeshData->meshToAnalyze->fetchSphereBitArray1R( currentVertex, facesInSphere, rMeshData->radius, vertNrLongs,
 		                                                    vertBitArrayVisited, faceNrLongs, faceBitArrayVisited, false );
 
-		// Fetch and store the normal used in fetchSphereCubeVolume25D as it is a quality measure
+		//! \todo remove old version - gigamesh-featurevectors needs to be adapted i.e. simplified!
+		// OLD: Fetch and store the normal used in fetchSphereCubeVolume25D as it is a quality measure
 		if( tSurfacePatchNormal ) {
 			std::vector<Face*>::iterator itFace;
 			for( itFace=facesInSphere.begin(); itFace!=facesInSphere.end(); itFace++ ) {
 				(*itFace)->addNormalTo( &(tSurfacePatchNormal[vertexOriIdxInProgress*3]) );
 			}
+		}
+		// NEW: Fetch and store the normal used in fetchSphereCubeVolume25D as it is a quality measure
+		if( tNormalSurfacePatch ) {
+			double normalXYZ[3]{0.0,0.0,0.0};
+			std::vector<Face*>::iterator itFace;
+			for( itFace=facesInSphere.begin(); itFace!=facesInSphere.end(); itFace++ ) {
+				(*itFace)->addNormalXYZTo( normalXYZ, false );
+			}
+			tNormalSurfacePatch->at(vertexOriIdxInProgress) = MeshIO::grVector3ID{ vertexOriIdxInProgress,
+			                                                                       normalXYZ[0], normalXYZ[1],
+			                                                                       normalXYZ[2] };
 		}
 
 		// Pre-compute address offset

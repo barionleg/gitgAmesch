@@ -351,7 +351,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 
 		// texture map per vertex
 		virtual bool    assignImportedTexture( int rLineCount, uint64_t* rRefToPrimitves, unsigned char* rTexMap );
-		virtual bool    assignImportedNormalsToVertices( std::vector<grVector3ID>* rNormals );
+		virtual bool    assignImportedNormalsToVertices( const std::vector<grVector3ID>& rNormals );
 		virtual bool    multiplyColorWithFuncVal();
 		virtual bool    multiplyColorWithFuncVal( const double rMin, const double rMax );
 
