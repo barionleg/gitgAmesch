@@ -1,5 +1,6 @@
 Current version
 +) Improved: Matrix Dialog
++) Improved: Normal vector computation per vertex. See 'Edit -> Vertices - Recompute Normals" and enter values larger than 0.
 +) Improved: options of 'gigamesh-featurevectors'.
 +) Bugfix: missing text for 'gigamesh-featurevectors --help' added.
 +) Bugfix: fixed a bug, when exporting screenshots with filenames containing a '.' .

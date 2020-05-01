@@ -313,17 +313,14 @@ bool MeshGL::applyMeltingSphere( double rRadius, double rRel ) {
 		return true;
 }
 
-//! Reset and recomputed vertex normals.
-bool MeshGL::resetVertexNormals() {
-		bool retVal = Mesh::resetVertexNormals();
-		vboRemoveBuffer( VBUFF_VERTICES_STRIPED,         __FUNCTION__ );
-		if(mMeshTextured != nullptr)
-		{
-			delete mMeshTextured;
-			mMeshTextured = nullptr;
-		}
-
-		return( retVal );
+//! Refresh recomputed vertex normals.
+bool MeshGL::normalsVerticesChanged() {
+	vboRemoveBuffer( VBUFF_VERTICES_STRIPED, __FUNCTION__ );
+	if( mMeshTextured != nullptr ) {
+		delete mMeshTextured;
+		mMeshTextured = nullptr;
+	}
+	return( true );
 }
 
 //! Takes care about related VBOs, when the face's function values were changed.

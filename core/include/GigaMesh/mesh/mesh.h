@@ -677,8 +677,12 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool     applyInvertOrientationFaces();
 				bool     applyInvertOrientationFaces( std::vector<Face*> rFacesToInvert );
 
-				bool     resetFaceNormals( double* rAreaTotal=nullptr );
-		virtual bool     resetVertexNormals();
+		// Surface normals
+		virtual bool     normalsVerticesChanged();
+		        bool     resetFaceNormals( double* rAreaTotal=nullptr );
+		        bool     resetVertexNormals();
+		        bool     normalsVerticesComputeSphere( double rRadius );
+
 		virtual bool     changedBoundingBox();
 
 		virtual bool	applyNormalShift(double offset);

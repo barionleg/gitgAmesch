@@ -84,7 +84,7 @@ class MeshGL : public Mesh, public MeshGLParams {
 		virtual bool       applyTransformation( Matrix4D rTrans, std::set<Vertex*>* rSomeVerts, bool rResetNormals = true );
 		virtual bool       applyMeltingSphere( double rRadius, double rRel );
 
-		virtual bool       resetVertexNormals();
+		virtual bool       normalsVerticesChanged();
 
 		virtual void       changedFaceFuncVal();
 		virtual void       changedVertFuncVal();

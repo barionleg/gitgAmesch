@@ -53,6 +53,10 @@
 #include <GigaMesh/mesh/vertex.h>
 #include <GigaMesh/mesh/marchingfront.h>
 
+#include <GigaMesh/mesh/compfeaturevecs.h>
+#include <future>
+
+
 #include <GigaMesh/logging/Logging.h>
 
 extern "C"
@@ -526,10 +530,18 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 		case EDIT_REMOVE_SEEDED_SYNTHETIC_COMPONENTS:
 			retVal = removeSyntheticComponents( &mSelectedMVerts );
 			break;
-		case EDIT_VERTICES_RECOMPUTE_NORMALS:
+		case EDIT_VERTICES_RECOMPUTE_NORMALS: {
+			double radiusNormals{0.0};
+			if( !showEnterText( radiusNormals, "Enter a radius to compute the normals" ) ) {
+				break;
+			}
 			retVal &= resetFaceNormals();
-			retVal &= resetVertexNormals();
-			break;
+			if( radiusNormals <= 0.0 ) {
+				retVal &= resetVertexNormals();
+			} else {
+				retVal &= normalsVerticesComputeSphere( 2.0 );
+			}
+			} break;
 		case EDIT_VERTICES_ADD:
 			retVal = insertVerticesEnterManual();
 			break;
@@ -13213,8 +13225,18 @@ bool Mesh::applyInvertOrientationFaces( std::vector<Face*> rFacesToInvert ) {
 	return( retVal );
 }
 
+//! To be called when the normals of the vertices changed
+//! e.g. to refresh the Open GL rendering
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::normalsVerticesChanged() {
+	// Do nothing - stub for higher level methods i.e. OpenGL.
+	return( true );
+}
+
 //! Resets all face normals and calculates them based on the current positions
 //! of the face vertices.
+//!
 //! @returns false in case of an error. True otherwise.
 bool Mesh::resetFaceNormals(
     double* rAreaTotal   //!< Optional pointer to double to retrieve the total area of the mesh.
@@ -13234,24 +13256,134 @@ bool Mesh::resetFaceNormals(
 	return( retVal );
 }
 
-//! Resets vertex normals.
+//! Resets vertex normals using the faces of the 1-ring.
+//! See VertexOfFace::estNormalAvgAdjacentFaces
 //!
 //! @returns true, when all normals were (re)set. False otherwise.
 bool Mesh::resetVertexNormals() {
+	bool retVal(true);
+	showProgressStart( __FUNCTION__ );
 	uint64_t errorCtr = 0;
-	for( uint64_t vertexIdx = 0; vertexIdx < getVertexNr(); vertexIdx++ ) {
+	uint64_t nrOfVertices = getVertexNr();
+	for( uint64_t vertexIdx = 0; vertexIdx < nrOfVertices; vertexIdx++ ) {
 		Vertex* currVertex = getVertexPos( vertexIdx );
 		if( !currVertex->estNormalAvgAdjacentFaces() ) {
 			errorCtr++;
 		}
+		showProgress( static_cast<double>(vertexIdx+1)/static_cast<double>(nrOfVertices), __FUNCTION__ );
 	}
+	showProgressStop( __FUNCTION__ );
+
 	if( errorCtr > 0 ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: estNormalAvgAdjacentFaces failed " << errorCtr << " times!" << endl;
-		cerr << "[Mesh::" << __FUNCTION__ << "]        Faces having a zero area are a possible reason!" << endl;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: estNormalAvgAdjacentFaces failed " << errorCtr << " times!" << std::endl;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "]        Faces having a zero area are a possible reason!" << std::endl;
 		return( false );
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] done." << endl;
-	return( true );
+	retVal |= normalsVerticesChanged();
+	std::cout << "[Mesh::" << __FUNCTION__ << "] done." << std::endl;
+	return( retVal );
+}
+
+//! Compute vertex normals using the normals of faces within a given sphere radius.
+//!
+//! @returns true, when all normals were (re)set. False otherwise.
+bool Mesh::normalsVerticesComputeSphere(
+                double rRadius   //!< Radius of the sphere used to add face normals.
+) {
+	// Sanity check
+	if( !isnormal( rRadius ) || ( rRadius <= 0.0 ) ) {
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Invalid radius of " << rRadius << "given!" << std::endl;
+		return( false );
+	}
+
+	bool retVal(true);
+
+	// Determine number of threads using CPU cores minus one.
+	const unsigned int availableConcurrentThreads =  std::thread::hardware_concurrency() - 1;
+	std::cout << "[Mesh::::" << __FUNCTION__ << "] Computing vertex normals using "
+	          << availableConcurrentThreads << " threads" << std::endl;
+
+	// Prepare normals
+	double* patchNormal{nullptr};
+	patchNormal     = new double[this->getVertexNr()*3];
+	for( uint64_t i=0; i<this->getVertexNr()*3; i++ ) {
+		patchNormal[i] = 0.0;
+	}
+
+	uint64_t vertexOriIdxInProgress = 0;
+
+	sMeshDataStruct* setMeshData = new sMeshDataStruct[availableConcurrentThreads];
+	for( size_t t = 0; t < availableConcurrentThreads; t++ )
+	{
+		//cout << "[GigaMesh] Preparing data for thread " << t << endl;
+		setMeshData[t].threadID               = t;
+		setMeshData[t].meshToAnalyze          = this;
+		setMeshData[t].radius                 = rRadius;
+		setMeshData[t].xyzDim                 = 0;
+		setMeshData[t].multiscaleRadiiSize    = 0;
+		setMeshData[t].multiscaleRadii        = nullptr;
+		setMeshData[t].sparseFilters          = nullptr;
+		setMeshData[t].vertexOriIdxInProgress = &vertexOriIdxInProgress;
+		setMeshData[t].patchNormal            = patchNormal;
+		setMeshData[t].descriptVolume         = nullptr;
+		setMeshData[t].descriptSurface        = nullptr;
+	}
+
+	int ctrIgnored{0};
+	int ctrProcessed{0};
+
+	if( availableConcurrentThreads < 2 ) {
+		std::cout << "[GigaMesh] SINGLE Thread started" << std::endl;
+		compFeatureVectors( setMeshData, 0, this->getVertexNr() );
+	} else {
+		const uint64_t offsetPerThread{this->getVertexNr()/availableConcurrentThreads};
+		const uint64_t verticesPerThread{offsetPerThread};
+		const uint64_t offsetThisThread{verticesPerThread*(availableConcurrentThreads - 1)};
+		const uint64_t verticesThisThread{offsetPerThread +
+			                          this->getVertexNr() %
+			                          availableConcurrentThreads};
+
+		std::vector<std::future<void>> threadFutureHandlesVector(availableConcurrentThreads - 1);
+
+		for( unsigned int threadCount = 0;
+		     threadCount < (availableConcurrentThreads - 1); threadCount++ ) {
+			auto functionCall = std::bind( &compFeatureVectors,
+			                               &(setMeshData[threadCount]),
+			                               offsetPerThread*threadCount,
+			                               verticesPerThread );
+
+			threadFutureHandlesVector.at(threadCount) =
+			        std::async(std::launch::async, functionCall);
+		}
+
+		compFeatureVectors( &(setMeshData[availableConcurrentThreads - 1]),
+		                    offsetThisThread, verticesThisThread );
+
+		size_t threadCount{0};
+
+		for( std::future<void>& threadFutureHandle : threadFutureHandlesVector ) {
+			threadFutureHandle.get();
+			ctrIgnored   += setMeshData[threadCount].ctrIgnored;
+			ctrProcessed += setMeshData[threadCount].ctrProcessed;
+			++threadCount;
+		}
+	}
+
+	vector<MeshIO::grVector3ID> patchNormalsToAssign;
+	for( uint64_t i=0; i<this->getVertexNr(); i++ ) {
+		MeshIO::grVector3ID newPatchNormal;
+		newPatchNormal.mId = i;
+		newPatchNormal.mX = patchNormal[i*3];
+		newPatchNormal.mY = patchNormal[i*3+1];
+		newPatchNormal.mZ = patchNormal[i*3+2];
+		patchNormalsToAssign.push_back( newPatchNormal );
+	}
+	this->assignImportedNormalsToVertices( &patchNormalsToAssign );
+
+	delete[] patchNormal;
+
+	retVal |= normalsVerticesChanged();
+	return( retVal );
 }
 
 // --- SHELLING ------------------------------------------------------------------------------------------------------------------------------------------------

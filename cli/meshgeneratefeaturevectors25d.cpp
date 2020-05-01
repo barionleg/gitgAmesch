@@ -382,7 +382,7 @@ bool generateFeatureVectors(
 
 	if(availableConcurrentThreads < 2)
 	{
-		std::cout << "[GigaMesh] Thread 0 started" << std::endl;
+		std::cout << "[GigaMesh] SINGLE Thread started" << std::endl;
 		compFeatureVectors( setMeshData, 0, someMesh.getVertexNr() );
 	} else {
 		const uint64_t offsetPerThread{someMesh.getVertexNr()/
