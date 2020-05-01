@@ -4,6 +4,7 @@ Current version
 +) Bugfix: missing text for 'gigamesh-featurevectors --help' added.
 +) Bugfix: fixed a bug, when exporting screenshots with filenames containing a '.' .
 +) Changed: gigamesh-featurevectors stores the maximum element of the feature vector into the function value i.e. quality field.
++) Updated help: See 'Info -> Keyboard Layout'.
 
 Version 200405
 +) New: Support for meshes with n-gon faces.
