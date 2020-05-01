@@ -13297,6 +13297,7 @@ bool Mesh::normalsVerticesComputeSphere(
 	}
 
 	bool retVal(true);
+	showProgressStart( __FUNCTION__ );
 
 	// Determine number of threads using CPU cores minus one.
 	const unsigned int availableConcurrentThreads =  std::thread::hardware_concurrency() - 1;
@@ -13309,6 +13310,15 @@ bool Mesh::normalsVerticesComputeSphere(
 	for( uint64_t i=0; i<this->getVertexNr()*3; i++ ) {
 		patchNormal[i] = 0.0;
 	}
+
+	// +++ Time for parallel processing
+	time_t rawtime;
+	struct tm* timeinfo{nullptr};
+	time( &rawtime );
+	timeinfo = localtime( &rawtime );
+	time_t timeStampParallel = time( nullptr ); // clock() is not multi-threading save (to measure the non-CPU or real time ;) )
+	std::cout << "[GigaMesh] Start date/time is: " << asctime( timeinfo );// << std::endl;
+	// --- Time for parallel processing
 
 	sMeshDataStruct* setMeshData = new sMeshDataStruct[availableConcurrentThreads];
 	for( size_t t = 0; t < availableConcurrentThreads; t++ )
@@ -13366,6 +13376,17 @@ bool Mesh::normalsVerticesComputeSphere(
 		}
 	}
 
+	// +++ Time for parallel processing
+	time( &rawtime );
+	timeinfo = localtime( &rawtime );
+	std::cout << "[GigaMesh] End date/time is: " << asctime( timeinfo );// << endl;
+	std::cout << "[GigaMesh] Vertices processed: " << ctrProcessed << std::endl;
+	std::cout << "[GigaMesh] Vertices ignored:   " << ctrIgnored << std::endl;
+	std::cout << "[GigaMesh] Parallel processing took " << static_cast<int>( time( nullptr ) ) - static_cast<int>( timeStampParallel )  << " seconds." << std::endl;
+	std::cout << "[GigaMesh]               ... equals " << static_cast<int>( ctrProcessed ) /
+	                ( static_cast<int>( time( nullptr ) ) - static_cast<int>( timeStampParallel ) + 0.1 ) << " vertices/seconds." << std::endl; // add 0.1 to avoid division by zero for small meshes.
+	// --- Time for parallel processing
+
 	vector<MeshIO::grVector3ID> patchNormalsToAssign;
 	for( uint64_t i=0; i<this->getVertexNr(); i++ ) {
 		MeshIO::grVector3ID newPatchNormal;
@@ -13380,6 +13401,8 @@ bool Mesh::normalsVerticesComputeSphere(
 	delete[] patchNormal;
 
 	retVal |= normalsVerticesChanged();
+	showProgressStop( __FUNCTION__ );
+
 	return( retVal );
 }
 

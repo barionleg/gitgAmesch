@@ -347,14 +347,16 @@ bool generateFeatureVectors(
 	            << availableConcurrentThreads << " threads" << std::endl;
 	fileStrOutMeta << "Threads (dynamic):  " << availableConcurrentThreads << std::endl;
 
+	// Time for parallel processing
 	time_t rawtime;
 	struct tm* timeinfo{nullptr};
 	time( &rawtime );
 	timeinfo = localtime( &rawtime );
+	time_t timeStampParallel = time( nullptr ); // clock() is not multi-threading save (to measure the non-CPU or real time ;) )
+
 	std::cout << "[GigaMesh] Start date/time is: " << asctime( timeinfo );// << std::endl;
 	fileStrOutMeta << "Start date/time is: " << asctime( timeinfo ); // no endl required as asctime will add a linebreak
 
-	time_t timeStampParallel = time( nullptr ); // clock() is not multi-threading save (to measure the non-CPU or real time ;) )
 	voxelFilter2DElements* sparseFilters;
 	generateVoxelFilters2D( multiscaleRadiiSize, multiscaleRadii, xyzDim, &sparseFilters );
 
@@ -426,6 +428,7 @@ bool generateFeatureVectors(
 
 	delete[] setMeshData;
 
+	// +++ Time for parallel processing
 	time( &rawtime );
 	timeinfo = localtime( &rawtime );
 	std::cout << "[GigaMesh] End date/time is: " << asctime( timeinfo );// << endl;
@@ -437,6 +440,7 @@ bool generateFeatureVectors(
 	std::cout << "[GigaMesh] Parallel processing took " << static_cast<int>( time( nullptr ) ) - static_cast<int>( timeStampParallel )  << " seconds." << std::endl;
 	std::cout << "[GigaMesh]               ... equals " << static_cast<int>( ctrProcessed ) /
 	                ( static_cast<int>( time( nullptr ) ) - static_cast<int>( timeStampParallel ) + 0.1 ) << " vertices/seconds." << std::endl; // add 0.1 to avoid division by zero for small meshes.
+	// --- Time for parallel processing
 
 	timeStampParallel = time( nullptr );
 
