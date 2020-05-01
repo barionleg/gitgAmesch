@@ -171,11 +171,6 @@ int main( int argc, char* argv[] ) {
 
 			case 'v':
 				std::cout << "GigaMesh Software Framework INFO 3D-data " << VERSION_PACKAGE << std::endl;
-#ifdef THREADS
-				std::cout << "Multi-threading with " << std::thread::hardware_concurrency() * 2 << " (fixed) threads." << std::endl;
-#else
-				std::cout << "Single-threading. " << std::endl;
-#endif
 				std::cout << "Multi-threading with " << std::thread::hardware_concurrency() - 1 << " (dynamic) threads." << std::endl;
 				std::exit( EXIT_SUCCESS );
 				break;

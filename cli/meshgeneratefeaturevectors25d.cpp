@@ -53,15 +53,13 @@
 #include <sys/stat.h> // statistics for files
 #include <GigaMesh/logging/Logging.h>
 
-using namespace std;
 
 #define _DEFAULT_FEATUREGEN_RADIUS_       1.0
 #define _DEFAULT_FEATUREGEN_XYZDIM_       256
 #define _DEFAULT_FEATUREGEN_RADIICOUNT_   4 // power of 2
 
-	// Multithreading (CPU):
-	// see: https://computing.llnl.gov/tutorials/pthreads/
 
+	// Multithreading (CPU):
 	#define THREADS_VERTEX_BLOCK  5000
 	std::mutex stdoutMutex;
 
@@ -96,11 +94,11 @@ void estFeatureVectors(
 
 		{
 			std::lock_guard<std::mutex> lock(stdoutMutex);
-			cout << "[GigaMesh] Thread " << threadID  << " started, processing "
-			        << threadVertexCount << " of vertices ("
-			        << static_cast<double>(threadVertexCount)/
-			            static_cast<double>(meshData->meshToAnalyze->getVertexNr())*100.0
-			        << " % of total)" << endl;
+			std::cout << "[GigaMesh] Thread " << threadID  << " started, processing "
+			          << threadVertexCount << " of vertices ("
+			          << static_cast<double>(threadVertexCount)/
+			             static_cast<double>(meshData->meshToAnalyze->getVertexNr())*100.0
+			          << " % of total)" << std::endl;
 		}
 
 		// initalize values to be returned via meshDataStruct:
@@ -134,8 +132,8 @@ void estFeatureVectors(
 		}
 
 		// Step thru vertices:
-		Vertex*       currentVertex{nullptr};
-		vector<Face*> facesInSphere; // temp variable to store local surface patches - returned by fetchSphereMarching
+		Vertex*            currentVertex{nullptr};
+		std::vector<Face*> facesInSphere; // temp variable to store local surface patches - returned by fetchSphereMarching
 
 		for( size_t vertexOriIdxInProgress = threadOffset;
 		                vertexOriIdxInProgress < (threadOffset + threadVertexCount);
@@ -155,7 +153,7 @@ void estFeatureVectors(
 
 			// Fetch and store the normal used in fetchSphereCubeVolume25D as it is a quality measure
 			if( tSurfacePatchNormal ) {
-				vector<Face*>::iterator itFace;
+				std::vector<Face*>::iterator itFace;
 				for( itFace=facesInSphere.begin(); itFace!=facesInSphere.end(); itFace++ ) {
 					(*itFace)->addNormalTo( &(tSurfacePatchNormal[vertexOriIdxInProgress*3]) );
 				}
@@ -200,11 +198,11 @@ void estFeatureVectors(
 				{
 					std::lock_guard<std::mutex> lock(stdoutMutex);
 
-					cout << "[GigaMesh] Thread " << threadID << " | " << percentDone*100 << " percent done. Time elapsed: " << time_elapsed << " - ";
-					cout << "remaining: " << time_remaining << " seconds. ";
-					cout << vertexOriIdxInProgress/time_elapsed << " Vert/sec. ";
-					cout << "ETF: " << std::ctime(&ttp);
-					cout << std::flush;
+					std::cout << "[GigaMesh] Thread " << threadID << " | " << percentDone*100 << " percent done. Time elapsed: " << time_elapsed << " - ";
+					std::cout << "remaining: " << time_remaining << " seconds. ";
+					std::cout << vertexOriIdxInProgress/time_elapsed << " Vert/sec. ";
+					std::cout << "ETF: " << std::ctime(&ttp);
+					std::cout << std::flush;
 				}
 			}
 		}
@@ -218,7 +216,7 @@ void estFeatureVectors(
 
 		{
 			std::lock_guard<std::mutex> lock(stdoutMutex);
-			cout << "[GigaMesh] Thread " << threadID << " | STOP - processed: " << meshData->ctrProcessed << " and skipped " << meshData->ctrIgnored << " vertices." << endl;
+			std::cout << "[GigaMesh] Thread " << threadID << " | STOP - processed: " << meshData->ctrProcessed << " and skipped " << meshData->ctrIgnored << " vertices." << std::endl;
 		}
 } // END of estFeatureVectors
 
@@ -234,8 +232,8 @@ bool generateFeatureVectors(
                 bool                           rNoAreaIntInv,
                 bool                           rNoNormalsFile,
                 bool                           rConcatResults,
-                const string&                  rHostname,
-                const string&                  rUsername
+                const std::string&             rHostname,
+                const std::string&             rUsername
 ) {
 	// Check existance of the input file:
 	if( !std::filesystem::exists(fileNameIn) ) {
@@ -257,7 +255,7 @@ bool generateFeatureVectors(
 	char tmpBuffer[512];
 	sprintf( tmpBuffer, "_r%0.2f_n%i_v%i", radius, radiiCount, xyzDim );
 	fileNameOut += rOptFileSuffix;
-	fileNameOut += string( tmpBuffer );
+	fileNameOut += std::string( tmpBuffer );
 
 	// Check: Output file for normal used to rotate the local patch
 	std::filesystem::path fileNameOutPatchNormal( fileNameOut );
@@ -345,28 +343,24 @@ bool generateFeatureVectors(
 	}
 
 	// All parameters OK => infos to stdout and file with metadata  -----------------------------------------------------------
-	fstream fileStrOutMeta;
-	fileStrOutMeta.open( fileNameOutMeta, fstream::out );
-	cout << "[GigaMesh] File IN:         " << fileNameIn << endl;
-	cout << "[GigaMesh] File OUT/Prefix: " << fileNameOut << endl;
-	cout << "[GigaMesh] Radius:          " << radius << " mm (unit assumed)" << endl;
-	cout << "[GigaMesh] Radii:           2^" << radiiCount << " = " << pow( 2.0, static_cast<double>(radiiCount) ) << endl;
-	cout << "[GigaMesh] Rastersize:      " << xyzDim << "^3" << endl;
+	std::fstream fileStrOutMeta;
+	fileStrOutMeta.open( fileNameOutMeta, std::fstream::out );
+	std::cout << "[GigaMesh] File IN:         " << fileNameIn << std::endl;
+	std::cout << "[GigaMesh] File OUT/Prefix: " << fileNameOut << std::endl;
+	std::cout << "[GigaMesh] Radius:          " << radius << " mm (unit assumed)" << std::endl;
+	std::cout << "[GigaMesh] Radii:           2^" << radiiCount << " = " << pow( 2.0, static_cast<double>(radiiCount) ) << std::endl;
+	std::cout << "[GigaMesh] Rastersize:      " << xyzDim << "^3" << std::endl;
 #ifdef VERSION_PACKAGE
-	fileStrOutMeta << "GigaMesh Version    " << VERSION_PACKAGE << endl;
+	fileStrOutMeta << "GigaMesh Version    " << VERSION_PACKAGE << std::endl;
 #else
-	fileStrOutMeta << "GigaMesh Version    unknown" << endl;
+	fileStrOutMeta << "GigaMesh Version    unknown" << std::endl;
 #endif
-#ifdef THREADS
-	fileStrOutMeta << "Threads (fixed):    " << std::thread::hardware_concurrency() * 2 << endl;
-#else
-	fileStrOutMeta << "Threads (fixed):    single" << endl;
-#endif
-	fileStrOutMeta << "File IN:            " << fileNameIn << endl;
-	fileStrOutMeta << "File OUT/Prefix:    " << fileNameOut << endl;
-	fileStrOutMeta << "Radius:             " << radius << " mm (unit assumed)" << endl;
-	fileStrOutMeta << "Radii:              2^" << radiiCount << " = " << std::pow( 2.0, static_cast<float>(radiiCount) ) << endl;
-	fileStrOutMeta << "Rastersize:         " << xyzDim << "^3" << endl;
+	fileStrOutMeta << "Threads (dynamic):  " << std::thread::hardware_concurrency() * 2 << std::endl;
+	fileStrOutMeta << "File IN:            " << fileNameIn << std::endl;
+	fileStrOutMeta << "File OUT/Prefix:    " << fileNameOut << std::endl;
+	fileStrOutMeta << "Radius:             " << radius << " mm (unit assumed)" << std::endl;
+	fileStrOutMeta << "Radii:              2^" << radiiCount << " = " << std::pow( 2.0, static_cast<float>(radiiCount) ) << std::endl;
+	fileStrOutMeta << "Rastersize:         " << xyzDim << "^3" << std::endl;
 	if( rNoVolumeIntInv ) {
 		fileStrOutMeta << "Volume integral:    No" << std::endl;
 	} else {
@@ -387,8 +381,8 @@ bool generateFeatureVectors(
 	}
 
 	// Set the formatting properties of the output
-	std::cout << setprecision( 2 ) << std::fixed;
-	fileStrOutMeta << setprecision( 2 ) << std::fixed;
+	std::cout << std::setprecision( 2 ) << std::fixed;
+	fileStrOutMeta << std::setprecision( 2 ) << std::fixed;
 
 	std::cout << "[GigaMesh] Radii: (relative)          ";
 	fileStrOutMeta << "Radii (relative):  ";
@@ -440,43 +434,39 @@ bool generateFeatureVectors(
 	areaAcq = round( areaAcq );
 	double volDXYZ[3]{ 0.0, 0.0, 0.0 };
 	someMesh.getMeshVolumeDivergence( volDXYZ[0], volDXYZ[1], volDXYZ[2] );
-	string modelID = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
-	string modelMat = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
-	string modelWebRef = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_REFERENCE_WEB );
+	std::string modelID = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
+	std::string modelMat = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
+	std::string modelWebRef = someMesh.getModelMetaDataRef().getModelMetaString( ModelMetaData::META_REFERENCE_WEB );
 	// Write data to console
 #ifdef VERSION_PACKAGE
-	cout << "[GigaMesh] Version:         " << VERSION_PACKAGE << endl;
+	std::cout << "[GigaMesh] Version:         " << VERSION_PACKAGE << std::endl;
 #else
-	cout << "[GigaMesh] Version:         unknown" << endl;
+	std::cout << "[GigaMesh] Version:         unknown" << std::endl;
 #endif
-#ifdef THREADS
-	cout << "[GigaMesh] Threads:         " << std::thread::hardware_concurrency() * 2 << endl;
-#else
-	cout << "[GigaMesh] Threads:         single" << endl;
-#endif
-	cout << "[GigaMesh] ==================================================" << endl;
-	cout << "[GigaMesh] Model ID:        " << modelID << endl;
-	cout << "[GigaMesh] Material:        " << modelMat << endl;
-	cout << "[GigaMesh] Web-reference:   " << modelWebRef << endl;
-	cout << "[GigaMesh] --------------------------------------------------" << endl;
-	cout << "[GigaMesh] Vertices:        " << someMesh.getVertexNr() << "" << endl;
-	cout << "[GigaMesh] Faces:           " << someMesh.getFaceNr() << "" << endl;
-	cout << "[GigaMesh] Bounding Box:    " << bbWdith << " x " << bbHeight << " x " << bbThick << " cm" << endl;
-	cout << "[GigaMesh] Area:            " << areaAcq/100.0 << " cm^2" << endl;
-	cout << "[GigaMesh] Volume (dx):     " << volDXYZ[0]/1000.0 << " cm^3" << endl;
-	cout << "[GigaMesh] Volume (dy):     " << volDXYZ[1]/1000.0 << " cm^3" << endl;
-	cout << "[GigaMesh] Volume (dz):     " << volDXYZ[2]/1000.0 << " cm^3" << endl;
+	std::cout << "[GigaMesh] Threads:         " << std::thread::hardware_concurrency() * 2 << std::endl;
+	std::cout << "[GigaMesh] ==================================================" << std::endl;
+	std::cout << "[GigaMesh] Model ID:        " << modelID << std::endl;
+	std::cout << "[GigaMesh] Material:        " << modelMat << std::endl;
+	std::cout << "[GigaMesh] Web-reference:   " << modelWebRef << std::endl;
+	std::cout << "[GigaMesh] --------------------------------------------------" << std::endl;
+	std::cout << "[GigaMesh] Vertices:        " << someMesh.getVertexNr() << "" << std::endl;
+	std::cout << "[GigaMesh] Faces:           " << someMesh.getFaceNr() << "" << std::endl;
+	std::cout << "[GigaMesh] Bounding Box:    " << bbWdith << " x " << bbHeight << " x " << bbThick << " cm" << std::endl;
+	std::cout << "[GigaMesh] Area:            " << areaAcq/100.0 << " cm^2" << std::endl;
+	std::cout << "[GigaMesh] Volume (dx):     " << volDXYZ[0]/1000.0 << " cm^3" << std::endl;
+	std::cout << "[GigaMesh] Volume (dy):     " << volDXYZ[1]/1000.0 << " cm^3" << std::endl;
+	std::cout << "[GigaMesh] Volume (dz):     " << volDXYZ[2]/1000.0 << " cm^3" << std::endl;
 	// Write technical meta-data to file
-	fileStrOutMeta << "Model ID:           " << modelID << endl;
-	fileStrOutMeta << "Material:           " << modelMat << endl;
-	fileStrOutMeta << "Web-reference:      " << modelWebRef << endl;
-	fileStrOutMeta << "Vertices:           " << someMesh.getVertexNr() << "" << endl;
-	fileStrOutMeta << "Faces:              " << someMesh.getFaceNr() << "" << endl;
-	fileStrOutMeta << "Bounding Box:       " << bbWdith << " x " << bbHeight << " x " << bbThick << " cm" << endl;
-	fileStrOutMeta << "Area:               " << areaAcq/100.0 << " cm^2" << endl;
-	fileStrOutMeta << "Volume (dx):        " << volDXYZ[0]/1000.0 << " cm^3" << endl;
-	fileStrOutMeta << "Volume (dy):        " << volDXYZ[1]/1000.0 << " cm^3" << endl;
-	fileStrOutMeta << "Volume (dz):        " << volDXYZ[2]/1000.0 << " cm^3" << endl;
+	fileStrOutMeta << "Model ID:           " << modelID << std::endl;
+	fileStrOutMeta << "Material:           " << modelMat << std::endl;
+	fileStrOutMeta << "Web-reference:      " << modelWebRef << std::endl;
+	fileStrOutMeta << "Vertices:           " << someMesh.getVertexNr() << "" << std::endl;
+	fileStrOutMeta << "Faces:              " << someMesh.getFaceNr() << "" << std::endl;
+	fileStrOutMeta << "Bounding Box:       " << bbWdith << " x " << bbHeight << " x " << bbThick << " cm" << std::endl;
+	fileStrOutMeta << "Area:               " << areaAcq/100.0 << " cm^2" << std::endl;
+	fileStrOutMeta << "Volume (dx):        " << volDXYZ[0]/1000.0 << " cm^3" << std::endl;
+	fileStrOutMeta << "Volume (dy):        " << volDXYZ[1]/1000.0 << " cm^3" << std::endl;
+	fileStrOutMeta << "Volume (dz):        " << volDXYZ[2]/1000.0 << " cm^3" << std::endl;
 	fileStrOutMeta << "Hostname:           " << rHostname << std::endl;
 	fileStrOutMeta << "Username:           " << rUsername << std::endl;
 
@@ -516,7 +506,7 @@ bool generateFeatureVectors(
 	const unsigned int availableConcurrentThreads =  std::thread::hardware_concurrency() - 1;
 	std::cout << "[GigaMesh] Computing feature vectors using "
 	            << availableConcurrentThreads << " threads" << std::endl;
-	fileStrOutMeta << "Threads (dynamic):  " << availableConcurrentThreads << endl;
+	fileStrOutMeta << "Threads (dynamic):  " << availableConcurrentThreads << std::endl;
 
 	time_t rawtime;
 	struct tm* timeinfo{nullptr};
@@ -568,7 +558,7 @@ bool generateFeatureVectors(
 			                                    someMesh.getVertexNr() %
 			                                    availableConcurrentThreads};
 
-		std::vector<future<void>> threadFutureHandlesVector(availableConcurrentThreads - 1);
+		std::vector<std::future<void>> threadFutureHandlesVector(availableConcurrentThreads - 1);
 
 		for(unsigned int threadCount = 0;
 		        threadCount < (availableConcurrentThreads - 1); threadCount++)
@@ -618,13 +608,13 @@ bool generateFeatureVectors(
 
 	// Feature vector file for volume descriptor (1st integral invariant)
 	if( (!fileNameOutVol.empty()) && ( descriptVolume != NULL ) ) {
-		fstream filestrVol;
-		filestrVol.open( fileNameOutVol, fstream::out );
+		std::fstream filestrVol;
+		filestrVol.open( fileNameOutVol, std::fstream::out );
 		if( !filestrVol.is_open() ) {
 			std::cerr << "[GigaMesh] ERROR: Could not open '" << fileNameOutVol << "' for writing!" << std::endl;
 			retVal = false;
 		} else {
-			filestrVol << fixed << setprecision( 10 );
+			filestrVol << std::fixed << std::setprecision( 10 );
 			for( uint64_t i=0; i<someMesh.getVertexNr(); i++ ) {
 				Vertex* currVert = someMesh.getVertexPos( i );
 				if( !currVert->assignFeatureVec( &descriptVolume[i*multiscaleRadiiSize],
@@ -646,13 +636,13 @@ bool generateFeatureVectors(
 
 	// Feature vector file for surface descriptor (2nd integral invariant)
 	if( (!fileNameOutSurf.empty()) && ( descriptSurface != NULL )) {
-		fstream filestrSurf;
-		filestrSurf.open( fileNameOutSurf, fstream::out );
+		std::fstream filestrSurf;
+		filestrSurf.open( fileNameOutSurf, std::fstream::out );
 		if( !filestrSurf.is_open() ) {
 			std::cerr << "[GigaMesh] ERROR: Could not open '" << fileNameOutSurf << "' for writing!" << std::endl;
 			retVal = false;
 		} else {
-			filestrSurf << fixed << setprecision( 10 );
+			filestrSurf << std::fixed << std::setprecision( 10 );
 			for( uint64_t i=0; i<someMesh.getVertexNr(); i++ ) {
 				// Assign 2nd feature vector only in case the 1st is not present!
 				if( descriptVolume == NULL ) {
@@ -677,14 +667,14 @@ bool generateFeatureVectors(
 
 	// File for normal estimated as byproduct of the integral invariants:
 	if( (!fileNameOutPatchNormal.empty()) && ( patchNormal != NULL ) ) {
-		fstream filestrNormal;
-		filestrNormal.open( fileNameOutPatchNormal, fstream::out );
+		std::fstream filestrNormal;
+		filestrNormal.open( fileNameOutPatchNormal, std::fstream::out );
 		if( !filestrNormal.is_open() ) {
 			std::cerr << "[GigaMesh] ERROR: Could not open '" << fileNameOutPatchNormal << "' for writing!" << std::endl;
 			retVal = false;
 		} else {
 //			vector<MeshIO::grVector3ID> patchNormalsToAssign;
-			filestrNormal << fixed << setprecision( 10 );
+			filestrNormal << std::fixed << std::setprecision( 10 );
 			for( uint64_t i=0; i<someMesh.getVertexNr(); i++ ) {
 				// Index of the vertex
 				filestrNormal << i;
@@ -708,13 +698,13 @@ bool generateFeatureVectors(
 
 	// Feature vector file for BOTH descriptors (volume and surface)
 	if( (!fileNameOutVS.empty()) && ( descriptSurface != NULL ) && ( descriptVolume != NULL ) ) {
-		fstream filestrVS;
-		filestrVS.open( fileNameOutVS, fstream::out );
+		std::fstream filestrVS;
+		filestrVS.open( fileNameOutVS, std::fstream::out );
 		if( !filestrVS.is_open() ) {
 			std::cerr << "[GigaMesh] ERROR: Could not open '" << fileNameOutVS << "' for writing!" << std::endl;
 			retVal = false;
 		} else {
-			filestrVS << fixed << setprecision( 10 );
+			filestrVS << std::fixed << std::setprecision( 10 );
 			for( uint64_t i=0; i<someMesh.getVertexNr(); i++ ) {
 				filestrVS << i;
 				// Scales - Volume:
@@ -778,8 +768,8 @@ bool generateFeatureVectors(
 //! System indipendent retrieval of username and hostname
 //! as part of the technical meta-data
 void getUserAndHostName(
-        string& rUserName,
-        string& rHostName
+        std::string& rUserName,
+        std::string& rHostName
 ) {
 #ifdef WIN32
 	WSAData wsaData;
@@ -817,11 +807,7 @@ void getUserAndHostName(
 //! Show software version.
 void printVersion() {
 	std::cout << "GigaMesh Software Framework FEATUREVECTORS 3D-data " << VERSION_PACKAGE << std::endl;
-#ifdef THREADS
-	std::cout << "Multi-threading with " << std::thread::hardware_concurrency() * 2 << " (dynamic) threads." << std::endl;
-#else
-	std::cout << "Single-threading. " << std::endl;
-#endif
+	std::cout << "Multi-threading with " << std::thread::hardware_concurrency() - 1 << " (dynamic) threads." << std::endl;
 }
 
 //! Help i.e. usage of paramters.
@@ -930,7 +916,7 @@ int main( int argc, char *argv[] ) {
 			case 'l':
 				tmpInt = atof( optarg );
 				if( tmpInt <= 0 ) {
-					cerr << "[GigaMesh] Error: negative or zero value given: " << tmpInt << " for the number of voxels (option -v)!" << endl;
+					std::cerr << "[GigaMesh] Error: negative or zero value given: " << tmpInt << " for the number of voxels (option -v)!" << std::endl;
 					exit( EXIT_FAILURE );
 				}
 				xyzDim = static_cast<unsigned int>(tmpInt);
@@ -939,14 +925,14 @@ int main( int argc, char *argv[] ) {
 			case 'n':
 				tmpInt = atof( optarg );
 				if( tmpInt < 0 ) {
-					cerr << "[GigaMesh] Error: negative value given: " << tmpInt << " for the number of radii (option -n)!" << endl;
+					std::cerr << "[GigaMesh] Error: negative value given: " << tmpInt << " for the number of radii (option -n)!" << std::endl;
 					exit( EXIT_FAILURE );
 				}
 				radiiCount = static_cast<unsigned int>(tmpInt);
 				break;
 			//! Option k: replaces output files
 			case 'k':
-				cout << "[GigaMesh] Warning: files might be replaced!" << endl;
+				std::cout << "[GigaMesh] Warning: files might be replaced!" << std::endl;
 				replaceFiles = true;
 				break;
 			//! Option 2: skip area/surface based integral invariant
@@ -1019,8 +1005,8 @@ int main( int argc, char *argv[] ) {
 	printBuildInfo();
 
 	// Fetch username and host for the technical meta-data
-	string userName( "unknown" );
-	string hostName( "unknown" );
+	std::string userName( "unknown" );
+	std::string hostName( "unknown" );
 	getUserAndHostName( userName, hostName );
 
 	unsigned long filesProcessed = 0UL;

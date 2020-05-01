@@ -219,12 +219,7 @@ bool cleanupGigaMeshData(
 #else
 	fileStrOutMeta << "[GigaMesh] CLEAN unknown version" << std::endl;
 #endif
-#ifdef THREADS
-	fileStrOutMeta << "Threads (fixed):            " << std::thread::hardware_concurrency() * 2 << std::endl;
-#else
-	fileStrOutMeta << "Threads (fixed):            single" << std::endl;
-#endif
-	fileStrOutMeta << "Threads (dynamic):          " << std::thread::hardware_concurrency() - 1 << std::endl;
+	fileStrOutMeta << "Threads (dynamic):          " << std::thread::hardware_concurrency() * 2 << std::endl;
 	fileStrOutMeta << "File Input:                 " << fileNameInName << std::endl;
 	fileStrOutMeta << "File Output:                " << fileNameOutName << std::endl;
 	fileStrOutMeta << "Model Id:                   " << rFileInfos.mStrings[MeshInfoData::MODEL_ID] << std::endl;
@@ -251,11 +246,6 @@ bool cleanupGigaMeshData(
 //! Show software version.
 void printVersion() {
 	std::cout << "GigaMesh Software Framework CLEAN 3D-data " << VERSION_PACKAGE << std::endl;
-#ifdef THREADS
-	std::cout << "Multi-threading with " << std::thread::hardware_concurrency() * 2 << " (fixed) threads." << std::endl;
-#else
-	std::cout << "Single-threading. " << std::endl;
-#endif
 	std::cout << "Multi-threading with " << std::thread::hardware_concurrency() - 1 << " (dynamic) threads." << std::endl;
 #ifdef LIBPSALM
 	std::cout << "Hole filling enabled. POLISH possible." << std::endl;

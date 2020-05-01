@@ -234,11 +234,7 @@ int main( int argc, char *argv[] ) {
 
 			case 'v':
 				std::cout << "GigaMesh Software Framework TO.LEGACY Stanford Polygon Files (PLYs) " << VERSION_PACKAGE << endl;
-#ifdef THREADS
-				std::cout << "Multi-threading with " << std::thread::hardware_concurrency() * 2 << " threads." << endl;
-#else
-				std::cout << "Single-threading. " << endl;
-#endif
+				std::cout << "Multi-threading with " << std::thread::hardware_concurrency() - 1 << " threads." << endl;
 				std::exit( EXIT_SUCCESS );
 				break;
 
