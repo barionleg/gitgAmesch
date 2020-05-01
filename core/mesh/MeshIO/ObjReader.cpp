@@ -409,9 +409,6 @@ bool ObjReader::readFile(const std::filesystem::path &rFilename, std::vector<sVe
 				LOG::warn() << "[ObjReader::" << __FUNCTION__ << "] " << someLine << "\n";
 				continue;
 			}
-			rVertexProps.at(vertexIdx).mNormalX = stod(tokens.at(1));
-			rVertexProps.at(vertexIdx).mNormalY = stod(tokens.at(2));
-			rVertexProps.at(vertexIdx).mNormalZ = stod(tokens.at(3));
 
 			// addNormal( stod( tokens.at( 1 ) ), stod( tokens.at( 2 ) ), stod( tokens.at( 3 ) ) );
 		} else if( firstToken == "l" ) { // Polygonal lines
