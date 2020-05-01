@@ -4588,7 +4588,8 @@ bool MeshQt::importNormalVectorsFile( const QString& rFileName ) {
 		emit statusMessage( "ERROR - No normals assigned!" );
 		return false;
 	}
-	return false;
+	emit updateGL();
+	return true;
 }
 
 //! Import feature vectors and emit statusMessage.
