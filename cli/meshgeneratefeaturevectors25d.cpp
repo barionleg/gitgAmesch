@@ -45,7 +45,7 @@
 #include <getopt.h>
 #endif
 #include <GigaMesh/printbuildinfo.h>
-#include <GigaMesh/mesh/mesh.h>
+#include <GigaMesh/mesh/compfeaturevecs.h>
 
 //#include "voxelcuboid.h"
 #include <GigaMesh/mesh/voxelfilter25d.h>
@@ -58,167 +58,6 @@
 #define _DEFAULT_FEATUREGEN_XYZDIM_       256
 #define _DEFAULT_FEATUREGEN_RADIICOUNT_   4 // power of 2
 
-
-	// Multithreading (CPU):
-	#define THREADS_VERTEX_BLOCK  5000
-	std::mutex stdoutMutex;
-
-	struct meshDataStruct {
-		int     threadID{0}; //!< ID of the posix thread
-		// input:
-		Mesh*   meshToAnalyze{nullptr};
-		double  radius{0.0};
-		uint    xyzDim{0};
-		uint    multiscaleRadiiSize{0};
-		double* multiscaleRadii{nullptr};
-		uint64_t*  vertexOriIdxInProgress{nullptr};
-		// output:
-		int     ctrIgnored{0};
-		int     ctrProcessed{0};
-		// our most precious feature vectors (as array):
-		double* patchNormal{nullptr};     //!< Normal used for orientation into 2.5D representation
-		double* descriptVolume{nullptr};  //!< Volume descriptors
-		double* descriptSurface{nullptr}; //!< Surface descriptors
-		// and the voxel filter
-		voxelFilter2DElements** sparseFilters{nullptr};
-	};
-
-//! Compute the Multi-Scale Integral Invariant feature vectors
-void estFeatureVectors(
-                meshDataStruct* meshData,
-                const size_t threadOffset,
-                const size_t threadVertexCount
-) {
-
-		const int threadID = meshData->threadID;
-
-		{
-			std::lock_guard<std::mutex> lock(stdoutMutex);
-			std::cout << "[GigaMesh] Thread " << threadID  << " started, processing "
-			          << threadVertexCount << " of vertices ("
-			          << static_cast<double>(threadVertexCount)/
-			             static_cast<double>(meshData->meshToAnalyze->getVertexNr())*100.0
-			          << " % of total)" << std::endl;
-		}
-
-		// initalize values to be returned via meshDataStruct:
-		meshData->ctrIgnored   = 0;
-		meshData->ctrProcessed = 0;
-
-		// copy pointers from struct for easier access.
-		double* tDescriptVolume     = meshData->descriptVolume;  //!< Volume descriptors
-		double* tDescriptSurface    = meshData->descriptSurface; //!< Surface descriptors
-		double* tSurfacePatchNormal = meshData->patchNormal;     //!< Surface patch normal
-
-		// setup memory for rastered surface:
-		const uint    rasterSize = meshData->xyzDim * meshData->xyzDim;
-		double* rasterArray = new double[rasterSize];
-
-		// Processing time
-		std::chrono::system_clock::time_point tStart = std::chrono::system_clock::now();
-
-		// Allocate the bit arrays for vertices:
-		uint64_t* vertBitArrayVisited{nullptr};
-		const uint64_t vertNrLongs = meshData->meshToAnalyze->getBitArrayVerts( &vertBitArrayVisited );
-		// Allocate the bit arrays for faces:
-		uint64_t* faceBitArrayVisited{nullptr};
-		const uint64_t faceNrLongs = meshData->meshToAnalyze->getBitArrayFaces( &faceBitArrayVisited );
-
-		// Compute absolut radii (used to normalize the surface descriptor)
-		double* absolutRadii = new double[meshData->multiscaleRadiiSize];
-		for( uint i=0; i<meshData->multiscaleRadiiSize; i++ ) {
-			absolutRadii[i] = static_cast<double>(meshData->multiscaleRadii[i]) *
-			                  static_cast<double>(meshData->radius);
-		}
-
-		// Step thru vertices:
-		Vertex*            currentVertex{nullptr};
-		std::vector<Face*> facesInSphere; // temp variable to store local surface patches - returned by fetchSphereMarching
-
-		for( size_t vertexOriIdxInProgress = threadOffset;
-		                vertexOriIdxInProgress < (threadOffset + threadVertexCount);
-		                                                    ++vertexOriIdxInProgress )
-		{
-
-			currentVertex = meshData->meshToAnalyze->getVertexPos( vertexOriIdxInProgress );
-
-			// Fetch faces within the largest sphere
-			facesInSphere.clear();
-			// slower for larger patches:
-			//meshData->meshToAnalyze->fetchSphereMarching( currentVertex, &facesInSphere, meshData->radius, true );
-			//meshData->meshToAnalyze->fetchSphereMarchingDualFront( currentVertex, &facesInSphere, meshData->radius, true );
-			//meshData->meshToAnalyze->fetchSphereBitArray( currentVertex, &facesInSphere, meshData->radius, vertNrLongs, vertBitArrayVisited, faceNrLongs, faceBitArrayVisited );
-			meshData->meshToAnalyze->fetchSphereBitArray1R( currentVertex, facesInSphere, meshData->radius, vertNrLongs,
-			                                                    vertBitArrayVisited, faceNrLongs, faceBitArrayVisited, false );
-
-			// Fetch and store the normal used in fetchSphereCubeVolume25D as it is a quality measure
-			if( tSurfacePatchNormal ) {
-				std::vector<Face*>::iterator itFace;
-				for( itFace=facesInSphere.begin(); itFace!=facesInSphere.end(); itFace++ ) {
-					(*itFace)->addNormalTo( &(tSurfacePatchNormal[vertexOriIdxInProgress*3]) );
-				}
-			}
-
-			// Pre-compute address offset
-			unsigned int descriptIndexOffset = vertexOriIdxInProgress*meshData->multiscaleRadiiSize;
-
-			// Get volume descriptor:
-			if( tDescriptVolume ) {
-				meshData->meshToAnalyze->fetchSphereCubeVolume25D( currentVertex, &facesInSphere,
-				                                                   meshData->radius, rasterArray,
-				                                                   meshData->xyzDim );
-				applyVoxelFilters2D( &(tDescriptVolume[descriptIndexOffset]), rasterArray,
-				                        meshData->sparseFilters, meshData->multiscaleRadiiSize, meshData->xyzDim );
-			}
-
-			// Get surface descriptor:
-			if( tDescriptSurface ) {
-				// Vector3D seedPosition = currentVertex->getCenterOfGravity();
-				meshData->meshToAnalyze->fetchSphereArea( currentVertex, &facesInSphere,
-				                                          static_cast<unsigned int>(meshData->multiscaleRadiiSize),
-				                                          absolutRadii, &(tDescriptSurface[descriptIndexOffset]) );
-			}
-			// Set counters:
-			meshData->ctrProcessed++;
-
-			if(  !( ( vertexOriIdxInProgress - threadOffset ) % THREADS_VERTEX_BLOCK ) &&
-			                                                        (vertexOriIdxInProgress - threadOffset) ) {
-				// Show a time estimation:
-
-				const double percentDone = static_cast<double>(vertexOriIdxInProgress - threadOffset) /
-				                                                    static_cast<double>(threadVertexCount);
-
-				std::chrono::system_clock::time_point tEnd = std::chrono::system_clock::now();
-				//std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>( tEnd - tStart );
-				double time_elapsed = ( std::chrono::duration<double>( tEnd - tStart ) ).count();
-				double time_remaining =   (time_elapsed / percentDone) - time_elapsed;
-				std::chrono::system_clock::time_point tFinalEst = tEnd + std::chrono::seconds( static_cast<long>( time_remaining ) );
-				std::time_t ttp = std::chrono::system_clock::to_time_t(tFinalEst);
-
-				{
-					std::lock_guard<std::mutex> lock(stdoutMutex);
-
-					std::cout << "[GigaMesh] Thread " << threadID << " | " << percentDone*100 << " percent done. Time elapsed: " << time_elapsed << " - ";
-					std::cout << "remaining: " << time_remaining << " seconds. ";
-					std::cout << vertexOriIdxInProgress/time_elapsed << " Vert/sec. ";
-					std::cout << "ETF: " << std::ctime(&ttp);
-					std::cout << std::flush;
-				}
-			}
-		}
-
-		// Volume descriptor
-		delete[] rasterArray;
-		delete vertBitArrayVisited;
-		delete faceBitArrayVisited;
-		// Surface descriptor
-		delete[] absolutRadii;
-
-		{
-			std::lock_guard<std::mutex> lock(stdoutMutex);
-			std::cout << "[GigaMesh] Thread " << threadID << " | STOP - processed: " << meshData->ctrProcessed << " and skipped " << meshData->ctrIgnored << " vertices." << std::endl;
-		}
-} // END of estFeatureVectors
 
 //! Process one file with the given paramters.
 bool generateFeatureVectors(
@@ -521,7 +360,7 @@ bool generateFeatureVectors(
 
 	uint64_t vertexOriIdxInProgress = 0;
 
-	meshDataStruct* setMeshData = new meshDataStruct[availableConcurrentThreads];
+	sMeshDataStruct* setMeshData = new sMeshDataStruct[availableConcurrentThreads];
 	for( size_t t = 0; t < availableConcurrentThreads; t++ )
 	{
 		//cout << "[GigaMesh] Preparing data for thread " << t << endl;
@@ -544,7 +383,7 @@ bool generateFeatureVectors(
 	if(availableConcurrentThreads < 2)
 	{
 		std::cout << "[GigaMesh] Thread 0 started" << std::endl;
-		estFeatureVectors(setMeshData, 0, someMesh.getVertexNr());
+		compFeatureVectors( setMeshData, 0, someMesh.getVertexNr() );
 	} else {
 		const uint64_t offsetPerThread{someMesh.getVertexNr()/
 			                                        availableConcurrentThreads};
@@ -564,17 +403,17 @@ bool generateFeatureVectors(
 		        threadCount < (availableConcurrentThreads - 1); threadCount++)
 		{
 
-			auto functionCall = std::bind(&estFeatureVectors,
-			                                        &(setMeshData[threadCount]),
-			                                        offsetPerThread*threadCount,
-			                                        verticesPerThread);
+			auto functionCall = std::bind( &compFeatureVectors,
+			                               &(setMeshData[threadCount]),
+			                               offsetPerThread*threadCount,
+			                               verticesPerThread );
 
 			threadFutureHandlesVector.at(threadCount) =
 			        std::async(std::launch::async, functionCall);
 		}
 
-		estFeatureVectors(&(setMeshData[availableConcurrentThreads - 1]),
-		                                offsetThisThread, verticesThisThread);
+		compFeatureVectors( &(setMeshData[availableConcurrentThreads - 1]),
+		                    offsetThisThread, verticesThisThread );
 
 		size_t threadCount{0};
 
