@@ -323,6 +323,9 @@ bool generateFeatureVectors(
 	if( !rNoNormalsFile ) {
 		patchNormal     = new double[someMesh.getVertexNr()*3];
 	}
+	// Prepare normals NEW
+	std::vector<MeshIO::grVector3ID> patchNormalsToAssign;
+	patchNormalsToAssign.resize( someMesh.getVertexNr() );
 
 	// Initialize array, when required=allocated.
 	if( descriptVolume != NULL ) {
@@ -371,7 +374,7 @@ bool generateFeatureVectors(
 		setMeshData[t].multiscaleRadiiSize    = multiscaleRadiiSize;
 		setMeshData[t].multiscaleRadii        = multiscaleRadii;
 		setMeshData[t].sparseFilters          = &sparseFilters;
-		setMeshData[t].mPatchNormal           = nullptr;
+		setMeshData[t].mPatchNormal           = &patchNormalsToAssign; // NEW
 		setMeshData[t].patchNormal            = patchNormal;
 		setMeshData[t].descriptVolume         = descriptVolume;
 		setMeshData[t].descriptSurface        = descriptSurface;
@@ -518,12 +521,21 @@ bool generateFeatureVectors(
 			filestrNormal << std::fixed << std::setprecision( 10 );
 			for( uint64_t i=0; i<someMesh.getVertexNr(); i++ ) {
 				// Index of the vertex
+				filestrNormal << patchNormalsToAssign.at( i ).mId;
+				// Normal - always three elements
+				filestrNormal << " " << patchNormalsToAssign.at( i ).mX;
+				filestrNormal << " " << patchNormalsToAssign.at( i ).mY;
+				filestrNormal << " " << patchNormalsToAssign.at( i ).mZ;
+				filestrNormal << std::endl;
+/*
+				// Index of the vertex
 				filestrNormal << i;
 				// Normal - always three elements
 				filestrNormal << " " << patchNormal[i*3];
 				filestrNormal << " " << patchNormal[i*3+1];
 				filestrNormal << " " << patchNormal[i*3+2];
 				filestrNormal << std::endl;
+*/
 //				MeshIO::grVector3ID newPatchNormal;
 //				newPatchNormal.mId = i;
 //				newPatchNormal.mX = patchNormal[i*3];

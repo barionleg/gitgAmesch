@@ -539,7 +539,7 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			if( radiusNormals <= 0.0 ) {
 				retVal &= resetVertexNormals();
 			} else {
-				retVal &= normalsVerticesComputeSphere( 2.0 );
+				retVal &= normalsVerticesComputeSphere( radiusNormals );
 			}
 			} break;
 		case EDIT_VERTICES_ADD:
@@ -13315,7 +13315,7 @@ bool Mesh::normalsVerticesComputeSphere(
 	          << availableConcurrentThreads << " threads" << std::endl;
 
 	// Prepare normals
-	vector<MeshIO::grVector3ID> patchNormalsToAssign;
+	std::vector<MeshIO::grVector3ID> patchNormalsToAssign;
 	patchNormalsToAssign.resize( this->getVertexNr() );
 
 	// +++ Time for parallel processing

@@ -98,15 +98,16 @@ void compFeatureVectors(
 		//meshData->meshToAnalyze->fetchSphereMarching( currentVertex, &facesInSphere, meshData->radius, true );
 		//meshData->meshToAnalyze->fetchSphereMarchingDualFront( currentVertex, &facesInSphere, meshData->radius, true );
 		//meshData->meshToAnalyze->fetchSphereBitArray( currentVertex, &facesInSphere, meshData->radius, vertNrLongs, vertBitArrayVisited, faceNrLongs, faceBitArrayVisited );
-		rMeshData->meshToAnalyze->fetchSphereBitArray1R( currentVertex, facesInSphere, rMeshData->radius, vertNrLongs,
-		                                                    vertBitArrayVisited, faceNrLongs, faceBitArrayVisited, false );
+		rMeshData->meshToAnalyze->fetchSphereBitArray1R( currentVertex, facesInSphere, rMeshData->radius, 
+		                                                 vertNrLongs, vertBitArrayVisited, 
+		                                                 faceNrLongs, faceBitArrayVisited, false );
 
 		//! \todo remove old version - gigamesh-featurevectors needs to be adapted i.e. simplified!
 		// OLD: Fetch and store the normal used in fetchSphereCubeVolume25D as it is a quality measure
 		if( tSurfacePatchNormal ) {
 			std::vector<Face*>::iterator itFace;
 			for( itFace=facesInSphere.begin(); itFace!=facesInSphere.end(); itFace++ ) {
-				(*itFace)->addNormalTo( &(tSurfacePatchNormal[vertexOriIdxInProgress*3]) );
+//				(*itFace)->addNormalTo( &(tSurfacePatchNormal[vertexOriIdxInProgress*3]) );
 			}
 		}
 		// NEW: Fetch and store the normal used in fetchSphereCubeVolume25D as it is a quality measure
