@@ -588,31 +588,11 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			selectedMPositionsChanged();
 			retVal = true;
 			break;
-		case SELMPRIMS_POS_DISTANCES:
-			if( mSelectedPositions.size() == 0 ) {
-				showInformation( "Positions - Distances", "None Selected." );
-			} else {
-				string distanceInfoStr = "Line: ";
-				Vector3D lastPos( _NOT_A_NUMBER_DBL_ ); //= get<0>(mSelectedPositions.front());
-				double sumDist = 0.0;
-				for( auto const& currPos : mSelectedPositions ) {
-					double dist = ( get<0>(currPos) - lastPos ).getLength3();
-					if( isnormal( dist ) ) {
-						distanceInfoStr += to_string( dist ) + " ";
-						sumDist += dist;
-					}
-					lastPos = get<0>(currPos);
-					bool endOfLine = get<2>(currPos);
-					if( endOfLine ) {
-						distanceInfoStr += "\nLine: ";
-						sumDist = 0.0;
-						lastPos = Vector3D( _NOT_A_NUMBER_DBL_ );
-					}
-				}
-				showInformation( "Positions - Distances", distanceInfoStr );
-				retVal = true;
-			}
-			break;
+		case SELMPRIMS_POS_DISTANCES: {
+			std::string msgInfo;
+			retVal = getSelectedPositionDistancesHTML( msgInfo );
+			showInformation( "Selected Positions (SelPos) - Distances", msgInfo );
+			} break;
 		case SELMPRIMS_POS_CIRCLE_CENTERS:
 			if( mSelectedPositions.size() < 3 ) {
 				showInformation( "Positions - Compute Circle Centers", "Too few Selected." );
@@ -626,13 +606,9 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 				}
 			}
 			break;
-		case COMPUTE_FEATUREVECTORS_QUICK: {
-			double radius{1.0};
-			if( !showEnterText( radius, "Enter radius (largest feature size)" ) ) {
-				break;
-			}
-			retVal = computeMSIIQuick( radius );
-			} break;
+		case COMPUTE_FEATUREVECTORS_QUICK:
+			retVal = computeMSIIQuickGUI();
+			break;
 		case GEODESIC_DISTANCE_TO_SELPRIM:
 			retVal = estGeodesicPatchSelPrim();
 			break;
@@ -5161,6 +5137,31 @@ bool Mesh::computeMSIIQuick(
 	showProgressStop( "MSII filtering (Quick)" );
 
 	return( retVal );
+}
+
+//! GUI variant for Mesh::computeMSIIQuick
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::computeMSIIQuickGUI() {
+	// Default
+	double radius{1.0};
+	// Use SelPrims to suggest the largest line segment as radius.
+	double maxDist{0.0};
+	std::vector<double> distancesSelPrim;
+	getSelectedPositionDistancesAll( distancesSelPrim );
+	for( auto const& currDist: distancesSelPrim ) {
+		if( currDist > maxDist ) {
+			maxDist = currDist;
+		}
+	}
+	if( maxDist > 0.0 ) {
+		radius = maxDist;
+	}
+	// Ask the user to check the suggested value
+	if( !showEnterText( radius, "Enter radius (largest feature size)" ) ) {
+		return( false );
+	}
+	return computeMSIIQuick( radius );
 }
 
 // --- Feature vectors - import/export -------------------------------------------------------------------------------------------------------------
@@ -16653,6 +16654,63 @@ bool Mesh::getSelectedPositionLines(std::vector<std::tuple<Vector3D, Primitive *
 		}
 	}
 	return true;
+}
+
+//! Computes all distances between SelPrims and returns them
+//! as one vector.
+//!
+//! Note: all distances of all selected segments are concatenated.
+//!
+//! @returns false in case of an error.
+bool Mesh::getSelectedPositionDistancesAll( std::vector<double>& rAllDistances ) {
+	bool retVal{true};
+	Vector3D lastPos( _NOT_A_NUMBER_DBL_ ); //= get<0>(mSelectedPositions.front());
+	for( auto const& currPos : mSelectedPositions ) {
+		double dist = ( get<0>(currPos) - lastPos ).getLength3();
+		if( isnormal( dist ) ) {
+			rAllDistances.push_back( dist );
+		}
+		lastPos = get<0>(currPos);
+		// Do not compute distances between line segments
+		bool endOfLine = get<2>(currPos);
+		if( endOfLine ) {
+			lastPos = Vector3D( _NOT_A_NUMBER_DBL_ );
+		}
+	}
+	return( retVal );
+}
+
+//! Computes all distances between SelPrims and returns them
+//! as HTML text.
+//!
+//! @returns false in case of an error.
+bool Mesh::getSelectedPositionDistancesHTML( std::string &rDistanceText ) {
+	if( mSelectedPositions.size() == 0 ) {
+		rDistanceText = "No positions (SelPos) were selected.";
+		return( true );
+	}
+	std::string distanceInfoStr = "<ol><li>";
+	Vector3D lastPos( _NOT_A_NUMBER_DBL_ );
+	bool endOfLine{false};
+	double sumDist = 0.0;
+	for( auto const& currPos : mSelectedPositions ) {
+		if( endOfLine ) {
+			distanceInfoStr += "&Sigma;&nbsp;<b>" + to_string( sumDist ) + "</li>\n<li>";
+			sumDist = 0.0;
+			lastPos = Vector3D( _NOT_A_NUMBER_DBL_ );
+		}
+		double dist = ( get<0>(currPos) - lastPos ).getLength3();
+		if( isnormal( dist ) ) {
+			distanceInfoStr += to_string( dist ) + "&nbsp;";
+			sumDist += dist;
+		}
+		lastPos = get<0>(currPos);
+		endOfLine = get<2>(currPos);
+	}
+	distanceInfoStr += "&Sigma;&nbsp;<b>" + to_string( sumDist ) + "</li>\n</ol>";
+	rDistanceText.clear();
+	rDistanceText = distanceInfoStr;
+	return( true );
 }
 
 //! Adds vertices to the given vector using triplets of positions to compute circumscribed circles.

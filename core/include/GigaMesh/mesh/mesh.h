@@ -362,6 +362,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 	public:
 		// Feature vector functions (NEW)
 		        bool   computeMSIIQuick( double rRadius );
+		        bool   computeMSIIQuickGUI();
 		//! \todo use MeshParams::eFunctionCall to avoid/reduce copy&paste code!
 		// Feature vector functions
 		 uint64_t getFeatureVecLenMax( int rPrimitiveType );
@@ -762,9 +763,11 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		std::vector<std::tuple<Vector3D,Primitive*,bool> > mSelectedPositions;  //!< Selected coordinates, which are typically from a face or (solo) vertices.
 	public:
 		        bool addSelectedPosition( Vector3D rPos, Primitive* rPrimFrom, bool rLast );
-				bool getSelectedPosition( std::vector<std::tuple<Vector3D, Primitive *, bool> > *rVec );
-				bool getSelectedPositionLines(std::vector<std::tuple<Vector3D, Primitive *> > *rVec );
-				bool getSelectedPositionCircleCenters( std::vector<Vertex*>* rCenterVertices );
+		        bool getSelectedPosition( std::vector<std::tuple<Vector3D, Primitive *, bool> > *rVec );
+		        bool getSelectedPositionLines( std::vector<std::tuple<Vector3D, Primitive *> > *rVec );
+		        bool getSelectedPositionDistancesAll( std::vector<double>& rAllDistances );
+		        bool getSelectedPositionDistancesHTML( std::string& rDistanceText );
+		        bool getSelectedPositionCircleCenters( std::vector<Vertex*>* rCenterVertices );
 		virtual bool getAxisFromCircleCenters();
 		virtual bool getAxisFromCircleCenters( Vector3D* rTop, Vector3D* rBottom );
 
