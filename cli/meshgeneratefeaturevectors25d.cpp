@@ -282,7 +282,6 @@ bool generateFeatureVectors(
 #else
 	std::cout << "[GigaMesh] Version:         unknown" << std::endl;
 #endif
-	std::cout << "[GigaMesh] Threads:         " << std::thread::hardware_concurrency() * 2 << std::endl;
 	std::cout << "[GigaMesh] ==================================================" << std::endl;
 	std::cout << "[GigaMesh] Model ID:        " << modelID << std::endl;
 	std::cout << "[GigaMesh] Material:        " << modelMat << std::endl;
@@ -295,6 +294,7 @@ bool generateFeatureVectors(
 	std::cout << "[GigaMesh] Volume (dx):     " << volDXYZ[0]/1000.0 << " cm^3" << std::endl;
 	std::cout << "[GigaMesh] Volume (dy):     " << volDXYZ[1]/1000.0 << " cm^3" << std::endl;
 	std::cout << "[GigaMesh] Volume (dz):     " << volDXYZ[2]/1000.0 << " cm^3" << std::endl;
+	std::cout << "[GigaMesh] --------------------------------------------------" << std::endl;
 	// Write technical meta-data to file
 	fileStrOutMeta << "Model ID:           " << modelID << std::endl;
 	fileStrOutMeta << "Material:           " << modelMat << std::endl;
@@ -319,14 +319,6 @@ bool generateFeatureVectors(
 		descriptSurface = new double[someMesh.getVertexNr()*multiscaleRadiiSize];
 	}
 
-	double* patchNormal{nullptr};
-	if( !rNoNormalsFile ) {
-		patchNormal     = new double[someMesh.getVertexNr()*3];
-	}
-	// Prepare normals NEW
-	std::vector<MeshIO::grVector3ID> patchNormalsToAssign;
-	patchNormalsToAssign.resize( someMesh.getVertexNr() );
-
 	// Initialize array, when required=allocated.
 	if( descriptVolume != NULL ) {
 		for( uint i=0; i<someMesh.getVertexNr()*multiscaleRadiiSize; i++ ) {
@@ -338,11 +330,11 @@ bool generateFeatureVectors(
 			descriptSurface[i] = _NOT_A_NUMBER_DBL_;
 		}
 	}
-	if( patchNormal != NULL ) {
-		for( uint64_t i=0; i<someMesh.getVertexNr()*3; i++ ) {
-			patchNormal[i] = 0.0;
-		}
-	}
+
+	// Prepare normals
+	std::vector<MeshIO::grVector3ID> patchNormalsToAssign;
+	patchNormalsToAssign.resize( someMesh.getVertexNr() );
+
 
 	// Determine number of threads using CPU cores minus one.
 	const unsigned int availableConcurrentThreads =  std::thread::hardware_concurrency() - 1;
@@ -350,15 +342,14 @@ bool generateFeatureVectors(
 	            << availableConcurrentThreads << " threads" << std::endl;
 	fileStrOutMeta << "Threads (dynamic):  " << availableConcurrentThreads << std::endl;
 
-	// Time for parallel processing
+	// +++ Collect time for parallel processing
 	time_t rawtime;
 	struct tm* timeinfo{nullptr};
 	time( &rawtime );
 	timeinfo = localtime( &rawtime );
 	time_t timeStampParallel = time( nullptr ); // clock() is not multi-threading save (to measure the non-CPU or real time ;) )
-
-	std::cout << "[GigaMesh] Start date/time is: " << asctime( timeinfo );// << std::endl;
-	fileStrOutMeta << "Start date/time is: " << asctime( timeinfo ); // no endl required as asctime will add a linebreak
+	fileStrOutMeta << "Start time was:     " << asctime( timeinfo ); // no endl required as asctime will add a linebreak
+	// --- Collect time for parallel processing
 
 	voxelFilter2DElements* sparseFilters;
 	generateVoxelFilters2D( multiscaleRadiiSize, multiscaleRadii, xyzDim, &sparseFilters );
@@ -366,7 +357,6 @@ bool generateFeatureVectors(
 	sMeshDataStruct* setMeshData = new sMeshDataStruct[availableConcurrentThreads];
 	for( size_t t = 0; t < availableConcurrentThreads; t++ )
 	{
-		//cout << "[GigaMesh] Preparing data for thread " << t << endl;
 		setMeshData[t].threadID               = t;
 		setMeshData[t].meshToAnalyze          = &someMesh;
 		setMeshData[t].radius                 = radius;
@@ -374,81 +364,33 @@ bool generateFeatureVectors(
 		setMeshData[t].multiscaleRadiiSize    = multiscaleRadiiSize;
 		setMeshData[t].multiscaleRadii        = multiscaleRadii;
 		setMeshData[t].sparseFilters          = &sparseFilters;
-		setMeshData[t].mPatchNormal           = &patchNormalsToAssign; // NEW
-		setMeshData[t].patchNormal            = patchNormal;
+		setMeshData[t].mPatchNormal           = &patchNormalsToAssign;
 		setMeshData[t].descriptVolume         = descriptVolume;
 		setMeshData[t].descriptSurface        = descriptSurface;
 	}
 
-	int ctrIgnored{0};
-	int ctrProcessed{0};
-
-	if(availableConcurrentThreads < 2)
-	{
-		std::cout << "[GigaMesh] SINGLE Thread started" << std::endl;
-		compFeatureVectors( setMeshData, 0, someMesh.getVertexNr() );
-	} else {
-		const uint64_t offsetPerThread{someMesh.getVertexNr()/
-			                                        availableConcurrentThreads};
-
-		const uint64_t verticesPerThread{offsetPerThread};
-
-		const uint64_t offsetThisThread{verticesPerThread*
-			                                    (availableConcurrentThreads - 1)};
-
-		const uint64_t verticesThisThread{offsetPerThread +
-			                                    someMesh.getVertexNr() %
-			                                    availableConcurrentThreads};
-
-		std::vector<std::future<void>> threadFutureHandlesVector(availableConcurrentThreads - 1);
-
-		for(unsigned int threadCount = 0;
-		        threadCount < (availableConcurrentThreads - 1); threadCount++)
-		{
-
-			auto functionCall = std::bind( &compFeatureVectors,
-			                               &(setMeshData[threadCount]),
-			                               offsetPerThread*threadCount,
-			                               verticesPerThread );
-
-			threadFutureHandlesVector.at(threadCount) =
-			        std::async(std::launch::async, functionCall);
-		}
-
-		compFeatureVectors( &(setMeshData[availableConcurrentThreads - 1]),
-		                    offsetThisThread, verticesThisThread );
-
-		size_t threadCount{0};
-
-		for(std::future<void>& threadFutureHandle : threadFutureHandlesVector)
-		{
-			threadFutureHandle.get();
-			ctrIgnored   += setMeshData[threadCount].ctrIgnored;
-			ctrProcessed += setMeshData[threadCount].ctrProcessed;
-			++threadCount;
-		}
-
-	}
+	compFeatureVectorsMain( setMeshData, availableConcurrentThreads );
 
 	delete[] setMeshData;
 
-	// +++ Time for parallel processing
+	// +++ Collect time for parallel processing
 	time( &rawtime );
 	timeinfo = localtime( &rawtime );
-	std::cout << "[GigaMesh] End date/time is: " << asctime( timeinfo );// << endl;
-	fileStrOutMeta << "End date/time is:   " << asctime( timeinfo ); // no endl required as asctime will add a linebreak
-	fileStrOutMeta << "Parallel processing took " << static_cast<int>( time( nullptr ) ) -  static_cast<int>( timeStampParallel ) << " seconds." << std::endl;
-
-	std::cout << "[GigaMesh] Vertices processed: " << ctrProcessed << std::endl;
-	std::cout << "[GigaMesh] Vertices ignored:   " << ctrIgnored << std::endl;
-	std::cout << "[GigaMesh] Parallel processing took " << static_cast<int>( time( nullptr ) ) - static_cast<int>( timeStampParallel )  << " seconds." << std::endl;
-	std::cout << "[GigaMesh]               ... equals " << static_cast<int>( ctrProcessed ) /
-	                ( static_cast<int>( time( nullptr ) ) - static_cast<int>( timeStampParallel ) + 0.1 ) << " vertices/seconds." << std::endl; // add 0.1 to avoid division by zero for small meshes.
-	// --- Time for parallel processing
+	fileStrOutMeta << "End time was:       " << asctime( timeinfo ); // no endl required as asctime will add a linebreak
+	// ... Collect walltimes of the threads
+	for( unsigned int threadCount = 0; threadCount < availableConcurrentThreads; threadCount++ ) {
+		fileStrOutMeta << "Walltime thread " << threadCount << ":  "
+		               << setMeshData[threadCount].mWallTimeThread << " seconds" << std::endl;
+	}
+	fileStrOutMeta << "Overall walltime:   "
+	               << static_cast<int>( time( nullptr ) ) - static_cast<int>( timeStampParallel )
+	               << " seconds." << std::endl;
+	// --- Collect time for parallel processing
 
 	timeStampParallel = time( nullptr );
 
 	bool retVal(true);
+	std::cout << "[GigaMesh] --------------------------------------------------" << std::endl;
 
 	// Feature vector file for volume descriptor (1st integral invariant)
 	if( (!fileNameOutVol.empty()) && ( descriptVolume != NULL ) ) {
@@ -510,14 +452,13 @@ bool generateFeatureVectors(
 	}
 
 	// File for normal estimated as byproduct of the integral invariants:
-	if( (!fileNameOutPatchNormal.empty()) && ( patchNormal != NULL ) ) {
+	if( (!fileNameOutPatchNormal.empty()) && ( patchNormalsToAssign.size() > 0 ) ) {
 		std::fstream filestrNormal;
 		filestrNormal.open( fileNameOutPatchNormal, std::fstream::out );
 		if( !filestrNormal.is_open() ) {
 			std::cerr << "[GigaMesh] ERROR: Could not open '" << fileNameOutPatchNormal << "' for writing!" << std::endl;
 			retVal = false;
 		} else {
-//			vector<MeshIO::grVector3ID> patchNormalsToAssign;
 			filestrNormal << std::fixed << std::setprecision( 10 );
 			for( uint64_t i=0; i<someMesh.getVertexNr(); i++ ) {
 				// Index of the vertex
@@ -527,25 +468,10 @@ bool generateFeatureVectors(
 				filestrNormal << " " << patchNormalsToAssign.at( i ).mY;
 				filestrNormal << " " << patchNormalsToAssign.at( i ).mZ;
 				filestrNormal << std::endl;
-/*
-				// Index of the vertex
-				filestrNormal << i;
-				// Normal - always three elements
-				filestrNormal << " " << patchNormal[i*3];
-				filestrNormal << " " << patchNormal[i*3+1];
-				filestrNormal << " " << patchNormal[i*3+2];
-				filestrNormal << std::endl;
-*/
-//				MeshIO::grVector3ID newPatchNormal;
-//				newPatchNormal.mId = i;
-//				newPatchNormal.mX = patchNormal[i*3];
-//				newPatchNormal.mY = patchNormal[i*3+1];
-//				newPatchNormal.mZ = patchNormal[i*3+2];
-//				patchNormalsToAssign.push_back( newPatchNormal );
 			}
 			filestrNormal.close();
 			std::cout << "[GigaMesh] Patch normal stored in:                   " << fileNameOutPatchNormal << std::endl;
-//			someMesh.assignImportedNormalsToVertices(&patchNormalsToAssign);
+			// Could be an option: someMesh.assignImportedNormalsToVertices( patchNormalsToAssign );
 		}
 	}
 
@@ -602,6 +528,8 @@ bool generateFeatureVectors(
 
 	// Done
 	fileStrOutMeta.close();
+	std::cout << "[GigaMesh] Technical meta-data stored in:            " << fileNameOutMeta << std::endl;
+	std::cout << "[GigaMesh] --------------------------------------------------" << std::endl;
 	std::cout << "[GigaMesh] Writing the files took " << static_cast<int>( time( nullptr ) ) - static_cast<int>( timeStampParallel ) << " seconds." << std::endl;
 
 	if( descriptVolume ) {
@@ -609,9 +537,6 @@ bool generateFeatureVectors(
 	}
 	if( descriptSurface  ) {
 		delete[] descriptSurface;
-	}
-	if( patchNormal  ) {
-		delete[] patchNormal;
 	}
 	delete[] multiscaleRadii;
 

@@ -54,7 +54,6 @@
 #include <GigaMesh/mesh/marchingfront.h>
 
 #include <GigaMesh/mesh/compfeaturevecs.h>
-#include <future>
 
 
 #include <GigaMesh/logging/Logging.h>
@@ -13309,28 +13308,18 @@ bool Mesh::normalsVerticesComputeSphere(
 	bool retVal(true);
 	showProgressStart( __FUNCTION__ );
 
-	// Determine number of threads using CPU cores minus one.
-	const unsigned int availableConcurrentThreads =  std::thread::hardware_concurrency() - 1;
-	std::cout << "[Mesh::::" << __FUNCTION__ << "] Computing vertex normals using "
-	          << availableConcurrentThreads << " threads" << std::endl;
-
 	// Prepare normals
 	std::vector<MeshIO::grVector3ID> patchNormalsToAssign;
 	patchNormalsToAssign.resize( this->getVertexNr() );
 
-	// +++ Time for parallel processing
-	time_t rawtime;
-	struct tm* timeinfo{nullptr};
-	time( &rawtime );
-	timeinfo = localtime( &rawtime );
-	time_t timeStampParallel = time( nullptr ); // clock() is not multi-threading save (to measure the non-CPU or real time ;) )
-	std::cout << "[GigaMesh] Start date/time is: " << asctime( timeinfo );// << std::endl;
-	// --- Time for parallel processing
+	// Determine number of threads using CPU cores minus one.
+	const unsigned int availableConcurrentThreads =  std::thread::hardware_concurrency() - 1;
+	std::cout << "[GigaMesh::" << __FUNCTION__ << "] Computing vertex normals using "
+	          << availableConcurrentThreads << " threads" << std::endl;
 
 	sMeshDataStruct* setMeshData = new sMeshDataStruct[availableConcurrentThreads];
 	for( size_t t = 0; t < availableConcurrentThreads; t++ )
 	{
-		//cout << "[GigaMesh] Preparing data for thread " << t << endl;
 		setMeshData[t].threadID               = t;
 		setMeshData[t].meshToAnalyze          = this;
 		setMeshData[t].radius                 = rRadius;
@@ -13339,65 +13328,21 @@ bool Mesh::normalsVerticesComputeSphere(
 		setMeshData[t].multiscaleRadii        = nullptr;
 		setMeshData[t].sparseFilters          = nullptr;
 		setMeshData[t].mPatchNormal           = &patchNormalsToAssign;
-		setMeshData[t].patchNormal            = nullptr;
 		setMeshData[t].descriptVolume         = nullptr;
 		setMeshData[t].descriptSurface        = nullptr;
 	}
 
-	int ctrIgnored{0};
-	int ctrProcessed{0};
+	// Use MSII function for parallel processing and normal estimation
+	compFeatureVectorsMain( setMeshData, availableConcurrentThreads );
 
-	if( availableConcurrentThreads < 2 ) {
-		std::cout << "[GigaMesh] SINGLE Thread started" << std::endl;
-		compFeatureVectors( setMeshData, 0, this->getVertexNr() );
-	} else {
-		const uint64_t offsetPerThread{this->getVertexNr()/availableConcurrentThreads};
-		const uint64_t verticesPerThread{offsetPerThread};
-		const uint64_t offsetThisThread{verticesPerThread*(availableConcurrentThreads - 1)};
-		const uint64_t verticesThisThread{offsetPerThread +
-			                          this->getVertexNr() %
-			                          availableConcurrentThreads};
-
-		std::vector<std::future<void>> threadFutureHandlesVector(availableConcurrentThreads - 1);
-
-		for( unsigned int threadCount = 0;
-		     threadCount < (availableConcurrentThreads - 1); threadCount++ ) {
-			auto functionCall = std::bind( &compFeatureVectors,
-			                               &(setMeshData[threadCount]),
-			                               offsetPerThread*threadCount,
-			                               verticesPerThread );
-
-			threadFutureHandlesVector.at(threadCount) =
-			        std::async(std::launch::async, functionCall);
-		}
-
-		compFeatureVectors( &(setMeshData[availableConcurrentThreads - 1]),
-		                    offsetThisThread, verticesThisThread );
-
-		size_t threadCount{0};
-
-		for( std::future<void>& threadFutureHandle : threadFutureHandlesVector ) {
-			threadFutureHandle.get();
-			ctrIgnored   += setMeshData[threadCount].ctrIgnored;
-			ctrProcessed += setMeshData[threadCount].ctrProcessed;
-			++threadCount;
-		}
-	}
-
-	// +++ Time for parallel processing
-	time( &rawtime );
-	timeinfo = localtime( &rawtime );
-	std::cout << "[GigaMesh] End date/time is: " << asctime( timeinfo );// << endl;
-	std::cout << "[GigaMesh] Vertices processed: " << ctrProcessed << std::endl;
-	std::cout << "[GigaMesh] Vertices ignored:   " << ctrIgnored << std::endl;
-	std::cout << "[GigaMesh] Parallel processing took " << static_cast<int>( time( nullptr ) ) - static_cast<int>( timeStampParallel )  << " seconds." << std::endl;
-	std::cout << "[GigaMesh]               ... equals " << static_cast<int>( ctrProcessed ) /
-	                ( static_cast<int>( time( nullptr ) ) - static_cast<int>( timeStampParallel ) + 0.1 ) << " vertices/seconds." << std::endl; // add 0.1 to avoid division by zero for small meshes.
-	// --- Time for parallel processing
-
+	// Assing normals
 	this->assignImportedNormalsToVertices( patchNormalsToAssign );
 
+	// Update OpenGL conect in GUI
 	retVal |= normalsVerticesChanged();
+
+	// Cleanup
+	delete[] setMeshData;
 	showProgressStop( __FUNCTION__ );
 
 	return( retVal );

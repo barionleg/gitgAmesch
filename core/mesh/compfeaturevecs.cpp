@@ -20,7 +20,9 @@
 // along with GigaMesh.  If not, see <http://www.gnu.org/licenses/>.
 //
 
+#include <ctime>
 #include <mutex>
+#include <future>
 
 #include <GigaMesh/mesh/compfeaturevecs.h>
 
@@ -29,7 +31,7 @@
 std::mutex stdoutMutex;
 
 //! Compute the Multi-Scale Integral Invariant feature vectors
-void compFeatureVectors(
+void compFeatureVectorsThread(
                 sMeshDataStruct*   rMeshData,
                 const size_t       rThreadOffset,
                 const size_t       rThreadVertexCount
@@ -46,6 +48,8 @@ void compFeatureVectors(
 		          << " % of total)" << std::endl;
 	}
 
+	time_t timeStampThread = time( nullptr ); // clock() is not multi-threading save (to measure the non-CPU or real time ;) )
+
 	// initalize values to be returned via meshDataStruct:
 	rMeshData->ctrIgnored   = 0;
 	rMeshData->ctrProcessed = 0;
@@ -53,7 +57,6 @@ void compFeatureVectors(
 	// copy pointers from struct for easier access.
 	double* tDescriptVolume     = rMeshData->descriptVolume;  //!< Volume descriptors
 	double* tDescriptSurface    = rMeshData->descriptSurface; //!< Surface descriptors
-	double* tSurfacePatchNormal = rMeshData->patchNormal;     //!< Surface patch normal
 	std::vector<MeshIO::grVector3ID>* tNormalSurfacePatch = rMeshData->mPatchNormal;   //!< Surface patch normal
 
 	// setup memory for rastered surface:
@@ -102,19 +105,12 @@ void compFeatureVectors(
 		                                                 vertNrLongs, vertBitArrayVisited, 
 		                                                 faceNrLongs, faceBitArrayVisited, false );
 
-		//! \todo remove old version - gigamesh-featurevectors needs to be adapted i.e. simplified!
-		// OLD: Fetch and store the normal used in fetchSphereCubeVolume25D as it is a quality measure
-		if( tSurfacePatchNormal ) {
-			std::vector<Face*>::iterator itFace;
-			for( itFace=facesInSphere.begin(); itFace!=facesInSphere.end(); itFace++ ) {
-//				(*itFace)->addNormalTo( &(tSurfacePatchNormal[vertexOriIdxInProgress*3]) );
-			}
-		}
-		// NEW: Fetch and store the normal used in fetchSphereCubeVolume25D as it is a quality measure
+		// Fetch and store the normal used in fetchSphereCubeVolume25D as it is a quality measure
 		if( tNormalSurfacePatch ) {
 			double normalXYZ[3]{0.0,0.0,0.0};
 			std::vector<Face*>::iterator itFace;
 			for( itFace=facesInSphere.begin(); itFace!=facesInSphere.end(); itFace++ ) {
+				// from OLD version: (*itFace)->addNormalTo( &(tSurfacePatchNormal[vertexOriIdxInProgress*3]) );
 				(*itFace)->addNormalXYZTo( normalXYZ, false );
 			}
 			tNormalSurfacePatch->at(vertexOriIdxInProgress) = MeshIO::grVector3ID{ vertexOriIdxInProgress,
@@ -177,8 +173,101 @@ void compFeatureVectors(
 	// Surface descriptor
 	delete[] absolutRadii;
 
+	rMeshData->mWallTimeThread = static_cast<int>( time( nullptr ) ) - static_cast<int>( timeStampThread ); // seconds
+
 	{
 		std::lock_guard<std::mutex> lock(stdoutMutex);
-		std::cout << "[GigaMesh] Thread " << threadID << " | STOP - processed: " << rMeshData->ctrProcessed << " and skipped " << rMeshData->ctrIgnored << " vertices." << std::endl;
+		std::cout << "[GigaMesh] Thread " << threadID << " | STOP - processed: " << rMeshData->ctrProcessed
+		          << " and skipped " << rMeshData->ctrIgnored << " vertices."
+		          << " Walltime: " << rMeshData->mWallTimeThread << " seconds." << std::endl;
 	}
-} // END of estFeatureVectors
+} // END of compFeatureVectorsThread
+
+void compFeatureVectorsMain(
+                sMeshDataStruct*   rMeshData,
+                const unsigned int rAvailableConcurrentThreads
+) {
+	// Sanity check
+	if( rMeshData == nullptr ) {
+		std::cout << "[GigaMesh::" << __FUNCTION__ << "] ERROR: nullptr given!" << std::endl;
+		return;
+	}
+
+	// +++ Time for parallel processing
+	time_t rawtime;
+	struct tm* timeinfo{nullptr};
+	time( &rawtime );
+	timeinfo = localtime( &rawtime );
+	time_t timeStampParallel = time( nullptr ); // clock() is not multi-threading save (to measure the non-CPU or real time ;) )
+	std::cout << "[GigaMesh] Start date/time is: " << asctime( timeinfo );// << std::endl;
+	// --- Time for parallel processing
+
+	int ctrIgnored{0};
+	int ctrProcessed{0};
+
+	uint64_t nrOfVerticesInMesh = rMeshData[0].meshToAnalyze->getVertexNr();
+
+	if( rAvailableConcurrentThreads < 2 ) {
+		std::cout << "[GigaMesh] SINGLE Thread started" << std::endl;
+		compFeatureVectorsThread( rMeshData, 0, nrOfVerticesInMesh );
+	} else {
+		const uint64_t offsetPerThread{ nrOfVerticesInMesh/rAvailableConcurrentThreads };
+		const uint64_t verticesPerThread{ offsetPerThread };
+		const uint64_t offsetThisThread{ verticesPerThread*(rAvailableConcurrentThreads - 1) };
+		const uint64_t verticesThisThread{ offsetPerThread +
+			                           nrOfVerticesInMesh %
+			                           rAvailableConcurrentThreads };
+
+		std::vector<std::future<void>> threadFutureHandlesVector(rAvailableConcurrentThreads - 1);
+
+		for( unsigned int threadCount = 0;
+		     threadCount < (rAvailableConcurrentThreads - 1); threadCount++ ) {
+			auto functionCall = std::bind( &compFeatureVectorsThread,
+			                               &(rMeshData[threadCount]),
+			                               offsetPerThread*threadCount,
+			                               verticesPerThread );
+
+			threadFutureHandlesVector.at(threadCount) =
+			        std::async(std::launch::async, functionCall);
+		}
+
+		compFeatureVectorsThread( &(rMeshData[rAvailableConcurrentThreads - 1]),
+		                    offsetThisThread, verticesThisThread );
+
+		size_t threadCount{0};
+
+		for( std::future<void>& threadFutureHandle : threadFutureHandlesVector ) {
+			threadFutureHandle.get();
+			ctrIgnored   += rMeshData[threadCount].ctrIgnored;
+			ctrProcessed += rMeshData[threadCount].ctrProcessed;
+			++threadCount;
+		}
+	}
+
+	// Timing stats of threads
+	for( unsigned int threadCount = 0; threadCount < rAvailableConcurrentThreads; threadCount++ ) {
+		//! \todo there are certainly more elegant ways to format time into useful/readable units.
+		double timeSpent = rMeshData[threadCount].mWallTimeThread;
+		std::string timeSpentUnit = "sec";
+		if( timeSpent > ( 24.0 * 3600.0 ) ) {
+			timeSpent = round( 10.0 * timeSpent / ( 24.0 * 3600.0 ) ) / 10.0;
+			timeSpentUnit = "DAYS";
+		} else if( timeSpent > 3600.0 ) {
+			timeSpent = round( 10.0 * timeSpent / 3600.0 ) / 10.0;
+			timeSpentUnit = "hours";
+		}
+		std::cout << "[GigaMesh] Thread " << threadCount << " | Walltime: " << timeSpent << " " << timeSpentUnit << "." << std::endl;
+	}
+
+	// +++ Time for parallel processing
+	time( &rawtime );
+	timeinfo = localtime( &rawtime );
+	std::cout << "[GigaMesh] End date/time is: " << asctime( timeinfo );// << endl;
+	std::cout << "[GigaMesh] Vertices processed: " << ctrProcessed << std::endl;
+	std::cout << "[GigaMesh] Vertices ignored:   " << ctrIgnored << std::endl;
+	std::cout << "[GigaMesh] Parallel processing took " << static_cast<int>( time( nullptr ) ) -
+	                                                       static_cast<int>( timeStampParallel )  << " seconds." << std::endl;
+	std::cout << "[GigaMesh]               ... equals " << static_cast<int>( ctrProcessed ) /
+	                ( static_cast<int>( time( nullptr ) ) - static_cast<int>( timeStampParallel ) + 0.1 ) << " vertices/seconds." << std::endl; // add 0.1 to avoid division by zero for small meshes.
+	// --- Time for parallel processing
+}

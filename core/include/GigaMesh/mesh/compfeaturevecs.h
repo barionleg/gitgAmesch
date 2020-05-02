@@ -36,19 +36,25 @@ struct sMeshDataStruct {
 	int     ctrProcessed{0};
 	// Smooth normal of the largest spherical neighbourhood i.e. largest scale
 	std::vector<MeshIO::grVector3ID>* mPatchNormal{nullptr}; //!< Normal used for orientation into 2.5D representation
-	double* patchNormal{nullptr};     //!< Normal used for orientation into 2.5D representation
 	// our most precious feature vectors (as array):
 	double* descriptVolume{nullptr};  //!< Volume descriptors
 	double* descriptSurface{nullptr}; //!< Surface descriptors
 	// and the voxel filter
 	voxelFilter2DElements** sparseFilters{nullptr};
+	// Collect compute time
+	int     mWallTimeThread{0};
 };
 
 //! Compute the Multi-Scale Integral Invariant feature vectors
-void compFeatureVectors(
-        sMeshDataStruct*   rMeshData,
-        const size_t       rThreadOffset,
-        const size_t       rThreadVertexCount
+void compFeatureVectorsThread(
+                sMeshDataStruct*   rMeshData,
+                const size_t       rThreadOffset,
+                const size_t       rThreadVertexCount
+);
+
+void compFeatureVectorsMain(
+                sMeshDataStruct*   rMeshData,
+                const unsigned int rAvailableConcurrentThreads
 );
 
 #endif
