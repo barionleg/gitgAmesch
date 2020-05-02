@@ -846,9 +846,10 @@
      <addaction name="actionRemove_Drawing_of_Octree"/>
      <addaction name="actionDelete_Octree"/>
     </widget>
-    <addaction name="actionApplyTpsRpmTransformation"/>
-    <addaction name="separator"/>
+    <addaction name="actionMSIIFilterApplyQuick"/>
     <addaction name="actionEstimateMSIIFeature"/>
+    <addaction name="separator"/>
+    <addaction name="actionApplyTpsRpmTransformation"/>
     <addaction name="separator"/>
     <addaction name="actionPolylinesFromMultipleFuncVals"/>
     <addaction name="actionPolylinesFromPlaneIntersect"/>
@@ -939,6 +940,8 @@
    <addaction name="separator"/>
    <addaction name="actionRemoveUncleanSmall"/>
    <addaction name="actionEditMeshPolish"/>
+   <addaction name="separator"/>
+   <addaction name="actionMSIIFilterApplyQuick"/>
    <addaction name="separator"/>
    <addaction name="actionSelectVertex"/>
    <addaction name="actionSelMVertsGUIPinPoint"/>
@@ -4367,6 +4370,20 @@ p, li { white-space: pre-wrap; }
   <action name="actionPlaneOrientTowardsAxis">
    <property name="text">
     <string>Plane - Set orientation using Axis</string>
+   </property>
+  </action>
+  <action name="actionMSIIFilterApplyQuick">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_compute_msii_quick.svg</normaloff>:/GMToolBar/gigamesh_icon_compute_msii_quick.svg</iconset>
+   </property>
+   <property name="text">
+    <string>MSII Feature Vectors and Function Value (Quick)</string>
+   </property>
+   <property name="toolTip">
+    <string>Apply MSII filtering with default settings. Only a radius i.e. largest feature size is required.
+Volume based feature vectors are computed including a function value (Max element). 
+The latter will be shown, when the processing has finished.</string>
    </property>
   </action>
  </widget>

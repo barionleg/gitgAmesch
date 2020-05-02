@@ -73,6 +73,7 @@
         <file>gigamesh_icon_background_center_location.svg</file>
         <file>gigamesh_icon_vertices_selected_invert.svg</file>
         <file>gigamesh_icon_mesh_information.svg</file>
+        <file>gigamesh_icon_compute_msii_quick.svg</file>
     </qresource>
     <qresource prefix="/GMToolTipImages">
         <file>tooltips/rendering_flat_smooth_egde_on.png</file>

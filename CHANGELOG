@@ -1,4 +1,5 @@
 Current version
++) New: MSII filtering can be applied using the GUI with default settings. See 'Analyze -> MSII Feature Vectors and Function Value (Quick)'.
 +) Improved: Matrix Dialog
 +) Improved: Normal vector computation per vertex. See 'Edit -> Vertices - Recompute Normals" and enter values larger than 0.
 +) Improved: options of 'gigamesh-featurevectors'.

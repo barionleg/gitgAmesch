@@ -1124,6 +1124,7 @@ void QGMMainWindow::initMeshSignals() {
 	actionApplyTpsRpmTransformation->setProperty(                 "gmMeshGLFunctionCall", MeshGLParams::RUN_TPS_RPM_TRANSFORMATION               );
 	actionPositionsEuclideanDistances->setProperty(               "gmMeshFunctionCall", MeshParams::SELMPRIMS_POS_DISTANCES                      );
 	actionPositionsComputeCircleCenters->setProperty(             "gmMeshFunctionCall", MeshParams::SELMPRIMS_POS_CIRCLE_CENTERS                 );
+	actionMSIIFilterApplyQuick->setProperty(                      "gmMeshFunctionCall", MeshParams::COMPUTE_FEATUREVECTORS_QUICK                 );
 	actionGeodesicPatchSelPrim->setProperty(                      "gmMeshFunctionCall", MeshParams::GEODESIC_DISTANCE_TO_SELPRIM                 );
 	actionPolylinesFromMultipleFuncVals->setProperty(             "gmMeshFunctionCall", MeshParams::POLYLINES_FROM_MULTIPLE_FUNCTION_VALUES      );
 	actionPolylinesFromFuncVal->setProperty(                      "gmMeshFunctionCall", MeshParams::POLYLINES_FROM_FUNCTION_VALUE                );

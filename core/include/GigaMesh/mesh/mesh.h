@@ -360,6 +360,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual int    removeFeatureVectors();
 
 	public:
+		// Feature vector functions (NEW)
+		        bool   computeMSIIQuick( double rRadius );
 		//! \todo use MeshParams::eFunctionCall to avoid/reduce copy&paste code!
 		// Feature vector functions
 		 uint64_t getFeatureVecLenMax( int rPrimitiveType );

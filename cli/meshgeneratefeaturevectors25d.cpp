@@ -211,7 +211,7 @@ bool generateFeatureVectors(
 		fileStrOutMeta << "Area integral:      Yes" << std::endl;
 	}
 
-	// Compute relative radii:
+	// Pre-compute relative radii:
 	uint64_t multiscaleRadiiSize = std::pow( 2.0, static_cast<double>(radiiCount) );
 	double*       multiscaleRadii     = new double[multiscaleRadiiSize];
 	for( uint i=0; i<multiscaleRadiiSize; i++ ) {
@@ -309,11 +309,13 @@ bool generateFeatureVectors(
 	fileStrOutMeta << "Hostname:           " << rHostname << std::endl;
 	fileStrOutMeta << "Username:           " << rUsername << std::endl;
 
+	// Prepare array for (1st) volume integral invariant filter responses
 	double* descriptVolume{nullptr};
 	if( !rNoVolumeIntInv ) {
 		descriptVolume  = new double[someMesh.getVertexNr()*multiscaleRadiiSize];
 	}
 
+	// Prepare array for (2nd) surface patch integral invariant filter responses
 	double* descriptSurface{nullptr};
 	if( !rNoAreaIntInv ) {
 		descriptSurface = new double[someMesh.getVertexNr()*multiscaleRadiiSize];
@@ -351,6 +353,7 @@ bool generateFeatureVectors(
 	fileStrOutMeta << "Start time was:     " << asctime( timeinfo ); // no endl required as asctime will add a linebreak
 	// --- Collect time for parallel processing
 
+	// Pre-compute sparse filte:
 	voxelFilter2DElements* sparseFilters;
 	generateVoxelFilters2D( multiscaleRadiiSize, multiscaleRadii, xyzDim, &sparseFilters );
 
@@ -405,7 +408,8 @@ bool generateFeatureVectors(
 				Vertex* currVert = someMesh.getVertexPos( i );
 				if( !currVert->assignFeatureVec( &descriptVolume[i*multiscaleRadiiSize],
 				                                 multiscaleRadiiSize ) ) {
-					std::cerr << "[GigaMesh] Assignment of volume based feature vectors to vertices failed for Vertex No. " << i << "!" << std::endl;
+					std::cerr << "[GigaMesh] ERROR: Assignment of volume based feature vectors"
+					          << "to vertices failed for Vertex No. " << i << "!" << std::endl;
 				}
 				// Index:
 				filestrVol << i;

@@ -626,6 +626,13 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 				}
 			}
 			break;
+		case COMPUTE_FEATUREVECTORS_QUICK: {
+			double radius{1.0};
+			if( !showEnterText( radius, "Enter radius (largest feature size)" ) ) {
+				break;
+			}
+			retVal = computeMSIIQuick( radius );
+			} break;
 		case GEODESIC_DISTANCE_TO_SELPRIM:
 			retVal = estGeodesicPatchSelPrim();
 			break;
@@ -5067,6 +5074,93 @@ int Mesh::removeFeatureVectors() {
 		}
 	}
 	return vertNotAssigned;
+}
+
+// --- Feature vectors -----------------------------------------------------------------------------------------------------------------------------
+
+//! Apply MSII filtering using default parameters.
+//! Only the radius i.e. largest feature size is required.
+//! Calls Mesh::funcVertFeatureVecMax which will show the user
+//! directly a result.
+//!
+//! Used for simple user interaction by toolbar button.
+//!
+//! \todo Implement a full version similar to the command line tool.
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::computeMSIIQuick(
+                double rRadius //!< Radius of the largest feature to detect
+) {
+	// Sanity check
+	if( !isnormal( rRadius ) || ( rRadius <= 0.0 ) ) {
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Invalid radius of " << rRadius << "given!" << std::endl;
+		return( false );
+	}
+
+	bool retVal(true);
+	showProgressStart( "MSII filtering (Quick)" );
+
+	unsigned int radiiCount{4}; // Default
+	unsigned int xyzDim{256};   // Default
+
+	// Pre-compute relative radii:
+	uint64_t multiscaleRadiiSize = std::pow( 2.0, static_cast<double>(radiiCount) );
+	double*       multiscaleRadii     = new double[multiscaleRadiiSize];
+	for( uint i=0; i<multiscaleRadiiSize; i++ ) {
+		multiscaleRadii[i] = 1.0 - static_cast<double>(i) /
+		                           static_cast<double>(multiscaleRadiiSize);
+	}
+
+	// Pre-compute sparse filte:
+	voxelFilter2DElements* sparseFilters;
+	generateVoxelFilters2D( multiscaleRadiiSize, multiscaleRadii, xyzDim, &sparseFilters );
+
+	// Prepare array for (1st) volume integral invariant filter responses
+	double* descriptVolume = new double[this->getVertexNr()*multiscaleRadiiSize];
+
+	// Determine number of threads using CPU cores minus one.
+	const unsigned int availableConcurrentThreads =  std::thread::hardware_concurrency() - 1;
+	std::cout << "[GigaMesh::" << __FUNCTION__ << "] Computing vertex normals using "
+	          << availableConcurrentThreads << " threads" << std::endl;
+
+	sMeshDataStruct* setMeshData = new sMeshDataStruct[availableConcurrentThreads];
+	for( size_t t = 0; t < availableConcurrentThreads; t++ )
+	{
+		setMeshData[t].threadID               = t;
+		setMeshData[t].meshToAnalyze          = this;
+		setMeshData[t].radius                 = rRadius;
+		setMeshData[t].xyzDim                 = xyzDim;
+		setMeshData[t].multiscaleRadiiSize    = multiscaleRadiiSize;
+		setMeshData[t].multiscaleRadii        = multiscaleRadii;
+		setMeshData[t].sparseFilters          = &sparseFilters;
+		setMeshData[t].mPatchNormal           = nullptr;
+		setMeshData[t].descriptVolume         = descriptVolume;
+		setMeshData[t].descriptSurface        = nullptr;
+	}
+
+	// Use MSII function for parallel processing and normal estimation
+	compFeatureVectorsMain( setMeshData, availableConcurrentThreads );
+
+	// Assing computed feature vectors to vertices
+	for( uint64_t i=0; i<this->getVertexNr(); i++ ) {
+		Vertex* currVert = this->getVertexPos( i );
+		if( !currVert->assignFeatureVec( &descriptVolume[i*multiscaleRadiiSize],
+		                                 multiscaleRadiiSize ) ) {
+			std::cerr << "[GigaMesh] ERROR: Assignment of volume based feature vectors"
+			          << "to vertices failed for Vertex No. " << i << "!" << std::endl;
+			retVal |= false;
+		}
+	}
+
+	// Compute a function value per vertex using the feature vectors
+	retVal |= funcVertFeatureVecMax();
+
+	// Cleanup
+	delete[] descriptVolume;
+	delete[] setMeshData;
+	showProgressStop( "MSII filtering (Quick)" );
+
+	return( retVal );
 }
 
 // --- Feature vectors - import/export -------------------------------------------------------------------------------------------------------------
