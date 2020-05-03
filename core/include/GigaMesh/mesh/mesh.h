@@ -56,12 +56,6 @@
     #include <thread>
 #endif
 
-// CUDA/OpenCL
-#ifdef CUDA
-    #include <cuda.h>
-    #include "cudamesh.h"
-#endif
-
 #include "meshinfodata.h"
 #include "meshio.h"
 #include "mesh_params.h"
@@ -69,7 +63,6 @@
 // Helper classes
 #include "showprogress.h"
 #include "userinteraction.h"
-
 
 //!
 //! \brief Central class for mesh manipulation. (Layer 0)
@@ -80,10 +73,6 @@
 //!
 //! One should always call Mesh::establishStructure after creation.
 //! For performance and test reasons it is not integrated into Mesh::Mesh.
-//!
-//! Due to the design in respect to OpenCL/CUDA, we allocate memory for the longest
-//! feature vector x number of Primitive. In case a feature vector is shorter
-//! the unused elements have to be set to not-a-number.
 //!
 //! Layer 0
 //!
@@ -438,9 +427,6 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 
 		// Histogram:
 		virtual bool         getHistogramValues( eHistogramType rHistType, std::vector<unsigned int>* rNumArray, double* rValMin, double* rValMax );
-
-		// setup the mesh (with respect to CUDA/OpenCL)
-				void  estimateEdges();
 
 		// Labeling -- Connected Components
 		virtual bool labelsChanged();
