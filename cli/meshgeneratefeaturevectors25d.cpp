@@ -194,7 +194,6 @@ bool generateFeatureVectors(
 #else
 	fileStrOutMeta << "GigaMesh Version    unknown" << std::endl;
 #endif
-	fileStrOutMeta << "Threads (dynamic):  " << std::thread::hardware_concurrency() * 2 << std::endl;
 	fileStrOutMeta << "File IN:            " << fileNameIn << std::endl;
 	fileStrOutMeta << "File OUT/Prefix:    " << fileNameOut << std::endl;
 	fileStrOutMeta << "Radius:             " << radius << " mm (unit assumed)" << std::endl;
@@ -328,7 +327,7 @@ bool generateFeatureVectors(
 	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
 	strHeader << "# | Contact: Hubert MARA <hubert.mara@iwr.uni-heidelberg.de>                      |" << std::endl;
 	strHeader << "# |          FCGL - Forensic Computational Geometry Laboratory                    |" << std::endl;
-	strHeader << "# |          IWR - University of Heidelberg, Germany                              |" << std::endl;
+	strHeader << "# |          IWR - Heidelberg University, Germany                                 |" << std::endl;
 	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
 	strHeader << "# | Mesh:       " << fileNameIn.filename() << std::endl;
 	strHeader << "# | - Vertices: " << someMesh.getVertexNr() << std::endl;
