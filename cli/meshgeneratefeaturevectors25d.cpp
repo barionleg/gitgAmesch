@@ -184,72 +184,17 @@ bool generateFeatureVectors(
 	// All parameters OK => infos to stdout and file with metadata  -----------------------------------------------------------
 	std::fstream fileStrOutMeta;
 	fileStrOutMeta.open( fileNameOutMeta, std::fstream::out );
-	std::cout << "[GigaMesh] File IN:         " << fileNameIn << std::endl;
-	std::cout << "[GigaMesh] File OUT/Prefix: " << fileNameOut << std::endl;
-	std::cout << "[GigaMesh] Radius:          " << radius << " mm (unit assumed)" << std::endl;
-	std::cout << "[GigaMesh] Radii:           2^" << radiiCount << " = " << pow( 2.0, static_cast<double>(radiiCount) ) << std::endl;
-	std::cout << "[GigaMesh] Rastersize:      " << xyzDim << "^3" << std::endl;
-#ifdef VERSION_PACKAGE
-	fileStrOutMeta << "GigaMesh Version    " << VERSION_PACKAGE << std::endl;
-#else
-	fileStrOutMeta << "GigaMesh Version    unknown" << std::endl;
-#endif
-	fileStrOutMeta << "File IN:            " << fileNameIn << std::endl;
-	fileStrOutMeta << "File OUT/Prefix:    " << fileNameOut << std::endl;
-	fileStrOutMeta << "Radius:             " << radius << " mm (unit assumed)" << std::endl;
-	fileStrOutMeta << "Radii:              2^" << radiiCount << " = " << std::pow( 2.0, static_cast<float>(radiiCount) ) << std::endl;
-	fileStrOutMeta << "Rastersize:         " << xyzDim << "^3" << std::endl;
-	if( rNoVolumeIntInv ) {
-		fileStrOutMeta << "Volume integral:    No" << std::endl;
-	} else {
-		fileStrOutMeta << "Volume integral:    Yes" << std::endl;
-	}
-	if( rNoAreaIntInv ) {
-		fileStrOutMeta << "Area integral:      No" << std::endl;
-	} else {
-		fileStrOutMeta << "Area integral:      Yes" << std::endl;
-	}
-
-	// Pre-compute relative radii:
-	uint64_t multiscaleRadiiSize = std::pow( 2.0, static_cast<double>(radiiCount) );
-	double*       multiscaleRadii     = new double[multiscaleRadiiSize];
-	for( uint i=0; i<multiscaleRadiiSize; i++ ) {
-		multiscaleRadii[i] = 1.0 - static_cast<double>(i) /
-		                           static_cast<double>(multiscaleRadiiSize);
-	}
 
 	// Set the formatting properties of the output
 	std::cout << std::setprecision( 2 ) << std::fixed;
 	fileStrOutMeta << std::setprecision( 2 ) << std::fixed;
 
-	std::cout << "[GigaMesh] Radii: (relative)          ";
-	fileStrOutMeta << "Radii (relative):  ";
-	for( uint i=0; i<multiscaleRadiiSize; i++ ) {
-		std::cout << " " << multiscaleRadii[i];
-		fileStrOutMeta << " " << multiscaleRadii[i];
-	}
-	std::cout << std::endl;
-	fileStrOutMeta << std::endl;
-	fileStrOutMeta << "Radii (absolute):  ";
-	for( uint i=0; i<multiscaleRadiiSize; i++ ) {
-		fileStrOutMeta << " " << ( multiscaleRadii[i] * radius );
-	}
-	fileStrOutMeta << std::endl;
+	time_t rawtime;
 
-	// Info about files
-	std::cout << "[GigaMesh] File to write technical Meta-Data:   " << fileNameOutMeta << std::endl;
-	if( !fileNameOutVol.empty() ) {
-		std::cout << "[GigaMesh] File to write Volume (1st MSII):     " << fileNameOutVol << std::endl;
-	}
-	if( !fileNameOutSurf.empty() ) {
-		std::cout << "[GigaMesh] File to write Surface (2nd MSII):    " << fileNameOutSurf << std::endl;
-	}
-	if( !fileNameOutPatchNormal.empty() ) {
-		std::cout << "[GigaMesh] File to write Surface patch normal:  " << fileNameOutPatchNormal << std::endl;
-	}
-	if( !fileNameOutVS.empty() ) {
-		std::cout << "[GigaMesh] File to write concatenated V+S:      " << fileNameOutVS << std::endl;
-	}
+	time( &rawtime );
+	struct tm * timeInfoMeshLoad = localtime( &rawtime );
+	time_t timeStampMeshLoad = time( nullptr ); // clock() is not multi-threading save (to measure the non-CPU or real time ;) )
+	int timeLoaded{-1};
 
 	// Prepare data structures
 	//--------------------------------------------------------------------------
@@ -259,6 +204,8 @@ bool generateFeatureVectors(
 		std::cerr << "[GigaMesh] Error: Could not open file '" << fileNameIn << "'!" << std::endl;
 		return( false );
 	}
+
+	timeLoaded = static_cast<int>( time( nullptr ) ) - static_cast<int>( timeStampMeshLoad );
 
 	// Fetch mesh data
 	Vector3D bbDim;
@@ -282,6 +229,9 @@ bool generateFeatureVectors(
 	std::cout << "[GigaMesh] Version:         unknown" << std::endl;
 #endif
 	std::cout << "[GigaMesh] ==================================================" << std::endl;
+	std::cout << "[GigaMesh] File IN:         " << fileNameIn << std::endl;
+	std::cout << "[GigaMesh] File OUT/Prefix: " << fileNameOut << std::endl;
+	std::cout << "[GigaMesh] --------------------------------------------------" << std::endl;
 	std::cout << "[GigaMesh] Model ID:        " << modelID << std::endl;
 	std::cout << "[GigaMesh] Material:        " << modelMat << std::endl;
 	std::cout << "[GigaMesh] Web-reference:   " << modelWebRef << std::endl;
@@ -294,7 +244,19 @@ bool generateFeatureVectors(
 	std::cout << "[GigaMesh] Volume (dy):     " << volDXYZ[1]/1000.0 << " cm^3" << std::endl;
 	std::cout << "[GigaMesh] Volume (dz):     " << volDXYZ[2]/1000.0 << " cm^3" << std::endl;
 	std::cout << "[GigaMesh] --------------------------------------------------" << std::endl;
+	std::cout << "[GigaMesh] Radius:          " << radius << " mm (unit assumed)" << std::endl;
+	std::cout << "[GigaMesh] Radii:           2^" << radiiCount << " = " << pow( 2.0, static_cast<double>(radiiCount) ) << std::endl;
+	std::cout << "[GigaMesh] Rastersize:      " << xyzDim << "^3" << std::endl;
+	std::cout << "[GigaMesh] --------------------------------------------------" << std::endl;
+
 	// Write technical meta-data to file
+#ifdef VERSION_PACKAGE
+	fileStrOutMeta << "GigaMesh Version:   " << VERSION_PACKAGE << std::endl;
+#else
+	fileStrOutMeta << "GigaMesh Version:   unknown" << std::endl;
+#endif
+	fileStrOutMeta << "Path INPUT:         " << fileNameIn.parent_path() << std::endl;
+	fileStrOutMeta << "File INPUT:         " << fileNameIn.filename() << std::endl;
 	fileStrOutMeta << "Model ID:           " << modelID << std::endl;
 	fileStrOutMeta << "Material:           " << modelMat << std::endl;
 	fileStrOutMeta << "Web-reference:      " << modelWebRef << std::endl;
@@ -305,10 +267,49 @@ bool generateFeatureVectors(
 	fileStrOutMeta << "Volume (dx):        " << volDXYZ[0]/1000.0 << " cm^3" << std::endl;
 	fileStrOutMeta << "Volume (dy):        " << volDXYZ[1]/1000.0 << " cm^3" << std::endl;
 	fileStrOutMeta << "Volume (dz):        " << volDXYZ[2]/1000.0 << " cm^3" << std::endl;
-	fileStrOutMeta << "Hostname:           " << rHostname << std::endl;
-	fileStrOutMeta << "Username:           " << rUsername << std::endl;
+	// Output & Parameter
+	fileStrOutMeta << "Path OUTPUT:        " << fileNameOut.parent_path() << std::endl;
+	fileStrOutMeta << "File OUTPUT-Prefix: " << fileNameOut.filename() << std::endl;
 
-	time_t rawtime;
+	// Pre-compute relative radii:
+	uint64_t multiscaleRadiiSize = std::pow( 2.0, static_cast<double>(radiiCount) );
+	double*       multiscaleRadii     = new double[multiscaleRadiiSize];
+	for( uint i=0; i<multiscaleRadiiSize; i++ ) {
+		multiscaleRadii[i] = 1.0 - static_cast<double>(i) /
+		                           static_cast<double>(multiscaleRadiiSize);
+	}
+	fileStrOutMeta << "Radius:             " << radius << " mm (unit assumed)" << std::endl;
+	fileStrOutMeta << "Radii:              2^" << radiiCount << " = " << std::pow( 2.0, static_cast<float>(radiiCount) ) << std::endl;
+	std::cout << "[GigaMesh] Radii: (relative)          ";
+	fileStrOutMeta << "Radii (relative):  ";
+	for( uint i=0; i<multiscaleRadiiSize; i++ ) {
+		std::cout << " " << multiscaleRadii[i];
+		fileStrOutMeta << " " << multiscaleRadii[i];
+	}
+	std::cout << std::endl;
+	fileStrOutMeta << std::endl;
+	fileStrOutMeta << "Radii (absolute):  ";
+	for( uint i=0; i<multiscaleRadiiSize; i++ ) {
+		fileStrOutMeta << " " << ( multiscaleRadii[i] * radius );
+	}
+	fileStrOutMeta << std::endl;
+	fileStrOutMeta << "Rastersize:         " << xyzDim << "^3" << std::endl;
+
+	// Info about files
+	std::cout << "[GigaMesh] File to write technical Meta-Data:   " << fileNameOutMeta << std::endl;
+	if( !fileNameOutVol.empty() ) {
+		std::cout << "[GigaMesh] File to write Volume (1st MSII):     " << fileNameOutVol << std::endl;
+	}
+	if( !fileNameOutSurf.empty() ) {
+		std::cout << "[GigaMesh] File to write Surface (2nd MSII):    " << fileNameOutSurf << std::endl;
+	}
+	if( !fileNameOutPatchNormal.empty() ) {
+		std::cout << "[GigaMesh] File to write Surface patch normal:  " << fileNameOutPatchNormal << std::endl;
+	}
+	if( !fileNameOutVS.empty() ) {
+		std::cout << "[GigaMesh] File to write concatenated V+S:      " << fileNameOutVS << std::endl;
+	}
+
 	struct tm * timeinfo;
 
 	// Header for the .mat files
@@ -363,18 +364,33 @@ bool generateFeatureVectors(
 	std::vector<MeshIO::grVector3ID> patchNormalsToAssign;
 	patchNormalsToAssign.resize( someMesh.getVertexNr() );
 
-
 	// Determine number of threads using CPU cores minus one.
 	const unsigned int availableConcurrentThreads =  std::thread::hardware_concurrency() - 1;
 	std::cout << "[GigaMesh] Computing feature vectors using "
 	            << availableConcurrentThreads << " threads" << std::endl;
-	fileStrOutMeta << "Threads (dynamic):  " << availableConcurrentThreads << std::endl;
+
+	// Meta-data continued
+	if( rNoVolumeIntInv ) {
+		fileStrOutMeta << "Volume integral:    No" << std::endl;
+	} else {
+		fileStrOutMeta << "Volume integral:    Yes" << std::endl;
+	}
+	if( rNoAreaIntInv ) {
+		fileStrOutMeta << "Area integral:      No" << std::endl;
+	} else {
+		fileStrOutMeta << "Area integral:      Yes" << std::endl;
+	}
+	fileStrOutMeta << "Hostname:           " << rHostname << std::endl;
+	fileStrOutMeta << "Username:           " << rUsername << std::endl;
+	fileStrOutMeta << "Mesh loaded:        " << asctime( timeInfoMeshLoad ); // no endl required as asctime will add a linebreak
+	fileStrOutMeta << "Load walltime:      " << timeLoaded << " seconds" << std::endl;
+	fileStrOutMeta << "Number of threads:  " << availableConcurrentThreads << std::endl;
 
 	// +++ Collect time for parallel processing
 	time( &rawtime );
 	timeinfo = localtime( &rawtime );
 	time_t timeStampParallel = time( nullptr ); // clock() is not multi-threading save (to measure the non-CPU or real time ;) )
-	fileStrOutMeta << "Start time was:     " << asctime( timeinfo ); // no endl required as asctime will add a linebreak
+	fileStrOutMeta << "Compute start:      " << asctime( timeinfo ); // no endl required as asctime will add a linebreak
 	// --- Collect time for parallel processing
 
 	// Pre-compute sparse filte:
@@ -403,15 +419,15 @@ bool generateFeatureVectors(
 	// +++ Collect time for parallel processing
 	time( &rawtime );
 	timeinfo = localtime( &rawtime );
-	fileStrOutMeta << "End time was:       " << asctime( timeinfo ); // no endl required as asctime will add a linebreak
+	fileStrOutMeta << "Compute end:        " << asctime( timeinfo ); // no endl required as asctime will add a linebreak
 	// ... Collect walltimes of the threads
 	for( unsigned int threadCount = 0; threadCount < availableConcurrentThreads; threadCount++ ) {
 		fileStrOutMeta << "Walltime thread " << threadCount << ":  "
 		               << setMeshData[threadCount].mWallTimeThread << " seconds" << std::endl;
 	}
-	fileStrOutMeta << "Overall walltime:   "
+	fileStrOutMeta << "Compute walltime:   "
 	               << static_cast<int>( time( nullptr ) ) - static_cast<int>( timeStampParallel )
-	               << " seconds." << std::endl;
+	               << " seconds" << std::endl;
 	// --- Collect time for parallel processing
 
 	timeStampParallel = time( nullptr );

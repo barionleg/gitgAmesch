@@ -251,6 +251,7 @@ void compFeatureVectorsMain(
 	}
 
 	// Timing stats of threads
+	int procTime = static_cast<int>( time( nullptr ) ) - static_cast<int>( timeStampParallel );
 	std::cout << "[GigaMesh] --------------------------------------------------" << std::endl;
 	for( unsigned int threadCount = 0; threadCount < rThreadVertexCount; threadCount++ ) {
 		//! \todo there are certainly more elegant ways to format time into useful/readable units.
@@ -264,7 +265,9 @@ void compFeatureVectorsMain(
 			timeSpentUnit = "hours";
 		}
 		std::cout << "[GigaMesh] Thread " << threadCount
-		          << " | Walltime: " << timeSpent << " " << timeSpentUnit << "." << std::endl;
+		          << " | Walltime: " << timeSpent << " " << timeSpentUnit
+		          << " " << (100.0*rMeshData[threadCount].mWallTimeThread)/procTime << "%"
+		          << "." << std::endl;
 	}
 	std::cout << "[GigaMesh] --------------------------------------------------" << std::endl;
 
@@ -275,9 +278,8 @@ void compFeatureVectorsMain(
 	std::cout << "[GigaMesh] --------------------------------------------------" << std::endl;
 	std::cout << "[GigaMesh] Vertices processed: " << ctrProcessed << std::endl;
 	std::cout << "[GigaMesh] Vertices ignored:   " << ctrIgnored << std::endl;
-	std::cout << "[GigaMesh] Parallel processing took " << static_cast<int>( time( nullptr ) ) -
-	                                                       static_cast<int>( timeStampParallel )  << " seconds." << std::endl;
+	std::cout << "[GigaMesh] Parallel processing took " << procTime << " seconds." << std::endl;
 	std::cout << "[GigaMesh]               ... equals " << static_cast<int>( ctrProcessed ) /
-	                ( static_cast<int>( time( nullptr ) ) - static_cast<int>( timeStampParallel ) + 0.1 ) << " vertices/seconds." << std::endl; // add 0.1 to avoid division by zero for small meshes.
+	                                                       ( procTime + 1 ) << " vertices/seconds." << std::endl; // add 1 to avoid division by zero for small meshes.
 	// --- Time for parallel processing
 } // END of compFeatureVectorsMain
