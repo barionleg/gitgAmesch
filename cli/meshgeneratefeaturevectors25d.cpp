@@ -75,7 +75,7 @@ bool generateFeatureVectors(
                 const std::string&             rUsername
 ) {
 	// Check existance of the input file:
-	if( !std::filesystem::exists(fileNameIn) ) {
+	if( !std::filesystem::exists( fileNameIn ) ) {
 		std::cerr << "[GigaMesh] ERROR: File '" << fileNameIn << "' not found!" << std::endl;
 		return( false );
 	}
@@ -309,6 +309,33 @@ bool generateFeatureVectors(
 	fileStrOutMeta << "Hostname:           " << rHostname << std::endl;
 	fileStrOutMeta << "Username:           " << rUsername << std::endl;
 
+	time_t rawtime;
+	struct tm * timeinfo;
+
+	// Header for the .mat files
+	time( &rawtime );
+	timeinfo = localtime( &rawtime );
+
+	std::string timeInfoStr( asctime( timeinfo ) );
+	timeInfoStr = timeInfoStr.substr( 0, timeInfoStr.length()-1 );
+
+	std::stringstream strHeader;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | MAT file with feature vectors computed by the GigaMesh Software Framework     |" << std::endl;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | WebSite: https://gigamesh.eu                                                  |" << std::endl;
+	strHeader << "# | EMail:   info@gigamesh.eu                                                     |" << std::endl;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | Contact: Hubert MARA <hubert.mara@iwr.uni-heidelberg.de>                      |" << std::endl;
+	strHeader << "# |          FCGL - Forensic Computational Geometry Laboratory                    |" << std::endl;
+	strHeader << "# |          IWR - University of Heidelberg, Germany                              |" << std::endl;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | Mesh:       " << fileNameIn.filename() << std::endl;
+	strHeader << "# | - Vertices: " << someMesh.getVertexNr() << std::endl;
+	strHeader << "# | - Faces:    " << someMesh.getFaceNr() << std::endl;
+	strHeader << "# | Timestamp:  " << timeInfoStr << std::endl;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+
 	// Prepare array for (1st) volume integral invariant filter responses
 	double* descriptVolume{nullptr};
 	if( !rNoVolumeIntInv ) {
@@ -345,8 +372,6 @@ bool generateFeatureVectors(
 	fileStrOutMeta << "Threads (dynamic):  " << availableConcurrentThreads << std::endl;
 
 	// +++ Collect time for parallel processing
-	time_t rawtime;
-	struct tm* timeinfo{nullptr};
 	time( &rawtime );
 	timeinfo = localtime( &rawtime );
 	time_t timeStampParallel = time( nullptr ); // clock() is not multi-threading save (to measure the non-CPU or real time ;) )
@@ -404,6 +429,7 @@ bool generateFeatureVectors(
 			retVal = false;
 		} else {
 			filestrVol << std::fixed << std::setprecision( 10 );
+			filestrVol << strHeader.str();
 			for( uint64_t i=0; i<someMesh.getVertexNr(); i++ ) {
 				Vertex* currVert = someMesh.getVertexPos( i );
 				if( !currVert->assignFeatureVec( &descriptVolume[i*multiscaleRadiiSize],
@@ -433,6 +459,7 @@ bool generateFeatureVectors(
 			retVal = false;
 		} else {
 			filestrSurf << std::fixed << std::setprecision( 10 );
+			filestrSurf << strHeader.str();
 			for( uint64_t i=0; i<someMesh.getVertexNr(); i++ ) {
 				// Assign 2nd feature vector only in case the 1st is not present!
 				if( descriptVolume == NULL ) {
@@ -464,6 +491,8 @@ bool generateFeatureVectors(
 			retVal = false;
 		} else {
 			filestrNormal << std::fixed << std::setprecision( 10 );
+			//! \todo Replace "feature" with "normal" in strHeader.
+			filestrNormal << strHeader.str();
 			for( uint64_t i=0; i<someMesh.getVertexNr(); i++ ) {
 				// Index of the vertex
 				filestrNormal << patchNormalsToAssign.at( i ).mId;
@@ -488,6 +517,7 @@ bool generateFeatureVectors(
 			retVal = false;
 		} else {
 			filestrVS << std::fixed << std::setprecision( 10 );
+			filestrVS << strHeader.str();
 			for( uint64_t i=0; i<someMesh.getVertexNr(); i++ ) {
 				filestrVS << i;
 				// Scales - Volume:

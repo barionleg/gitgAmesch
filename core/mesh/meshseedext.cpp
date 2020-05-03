@@ -74,11 +74,11 @@ void MeshSeedExt::clear() {
 //!
 //! @returns false in case of an error. True otherwise.
 bool MeshSeedExt::importFeatureVectors(
-                const filesystem::path&         rFileName,            //!< Filename to parse.
-				uint64_t              rNrVertices,          //!< Maximum number of vertices within the Mesh.
-                vector<double>&       rFeatureVecs,         //!< Feature vectors.
-				uint64_t&             rMaxFeatVecLen,       //!< Length of the longest vector.
-                bool                  rVertexIdInFirstCol   //!< Does the feature vector file have a vertex id within the first column?
+                const filesystem::path&   rFileName,            //!< Filename to parse.
+                uint64_t                  rNrVertices,          //!< Maximum number of vertices within the Mesh.
+                vector<double>&           rFeatureVecs,         //!< Feature vectors.
+                uint64_t&                 rMaxFeatVecLen,       //!< Length of the longest vector.
+                bool                      rVertexIdInFirstCol   //!< Does the feature vector file have a vertex id within the first column?
 ) {
 	// LOCALE .... because of "." vs ","
 	const char* oldLocale = setlocale( LC_NUMERIC, "" );

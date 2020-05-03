@@ -30,7 +30,9 @@
 #define THREADS_VERTEX_BLOCK  5000
 std::mutex stdoutMutex;
 
-//! Compute the Multi-Scale Integral Invariant feature vectors
+//! Compute the Multi-Scale Integral Invariant feature vectors.
+//! Function to be called multiple times depending on the requested
+//! number of threads. Typically called by compFeatureVectorsMain.
 void compFeatureVectorsThread(
                 sMeshDataStruct*   rMeshData,
                 const size_t       rThreadOffset,
@@ -183,9 +185,12 @@ void compFeatureVectorsThread(
 	}
 } // END of compFeatureVectorsThread
 
+//! Compute the Multi-Scale Integral Invariant feature vectors.
+//! Main function to be called. Takes care about multi-threaded
+//! computation.
 void compFeatureVectorsMain(
                 sMeshDataStruct*   rMeshData,
-                const unsigned int rAvailableConcurrentThreads
+                const unsigned int rThreadVertexCount
 ) {
 	// Sanity check
 	if( rMeshData == nullptr ) {
@@ -199,7 +204,8 @@ void compFeatureVectorsMain(
 	time( &rawtime );
 	timeinfo = localtime( &rawtime );
 	time_t timeStampParallel = time( nullptr ); // clock() is not multi-threading save (to measure the non-CPU or real time ;) )
-	std::cout << "[GigaMesh] Start date/time is: " << asctime( timeinfo );// << std::endl;
+	std::cout << "[GigaMesh] Time started: " << asctime( timeinfo );// << std::endl;
+	std::cout << "[GigaMesh] --------------------------------------------------" << std::endl;
 	// --- Time for parallel processing
 
 	int ctrIgnored{0};
@@ -207,21 +213,21 @@ void compFeatureVectorsMain(
 
 	uint64_t nrOfVerticesInMesh = rMeshData[0].meshToAnalyze->getVertexNr();
 
-	if( rAvailableConcurrentThreads < 2 ) {
+	if( rThreadVertexCount < 2 ) {
 		std::cout << "[GigaMesh] SINGLE Thread started" << std::endl;
 		compFeatureVectorsThread( rMeshData, 0, nrOfVerticesInMesh );
 	} else {
-		const uint64_t offsetPerThread{ nrOfVerticesInMesh/rAvailableConcurrentThreads };
+		const uint64_t offsetPerThread{ nrOfVerticesInMesh/rThreadVertexCount };
 		const uint64_t verticesPerThread{ offsetPerThread };
-		const uint64_t offsetThisThread{ verticesPerThread*(rAvailableConcurrentThreads - 1) };
+		const uint64_t offsetThisThread{ verticesPerThread*(rThreadVertexCount - 1) };
 		const uint64_t verticesThisThread{ offsetPerThread +
 			                           nrOfVerticesInMesh %
-			                           rAvailableConcurrentThreads };
+			                           rThreadVertexCount };
 
-		std::vector<std::future<void>> threadFutureHandlesVector(rAvailableConcurrentThreads - 1);
+		std::vector<std::future<void>> threadFutureHandlesVector(rThreadVertexCount - 1);
 
 		for( unsigned int threadCount = 0;
-		     threadCount < (rAvailableConcurrentThreads - 1); threadCount++ ) {
+		     threadCount < (rThreadVertexCount - 1); threadCount++ ) {
 			auto functionCall = std::bind( &compFeatureVectorsThread,
 			                               &(rMeshData[threadCount]),
 			                               offsetPerThread*threadCount,
@@ -231,7 +237,7 @@ void compFeatureVectorsMain(
 			        std::async(std::launch::async, functionCall);
 		}
 
-		compFeatureVectorsThread( &(rMeshData[rAvailableConcurrentThreads - 1]),
+		compFeatureVectorsThread( &(rMeshData[rThreadVertexCount - 1]),
 		                    offsetThisThread, verticesThisThread );
 
 		size_t threadCount{0};
@@ -245,24 +251,28 @@ void compFeatureVectorsMain(
 	}
 
 	// Timing stats of threads
-	for( unsigned int threadCount = 0; threadCount < rAvailableConcurrentThreads; threadCount++ ) {
+	std::cout << "[GigaMesh] --------------------------------------------------" << std::endl;
+	for( unsigned int threadCount = 0; threadCount < rThreadVertexCount; threadCount++ ) {
 		//! \todo there are certainly more elegant ways to format time into useful/readable units.
 		double timeSpent = rMeshData[threadCount].mWallTimeThread;
 		std::string timeSpentUnit = "sec";
 		if( timeSpent > ( 24.0 * 3600.0 ) ) {
-			timeSpent = round( 10.0 * timeSpent / ( 24.0 * 3600.0 ) ) / 10.0;
+			timeSpent = round( 100.0 * timeSpent / ( 24.0 * 3600.0 ) ) / 100.0;
 			timeSpentUnit = "DAYS";
 		} else if( timeSpent > 3600.0 ) {
-			timeSpent = round( 10.0 * timeSpent / 3600.0 ) / 10.0;
+			timeSpent = round( 100.0 * timeSpent / 3600.0 ) / 100.0;
 			timeSpentUnit = "hours";
 		}
-		std::cout << "[GigaMesh] Thread " << threadCount << " | Walltime: " << timeSpent << " " << timeSpentUnit << "." << std::endl;
+		std::cout << "[GigaMesh] Thread " << threadCount
+		          << " | Walltime: " << timeSpent << " " << timeSpentUnit << "." << std::endl;
 	}
+	std::cout << "[GigaMesh] --------------------------------------------------" << std::endl;
 
 	// +++ Time for parallel processing
 	time( &rawtime );
 	timeinfo = localtime( &rawtime );
-	std::cout << "[GigaMesh] End date/time is: " << asctime( timeinfo );// << endl;
+	std::cout << "[GigaMesh] Time finished:      " << asctime( timeinfo ); // << endl;
+	std::cout << "[GigaMesh] --------------------------------------------------" << std::endl;
 	std::cout << "[GigaMesh] Vertices processed: " << ctrProcessed << std::endl;
 	std::cout << "[GigaMesh] Vertices ignored:   " << ctrIgnored << std::endl;
 	std::cout << "[GigaMesh] Parallel processing took " << static_cast<int>( time( nullptr ) ) -
@@ -270,4 +280,4 @@ void compFeatureVectorsMain(
 	std::cout << "[GigaMesh]               ... equals " << static_cast<int>( ctrProcessed ) /
 	                ( static_cast<int>( time( nullptr ) ) - static_cast<int>( timeStampParallel ) + 0.1 ) << " vertices/seconds." << std::endl; // add 0.1 to avoid division by zero for small meshes.
 	// --- Time for parallel processing
-}
+} // END of compFeatureVectorsMain

@@ -23,6 +23,8 @@
 #define COMPFEATUREVECS_H
 #include <GigaMesh/mesh/mesh.h>
 
+//! Struct to pass settings and results from and to the threads
+//! applying the MSII filter.
 struct sMeshDataStruct {
 	int     threadID{0}; //!< ID of the posix thread
 	// input:
@@ -45,16 +47,21 @@ struct sMeshDataStruct {
 	int     mWallTimeThread{0};
 };
 
-//! Compute the Multi-Scale Integral Invariant feature vectors
+//! Compute the Multi-Scale Integral Invariant feature vectors.
+//! Function to be called multiple times depending on the requested
+//! number of threads. Typically called by compFeatureVectorsMain.
 void compFeatureVectorsThread(
                 sMeshDataStruct*   rMeshData,
                 const size_t       rThreadOffset,
                 const size_t       rThreadVertexCount
 );
 
+//! Compute the Multi-Scale Integral Invariant feature vectors.
+//! Main function to be called. Takes care about multi-threaded
+//! computation.
 void compFeatureVectorsMain(
                 sMeshDataStruct*   rMeshData,
-                const unsigned int rAvailableConcurrentThreads
+                const unsigned int rThreadVertexCount //!<
 );
 
 #endif
