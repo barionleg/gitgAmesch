@@ -115,7 +115,7 @@ void compFeatureVectorsThread(
 				// from OLD version: (*itFace)->addNormalTo( &(tSurfacePatchNormal[vertexOriIdxInProgress*3]) );
 				(*itFace)->addNormalXYZTo( normalXYZ, false );
 			}
-			tNormalSurfacePatch->at(vertexOriIdxInProgress) = MeshIO::grVector3ID{ vertexOriIdxInProgress,
+			tNormalSurfacePatch->at(vertexOriIdxInProgress) = MeshIO::grVector3ID{ static_cast<unsigned long>(vertexOriIdxInProgress),
 			                                                                       normalXYZ[0], normalXYZ[1],
 			                                                                       normalXYZ[2] };
 		}
