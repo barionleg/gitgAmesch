@@ -7302,8 +7302,8 @@ void Mesh::convertLabelBordersToPolylines() {
 	}
 
 	// Sort labelines by label nr
-	uint64_t currentLabel;
-	Face* currFace;
+	uint64_t currentLabel = 0;
+	Face* currFace = nullptr;
 	for( uint64_t faceIdx=0; faceIdx<getFaceNr(); faceIdx++ ) {
 		currFace = getFacePos( faceIdx );
 		if( !currFace->getLabel( currentLabel ) ) {
@@ -12589,7 +12589,7 @@ double Mesh::fetchSphereCubeVolume25D( Vertex*     seedVertex,            //!< e
 	// 8. Raster the vertices
 	//cout << "[Mesh::fetchSphereCubeVolume25D] (8) " << endl;
 	rasterViewFromZ( vertexArray, vertexSize, rasterArray, cubeEdgeLengthInVoxels, cubeEdgeLengthInVoxels );
-	free( vertexArray );
+	delete[] vertexArray;
 //	for( int i=0; i<cubeEdgeLengthInVoxels; i++ ) {
 //		for( int j=0; j<cubeEdgeLengthInVoxels; j++ ) {
 //			cout << rasterArray[i*cubeEdgeLengthInVoxels+j] << " ";
@@ -15839,7 +15839,7 @@ bool Mesh::importFuncValsFromFile(const filesystem::path& rFileName, bool withVe
 
 	auto numVerts = getVertexNr();
 	std::string line;
-	double funcVal;
+	double funcVal = 0.0;
 
 	//importing with index
 	if(withVertIdx)

@@ -87,7 +87,7 @@ class TexturedMeshRenderer
 		std::vector<QOpenGLTexture*> mTextures;
 		QOpenGLFunctions_3_3_Core mGL;
 
-		QVector3D mBackFaceColor = QVector3D(128.0 / 255.0, 92.0 / 255.0, 92.0 / 255.0);
+		QVector3D mBackFaceColor = QVector3D(128.0F / 255.0F, 92.0F / 255.0F, 92.0F / 255.0F);
 		bool mCullBackfaces = false;
 };
 

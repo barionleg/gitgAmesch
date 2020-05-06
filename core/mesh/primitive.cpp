@@ -468,7 +468,7 @@ bool Primitive::isLabelBackGround() {
 //! Returns false in case the Primitive is not label or an error occured.
 //! This method has hard-coded color values to maintain speed.
 bool Primitive::getLabelColor( unsigned char* colRGB, int colorMap ) {
-	uint64_t myLabel;
+	uint64_t myLabel = 0;
 	// We have to get the label no. thru the (overloaded!) method:
 	if( !getLabel( myLabel ) ) {
 		return false;

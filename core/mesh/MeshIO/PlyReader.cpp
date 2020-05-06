@@ -357,7 +357,7 @@ bool parseBinary(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, st
 	}
 	filestr.seekg( forwardToPos );
 
-	unsigned char listNrChar;
+	unsigned char listNrChar   = 0;
 	uint64_t verticesRead      = 0;
 	uint64_t facesRead         = 0;
 	uint64_t polyLinesRead     = 0;
@@ -410,12 +410,12 @@ bool parseBinary(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, st
 						rVertexProps[ verticesRead ].mNormalZ = static_cast<double>(someFloat);
 						break;
 					case PLY_FLAGS: {
-						unsigned int someFlags;
+						unsigned int someFlags = 0;
 						READ_IN_PROPER_BYTE_ORDER( filestr, &someFlags, (*plyPropSize), reverseByteOrder );
 						rVertexProps[ verticesRead ].mFlags = someFlags;
 						} break;
 					case PLY_LABEL: {
-						unsigned int someLabelID;
+						unsigned int someLabelID = 0;
 						READ_IN_PROPER_BYTE_ORDER( filestr, &someLabelID, (*plyPropSize), reverseByteOrder );
 						rVertexProps[ verticesRead ].mLabelId = someLabelID;
 						} break;
@@ -511,7 +511,7 @@ bool parseBinary(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, st
 						rFaceProps[facesRead].textureCoordinates.shrink_to_fit();
 						for(unsigned char j = 0; j<listNrChar; ++j)
 						{
-							float texCoord;
+							float texCoord = 0.0F;
 							READ_IN_PROPER_BYTE_ORDER( filestr, &texCoord,(*plyPropListSize), reverseByteOrder);
 							rFaceProps[facesRead].textureCoordinates[j] = texCoord;
 						}
@@ -579,7 +579,7 @@ bool parseBinary(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, st
 						} break;
 					case PLY_LIST_VERTEX_INDICES: {
 						// Read a list of polyline indices
-						int nrIndices;
+						int nrIndices = 0;
 						READ_IN_PROPER_BYTE_ORDER( filestr, &nrIndices, (*plyPropListCountSize), reverseByteOrder );
 						std::vector<int>* somePolyLinesIndices = new std::vector<int>;
 						for( int j=0; j<nrIndices; j++ ) {
