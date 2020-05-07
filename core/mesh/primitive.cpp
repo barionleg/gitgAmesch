@@ -831,9 +831,8 @@ double Primitive::angleToNormal( Vector3D someVec ) {
 //! When overwritten: Assign a feature vectore stored in an external table.
 //!
 //! @returns false as no vector can be attached for the primitive (base) class.
-bool Primitive::assignFeatureVec(
-                const double*         rAttachFeatureVec,
-                const uint64_t   rSetFeatureVecLen
+bool Primitive::assignFeatureVec(const double*         rAttachFeatureVec,
+                unsigned int rSetFeatureVecLen
 ) {
 	cerr << "[Primitive::" << __FUNCTION__ << "] ERROR: Could not attach feature vector [ " << rAttachFeatureVec[0] << ", ... ] of length " << rSetFeatureVecLen << "!" << endl;
 	return( false );
