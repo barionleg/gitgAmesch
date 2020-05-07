@@ -1167,7 +1167,7 @@ bool MeshQt::funcExperimentalNonMaximumSuppression()
 {
     QGMDialogEnterText dlgEnterTextVal;
 	dlgEnterTextVal.setDouble(5.0); //5 mm is standard for non maximum suppression distance
-	dlgEnterTextVal.setWindowTitle( tr("At what distance in millimeter do you want non maxima to be suppressed?") );
+	dlgEnterTextVal.setWindowTitle( tr("Radius in mm for Non Maximum Suppression, try 5 mm") ); //a text much longer than this gets cropped
 
 	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double NMSDistance) {this->funcExpNonMaxSupp(NMSDistance);});
 
