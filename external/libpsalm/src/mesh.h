@@ -59,7 +59,7 @@ class mesh
 		bool save(const std::string& filename, file_type type = TYPE_EXT);
 
 		bool load_raw_data(int num_vertices, long* vertex_IDs, double* coordinates, double* scale_attributes = nullptr, double* normals = nullptr);
-		bool save_raw_data(int* num_new_vertices, double** new_coordinates, int* num_faces, long** vertex_IDs);
+		bool save_raw_data(size_t* num_new_vertices, double** new_coordinates, int* num_faces, long** vertex_IDs);
 
 		void prune(	const std::set<size_t>& remove_faces,
 				const std::set<size_t>& remove_vertices);

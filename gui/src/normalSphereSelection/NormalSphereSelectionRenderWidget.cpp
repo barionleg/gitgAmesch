@@ -192,7 +192,7 @@ void NormalSphereSelectionRenderWidget::refreshNormals()
 	);
 
 	mIcosphereDataBuffer.bind();
-	mIcosphereDataBuffer.write(0,dataBuffer.data(), dataBuffer.size() * sizeof (float));
+	mIcosphereDataBuffer.write(0,dataBuffer.data(), static_cast<int>(dataBuffer.size() * sizeof (float)));
 	mIcosphereDataBuffer.release();
 	assert(glGetError() == GL_NO_ERROR);
 
@@ -314,10 +314,6 @@ void NormalSphereSelectionRenderWidget::mousePressEvent(QMouseEvent* event)
 	}
 }
 
-void NormalSphereSelectionRenderWidget::mouseReleaseEvent(QMouseEvent* event)
-{
-}
-
 void NormalSphereSelectionRenderWidget::mouseMoveEvent(QMouseEvent* event)
 {
 	if(event->buttons() & Qt::LeftButton)
@@ -365,7 +361,7 @@ void NormalSphereSelectionRenderWidget::initializeGL()
 
 	auto vertexData = mIcoSphereTree.getVertices();
 
-	mIcosphereBuffer.allocate(vertexData.data(), vertexData.size() * sizeof (float));
+	mIcosphereBuffer.allocate(vertexData.data(), static_cast<int>(vertexData.size() * sizeof (float)));
 
 	assert(glGetError() == GL_NO_ERROR);
 
@@ -382,7 +378,7 @@ void NormalSphereSelectionRenderWidget::initializeGL()
 	mIcosphereDataBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
 	mIcosphereDataBuffer.bind();
 
-	mIcosphereDataBuffer.allocate(vertexData.size() / 3 * sizeof (float));
+	mIcosphereDataBuffer.allocate(static_cast<int>(vertexData.size() / 3 * sizeof (float)));
 
 	assert(glGetError() == GL_NO_ERROR);
 	vertexLoc = mIcoSphereShader->attributeLocation("vData");
@@ -395,7 +391,7 @@ void NormalSphereSelectionRenderWidget::initializeGL()
 	mIcosphereIndices.bind();
 
 	auto faceIndices = mIcoSphereTree.getFaceIndices();
-	mIcosphereIndices.allocate(faceIndices.data(), faceIndices.size() * sizeof(unsigned int));
+	mIcosphereIndices.allocate(faceIndices.data(), static_cast<int>(faceIndices.size() * sizeof(unsigned int)));
 
 	mIcoSphereVAO.release();
 	mIcosphereIndices.release();

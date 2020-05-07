@@ -1254,7 +1254,7 @@ bool Mesh::exportFeatureVectors(const filesystem::path& rFileName)
 			filestr << (currIndex++) << " ";
 		}
 
-		for(int i = 0; i<vecSize; ++i)
+		for(unsigned int i = 0; i<vecSize; ++i)
 		{
 			double elem;
 			currVert->getFeatureElement(i, &elem);
@@ -15355,7 +15355,7 @@ bool Mesh::fillPolyLines(
 			cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " BORDER vertices: " << numVertices << " density: " << borderDensity << " faces: " << borderAndNewFaces.size() << endl;
 			//--------------------------------------------------------------------------------------------------------------------------------------
 			// Variable for the return values of fillhole:
-			int        numNewVertices = 0;
+			size_t        numNewVertices = 0;
 			double*    newCoordinates = nullptr;
 			int        numNewFaces    = 0;
 			long*      newVertexIDs   = nullptr;
@@ -15371,7 +15371,7 @@ bool Mesh::fillPolyLines(
 			cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " ADD vertices: " << numNewVertices << " faces: " << numNewFaces << endl;
 			vector<VertexOfFace*> tmpRefNewVertices; // We need this temporarly for connecting the faces.
 			tmpRefNewVertices.resize( numNewVertices, nullptr );
-			for( int i=0; i<numNewVertices; i++ ) {
+			for( size_t i=0; i<numNewVertices; ++i ) {
 				tmpRefNewVertices.at( i ) = new VertexOfFace( Vector3D( newCoordinates[i*3], newCoordinates[i*3+1], newCoordinates[i*3+2] ) );
 				tmpRefNewVertices.at( i )->setFlag( FLAG_SYNTHETIC );
 				tmpRefNewVertices.at( i )->setRGB( 255, 0, 0 );
@@ -15382,7 +15382,7 @@ bool Mesh::fillPolyLines(
 				mVertices.push_back( tmpRefNewVertices.at( i ) );
 			}
 			int faceIdMax = getFaceNr();
-			for( int i=0; i<numNewFaces; i++ ) {
+			for( int i=0; i<numNewFaces; ++i ) {
 				// Face( int setIdx, Vertex* setA, Vertex* setB, Vertex* setC, unsigned char* setTexRGB=NULL );
 				VertexOfFace* newVertA = nullptr;
 				VertexOfFace* newVertB = nullptr;

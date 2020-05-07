@@ -58,7 +58,7 @@ class Vertex : public Primitive {
 		Vertex( unsigned int rSetIdx, double rPosX, double rPosY, double rPosZ );
 		Vertex( Vector3D vertPos );
 		Vertex( Vector3D vertPos, Vector3D vertNormal );
-		Vertex( Vector3D vertPos, Vector3D vertNormal, int setLabelTo );
+		Vertex( Vector3D vertPos, Vector3D vertNormal, uint64_t setLabelTo );
 		Vertex( Vertex* vertA, Vertex* vertB, double weightA=-1.0, double weightB=+1.0, double weightPos=0.0 );
 		~Vertex();
 

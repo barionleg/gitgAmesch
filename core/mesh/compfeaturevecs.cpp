@@ -121,7 +121,7 @@ void compFeatureVectorsThread(
 		}
 
 		// Pre-compute address offset
-		unsigned int descriptIndexOffset = vertexOriIdxInProgress*rMeshData->multiscaleRadiiSize;
+	    auto descriptIndexOffset = vertexOriIdxInProgress*rMeshData->multiscaleRadiiSize;
 
 		// Get volume descriptor:
 		if( tDescriptVolume ) {

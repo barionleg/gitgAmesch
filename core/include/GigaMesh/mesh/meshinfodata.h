@@ -77,7 +77,7 @@ class MeshInfoData {
 			ULONG_COUNT,                   //!< Number of elements.
 		};
 	public:
-		unsigned long mCountULong[ULONG_COUNT];
+		uint64_t mCountULong[ULONG_COUNT];
 	private:
 		std::string mCountULongName[ULONG_COUNT];
 

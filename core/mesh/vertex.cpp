@@ -167,7 +167,7 @@ Vertex::Vertex( Vector3D vertPos, Vector3D vertNormal )
 	setFlag( FLAG_NORMAL_SET );
 }
 
-Vertex::Vertex( Vector3D vertPos, Vector3D vertNormal, int setLabelTo )
+Vertex::Vertex(Vector3D vertPos, Vector3D vertNormal, uint64_t setLabelTo )
     : VERTEXINITDEFAULTS {
 	//! Constuctor using a position Vector3D, a direction Vector3D and a valid label no.
 	// defaults:

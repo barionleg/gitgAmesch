@@ -304,18 +304,20 @@ bool Primitive::setBlackWhiteBlack( double phase ) {
 	//! Returns true when phase is within the interval [0...1]. False otherwise.
 
 	if( phase <= 0.0 ) {
-		setRGB( 0.0, 0.0, 0.0 );
+		setRGB( 0, 0, 0 );
 		return false;
 	}
 	if( phase >= 1.0 ) {
-		setRGB( 0.0, 0.0, 0.0 );
+		setRGB( 0, 0, 0 );
 		return false;
 	}
 	phase *= 2.0;
 	if( phase > 1.0 ) {
 		phase = 2.0-phase;
 	}
-	setRGB( phase, phase, phase );
+	setRGB( static_cast<unsigned char>(255.0 * phase),
+	        static_cast<unsigned char>(255.0 * phase),
+	        static_cast<unsigned char>(255.0 * phase ));
 	return true;
 }
 
