@@ -137,11 +137,11 @@ bool parseAscii(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, std
 					break;
 				case PLY_VERTEX_TEXCOORD_S:
 					if(!vertexTextureCoordinates.empty())
-						vertexTextureCoordinates[ verticesRead * 2] = atof(lineElement.c_str());
+						vertexTextureCoordinates[ verticesRead * 2] = static_cast<float>(atof(lineElement.c_str()));
 					break;
 				case PLY_VERTEX_TEXCOORD_T:
 					if(!vertexTextureCoordinates.empty())
-						vertexTextureCoordinates[ verticesRead * 2 + 1] = atof(lineElement.c_str());
+						vertexTextureCoordinates[ verticesRead * 2 + 1] = static_cast<float>(atof(lineElement.c_str()));
 					break;
 				case PLY_FLAGS:
 					rVertexProps[ verticesRead ].mFlags = static_cast<unsigned long>(atoi( lineElement.c_str() ));
@@ -336,11 +336,11 @@ bool parseBinary(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, st
 		filestr.close();
 		return( false );
 	}
-	int posfound = ( it - buffer.begin() );
+	auto posfound = ( it - buffer.begin() );
 	LOG::debug() << "[PlyReader::" << __FUNCTION__ << "] 'end_header' found at position " << posfound << "\n";
 
 	char newLine = buffer[ posfound+seq.size() ];
-	int forwardToPos;
+	size_t forwardToPos;
 	if( newLine == 0x0A ) {
 		forwardToPos = posfound+seq.size()+1;
 		LOG::debug() << "[PlyReader::" << __FUNCTION__ << "] one byte line break.\n";
@@ -365,7 +365,7 @@ bool parseBinary(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, st
 	char  charProp          = 0;
 	long  bytesIgnored      = 0l;
 	long  extraBytesIgnored = 0l;
-	long  posInFile         = 0l;
+	std::streamoff  posInFile = 0;
 	float someFloat         = 0.0F;
 	int   someInt           = 0;
 
@@ -1001,7 +1001,7 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
 			{
 				std::for_each(rFaceProps.begin(), rFaceProps.end(), [numTextures](sFaceProperties& prop)
 					{
-						prop.textureId = numTextures;
+					    prop.textureId = static_cast<unsigned char>(numTextures);
 					}
 				);
 
