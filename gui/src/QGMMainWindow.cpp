@@ -2392,9 +2392,9 @@ void QGMMainWindow::keyReleaseEvent( QKeyEvent *rEvent ) {
 	if( rEvent->key() == Qt::Key_Shift ) {
 		emit sSelectMouseModeExtra(false,MeshWidgetParams::MOUSE_MODE_COUNT);
 	}
-	//if( rEvent->key() == Qt::Key_Alt ) {
-	//	emit sSelectMouseModeExtra(false,MeshWidgetParams::MOUSE_MODE_COUNT);
-	//}
+	if( rEvent->key() == Qt::Key_Alt ) {
+		emit sSelectMouseModeExtra(false,MeshWidgetParams::MOUSE_MODE_COUNT);
+	}
 	if( rEvent->key() == Qt::Key_AltGr ) {
 		emit sSelectMouseModeExtra(false,MeshWidgetParams::MOUSE_MODE_COUNT);
 	}

@@ -22,7 +22,7 @@ uniform float uNormalWidth  = 0.1;
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // +++ Rendering of a light direction as line-like triangles: --------------------------------------------------------------------------------------------------
-uniform bool  uLightVectors    = true;
+uniform bool  uLightVectors    = false;
 uniform int   uLightVecModVal  = 10;
 uniform float uLightVeclLength = 20.0;
 uniform float uLightVecWidth   =  0.005;
