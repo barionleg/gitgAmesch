@@ -5,7 +5,10 @@ Current version
 +) Improved: options of 'gigamesh-featurevectors'.
 +) Bugfix: missing text for 'gigamesh-featurevectors --help' added.
 +) Bugfix: fixed a bug, when exporting screenshots with filenames containing a '.' .
++) Bugfix: normals are now correctly imported when loading binary-ply files and obj-files.
++) Bugfix: clipping planes now work in the textured-mesh renderer.
 +) Changed: gigamesh-featurevectors stores the maximum element of the feature vector into the function value i.e. quality field.
++) Changed: light sources can now be rotated with the keys '3' and '4'.
 +) Updated help: See 'Info -> Keyboard Layout'.
 
 Version 200405
