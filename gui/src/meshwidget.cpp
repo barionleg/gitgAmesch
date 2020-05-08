@@ -1676,8 +1676,8 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         getParamStringMeshWidget( FILENAME_EXPORT_VIEWS, &fileNamePattern );
         // important name change !!!!
 		fileNamePattern.insert( fileNamePattern.find_last_of('.'), to_string(k) + suffix.toStdString() );
-		QString fileName = filePath + tr( fileNamePattern.c_str() );
-		if( fileName == nullptr ) {
+		QString fileName = filePath + QString( fileNamePattern.c_str() );
+		if( fileName.isNull() ) {
 			return QStringList();
 		}
 		double mmPerPixel_Width;
@@ -1786,7 +1786,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         }
 
         // Height and width of the Pictures on Latex
-        double mmPerPixel_Latex = 1/rDPIf*2.54*10;
+        double mmPerPixel_Latex = 1.0/rDPIf*2.54*10.0;
         height *= mmPerPixel_Latex/10.0;    // in cm
         width  *= mmPerPixel_Latex/10.0;    // in cm
 
@@ -1798,7 +1798,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         double factor = min(factorHeight, factorWidth);
 
         double latexToRealFactor = mmPerPixel_Width/mmPerPixel_Latex;
-        factor = 1/factor;
+		factor = 1.0/factor;
         factor *= latexToRealFactor;
 
         string scaling;
@@ -1814,7 +1814,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         }
 
         factor /= latexToRealFactor;
-        factor = 1/factor;
+		factor = 1.0/factor;
 
         QString factorString = QString::fromStdString(to_string(factor));
         factorString.replace(",", ".");
