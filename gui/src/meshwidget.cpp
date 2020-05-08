@@ -1827,19 +1827,19 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         QTextStream latexTemplateFileInStream( &latexTemplateFile );
         QString fileContent;
         while( !latexTemplateFileInStream.atEnd() ) {
-            fileContent += latexTemplateFileInStream.readLine() + "\r\n";
+			fileContent += latexTemplateFileInStream.readLine() + "\n";
         }
         //cout << "[MeshQt::" << __FUNCTION__ << "] File: " << fileContent.toStdString() << endl;
 
-        QString keyDataTableRow = QString() + "__OBJECT_ID__ &" + "\r\n"
-								+ "$\\numprint{__BOUNDING_BOX_WIDTH__} \\times \\numprint{__BOUNDING_BOX_HEIGHT__} \\times \\numprint{__BOUNDING_BOX_THICK__}$ &" + "\r\n"
-                                + "$\\numprint{__VERTEX_COUNT__}$ &" + "\r\n"
-                                + "$\\numprint{__FACE_COUNT__}$ &" + "\r\n"
-                                + "$\\numprint{__AREA_TOTAL__}$ &" + "\r\n"
-                                + "$\\numprint{__AREA_RESOLUTION_METRIC__}$ &" + "\r\n"
-                                + "$\\numprint{__VOLUME_TOTAL__}$ &" + "\r\n"
-                                + "__OBJECT_MATERIAL__\\\\" + "\r\n"
-                                + "\\hline" + "\r\n" + "\r\n";
+		QString keyDataTableRow = QString() + "__OBJECT_ID__ &" + "\n"
+		                        + "$\\numprint{__BOUNDING_BOX_WIDTH__} \\times \\numprint{__BOUNDING_BOX_HEIGHT__} \\times \\numprint{__BOUNDING_BOX_THICK__}$ &" + "\n"
+		                        + "$\\numprint{__VERTEX_COUNT__}$ &" + "\n"
+		                        + "$\\numprint{__FACE_COUNT__}$ &" + "\n"
+		                        + "$\\numprint{__AREA_TOTAL__}$ &" + "\n"
+		                        + "$\\numprint{__AREA_RESOLUTION_METRIC__}$ &" + "\n"
+		                        + "$\\numprint{__VOLUME_TOTAL__}$ &" + "\n"
+		                        + "__OBJECT_MATERIAL__\\\\" + "\n"
+		                        + "\\hline" + "\n" + "\n";
 
         //! .) Replace place holder with values.
 		for(pair<string, string>& replacmentString : replacmentStrings) {
@@ -1998,9 +1998,9 @@ void MeshWidget::generateLatexFile() {
 
     }
 
-	QString combinationList = tr("These are your combinations:") + QString("\r\n\r\n");
+	QString combinationList = tr("These are your combinations:") + QString("\n\n");
 	for(const QStringList& pageCombination : pageCombinations) {
-		combinationList += pageCombination.at(0) + ", " + pageCombination.at(1) + ", " + pageCombination.at(2) + "\r\n";
+		combinationList += pageCombination.at(0) + ", " + pageCombination.at(1) + ", " + pageCombination.at(2) + "\n";
     }
 
     bool userContinue;
@@ -2030,7 +2030,7 @@ void MeshWidget::generateLatexFile() {
     QTextStream latexKeyDataTableTemplateInStream( &latexKeyDataTableTemplateFile );
     QString latexKeyDataTableFileContent;
     while( !latexKeyDataTableTemplateInStream.atEnd() ) {
-        latexKeyDataTableFileContent += latexKeyDataTableTemplateInStream.readLine() + "\r\n";
+		latexKeyDataTableFileContent += latexKeyDataTableTemplateInStream.readLine() + "\n";
     }
 
     QString keyDataTexFileName = path + '/' + "keyDataTable" + suffix + ".tex";
@@ -2050,7 +2050,7 @@ void MeshWidget::generateLatexFile() {
         QTextStream latexTemplateFileInStream( &latexTemplateFile );
         QString fileContent;
         while( !latexTemplateFileInStream.atEnd() ) {
-            fileContent += latexTemplateFileInStream.readLine() + "\r\n";
+			fileContent += latexTemplateFileInStream.readLine() + "\n";
         }
 
         //cout << "[MeshQt::" << __FUNCTION__ << "] File: " << fileContent.toStdString() << endl;
@@ -2060,9 +2060,9 @@ void MeshWidget::generateLatexFile() {
         for( int i = 0; i < texFiles.size(); i++ ) {
             QStringList texFileComponents = texFiles[i].split( "__KEYDATATABLE__" );
 
-            replacementString += "\\input{"+texFileComponents[0].replace( path+'/', "" )+'}' + "\r\n" + "\\newpage" + "\r\n";
+			replacementString += "\\input{"+texFileComponents[0].replace( path+'/', "" )+'}' + "\n" + "\\newpage" + "\n";
             if( pageCombinations.size() % 2 == 1 && (i+1) % pageCombinations.size() == 0 ) {
-                replacementString += QString() + "\r\n" + "\\thispagestyle{empty}" + "\r\n" + "\\mbox{}" + "\r\n" + "\\newpage" + "\r\n" + "\r\n";
+				replacementString += QString() + "\n" + "\\thispagestyle{empty}" + "\n" + "\\mbox{}" + "\n" + "\\newpage" + "\n" + "\n";
             }
 
             replacementStringKeyDataTable += texFileComponents[1];
@@ -2258,9 +2258,9 @@ void MeshWidget::generateLatexCatalog() {
 
     }
 
-	QString combinationList = tr("These are your combinations:") + QString("\r\n\r\n");
+	QString combinationList = tr("These are your combinations:") + QString("\n\n");
 	for(const QStringList& pageCombination : pageCombinations) {
-		combinationList += pageCombination.at(0) + ", " + pageCombination.at(1) + ", " + pageCombination.at(2) + "\r\n";
+		combinationList += pageCombination.at(0) + ", " + pageCombination.at(1) + ", " + pageCombination.at(2) + "\n";
     }
 
     bool userContinue;
@@ -2294,7 +2294,7 @@ void MeshWidget::generateLatexCatalog() {
     QTextStream latexTemplateFileInStream( &latexTemplateFile );
     QString fileContent;
     while( !latexTemplateFileInStream.atEnd() ) {
-        fileContent += latexTemplateFileInStream.readLine() + "\r\n";
+		fileContent += latexTemplateFileInStream.readLine() + "\n";
     }
 
     QFile latexKeyDataTableTemplateFile( ":/GMGeneric/latextemplates/keydata.tex" );
@@ -2307,7 +2307,7 @@ void MeshWidget::generateLatexCatalog() {
     QTextStream latexKeyDataTableTemplateInStream( &latexKeyDataTableTemplateFile );
     QString latexKeyDataTableFileContent;
     while( !latexKeyDataTableTemplateInStream.atEnd() ) {
-        latexKeyDataTableFileContent += latexKeyDataTableTemplateInStream.readLine() + "\r\n";
+		latexKeyDataTableFileContent += latexKeyDataTableTemplateInStream.readLine() + "\n";
     }
 
     //cout << "[MeshQt::" << __FUNCTION__ << "] File: " << fileContent.toStdString() << endl;
@@ -2318,9 +2318,9 @@ void MeshWidget::generateLatexCatalog() {
     for( int i = 0; i < texFiles.size(); i++ ) {
         QStringList texFileComponents = texFiles[i].split( "__KEYDATATABLE__" );
 
-        replacementString += "\\input{"+texFileComponents[0].replace( path+'/', "" )+'}' + "\r\n" + "\\newpage" + "\r\n";
+		replacementString += "\\input{"+texFileComponents[0].replace( path+'/', "" )+'}' + "\n" + "\\newpage" + "\n";
         if( pageCombinations.size() % 2 == 1 && (i+1) % pageCombinations.size() == 0 ) {
-            replacementString += QString() + "\r\n" + "\\thispagestyle{empty}" + "\r\n" + "\\mbox{}" + "\r\n" + "\\newpage" + "\r\n" + "\r\n";
+			replacementString += QString() + "\n" + "\\thispagestyle{empty}" + "\n" + "\\mbox{}" + "\n" + "\\newpage" + "\n" + "\n";
         }
 
         replacementStringKeyDataTable += texFileComponents[1];
