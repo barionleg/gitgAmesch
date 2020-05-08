@@ -154,7 +154,7 @@ class MeshWidgetParams {
 			MOUSE_MODE_MOVE_PLANE_AXIS,         //!< Move plane bound by axis
 			MOUSE_MODE_ROTATE_PLANE_AXIS,       //!< Rotate plane bound by axis
 			MOUSE_MODE_MOVE_LIGHT_FIXED_CAM,    //!< Move the OpenGL light fixed to the camera coordinate system.
-			MOUSE_MODE_MOVE_LIGHT_FIXED_WORLD,  //!< Move the OpenGL light fixed in the world/object coordinate system.
+			MOUSE_MODE_MOVE_LIGHT_FIXED_OBJECT,  //!< Move the OpenGL light fixed in the object coordinate system.
 			MOUSE_MODE_SELECT,                  //!< Use the mouse for selection.
 			MOUSE_MODE_COUNT                    //!< Number of choices for mouse modes.
 		};
