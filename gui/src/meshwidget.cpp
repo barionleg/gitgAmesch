@@ -1621,12 +1621,12 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
 
     QStringList texFiles;
 
-    double left     = paperPropertiesf[0];
-    double right    = paperPropertiesf[1];
-    double top      = paperPropertiesf[2];
-    double bottom       = paperPropertiesf[3];
-    double paperWidth   = paperPropertiesf[4];
-    double paperHeight  = paperPropertiesf[5];
+	double left         = paperPropertiesf[0];
+	double right        = paperPropertiesf[1];
+	double top          = paperPropertiesf[2];
+	double bottom       = paperPropertiesf[3];
+	double paperWidth   = paperPropertiesf[4];
+	double paperHeight  = paperPropertiesf[5];
 
     // all values are experimental (in cm)
     double tableHeight  = 2.5;
@@ -1704,12 +1704,13 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         vector<pair<string,string> > replacmentStrings;
         mMeshVisual->latexFetchFigureInfos( &replacmentStrings );
 
-        QString tempFileName = rFilePath;
+		QString fileNameAbsolute = rFilePath;
+		fileNameAbsolute.truncate( fileNameAbsolute.lastIndexOf( QString('.') ) );
 
-        tempFileName.truncate( tempFileName.lastIndexOf( QString('.') ) );
-        tempFileName.replace(mainPath, ".");
-        string temp = tempFileName.toStdString();
-        tempFileName.replace(".", mainPath);
+		QString fileNameRelative = fileNameAbsolute;
+		fileNameRelative.replace(mainPath, ".");
+
+		string temp = fileNameRelative.toStdString();
 
 		//! .) Fetch strings and their values. (For the pictures)
 		QString title = QString( mMeshVisual->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID ).c_str() );
@@ -1732,10 +1733,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
 		replacmentStrings.emplace_back( pair<string,string>( string( "__07_HA_BACK__"  ),          string( temp + "_07_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
 		replacmentStrings.emplace_back( pair<string,string>( string( "__08_HA_BACK_RIGHT__"  ),    string( temp + "_08_ha_back_right" +    to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
 
-
-
-        temp = tempFileName.toStdString();
-
+		temp = fileNameAbsolute.toStdString();
         float width = 0;
         float height = 0;
         vector<string> widthPictures;
@@ -1856,7 +1854,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         keyDataTableRow.replace( QString("-"), QString("\\protect\\-") );
         keyDataTableRow.replace( QString("_"), QString("\\protect\\_") );
 
-        ofstream outfile( tempFileName.toStdString()+ to_string(k) + suffix.toStdString() + ".tex" );
+		ofstream outfile( fileNameAbsolute.toStdString()+ to_string(k) + suffix.toStdString() + ".tex" );
         outfile << fileContent.toStdString() << endl;
         outfile.close();
 
@@ -1864,7 +1862,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
 
 
 
-        QString texNameAndKeyTableData = QString( (tempFileName.toStdString()+ to_string(k) + suffix.toStdString() + ".tex").c_str() );
+		QString texNameAndKeyTableData = QString( (fileNameAbsolute.toStdString()+ to_string(k) + suffix.toStdString() + ".tex").c_str() );
         if( k == 0 ) {
             texNameAndKeyTableData += "__KEYDATATABLE__" + keyDataTableRow;
         }
@@ -1886,7 +1884,7 @@ void MeshWidget::bindFramebuffer(int framebufferID)
 
 void MeshWidget::generateLatexFile() {
 
-	cout << "Begin Latex Page" << endl;
+	LOG::debug() << "Begin Latex Page\n";
 
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
@@ -2150,17 +2148,9 @@ void MeshWidget::generateLatexCatalog() {
         return;
     }
 
-    cout << "chosen path: " << path.toStdString() << endl;
-
     // Filter files with certain patterns (types copied from load dialog except!!! txt / TXT)
-    QStringList filters;
-    // filters << "*.obj" << "*.OBJ" << "*.ply" << "*.PLY" << "*.wrl" << "*.WRL" << "*.xyz" << "*.XYZ";
+	QStringList filters;
     filters << "*.obj" << "*.OBJ" << "*.ply" << "*.PLY";
-
-    cout << "used filters: " << endl;
-    for (int i = 0; i < filters.size(); ++i) {
-        cout << filters.at(i).toStdString() << endl;
-    }
 
     bool userCancel;
 
@@ -2254,7 +2244,7 @@ void MeshWidget::generateLatexCatalog() {
 		SHOW_QUESTION( tr("Additional Pages"), tr("Do you want to include an additional (color, template, light) combination?"), additionalCombinations, userCancel );
         if( userCancel ) {
             return;
-        }
+		}
 
     }
 
