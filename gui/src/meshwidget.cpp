@@ -1694,7 +1694,15 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
 
 		getViewPortPixelWorldSize( mmPerPixel_Width, mmPerPixel_Height );
 
-		QString strDPI = QString( "_%1DPI" ).arg( round( 25.4/mmPerPixel_Width ) );
+		QString strDPI = "";
+
+		bool appendDPItoFileName = false;
+		getParamFlagMeshWidget(MeshWidgetParams::SCREENSHOT_FILENAME_WITH_DPI, &appendDPItoFileName);
+
+		if(appendDPItoFileName)
+		{
+			strDPI = QString( "_%1DPI" ).arg( round( 25.4/mmPerPixel_Width ) );
+		}
 
 		mmPerPixel_Width = ( mmPerPixel_Width + mmPerPixel_Height ) / 2.0;
 
@@ -5360,7 +5368,7 @@ bool MeshWidget::screenshotTiledPNG(
 		cout << "[MeshWidget::" << __FUNCTION__ << "] Resolution in DPI not set." << endl;
 	}
 	bool appendDPItoFilename = false;
-	getParamFlagMeshWidget( SCREENSHOT_FILENAME_WITH_DPI, &appendDPItoFilename );
+	getParamFlagMeshWidget( MeshWidgetParams::SCREENSHOT_FILENAME_WITH_DPI, &appendDPItoFilename );
 
 	double dpm;
 	if(!getViewPortDPM(dpm))
