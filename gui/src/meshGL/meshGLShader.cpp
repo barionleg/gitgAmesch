@@ -1106,7 +1106,7 @@ void MeshGLShader::shaderSetLocationBasicLight( QOpenGLShaderProgram* rShaderPro
 	MeshWidgetParams::eMouseModes currMouseMode;
 	mWidgetParams->getParamIntegerMeshWidget( MeshWidgetParams::MOUSE_MODE, reinterpret_cast<int*>(&currMouseMode) );
 	bool lightVectors = ( currMouseMode == MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_CAM ) || \
-						( currMouseMode == MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_WORLD );
+	                    ( currMouseMode == MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_OBJECT );
 	rShaderProgram->setUniformValue( "uLightVectors", lightVectors );
 	// Limit number of directional vectors shown.
 	int maxLightVecs; // 5000 seems to be a good choice.

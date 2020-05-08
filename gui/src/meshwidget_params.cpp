@@ -215,7 +215,7 @@ bool MeshWidgetParams::setParamIntegerMeshWidget( eParamInt rParamID, int rValue
 	if( ( rParamID == MOUSE_MODE ) && ( rValue == MOUSE_MODE_MOVE_LIGHT_FIXED_CAM ) ) {
 		setParamFlagMeshWidget( LIGHT_FIXED_CAM, true );
 	}
-	if( ( rParamID == MOUSE_MODE ) && ( rValue == MOUSE_MODE_MOVE_LIGHT_FIXED_WORLD ) ) {
+	if( ( rParamID == MOUSE_MODE ) && ( rValue == MOUSE_MODE_MOVE_LIGHT_FIXED_OBJECT ) ) {
 		setParamFlagMeshWidget( LIGHT_FIXED_WORLD, true );
 	}
 	//cout << "[MeshWidgetParams::" << __FUNCTION__ << "] " << rParamID << " : " << rValue << endl;

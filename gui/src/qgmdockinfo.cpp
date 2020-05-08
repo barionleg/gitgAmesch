@@ -44,8 +44,8 @@ QGMDockInfo::QGMDockInfo( QWidget *parent ) :
 	ui->comboBoxMouseMode->addItem( tr("Move Plane")              , QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_PLANE             ) );
 	ui->comboBoxMouseMode->addItem( tr("Move Plane along Axis")   , QVariant(MeshWidgetParams::MOUSE_MODE_MOVE_PLANE_AXIS         ) );
 	ui->comboBoxMouseMode->addItem( tr("Rotate Plane around Axis"), QVariant(MeshWidgetParams::MOUSE_MODE_ROTATE_PLANE_AXIS       ) );
-	ui->comboBoxMouseMode->addItem( tr("Move Light 1 FixWorld")   , QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_WORLD ) );
-	ui->comboBoxMouseMode->addItem( tr("Move Light 2 FixCam")     , QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_CAM   ) );
+	ui->comboBoxMouseMode->addItem( tr("Move Light 1 FixCamera")  , QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_CAM   ) );
+	ui->comboBoxMouseMode->addItem( tr("Move Light 2 FixObject")  , QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_OBJECT) );
 	ui->comboBoxMouseMode->addItem( tr("Selection")               , QVariant( MeshWidgetParams::MOUSE_MODE_SELECT                 ) );
 
 	int selIndex = ui->comboBoxMouseMode->findData( QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_CAMERA ) );

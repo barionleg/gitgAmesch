@@ -2374,11 +2374,11 @@ void QGMMainWindow::keyPressEvent( QKeyEvent *rEvent ) {
 	if( rEvent->key() == Qt::Key_Shift ) {
 		emit sSelectMouseModeExtra(true,MeshWidgetParams::MOUSE_MODE_MOVE_PLANE);
 	}
-	if( rEvent->key() == Qt::Key_Alt ) {
+	if( rEvent->key() == Qt::Key_3 && !rEvent->isAutoRepeat() ) {
 		emit sSelectMouseModeExtra(true,MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_CAM);
 	}
-	if( rEvent->key() == Qt::Key_AltGr ) {
-		emit sSelectMouseModeExtra(true,MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_WORLD);
+	if( rEvent->key() == Qt::Key_4 && !rEvent->isAutoRepeat() ) {
+		emit sSelectMouseModeExtra(true,MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_OBJECT);
 	}
 	//cout << "[QGMMainWindow::" << __FUNCTION__ << "] Key: " << rEvent->key() << " ignored." << endl;
 	QMainWindow::keyPressEvent( rEvent );
@@ -2392,10 +2392,10 @@ void QGMMainWindow::keyReleaseEvent( QKeyEvent *rEvent ) {
 	if( rEvent->key() == Qt::Key_Shift ) {
 		emit sSelectMouseModeExtra(false,MeshWidgetParams::MOUSE_MODE_COUNT);
 	}
-	//if( rEvent->key() == Qt::Key_Alt ) {
-	//	emit sSelectMouseModeExtra(false,MeshWidgetParams::MOUSE_MODE_COUNT);
-	//}
-	if( rEvent->key() == Qt::Key_AltGr ) {
+	if( rEvent->key() == Qt::Key_3 && !rEvent->isAutoRepeat() ) {
+		emit sSelectMouseModeExtra(false,MeshWidgetParams::MOUSE_MODE_COUNT);
+	}
+	if( rEvent->key() == Qt::Key_4 && !rEvent->isAutoRepeat() ) {
 		emit sSelectMouseModeExtra(false,MeshWidgetParams::MOUSE_MODE_COUNT);
 	}
 	QMainWindow::keyReleaseEvent( rEvent );
