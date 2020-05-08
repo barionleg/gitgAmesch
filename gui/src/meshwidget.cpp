@@ -6718,7 +6718,7 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 	}
 	//! Move lightFixedWorld, when the Left Mouse Button is pressed and the lights are on.
 	if( ( rEvent->buttons() == Qt::LeftButton ) &&
-		( currMouseMode == MOUSE_MODE_MOVE_LIGHT_FIXED_WORLD ) &&
+	    ( currMouseMode == MOUSE_MODE_MOVE_LIGHT_FIXED_OBJECT ) &&
 		( lightEnabled ) &&
 	    ( lightFixedWorld )
 	  ) {

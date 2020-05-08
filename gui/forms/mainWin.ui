@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -2579,7 +2579,7 @@ p, li { white-space: pre-wrap; }
      <normaloff>:/GMToolBar/gigamesh_icon_light_fixed_cam.svg</normaloff>:/GMToolBar/gigamesh_icon_light_fixed_cam.svg</iconset>
    </property>
    <property name="text">
-    <string>Light &amp;1 (Object fixed, Parallel)</string>
+    <string>Light &amp;1 (Camera fixed, Parallel)</string>
    </property>
    <property name="shortcut">
     <string>1</string>
@@ -2597,7 +2597,7 @@ p, li { white-space: pre-wrap; }
      <normaloff>:/GMToolBar/gigamesh_icon_light_fixed_object.svg</normaloff>:/GMToolBar/gigamesh_icon_light_fixed_object.svg</iconset>
    </property>
    <property name="text">
-    <string>Light &amp;2 (Camera fixed, Parallel)</string>
+    <string>Light &amp;2 (Object fixed, Parallel)</string>
    </property>
    <property name="shortcut">
     <string>2</string>
