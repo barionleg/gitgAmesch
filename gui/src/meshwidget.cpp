@@ -1737,8 +1737,8 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
 		replacmentStrings.emplace_back( pair<string,string>( string( "__03_HA_FRONT__"  ),         string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
 		replacmentStrings.emplace_back( pair<string,string>( string( "__04_HA_RIGHT__"  ),         string( temp + "_04_ha_right" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
 		replacmentStrings.emplace_back( pair<string,string>( string( "__05_HA_BOTTOM__"  ),        string( temp + "_05_ha_bottom" +        to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-		replacmentStrings.emplace_back( pair<string,string>( string( "__06_HA_BACK_LEFT__"  ),     string( temp + "_06_ha_back_left" +     to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-		replacmentStrings.emplace_back( pair<string,string>( string( "__07_HA_BACK__"  ),          string( temp + "_07_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
+		replacmentStrings.emplace_back( pair<string,string>( string( "__07_HA_BACK_LEFT__"  ),     string( temp + "_07_ha_back_left" +     to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
+		replacmentStrings.emplace_back( pair<string,string>( string( "__06_HA_BACK__"  ),          string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
 		replacmentStrings.emplace_back( pair<string,string>( string( "__08_HA_BACK_RIGHT__"  ),    string( temp + "_08_ha_back_right" +    to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
 
 		temp = fileNameAbsolute.toStdString();
@@ -1761,15 +1761,15 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
 
             if( rTemplate == "vessols" ) {
                 widthPictures.push_back(    string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-                widthPictures.push_back(    string( temp + "_07_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				widthPictures.push_back(    string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
             }
             else if( rTemplate == "fatcross-inv" ) {
-                heightPictures.push_back(   string( temp + "_07_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				heightPictures.push_back(   string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
 
-                widthPictures.push_back(    string( temp + "_07_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				widthPictures.push_back(    string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
             }
             else{
-                heightPictures.push_back(   string( temp + "_07_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				heightPictures.push_back(   string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
 
                 widthPictures.push_back(    string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
             }
