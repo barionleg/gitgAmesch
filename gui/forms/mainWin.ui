@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>21</height>
+     <height>45</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -927,6 +927,8 @@
    <addaction name="separator"/>
    <addaction name="actionAmbientOcclusion"/>
    <addaction name="separator"/>
+   <addaction name="actionScreenshot"/>
+   <addaction name="separator"/>
    <addaction name="actionGridHighlightCenter"/>
    <addaction name="actionBackGroundGridRaster"/>
    <addaction name="actionBackGroundGridPolar"/>
@@ -1106,8 +1108,15 @@
    </property>
   </action>
   <action name="actionScreenshot">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_screenshot.svg</normaloff>:/GMToolBar/gigamesh_icon_screenshot.svg</iconset>
+   </property>
    <property name="text">
-    <string>&amp;Screenshot (TIFF/PNG)</string>
+    <string>&amp;Screenshot (PNG)</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Capture a screenshot as PNG file with transparent background.&lt;br/&gt;Choosing tiled rendering will capture the whole 3D-model.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="actionVideoFrameSize">
@@ -1128,7 +1137,10 @@
   </action>
   <action name="actionScreenshotViews">
    <property name="text">
-    <string>Scr&amp;eenshot Views (TIFF/PNG)</string>
+    <string>Scr&amp;eenshot Views (PNG)</string>
+   </property>
+   <property name="toolTip">
+    <string>Screenshot Views (PNG)</string>
    </property>
   </action>
   <action name="actionViewVerticesAll">
