@@ -35,7 +35,7 @@ Video Tutorials:
 All executables provide details by adding `--help` or `-h` on the command line.
 
 ## Graphical user interface (GUI)
-- `gigamesh` ... for all functions except the MSII filter.
+- `gigamesh` ... for all functions including the MSII filter with default options.
 
 ## Command line interface (CLI)
 - `gigamesh-featurevectors` ...  MSII filter for single files. Computes **V**olume and surface **P**atch integral invariants for multiple scales.
@@ -56,9 +56,10 @@ git clone https://gitlab.com/fcgl/GigaMesh.git
 #### FEATURE EXTRACTION
 
 For computing the `MSII Featurevectors` a radius and a mesh file need to be given
-for the input.
+for the input. For example a `mesh` in Stanford Polygon ([PLY](https://en.wikipedia.org/wiki/PLY_(file_format))) format is filtered
+for features up to 5 millimeter by:
 
-    gigamesh-featurevectors -r 5.0 -f mesh.ply
+    gigamesh-featurevectors -r 5.0 mesh.ply
 
 BUILDING GigaMesh
 --------------
@@ -125,7 +126,7 @@ in 2010. If you are using GigaMesh please cite the following publication (in Bib
 Author
 ------
 
-*GigaMesh* is developed by Hubert Mara.
+*GigaMesh* is developed by [Hubert Mara](https://hubert-mara.at).
 
 Robert Kühl is the senior developer.
 
