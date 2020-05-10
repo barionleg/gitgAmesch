@@ -10,6 +10,7 @@ Current version
 +) Bugfix: clipping planes now work in the textured-mesh renderer.
 +) Changed: gigamesh-featurevectors stores the maximum element of the feature vector into the function value i.e. quality field.
 +) Changed: light sources can now be rotated with the keys '3' and '4'.
++) Changed: Import and export actions in the "File" menu moved to according sub-menus.
 +) Updated help: See 'Info -> Keyboard Layout'.
 
 Version 200405
