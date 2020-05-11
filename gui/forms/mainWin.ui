@@ -441,11 +441,6 @@
      <addaction name="actionRotPitch"/>
      <addaction name="actionRotRoll"/>
     </widget>
-    <widget class="QMenu" name="menuRotate_Plane">
-     <property name="title">
-      <string>Rotate - Plane</string>
-     </property>
-    </widget>
     <addaction name="menuToolbars"/>
     <addaction name="separator"/>
     <addaction name="actionViewActivateInspectionOptions"/>
@@ -484,8 +479,6 @@
     <addaction name="actionRotOrthoPlane"/>
     <addaction name="actionViewAxisUp"/>
     <addaction name="menuRotateViewByValue"/>
-    <addaction name="separator"/>
-    <addaction name="menuRotate_Plane"/>
     <addaction name="separator"/>
     <addaction name="actionSelPrimViewReference"/>
     <addaction name="actionCurrentViewToDefault"/>
