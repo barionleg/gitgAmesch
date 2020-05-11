@@ -1614,12 +1614,12 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
 
     QStringList texFiles;
 
-    double left     = paperPropertiesf[0];
-    double right    = paperPropertiesf[1];
-    double top      = paperPropertiesf[2];
-    double bottom       = paperPropertiesf[3];
-    double paperWidth   = paperPropertiesf[4];
-    double paperHeight  = paperPropertiesf[5];
+	double left         = paperPropertiesf[0];
+	double right        = paperPropertiesf[1];
+	double top          = paperPropertiesf[2];
+	double bottom       = paperPropertiesf[3];
+	double paperWidth   = paperPropertiesf[4];
+	double paperHeight  = paperPropertiesf[5];
 
     // all values are experimental (in cm)
     double tableHeight  = 2.5;
@@ -1669,8 +1669,8 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         getParamStringMeshWidget( FILENAME_EXPORT_VIEWS, &fileNamePattern );
         // important name change !!!!
 		fileNamePattern.insert( fileNamePattern.find_last_of('.'), to_string(k) + suffix.toStdString() );
-		QString fileName = filePath + tr( fileNamePattern.c_str() );
-		if( fileName == nullptr ) {
+		QString fileName = filePath + QString( fileNamePattern.c_str() );
+		if( fileName.isNull() ) {
 			return QStringList();
 		}
 		double mmPerPixel_Width;
@@ -1687,7 +1687,15 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
 
 		getViewPortPixelWorldSize( mmPerPixel_Width, mmPerPixel_Height );
 
-		QString strDPI = QString( "_%1DPI" ).arg( round( 25.4/mmPerPixel_Width ) );
+		QString strDPI = "";
+
+		bool appendDPItoFileName = false;
+		getParamFlagMeshWidget(MeshWidgetParams::SCREENSHOT_FILENAME_WITH_DPI, &appendDPItoFileName);
+
+		if(appendDPItoFileName)
+		{
+			strDPI = QString( "_%1DPI" ).arg( round( 25.4/mmPerPixel_Width ) );
+		}
 
 		mmPerPixel_Width = ( mmPerPixel_Width + mmPerPixel_Height ) / 2.0;
 
@@ -1697,12 +1705,13 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         vector<pair<string,string> > replacmentStrings;
         mMeshVisual->latexFetchFigureInfos( &replacmentStrings );
 
-        QString tempFileName = rFilePath;
+		QString fileNameAbsolute = rFilePath;
+		fileNameAbsolute.truncate( fileNameAbsolute.lastIndexOf( QString('.') ) );
 
-        tempFileName.truncate( tempFileName.lastIndexOf( QString('.') ) );
-        tempFileName.replace(mainPath, ".");
-        string temp = tempFileName.toStdString();
-        tempFileName.replace(".", mainPath);
+		QString fileNameRelative = fileNameAbsolute;
+		fileNameRelative.replace(mainPath, ".");
+
+		string temp = fileNameRelative.toStdString();
 
 		//! .) Fetch strings and their values. (For the pictures)
 		QString title = QString( mMeshVisual->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID ).c_str() );
@@ -1721,14 +1730,11 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
 		replacmentStrings.emplace_back( pair<string,string>( string( "__03_HA_FRONT__"  ),         string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
 		replacmentStrings.emplace_back( pair<string,string>( string( "__04_HA_RIGHT__"  ),         string( temp + "_04_ha_right" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
 		replacmentStrings.emplace_back( pair<string,string>( string( "__05_HA_BOTTOM__"  ),        string( temp + "_05_ha_bottom" +        to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-		replacmentStrings.emplace_back( pair<string,string>( string( "__06_HA_BACK_LEFT__"  ),     string( temp + "_06_ha_back_left" +     to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-		replacmentStrings.emplace_back( pair<string,string>( string( "__07_HA_BACK__"  ),          string( temp + "_07_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
+		replacmentStrings.emplace_back( pair<string,string>( string( "__07_HA_BACK_LEFT__"  ),     string( temp + "_07_ha_back_left" +     to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
+		replacmentStrings.emplace_back( pair<string,string>( string( "__06_HA_BACK__"  ),          string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
 		replacmentStrings.emplace_back( pair<string,string>( string( "__08_HA_BACK_RIGHT__"  ),    string( temp + "_08_ha_back_right" +    to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
 
-
-
-        temp = tempFileName.toStdString();
-
+		temp = fileNameAbsolute.toStdString();
         float width = 0;
         float height = 0;
         vector<string> widthPictures;
@@ -1748,15 +1754,15 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
 
             if( rTemplate == "vessols" ) {
                 widthPictures.push_back(    string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-                widthPictures.push_back(    string( temp + "_07_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				widthPictures.push_back(    string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
             }
             else if( rTemplate == "fatcross-inv" ) {
-                heightPictures.push_back(   string( temp + "_07_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				heightPictures.push_back(   string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
 
-                widthPictures.push_back(    string( temp + "_07_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				widthPictures.push_back(    string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
             }
             else{
-                heightPictures.push_back(   string( temp + "_07_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				heightPictures.push_back(   string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
 
                 widthPictures.push_back(    string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
             }
@@ -1773,7 +1779,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         }
 
         // Height and width of the Pictures on Latex
-        double mmPerPixel_Latex = 1/rDPIf*2.54*10;
+        double mmPerPixel_Latex = 1.0/rDPIf*2.54*10.0;
         height *= mmPerPixel_Latex/10.0;    // in cm
         width  *= mmPerPixel_Latex/10.0;    // in cm
 
@@ -1785,7 +1791,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         double factor = min(factorHeight, factorWidth);
 
         double latexToRealFactor = mmPerPixel_Width/mmPerPixel_Latex;
-        factor = 1/factor;
+		factor = 1.0/factor;
         factor *= latexToRealFactor;
 
         string scaling;
@@ -1801,7 +1807,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         }
 
         factor /= latexToRealFactor;
-        factor = 1/factor;
+		factor = 1.0/factor;
 
         QString factorString = QString::fromStdString(to_string(factor));
         factorString.replace(",", ".");
@@ -1820,19 +1826,19 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         QTextStream latexTemplateFileInStream( &latexTemplateFile );
         QString fileContent;
         while( !latexTemplateFileInStream.atEnd() ) {
-            fileContent += latexTemplateFileInStream.readLine() + "\r\n";
+			fileContent += latexTemplateFileInStream.readLine() + "\n";
         }
         //cout << "[MeshQt::" << __FUNCTION__ << "] File: " << fileContent.toStdString() << endl;
 
-        QString keyDataTableRow = QString() + "__OBJECT_ID__ &" + "\r\n"
-								+ "$\\numprint{__BOUNDING_BOX_WIDTH__} \\times \\numprint{__BOUNDING_BOX_HEIGHT__} \\times \\numprint{__BOUNDING_BOX_THICK__}$ &" + "\r\n"
-                                + "$\\numprint{__VERTEX_COUNT__}$ &" + "\r\n"
-                                + "$\\numprint{__FACE_COUNT__}$ &" + "\r\n"
-                                + "$\\numprint{__AREA_TOTAL__}$ &" + "\r\n"
-                                + "$\\numprint{__AREA_RESOLUTION_METRIC__}$ &" + "\r\n"
-                                + "$\\numprint{__VOLUME_TOTAL__}$ &" + "\r\n"
-                                + "__OBJECT_MATERIAL__\\\\" + "\r\n"
-                                + "\\hline" + "\r\n" + "\r\n";
+		QString keyDataTableRow = QString() + "__OBJECT_ID__ &" + "\n"
+		                        + "$\\numprint{__BOUNDING_BOX_WIDTH__} \\times \\numprint{__BOUNDING_BOX_HEIGHT__} \\times \\numprint{__BOUNDING_BOX_THICK__}$ &" + "\n"
+		                        + "$\\numprint{__VERTEX_COUNT__}$ &" + "\n"
+		                        + "$\\numprint{__FACE_COUNT__}$ &" + "\n"
+		                        + "$\\numprint{__AREA_TOTAL__}$ &" + "\n"
+		                        + "$\\numprint{__AREA_RESOLUTION_METRIC__}$ &" + "\n"
+		                        + "$\\numprint{__VOLUME_TOTAL__}$ &" + "\n"
+		                        + "__OBJECT_MATERIAL__\\\\" + "\n"
+		                        + "\\hline" + "\n" + "\n";
 
         //! .) Replace place holder with values.
 		for(pair<string, string>& replacmentString : replacmentStrings) {
@@ -1849,7 +1855,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         keyDataTableRow.replace( QString("-"), QString("\\protect\\-") );
         keyDataTableRow.replace( QString("_"), QString("\\protect\\_") );
 
-        ofstream outfile( tempFileName.toStdString()+ to_string(k) + suffix.toStdString() + ".tex" );
+		ofstream outfile( fileNameAbsolute.toStdString()+ to_string(k) + suffix.toStdString() + ".tex" );
         outfile << fileContent.toStdString() << endl;
         outfile.close();
 
@@ -1857,7 +1863,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
 
 
 
-        QString texNameAndKeyTableData = QString( (tempFileName.toStdString()+ to_string(k) + suffix.toStdString() + ".tex").c_str() );
+		QString texNameAndKeyTableData = QString( (fileNameAbsolute.toStdString()+ to_string(k) + suffix.toStdString() + ".tex").c_str() );
         if( k == 0 ) {
             texNameAndKeyTableData += "__KEYDATATABLE__" + keyDataTableRow;
         }
@@ -1879,7 +1885,7 @@ void MeshWidget::bindFramebuffer(int framebufferID)
 
 void MeshWidget::generateLatexFile() {
 
-	cout << "Begin Latex Page" << endl;
+	LOG::debug() << "Begin Latex Page\n";
 
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
@@ -1991,9 +1997,9 @@ void MeshWidget::generateLatexFile() {
 
     }
 
-	QString combinationList = tr("These are your combinations:") + QString("\r\n\r\n");
+	QString combinationList = tr("These are your combinations:") + QString("\n\n");
 	for(const QStringList& pageCombination : pageCombinations) {
-		combinationList += pageCombination.at(0) + ", " + pageCombination.at(1) + ", " + pageCombination.at(2) + "\r\n";
+		combinationList += pageCombination.at(0) + ", " + pageCombination.at(1) + ", " + pageCombination.at(2) + "\n";
     }
 
     bool userContinue;
@@ -2023,7 +2029,7 @@ void MeshWidget::generateLatexFile() {
     QTextStream latexKeyDataTableTemplateInStream( &latexKeyDataTableTemplateFile );
     QString latexKeyDataTableFileContent;
     while( !latexKeyDataTableTemplateInStream.atEnd() ) {
-        latexKeyDataTableFileContent += latexKeyDataTableTemplateInStream.readLine() + "\r\n";
+		latexKeyDataTableFileContent += latexKeyDataTableTemplateInStream.readLine() + "\n";
     }
 
     QString keyDataTexFileName = path + '/' + "keyDataTable" + suffix + ".tex";
@@ -2043,7 +2049,7 @@ void MeshWidget::generateLatexFile() {
         QTextStream latexTemplateFileInStream( &latexTemplateFile );
         QString fileContent;
         while( !latexTemplateFileInStream.atEnd() ) {
-            fileContent += latexTemplateFileInStream.readLine() + "\r\n";
+			fileContent += latexTemplateFileInStream.readLine() + "\n";
         }
 
         //cout << "[MeshQt::" << __FUNCTION__ << "] File: " << fileContent.toStdString() << endl;
@@ -2053,9 +2059,9 @@ void MeshWidget::generateLatexFile() {
         for( int i = 0; i < texFiles.size(); i++ ) {
             QStringList texFileComponents = texFiles[i].split( "__KEYDATATABLE__" );
 
-            replacementString += "\\input{"+texFileComponents[0].replace( path+'/', "" )+'}' + "\r\n" + "\\newpage" + "\r\n";
+			replacementString += "\\input{"+texFileComponents[0].replace( path+'/', "" )+'}' + "\n" + "\\newpage" + "\n";
             if( pageCombinations.size() % 2 == 1 && (i+1) % pageCombinations.size() == 0 ) {
-                replacementString += QString() + "\r\n" + "\\thispagestyle{empty}" + "\r\n" + "\\mbox{}" + "\r\n" + "\\newpage" + "\r\n" + "\r\n";
+				replacementString += QString() + "\n" + "\\thispagestyle{empty}" + "\n" + "\\mbox{}" + "\n" + "\\newpage" + "\n" + "\n";
             }
 
             replacementStringKeyDataTable += texFileComponents[1];
@@ -2143,17 +2149,9 @@ void MeshWidget::generateLatexCatalog() {
         return;
     }
 
-    cout << "chosen path: " << path.toStdString() << endl;
-
     // Filter files with certain patterns (types copied from load dialog except!!! txt / TXT)
-    QStringList filters;
-    // filters << "*.obj" << "*.OBJ" << "*.ply" << "*.PLY" << "*.wrl" << "*.WRL" << "*.xyz" << "*.XYZ";
+	QStringList filters;
     filters << "*.obj" << "*.OBJ" << "*.ply" << "*.PLY";
-
-    cout << "used filters: " << endl;
-    for (int i = 0; i < filters.size(); ++i) {
-        cout << filters.at(i).toStdString() << endl;
-    }
 
     bool userCancel;
 
@@ -2247,13 +2245,13 @@ void MeshWidget::generateLatexCatalog() {
 		SHOW_QUESTION( tr("Additional Pages"), tr("Do you want to include an additional (color, template, light) combination?"), additionalCombinations, userCancel );
         if( userCancel ) {
             return;
-        }
+		}
 
     }
 
-	QString combinationList = tr("These are your combinations:") + QString("\r\n\r\n");
+	QString combinationList = tr("These are your combinations:") + QString("\n\n");
 	for(const QStringList& pageCombination : pageCombinations) {
-		combinationList += pageCombination.at(0) + ", " + pageCombination.at(1) + ", " + pageCombination.at(2) + "\r\n";
+		combinationList += pageCombination.at(0) + ", " + pageCombination.at(1) + ", " + pageCombination.at(2) + "\n";
     }
 
     bool userContinue;
@@ -2287,7 +2285,7 @@ void MeshWidget::generateLatexCatalog() {
     QTextStream latexTemplateFileInStream( &latexTemplateFile );
     QString fileContent;
     while( !latexTemplateFileInStream.atEnd() ) {
-        fileContent += latexTemplateFileInStream.readLine() + "\r\n";
+		fileContent += latexTemplateFileInStream.readLine() + "\n";
     }
 
     QFile latexKeyDataTableTemplateFile( ":/GMGeneric/latextemplates/keydata.tex" );
@@ -2300,7 +2298,7 @@ void MeshWidget::generateLatexCatalog() {
     QTextStream latexKeyDataTableTemplateInStream( &latexKeyDataTableTemplateFile );
     QString latexKeyDataTableFileContent;
     while( !latexKeyDataTableTemplateInStream.atEnd() ) {
-        latexKeyDataTableFileContent += latexKeyDataTableTemplateInStream.readLine() + "\r\n";
+		latexKeyDataTableFileContent += latexKeyDataTableTemplateInStream.readLine() + "\n";
     }
 
     //cout << "[MeshQt::" << __FUNCTION__ << "] File: " << fileContent.toStdString() << endl;
@@ -2311,9 +2309,9 @@ void MeshWidget::generateLatexCatalog() {
     for( int i = 0; i < texFiles.size(); i++ ) {
         QStringList texFileComponents = texFiles[i].split( "__KEYDATATABLE__" );
 
-        replacementString += "\\input{"+texFileComponents[0].replace( path+'/', "" )+'}' + "\r\n" + "\\newpage" + "\r\n";
+		replacementString += "\\input{"+texFileComponents[0].replace( path+'/', "" )+'}' + "\n" + "\\newpage" + "\n";
         if( pageCombinations.size() % 2 == 1 && (i+1) % pageCombinations.size() == 0 ) {
-            replacementString += QString() + "\r\n" + "\\thispagestyle{empty}" + "\r\n" + "\\mbox{}" + "\r\n" + "\\newpage" + "\r\n" + "\r\n";
+			replacementString += QString() + "\n" + "\\thispagestyle{empty}" + "\n" + "\\mbox{}" + "\n" + "\\newpage" + "\n" + "\n";
         }
 
         replacementStringKeyDataTable += texFileComponents[1];
@@ -5361,7 +5359,7 @@ bool MeshWidget::screenshotTiledPNG(
 		cout << "[MeshWidget::" << __FUNCTION__ << "] Resolution in DPI not set." << endl;
 	}
 	bool appendDPItoFilename = false;
-	getParamFlagMeshWidget( SCREENSHOT_FILENAME_WITH_DPI, &appendDPItoFilename );
+	getParamFlagMeshWidget( MeshWidgetParams::SCREENSHOT_FILENAME_WITH_DPI, &appendDPItoFilename );
 
 	double dpm;
 	if(!getViewPortDPM(dpm))
