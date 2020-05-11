@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -95,14 +95,6 @@
       <string>Open Recent &amp;Files</string>
      </property>
     </widget>
-    <widget class="QMenu" name="menuExport_Polylines">
-     <property name="title">
-      <string>&amp;Export Polylines</string>
-     </property>
-     <addaction name="actionExportPolylines"/>
-     <addaction name="actionExportPolylinesProjected"/>
-     <addaction name="actionExportPolylinesFuncVals"/>
-    </widget>
     <widget class="QMenu" name="menuExport_Screenshots_Parse_Directory">
      <property name="title">
       <string>Export Screenshots - Parse Directory</string>
@@ -112,6 +104,36 @@
      <addaction name="actionScreenshotViewsPNGDirectory"/>
      <addaction name="actionScreenshotViewsPDFDirectory"/>
     </widget>
+    <widget class="QMenu" name="menuImport">
+     <property name="title">
+      <string>Import</string>
+     </property>
+     <addaction name="actionImportFeatureVectors"/>
+     <addaction name="actionImportFunctionValues"/>
+     <addaction name="separator"/>
+     <addaction name="actionImportNormals"/>
+     <addaction name="actionImportTexMap"/>
+     <addaction name="separator"/>
+     <addaction name="actionImportVertexCoordinatesFromCSV"/>
+    </widget>
+    <widget class="QMenu" name="menuExport">
+     <property name="title">
+      <string>Export</string>
+     </property>
+     <addaction name="actionExportFeatureVectors"/>
+     <addaction name="actionExportFuncVals"/>
+     <addaction name="separator"/>
+     <addaction name="actionExportCoordinatesOfAllVerticesAsCSV"/>
+     <addaction name="actionExportCoordinatesOfSelectedVerticesAsCSV"/>
+     <addaction name="actionExportCoordinatesOfSelectedPrimitivesAsCSV"/>
+     <addaction name="separator"/>
+     <addaction name="actionExportFaceNormalAngles"/>
+     <addaction name="actionExport_Normal_Sphere_Data"/>
+     <addaction name="separator"/>
+     <addaction name="actionExportPolylines"/>
+     <addaction name="actionExportPolylinesProjected"/>
+     <addaction name="actionExportPolylinesFuncVals"/>
+    </widget>
     <addaction name="actionFileOpen"/>
     <addaction name="menuFileRecent"/>
     <addaction name="actionFileReload"/>
@@ -120,22 +142,10 @@
     <addaction name="actionSaveFlagGMExtras"/>
     <addaction name="actionSaveFlagTextureExport"/>
     <addaction name="separator"/>
-    <addaction name="actionImportVertexCoordinatesFromCSV"/>
-    <addaction name="actionImportFeatureVectors"/>
-    <addaction name="actionImportFunctionValues"/>
-    <addaction name="actionImportNormals"/>
-    <addaction name="actionImportTexMap"/>
+    <addaction name="menuImport"/>
+    <addaction name="menuExport"/>
     <addaction name="separator"/>
-    <addaction name="actionExportFeatureVectors"/>
-    <addaction name="actionExportFuncVals"/>
-    <addaction name="separator"/>
-    <addaction name="actionExportCoordinatesOfAllVerticesAsCSV"/>
-    <addaction name="actionExportCoordinatesOfSelectedVerticesAsCSV"/>
-    <addaction name="actionExportCoordinatesOfSelectedPrimitivesAsCSV"/>
     <addaction name="actionExportPlaneIntersectSVG"/>
-    <addaction name="actionExportFaceNormalAngles"/>
-    <addaction name="menuExport_Polylines"/>
-    <addaction name="actionExport_Normal_Sphere_Data"/>
     <addaction name="separator"/>
     <addaction name="menuExportScreenshots"/>
     <addaction name="menuExport_Screenshots_Parse_Directory"/>
@@ -920,6 +930,8 @@
    <addaction name="separator"/>
    <addaction name="actionAmbientOcclusion"/>
    <addaction name="separator"/>
+   <addaction name="actionScreenshot"/>
+   <addaction name="separator"/>
    <addaction name="actionGridHighlightCenter"/>
    <addaction name="actionBackGroundGridRaster"/>
    <addaction name="actionBackGroundGridPolar"/>
@@ -1099,8 +1111,15 @@
    </property>
   </action>
   <action name="actionScreenshot">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_screenshot.svg</normaloff>:/GMToolBar/gigamesh_icon_screenshot.svg</iconset>
+   </property>
    <property name="text">
-    <string>&amp;Screenshot (TIFF/PNG)</string>
+    <string>&amp;Screenshot (PNG)</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Capture a screenshot as PNG file with transparent background.&lt;br/&gt;Choosing tiled rendering will capture the whole 3D-model.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="actionVideoFrameSize">
@@ -1121,7 +1140,10 @@
   </action>
   <action name="actionScreenshotViews">
    <property name="text">
-    <string>Scr&amp;eenshot Views (TIFF/PNG)</string>
+    <string>Scr&amp;eenshot Views (PNG)</string>
+   </property>
+   <property name="toolTip">
+    <string>Screenshot Views (PNG)</string>
    </property>
   </action>
   <action name="actionViewVerticesAll">
@@ -1596,6 +1618,10 @@
    </property>
   </action>
   <action name="actionScreenshotSVG">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_screenshot_svg.svg</normaloff>:/GMToolBar/gigamesh_icon_screenshot_svg.svg</iconset>
+   </property>
    <property name="text">
     <string>Screenshot (SVG+&amp;PNG)</string>
    </property>
@@ -4162,6 +4188,10 @@ p, li { white-space: pre-wrap; }
    </property>
   </action>
   <action name="actionScreenshotPDF">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_screenshot_pdf.svg</normaloff>:/GMToolBar/gigamesh_icon_screenshot_pdf.svg</iconset>
+   </property>
    <property name="text">
     <string>Screenshot (PDF with TEX+PNG)</string>
    </property>

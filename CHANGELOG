@@ -1,5 +1,6 @@
 Current version
 +) New: MSII filtering can be applied using the GUI with default settings. See 'Analyze -> MSII Feature Vectors and Function Value (Quick)'.
++) New: Toolbar button for screenshots.
 +) Improved: Matrix Dialog
 +) Improved: Normal vector computation per vertex. See 'Edit -> Vertices - Recompute Normals" and enter values larger than 0.
 +) Improved: options of 'gigamesh-featurevectors'.
@@ -9,6 +10,7 @@ Current version
 +) Bugfix: clipping planes now work in the textured-mesh renderer.
 +) Changed: gigamesh-featurevectors stores the maximum element of the feature vector into the function value i.e. quality field.
 +) Changed: light sources can now be rotated with the keys '3' and '4'.
++) Changed: Import and export actions in the "File" menu moved to according sub-menus.
 +) Updated help: See 'Info -> Keyboard Layout'.
 
 Version 200405
