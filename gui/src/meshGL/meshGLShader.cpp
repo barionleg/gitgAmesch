@@ -1021,6 +1021,7 @@ void MeshGLShader::shaderSetLocationBasicLight( QOpenGLShaderProgram* rShaderPro
 	mWidgetParams->getParamFlagMeshWidget( MeshWidgetParams::LIGHT_ENABLED, &lightingSet );
 	rShaderProgram->setUniformValue( "uLightEnabled", static_cast<GLboolean>(lightingSet) );
 	if( !lightingSet ) {
+		rShaderProgram->setUniformValue( "uLightVectors", false );
 		return;
 	}
 
