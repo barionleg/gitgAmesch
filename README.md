@@ -1,4 +1,5 @@
 [![pipeline status](https://gitlab.com/fcgl/GigaMesh/badges/master/pipeline.svg)](https://gitlab.com/fcgl/GigaMesh/-/commits/master)
+[![pipeline status](https://gitlab.com/fcgl/GigaMesh/badges/develop/pipeline.svg)](https://gitlab.com/fcgl/GigaMesh/-/commits/develop)
 
 # NAME
 
