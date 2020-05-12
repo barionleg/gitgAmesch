@@ -9,6 +9,7 @@ Current version
 +) Bugfix: fixed a bug, when exporting screenshots with filenames containing a '.' .
 +) Bugfix: normals are now correctly imported when loading binary-ply files and obj-files.
 +) Bugfix: clipping planes now work in the textured-mesh renderer.
++) Bugfix: fixed filenames when exporting png-fallbacks when libtiff is not available
 +) Changed: gigamesh-featurevectors stores the maximum element of the feature vector into the function value i.e. quality field.
 +) Changed: light sources can now be rotated with the keys '3' and '4'.
 +) Changed: Import and export actions in the "File" menu moved to according sub-menus.
