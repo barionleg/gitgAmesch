@@ -1032,7 +1032,7 @@ void MeshWidget::saveStillImages360( Vector3D rotCenter, Vector3D rotAxis ) {
 	for( int i=0; i<stepAnglesNr; i++ ) {
 		rotArbitAxis( rotCenter, rotAxis, stepAngles[i]*180.0/M_PI );
 
-		QString fileName = QString("%1gigamesh_still_image_%2.tiff").arg(savePath).arg(i,5,10,QChar('0'));
+		QString fileName = QString("%1gigamesh_still_image_%2.png").arg(savePath).arg(i,5,10,QChar('0'));
 		double realWidth, realHeigth;
 		screenshotSingle( fileName, useTiled, realWidth, realHeigth );
 	}
@@ -1042,7 +1042,7 @@ void MeshWidget::saveStillImages360( Vector3D rotCenter, Vector3D rotAxis ) {
 //! Screenshots for a video - 360° horizonal rotation from left to right.
 //! Typical for pottery videos.
 //!
-//! Hint: ffmpeg -i gigamesh_still_image_%05d.tiff -s 720x576 -b 4000k test.mpg
+//! Hint: ffmpeg -i gigamesh_still_image_%05d.png -s 720x576 -b 4000k test.mpg
 void MeshWidget::saveStillImages360HLR() {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
@@ -1163,7 +1163,7 @@ void MeshWidget::sphericalImagesLight( const QString& rFileName ) {
 //! Compute spherical images with moving light (instead of moving the object).
 //! (3) - execute.
 //!
-//! String for Object2VR: 'gigamesh_still_image_'+ fill(row,5,'0') + '_' +fill(column,5,'0')+ '.tiff'
+//! String for Object2VR: 'gigamesh_still_image_'+ fill(row,5,'0') + '_' +fill(column,5,'0')+ '.png'
 void MeshWidget::sphericalImagesLight( const QString& rFileName, const bool rUseTiled ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
