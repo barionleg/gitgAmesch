@@ -140,6 +140,7 @@ class MeshGLParams {
 			PIN_SIZE,                    //!< Size of the renderer pins
 			PIN_LINE_HEIGHT,             //!< Relative height of the lines connecting the pins
 			POINTCLOUD_POINTSIZE,        //!< Pointsize for the pointcloud rendering
+			LIGHTVECTOR_LENGTH,          //!< Length of the light-vectors
 			PARAMS_FLT_COUNT             //!< Number of double paramters.
 		};
 

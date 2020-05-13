@@ -80,28 +80,29 @@ MeshGLParams::MeshGLParams()
 	mParamFlt[TEXMAP_FIXED_MAX]      = _NOT_A_NUMBER_DBL_; // Nan means not set.
 	mParamFlt[TEXMAP_AUTO_MIN]       = _NOT_A_NUMBER_DBL_; // Nan means not set.
 	mParamFlt[TEXMAP_AUTO_MAX]       = _NOT_A_NUMBER_DBL_; // Nan means not set.
-	mParamFlt[POLYLINE_NORMAL_SCALE] =  1.0f;
-	mParamFlt[POLYLINE_WIDTH]         = 0.4f;
-	mParamFlt[FUNC_VALUE_LOG_GAMMA]   = 1.0f;
-	mParamFlt[ISOLINES_DISTANCE]      = 4.0f;
-	mParamFlt[ISOLINES_OFFSET]        = 0.0f;
-	mParamFlt[ISOLINES_PIXEL_WIDTH]   = 1.5f;
-	mParamFlt[BOUNDING_BOX_LINEWIDTH] = 0.3f;
-	mParamFlt[NORMALS_LENGTH]         = 1.5f;
-	mParamFlt[NORMALS_WIDTH]          = 0.1f;
-	mParamFlt[NPR_OUTLINE_WIDTH]      = 0.0f;
-	mParamFlt[NPR_HATCH_ROTATION]     = 0.0f;
-	mParamFlt[NPR_HATCH_SCALE]        = 1.0f;
-	mParamFlt[NPR_OUTLINE_THRESHOLD]  = 0.0f;
-    mParamFlt[NPR_SPECULAR_SIZE]      = 0.2f;
-	mParamFlt[TRANSPARENCY_UNIFORM_ALPHA] = 0.2f;
-    mParamFlt[TRANSPARENCY_ALPHA2] = 1.0f;
-    mParamFlt[TRANSPARENCY_GAMMA] = 1.0f;
-    mParamFlt[BADLIT_LOWER_THRESHOLD] = 0.05f;
-    mParamFlt[BADLIT_UPPER_THRESHOLD] = 0.995f;
-	mParamFlt[PIN_SIZE] = 1.0f;
-	mParamFlt[PIN_LINE_HEIGHT] = 0.5f;
-	mParamFlt[POINTCLOUD_POINTSIZE] = 3.0f;
+	mParamFlt[POLYLINE_NORMAL_SCALE] =  1.0;
+	mParamFlt[POLYLINE_WIDTH]         = 0.4;
+	mParamFlt[FUNC_VALUE_LOG_GAMMA]   = 1.0;
+	mParamFlt[ISOLINES_DISTANCE]      = 4.0;
+	mParamFlt[ISOLINES_OFFSET]        = 0.0;
+	mParamFlt[ISOLINES_PIXEL_WIDTH]   = 1.5;
+	mParamFlt[BOUNDING_BOX_LINEWIDTH] = 0.3;
+	mParamFlt[NORMALS_LENGTH]         = 1.5;
+	mParamFlt[NORMALS_WIDTH]          = 0.1;
+	mParamFlt[NPR_OUTLINE_WIDTH]      = 0.0;
+	mParamFlt[NPR_HATCH_ROTATION]     = 0.0;
+	mParamFlt[NPR_HATCH_SCALE]        = 1.0;
+	mParamFlt[NPR_OUTLINE_THRESHOLD]  = 0.0;
+	mParamFlt[NPR_SPECULAR_SIZE]      = 0.2;
+	mParamFlt[TRANSPARENCY_UNIFORM_ALPHA] = 0.2;
+	mParamFlt[TRANSPARENCY_ALPHA2] = 1.0;
+	mParamFlt[TRANSPARENCY_GAMMA] = 1.0;
+	mParamFlt[BADLIT_LOWER_THRESHOLD] = 0.05;
+	mParamFlt[BADLIT_UPPER_THRESHOLD] = 0.995;
+	mParamFlt[PIN_SIZE] = 1.0;
+	mParamFlt[PIN_LINE_HEIGHT] = 0.5;
+	mParamFlt[POINTCLOUD_POINTSIZE] = 3.0;
+	mParamFlt[LIGHTVECTOR_LENGTH] = 20.0;
 }
 
 //! Get the state of a flag controlling the display of Primitives, etc.
@@ -272,6 +273,7 @@ bool MeshGLParams::setParamFloatMeshGL( MeshGLParams::eParamFlt rParamID, double
 		case PIN_SIZE:
 		case PIN_LINE_HEIGHT:
 		case POINTCLOUD_POINTSIZE:
+		case LIGHTVECTOR_LENGTH:
             break;
 
 		default:

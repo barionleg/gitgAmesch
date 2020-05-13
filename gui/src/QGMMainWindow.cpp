@@ -966,19 +966,24 @@ void QGMMainWindow::initMeshSignals() {
     actionBad_Lit_Areas_Upper_Threshold->setProperty( "gmParamValueMax",  1.00f );
 
 	actionPin_Size->setProperty( "gmMeshGLParamFloat", MeshGLParams::PIN_SIZE);
-	actionPin_Size->setProperty( "gmMeshGLParamValue", 1.0f);
-	actionPin_Size->setProperty( "gmParamValueMin",  0.01f );
-	actionPin_Size->setProperty( "gmParamValueMax",  100.00f );
+	actionPin_Size->setProperty( "gmMeshGLParamValue",   1.00f );
+	actionPin_Size->setProperty( "gmParamValueMin"   ,   0.01f );
+	actionPin_Size->setProperty( "gmParamValueMax"   , 100.00f );
 
 	actionPin_Line_Height->setProperty( "gmMeshGLParamFloat", MeshGLParams::PIN_LINE_HEIGHT);
 	actionPin_Line_Height->setProperty( "gmMeshGLParamValue", 0.5f);
-	actionPin_Line_Height->setProperty( "gmParamValueMin",  0.0f );
-	actionPin_Line_Height->setProperty( "gmParamValueMax",  1.0f );
+	actionPin_Line_Height->setProperty( "gmParamValueMin"   , 0.0f );
+	actionPin_Line_Height->setProperty( "gmParamValueMax"   , 1.0f );
 	
 	actionPointcloud_pointsize->setProperty( "gmMeshGLParamFloat", MeshGLParams::POINTCLOUD_POINTSIZE);
-	actionPointcloud_pointsize->setProperty( " gmMeshGLParamValue", 3.0f);
-	actionPointcloud_pointsize->setProperty( "gmParamValueMin", 1.0f);
-	actionPointcloud_pointsize->setProperty( "gmParamValueMax", 50.0f);
+	actionPointcloud_pointsize->setProperty( "gmMeshGLParamValue", 3.0f);
+	actionPointcloud_pointsize->setProperty( "gmParamValueMin"   , 1.0f);
+	actionPointcloud_pointsize->setProperty( "gmParamValueMax"   , 50.0f);
+
+	actionLightVectorLength->setProperty( "gmMeshGLParamFloat", MeshGLParams::LIGHTVECTOR_LENGTH);
+	actionLightVectorLength->setProperty( "gmMeshGLParamValue",  20.0f);
+	actionLightVectorLength->setProperty( "gmParamValueMin"   ,   0.1f);
+	actionLightVectorLength->setProperty( "gmParamValueMax"   , 100.0f);
 
 	// DOUBLE: Setup parameter group of menu items
 	mMeshGLParDbl = new QActionGroup( this );

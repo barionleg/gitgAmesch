@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -698,6 +698,7 @@
     <addaction name="actionLightAmbient"/>
     <addaction name="actionSelectAmbient"/>
     <addaction name="actionLightVectorsShown"/>
+    <addaction name="actionLightVectorLength"/>
     <addaction name="separator"/>
     <addaction name="actionSelMatShininess"/>
     <addaction name="actionSelMatSpecular"/>
@@ -4407,6 +4408,14 @@ p, li { white-space: pre-wrap; }
     <string>Apply MSII filtering with default settings. Only a radius i.e. largest feature size is required.
 Volume based feature vectors are computed including a function value (Max element). 
 The latter will be shown, when the processing has finished.</string>
+   </property>
+  </action>
+  <action name="actionLightVectorLength">
+   <property name="text">
+    <string>Light Vectors Length</string>
+   </property>
+   <property name="toolTip">
+    <string>Set the length of the light vectors</string>
    </property>
   </action>
  </widget>

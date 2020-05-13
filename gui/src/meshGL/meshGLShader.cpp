@@ -1021,7 +1021,7 @@ void MeshGLShader::shaderSetLocationBasicLight( QOpenGLShaderProgram* rShaderPro
 	mWidgetParams->getParamFlagMeshWidget( MeshWidgetParams::LIGHT_ENABLED, &lightingSet );
 	rShaderProgram->setUniformValue( "uLightEnabled", static_cast<GLboolean>(lightingSet) );
 	if( !lightingSet ) {
-		rShaderProgram->setUniformValue( "uLightVectors", false );
+		rShaderProgram->setUniformValue( "uLightVectors", 0 );
 		return;
 	}
 
@@ -1111,6 +1111,11 @@ void MeshGLShader::shaderSetLocationBasicLight( QOpenGLShaderProgram* rShaderPro
 	                   0;
 
 	rShaderProgram->setUniformValue( "uLightVectors", lightVectors );
+
+	double lightVectorLength = 0.0;
+	getParamFloatMeshGL( MeshGLParams::LIGHTVECTOR_LENGTH, &lightVectorLength);
+	rShaderProgram->setUniformValue("uLightVeclLength", static_cast<GLfloat>(lightVectorLength));
+
 	// Limit number of directional vectors shown.
 	int maxLightVecs; // 5000 seems to be a good choice.
 	mWidgetParams->getParamIntegerMeshWidget( MeshWidgetParams::LIGHT_VECTORS_SHOWN_MAX, &maxLightVecs );
