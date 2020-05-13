@@ -108,14 +108,13 @@ void QGMDockInfo::selectMouseModeDefault() {
 
 //! Select the alternate mouse-mode -- typically connected to the ctrl-key for selection.
 void QGMDockInfo::selectMouseModeExtra( bool rActive, MeshWidgetParams::eMouseModes rMode ) {
-	if( rActive ) {
-		mMouseModeNoControlKey = ui->comboBoxMouseMode->itemData( ui->comboBoxMouseMode->currentIndex() );
-		int selIndex = ui->comboBoxMouseMode->findData( QVariant( rMode ) );
-		ui->comboBoxMouseMode->setCurrentIndex( selIndex );
-		return;
-	}
-	int selIndex = ui->comboBoxMouseMode->findData( mMouseModeNoControlKey );
+	QSignalBlocker blockComboBox(ui->comboBoxMouseMode); //avoid sending setMouseMode from comboBoxMouseMode
+
+	int selIndex = rActive ? ui->comboBoxMouseMode->findData( QVariant( rMode ) ) :
+	                         ui->comboBoxMouseMode->findData( mMouseModeNoControlKey );
+
 	ui->comboBoxMouseMode->setCurrentIndex( selIndex );
+	setMouseMode(selIndex);
 }
 
 
@@ -289,6 +288,11 @@ void QGMDockInfo::setMouseMode( const int rComboBoxIdx ) {
 			break;
 		default:
 			setGuideIDCommon( mGuideCommon );
+	}
+
+	if(QObject::sender() == ui->comboBoxMouseMode)
+	{
+		mMouseModeNoControlKey = QVariant(mMouseMode);
 	}
 
 	emit sShowParamIntMeshWidget( MeshWidgetParams::MOUSE_MODE, mouseMode );
