@@ -1100,6 +1100,7 @@ void QGMMainWindow::initMeshSignals() {
 	actionEditMeshPolish->setProperty(                            "gmMeshFunctionCall", MeshParams::EDIT_AUTOMATIC_POLISHING                     );
 	actionEditRemoveSeededSynthComp->setProperty(                 "gmMeshFunctionCall", MeshParams::EDIT_REMOVE_SEEDED_SYNTHETIC_COMPONENTS      );
 	actionEditRecomputeVertexNormals->setProperty(                "gmMeshFunctionCall", MeshParams::EDIT_VERTICES_RECOMPUTE_NORMALS              );
+	actionSet_Vertex_Alpha->setProperty(                          "gmMeshFunctionCall", MeshParams::SELMVERTS_SET_ALPHA                          );
 	actionEditVerticesAdd->setProperty(                           "gmMeshFunctionCall", MeshParams::EDIT_VERTICES_ADD                            );
 	actionSplitByPlane->setProperty(                              "gmMeshFunctionCall", MeshParams::EDIT_SPLIT_BY_PLANE                          );
 	actionFacesInvertOrientation->setProperty(                    "gmMeshFunctionCall", MeshParams::EDIT_FACES_INVERT_ORIENTATION                );

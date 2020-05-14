@@ -721,6 +721,16 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 		case DRAW_SELF_INTERSECTIONS:
 			selectFaceSelfIntersecting();
 			break;
+		case SELMVERTS_SET_ALPHA:
+		{
+			uint64_t alphaVal = 255;
+			if(!showEnterText(alphaVal, "Enter Value [0-255]"))
+			{
+				return false;
+			}
+			assignAlphaToSelectedVertices(static_cast<unsigned char>(alphaVal));
+		}
+			break;
 		default:
 			LOG::error() << "[Mesh::" << __FUNCTION__ << "] ERROR: Unknown rFunctionID "<< rFunctionID << " !\n";
 			return false;
@@ -5034,6 +5044,31 @@ bool Mesh::multiplyColorWithFuncVal( const double rMin, const double rMax ) {
 			if ( !currVertex->setRGB( color[0], color[1], color[2] ) ) {
 				return false;
 			}
+		}
+	}
+	return true;
+}
+
+
+//! Sets alpha values to selected vertices. If none is selected, set alpha to all vertices
+bool Mesh::assignAlphaToSelectedVertices(unsigned char alpha)
+{
+	const unsigned char maxAlpha = 255;
+	alpha = std::min(alpha, maxAlpha);
+
+	if(mSelectedMVerts.empty())
+	{
+		for(auto& vertex : mVertices)
+		{
+			vertex->setAlpha(alpha);
+		}
+	}
+
+	else
+	{
+		for(auto& vertex : mSelectedMVerts)
+		{
+			vertex->setAlpha(alpha);
 		}
 	}
 	return true;

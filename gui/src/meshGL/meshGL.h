@@ -97,6 +97,7 @@ class MeshGL : public Mesh, public MeshGLParams {
 		virtual bool       assignImportedNormalsToVertices( const std::vector<grVector3ID>& rNormals );
 		virtual bool       multiplyColorWithFuncVal();
 		virtual bool       multiplyColorWithFuncVal( const double rMin, const double rMax );
+				bool       assignAlphaToSelectedVertices(unsigned char alpha) override;
 
 		// UI/Selection:
 		        bool       selectPlaneThreePoints( int rXPixel, int rYPixel );

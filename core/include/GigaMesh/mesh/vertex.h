@@ -73,6 +73,7 @@ class Vertex : public Primitive {
 
 		// Color managment:
 		virtual bool     setRGB( unsigned char setTexR, unsigned char setTexG, unsigned char setTexB );
+		virtual bool     setAlpha(unsigned char alpha);
 		virtual bool     setAlpha( double rVal );
 
 		// Information retrival:

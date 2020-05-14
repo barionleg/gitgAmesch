@@ -372,6 +372,7 @@
     <addaction name="menuTransform_Extra"/>
     <addaction name="separator"/>
     <addaction name="actionEditRecomputeVertexNormals"/>
+    <addaction name="actionSet_Vertex_Alpha"/>
     <addaction name="separator"/>
     <addaction name="menuMoreExtra"/>
    </widget>
@@ -4416,6 +4417,14 @@ The latter will be shown, when the processing has finished.</string>
    </property>
    <property name="toolTip">
     <string>Set the length of the light vectors</string>
+   </property>
+  </action>
+  <action name="actionSet_Vertex_Alpha">
+   <property name="text">
+    <string>Vertices - Set Vertex Alpha</string>
+   </property>
+   <property name="toolTip">
+    <string>Set the alpha value of the selected vertices to value. Apply to all, if no vertex is selected.</string>
    </property>
   </action>
  </widget>

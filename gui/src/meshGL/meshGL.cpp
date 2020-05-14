@@ -403,6 +403,11 @@ bool MeshGL::multiplyColorWithFuncVal( const double rMin, double rMax ) {
 		return retVal;
 }
 
+bool MeshGL::assignAlphaToSelectedVertices(unsigned char alpha) {
+	bool retVal = Mesh::assignAlphaToSelectedVertices(alpha);
+	vboRemoveBuffer( VBUFF_VERTICES_STRIPED, __FUNCTION__);
+	return retVal;
+}
 
 //! Select a point of the plane by pixel coordinates in screen space.
 //!
