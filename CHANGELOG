@@ -1,6 +1,8 @@
 Current version
 +) New: MSII filtering can be applied using the GUI with default settings. See 'Analyze -> MSII Feature Vectors and Function Value (Quick)'.
 +) New: Toolbar button for screenshots.
++) New: Function to change length of light-vectors. See 'Settings -> Light Vectors Length'.
++) New: Function to set alpha-value of vertices. See 'Edit -> Vertices - Set Vertex Alpha'.
 +) Improved: Matrix Dialog
 +) Improved: Normal vector computation per vertex. See 'Edit -> Vertices - Recompute Normals" and enter values larger than 0.
 +) Improved: options of 'gigamesh-featurevectors'.
