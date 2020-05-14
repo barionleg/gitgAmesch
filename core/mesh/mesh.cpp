@@ -16630,23 +16630,29 @@ bool Mesh::getAxisFromCircleCenters( Vector3D* rTop, Vector3D* rBottom ) {
 //! Takes as input the distance, how far NMS should look (how often the frontier progresses)
 //! will enlarge the feature vectors of all vertices to size 18
 //! CAREFUL maybe I should think about datatypes that don't allow duplicates (sets) (and keep their ordering?)
-//! CAREFUL only meshes with no more than 10000000 Vertices allowed
+//! (CAREFUL only meshes with no more than 10000000 Vertices allowed) hopefully legacy
 //! Data will be written at Feature Vector Position 17 (boolean if maximum) and 18 (if maximum, then averaged MSII)
 bool Mesh::funcExpNonMaxSupp(double NMSDistance)
 {
 
-    int counterForFeedback = 0;
+    //these counter are used for feedback in the terminal
+    int processedVertexCounter = 0;
+    int maximaCounter = 0;
 
     //look up array, will be cleared for every vertex.
-    int allowedNumberOfVertices = 500000;
-    bool checkVisited[allowedNumberOfVertices];
+    uint64_t numberOfVertices = getVertexNr();
+    vector<bool> checkVisited (numberOfVertices);
+    //int allowedNumberOfVertices = 500000;
+    //bool checkVisited[allowedNumberOfVertices];
 
-    uint64_t actualNumberOfVertices = getVertexNr();
 
+    //legacy hopefully not necessary anymore
+    /*
     if(actualNumberOfVertices > allowedNumberOfVertices){
         cout << "Apologies, this method can only handle meshes with no more than " << allowedNumberOfVertices << " vertices." << endl;
         return false;
     }
+    */
 
     //avoid using square root to speed things up
     double squaredDistance = NMSDistance * NMSDistance;
@@ -16663,42 +16669,52 @@ bool Mesh::funcExpNonMaxSupp(double NMSDistance)
 
         //initialize the checks for visited vertices with false
         //maybe use methods that already exist in vertex.cpp
-        for (int i = 0; i < allowedNumberOfVertices ; i++){
+        for (int i = 0; i < checkVisited.size() ; i++){
             checkVisited[i] = false;
+            //maybe this works too: checkVisited.at(i) = false
         }
 
         //if the feature vector has less than 18 elements, resize it to length 18
+        //the current concept is: use the feature vector and write computated values at position 17 and 18
         if(18 > pVertex->getFeatureVectorLen())
 		{
 			pVertex->resizeFeatureVector(18);
 		}
 
+		unsigned int currentFeatureVectorLength = pVertex->getFeatureVectorLen();
+
         //clear data that might sit at these positions, written their by previous calculations with different distances
+        //Position 17 (index 16) shows if a vertex is a local maximum
+        //Position 18 (index 17) includes the vertex's MSII-value if it is a local maximum
+        pVertex->setFeatureElement( (currentFeatureVectorLength-2) , 0.0);
+        pVertex->setFeatureElement( (currentFeatureVectorLength-1) , 0.0);
+
+        //legacy, initialize with zero, position access deemed too absolute
+        /*
         pVertex->setFeatureElement(16, 0.0);
         pVertex->setFeatureElement(17, 0.0);
+        */
 
 		//per default, it is guessed not to be the (local) maximum, currently resizing does the same, as at Positions 17 and 18 a zero gets written.
-		double isMax = 0.0;
+		bool isMax = false;
 		bool biggerValueFound = false;
 
 		//acquire the MSII-value for this vertex
 
-		double averagedPrecomputedMSIIValue;
-		double MSIIcomponent1;
-		double MSIIcomponent2;
-		double MSIIcomponent3;
-		double MSIIcomponent4;
-		double MSIIcomponent5;
+		//legacy, working with averaged MSII values.
+		//double averagedPrecomputedMSIIValue;
 
-		//assumption: the MSII-value (we want) is located at position 0. (Possibly 0 till 4 have the values because of multi scale)
-		pVertex->getFeatureElement(0, &MSIIcomponent1);
-		pVertex->getFeatureElement(1, &MSIIcomponent2);
-		pVertex->getFeatureElement(2, &MSIIcomponent3);
-		pVertex->getFeatureElement(3, &MSIIcomponent4);
-		pVertex->getFeatureElement(4, &MSIIcomponent5);
+		//instead: now only the 16th component will be taken
+		double MSIIcomponent16;
+		pVertex->getFeatureElement( (currentFeatureVectorLength-3) , &MSIIcomponent16);
 
-		//average 5 MSII values.
-		averagedPrecomputedMSIIValue = (MSIIcomponent1 + MSIIcomponent2 + MSIIcomponent3 + MSIIcomponent4 + MSIIcomponent5)/5.0;
+		//legacy, position access deemed too absolute
+		/*
+		pVertex->getFeatureElement(15, &MSIIcomponent16);
+		*/
+
+		//legacy
+		//averagedPrecomputedMSIIValue = (MSIIcomponent1 + MSIIcomponent2 + MSIIcomponent3 + MSIIcomponent4 + MSIIcomponent5)/5.0;
 
         //Vertices, which will be the input for every search
         list<Vertex*> marchingFrontier;
@@ -16729,61 +16745,58 @@ bool Mesh::funcExpNonMaxSupp(double NMSDistance)
                     //and add them to the frontier if( their value is not bigger AND they haven't been visited yet AND they are within the given euclidean distance)
                     for(auto& candidatesIterator : adjacentVertsInOrder){
 
-                        //calculate the distance between the current Vertex (pVertex) and the neighbour in the marching front algorithm.
+                        int candidateIndex = candidatesIterator->getIndexOriginal();
 
-                        double calculatedDistanceComponentX = (candidatesIterator->getX() - pVertex->getX()) * (candidatesIterator->getX() - pVertex->getX());
-                        double calculatedDistanceComponentY = (candidatesIterator->getY() - pVertex->getY()) * (candidatesIterator->getY() - pVertex->getY());
-                        double calculatedDistanceComponentZ = (candidatesIterator->getZ() - pVertex->getZ()) * (candidatesIterator->getZ() - pVertex->getZ());
+                        //only perform the algorithm, if no bigger value was found AND the candidate has not been visited yet
+                        if(!biggerValueFound && !checkVisited[candidateIndex]){
 
-                        bool stillInReach = false;
-                        if((calculatedDistanceComponentX + calculatedDistanceComponentY + calculatedDistanceComponentZ) <= squaredDistance){
+                            //calculate the distance between the current Vertex (pVertex) and the neighbour in the marching front algorithm.
 
-                            stillInReach = true;
+                            double calculatedDistanceComponentX = (candidatesIterator->getX() - pVertex->getX()) * (candidatesIterator->getX() - pVertex->getX());
+                            double calculatedDistanceComponentY = (candidatesIterator->getY() - pVertex->getY()) * (candidatesIterator->getY() - pVertex->getY());
+                            double calculatedDistanceComponentZ = (candidatesIterator->getZ() - pVertex->getZ()) * (candidatesIterator->getZ() - pVertex->getZ());
 
-                        }
+                            bool stillInReach = false;
 
-                        //only perform the algorithm when no bigger MSII value than the one from the current vertex (pvertex) has been found
-                        if(!biggerValueFound && stillInReach){
+                            if((calculatedDistanceComponentX + calculatedDistanceComponentY + calculatedDistanceComponentZ) <= squaredDistance){
 
-                            double averagedPrecomputedAdjacentVertexsMSIIValue;
-                            double adjacentVertexsMSIIcomponent1;
-                            double adjacentVertexsMSIIcomponent2;
-                            double adjacentVertexsMSIIcomponent3;
-                            double adjacentVertexsMSIIcomponent4;
-                            double adjacentVertexsMSIIcomponent5;
-
-                            candidatesIterator->getFeatureElement(0, &adjacentVertexsMSIIcomponent1);
-                            candidatesIterator->getFeatureElement(1, &adjacentVertexsMSIIcomponent2);
-                            candidatesIterator->getFeatureElement(2, &adjacentVertexsMSIIcomponent3);
-                            candidatesIterator->getFeatureElement(3, &adjacentVertexsMSIIcomponent4);
-                            candidatesIterator->getFeatureElement(4, &adjacentVertexsMSIIcomponent5);
-
-                            averagedPrecomputedAdjacentVertexsMSIIValue = (adjacentVertexsMSIIcomponent1 + adjacentVertexsMSIIcomponent2 + adjacentVertexsMSIIcomponent3 + adjacentVertexsMSIIcomponent4 + adjacentVertexsMSIIcomponent5)/5.0;
-
-
-                            // if a bigger MSII value than the one of the current vertex (pvertex) was found, pvertex is not the (lokal) maximum
-                            if(averagedPrecomputedMSIIValue <= averagedPrecomputedAdjacentVertexsMSIIValue){
-
-                                biggerValueFound = true;
-                                isMax = 0.0;
+                                stillInReach = true;
 
                             }
-                            //so it still seems to be the (lokal) maximum
-                            else{
-                                //highly experimental, as I do not know, if this index can be used
-                                int candidateIndex = candidatesIterator->getIndexOriginal();
 
-                                if(!checkVisited[candidateIndex]){
+                            //only perform the algorithm when no bigger MSII value than the one from the current vertex (pvertex) has been found AND the candidate is still in the radius
+                            if(!biggerValueFound && stillInReach){
+
+                                double adjacentVertexsMSIIcomponent16;
+
+                                candidatesIterator->getFeatureElement( (currentFeatureVectorLength-3) , &adjacentVertexsMSIIcomponent16);
+
+                                //legacy, position access deemed too absolute
+                                /*
+                                candidatesIterator->getFeatureElement(15, &adjacentVertexsMSIIcomponent16);
+                                */
+
+                                //averagedPrecomputedAdjacentVertexsMSIIValue = (adjacentVertexsMSIIcomponent1 + adjacentVertexsMSIIcomponent2 + adjacentVertexsMSIIcomponent3 + adjacentVertexsMSIIcomponent4 + adjacentVertexsMSIIcomponent5)/5.0;
+
+
+                                // if a bigger MSII value than the one of the current vertex (pVertex) was found, pVertex is not the (lokal) maximum
+                                if(MSIIcomponent16 <= adjacentVertexsMSIIcomponent16){
+
+                                    biggerValueFound = true;
+                                    isMax = false; //not necessary
+
+                                }else{ //so it still seems to be the (lokal) maximum
+                                    //highly experimental, as I do not know, if this index can be used
 
                                     nextCandidates.push_back(candidatesIterator);
 
-                                }
-                                isMax = 1.0; //the current Vertex seems to be a maximum
+                                    isMax = true; //the current Vertex temporarily seems to be a maximum
 
+                                }
                             }
                         }
                     }
-                    //now everything has been done with the input of the marching frontier, mark it as visited
+                    //now everything has been done with that peticular candidate of the marching frontier, mark it as visited
 
                     int frontierVertexIndex = marchingInputIterator->getIndexOriginal();
                     //concerning the method getIndexOriginal()
@@ -16812,10 +16825,18 @@ bool Mesh::funcExpNonMaxSupp(double NMSDistance)
         //write at Feature Vector Position 17, a pseudo boolean state.
         //write at Feature Vector Position 18 its MSII value.
         //checking a double for equal is something I don't like doing, so I'll do it this way
-        if(isMax > 0.0){
+        if(isMax){
 
-            pVertex->setFeatureElement(16, isMax);
-            pVertex->setFeatureElement(17, averagedPrecomputedMSIIValue);
+            pVertex->setFeatureElement( (currentFeatureVectorLength-2) , 1.0);
+            pVertex->setFeatureElement( (currentFeatureVectorLength-1) , MSIIcomponent16);
+
+            //legacy, position access deemed to absolute
+            /*
+            pVertex->setFeatureElement(16, 1.0);
+            pVertex->setFeatureElement(17, MSIIcomponent16);
+            */
+
+            maximaCounter++;
 
         }
         //this else-block is important to update the values calculated by this method for example in case another distance is chosen.
@@ -16823,50 +16844,52 @@ bool Mesh::funcExpNonMaxSupp(double NMSDistance)
         //alternatively the reset to zero could be implemented at the beginning of the method.
         else {
 
+            pVertex->setFeatureElement( (currentFeatureVectorLength-2) , 0.0);
+            pVertex->setFeatureElement( (currentFeatureVectorLength-1) , 0.0);
+
+            //legacy, position access deemed to absolute
+            /*
             pVertex->setFeatureElement(16, 0.0);
             pVertex->setFeatureElement(17, 0.0);
+            */
 
         }
 
-        counterForFeedback++;
+        processedVertexCounter++;
 
-        cout << counterForFeedback << " ";
-
+        cout << processedVertexCounter << " vertices have been processed until now." << endl;
 
     } // all vertices were looped over
 
+    cout << "Given the radius of: " << NMSDistance << " these many MSII values (local maxima) survived non maximum suppression: " << maximaCounter << endl;
+
     return true;
-
-
 }
 
 //! An experimental Watershed method using values computed in the Non Maximum Suppression Method
-//! CAREFUL I should check, that the feature vector has size 18
-//! CAREFUL I could speed up this algorithm by festhalten wenn eine Kueste keine unbesuchten Kandidaten mehr hat, also leer ist
-//! CAREFUL I could use a vector of vectors to manage the coasts
+//! Data will be written at Feature Vector Position 19 (order of processing) and 20 (label)
 bool Mesh::funcExpWatershed(double deletableInput){
 
     double counterForFutureWork = 0.0;
 
-    int allowedNumberOfVertices = 500000;
-    bool checkVisited[allowedNumberOfVertices];
+    uint64_t numberOfVertices = getVertexNr();
 
-    for (int i = 0; i < allowedNumberOfVertices ; i++){
+    vector<bool> checkVisited (numberOfVertices);
+
+    //initialize the checks for visited vertices with false
+    for (int i = 0; i < checkVisited.size() ; i++){
         checkVisited[i] = false;
+        //maybe this works too: checkVisited.at(i) = false
     }
 
-    uint64_t actualNumberOfVertices = getVertexNr();
 
-    if(actualNumberOfVertices > allowedNumberOfVertices){
-        cout << "Apologies, this method can only handle meshes with no more than " << allowedNumberOfVertices << " vertices." << endl;
-        return false;
-    }
 
     //list to retrieve all vertices which are maxima
     //they have 1.0 at feature vector position 17 (index 16)
     list<Vertex*> foundMaxima;
 
-    double experimentalLabel = 0.0;
+    //labels start with 1 and go up to (the number of maxima)
+    double experimentalLabel = 1.0;
 
     //prepare data
     for(auto pVertex : mVertices){
@@ -16877,8 +16900,15 @@ bool Mesh::funcExpWatershed(double deletableInput){
 			pVertex->resizeFeatureVector(20);
 		}
 
+		//clear data, that might sit in the feature vectors, remaining from previous runs of the watershed algorithm
+
+        pVertex->setFeatureElement(18, 0.0);
+        pVertex->setFeatureElement(19, 0.0);
+
         double isLocalMaximum;
         pVertex->getFeatureElement(16, &isLocalMaximum);
+        //more relative, less absolute
+        //pVertex->getFeatureElement( (getVertexNr() - 4) , &isLocalMaximum);
 
         //add to list of maxima and mark as visited
         //in addition label the vertex
@@ -16886,14 +16916,17 @@ bool Mesh::funcExpWatershed(double deletableInput){
         if(isLocalMaximum > 0.0){
 
             foundMaxima.push_back(pVertex);
-            int vertexIndex = pVertex->getIndexOriginal();
-            checkVisited[vertexIndex] = true;
 
             pVertex->setFeatureElement(18, counterForFutureWork);
             pVertex->setFeatureElement(19, experimentalLabel);
 
+            int vertexIndex = pVertex->getIndexOriginal();
+            checkVisited[vertexIndex] = true;
+
             counterForFutureWork = counterForFutureWork + 1.0;
             experimentalLabel = experimentalLabel + 1.0;
+
+            cout << counterForFutureWork << " vertices have been processed." << endl;
 
         }
     }
@@ -16901,196 +16934,182 @@ bool Mesh::funcExpWatershed(double deletableInput){
     //these many clusters will exist
     int numberOfClusters = foundMaxima.size();
 
+    //the coast, as a map structure
 
-    //vector<vector<int>> coastManagement;
-    //could be used instead of
+    map<double, Vertex*> watershedCoast;
 
+    //initialize the coast
+    for(auto& foundMaximum : foundMaxima){
 
+        list<Vertex*> adjacentVertsInOrder;
+        getSurroundingVerticesInOrder(adjacentVertsInOrder, foundMaximum, false);
 
+        //retrieve the label, to label coast candidates
+        double maximumLabel;
+        foundMaximum->getFeatureElement(19, &maximumLabel);
 
-    //perform the algorithm as long as there are unlabeled vertices
-    while(counterForFutureWork<getVertexNr()){
+        for(auto& coastCandidate : adjacentVertsInOrder){
 
-        //loop over the maxima
-        for(auto& maximumIterator : foundMaxima){
+            int vertexIndex = coastCandidate->getIndexOriginal();
 
-            //current label
-            double currentLabel;
-            maximumIterator->getFeatureElement(19, &currentLabel);
+            //only continue, if the vertex was not visited yet
+            if(!checkVisited[vertexIndex]){
 
-            list<Vertex*> currentlyLabeledWithThisLabel;
+                double currentCandidateLabel;
+                coastCandidate->getFeatureElement(19, &currentCandidateLabel);
 
-            //find all vertices labeled with the current label
-            for(auto pVertex : mVertices){
+                //label the vertex, if it has no label yet
+                //labels start at 1.0, a value below means no label was given yet
+                if(currentCandidateLabel < 1.0){
 
-                double vertexLabel;
-                pVertex->getFeatureElement(19, &vertexLabel);
+                    coastCandidate->setFeatureElement(19, maximumLabel);
 
-                if( (int)currentLabel==(int)vertexLabel){
-
-                        currentlyLabeledWithThisLabel.push_back(pVertex);
-
-                }
-            }
-
-            list<Vertex*> watershedCoast;
-
-            //loop over all vertices with the current label
-            for(auto& vertexWithLabel : currentlyLabeledWithThisLabel){
-
-                list<Vertex*> adjacentVertsInOrder;
-                getSurroundingVerticesInOrder(adjacentVertsInOrder, vertexWithLabel, false);
-
-                //loop over the neighbours, only add them to coast, if they were not visited yet
-                for(auto& labelCandidates : adjacentVertsInOrder){
-
-                    int vertexIndex = labelCandidates->getIndexOriginal();
-
-                    if(!checkVisited[vertexIndex]){
-                        watershedCoast.push_back(labelCandidates);
-
-                    }
-                }
-            }
-            //now the watershedCoast list holds all vertices, which were not labeled yet.
-
-            //find the vertex with the maximum MSII-value and label it
-            if(!watershedCoast.empty()){
-
-                //not initialized is smelly
-                Vertex* currentlyVertexWithLargestValue;
-                double currentlyLargestMSIIValue = -100.0;
-
-                for(auto& coastVertex : watershedCoast){
-
-                    //acquire the MSII-value for this vertex
-
-                    double averagedPrecomputedMSIIValue;
-                    double MSIIcomponent1;
-                    double MSIIcomponent2;
-                    double MSIIcomponent3;
-                    double MSIIcomponent4;
-                    double MSIIcomponent5;
-
-                    //assumption: the MSII-value (we want) is located at position 0. (Possibly 0 till 4 have the values because of multi scale)
-                    coastVertex->getFeatureElement(0, &MSIIcomponent1);
-                    coastVertex->getFeatureElement(1, &MSIIcomponent2);
-                    coastVertex->getFeatureElement(2, &MSIIcomponent3);
-                    coastVertex->getFeatureElement(3, &MSIIcomponent4);
-                    coastVertex->getFeatureElement(4, &MSIIcomponent5);
-
-                    //average 5 MSII values.
-                    averagedPrecomputedMSIIValue = (MSIIcomponent1 + MSIIcomponent2 + MSIIcomponent3 + MSIIcomponent4 + MSIIcomponent5)/5.0;
-
-                    if(averagedPrecomputedMSIIValue > currentlyLargestMSIIValue){
-
-                        currentlyVertexWithLargestValue = coastVertex;
-                        currentlyLargestMSIIValue = averagedPrecomputedMSIIValue;
-
-                    }
-
+                    counterForFutureWork = counterForFutureWork + 1.0;
 
                 }
-                //now within the coast, the vertex with the currently largest MSIIValue is known
 
-                //now write the counters value in that vertex's feature vector
-                currentlyVertexWithLargestValue->setFeatureElement(18, counterForFutureWork);
-                //label the vertex with the label of its corresponding maximum
-                currentlyVertexWithLargestValue->setFeatureElement(19, currentLabel);
+                //add the vertex to the coast
+                //the coast is sorted by the MSII-Value
 
-                //mark the vertex as visited
-                int coastVertexIndex = currentlyVertexWithLargestValue->getIndexOriginal();
-                checkVisited[coastVertexIndex] = true;
+                double coastCandidateMSIIValue;
+                coastCandidate->getFeatureElement(15, &coastCandidateMSIIValue);
 
+                //there might be a loss of vertices, if vertices have the same MSII value (at position 16 (index 15)) because the map does not allow multiple equal keys
+                watershedCoast.insert( pair<double, Vertex*>(coastCandidateMSIIValue, coastCandidate) );
 
-                //increment the counter
-                counterForFutureWork = counterForFutureWork + 1.0;
+                //DO NOT mark the vertex as visited
+                //A Vertex is visited ONLY, when its neighbours have been retrieved
 
-                //TODO or RECONCEPT
-                //after I did everything on the current vertex
-                //then add its neighbours to the new coast
-                //this cannot be done in this implementation because I cannot keep track of the coast
-                //but it may be possible in the new implementation
             }
         }
     }
 
-    //subtract the list of maxima from all vertices
-    //call it WatershedInput
+    //as long as the coast is not empty
+    while(!watershedCoast.empty()){
+
+        //take the Vertex with the largest MSII-value
+        Vertex* VertexPWithLargestMSIIValue = watershedCoast.rbegin()->second;
+
+        //store the key for later use
+        double VPWMSIIValue = watershedCoast.rbegin()->first;
+
+        //that vertex already has a label
+        //label its neighbours, add them to the coast
+
+        list<Vertex*> adjacentVertsInOrder;
+        getSurroundingVerticesInOrder(adjacentVertsInOrder, VertexPWithLargestMSIIValue, false);
+
+        //retrieve the label, to label coast candidates
+        double maximumLabel;
+        VertexPWithLargestMSIIValue->getFeatureElement(19, &maximumLabel);
+
+        for(auto& newCoastCandidate : adjacentVertsInOrder){
+
+            int candidateIndex = newCoastCandidate->getIndexOriginal();
+
+            //only continue, if the vertex was not visited yet
+            if(!checkVisited[candidateIndex]){
+
+                double currentCandidateLabel;
+                newCoastCandidate->getFeatureElement(19, &currentCandidateLabel);
+
+                //label the vertex, if it has no label yet
+                //labels start at 1.0, a value below means no label was given yet
+                if(currentCandidateLabel < 1.0){
+
+                    newCoastCandidate->setFeatureElement(19, maximumLabel);
+
+                }
+
+                //add the vertex to the coast
+                //the coast is sorted by the MSII-Value
+
+                double coastVertexMSIIValue;
+                newCoastCandidate->getFeatureElement(15, &coastVertexMSIIValue);
+
+                //there might be a loss of vertices, if vertices have the same MSII value (at position 16 (index 15)) because the map does not allow multiple equal keys
+                watershedCoast.insert( pair<double, Vertex*>(coastVertexMSIIValue, newCoastCandidate) );
+
+            }
+        }
+
+        VertexPWithLargestMSIIValue->setFeatureElement(18, counterForFutureWork);
+        counterForFutureWork = counterForFutureWork + 1.0;
+
+        //mark the Vertex as visited (after its neighbours were added to the coast)
+        int vertexIndex = VertexPWithLargestMSIIValue->getIndexOriginal();
+        checkVisited[vertexIndex] = true;
+
+        //remove the vertex from the coast
+        //watershedCoast.erase(prev(watershedCoast.end())); //THIS IS WRONG, meanwhile the highest element no longer has to be the vertex we looked at, because we inserted other vertices
+        watershedCoast.erase(VPWMSIIValue);
+
+
+        cout << counterForFutureWork << " vertices have been processed" << endl;
+
+    }
+
+
+    //maybe TODO
+    //maybe implement the map and totalVertices is equal check.
+
+    //maybe cut away whatever does not belong to a wedge
+    //or maybe do this in a following step, aka clustering
+
+    cout << foundMaxima.size() << " maxima formed the base for the watershed algorithm." << endl;
+
+    return true;
+
+}
+
+bool Mesh::funcExpClustering(int deletableInput){
 
     /*
 
-    int zaehler = 0;
+    if(deletableInput == 1){
 
+        bool myArray[500000];
 
-    for(auto pVertex : mVertices){
-        int myIndex = pVertex->getIndexOriginal();
-        cout << myIndex << " ";
-
-        if(zaehler < 5){
-
-            double myComp1;
-            double myComp2;
-            double myComp3;
-            double myComp4;
-            double myComp5;
-
-            double myComp6;
-            double myComp7;
-            double myComp8;
-            double myComp9;
-            double myComp10;
-
-            double myComp11;
-            double myComp12;
-            double myComp13;
-            double myComp14;
-            double myComp15;
-
-            double myComp16;
-
-
-            pVertex->getFeatureElement(0, &myComp1);
-            pVertex->getFeatureElement(1, &myComp2);
-            pVertex->getFeatureElement(2, &myComp3);
-            pVertex->getFeatureElement(3, &myComp4);
-            pVertex->getFeatureElement(4, &myComp5);
-
-            pVertex->getFeatureElement(5, &myComp6);
-            pVertex->getFeatureElement(6, &myComp7);
-            pVertex->getFeatureElement(7, &myComp8);
-            pVertex->getFeatureElement(8, &myComp9);
-            pVertex->getFeatureElement(9, &myComp10);
-
-            pVertex->getFeatureElement(10, &myComp11);
-            pVertex->getFeatureElement(11, &myComp12);
-            pVertex->getFeatureElement(12, &myComp13);
-            pVertex->getFeatureElement(13, &myComp14);
-            pVertex->getFeatureElement(14, &myComp15);
-
-            pVertex->getFeatureElement(15, &myComp16);
-
-            cout << myComp1 << " " << myComp2 << " " << myComp3 << " " << myComp4 << " " << myComp5 << endl;
-            cout << myComp6 << " " << myComp7 << " " << myComp8 << " " << myComp9 << " " << myComp10 << endl;
-            cout << myComp11 << " " << myComp12 << " " << myComp13 << " " << myComp14 << " " << myComp15 << endl;
-
-
-        }
-
-        zaehler = zaehler + 1 ;
     }
 
+    if(deletableInput == 2){
+
+        bool myArray[1000000];
+
+    }
+
+    if(deletableInput == 3){
+
+        bool myArray[5000000];
+
+    }
+
+    if(deletableInput == 4){
+
+        bool myArray[10000000];
+
+    }
+
+    if(deletableInput == 5){
+
+        bool myArray[50000000];
+
+    }
+
+    if(deletableInput == 6){
+
+        bool myArray[100000000];
+
+    }
+
+    if(deletableInput == 7){
+
+        bool myArray[500000000];
+
+    }
     */
 
-
-
-
-
-
-
-
-    //maybe cut away whatever does not belong to a wedge
-    //or maybe do this in a following step
+    cout << "nothing to report" << endl;
 
     return true;
 
@@ -17352,6 +17371,198 @@ bool Mesh::funcExpNonMaxSupp(double NMSDistance)
 }
 */
 
+//below and experimental WaterShed, the old implementation with many shores
+
+/*
+//! An experimental Watershed method using values computed in the Non Maximum Suppression Method
+//! CAREFUL I should check, that the feature vector has size 18
+//! CAREFUL I could speed up this algorithm by festhalten wenn eine Kueste keine unbesuchten Kandidaten mehr hat, also leer ist
+//! CAREFUL I could use a vector of vectors to manage the coasts
+bool Mesh::funcExpWatershed(double deletableInput){
+
+    double counterForFutureWork = 0.0;
+
+    int allowedNumberOfVertices = 500000;
+    bool checkVisited[allowedNumberOfVertices];
+
+    for (int i = 0; i < allowedNumberOfVertices ; i++){
+        checkVisited[i] = false;
+    }
+
+    uint64_t actualNumberOfVertices = getVertexNr();
+
+    if(actualNumberOfVertices > allowedNumberOfVertices){
+        cout << "Apologies, this method can only handle meshes with no more than " << allowedNumberOfVertices << " vertices." << endl;
+        return false;
+    }
+
+    //list to retrieve all vertices which are maxima
+    //they have 1.0 at feature vector position 17 (index 16)
+    list<Vertex*> foundMaxima;
+
+    double experimentalLabel = 0.0;
+
+    //prepare data
+    for(auto pVertex : mVertices){
+
+        //if the feature vector has less than 20 elements, resize it to length 20
+        if(20 > pVertex->getFeatureVectorLen())
+		{
+			pVertex->resizeFeatureVector(20);
+		}
+
+        double isLocalMaximum;
+        pVertex->getFeatureElement(16, &isLocalMaximum);
+
+        //add to list of maxima and mark as visited
+        //in addition label the vertex
+        //a grand counter increments for future work
+        if(isLocalMaximum > 0.0){
+
+            foundMaxima.push_back(pVertex);
+            int vertexIndex = pVertex->getIndexOriginal();
+            checkVisited[vertexIndex] = true;
+
+            pVertex->setFeatureElement(18, counterForFutureWork);
+            pVertex->setFeatureElement(19, experimentalLabel);
+
+            counterForFutureWork = counterForFutureWork + 1.0;
+            experimentalLabel = experimentalLabel + 1.0;
+
+        }
+    }
+
+    //these many clusters will exist
+    int numberOfClusters = foundMaxima.size();
+
+
+    //vector<vector<int>> coastManagement;
+    //could be used instead of
+
+
+
+
+    //perform the algorithm as long as there are unlabeled vertices
+    while(counterForFutureWork<getVertexNr()){
+
+        //loop over the maxima
+        for(auto& maximumIterator : foundMaxima){
+
+            //current label
+            double currentLabel;
+            maximumIterator->getFeatureElement(19, &currentLabel);
+
+            list<Vertex*> currentlyLabeledWithThisLabel;
+
+            //find all vertices labeled with the current label
+            for(auto pVertex : mVertices){
+
+                double vertexLabel;
+                pVertex->getFeatureElement(19, &vertexLabel);
+
+                if( (int)currentLabel==(int)vertexLabel){
+
+                        currentlyLabeledWithThisLabel.push_back(pVertex);
+
+                }
+            }
+
+            list<Vertex*> watershedCoast;
+
+            //loop over all vertices with the current label
+            for(auto& vertexWithLabel : currentlyLabeledWithThisLabel){
+
+                list<Vertex*> adjacentVertsInOrder;
+                getSurroundingVerticesInOrder(adjacentVertsInOrder, vertexWithLabel, false);
+
+                //loop over the neighbours, only add them to coast, if they were not visited yet
+                for(auto& labelCandidates : adjacentVertsInOrder){
+
+                    int vertexIndex = labelCandidates->getIndexOriginal();
+
+                    if(!checkVisited[vertexIndex]){
+                        watershedCoast.push_back(labelCandidates);
+
+                    }
+                }
+            }
+            //now the watershedCoast list holds all vertices, which were not labeled yet.
+
+            //find the vertex with the maximum MSII-value and label it
+            if(!watershedCoast.empty()){
+
+                //not initialized is smelly
+                Vertex* currentlyVertexWithLargestValue;
+                double currentlyLargestMSIIValue = -100.0;
+
+                for(auto& coastVertex : watershedCoast){
+
+                    //acquire the MSII-value for this vertex
+
+                    double averagedPrecomputedMSIIValue;
+                    double MSIIcomponent1;
+                    double MSIIcomponent2;
+                    double MSIIcomponent3;
+                    double MSIIcomponent4;
+                    double MSIIcomponent5;
+
+                    //assumption: the MSII-value (we want) is located at position 0. (Possibly 0 till 4 have the values because of multi scale)
+                    coastVertex->getFeatureElement(0, &MSIIcomponent1);
+                    coastVertex->getFeatureElement(1, &MSIIcomponent2);
+                    coastVertex->getFeatureElement(2, &MSIIcomponent3);
+                    coastVertex->getFeatureElement(3, &MSIIcomponent4);
+                    coastVertex->getFeatureElement(4, &MSIIcomponent5);
+
+                    //average 5 MSII values.
+                    averagedPrecomputedMSIIValue = (MSIIcomponent1 + MSIIcomponent2 + MSIIcomponent3 + MSIIcomponent4 + MSIIcomponent5)/5.0;
+
+                    if(averagedPrecomputedMSIIValue > currentlyLargestMSIIValue){
+
+                        currentlyVertexWithLargestValue = coastVertex;
+                        currentlyLargestMSIIValue = averagedPrecomputedMSIIValue;
+
+                    }
+
+
+                }
+                //now within the coast, the vertex with the currently largest MSIIValue is known
+
+                //now write the counters value in that vertex's feature vector
+                currentlyVertexWithLargestValue->setFeatureElement(18, counterForFutureWork);
+                //label the vertex with the label of its corresponding maximum
+                currentlyVertexWithLargestValue->setFeatureElement(19, currentLabel);
+
+                //mark the vertex as visited
+                int coastVertexIndex = currentlyVertexWithLargestValue->getIndexOriginal();
+                checkVisited[coastVertexIndex] = true;
+
+
+                //increment the counter
+                counterForFutureWork = counterForFutureWork + 1.0;
+
+                //TODO or RECONCEPT
+                //after I did everything on the current vertex
+                //then add its neighbours to the new coast
+                //this cannot be done in this implementation because I cannot keep track of the coast
+                //but it may be possible in the new implementation
+            }
+        }
+    }
+
+    //subtract the list of maxima from all vertices
+    //call it WatershedInput
+
+
+
+
+    //maybe cut away whatever does not belong to a wedge
+    //or maybe do this in a following step
+
+    return true;
+
+}
+*/
+
 /*bool Mesh::experimentalNonMaximumSuppression(int ringSize) {
 
     //Result
@@ -17567,3 +17778,161 @@ bool Mesh::selectVertNonMaximum(double eps) {
 
 		return true;
 }*/
+
+
+//earlier NMS code
+/*
+int ringSize = (int)deletableInput;
+
+    int allowedNumberOfVertices = 100000;
+    uint64_t actualNumberOfVertices = getVertexNr();
+
+    if(actualNumberOfVertices > allowedNumberOfVertices){
+        cout << "Apologies, this method can only handle meshes with no more than " << allowedNumberOfVertices << " vertices." << endl;
+        return false;
+    }
+
+    //generally
+    //I should check more often, if lists are empty
+
+    //different types to loop over vertices (?)
+    //for(auto pVertex : mVertices)
+    //for( uint64_t vertIdx = 0; vertIdx<getVertexNr(); vertIdx++ )
+
+    //loop over all vertices
+    for(auto pVertex : mVertices){
+
+        //works only with GCC Compilers, did not seem to work
+        //bool checkVisited[100000]={[0 . . . 99999] = false };
+
+        //initialize the checks for visited vertices with false
+        //maybe use methods that already exist in vertex.cpp
+        bool checkVisited[allowedNumberOfVertices];
+        for (int i = 0; i < allowedNumberOfVertices ; i++){
+            checkVisited[i] = false;
+        }
+
+        //if the feature vector has less than 18 elements, resize it to length 18
+        if(18 > pVertex->getFeatureVectorLen())
+		{
+			pVertex->resizeFeatureVector(18);
+		}
+		//per default, it is guessed not to be the (local) maximum, currently resizing does the same, as at Positions 17 and 18 a zero gets written.
+		double isMax = 0.0;
+		bool biggerValueFound = false;
+
+		//acquire the MSII-value for this vertex
+
+		double averagedPrecomputedMSIIValue;
+
+		//assumption: the MSII-value (we want) is located at position 0. (Possibly 0 till 4 have the values because of multi scale)
+		pVertex->getFeatureElement(15, &averagedPrecomputedMSIIValue);
+
+        //Vertices, which will be the input for every search
+        list<Vertex*> marchingFrontier;
+        marchingFrontier.push_back(pVertex);
+
+        //Vertices, which are candidates for neighbour-search in the next iteration
+        //is cleared after every frontier step
+        list<Vertex*> nextCandidates;
+
+        // ringSize input should be checked, not to be 0
+        for( int currentRing = 1; currentRing <= ringSize; currentRing++){
+
+            //only perform the algorithm when no bigger MSII value than the one from the current vertex (pvertex) has been found
+            if(!biggerValueFound){
+
+                //add every neighbour of the inputs to candidates
+                for(auto& marchingInputIterator : marchingFrontier){
+
+                    //only perform the algorithm when no bigger MSII value than the one from the current vertex (pvertex) has been found
+                    if(!biggerValueFound){
+
+                        list<Vertex*> adjacentVertsInOrder;
+
+                        getSurroundingVerticesInOrder(adjacentVertsInOrder, marchingInputIterator, false);
+
+                        //check if the neighbours already have bigger values, than the one in question
+                        //and add them if( their value is not bigger AND they haven't been visited yet)
+                        for(auto& candidatesIterator : adjacentVertsInOrder){
+
+                            //only perform the algorithm when no bigger MSII value than the one from the current vertex (pvertex) has been found
+                            if(!biggerValueFound){
+
+                                double adjacentVertexsValue;
+                                candidatesIterator->getFeatureElement(0, &adjacentVertexsValue);
+
+
+                                if(averagedPrecomputedMSIIValue < adjacentVertexsValue){
+
+                                    biggerValueFound = true;
+                                    isMax = 0.0;
+                                }
+                                else{
+                                    //highly experimental, as I do not know, if this index can be used
+                                    int candidateIndex = candidatesIterator->getIndexOriginal();
+
+                                    if(!checkVisited[candidateIndex]){
+
+                                        nextCandidates.push_back(candidatesIterator);
+
+                                    }
+                                    isMax = 1.0; //the current Vertex seems to be a maximum
+
+                                }
+                            }
+                        }
+                        //now everything has been done with the input of the marching frontier, mark it as visited
+
+                        int frontierVertexIndex = marchingInputIterator->getIndexOriginal();
+
+                        checkVisited[frontierVertexIndex] = true;
+
+                    }
+
+                }
+
+                //add the "list of next candidates" to the marching frontier and clear the "list of next candidates"
+
+                marchingFrontier.insert(marchingFrontier.end(), nextCandidates.begin(), nextCandidates.end());
+                nextCandidates.clear();
+            }
+
+        }
+
+        //if the current vertex is the maximum
+        //write at Feature Vector Position 17, a pseudo boolean state.
+        //write at Feature Vector Position 18 its MSII value.
+        //checking a double for equal is something I don't like doing, so I'll do it this way
+        if(isMax > 0.0){
+
+            pVertex->setFeatureElement(16, isMax);
+            pVertex->setFeatureElement(17, averagedPrecomputedMSIIValue);
+
+
+        }
+        //this else-block is important to update the values calculated by this method for example in case another distance is chosen.
+        //without this else-block outdated values may remain in the feature vector.
+        //alternatively the reset to zero could be implemented at the beginning of the method.
+        else {
+
+            pVertex->setFeatureElement(16, 0.0);
+            pVertex->setFeatureElement(17, 0.0);
+
+        }
+
+
+    } // all vertices were looped over
+
+    return true;
+
+
+
+
+
+
+
+
+
+
+*/
