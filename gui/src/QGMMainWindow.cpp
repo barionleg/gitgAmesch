@@ -294,6 +294,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	// MSExp
 	QObject::connect( actionExperimentalNonMaximumSuppression,  SIGNAL(triggered()),         this, SIGNAL(sFuncExperimentalNonMaximumSuppression()) );
     QObject::connect( actionExperimentalWatershed,              SIGNAL(triggered()),         this, SIGNAL(sFuncExperimentalWatershed())             );
+    QObject::connect( actionExperimentalClustering,             SIGNAL(triggered()),         this, SIGNAL(sFuncExperimentalClustering())            );
 
 
 	//! \todo Rename regarding new menu structure.

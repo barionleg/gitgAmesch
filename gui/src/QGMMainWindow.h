@@ -369,6 +369,7 @@ signals:
 	//MSExp
 	void sFuncExperimentalNonMaximumSuppression();           //!< Experimental Non Maximum Suppression
 	void sFuncExperimentalWatershed();                       //!< Experimental Watershed
+	void sFuncExperimentalClustering();                      //!< Experimental Clustering
 	// # Distance to plane, line, selected primitive and cone
 	void visualizeDistanceToPlane();                         //!< triggers the plane distance estimation.
 	void visualizeDistanceToCone();                          //!< triggers distance to cone estimation (if cone has been selected)

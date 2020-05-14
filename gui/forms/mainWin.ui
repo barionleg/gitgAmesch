@@ -206,6 +206,7 @@
      <addaction name="separator"/>
      <addaction name="actionExperimentalNonMaximumSuppression"/>
      <addaction name="actionExperimentalWatershed"/>
+     <addaction name="actionExperimentalClustering"/>
     </widget>
     <widget class="QMenu" name="menuColorPerVertexToFunctionValue">
      <property name="title">
@@ -4389,6 +4390,11 @@ p, li { white-space: pre-wrap; }
   <action name="actionExperimentalWatershed">
    <property name="text">
     <string>Experimental Watershed</string>
+   </property>
+  </action>
+  <action name="actionExperimentalClustering">
+   <property name="text">
+    <string>Experimental Clustering</string>
    </property>
   </action>
  </widget>
