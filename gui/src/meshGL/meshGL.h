@@ -116,6 +116,7 @@ class MeshGL : public Mesh, public MeshGLParams {
 	public:
 		        bool       getRayWorld( int xPixel, int yPixel, Vector3D* rayTop, Vector3D* rayBot );
 		        bool       getWorldPoint( int rPixelX, int rPixelY, float rDepth, Vector3D* rPosVec );
+				bool       getWorldPointOnMesh( int rPixelX, int rPixelY, Vector3D* rPosVec);
 
 		// Function Values - Generic:
 		virtual bool       setVertexFuncValues(Vertex** vertices, double* values, int verticesNr, const std::string& setName );

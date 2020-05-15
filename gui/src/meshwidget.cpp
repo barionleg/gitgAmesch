@@ -6626,6 +6626,28 @@ void MeshWidget::mousePressEvent( QMouseEvent *rEvent ) {
 	}
 }
 
+void MeshWidget::mouseDoubleClickEvent( QMouseEvent* rEvent)
+{
+	if(rEvent->button() == Qt::LeftButton)
+	{
+		// Correct for OpenGL:
+		GLint viewport[4];
+		glGetIntegerv( GL_VIEWPORT, viewport );
+		const int yPixel = viewport[3] - rEvent->pos().y();
+		const int xPixel = rEvent->pos().x();
+		Vector3D clickPos;
+
+		if(mMeshVisual->getWorldPointOnMesh(xPixel, yPixel, &clickPos))
+		{
+			const Vector3D transVec = clickPos - mCenterView;
+			mCenterView = clickPos;
+			mCameraCenter += transVec;
+			setView();
+			update();
+		}
+	}
+}
+
 //! Handles the event when the mouse button is released again
 void MeshWidget::mouseReleaseEvent(QMouseEvent *rEvent)
 {

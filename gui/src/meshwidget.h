@@ -305,6 +305,7 @@ private:
 	// Keyboard and Mouse interaction:
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
 	void mousePressEvent( QMouseEvent *rEvent );
+	void mouseDoubleClickEvent( QMouseEvent* rEvent) override;
 	void mouseReleaseEvent( QMouseEvent *rEvent);
 	void mouseMoveEvent( QMouseEvent *rEvent );
 	void wheelEvent( QWheelEvent * rEvent );
