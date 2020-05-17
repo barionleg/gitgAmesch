@@ -2676,11 +2676,8 @@ bool MeshWidget::screenshotViewsPDFDirectory() {
 //! @returns false in case of an error or user cancel. True otherwise.
 bool MeshWidget::screenshotViewsPNGDirectory() {
 	// Store settings from current Mesh and Widget
-	if( mMeshVisual == nullptr ) {
-		return( false );
-	}
-	MeshGLParams storeMeshGLParams( (MeshGLParams)*mMeshVisual );
-	MeshWidgetParams storeMeshWidgetParams( (MeshWidgetParams)*this );
+	MeshGLParams storeMeshGLParams( (MeshGLParams)mMeshVisual );
+	MeshWidgetParams storeMeshWidgetParams( (MeshWidgetParams)this );
 
 	// Print resolution and tiled renderin (only in Orthographic projection mode)
 	bool   frontView = true;

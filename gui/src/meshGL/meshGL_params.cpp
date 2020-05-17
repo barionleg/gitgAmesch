@@ -106,15 +106,19 @@ MeshGLParams::MeshGLParams()
 }
 
 //! Constructor copying all the settings.
-MeshGLParams::MeshGLParams( const MeshGLParams& rSomeParams ) {
+MeshGLParams::MeshGLParams( const MeshGLParams * const rParams ) : MeshGLParams() {
+	if( rParams == nullptr ) {
+		// Do nothing and use defaults.
+		return;
+	}
 	for( unsigned long i=0; i<PARAMS_FLAG_COUNT; i++ ) {
-		rSomeParams.getParamFlagMeshGL( (eParamFlag)i, &mParamFlag[i] );
+		rParams->getParamFlagMeshGL( (eParamFlag)i, &mParamFlag[i] );
 	}
 	for( unsigned long i=0; i<PARAMS_INT_COUNT; i++ ) {
-		rSomeParams.getParamIntMeshGL( (eParamInt)i, &mParamInt[i] );
+		rParams->getParamIntMeshGL( (eParamInt)i, &mParamInt[i] );
 	}
 	for( unsigned long i=0; i<PARAMS_FLT_COUNT; i++ ) {
-		rSomeParams.getParamFloatMeshGL( (eParamFlt)i, &mParamFlt[i] );
+		rParams->getParamFloatMeshGL( (eParamFlt)i, &mParamFlt[i] );
 	}
 	// MeshGLParams has no strings.
 	//for( unsigned long i=0; i<PARAMS_STR_COUNT; i++ ) {

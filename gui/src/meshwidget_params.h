@@ -53,7 +53,7 @@ class MeshWidgetParams {
 	public:
 		// Constructor and deconstructor:
 		MeshWidgetParams();
-		MeshWidgetParams( const MeshWidgetParams& rSomeParams );
+		MeshWidgetParams( const MeshWidgetParams* const rParams );
 		~MeshWidgetParams() = default;
 
 		// Parameters:

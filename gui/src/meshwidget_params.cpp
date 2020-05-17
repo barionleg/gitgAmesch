@@ -139,18 +139,22 @@ MeshWidgetParams::MeshWidgetParams() {
 }
 
 //! Constructor copying all the settings.
-MeshWidgetParams::MeshWidgetParams( const MeshWidgetParams& rSomeParams ) {
+MeshWidgetParams::MeshWidgetParams( const MeshWidgetParams* const rParams ) : MeshWidgetParams() {
+	if( rParams == nullptr ) {
+		// Do nothing and use defaults.
+		return;
+	}
 	for( unsigned long i=0; i<PARAMS_FLAG_COUNT; i++ ) {
-		rSomeParams.getParamFlagMeshWidget( (eParamFlag)i, &mParamFlag[i] );
+		rParams->getParamFlagMeshWidget( (eParamFlag)i, &mParamFlag[i] );
 	}
 	for( unsigned long i=0; i<PARAMS_INT_COUNT; i++ ) {
-		rSomeParams.getParamIntegerMeshWidget( (eParamInt)i, &mParamInt[i] );
+		rParams->getParamIntegerMeshWidget( (eParamInt)i, &mParamInt[i] );
 	}
 	for( unsigned long i=0; i<PARAMS_FLT_COUNT; i++ ) {
-		rSomeParams.getParamFloatMeshWidget( (eParamFlt)i, &mParamFlt[i] );
+		rParams->getParamFloatMeshWidget( (eParamFlt)i, &mParamFlt[i] );
 	}
 	for( unsigned long i=0; i<PARAMS_STR_COUNT; i++ ) {
-		rSomeParams.getParamStringMeshWidget( (eParamStr)i, &mParamStr[i] );
+		rParams->getParamStringMeshWidget( (eParamStr)i, &mParamStr[i] );
 	}
 }
 

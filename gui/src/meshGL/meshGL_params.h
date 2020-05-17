@@ -25,7 +25,7 @@
 class MeshGLParams {
 	public:
 		MeshGLParams();
-		MeshGLParams( const MeshGLParams& rSomeParams );
+		MeshGLParams( const MeshGLParams * const rParams );
 		~MeshGLParams() = default;
 
 		// Switches controlling display of Primitives and other elements:
