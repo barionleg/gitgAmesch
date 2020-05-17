@@ -53,6 +53,7 @@ class MeshWidgetParams {
 	public:
 		// Constructor and deconstructor:
 		MeshWidgetParams();
+		MeshWidgetParams( const MeshWidgetParams& rSomeParams );
 		~MeshWidgetParams() = default;
 
 		// Parameters:
@@ -246,18 +247,20 @@ class MeshWidgetParams {
 		};
 
 		// Flags:
-		virtual bool getParamFlagMeshWidget( eParamFlag rFlagNr, bool* rState );
+		virtual bool getParamFlagMeshWidget( eParamFlag rFlagNr, bool* rState ) const;
 		virtual bool setParamFlagMeshWidget( eParamFlag rFlagNr, bool rState );
 		virtual bool toggleShowFlag( eParamFlag rFlagNr );
 		// Integer:
-		virtual bool getParamIntegerMeshWidget( eParamInt rParam, int* rValue );
+		virtual bool getParamIntegerMeshWidget( eParamInt rParam, int* rValue ) const;
 		virtual bool setParamIntegerMeshWidget( eParamInt rParam, int rValue );
 		// Floating point:
-		virtual bool getParamFloatMeshWidget( eParamFlt rParam, double* rValue );
+		virtual bool getParamFloatMeshWidget( eParamFlt rParam, double* rValue ) const;
 		virtual bool setParamFloatMeshWidget( eParamFlt rParam, double rValue );
 		// Strings:
-		virtual bool getParamStringMeshWidget( eParamStr rParamID, std::string* rString );
+		virtual bool getParamStringMeshWidget( eParamStr rParamID, std::string* rString ) const;
 		virtual bool setParamStringMeshWidget( eParamStr rParamID, const std::string& rString );
+		// ALL:
+		        bool setParamAllMeshWidget( const MeshWidgetParams& rParams );
 
 		// Extra Helper functions (to prevent copied code)
 		bool getGridCenterPosOffsets( double& rXOffset, double& rYOffset );

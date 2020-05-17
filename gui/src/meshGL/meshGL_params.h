@@ -25,6 +25,8 @@
 class MeshGLParams {
 	public:
 		MeshGLParams();
+		MeshGLParams( const MeshGLParams& rSomeParams );
+		~MeshGLParams() = default;
 
 		// Switches controlling display of Primitives and other elements:
 		enum eParamFlag{
@@ -227,16 +229,19 @@ class MeshGLParams {
 		};
 
 		// Parameters -- Boolean / Flags
-		virtual bool       getParamFlagMeshGL( MeshGLParams::eParamFlag rParamID, bool* rValue );
+		virtual bool       getParamFlagMeshGL( MeshGLParams::eParamFlag rParamID, bool* rValue ) const;
 		virtual bool       setParamFlagMeshGL( MeshGLParams::eParamFlag rParamID, bool rState );
 
 		// Parameters -- Integer / Discrete
-		virtual bool       getParamIntMeshGL( MeshGLParams::eParamInt rParamID, int* rValue );
+		virtual bool       getParamIntMeshGL( MeshGLParams::eParamInt rParamID, int* rValue ) const;
 		virtual bool       setParamIntMeshGL( MeshGLParams::eParamInt rParamID, int rValue );
 
 		// Parameters -- Floating point
-		virtual bool       getParamFloatMeshGL( MeshGLParams::eParamFlt rParamID, double* rValue );
+		virtual bool       getParamFloatMeshGL( MeshGLParams::eParamFlt rParamID, double* rValue ) const;
 		virtual bool       setParamFloatMeshGL( MeshGLParams::eParamFlt rParamID, double rValue );
+
+		// Parameters -- ALL
+		        bool       setParamAllMeshWidget( const MeshGLParams& rParams );
 
 	private:
 		// Switches and parameters controlling display of Primitives and other elements:

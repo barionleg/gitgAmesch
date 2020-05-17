@@ -105,8 +105,25 @@ MeshGLParams::MeshGLParams()
 	mParamFlt[LIGHTVECTOR_LENGTH] = 20.0;
 }
 
+//! Constructor copying all the settings.
+MeshGLParams::MeshGLParams( const MeshGLParams& rSomeParams ) {
+	for( unsigned long i=0; i<PARAMS_FLAG_COUNT; i++ ) {
+		rSomeParams.getParamFlagMeshGL( (eParamFlag)i, &mParamFlag[i] );
+	}
+	for( unsigned long i=0; i<PARAMS_INT_COUNT; i++ ) {
+		rSomeParams.getParamIntMeshGL( (eParamInt)i, &mParamInt[i] );
+	}
+	for( unsigned long i=0; i<PARAMS_FLT_COUNT; i++ ) {
+		rSomeParams.getParamFloatMeshGL( (eParamFlt)i, &mParamFlt[i] );
+	}
+	// MeshGLParams has no strings.
+	//for( unsigned long i=0; i<PARAMS_STR_COUNT; i++ ) {
+	//	rSomeParams.getParamStringMeshGL( (eParamStr)i, &mParamStr[i] );
+	//}
+}
+
 //! Get the state of a flag controlling the display of Primitives, etc.
-bool MeshGLParams::getParamFlagMeshGL( MeshGLParams::eParamFlag rParamID, bool* rValue ) {
+bool MeshGLParams::getParamFlagMeshGL( MeshGLParams::eParamFlag rParamID, bool* rValue ) const {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshGLParams::" << __FUNCTION__ << "]" << endl;
 #endif
@@ -133,7 +150,7 @@ bool MeshGLParams::setParamFlagMeshGL( MeshGLParams::eParamFlag rParamID, bool r
 }
 
 //! Get an integer parameter.
-bool MeshGLParams::getParamIntMeshGL( MeshGLParams::eParamInt rParamID, int* rValue ) {
+bool MeshGLParams::getParamIntMeshGL( MeshGLParams::eParamInt rParamID, int* rValue ) const {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshGLParams::" << __FUNCTION__ << "]" << endl;
 #endif
@@ -159,7 +176,7 @@ bool MeshGLParams::setParamIntMeshGL( MeshGLParams::eParamInt rParamID, int rVal
 }
 
 //! Retrive a floating point parameter.
-bool MeshGLParams::getParamFloatMeshGL( MeshGLParams::eParamFlt rParamID, double* rValue ) {
+bool MeshGLParams::getParamFloatMeshGL( MeshGLParams::eParamFlt rParamID, double* rValue ) const {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshGLParams::" << __FUNCTION__ << "]" << endl;
 #endif
@@ -282,4 +299,31 @@ bool MeshGLParams::setParamFloatMeshGL( MeshGLParams::eParamFlt rParamID, double
 	}
 	mParamFlt[rParamID] = rValue;
 	return true;
+}
+
+
+//! Set all Paramters.
+bool MeshGLParams::setParamAllMeshWidget( const MeshGLParams& rParams ) {
+	for( unsigned long i=0; i<PARAMS_FLAG_COUNT; i++ ) {
+		bool tempFlag;
+		rParams.getParamFlagMeshGL( (eParamFlag)i, &tempFlag );
+		setParamFlagMeshGL( (eParamFlag)i, tempFlag );
+	}
+	for( unsigned long i=0; i<PARAMS_INT_COUNT; i++ ) {
+		int tempInt;
+		rParams.getParamIntMeshGL( (eParamInt)i, &tempInt );
+		setParamIntMeshGL( (eParamInt)i, tempInt );
+	}
+	for( unsigned long i=0; i<PARAMS_FLT_COUNT; i++ ) {
+		double tempFlt;
+		rParams.getParamFloatMeshGL( (eParamFlt)i, &tempFlt );
+		setParamFloatMeshGL( (eParamFlt)i, tempFlt );
+	}
+	// No strings:
+	// for( unsigned long i=0; i<PARAMS_STR_COUNT; i++ ) {
+	//	std::string tempStr;
+	//	rParams.getParamStringMeshWidget( (eParamStr)i, &tempStr );
+	//	setParamStringMeshWidget( (eParamStr)i, tempStr );
+	// }
+	return( true );
 }

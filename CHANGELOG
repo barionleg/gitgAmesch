@@ -4,6 +4,7 @@ Current version
 +) New: Function to change length of light-vectors. See 'Settings -> Light Vectors Length'.
 +) New: Function to set alpha-value of vertices. See 'Edit -> Vertices - Set Vertex Alpha'.
 +) New: Double-click centers the view on the clicked position.
++) Improved: Mass rendering of screenshots uses the settings of the current view for all 3D-models in a directory. See 'File -> Export Screenshots - Parse Directory -> Screenshots Views (PNG)'.
 +) Improved: Matrix Dialog
 +) Improved: Normal vector computation per vertex. See 'Edit -> Vertices - Recompute Normals" and enter values larger than 0.
 +) Improved: options of 'gigamesh-featurevectors'.
