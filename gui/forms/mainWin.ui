@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -2434,6 +2434,9 @@ p, li { white-space: pre-wrap; }
   <action name="actionPlaneSetHNFByView">
    <property name="text">
     <string>Plane - Set HNF by View</string>
+   </property>
+   <property name="shortcut">
+    <string>F9</string>
    </property>
   </action>
   <action name="actionAbout">
