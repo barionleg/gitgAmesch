@@ -669,7 +669,7 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 		case LABELING_LABEL_ALL: {
 			labelVerticesNone();
 			retVal = Mesh::labelVertices( mVertices, mLabelSeedVerts );
-		    } break;
+			} break;
 		case LABELING_LABEL_SELMVERTS:
 			retVal = Mesh::labelSelectedVerticesUser();
 			break;
@@ -4956,6 +4956,7 @@ bool Mesh::assignImportedTexture( int rLineCount, uint64_t* rRefToPrimitves, uns
 bool Mesh::assignImportedNormalsToVertices(
                 const std::vector<grVector3ID>& rNormals
 ) {
+	bool retVal = true;
 	unsigned long assignedNotOk = 0;
 	unsigned long badVertexIdx = 0;
 	std::vector<grVector3ID>::const_iterator itVector3ID;
@@ -4967,16 +4968,23 @@ bool Mesh::assignImportedNormalsToVertices(
 		}
 		if( !currVert->setNormal( (*itVector3ID).mX, (*itVector3ID).mY, (*itVector3ID).mZ ) ) {
 			assignedNotOk++;
+			std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Normal ( "
+			          << (*itVector3ID).mX << ", " << (*itVector3ID).mY << ", " << (*itVector3ID).mZ
+			          << " )' not assigned for vertex "
+			          << currVert->getIndex() << " could not be assigned!" << std::endl;
 		}
 	}
-	if( ( badVertexIdx > 0 ) || ( assignedNotOk > 0 ) ) {
+	if( badVertexIdx > 0 ) {
 		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: " << badVertexIdx
 		          << " bad vertex indices!" << std::endl;
+		retVal = false;
+	}
+	if( assignedNotOk > 0 ) {
 		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: " << assignedNotOk << " of "
 		          << rNormals.size() << " could not be assigned!" << std::endl;
-		return( false );
+		retVal = false;
 	}
-	return( true );
+	return( retVal );
 }
 
 //! For each vertex with valid (i.e. not nan) function value: multiplies red, green and blue component with the current vertex's function value
@@ -6215,7 +6223,7 @@ bool Mesh::labelsChanged() {
 
 //! Returns the number of labels set.
 bool Mesh::labelCount(
-                int rPrimitiveType,          //!<
+                int rPrimitiveType,     //!< Type of labled primitive.
                 uint64_t& rLabelMaxNr   //!< (return value)
 ) {
 	bool labelFound      = false;
@@ -6464,7 +6472,7 @@ int Mesh::labelFaces( int facesNrToRemove ) {
 bool Mesh::labelVerticesAll() {
 	set<Vertex*> allVerticesToLabel;
 	if( !getVertexList( &allVerticesToLabel ) ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] getVertexList failed!" << endl;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: getVertexList failed!" << std::endl;
 		return( false );
 	}
 	labelVerticesNone();
@@ -13390,8 +13398,13 @@ bool Mesh::normalsVerticesComputeSphere(
 	// Use MSII function for parallel processing and normal estimation
 	compFeatureVectorsMain( setMeshData, availableConcurrentThreads );
 
-	// Assing normals
-	this->assignImportedNormalsToVertices( patchNormalsToAssign );
+	// Assigning normals
+	if( !this->assignImportedNormalsToVertices( patchNormalsToAssign ) ) {
+		showWarning( "Faulty normals",
+		             "Not all normals could be computed and assigned.<br /><br />"
+		             "A possible reason is the existance of very small faces." );
+		retVal = false;
+	}
 
 	// Update OpenGL conect in GUI
 	retVal |= normalsVerticesChanged();
@@ -16327,6 +16340,9 @@ bool Mesh::getMeshInfoData(
 		}
 		if( currVertex->isNonManifold() ) {
 			rMeshInfos.mCountULong[MeshInfoData::VERTICES_NONMANIFOLD]++;
+		}
+		if( currVertex->isDoubleCone() ) {
+			rMeshInfos.mCountULong[MeshInfoData::VERTICES_SINGULAR]++;
 		}
 		if( currVertex->isPartOfZeroFace() ) {
 			rMeshInfos.mCountULong[MeshInfoData::VERTICES_PART_OF_ZERO_FACE]++;

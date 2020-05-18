@@ -47,6 +47,7 @@ MeshInfoData::MeshInfoData() {
 	mCountULongName[VERTICES_POLYLINE] = "Vertices of polylines";
 	mCountULongName[VERTICES_BORDER] = "Border vertices";
 	mCountULongName[VERTICES_NONMANIFOLD] = "Vertices non-manifold";
+	mCountULongName[VERTICES_SINGULAR] = "Vertices singular";
 	mCountULongName[VERTICES_ON_INVERTED_EDGE] = "Vertices along an inverted edge";
 	mCountULongName[VERTICES_PART_OF_ZERO_FACE] = "Vertices part of a zero area face";
 	mCountULongName[VERTICES_SYNTHETIC] = "Vertices synthetic";
@@ -221,6 +222,7 @@ bool MeshInfoData::getMeshInfoHTML(
 	infoStr += "<tr><td>Polyline:</td><td align=\"right\">"                             + std::to_string( this->mCountULong[MeshInfoData::VERTICES_POLYLINE] )               + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_POLYLINE].str()               + "&#37;</td></tr>\n";
 	infoStr += "<tr><td>Border:</td><td align=\"right\">"                               + std::to_string( this->mCountULong[MeshInfoData::VERTICES_BORDER] )                 + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_BORDER].str()                 + "&#37;</td></tr>\n";
 	infoStr += "<tr><td>Non-manifold:</td><td align=\"right\">"                         + std::to_string( this->mCountULong[MeshInfoData::VERTICES_NONMANIFOLD] )            + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_NONMANIFOLD].str()            + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Singular:</td><td align=\"right\">"                             + std::to_string( this->mCountULong[MeshInfoData::VERTICES_SINGULAR] )               + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_SINGULAR].str()               + "&#37;</td></tr>\n";
 	infoStr += "<tr><td>Inverted edge<sup>b)</sup>:</td><td align=\"right\">"           + std::to_string( this->mCountULong[MeshInfoData::VERTICES_ON_INVERTED_EDGE] )       + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_ON_INVERTED_EDGE].str()       + "&#37;</td></tr>\n";
 	infoStr += "<tr><td>Part&nbsp;of&nbsp;zero&nbsp;area&nbsp;face:</td><td align=\"right\">"   + std::to_string( this->mCountULong[MeshInfoData::VERTICES_PART_OF_ZERO_FACE] )      + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_PART_OF_ZERO_FACE].str()      + "&#37;</td></tr>\n";
 	infoStr += "<tr><td>Synthetic:</td><td align=\"right\">"                            + std::to_string( this->mCountULong[MeshInfoData::VERTICES_SYNTHETIC] )              + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_SYNTHETIC].str()              + "&#37;</td></tr>\n";

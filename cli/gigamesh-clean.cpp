@@ -141,6 +141,14 @@ bool cleanupGigaMeshData(
 	//----------------------------------------------------------
 	std::chrono::system_clock::time_point tStart = std::chrono::system_clock::now();
 
+	// Initial numbers of primitives
+	auto oldVertexNr = someMesh.getVertexNr();
+	auto oldFaceNr = someMesh.getFaceNr();
+	// and count of connected components (labels)
+	uint64_t labelCountIn;
+	someMesh.labelVerticesAll();
+	someMesh.labelCount( Primitive::IS_VERTEX, labelCountIn );
+
 	// Keep ONLY the largest connected component.
 	//----------------------------------------------------------
 	if( !keepLargestComponent ) {
@@ -161,10 +169,6 @@ bool cleanupGigaMeshData(
 		someMesh.selectVertLabelNo( labelNrs );
 		someMesh.removeVerticesSelected();
 	}
-
-	// Initial numbers of primitives
-	auto oldVertexNr = someMesh.getVertexNr();
-	auto oldFaceNr = someMesh.getFaceNr();
 
 	// MAIN cleaning procedure
 	//----------------------------------------------------------
@@ -202,24 +206,29 @@ bool cleanupGigaMeshData(
 		return( false );
 	}
 
+	// Fetch new count of connected components (labels)
+	uint64_t labelCountOut;
+	someMesh.labelVerticesAll();
+	someMesh.labelCount( Primitive::IS_VERTEX, labelCountOut );
+
 	// WRITE meta information
 	//----------------------------------------------------------
 	// Count primitives and their properties for meta information
 	MeshInfoData rFileInfos;
 	someMesh.getMeshInfoData( rFileInfos, true );
 	// Set filename for meta-data
-    std::filesystem::path fileNameOutMeta = fileNameOut;
-    fileNameOutMeta.replace_extension("info-clean.txt" );
+	std::filesystem::path fileNameOutMeta = fileNameOut;
+	fileNameOutMeta.replace_extension( "info-clean.txt" );
 	//fileNameOutMeta += suffix + ".info-clean.txt";
 	// Open file for meta-data
 	std::fstream fileStrOutMeta;
-    fileStrOutMeta.open( fileNameOutMeta, std::fstream::out );
+	fileStrOutMeta.open( fileNameOutMeta, std::fstream::out );
 #ifdef VERSION_PACKAGE
-	fileStrOutMeta << "[GigaMesh] CLEAN v." << VERSION_PACKAGE << std::endl;
+	fileStrOutMeta << "GigaMesh CLEAN Version:     " << VERSION_PACKAGE << std::endl;
 #else
-	fileStrOutMeta << "[GigaMesh] CLEAN unknown version" << std::endl;
+	fileStrOutMeta << "GigaMesh CLEAN Version:     unknown" << std::endl;
 #endif
-	fileStrOutMeta << "Threads (dynamic):          " << std::thread::hardware_concurrency() * 2 << std::endl;
+	fileStrOutMeta << "Threads (dynamic):          " << std::thread::hardware_concurrency() - 1 << std::endl;
 	fileStrOutMeta << "File Input:                 " << fileNameInName << std::endl;
 	fileStrOutMeta << "File Output:                " << fileNameOutName << std::endl;
 	fileStrOutMeta << "Model Id:                   " << rFileInfos.mStrings[MeshInfoData::MODEL_ID] << std::endl;
@@ -229,6 +238,8 @@ bool cleanupGigaMeshData(
 	fileStrOutMeta << "Face count (in, out):       " << oldFaceNr   << ", " << rFileInfos.mCountULong[MeshInfoData::FACES_TOTAL]    << std::endl;
 	fileStrOutMeta << "Vertex count (diff):        " << ( static_cast<long>(rFileInfos.mCountULong[MeshInfoData::VERTICES_TOTAL]) - static_cast<long>(oldVertexNr) ) << std::endl;
 	fileStrOutMeta << "Face count (diff):          " << ( static_cast<long>(rFileInfos.mCountULong[MeshInfoData::FACES_TOTAL])    - static_cast<long>(oldFaceNr)   ) << std::endl;
+	fileStrOutMeta << "Connected components (in):  " << labelCountIn << std::endl;
+	fileStrOutMeta << "Connected components (out): " << labelCountOut << std::endl;
 	fileStrOutMeta << "Vertices at border (out):   " << rFileInfos.mCountULong[MeshInfoData::VERTICES_BORDER] << std::endl;
 	fileStrOutMeta << "Vertices synthetic (out):   " << rFileInfos.mCountULong[MeshInfoData::VERTICES_SYNTHETIC] << std::endl;
 	fileStrOutMeta << "Faces synthetic (out):      " << rFileInfos.mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES] << std::endl;
