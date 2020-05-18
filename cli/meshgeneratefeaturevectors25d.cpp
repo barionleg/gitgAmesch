@@ -616,6 +616,12 @@ void getUserAndHostName(
 	}
 	WSACleanup();
 #else
+    #ifndef HOST_NAME_MAX
+	    const size_t HOST_NAME_MAX = 256;
+    #endif
+    #ifndef LOGIN_NAME_MAX
+		const size_t LOGIN_NAME_MAX = 256;
+    #endif
 	// Write hostname and username - see: https://stackoverflow.com/questions/27914311/get-computer-name-and-logged-user-name
 	char hostname[HOST_NAME_MAX] = {0};
 	char username[LOGIN_NAME_MAX] = {0};

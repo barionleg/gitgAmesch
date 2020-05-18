@@ -73,13 +73,13 @@ Face::Face( unsigned int rIndex, VertexOfFace* setA, VertexOfFace* setB, VertexO
 	}
 
 	// Check for valid class type.
-	if( !setA->belongsToFace() ) {
+    if( setA != nullptr && !setA->belongsToFace() ) {
 		cerr << "[Face::" << __FUNCTION__ << "] ERROR: The class of vertex A is NOT VertexOfFace!" << endl;
 	}
-	if( !setB->belongsToFace() ) {
+    if( setB != nullptr && !setB->belongsToFace() ) {
 		cerr << "[Face::" << __FUNCTION__ << "] ERROR: The class of vertex B is NOT VertexOfFace!" << endl;
 	}
-	if( !setC->belongsToFace() ) {
+    if( setC != nullptr && !setC->belongsToFace() ) {
 		cerr << "[Face::" << __FUNCTION__ << "] ERROR: The class of vertex C is NOT VertexOfFace!" << endl;
 	}
 

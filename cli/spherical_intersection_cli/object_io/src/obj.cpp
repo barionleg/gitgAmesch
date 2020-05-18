@@ -55,7 +55,7 @@ Object_Information object_io::obj::load_obj(const std::string &path) {
 				std::size_t i_1, i_2, i_3;
 				auto string_to_index =
 				    [](const std::string &string) {
-					    std::size_t index;
+					    std::size_t index = std::string::npos;
 					    std::stringstream{string.substr(
 						0, string.find("/"))} >>
 						index;

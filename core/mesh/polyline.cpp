@@ -43,7 +43,7 @@ PolyLine::PolyLine( Vector3D vertPos, Vector3D vertNormal )
 }
 
 //! Constructor accepting a position vector, a normal vector and a label no.
-PolyLine::PolyLine( Vector3D vertPos, Vector3D vertNormal, int setLabelNr )
+PolyLine::PolyLine( Vector3D vertPos, Vector3D vertNormal, uint64_t setLabelNr )
 	: Vertex( vertPos, vertNormal, setLabelNr ), POLYLINEINITDEFAULTS  {
 	// Nothing else to do here.
 }
@@ -211,6 +211,8 @@ bool PolyLine::vertLabelGet( int* getLabelNr ) {
 */
 
 bool PolyLine::isClosed() {
+	if(mEdgeList.empty())
+		return false;
 	//! Returns true, when the last vertex of the polyline is identical to the first vertex.
 	Vector3D firstLastVert = mEdgeList.front()->mVertPoly->getPositionVector() - mEdgeList.back()->mVertPoly->getPositionVector();
 	if( firstLastVert.getLength3() <= DBL_EPSILON ) {
@@ -335,7 +337,7 @@ bool PolyLine::estCurvature( bool absolut ) {
 			curvature *= -1.0;
 		}
 		//cout << "[PolyLine::estCurvature] curvature: " << curvature << " theta: " << theta * 180.0/M_PI << " Vertex/Edge index: " << i << endl;
-		mEdgeList.at( i )->mCurvature = curvature;
+		mEdgeList.at( i )->mCurvature = static_cast<float>(curvature);
 		mEdgeList.at( i )->setFuncValue( curvature );
 	}
 	return true;
@@ -480,7 +482,7 @@ bool PolyLine::compIntInv( int rVertNr, double rIIRadius, ePolyIntInvDirection r
 		}
 	}
 
-	mEdgeList.at( iCurrSafeStart )->mCurvature = distIntegral / rIIRadius;
+	mEdgeList.at( iCurrSafeStart )->mCurvature = static_cast<float>(distIntegral / rIIRadius);
 	mEdgeList.at( iCurrSafeStart )->setFuncValue( distIntegral / rIIRadius );
 
 	return true;
@@ -609,7 +611,7 @@ bool PolyLine::compIntInvAngle( int rVertNr, double rIIRadius ) {
 		intAngle = angle( (borderPointA-sphereCenter), (borderPointB-sphereCenter) );
 	}
 
-	mEdgeList.at( iCurrSafeStart )->mCurvature = intAngle;
+	mEdgeList.at( iCurrSafeStart )->mCurvature = static_cast<float>(intAngle);
 	mEdgeList.at( iCurrSafeStart )->setFuncValue( intAngle );
 
 	return true;
@@ -827,12 +829,12 @@ bool PolyLine::getNeighboursRunLen( int rVertNr, double rDist, vector<int>* rNei
 	return true;
 }
 
-int PolyLine::getSafeIndex( int someIdx ) {
+size_t PolyLine::getSafeIndex(size_t someIdx ) {
 	//! Returns a valid index regarding open and closed polylines.
 	//! Closed polylines: returns a corresponding (modulo) value within the index range.
 	if( isClosed() ) {
 		// Remark: last vertex equals first vertex, so we have to decrement by 1:
-		int maxIndex = mEdgeList.size()-1;
+		auto maxIndex = mEdgeList.size()-1;
 		if( ( someIdx >= 0 ) && ( someIdx < maxIndex ) ) {
 			return someIdx;
 		}
@@ -846,7 +848,7 @@ int PolyLine::getSafeIndex( int someIdx ) {
 	if( someIdx < 0 ) {
 		return -1;
 	}
-	if( someIdx >= static_cast<int>(mEdgeList.size()) ) {
+	if( someIdx >= mEdgeList.size() ) {
 		return -1;
 	}
 	return someIdx;
@@ -919,7 +921,7 @@ bool PolyLine::addBackNoDupes( Vertex* rNewBackVert, Face* rFromFace, Face::eEdg
 	return true;
 }
 
-int PolyLine::compileLine( set<labelLine*>* unsortedLines ) {
+size_t PolyLine::compileLine( set<labelLine*>* unsortedLines ) {
 	//! Compiles a polyline using the list/set of labelLine. Returns the number of labelLines left in the unsortedLines list.
 
 	PolyEdge* newEdge;
@@ -998,7 +1000,7 @@ bool PolyLine::extrudeAxis(
 ) {
 	//std::cout << "[PolyLine::" << __FUNCTION__ << "] Start" << std::endl;
 
-	constexpr int angleCount = 100;
+	constexpr size_t angleCount = 100;
 	constexpr double angleStep  = 2.0*M_PI/static_cast<double>(angleCount);
 	Vector3D origin( 0.0, 0.0, 0.0, 1.0 );
 	Vector3D zAxis( 0.0, 0.0, 1.0, 0.0 );
@@ -1009,11 +1011,11 @@ bool PolyLine::extrudeAxis(
 	Matrix4D reBaseTrans( baseTrans );
 	reBaseTrans.invert();
 
-	int sliceCount = mEdgeList.size();
+	auto sliceCount = mEdgeList.size();
 	VertexOfFace** meshGrid = new VertexOfFace*[angleCount*sliceCount];
 
 	// 1. Compute a regular point cloud
-	for( int s=0; s<sliceCount; s++ ) {
+	for( size_t s=0; s<sliceCount; ++s ) {
 	//for( auto const& currPolyEdge: mEdgeList ) {
 		PolyEdge* currPolyEdge = mEdgeList.at( s );
 		Vector3D currPos;
@@ -1023,7 +1025,7 @@ bool PolyLine::extrudeAxis(
 		normalPresent = currPolyEdge->getNormal( &currNormal );
 		currPos    *= baseTrans;
 		currNormal *= baseTrans;
-		for( int i=0; i<angleCount; i++ ) {
+		for( size_t i=0; i<angleCount; ++i ) {
 			VertexOfFace* sectionVertex = new VertexOfFace( currPos );
 			sectionVertex->setFlag( FLAG_SYNTHETIC );
 			if( normalPresent ) {
@@ -1041,9 +1043,9 @@ bool PolyLine::extrudeAxis(
 	// 2. Connect the regular grid of points to a mesh
 	//    If present, the orientation of the vertices of the profile line
 	//    will be used to set a proper orientation of the faces.
-	for( int s=0; s<sliceCount-1; s++ ) {
-		for( int i=0; i<angleCount; i++ ) {
-			int nextAngleIdx = i+1;
+	for( size_t s=0; s<sliceCount-1; ++s ) {
+		for( size_t i=0; i<angleCount; ++i ) {
+			auto nextAngleIdx = i+1;
 			if( nextAngleIdx >= angleCount ) {
 				nextAngleIdx = 0;
 			}

@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
+find_package(Threads)
+
 set(SOURCES_CORE mesh/geodentry.cpp
 	mesh/bitflagarray.cpp
 	mesh/primitive.cpp
@@ -100,8 +102,8 @@ add_library(gigameshCore STATIC ${SOURCES_CORE} ${HEADERS_CORE} ${PUBLIC_HEADERS
 target_compile_features(gigameshCore PUBLIC cxx_std_17)
 target_compile_options(gigameshCore PUBLIC -DTHREADS -DCOMP_USER=\"${COMP_USER}\" -DCOMP_DATE=\"${COMP_DATE}\" -DCOMP_GITHEAD=\"${COMP_GITHEAD}\" -DVERSION_PACKAGE=\"${VERSION_PACKAGE}\" -DCOMP_EDIT=\"${COMP_EDIT}\" -DLIBSPHERICAL_INTERSECTION -DLIBPSALM -DALGLIB)
 
-if(UNIX)
-	target_link_libraries(gigameshCore PUBLIC stdc++fs pthread)
+if(UNIX AND NOT APPLE)
+        target_link_libraries(gigameshCore PUBLIC stdc++fs)
 elseif(MSVC)
         target_compile_options(gigameshCore PUBLIC /permissive- -DNOMINMAX)
 	target_link_libraries(gigameshCore PUBLIC Advapi32 Ws2_32)
@@ -109,7 +111,7 @@ elseif(MINGW)
 	target_link_libraries(gigameshCore PUBLIC ws2_32)
 endif()
 
-target_link_libraries(gigameshCore PRIVATE alg psalm triangle)
+target_link_libraries(gigameshCore PRIVATE alg psalm triangle Threads::Threads)
 
 target_include_directories(gigameshCore PUBLIC
 							$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

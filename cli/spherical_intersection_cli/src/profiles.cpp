@@ -62,7 +62,7 @@ bool algorithm_is_set = false;
 std::string output_path;
 bool output_path_is_set = false;
 
-std::size_t thread_count;
+std::size_t thread_count = 1;
 bool thread_count_is_set = false;
 
 std::size_t max_thread_load;
@@ -314,5 +314,5 @@ int main(int argc, char *argv[]) {
 	bool saveSuccess = save_features(output_path,values);
 	std::cout << "Done!" << std::endl;
 
-	return 0;
+	return saveSuccess == 0 ? 0 : 1;
 }

@@ -100,8 +100,8 @@ void MeshInfoData::reset() {
 	for( std::string& countValue : this->mStrings ) {
 		countValue = "";
 	}
-	for( unsigned long& countValue : this->mCountULong ) {
-		countValue = _NOT_A_NUMBER_UINT_;
+	for( auto& countValue : this->mCountULong ) {
+		countValue = _NOT_A_NUMBER_ULONG_;
 	}
 	for( double& countValue : this->mCountDouble ) {
 		countValue = _NOT_A_NUMBER_DBL_;

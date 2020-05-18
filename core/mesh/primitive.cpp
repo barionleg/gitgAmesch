@@ -304,18 +304,20 @@ bool Primitive::setBlackWhiteBlack( double phase ) {
 	//! Returns true when phase is within the interval [0...1]. False otherwise.
 
 	if( phase <= 0.0 ) {
-		setRGB( 0.0, 0.0, 0.0 );
+		setRGB( 0, 0, 0 );
 		return false;
 	}
 	if( phase >= 1.0 ) {
-		setRGB( 0.0, 0.0, 0.0 );
+		setRGB( 0, 0, 0 );
 		return false;
 	}
 	phase *= 2.0;
 	if( phase > 1.0 ) {
 		phase = 2.0-phase;
 	}
-	setRGB( phase, phase, phase );
+	setRGB( static_cast<unsigned char>(255.0 * phase),
+	        static_cast<unsigned char>(255.0 * phase),
+	        static_cast<unsigned char>(255.0 * phase ));
 	return true;
 }
 
@@ -325,18 +327,20 @@ bool Primitive::setBlackWhiteBlack( double phase ) {
 bool Primitive::setWhiteBlackWhite( double phase ) {
 
 	if( phase <= 0.0 ) {
-		setRGB( 1.0, 1.0, 1.0 );
+		setRGB( 255, 255, 255 );
 		return false;
 	}
 	if( phase >= 1.0 ) {
-		setRGB( 1.0, 1.0, 1.0 );
+		setRGB( 255, 255, 255 );
 		return false;
 	}
 	phase *= 2.0;
 	if( phase > 1.0 ) {
 		phase = 2.0-phase;
 	}
-	setRGB( 1.0-phase, 1.0-phase, 1.0-phase );
+	setRGB( static_cast<unsigned char>(255.0 * (1.0-phase)),
+	        static_cast<unsigned char>(255.0 * (1.0-phase)),
+	        static_cast<unsigned char>(255.0 * (1.0-phase )));
 	return true;
 }
 
@@ -346,14 +350,16 @@ bool Primitive::setWhiteBlackWhite( double phase ) {
 bool Primitive::setBlackWhite( double phase ) {
 
 	if( phase < 0.0 ) {
-		setRGB( 0.0, 0.0, 0.0 );
+		setRGB( 0, 0, 0 );
 		return false;
 	}
 	if( phase > 1.0 ) {
-		setRGB( 1.0, 1.0, 1.0 );
+		setRGB( 255, 255, 255 );
 		return false;
 	}
-	setRGB( phase, phase, phase );
+	setRGB( static_cast<unsigned char>(255.0 * phase),
+	        static_cast<unsigned char>(255.0 * phase),
+	        static_cast<unsigned char>(255.0 * phase) );
 	return true;
 }
 
@@ -363,14 +369,16 @@ bool Primitive::setBlackWhite( double phase ) {
 bool Primitive::setWhiteBlack( double phase ) {
 
 	if( phase < 0.0 ) {
-		setRGB( 1.0, 1.0, 1.0 );
+		setRGB( 255, 255, 255 );
 		return false;
 	}
 	if( phase > 1.0 ) {
-		setRGB( 0.0, 0.0, 0.0 );
+		setRGB( 0, 0, 0 );
 		return false;
 	}
-	setRGB( 1.0-phase, 1.0-phase, 1.0-phase );
+	setRGB( static_cast<unsigned char>( 255.0 * (1.0-phase)),
+	        static_cast<unsigned char>( 255.0 * (1.0-phase)),
+	        static_cast<unsigned char>( 255.0 * (1.0-phase)) );
 	return true;
 }
 
@@ -378,13 +386,13 @@ bool Primitive::setWhiteBlack( double phase ) {
 
 //! Stub for setting the function value.
 //! Returns false in case of an error (or not implemented).
-bool Primitive::setFuncValue( double setVal  ) {
+bool Primitive::setFuncValue( [[maybe_unused]] double setVal  ) {
 	return false;
 }
 
 //! Stub for retrieving the function value.
 //! Returns false in case of an error (or not implemented).s
-bool Primitive::getFuncValue( double* rGetVal  ) const {
+bool Primitive::getFuncValue( [[maybe_unused]] double* rGetVal  ) const {
 	return false;
 }
 
@@ -468,7 +476,7 @@ bool Primitive::isLabelBackGround() {
 //! Returns false in case the Primitive is not label or an error occured.
 //! This method has hard-coded color values to maintain speed.
 bool Primitive::getLabelColor( unsigned char* colRGB, int colorMap ) {
-	uint64_t myLabel;
+	uint64_t myLabel = 0;
 	// We have to get the label no. thru the (overloaded!) method:
 	if( !getLabel( myLabel ) ) {
 		return false;
@@ -660,9 +668,9 @@ bool Primitive::copyXYZTo( double* rCoordXYZ ) const {
 bool Primitive::copyNormalXYZTo( float* rNormalXYZ, bool rNormalized ) {
 	if( rNormalized ) {
 		double normalLen = getNormalLen();
-		rNormalXYZ[0] = static_cast<float>(getNormalX())/normalLen;
-		rNormalXYZ[1] = static_cast<float>(getNormalY())/normalLen;
-		rNormalXYZ[2] = static_cast<float>(getNormalZ())/normalLen;
+		rNormalXYZ[0] = static_cast<float>(getNormalX()/normalLen);
+		rNormalXYZ[1] = static_cast<float>(getNormalY()/normalLen);
+		rNormalXYZ[2] = static_cast<float>(getNormalZ()/normalLen);
 		return true;
 	}
 	rNormalXYZ[0] = static_cast<float>(getNormalX());
@@ -709,7 +717,7 @@ double Primitive::getNormalSpherical( double* phi, double* theta, double* radius
 
 //! Copies the red, green and blue value as unsigned char to a given array, which has to be at least of size 3.
 //! Returns false in case of an error.
-bool Primitive::copyRGBTo( unsigned char* rColorRGB ) {
+bool Primitive::copyRGBTo([[maybe_unused]] unsigned char* rColorRGB ) {
 	//cerr << "[Primitive::" << __FUNCTION__ << "] ERROR: Could not copy RGB to '" << rColorRGB << "' (" << getTypeStr() << ")!" << endl;
 	return false;
 }
@@ -823,9 +831,8 @@ double Primitive::angleToNormal( Vector3D someVec ) {
 //! When overwritten: Assign a feature vectore stored in an external table.
 //!
 //! @returns false as no vector can be attached for the primitive (base) class.
-bool Primitive::assignFeatureVec(
-                const double*         rAttachFeatureVec,
-                const uint64_t   rSetFeatureVecLen
+bool Primitive::assignFeatureVec(const double*         rAttachFeatureVec,
+                unsigned int rSetFeatureVecLen
 ) {
 	cerr << "[Primitive::" << __FUNCTION__ << "] ERROR: Could not attach feature vector [ " << rAttachFeatureVec[0] << ", ... ] of length " << rSetFeatureVecLen << "!" << endl;
 	return( false );

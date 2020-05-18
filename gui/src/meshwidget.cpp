@@ -507,11 +507,7 @@ bool MeshWidget::setParamIntegerMeshWidget( MeshWidgetParams::eParamInt rParam, 
 	if( !MeshWidgetParams::setParamIntegerMeshWidget( rParam, rValue ) ) {
 		return false;
 	}
-	if( rParam == MOUSE_MODE ) {
-		switch( rValue ) {
 
-		}
-	}
 	switch( rParam ) {
 		case STATE_NUMBER:
 			//! \todo implent check for parameters.
@@ -876,9 +872,6 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 	checkMeshSanity();
 
 	// Guess some initial distance for fog:
-	double minDist;
-	double maxDist;
-
 	double bboxLength = mMeshVisual->getBoundingBoxRadius() * 2.0;
 
 	setParamFloatMeshWidget( FOG_LINEAR_START, bboxLength  * 0.75);
@@ -3643,8 +3636,6 @@ bool MeshWidget::fetchFrameAndZBufferTile( unsigned int rTilesX,    //!< Number 
                                            unsigned char* rImRGBA,  //!< Array for the full image
                                            uint64_t rImWidth,  //!< Widht of the frame buffer
                                            uint64_t rImHeight, //!< Height of the frame buffer
-                                           GLubyte*    rImArrayGL,  //!< Array to fetch the framebuffer - has to be pre-allocated and of size rImWidth*3*rImWidth
-										   float*   rPixelZBuffer,   //!< Array to fetch the z.buffer - has to be pre-allocated and of size rImWidth*rImWidth,
 										   OffscreenBuffer* offscreenBuffer, //!< Offscreenbuffer to fetch the render-result from
                                            long       rBorderSize
 	) {
@@ -4412,11 +4403,11 @@ bool MeshWidget::screenshotSVG( const QString& rFileName, const QString& rFileNa
 	bool pointsLeft = true;
 	while( pointsLeft ) {
 		pointsLeft = false;
-		int sx = -1;
-		int sy = -1;
+		uint64_t sx = 0;
+		uint64_t sy = 0;
 		// find a first point
-		for( size_t ix=0; ix<imWidth; ix++ ) {
-			for( size_t iy=0; iy<imHeight; iy++ ) {
+		for( uint64_t ix=0; ix<imWidth; ix++ ) {
+			for( uint64_t iy=0; iy<imHeight; iy++ ) {
 				if( silhArr[ix+iy*imWidth] != 0 ) {
 					sx = ix;
 					sy = iy;
@@ -5372,7 +5363,7 @@ bool MeshWidget::screenshotTiledPNG(
 		for( unsigned int ix=0; ix<tilesX; ix++ ) {
  			setView( orthoViewPort );
  			repaint(); // update() will not work at this point as it tries to prevent flickering!
-			fetchFrameAndZBufferTile( tilesX, tilesY, ix, iy, imRGBA, imWidth, imHeight, imArrayGL, pixelZBuffer, offscreenBuffer, rBorderSize );
+			fetchFrameAndZBufferTile( tilesX, tilesY, ix, iy, imRGBA, imWidth, imHeight, offscreenBuffer, rBorderSize );
 			orthoViewPort[0] += realWidth - (2*rBorderSize * widthRatio);
 			orthoViewPort[1] += realWidth - (2*rBorderSize * widthRatio);
 			cout << "X";
@@ -5951,7 +5942,7 @@ bool MeshWidget::rotPlaneRoll(double rAngle)
 // OpenGL Stuff ----------------------------------------------------------------
 
 //! Re-draws the OpenGL widget, when its size has changed by calling setView().
-void MeshWidget::resizeGL( int width , int height  ) {
+void MeshWidget::resizeGL( [[maybe_unused]]int width , [[maybe_unused]]int height  ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "] width: " << width << " height: " << height << endl;
 #endif
@@ -6294,7 +6285,7 @@ bool MeshWidget::paintRasterImage( eTextureMaps rTexMap, int rPixelX, int rPixel
 	someBuffer.create();
 	someBuffer.setUsagePattern( QOpenGLBuffer::StaticDraw );
 	someBuffer.bind();
-	someBuffer.allocate( coords.data(), sizeof(GLfloat)*coords.size() );
+	someBuffer.allocate( coords.data(), static_cast<int>(sizeof(GLfloat)*coords.size()) );
 
 	// Strided data -- first there floats are the position vectors.
 	mShaderImage->setAttributeBuffer( "vertPosition", GL_FLOAT, 0, 2, sizeof(GLfloat)*4 );
@@ -6343,7 +6334,7 @@ void MeshWidget::checkMissingTextures(ModelMetaData& metadata)
 		{
 			auto fileNames = textureDialog.getFileNames();
 
-			if(fileNames.size() != missingTexIds.size())
+			if(fileNames.size() != static_cast<int>(missingTexIds.size()))
 				return;
 
 			auto fileNameIt = fileNames.begin();
@@ -6365,7 +6356,6 @@ void MeshWidget::checkMeshSanity()
 	const auto meshCenterDistance = mMeshVisual->getBoundingBoxCenter().getLength3();
 
 	int exponent = 0.0F;
-	const auto mantissa = frexp(meshCenterDistance,&exponent);
 
 	//! TODO: find out resonable value. Currently, assume that the float should have at least 4 binary decimal places
 	if(std::numeric_limits<float>::digits - exponent < 4)
@@ -6436,7 +6426,7 @@ void MeshWidget::paintSelection() {
 	painter.begin( &imPoly );
 	painter.setRenderHint( QPainter::Antialiasing );
 	painter.setPen( somePen );
-	painter.drawPolyline( mSelectionPoly.data(), mSelectionPoly.size() );
+	painter.drawPolyline( mSelectionPoly.data(), static_cast<int>(mSelectionPoly.size()) );
 	somePen.setStyle( Qt::DashLine );
 	painter.setPen( somePen );
 	painter.drawLine( mSelectionPoly.front(), mSelectionPoly.back() );
@@ -7553,7 +7543,7 @@ void MeshWidget::wheelEventZoom(
 }
 
 //! Takes care to properly resize this OpenGL widget.
-void MeshWidget::resizeEvent( QResizeEvent * event  ) {
+void MeshWidget::resizeEvent( [[maybe_unused]] QResizeEvent * event  ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "] " << event->size().width() << " x " << event->size().height() << endl;
 #endif

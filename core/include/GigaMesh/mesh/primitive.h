@@ -155,7 +155,7 @@ class Primitive : public BitFlagArray  {
 		double   angleToNormal( Vector3D someVec );
 
 		// feature vector
-		virtual bool   assignFeatureVec( const double *rAttachFeatureVec, const uint64_t rSetFeatureVecLen );
+		virtual bool   assignFeatureVec( const double *rAttachFeatureVec, unsigned int rSetFeatureVecLen );
 		virtual bool   copyFeatureVecTo( double* fetchFeatureVec ) const;
 		virtual bool   getFeatureVectorElements( std::vector<double>& rFeatVec ) const;
 		virtual bool   getFeatureVecWavletDecompTo( double** featureDecomp, int* featureDecompLen );
