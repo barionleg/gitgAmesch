@@ -4084,6 +4084,7 @@ void MeshGLShader::vboPaintPins(std::vector<PinRenderer::PinVertex> &singlePoint
 
 void MeshGLShader::vboPaintTransparencyABuffer()
 {
+#ifdef GL_SHADER_STORAGE_BUFFER
 	int drawTransparency;
 	getParamIntMeshGL(MeshGLParams::SHADER_CHOICE, &drawTransparency);
 	static int lastWidth = 0;
@@ -4385,10 +4386,12 @@ void MeshGLShader::vboPaintTransparencyABuffer()
 
 	 glEnable(GL_MULTISAMPLE);
 	 glDepthFunc(GL_LESS);
+#endif
 }
 
 void MeshGLShader::vboPaintTransparencyALBuffer()
 {
+#ifdef GL_SHADER_STORAGE_BUFFER
 	int drawTransparency;
 	getParamIntMeshGL(MeshGLParams::SHADER_CHOICE, &drawTransparency);
 
@@ -4734,6 +4737,7 @@ void MeshGLShader::vboPaintTransparencyALBuffer()
 	mGL4_3Functions.glBindTexture(GL_TEXTURE_2D, 0);
 	mGL4_3Functions.glActiveTexture(GL_TEXTURE0);
 	mGL4_3Functions.glBindTexture(GL_TEXTURE_2D, 0);
+#endif
 }
 
 void MeshGLShader::vboPaintTransparencyWAVG()

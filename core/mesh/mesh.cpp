@@ -1256,7 +1256,7 @@ bool Mesh::exportFeatureVectors(const filesystem::path& rFileName)
 	filestr << strHeader.str();
 
 	uint64_t currIndex = 0;
-	for(const auto currVert : mVertices)
+	for(const auto& currVert : mVertices)
 	{
 		auto vecSize = currVert->getFeatureVectorLen();
 		if(hasVertexIndex)
@@ -1264,7 +1264,7 @@ bool Mesh::exportFeatureVectors(const filesystem::path& rFileName)
 			filestr << (currIndex++) << " ";
 		}
 
-		for(int i = 0; i<vecSize; ++i)
+		for(unsigned int i = 0; i<vecSize; ++i)
 		{
 			double elem;
 			currVert->getFeatureElement(i, &elem);
@@ -16111,6 +16111,12 @@ bool Mesh::latexFetchFigureInfos( vector<pair<string,string>>* rStrings ) {
 	}
 	WSACleanup();
 #else
+    #ifndef HOST_NAME_MAX
+	    const size_t HOST_NAME_MAX = 256;
+    #endif
+    #ifndef LOGIN_NAME_MAX
+		const size_t LOGIN_NAME_MAX = 256;
+    #endif
 	char hostname[HOST_NAME_MAX] = {0};
 	char username[LOGIN_NAME_MAX] = {0};
 	gethostname( hostname, HOST_NAME_MAX );

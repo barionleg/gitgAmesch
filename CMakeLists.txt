@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version")
 
 # CMAKEFile for building gigamesh
 
@@ -18,8 +19,7 @@ cmake_minimum_required(VERSION 3.10)
 # export CXX=/usr/bin/g++-8
 #
 # 3. Set g++-8 as alternative permanently:
-# sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 10
-# sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 10
+# sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 90 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
 #
 
 
@@ -105,7 +105,7 @@ set(CPACK_SOURCE_STRIP_FILES TRUE)
 set(CPACK_STRIP_FILES "bin/gigamesh;bin/gigamesh-tolegacy;bin/gigamesh-clean;bin/gigamesh-info;bin/gigamesh-featurevectors;bin/gigamesh-borders")
 
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Hubert Mara <hubert.mara@iwr.uni-heidelberg.de>")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.14), libcairo2 (>= 1.6), libgcc1 (>= 1:3.0), qtbase5-dev(>= 5.5),libqt5core5a (>= 5), libqt5gui5 (>= 5) | libqt5gui5-gles (>= 5), libqt5opengl5 (>= 5) | libqt5opengl5-gles (>= 5), libstdc++6 (>= 5), libtiff5 (>= 4), inkscape(>=0.92)")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.14), libgcc1 (>= 1:3.0), qtbase5-dev(>= 5.5),libqt5core5a (>= 5), libqt5gui5 (>= 5) | libqt5gui5-gles (>= 5), libqt5opengl5 (>= 5) | libqt5opengl5-gles (>= 5), libstdc++6 (>= 5), libtiff5 (>= 4), inkscape(>=0.92)")
 set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://www.gigamesh.eu")
 set(CPACK_DEBIAN_PACKAGE_SECTION "science")
 
