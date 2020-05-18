@@ -1,6 +1,7 @@
 branches:
   only:
-    - feature/appveyorCI
+    - develop
+    - master
 
 image:
   - Visual Studio 2019
