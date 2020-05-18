@@ -3,9 +3,9 @@ branches:
     - feature/appveyorCI
 
 image:
-  - Ubuntu
-  - macOS
   - Visual Studio 2019
+  - macOS
+  - Ubuntu
 
 
 
