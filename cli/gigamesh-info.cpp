@@ -49,8 +49,8 @@ bool infoGigaMeshData(
                 bool                 rAbsolutePath   //!< Option: display absolute path or stem only.
 ) {
 	// Check: Input file exists
-	if( std::filesystem::exists( rFileNameIn) ) {
-		std::cerr << "[GigaMesh] ERROR: File '" << rFileNameIn << "' not found!" << std::endl;
+	if( !std::filesystem::exists( rFileNameIn) ) {
+		std::wcerr << "[GigaMesh] ERROR: File '" << rFileNameIn.wstring() << "' not found!" << std::endl;
 		return( false );
 	}
 
@@ -59,13 +59,13 @@ bool infoGigaMeshData(
 	bool readSucess;
 	Mesh someMesh( rFileNameIn, readSucess );
 	if( !readSucess ) {
-		std::cerr << "[GigaMesh] ERROR: Could not open file '" << rFileNameIn << "'!" << std::endl;
+		std::wcerr << "[GigaMesh] ERROR: Could not open file '" << rFileNameIn.wstring() << "'!" << std::endl;
 		return( false );
 	}
 
 	// Count primitives and their properties
 	if( !someMesh.getMeshInfoData( rFileInfos, rAbsolutePath ) ) {
-		std::cerr << "[GigaMesh] ERROR: Could not fetch mesh information about '" << rFileNameIn << "'!" << std::endl;
+		std::wcerr << "[GigaMesh] ERROR: Could not fetch mesh information about '" << rFileNameIn.wstring() << "'!" << std::endl;
 		return( false );
 	}
 
