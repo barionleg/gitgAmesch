@@ -120,7 +120,7 @@ bool MeshSeedExt::importFeatureVectors(
 		nextByte = fp.peek();
 		uint64_t valuesPerID = 0;
 		while( ( nextByte != '\n' ) && ( nextByte != '\r' ) && ( nextByte != -1 ) ) {
-			nextByte = fp.get();
+			fp.get();
 			string valueAsStr;
 			fp >> valueAsStr;
 			// double valueAsDouble = stod( valueAsStr );

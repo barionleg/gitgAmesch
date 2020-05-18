@@ -377,7 +377,7 @@ bool MeshQt::readIsRegularGrid( bool* rIsGrid ) {
 //! Emits signal to tell the other widgets (menus!) that the mesh has or has no polylines.
 void MeshQt::polyLinesChanged() {
 	MeshGL::polyLinesChanged();
-	unsigned int selMPolysNr = mPolyLines.size();
+	auto selMPolysNr = mPolyLines.size();
 	if( selMPolysNr > 0 ) {
 		emit hasElement( Primitive::IS_POLYLINE, true );
 	} else {

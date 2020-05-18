@@ -7337,8 +7337,8 @@ void Mesh::convertLabelBordersToPolylines() {
 	}
 
 	// Sort labelines by label nr
-	uint64_t currentLabel;
-	Face* currFace;
+	uint64_t currentLabel = 0;
+	Face* currFace = nullptr;
 	for( uint64_t faceIdx=0; faceIdx<getFaceNr(); faceIdx++ ) {
 		currFace = getFacePos( faceIdx );
 		if( !currFace->getLabel( currentLabel ) ) {
@@ -12624,7 +12624,7 @@ double Mesh::fetchSphereCubeVolume25D( Vertex*     seedVertex,            //!< e
 	// 8. Raster the vertices
 	//cout << "[Mesh::fetchSphereCubeVolume25D] (8) " << endl;
 	rasterViewFromZ( vertexArray, vertexSize, rasterArray, cubeEdgeLengthInVoxels, cubeEdgeLengthInVoxels );
-	free( vertexArray );
+	delete[] vertexArray;
 //	for( int i=0; i<cubeEdgeLengthInVoxels; i++ ) {
 //		for( int j=0; j<cubeEdgeLengthInVoxels; j++ ) {
 //			cout << rasterArray[i*cubeEdgeLengthInVoxels+j] << " ";
@@ -15390,7 +15390,7 @@ bool Mesh::fillPolyLines(
 			cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " BORDER vertices: " << numVertices << " density: " << borderDensity << " faces: " << borderAndNewFaces.size() << endl;
 			//--------------------------------------------------------------------------------------------------------------------------------------
 			// Variable for the return values of fillhole:
-			int        numNewVertices = 0;
+			size_t        numNewVertices = 0;
 			double*    newCoordinates = nullptr;
 			int        numNewFaces    = 0;
 			long*      newVertexIDs   = nullptr;
@@ -15406,7 +15406,7 @@ bool Mesh::fillPolyLines(
 			cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " ADD vertices: " << numNewVertices << " faces: " << numNewFaces << endl;
 			vector<VertexOfFace*> tmpRefNewVertices; // We need this temporarly for connecting the faces.
 			tmpRefNewVertices.resize( numNewVertices, nullptr );
-			for( int i=0; i<numNewVertices; i++ ) {
+			for( size_t i=0; i<numNewVertices; ++i ) {
 				tmpRefNewVertices.at( i ) = new VertexOfFace( Vector3D( newCoordinates[i*3], newCoordinates[i*3+1], newCoordinates[i*3+2] ) );
 				tmpRefNewVertices.at( i )->setFlag( FLAG_SYNTHETIC );
 				tmpRefNewVertices.at( i )->setRGB( 255, 0, 0 );
@@ -15417,7 +15417,7 @@ bool Mesh::fillPolyLines(
 				mVertices.push_back( tmpRefNewVertices.at( i ) );
 			}
 			int faceIdMax = getFaceNr();
-			for( int i=0; i<numNewFaces; i++ ) {
+			for( int i=0; i<numNewFaces; ++i ) {
 				// Face( int setIdx, Vertex* setA, Vertex* setB, Vertex* setC, unsigned char* setTexRGB=NULL );
 				VertexOfFace* newVertA = nullptr;
 				VertexOfFace* newVertB = nullptr;
@@ -15874,7 +15874,7 @@ bool Mesh::importFuncValsFromFile(const filesystem::path& rFileName, bool withVe
 
 	auto numVerts = getVertexNr();
 	std::string line;
-	double funcVal;
+	double funcVal = 0.0;
 
 	//importing with index
 	if(withVertIdx)

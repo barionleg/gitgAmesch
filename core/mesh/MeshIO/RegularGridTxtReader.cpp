@@ -84,7 +84,7 @@ bool RegularGridTxtReader::readFile(const std::filesystem::path& rFilename, std:
 		do {
 			nextByte = fp.peek();
 			if( ( nextByte == ' ' ) || ( nextByte == '\t' ) ) {
-				nextByte = fp.get();
+				fp.get();
 			} else {
 				nextWhiteSpace = false;
 			}

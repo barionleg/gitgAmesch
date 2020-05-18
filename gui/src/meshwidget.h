@@ -89,14 +89,14 @@ public:
 	bool    getViewPortDPM(double& rDPM);
 
 public slots: // ... overloaded from MeshWidgetParams:
-	virtual bool    setParamFlagMeshWidget(    MeshWidgetParams::eParamFlag rFlagNr,  bool   rState  );
-	virtual bool    toggleShowFlag(            MeshWidgetParams::eParamFlag rFlagNr );
+	bool    setParamFlagMeshWidget(    MeshWidgetParams::eParamFlag rFlagNr,  bool   rState  ) override;
+	bool    toggleShowFlag(            MeshWidgetParams::eParamFlag rFlagNr ) override;
 	virtual bool    setParamIntegerMeshWidget( MeshWidgetParams::eParamInt  rParam ); // will trigger an enter-text-dialog.
-	virtual bool    setParamIntegerMeshWidget( MeshWidgetParams::eParamInt  rParam,   int    rValue  );
-	virtual bool    setParamFloatMeshWidget(   MeshWidgetParams::eParamFlt  rParamID, double rValue  );
+	bool    setParamIntegerMeshWidget( MeshWidgetParams::eParamInt  rParam,   int    rValue  ) override;
+	bool    setParamFloatMeshWidget(   MeshWidgetParams::eParamFlt  rParamID, double rValue  ) override;
 	virtual bool    setParamFloatMeshWidget(   MeshWidgetParams::eParamFlt  rParamID, double rMinValue, double rMaxValue ); // will trigger a slider-dialog.
 	virtual bool    setParamFloatMeshWidget(   MeshWidgetParams::eParamFlt  rParamID ); // will trigger text-enter-dialog.
-	virtual bool    setParamStringMeshWidget(const eParamStr rParamID, const std::string& rString );
+	bool    setParamStringMeshWidget(const eParamStr rParamID, const std::string& rString ) override;
 private slots: // ... to be avoided - for compatibility of old methods only!
 	virtual bool    setParamFloatMeshWidgetSlider( int rParamID, double rValue );
 	// new method:
@@ -213,7 +213,7 @@ private:
 
 	// Fetch screenshots:
 	bool prepareTile(uint64_t rTilesX, uint64_t rTilesY, unsigned char** rImRGBA, uint64_t* rImWidth, uint64_t* rImHeight, uint64_t rBorderSize = 0 );
-	bool fetchFrameAndZBufferTile( unsigned int rTilesX, unsigned int rTilesY, unsigned int rTX, unsigned int rTY, unsigned char* rImRGBA, uint64_t rImWidth, uint64_t rImHeight, GLubyte* rImArrayGL, float* rPixelZBuffer, OffscreenBuffer* offscreenBuffer, long rBorderSize = 0 );
+	bool fetchFrameAndZBufferTile(unsigned int rTilesX, unsigned int rTilesY, unsigned int rTX, unsigned int rTY, unsigned char* rImRGBA, uint64_t rImWidth, uint64_t rImHeight, OffscreenBuffer* offscreenBuffer, long rBorderSize = 0 );
 	bool fetchFrameAndZBuffer( unsigned char*& rImRGBA, uint64_t& rImWidth, uint64_t& rImHeight, bool rCropUsingZBuffer, OffscreenBuffer* offscreenBuffer );
 	bool fetchFrameBuffer( unsigned char** rImArray, int* rImWidth, int* rImHeight, bool rCropUsingZBuffer, OffscreenBuffer* offscreenBuffer );
 	// Write screenshots:
@@ -292,25 +292,25 @@ signals:
 
 	void loadedMeshIsTextured(bool);
 private:
-	void initializeGL();
+	void initializeGL() override;
 	void initializeVAO();
 	void initializeShaders();
-	void resizeGL( int width, int height );
-	void paintEvent( QPaintEvent *rEvent );
+	void resizeGL( int width, int height ) override;
+	void paintEvent( QPaintEvent *rEvent ) override;
 	void paintSelection();
 	bool paintHistogram();
 	bool paintHistogramScence();
-	void resizeEvent( QResizeEvent * event );
+	void resizeEvent( QResizeEvent * event ) override;
 
 	// Keyboard and Mouse interaction:
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
-	void mousePressEvent( QMouseEvent *rEvent );
+	void mousePressEvent( QMouseEvent *rEvent ) override;
 	void mouseDoubleClickEvent( QMouseEvent* rEvent) override;
-	void mouseReleaseEvent( QMouseEvent *rEvent);
-	void mouseMoveEvent( QMouseEvent *rEvent );
-	void wheelEvent( QWheelEvent * rEvent );
+	void mouseReleaseEvent( QMouseEvent *rEvent) override;
+	void mouseMoveEvent( QMouseEvent *rEvent ) override;
+	void wheelEvent( QWheelEvent * rEvent ) override;
 	void wheelEventZoom( double rWheelDelta ); // Helper function
-	void keyPressEvent( QKeyEvent *rEvent );
+	void keyPressEvent( QKeyEvent *rEvent ) override;
 
 	// User Interaction:
 	//------------------------------------------------------------------------------------------------------------------------------------------------------

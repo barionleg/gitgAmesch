@@ -43,7 +43,7 @@ class PolyLine : public Vertex {
 		// Constructor:
 		PolyLine();
 		PolyLine( Vector3D vertPos, Vector3D vertNormal );
-		PolyLine( Vector3D vertPos, Vector3D vertNormal, int setLabelNr );
+		PolyLine( Vector3D vertPos, Vector3D vertNormal, uint64_t setLabelNr );
 		PolyLine( const Plane& rPlaneIntersecting );
 
 		// Destructor:
@@ -83,7 +83,7 @@ class PolyLine : public Vertex {
 		bool compIntInvAngle( int rVertNr, double rIIRadius );
 		bool getExtrema( std::set<Vertex*>* someVerts, double gaussWidth, bool absolut );
 		bool getNeighboursRunLen( int rVertNr, double rDist, std::vector<int>* rNeighVerts, std::vector<double>* rDists, std::vector<double>* rWeights );
-		int  getSafeIndex( int someIdx );
+		size_t  getSafeIndex( size_t someIdx );
 
 		// Creation of the polyline:
 		void  addFront( Vector3D rNewFrontPos, Vector3D rPosNormal, Face* rFromFace=nullptr, Face::eEdgeNames rFromEdge=Face::EDGE_NONE );
@@ -92,7 +92,7 @@ class PolyLine : public Vertex {
 		void  addBack(  Vertex* rNewBackVert,  Face* rFromFace=nullptr, Face::eEdgeNames rFromEdge=Face::EDGE_NONE );
 		bool  addFrontNoDupes( Vertex* rNewFrontVert, Face* rFromFace=nullptr, Face::eEdgeNames rFromEdge=Face::EDGE_NONE );
 		bool  addBackNoDupes(  Vertex* rNewBackVert,  Face* rFromFace=nullptr, Face::eEdgeNames rFromEdge=Face::EDGE_NONE );
-		int   compileLine( std::set<labelLine*>* unsortedLines );
+		size_t   compileLine( std::set<labelLine*>* unsortedLines );
 		// Post-creation of the polyline:
 		bool  addVerticesTo( std::vector<Vertex*>* rSomeVertList );
 
