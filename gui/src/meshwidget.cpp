@@ -1025,7 +1025,7 @@ void MeshWidget::saveStillImages360( Vector3D rotCenter, Vector3D rotAxis ) {
 	for( int i=0; i<stepAnglesNr; i++ ) {
 		rotArbitAxis( rotCenter, rotAxis, stepAngles[i]*180.0/M_PI );
 
-		QString fileName = QString("%1gigamesh_still_image_%2.tiff").arg(savePath).arg(i,5,10,QChar('0'));
+		QString fileName = QString("%1gigamesh_still_image_%2.png").arg(savePath).arg(i,5,10,QChar('0'));
 		double realWidth, realHeigth;
 		screenshotSingle( fileName, useTiled, realWidth, realHeigth );
 	}
@@ -1035,7 +1035,7 @@ void MeshWidget::saveStillImages360( Vector3D rotCenter, Vector3D rotAxis ) {
 //! Screenshots for a video - 360° horizonal rotation from left to right.
 //! Typical for pottery videos.
 //!
-//! Hint: ffmpeg -i gigamesh_still_image_%05d.tiff -s 720x576 -b 4000k test.mpg
+//! Hint: ffmpeg -i gigamesh_still_image_%05d.png -s 720x576 -b 4000k test.mpg
 void MeshWidget::saveStillImages360HLR() {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
@@ -1156,7 +1156,7 @@ void MeshWidget::sphericalImagesLight( const QString& rFileName ) {
 //! Compute spherical images with moving light (instead of moving the object).
 //! (3) - execute.
 //!
-//! String for Object2VR: 'gigamesh_still_image_'+ fill(row,5,'0') + '_' +fill(column,5,'0')+ '.tiff'
+//! String for Object2VR: 'gigamesh_still_image_'+ fill(row,5,'0') + '_' +fill(column,5,'0')+ '.png'
 void MeshWidget::sphericalImagesLight( const QString& rFileName, const bool rUseTiled ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
@@ -2668,15 +2668,67 @@ bool MeshWidget::screenshotViewsPDFDirectory() {
 //!
 //! @returns false in case of an error or user cancel. True otherwise.
 bool MeshWidget::screenshotViewsPNGDirectory() {
+	// Store settings from current Mesh and Widget
+	MeshGLParams storeMeshGLParams( (MeshGLParams)mMeshVisual );
+	MeshWidgetParams storeMeshWidgetParams( (MeshWidgetParams)this );
+
+	// Print resolution and tiled renderin (only in Orthographic projection mode)
+	bool   frontView = true;
+	bool   useTiled = false;
+	double printResDPI;
+	getViewPortDPI( printResDPI );
+	bool orthoMode;
+	if( !getParamFlagMeshWidget( ORTHO_MODE, &orthoMode ) ) {
+		return( false );
+	}
+	if( orthoMode ) {
+		// Ask user for the print resolution using the current setting
+		QGMDialogEnterText dlgEnterTxt;
+		dlgEnterTxt.setWindowTitle( "Set DPI" );
+		dlgEnterTxt.setDouble( printResDPI );
+		if( dlgEnterTxt.exec() == QDialog::Rejected ) {
+			return( false );
+		}
+		if( !dlgEnterTxt.getText( &printResDPI ) ) {
+			return( false );
+		}
+		// Ask user about tiled rendering
+		bool userCancel;
+		SHOW_QUESTION( tr( "Tiled rendering" ),
+		               tr( "Do you want to use tiled rendering?" ),
+		               useTiled, userCancel );
+		if( userCancel ) {
+			return( false );
+		}
+		// Ask user about single VS side views
+		SHOW_QUESTION( tr( "Front view | Side views" ),
+		               tr( "Do you want render<br /><br />"
+		                   "... only the front view - choose: YES<br /><br />"
+		                   "... views from all sides - choose: NO" ),
+		               frontView, userCancel );
+		if( userCancel ) {
+			return( false );
+		}
+	}
+
+	// Let the user choose a path
 	QString     pathChoosen;
 	QStringList currFiles;
 	if( !screenshotViewsDirectory( pathChoosen, currFiles ) ) {
 		return( false );
 	}
 
-	//! \todo add User interaction.
-	//double printResDPI = 600.0; // HeiCuBeDa Setting
-	double printResDPI = 1000.0; // ErKon3D Springer LNCS Setting
+	// Enter a suffox
+	QString fileNameSuffix( "_Uniform");
+	QGMDialogEnterText dlgEnterTxt;
+	dlgEnterTxt.setWindowTitle( "Filename Suffix" );
+	dlgEnterTxt.setText( fileNameSuffix );
+	if( dlgEnterTxt.exec() == QDialog::Rejected ) {
+		return( false );
+	}
+	if( !dlgEnterTxt.getText( &fileNameSuffix ) ) {
+		return( false );
+	}
 
 	bool errorOccured = false;
 	// This could be outsourced
@@ -2693,35 +2745,44 @@ bool MeshWidget::screenshotViewsPNGDirectory() {
 			continue;
 		}
 
-		//! \todo add User interaction.
+		this->setParamAllMeshWidget( storeMeshWidgetParams );
+		mMeshVisual->setParamAllMeshWidget( storeMeshGLParams );
+		if( orthoMode ) {
+			orthoSetDPI( printResDPI );
+		}
+
+		//! \todo finish User settings and clean-up!
 		//===============================================================================================================
 		// Set properties - HEURISTIC for cuneiform tablets
 		//===============================================================================================================
 		// Set ligth and fixed resolution
-		setParamFlagMeshWidget( EXPORT_SIDE_VIEWS_SIX, false );
-		setParamFlagMeshWidget( LIGHT_ENABLED, true );
-		mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_MONO );
-		orthoSetDPI( printResDPI );
+//		setParamFlagMeshWidget( EXPORT_SIDE_VIEWS_SIX, false );
+//		setParamFlagMeshWidget( LIGHT_ENABLED, true );
+//		mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_MONO );
 		// Turn of vertex sprite rendering -- COPY+PASTE from BELOW!
-		mMeshVisual->callFunctionMeshGL( MeshGLParams::SET_SHOW_VERTICES_NONE, false ); // False has NO influence.
-		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_SELECTION, false );
+//		mMeshVisual->callFunctionMeshGL( MeshGLParams::SET_SHOW_VERTICES_NONE, false ); // False has NO influence.
+//		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_SELECTION, false );
 
 		// Create PNGs
 		string fileNamePattern;
 		getParamStringMeshWidget( FILENAME_EXPORT_VIEWS, &fileNamePattern );
 		QString prefixStem( string( std::filesystem::path( currFiles.at(i).toStdString() ).stem().string() ).c_str() );
-		bool   useTiled = true;
-		std::vector<std::string> imageFiles;
-		std::vector<double>      imageSizes;
-		// SIDE Views
-		//screenshotViews( fileNamePattern, ( pathChoosen+"/"+prefixStem+"_SolidColor" ).toStdString(),
-		//                 useTiled, imageFiles, imageSizes );
-		// FRONT View
-		double widthReal;  // Dummy var - unused in this context.
-		double heigthReal; // Dummy var - unused in this context.
-		screenshotSingle( ( pathChoosen+"/"+prefixStem+"_SolidColor.png" ),
-		                  useTiled, widthReal, heigthReal );
 
+		if( frontView ) {
+			// FRONT View
+			double widthReal;  // Dummy var - unused in this context.
+			double heigthReal; // Dummy var - unused in this context.
+			screenshotSingle( ( pathChoosen+"/"+prefixStem+fileNameSuffix+".png" ),
+					   useTiled, widthReal, heigthReal );
+		} else {
+			// SIDE Views
+			std::vector<QString> imageFiles;
+			std::vector<double>  imageSizes;
+			screenshotViews( QString( fileNamePattern.c_str() ),
+			                 QString( pathChoosen+"/"+prefixStem+fileNameSuffix ),
+			                 useTiled, imageFiles, imageSizes );
+		}
+		/*
 		//===============================================================================================================
 		// Set properties - HEURISTIC for cuneiform tablets
 		//===============================================================================================================
@@ -2760,9 +2821,10 @@ bool MeshWidget::screenshotViewsPNGDirectory() {
 		// stops because of confirmation: mMeshVisual->callFunctionMeshGL( MeshGLParams::TRANSFORM_FUNCTION_VALUES_TO_RGB, false );
 //		mMeshVisual->runFunctionValueToRGBTransformation();
 //		mMeshVisual->writeFile( pathChoosen+"/"+prefixStem+"_FtElMax-as_VertexColor.ply" );
+*/
 	}
 
-	SHOW_MSGBOX_INFO( tr("Schreenshots - Views - PDF"), tr("Screenshots have been exported as PDF, LaTeX and PNG.") );
+	SHOW_MSGBOX_INFO( tr("Schreenshots - Views - PNG"), tr("Screenshots have been exported as PNG.") );
 
 	return( !errorOccured );
 }
@@ -6613,6 +6675,28 @@ void MeshWidget::mousePressEvent( QMouseEvent *rEvent ) {
 		}
 		userSelectByMouseClick( rEvent->pos(), mouseButtonsPressed );
 		return;
+	}
+}
+
+void MeshWidget::mouseDoubleClickEvent( QMouseEvent* rEvent)
+{
+	if(rEvent->button() == Qt::LeftButton)
+	{
+		// Correct for OpenGL:
+		GLint viewport[4];
+		glGetIntegerv( GL_VIEWPORT, viewport );
+		const int yPixel = viewport[3] - rEvent->pos().y();
+		const int xPixel = rEvent->pos().x();
+		Vector3D clickPos;
+
+		if(mMeshVisual->getWorldPointOnMesh(xPixel, yPixel, &clickPos))
+		{
+			const Vector3D transVec = clickPos - mCenterView;
+			mCenterView = clickPos;
+			mCameraCenter += transVec;
+			setView();
+			update();
+		}
 	}
 }
 

@@ -1,4 +1,7 @@
 [![pipeline status](https://gitlab.com/fcgl/GigaMesh/badges/master/pipeline.svg)](https://gitlab.com/fcgl/GigaMesh/-/commits/master)
+[![pipeline status](https://gitlab.com/fcgl/GigaMesh/badges/develop/pipeline.svg)](https://gitlab.com/fcgl/GigaMesh/-/commits/develop)
+[![Build status](https://ci.appveyor.com/api/projects/status/jbixmroxgb9hkw1p/branch/master?svg=true)](https://ci.appveyor.com/project/rkuehl-iwr/gigamesh/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/jbixmroxgb9hkw1p/branch/develop?svg=true)](https://ci.appveyor.com/project/rkuehl-iwr/gigamesh/branch/develop)
 
 # NAME
 

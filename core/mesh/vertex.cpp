@@ -314,6 +314,16 @@ bool Vertex::setRGB( unsigned char setTexR, unsigned char setTexG, unsigned char
 	return true;
 }
 
+bool Vertex::setAlpha(unsigned char alpha)
+{
+	if(alpha > 255)
+	{
+		return false;
+	}
+	TEX_ALPHA = alpha;
+	return true;
+}
+
 bool Vertex::setAlpha( double rVal ) {
 	//! Set alpha/transparency for this vertex - range: 0.0 to 1.0
 	//! Will return false in case of an error.

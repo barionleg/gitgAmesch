@@ -55,7 +55,7 @@ ubuntu bionic:
   # install the necessary build tools when needed
   before_script: 
    - apt update && apt -y install make autoconf g++ git cmake unzip
-   - apt -y install qtbase5-dev libcairo2-dev libtiff5-dev g++-8 sudo
+   - apt -y install qtbase5-dev libtiff5-dev g++-8 sudo
   script:
     # Make sure g++-8, gcc-8 is default
     - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 10
@@ -99,7 +99,7 @@ manjaro arch:
   # install the necessary build tools when needed
   before_script: 
    - pacman -Sy
-   - pacman -S gcc glibc cmake boost unzip qtcreator make cairo git libffi --noconfirm
+   - pacman -S gcc glibc cmake boost unzip qtcreator make git libffi --noconfirm
   script:
     - export QT_SELECT=qt5
 

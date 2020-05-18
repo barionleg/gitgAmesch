@@ -100,6 +100,11 @@ set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/forms
 
 add_executable(gigamesh ${GUI_SOURCES} ${GUI_RESOURCES} ${GUI_UI_FILES})
 
+if(APPLE)
+    set_target_properties(gigamesh PROPERTIES
+        MACOSX_BUNDLE ON)
+endif()
+
 add_definitions(${Qt5Widgets_DEFINITIONS})
 target_include_directories(gigamesh PRIVATE ${Qt5Widgets_INCLUDES})
 

@@ -403,6 +403,11 @@ bool MeshGL::multiplyColorWithFuncVal( const double rMin, double rMax ) {
 		return retVal;
 }
 
+bool MeshGL::assignAlphaToSelectedVertices(unsigned char alpha) {
+	bool retVal = Mesh::assignAlphaToSelectedVertices(alpha);
+	vboRemoveBuffer( VBUFF_VERTICES_STRIPED, __FUNCTION__);
+	return retVal;
+}
 
 //! Select a point of the plane by pixel coordinates in screen space.
 //!
@@ -1627,7 +1632,7 @@ bool MeshGL::getRayWorld( int xPixel, int yPixel, Vector3D* rayTop, Vector3D* ra
 		return true;
 }
 
-//! Converts projected screencordiantes plus z-buffer depth value into world coordinates.
+//! Converts projected screencoordiantes plus z-buffer depth value into world coordinates.
 bool MeshGL::getWorldPoint( int rPixelX,       //!< Horizontal screencoordinate.
 							int rPixelY,       //!< Vertical screencoordinate.
 							float rDepth,      //!< Depth value of the z-buffer (retrieved by glReadPixels( x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth );
@@ -1662,6 +1667,12 @@ bool MeshGL::getWorldPoint( int rPixelX,       //!< Horizontal screencoordinate.
 		rPosVec->normalizeW();
 
 		return true;
+}
+
+//! Get a point on the mesh from screencoordinates
+bool MeshGL::getWorldPointOnMesh(int rPixelX, int rPixelY, Vector3D* rPosVec)
+{
+	return getFaceAt(rPixelX, rPixelY, rPosVec) != nullptr;
 }
 
 bool MeshGL::setVertexFuncValues( Vertex** vertices, double* values, int verticesNr, const string& setName ) {

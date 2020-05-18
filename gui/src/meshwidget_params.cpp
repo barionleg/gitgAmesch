@@ -104,11 +104,11 @@ MeshWidgetParams::MeshWidgetParams() {
 	mParamFlt[SVG_SCALE]            =  72.0 / 25.4; // 72 DPInch is the default expected by Inkscape
 
 	// Initalize parameters (string):
-	mParamStr[FILENAME_EXPORT_VR]    = "gigamesh_still_image_%05i_%05i_%02i.png";
-	mParamStr[FILENAME_EXPORT_VIEWS] = "%01_%02_%03.png";
+	mParamStr[FILENAME_EXPORT_VR]          = "gigamesh_still_image_%05i_%05i_%02i.png";
+	mParamStr[FILENAME_EXPORT_VIEWS]       = "%01_%02_%03.png";
 	mParamStr[FILENAME_EXPORT_VIEWS_LATEX] = "%s_%02i_%s_test.png";
-    mParamStr[FILENAME_EXPORT_RULER] = "%s_ruler%s.tiff";
-	mParamStr[RULER_WIDTH_UNIT]      = "mm";
+	mParamStr[FILENAME_EXPORT_RULER]       = "%s_ruler%s.tiff";
+	mParamStr[RULER_WIDTH_UNIT]            = "mm";
 
 	//initialize string parameters for tool-paths
 	QSettings settings;
@@ -138,11 +138,31 @@ MeshWidgetParams::MeshWidgetParams() {
 		mParamStr[PYTHON3_COMMAND] = tmpString;
 }
 
+//! Constructor copying all the settings.
+MeshWidgetParams::MeshWidgetParams( const MeshWidgetParams* const rParams ) : MeshWidgetParams() {
+	if( rParams == nullptr ) {
+		// Do nothing and use defaults.
+		return;
+	}
+	for( unsigned long i=0; i<PARAMS_FLAG_COUNT; i++ ) {
+		rParams->getParamFlagMeshWidget( (eParamFlag)i, &mParamFlag[i] );
+	}
+	for( unsigned long i=0; i<PARAMS_INT_COUNT; i++ ) {
+		rParams->getParamIntegerMeshWidget( (eParamInt)i, &mParamInt[i] );
+	}
+	for( unsigned long i=0; i<PARAMS_FLT_COUNT; i++ ) {
+		rParams->getParamFloatMeshWidget( (eParamFlt)i, &mParamFlt[i] );
+	}
+	for( unsigned long i=0; i<PARAMS_STR_COUNT; i++ ) {
+		rParams->getParamStringMeshWidget( (eParamStr)i, &mParamStr[i] );
+	}
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Fetch the flag's state.
 //! @returns false in case of an error, true otherwise.
-bool MeshWidgetParams::getParamFlagMeshWidget( eParamFlag rFlagNr, bool* rState ) {
+bool MeshWidgetParams::getParamFlagMeshWidget( eParamFlag rFlagNr, bool* rState ) const {
 	// Sanity check:
 	if( rState == nullptr ) {
 		cerr << "[MeshWidgetParams::" << __FUNCTION__ << "] ERROR: NULL pointer given!" << endl;
@@ -179,7 +199,7 @@ bool MeshWidgetParams::toggleShowFlag( eParamFlag rFlagNr ) {
 
 //! Fetch the parameters integer point value
 //! @returns true when the flag was changed. false otherwise.
-bool MeshWidgetParams::getParamIntegerMeshWidget( eParamInt rParamID, int* rValue ) {
+bool MeshWidgetParams::getParamIntegerMeshWidget( eParamInt rParamID, int* rValue ) const {
 	//! Returns the setting for light, material, etc.
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << __PRETTY_FUNCTION__ << endl;
@@ -224,7 +244,7 @@ bool MeshWidgetParams::setParamIntegerMeshWidget( eParamInt rParamID, int rValue
 
 //! Fetch the parameters floating point value
 //! @returns true when the flag was changed. false otherwise.
-bool MeshWidgetParams::getParamFloatMeshWidget( eParamFlt rParamID, double* rValue ) {
+bool MeshWidgetParams::getParamFloatMeshWidget( eParamFlt rParamID, double* rValue ) const {
 	//! Returns the setting for light, material, etc.
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << __PRETTY_FUNCTION__ << endl;
@@ -363,7 +383,7 @@ bool MeshWidgetParams::setParamFloatMeshWidget( eParamFlt rParamID, double rValu
 
 //! Fetch the parameters string
 //! @returns true when the flag was changed. false otherwise.
-bool MeshWidgetParams::getParamStringMeshWidget( eParamStr rParamID, string* rString ) {
+bool MeshWidgetParams::getParamStringMeshWidget( eParamStr rParamID, string* rString ) const {
 	//! Returns the setting for light, material, etc.
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << __PRETTY_FUNCTION__ << endl;
@@ -405,6 +425,31 @@ bool MeshWidgetParams::setParamStringMeshWidget( eParamStr rParamID, const strin
 	}
 	mParamStr[rParamID] = rString;
 	return true;
+}
+
+//! Set all Paramters.
+bool MeshWidgetParams::setParamAllMeshWidget( const MeshWidgetParams& rParams ) {
+	for( unsigned long i=0; i<PARAMS_FLAG_COUNT; i++ ) {
+		bool tempFlag;
+		rParams.getParamFlagMeshWidget( (eParamFlag)i, &tempFlag );
+		setParamFlagMeshWidget( (eParamFlag)i, tempFlag );
+	}
+	for( unsigned long i=0; i<PARAMS_INT_COUNT; i++ ) {
+		int tempInt;
+		rParams.getParamIntegerMeshWidget( (eParamInt)i, &tempInt );
+		setParamIntegerMeshWidget( (eParamInt)i, tempInt );
+	}
+	for( unsigned long i=0; i<PARAMS_FLT_COUNT; i++ ) {
+		double tempFlt;
+		rParams.getParamFloatMeshWidget( (eParamFlt)i, &tempFlt );
+		setParamFloatMeshWidget( (eParamFlt)i, tempFlt );
+	}
+	for( unsigned long i=0; i<PARAMS_STR_COUNT; i++ ) {
+		std::string tempStr;
+		rParams.getParamStringMeshWidget( (eParamStr)i, &tempStr );
+		setParamStringMeshWidget( (eParamStr)i, tempStr );
+	}
+	return( true );
 }
 
 //! Determine the offset within the viewport

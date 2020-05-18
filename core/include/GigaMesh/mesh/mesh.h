@@ -343,6 +343,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool    assignImportedNormalsToVertices( const std::vector<grVector3ID>& rNormals );
 		virtual bool    multiplyColorWithFuncVal();
 		virtual bool    multiplyColorWithFuncVal( const double rMin, const double rMax );
+		virtual bool    assignAlphaToSelectedVertices(unsigned char alpha);
 
 		// feature vectors
 	protected:

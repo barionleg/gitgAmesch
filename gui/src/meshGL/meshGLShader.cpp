@@ -1022,7 +1022,7 @@ void MeshGLShader::shaderSetLocationBasicLight( QOpenGLShaderProgram* rShaderPro
 	mWidgetParams->getParamFlagMeshWidget( MeshWidgetParams::LIGHT_ENABLED, &lightingSet );
 	rShaderProgram->setUniformValue( "uLightEnabled", static_cast<GLboolean>(lightingSet) );
 	if( !lightingSet ) {
-		rShaderProgram->setUniformValue( "uLightVectors", false );
+		rShaderProgram->setUniformValue( "uLightVectors", 0 );
 		return;
 	}
 
@@ -1112,6 +1112,11 @@ void MeshGLShader::shaderSetLocationBasicLight( QOpenGLShaderProgram* rShaderPro
 	                   0;
 
 	rShaderProgram->setUniformValue( "uLightVectors", lightVectors );
+
+	double lightVectorLength = 0.0;
+	getParamFloatMeshGL( MeshGLParams::LIGHTVECTOR_LENGTH, &lightVectorLength);
+	rShaderProgram->setUniformValue("uLightVeclLength", static_cast<GLfloat>(lightVectorLength));
+
 	// Limit number of directional vectors shown.
 	int maxLightVecs; // 5000 seems to be a good choice.
 	mWidgetParams->getParamIntegerMeshWidget( MeshWidgetParams::LIGHT_VECTORS_SHOWN_MAX, &maxLightVecs );
@@ -4080,6 +4085,7 @@ void MeshGLShader::vboPaintPins(std::vector<PinRenderer::PinVertex> &singlePoint
 
 void MeshGLShader::vboPaintTransparencyABuffer()
 {
+#ifdef GL_SHADER_STORAGE_BUFFER
 	int drawTransparency;
 	getParamIntMeshGL(MeshGLParams::SHADER_CHOICE, &drawTransparency);
 	static int lastWidth = 0;
@@ -4381,10 +4387,12 @@ void MeshGLShader::vboPaintTransparencyABuffer()
 
 	 glEnable(GL_MULTISAMPLE);
 	 glDepthFunc(GL_LESS);
+#endif
 }
 
 void MeshGLShader::vboPaintTransparencyALBuffer()
 {
+#ifdef GL_SHADER_STORAGE_BUFFER
 	int drawTransparency;
 	getParamIntMeshGL(MeshGLParams::SHADER_CHOICE, &drawTransparency);
 
@@ -4730,6 +4738,7 @@ void MeshGLShader::vboPaintTransparencyALBuffer()
 	mGL4_3Functions.glBindTexture(GL_TEXTURE_2D, 0);
 	mGL4_3Functions.glActiveTexture(GL_TEXTURE0);
 	mGL4_3Functions.glBindTexture(GL_TEXTURE_2D, 0);
+#endif
 }
 
 void MeshGLShader::vboPaintTransparencyWAVG()

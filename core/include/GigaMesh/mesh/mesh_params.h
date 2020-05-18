@@ -94,6 +94,7 @@ class MeshParams {
 			SELMVERTS_SHOW_INDICES,                    //!< Show the indices of the selected vertices.
 			SELMVERTS_SELECT_INDICES,                  //!< Select vertices using indicies given by the user.
 			SELMVERTS_RANDOM,                          //!< Randomly select vertices. Amount given by user.
+			SELMVERTS_SET_ALPHA,                       //!< Set the color-alpha value of selected vertices.
 			SELMFACES_WITH_SYNTHETIC_VERTICES,         //!< Select faces having synthetic vertices.
 			SELMFACES_WITH_THREE_BORDER_VERTICES,      //!< Select faces having three border vertices e.g. for erosion.
 			SELMFACES_WITH_THREE_SELECTED_VERTICES,    //!< Select faces having three vertices selected (SelMVerts).

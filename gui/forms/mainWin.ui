@@ -372,6 +372,7 @@
     <addaction name="menuTransform_Extra"/>
     <addaction name="separator"/>
     <addaction name="actionEditRecomputeVertexNormals"/>
+    <addaction name="actionSet_Vertex_Alpha"/>
     <addaction name="separator"/>
     <addaction name="menuMoreExtra"/>
    </widget>
@@ -698,6 +699,7 @@
     <addaction name="actionLightAmbient"/>
     <addaction name="actionSelectAmbient"/>
     <addaction name="actionLightVectorsShown"/>
+    <addaction name="actionLightVectorLength"/>
     <addaction name="separator"/>
     <addaction name="actionSelMatShininess"/>
     <addaction name="actionSelMatSpecular"/>
@@ -2432,6 +2434,9 @@ p, li { white-space: pre-wrap; }
   <action name="actionPlaneSetHNFByView">
    <property name="text">
     <string>Plane - Set HNF by View</string>
+   </property>
+   <property name="shortcut">
+    <string>F9</string>
    </property>
   </action>
   <action name="actionAbout">
@@ -4407,6 +4412,22 @@ p, li { white-space: pre-wrap; }
     <string>Apply MSII filtering with default settings. Only a radius i.e. largest feature size is required.
 Volume based feature vectors are computed including a function value (Max element). 
 The latter will be shown, when the processing has finished.</string>
+   </property>
+  </action>
+  <action name="actionLightVectorLength">
+   <property name="text">
+    <string>Light Vectors Length</string>
+   </property>
+   <property name="toolTip">
+    <string>Set the length of the light vectors</string>
+   </property>
+  </action>
+  <action name="actionSet_Vertex_Alpha">
+   <property name="text">
+    <string>Vertices - Set Vertex Alpha</string>
+   </property>
+   <property name="toolTip">
+    <string>Set the alpha value of the selected vertices to value. Apply to all, if no vertex is selected.</string>
    </property>
   </action>
  </widget>
