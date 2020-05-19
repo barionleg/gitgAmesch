@@ -6,6 +6,7 @@ Current version
 +) New: Double-click centers the view on the clicked position.
 +) New: Mesh info shows count of singular vertices. See 'Info -> Mesh Info'.
 +) New: 'gigamesh-clean' stores number of connected component count for the input and output mesh in the meta-data file.
++) New: 'gigamesh-info' provides number of connected components.
 +) Improved: Mass rendering of screenshots uses the settings of the current view for all 3D-models in a directory. See 'File -> Export Screenshots - Parse Directory -> Screenshots Views (PNG)'.
 +) Improved: Matrix Dialog
 +) Improved: Normal vector computation per vertex. See 'Edit -> Vertices - Recompute Normals" and enter values larger than 0.
