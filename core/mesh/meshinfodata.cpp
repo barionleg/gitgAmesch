@@ -161,7 +161,7 @@ bool MeshInfoData::getMeshInfoHTML(
 	infoStr += "<br />\n";
 
 	infoStr += "Connected components: ";
-	if( isnormal( this->mCountULong[MeshInfoData::CONNECTED_COMPONENTS] ) ) {
+	if( isnormal( static_cast<double>(this->mCountULong[MeshInfoData::CONNECTED_COMPONENTS]) ) ) {
 		infoStr += std::to_string( this->mCountULong[MeshInfoData::CONNECTED_COMPONENTS] );
 	} else {
 		infoStr += "not determined";
