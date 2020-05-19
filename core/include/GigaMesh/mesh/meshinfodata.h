@@ -27,7 +27,7 @@
 class MeshInfoData {
 	public:
 		MeshInfoData();
-		~MeshInfoData();
+		~MeshInfoData() = default;
 
 	public:
 		enum eMeshPropertyString {
@@ -75,6 +75,7 @@ class MeshInfoData {
 			FACES_INVERTED,
 			FACES_SELECTED,
 			FACES_WITH_SYNTH_VERTICES,     //!< Number of faces having only synthetic vertices i.e. all three vertices are synthetic.
+			CONNECTED_COMPONENTS,          //!< Number of connected components
 			ULONG_COUNT,                   //!< Number of elements.
 		};
 	public:

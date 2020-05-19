@@ -45,8 +45,8 @@
 
 bool infoGigaMeshData(
                 const std::filesystem::path&   rFileNameIn,    //!< Input - filename.
-                MeshInfoData&        rFileInfos,     //!< Output - data properties.
-                bool                 rAbsolutePath   //!< Option: display absolute path or stem only.
+                MeshInfoData&                  rFileInfos,     //!< Output - data properties.
+                bool                           rAbsolutePath   //!< Option: display absolute path or stem only.
 ) {
 	// Check: Input file exists
 	if( !std::filesystem::exists( rFileNameIn) ) {
@@ -68,6 +68,10 @@ bool infoGigaMeshData(
 		std::wcerr << "[GigaMesh] ERROR: Could not fetch mesh information about '" << rFileNameIn.wstring() << "'!" << std::endl;
 		return( false );
 	}
+
+	// Fetch count of connected components via labeling
+	someMesh.labelVerticesAll();
+	someMesh.labelCount( Primitive::IS_VERTEX, rFileInfos.mCountULong[MeshInfoData::CONNECTED_COMPONENTS] );
 
 	return( true );
 }
@@ -209,24 +213,27 @@ int main( int argc, char* argv[] ) {
 			std::cout << "[GigaMesh] Processing file " << nonOptionArgumentString << "..." << std::endl;
 
 			MeshInfoData fileInfoSingle;
-			if( !infoGigaMeshData( nonOptionArgumentString, fileInfoSingle, optAbsolutePath ) ) {
+			if( !infoGigaMeshData( nonOptionArgumentString,
+			                       fileInfoSingle, optAbsolutePath ) ) {
 				std::cerr << "[GigaMesh] ERROR: infoGigaMeshData failed!" << std::endl;
 				std::exit( EXIT_FAILURE );
 			}
 			if( optSideCarHTML ) {
 				//! \todo integrate optReplaceFiles (bool)
 				// Determine filename for HTML sidecar file
-				std::filesystem::path htmlFileName = std::filesystem::path( nonOptionArgumentString ).parent_path();
-				htmlFileName += std::filesystem::path( nonOptionArgumentString ).stem();
-				htmlFileName += ".html";
+				std::filesystem::path htmlFileName = std::filesystem::path( nonOptionArgumentString ).replace_extension( ".html" );
 				// Fetch HTML string
 				std::string htmlStr;
 				fileInfoSingle.getMeshInfoHTML( htmlStr );
 				// Write HTML to file.
 				std::fstream fileStrOutHTML;
 				fileStrOutHTML.open( htmlFileName, std::fstream::out );
-				fileStrOutHTML << htmlStr;
-				fileStrOutHTML.close();
+				if( fileStrOutHTML.is_open() ) {
+					fileStrOutHTML << htmlStr;
+					fileStrOutHTML.close();
+				} else {
+					std::wcerr <<  "[GigaMesh] ERROR: Could not write to: " << htmlFileName << "!" << std::endl;
+				}
 			}
 			fileInfosAll.push_back( fileInfoSingle );
 			filesProcessed++;
@@ -251,6 +258,7 @@ int main( int argc, char* argv[] ) {
 		fileInfo.getMeshInfoPropertyName( static_cast<MeshInfoData::eMeshPropertyDouble>(i), propName );
 		csvHeaderLine += propName + ";";
 	}
+	csvHeaderLine += "Connected components";
 
 	// Prepare CSV conent
 	std::string csvContent;

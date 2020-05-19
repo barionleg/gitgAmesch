@@ -71,6 +71,7 @@ MeshInfoData::MeshInfoData() {
 	mCountULongName[FACES_INVERTED] = "Inverted Faces";
 	mCountULongName[FACES_SELECTED] = "Selected Faces";
 	mCountULongName[FACES_WITH_SYNTH_VERTICES] = "Faces with synthetic vertices";
+	mCountULongName[CONNECTED_COMPONENTS] = "Connected components";
 
 	// Double names
 	mmCountDoubleName[BOUNDINGBOX_MIN_X]    = "Minimum x coordinate";
@@ -88,11 +89,6 @@ MeshInfoData::MeshInfoData() {
 	mmCountDoubleName[TOTAL_VOLUME_DZ]      = "Total volume (dz)";
 
 	reset();
-}
-
-//! Destructor.
-MeshInfoData::~MeshInfoData() {
-	// Nothing
 }
 
 //! Reset all values.
@@ -162,6 +158,15 @@ bool MeshInfoData::getMeshInfoHTML(
 	infoStr += "<body>\n";
 
 	infoStr += "<b>Filename:</b> " + this->mStrings[MeshInfoData::FILENAME] + "<br />\n";
+	infoStr += "<br />\n";
+
+	infoStr += "Connected components: ";
+	if( std::isnormal( this->mCountULong[MeshInfoData::CONNECTED_COMPONENTS] ) ) {
+		infoStr += std::to_string( this->mCountULong[MeshInfoData::CONNECTED_COMPONENTS] );
+	} else {
+		infoStr += "not determined";
+	}
+	infoStr += "<br />\n";
 
 	// Outer table - Row I, Col I
 	infoStr += "<table align='center' border='" + tableBorder + "'>\n";

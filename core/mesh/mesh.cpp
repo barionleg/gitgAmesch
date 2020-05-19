@@ -16575,7 +16575,7 @@ bool Mesh::showInfoLabelPropsHTML() {
 		return( false );
 	}
 
-	vector<double> labelArea;
+	std::vector<double> labelArea;
 	labelArea.resize( nrOfLabels+1, 0.0 );
 
 	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
@@ -16591,31 +16591,40 @@ bool Mesh::showInfoLabelPropsHTML() {
 	// more complex: count number of border polylines -> topology!
 	// PCA would be great as well
 
-	string strCSV = "Label No.;Area;\n";
+	std::string strCSV = "Label No.;Area;\n";
 	for( uint64_t i=0; i<nrOfLabels; i++ ) {
 		strCSV += to_string( i ) + ";";
 		strCSV += to_string( labelArea.at( i ) );
 		strCSV += "\n";
 	}
 
-	sort( labelArea.begin(), labelArea.end() );
+	std::sort( labelArea.begin(), labelArea.end() );
 	double labelAreaMin = labelArea.at( 0 );
 	double labelAreaMax = labelArea.at( nrOfLabels );
 	double labelAreaMedian = labelArea.at( nrOfLabels / 2 );
 	double labelAreaPerc25 = labelArea.at( nrOfLabels / 4 );
 	double labelAreaPerc75 = labelArea.at( nrOfLabels*3 / 4 );
 
-	string strHTML;
-	strHTML += "Labels: " + to_string( nrOfLabels ) + "<br /><br />";
+	std::stringstream strHTML;
+	strHTML << "<body>" << std::endl;
+	strHTML << "Number of labels: " << to_string( nrOfLabels ) << "<br />" << std::endl;
+	// Table
+	strHTML << "<table border=\"0\">" << std::endl;
+	strHTML << "<tr>" << std::endl <<
+	           "<td>Area min:</td><td align=\"right\">"          + to_string( labelAreaMin )    + "</td>" << std::endl <<
+	           "</tr><tr>" << std::endl <<
+	           "<td>Area 25 percentil:</td><td align=\"right\">" + to_string( labelAreaPerc25 ) + "</td>" << std::endl <<
+	           "</tr><tr>" << std::endl <<
+	           "<td>Area median:</td><td align=\"right\">"       + to_string( labelAreaMedian ) + "</td>" << std::endl <<
+	           "</tr><tr>" << std::endl <<
+	           "<td>Area 75 percentil:</td><td align=\"right\">" + to_string( labelAreaPerc75 ) + "</td>" << std::endl <<
+	           "</tr><tr>" << std::endl <<
+	           "<td>Area max:</td><td align=\"right\">"          + to_string( labelAreaMax )    + "</td>" << std::endl <<
+	           "</tr>" << std::endl <<
+	           "</table>" << std::endl;
+	strHTML << "</body>" << std::endl;
 
-	//! \todo format as table
-	strHTML += "Area min: " + to_string( labelAreaMin ) + "<br />";
-	strHTML += "Area 25 percentil: " + to_string( labelAreaPerc25 ) + "<br />";
-	strHTML += "Area median: " + to_string( labelAreaMedian ) + "<br />";
-	strHTML += "Area 75 percentil: " + to_string( labelAreaPerc75 ) + "<br />";
-	strHTML += "Area max: " + to_string( labelAreaMax ) + "<br />";
-
-	showInformation( "Label properties", strHTML, strCSV );
+	showInformation( "Label properties", strHTML.str(), strCSV );
 	return( true );
 }
 

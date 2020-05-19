@@ -37,7 +37,8 @@ void UserInteraction::showInformation(
                 const std::string& rMsg,
                 [[maybe_unused]] const std::string& rToClipboard
 ) {
-	std::cout << rHead << " " << rMsg << std::endl;
+	std::cout << rHead << std::endl;
+	std::cout << rMsg  << std::endl;
 }
 
 //! Stub for higher level warnings. e.g. Messagebox with Qt.
@@ -45,7 +46,8 @@ void UserInteraction::showWarning(
                 const string& rHead,
                 const string& rMsg
 ) {
-	cout << rHead << " " << rMsg << endl;
+	std::cout << rHead << std::endl;
+	std::cout << rMsg  << std::endl;
 }
 
 //! Stub for higher level methods to enter a string.
