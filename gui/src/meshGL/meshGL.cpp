@@ -288,6 +288,40 @@ bool MeshGL::fillPolyLines(
 		return true;
 }
 
+bool MeshGL::applyTransformationToWholeMesh(Matrix4D rTrans, bool rResetNormals)
+{
+	bool retVal = Mesh::applyTransformationToWholeMesh(rTrans, rResetNormals);
+
+	if(retVal)
+	{
+		double minScalePins = 1.0; //smallest downscale value
+		double scalePins = 1.0; //highest upscale value
+		for(uint8_t i = 0; i<3; ++i)
+		{
+			const Vector3D columnVec(rTrans.get(0,i), rTrans.get(1,i), rTrans.get(2,i));
+			const auto length = columnVec.getLength3();
+
+			minScalePins = std::min(length, minScalePins);
+			scalePins    = std::max(length, scalePins);
+		}
+
+		if(1.0 / minScalePins > scalePins)
+		{
+			scalePins = minScalePins;
+		}
+
+		if(scalePins != 1.0 && scalePins > 0.0)
+		{
+			double pinSize = 0.0;
+			getParamFloatMeshGL(MeshGLParams::PIN_SIZE, &pinSize);
+			pinSize *= scalePins;
+			setParamFloatMeshGL(MeshGLParams::PIN_SIZE, pinSize);
+		}
+	}
+
+	return retVal;
+}
+
 //! Takes care about OpenGL stuff, when the Mesh is transformed.
 bool MeshGL::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool rResetNormals ) {
 		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
