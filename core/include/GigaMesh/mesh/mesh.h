@@ -351,7 +351,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 
 	public:
 		// Feature vector functions (NEW)
-		        bool   computeMSIIQuick( double rRadius );
+		        bool   computeMSIIQuick( const double rRadius, const unsigned int rRadiiCount,
+		                                 const unsigned int rxyzDim );
 		        bool   computeMSIIQuickGUI();
 		//! \todo use MeshParams::eFunctionCall to avoid/reduce copy&paste code!
 		// Feature vector functions

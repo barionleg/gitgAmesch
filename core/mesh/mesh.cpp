@@ -5114,7 +5114,9 @@ int Mesh::removeFeatureVectors() {
 //!
 //! @returns false in case of an error. True otherwise.
 bool Mesh::computeMSIIQuick(
-                double rRadius //!< Radius of the largest feature to detect
+                const double       rRadius,       //!< Radius of the largest feature to detect
+                const unsigned int rRadiiCount,   //!< Number of radii
+                const unsigned int rxyzDim        //!< Raster size
 ) {
 	// Sanity check
 	if( !isnormal( rRadius ) || ( rRadius <= 0.0 ) ) {
@@ -5125,11 +5127,8 @@ bool Mesh::computeMSIIQuick(
 	bool retVal(true);
 	showProgressStart( "MSII filtering (Quick)" );
 
-	unsigned int radiiCount{4}; // Default
-	unsigned int xyzDim{256};   // Default
-
 	// Pre-compute relative radii:
-	uint64_t multiscaleRadiiSize = std::pow( 2.0, static_cast<double>(radiiCount) );
+	uint64_t multiscaleRadiiSize = std::pow( 2.0, static_cast<double>(rRadiiCount) );
 	double*       multiscaleRadii     = new double[multiscaleRadiiSize];
 	for( uint i=0; i<multiscaleRadiiSize; i++ ) {
 		multiscaleRadii[i] = 1.0 - static_cast<double>(i) /
@@ -5138,7 +5137,7 @@ bool Mesh::computeMSIIQuick(
 
 	// Pre-compute sparse filte:
 	voxelFilter2DElements* sparseFilters;
-	generateVoxelFilters2D( multiscaleRadiiSize, multiscaleRadii, xyzDim, &sparseFilters );
+	generateVoxelFilters2D( multiscaleRadiiSize, multiscaleRadii, rxyzDim, &sparseFilters );
 
 	// Prepare array for (1st) volume integral invariant filter responses
 	double* descriptVolume = new double[this->getVertexNr()*multiscaleRadiiSize];
@@ -5154,7 +5153,7 @@ bool Mesh::computeMSIIQuick(
 		setMeshData[t].threadID               = t;
 		setMeshData[t].meshToAnalyze          = this;
 		setMeshData[t].radius                 = rRadius;
-		setMeshData[t].xyzDim                 = xyzDim;
+		setMeshData[t].xyzDim                 = rxyzDim;
 		setMeshData[t].multiscaleRadiiSize    = multiscaleRadiiSize;
 		setMeshData[t].multiscaleRadii        = multiscaleRadii;
 		setMeshData[t].sparseFilters          = &sparseFilters;
@@ -5210,7 +5209,37 @@ bool Mesh::computeMSIIQuickGUI() {
 	if( !showEnterText( radius, "Enter radius (largest feature size)" ) ) {
 		return( false );
 	}
-	return computeMSIIQuick( radius );
+	// Ask to save the file
+	bool saveFile( true );
+	if( !showQuestion( &saveFile, "Save file",
+	                   "<b>Computing MSII feature vectors will take time!</b><br /><br />"
+	                   "Do you want to store the file?<br /><br />Recommended: YES" ) ) {
+		return( false );
+	}
+
+	// Compute
+	unsigned int radiiCount{4}; // Default
+	unsigned int xyzDim{256};   // Default
+	if( !computeMSIIQuick( radius, radiiCount, xyzDim ) ) {
+		return( false );
+	}
+
+	// Save, if requested
+	if( saveFile ) {
+		//! \bug locale affects radius and "." remains from extension.
+		char tmpBuffer[512];
+		sprintf( tmpBuffer, "_r%0.2f_n%i_v%i.volume.ply", radius, radiiCount, xyzDim );
+		std::filesystem::path outFile = getFullName().replace_extension( tmpBuffer );
+		if( !writeFile( outFile ) ) {
+			return( false );
+		}
+		std::stringstream msgFileSaved;
+		msgFileSaved << "File was saved as:<br /><br />" << std::endl << outFile.c_str();
+		showInformation( "File saved", msgFileSaved.str() );
+	}
+
+	// Done.
+	return( true );
 }
 
 // --- Feature vectors - import/export -------------------------------------------------------------------------------------------------------------
