@@ -5229,7 +5229,7 @@ bool Mesh::computeMSIIQuickGUI() {
 	if( saveFile ) {
 		std::wstringstream extension;
 		extension.imbue(std::locale("C"));
-		extension << L"_r" << std::fixed << std::setprecision(2) << radius << L"_n" << L"_v" << xyzDim << ".volume.ply";
+		extension << L"_r" << std::fixed << std::setprecision(2) << radius << L"_n" << radiiCount << L"_v" << xyzDim << ".volume.ply";
 
 		std::filesystem::path outFile = getFullName().replace_extension( "" );
 		outFile += extension.str();
