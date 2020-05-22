@@ -97,6 +97,16 @@ cmake ..
 cmake --build . --config Release
 ```
 
+GigaMesh can also be build without the gui or the command line interface:
+Build GigaMesh without gui
+```sh
+cmake .. -DBUILD_GUI=OFF
+```
+Build GigaMesh without command line interface
+```sh
+cmake .. -DBUILD_CLI=OFF
+```
+
 GigaMesh is ideally build with the qtcreator IDE. To load the project, open the CMakeLists.txt in the root directory.
 Please make sure you have a kit selected, that has a C++17 compatible compiler. For further information see:
 * https://doc.qt.io/qtcreator/creator-targets.html
