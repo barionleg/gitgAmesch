@@ -13006,13 +13006,39 @@ bool Mesh::applyTransformationToWholeMesh( Matrix4D rTrans, bool rResetNormals )
 		allVertices.insert( currVertex );
 	}
 
-	// Apply to (cone/cylinder) axis
-	mConeAxisPoints[0] *= rTrans;
-	mConeAxisPoints[1] *= rTrans;
-
 	//!\todo Apply to all cone paramters, the sphere and the mesh plane.
+	if(applyTransformation(rTrans, &allVertices, rResetNormals))
+	{
+		//! .) Apply to (cone/cylinder) axis
+		mConeAxisPoints[0] *= rTrans;
+		mConeAxisPoints[1] *= rTrans;
 
-	return applyTransformation( rTrans, &allVertices, rResetNormals );
+		//! .) Apply transformation to the mesh-plane
+		applyTransfromToPlane(rTrans);
+
+		//! .) Apply to selectedPositions
+		for(auto& position : mSelectedPositions)
+		{
+			std::cout << std::get<0>(position) << std::endl;
+			std::get<0>(position) *= rTrans;
+			std::cout << std::get<0>(position) << std::endl;
+		}
+
+		//! .) Apply to spheres
+		for(auto& sphere : mDatumSpheres)
+		{
+			sphere->applyTransfrom(&rTrans);
+		}
+
+		//! .) Apply to boxes
+		for(auto& box : mDatumBoxes)
+		{
+			box->applyTransfrom(&rTrans);
+		}
+
+		return true;
+	}
+	return false;
 }
 
 //! Translate the mesh to a specified position.
@@ -13196,9 +13222,6 @@ bool Mesh::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool 
 
 	//! .) Can also affect the polylines - reset them too:
 	polyLinesChanged();
-
-	//! .) Apply transformation to the mesh-plane
-	applyTransfromToPlane(rTrans);
 
 	//! .) Write the transformation to the side-car file, because HiWis tend to forget this.
 	std::filesystem::path transMatFName = getFileLocation().wstring() + getBaseName().wstring() + L"_transmat.txt";

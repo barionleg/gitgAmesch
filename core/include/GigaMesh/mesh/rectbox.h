@@ -47,12 +47,12 @@ class RectBox : public Primitive {
 		~RectBox();
 
 		// return the boxes center:
-		double getX();
-		double getY();
-		double getZ();
+		double getX() const override;
+		double getY() const override;
+		double getZ() const override;
 		Vector3D getCoordCenter();
 
-		int getType();
+		int getType() override;
 
 		// return the boxes corners:
 		Vector3D getCoordA();

@@ -74,19 +74,19 @@ RectBox::~RectBox() {
 
 //!
 //! Returns the x-coordinate of the Spehere's center.
-double RectBox::getX() {
+double RectBox::getX() const {
 	return *x;
 }
 
 //!
 //! Returns the y-coordinate of the Spehere's center.
-double RectBox::getY() {
+double RectBox::getY() const {
 
 	return *y;
 }
 
 //! Returns the z-coordinate of the Spehere's center.
-double RectBox::getZ() {
+double RectBox::getZ() const {
 	return *z;
 }
 

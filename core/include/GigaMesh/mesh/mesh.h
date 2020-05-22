@@ -333,7 +333,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool	setSpherePoint(Vector3D& p, Vector3D &normal);
 		virtual bool	getSphereData(Vector3D* center, double* radius);
 		virtual bool	getSphereData(double* spherePoints, double* sphereNormals = nullptr);
-		virtual int	getSpherePointIdx();
+		virtual int	    getSpherePointIdx();
 				double	getSphereRadius();
 				bool	isUnrolledAroundSphere();
 		//---------------------------------------------------------------------------------------------------------------------------------------------
