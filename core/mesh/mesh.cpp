@@ -16627,7 +16627,7 @@ bool Mesh::getAxisFromCircleCenters( Vector3D* rTop, Vector3D* rBottom ) {
 //MSExp
 
 //! an experimental non maximum suppression method.
-//! Takes as input the distance, how far NMS should look (how often the frontier progresses)
+//! Takes as input the distance, how far NMS should look (the frontier will progress until vertices are too far away)
 //! will enlarge the feature vectors of all vertices to size 18
 //! CAREFUL maybe I should think about datatypes that don't allow duplicates (sets) (and keep their ordering?)
 //! (CAREFUL only meshes with no more than 10000000 Vertices allowed) hopefully legacy
@@ -16785,7 +16785,7 @@ bool Mesh::funcExpNonMaxSupp(double NMSDistance)
                                     biggerValueFound = true;
                                     isMax = false; //not necessary
 
-                                }else{ //so it still seems to be the (lokal) maximum
+                                }else{ //so it still seems to be the (local) maximum
                                     //highly experimental, as I do not know, if this index can be used
 
                                     nextCandidates.push_back(candidatesIterator);
@@ -17049,67 +17049,405 @@ bool Mesh::funcExpWatershed(double deletableInput){
 
     }
 
+    //consider implementation using multimap
 
-    //maybe TODO
-    //maybe implement the map and totalVertices is equal check.
 
-    //maybe cut away whatever does not belong to a wedge
-    //or maybe do this in a following step, aka clustering
+    //postprocessing the map solution
+
+
+    //the following works as long as no unlabeled vertex is surrounded by unlabeled vertices
+
+    int notLabeledYet = 0;
+    int postProcessingCouldLabel = 0;
+
+    //find all vertices that don't have a label yet and give them a label of an arbitrary neighbour
+    for(auto pVertex : mVertices){
+
+        double checkLabel;
+        pVertex->getFeatureElement(19, &checkLabel);
+
+        //no label given
+        if(checkLabel < 1.0){
+
+            notLabeledYet++;
+            list<Vertex*> adjacentVertsInOrder;
+            getSurroundingVerticesInOrder(adjacentVertsInOrder, pVertex, false);
+
+            bool labelCouldBeAssigned = false;
+
+            for(auto& neighbourVertex : adjacentVertsInOrder){
+
+                if(!labelCouldBeAssigned){
+
+                    double possibleLabel;
+                    neighbourVertex->getFeatureElement(19, &possibleLabel);
+
+                    //if the neighbouring vertex has a label, assign it to pVertex
+                    if(possibleLabel > 0.0){
+
+                        pVertex->setFeatureElement(19, possibleLabel);
+
+                        postProcessingCouldLabel++;
+
+                        labelCouldBeAssigned = true;
+
+                    }
+
+
+                }
+
+            }
+
+        }
+
+    }
+    //loop over all vertices
+    //get those with index 19 Value 0.0, they have no label
+    //add them to a list,
+    //cout how many these are (no, just increment) (or cout the list size, but I will nicht mal build up the list sondern gleich hier die Werte veraendern)
+    //loop over it's neighbours, label the vertex with the first label you find
+
 
     cout << foundMaxima.size() << " maxima formed the base for the watershed algorithm." << endl;
+
+    cout << "The watershed algorithm did not reach " << notLabeledYet << " vertices." << endl;
+    cout << "Postprocessing gave " << postProcessingCouldLabel << " of these vertices a label." << endl;
 
     return true;
 
 }
 
-bool Mesh::funcExpClustering(int deletableInput){
 
-    /*
+//! An experimental clustering method
+//! will enlarge the feature vectors of all vertices to size 21
+bool Mesh::funcExpClustering(int numberOfIterations){
 
-    if(deletableInput == 1){
+    double numberOfLabels = 0.0;
+    int verticesWithoutLabel = 0;
 
-        bool myArray[500000];
+    //prepare data
+    //find the number of labels and the number of vertices, which were not labeled
+    for(auto pVertex : mVertices){
+
+        //if the feature vector has less than 21 elements, resize it to length 21
+        if(21 > pVertex->getFeatureVectorLen())
+		{
+			pVertex->resizeFeatureVector(21);
+		}
+
+		//clear data, that might sit in the feature vectors, remaining from previous runs of the clustering algorithm
+        pVertex->setFeatureElement(20, 0.0);
+
+        double givenLabel;
+        pVertex->getFeatureElement(19, &givenLabel);
+
+        if(givenLabel < 1.0){
+
+            verticesWithoutLabel++;
+
+        }else{ //find out how many labels are used
+
+            if(givenLabel > numberOfLabels){
+
+                numberOfLabels = givenLabel;
+
+            }
+        }
+    }
+
+    //number of clusters is now known
+
+    for(int labelIterator=1;labelIterator<=(int)numberOfLabels;labelIterator++){
+
+        vector<Vertex*> verticesWithCurrentLabel;
+
+        for(auto investigatedVertex : mVertices){
+
+            double foundLabel;
+            investigatedVertex->getFeatureElement(19, &foundLabel);
+
+            //smelly, comparing doubles for equality, however I don't know a better way at the moment
+            if((double)labelIterator == foundLabel){
+
+                verticesWithCurrentLabel.push_back(investigatedVertex);
+
+            }
+
+        }
+        //The list verticesWithCurrentLabel hold all the vertices which will be used for clustering
+
+        //the first variance is infinite
+        double smallestVariance = 10000000.0;
+
+        vector<double> finalClustering (verticesWithCurrentLabel.size());
+
+
+        //for some randomness
+        int randomness = 24;
+
+        //perform the clustering as often as the user wants
+        for(int iteration=0;iteration<numberOfIterations;iteration++){
+
+            vector<double> temporaryClustering (verticesWithCurrentLabel.size());
+
+            //generate 3 random numbers, which will be the means
+
+            //an alternative may be shuffling the array
+
+            int randomNr1 = randomness - 5;
+            int randomNr2 = randomness - 12;
+            int randomNr3 = randomness + 1;
+
+            randomness = randomness + 17;
+
+            randomNr1 = ((randomNr1 + 3)*2) % (verticesWithCurrentLabel.size());
+            randomNr2 = ((randomNr2 + 1)*3) % (verticesWithCurrentLabel.size());
+            randomNr3 = ((randomNr3 + 6)*5) % (verticesWithCurrentLabel.size());
+
+            //default_random_engine generator;
+            //uniform_int_distribution<int> distribution(1,verticesWithCurrentLabel.size());
+
+            //in case the same values were created
+            while((randomNr1 == randomNr2) || (randomNr1 == randomNr3) || (randomNr2 == randomNr3)){
+
+                //write in external function (but I don't know if I have to change the makefiles then ) OR IMPORT somethings
+
+                //achtung srand seed muss ich immer wieder neu setzen
+
+                randomNr1 = ((randomNr1 + 3)*2) % (verticesWithCurrentLabel.size());
+                randomNr2 = ((randomNr2 + 1)*3) % (verticesWithCurrentLabel.size());
+                randomNr3 = ((randomNr3 + 6)*5) % (verticesWithCurrentLabel.size());
+
+                randomness = randomness + 1;
+
+                /*
+                default_random_engine generator;
+                uniform_int_distribution<int> distribution(1,verticesWithCurrentLabel.size());
+                int dice_roll = distribution(generator);  // generates number in the range 1..6
+                */
+
+            }
+
+            //randomly chosen cluster centers
+
+            Vertex* clusterCNr1 = verticesWithCurrentLabel[randomNr1];
+            Vertex* clusterCNr2 = verticesWithCurrentLabel[randomNr2];
+            Vertex* clusterCNr3 = verticesWithCurrentLabel[randomNr3];
+
+            vector<Vertex*> verticesCluster1;
+            vector<Vertex*> verticesCluster2;
+            vector<Vertex*> verticesCluster3;
+
+            //perform the k-means assignment part on the vertices with the current label
+            for(int vertextNr = 0; vertextNr<verticesWithCurrentLabel.size(); vertextNr++){
+
+                Vertex* currentVertex = verticesWithCurrentLabel[vertextNr];
+
+                //find the smallest distance
+                //square root is omitted
+
+                //normals are used for clustering
+
+                //currently no check if normal exists
+
+                //currently no check if normal has length 1, is assumed
+
+                double distanceToMean1 = pow((currentVertex->getNormalX() - clusterCNr1->getNormalX()), 2.0) + pow((currentVertex->getNormalY() - clusterCNr1->getNormalY()), 2.0) + pow((currentVertex->getNormalZ() - clusterCNr1->getNormalZ()), 2.0);
+                double distanceToMean2 = pow((currentVertex->getNormalX() - clusterCNr2->getNormalX()), 2.0) + pow((currentVertex->getNormalY() - clusterCNr2->getNormalY()), 2.0) + pow((currentVertex->getNormalZ() - clusterCNr2->getNormalZ()), 2.0);
+                double distanceToMean3 = pow((currentVertex->getNormalX() - clusterCNr3->getNormalX()), 2.0) + pow((currentVertex->getNormalY() - clusterCNr3->getNormalY()), 2.0) + pow((currentVertex->getNormalZ() - clusterCNr3->getNormalZ()), 2.0);
+
+                //no check for greater equal
+                if((distanceToMean1 < distanceToMean2) && (distanceToMean1 < distanceToMean3)){
+
+                    temporaryClustering[vertextNr] = 1.0; //cluster center 1 is the closest
+                    verticesCluster1.push_back(currentVertex);
+
+                } else if((distanceToMean2 < distanceToMean1) && (distanceToMean2 < distanceToMean3)){
+
+                    temporaryClustering[vertextNr] = 2.0; //cluster center 2 is the closest
+                    verticesCluster2.push_back(currentVertex);
+
+                } else if((distanceToMean3 < distanceToMean1) && (distanceToMean3 < distanceToMean2)){
+
+                    temporaryClustering[vertextNr] = 3.0; //cluster center 3 is the closest
+                    verticesCluster3.push_back(currentVertex);
+
+                }
+            }
+
+            //first calculate the means of the clusters
+            //then calculate the variance of the clusters and decide according to the variance
+            //is there a step intended after the mean calculation, for example reclustering?
+            //yes recluster until no further change
+            //this is not yet implemented
+
+            //variance might need covariance matrix
+
+
+            //cluster 1
+            //mean calculation
+            double mean1XComponent = 0.0;
+            double mean1YComponent = 0.0;
+            double mean1ZComponent = 0.0;
+            for(int i = 0; i<verticesCluster1.size(); i++){
+
+                Vertex* currentVertex = verticesCluster1[i];
+                mean1XComponent = mean1XComponent + currentVertex->getNormalX();
+                mean1YComponent = mean1YComponent + currentVertex->getNormalY();
+                mean1ZComponent = mean1ZComponent + currentVertex->getNormalZ();
+
+            }
+            mean1XComponent = mean1XComponent/verticesCluster1.size();
+            mean1YComponent = mean1YComponent/verticesCluster1.size();
+            mean1ZComponent = mean1ZComponent/verticesCluster1.size();
+
+            //variance calculation
+            double variance1XComponent = 0.0;
+            double variance1YComponent = 0.0;
+            double variance1ZComponent = 0.0;
+            for(int i = 0; i<verticesCluster1.size(); i++){
+
+                Vertex* currentVertex = verticesCluster1[i];
+                variance1XComponent = variance1XComponent + pow((currentVertex->getNormalX() - mean1XComponent), 2.0);
+                variance1YComponent = variance1YComponent + pow((currentVertex->getNormalY() - mean1YComponent), 2.0);
+                variance1ZComponent = variance1ZComponent + pow((currentVertex->getNormalZ() - mean1ZComponent), 2.0);
+
+            }
+            variance1XComponent = variance1XComponent/verticesCluster1.size();
+            variance1YComponent = variance1YComponent/verticesCluster1.size();
+            variance1ZComponent = variance1ZComponent/verticesCluster1.size();
+            //end of cluster 1 consideration
+
+
+            //cluster 2
+            //mean calculation
+            double mean2XComponent = 0.0;
+            double mean2YComponent = 0.0;
+            double mean2ZComponent = 0.0;
+            for(int i = 0; i<verticesCluster2.size(); i++){
+
+                Vertex* currentVertex = verticesCluster2[i];
+                mean2XComponent = mean2XComponent + currentVertex->getNormalX();
+                mean2YComponent = mean2YComponent + currentVertex->getNormalY();
+                mean2ZComponent = mean2ZComponent + currentVertex->getNormalZ();
+
+            }
+            mean2XComponent = mean2XComponent/verticesCluster2.size();
+            mean2YComponent = mean2YComponent/verticesCluster2.size();
+            mean2ZComponent = mean2ZComponent/verticesCluster2.size();
+
+            //variance calculation
+            double variance2XComponent = 0.0;
+            double variance2YComponent = 0.0;
+            double variance2ZComponent = 0.0;
+            for(int i = 0; i<verticesCluster2.size(); i++){
+
+                Vertex* currentVertex = verticesCluster2[i];
+                variance2XComponent = variance2XComponent + pow((currentVertex->getNormalX() - mean2XComponent), 2.0);
+                variance2YComponent = variance2YComponent + pow((currentVertex->getNormalY() - mean2YComponent), 2.0);
+                variance2ZComponent = variance2ZComponent + pow((currentVertex->getNormalZ() - mean2ZComponent), 2.0);
+
+            }
+            variance2XComponent = variance2XComponent/verticesCluster2.size();
+            variance2YComponent = variance2YComponent/verticesCluster2.size();
+            variance2ZComponent = variance2ZComponent/verticesCluster2.size();
+            //end of cluster 2 consideration
+
+
+            //cluster 3
+            //mean calculation
+            double mean3XComponent = 0.0;
+            double mean3YComponent = 0.0;
+            double mean3ZComponent = 0.0;
+            for(int i = 0; i<verticesCluster3.size(); i++){
+
+                Vertex* currentVertex = verticesCluster3[i];
+                mean3XComponent = mean3XComponent + currentVertex->getNormalX();
+                mean3YComponent = mean3YComponent + currentVertex->getNormalY();
+                mean3ZComponent = mean3ZComponent + currentVertex->getNormalZ();
+
+            }
+            mean3XComponent = mean3XComponent/verticesCluster3.size();
+            mean3YComponent = mean3YComponent/verticesCluster3.size();
+            mean3ZComponent = mean3ZComponent/verticesCluster3.size();
+
+            //variance calculation
+            double variance3XComponent = 0.0;
+            double variance3YComponent = 0.0;
+            double variance3ZComponent = 0.0;
+            for(int i = 0; i<verticesCluster3.size(); i++){
+
+                Vertex* currentVertex = verticesCluster3[i];
+                variance3XComponent = variance3XComponent + pow((currentVertex->getNormalX() - mean3XComponent), 2.0);
+                variance3YComponent = variance3YComponent + pow((currentVertex->getNormalY() - mean3YComponent), 2.0);
+                variance3ZComponent = variance3ZComponent + pow((currentVertex->getNormalZ() - mean3ZComponent), 2.0);
+
+            }
+            variance3XComponent = variance3XComponent/verticesCluster3.size();
+            variance3YComponent = variance3YComponent/verticesCluster3.size();
+            variance3ZComponent = variance3ZComponent/verticesCluster3.size();
+            //end of cluster 3 consideration
+
+
+            double totalVariance = variance1XComponent + variance1YComponent + variance1ZComponent + variance2XComponent + variance2YComponent + variance2ZComponent + variance3XComponent + variance3YComponent + variance3ZComponent;
+
+
+            //a better clustering has been found save that clustering
+            if(totalVariance < smallestVariance){
+
+                finalClustering.assign(temporaryClustering.begin(), temporaryClustering.end());
+                smallestVariance = totalVariance;
+
+            }
+
+        }
+        //k-means has been performed as often as the user wanted
+
+
+        //write the clustering into the feature vector
+        for(int i = 0;i<verticesWithCurrentLabel.size();i++){
+
+            Vertex* currentVertex = verticesWithCurrentLabel[i];
+            currentVertex->setFeatureElement(20, finalClustering[i]);
+
+        }
+
+
+        cout << "One labeled group has been fully processed" << endl;
+
+
+
+
 
     }
 
-    if(deletableInput == 2){
 
-        bool myArray[1000000];
 
-    }
 
-    if(deletableInput == 3){
+    //loop over 1 till numberOfLabels
+    //a list forms all the vertices with the current label
+    //smallestVariance = infinite
+    //get the list's size, build a vector of double finalClustering
+    //FOR ITERATION NUMBER, deletableInput may become this value, for example 5 times
+    //a good value needs to be determined by me, maybe 2 is good, maybe 10 is good
 
-        bool myArray[5000000];
+    //get the list's size, build a vector of doubles temporaryClustering
 
-    }
+    //loop over that list
+    //cluster
 
-    if(deletableInput == 4){
+    //cluster is:
+    //choose three at random (give them 1, 2, 3)
+    //all other get assigned the clustervalue of the nearest
 
-        bool myArray[10000000];
+    //calculate variance
+    //if the calculated variance is smaller than the smallestVariance
+    //than write temporaryClustering in finalClustering
+    //set smallestVariance to the calculated variance
 
-    }
 
-    if(deletableInput == 5){
-
-        bool myArray[50000000];
-
-    }
-
-    if(deletableInput == 6){
-
-        bool myArray[100000000];
-
-    }
-
-    if(deletableInput == 7){
-
-        bool myArray[500000000];
-
-    }
-    */
-
-    cout << "nothing to report" << endl;
+    cout << "The clustering algorithm found " << verticesWithoutLabel << " vertices without label." << endl;
+    cout << "The clustering algorithm worked on " << numberOfLabels  << " labels, k-means found 3 clusters in each labeled group." << endl;
 
     return true;
 

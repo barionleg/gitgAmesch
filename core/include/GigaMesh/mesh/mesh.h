@@ -539,7 +539,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				//MSExp
 				bool funcExpNonMaxSupp(double NMSDistance);
 				bool funcExpWatershed(double deletableInput);
-				bool funcExpClustering(int deletableInput);
+				bool funcExpClustering(int numberOfIterations);
 		// Again some old style function value calls:
 				bool setVertFuncValCorrTo( std::vector<double>* rFeatVector );
 				bool setVertFuncValDistanceToSelPrim();

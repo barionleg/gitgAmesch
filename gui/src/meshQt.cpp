@@ -1168,7 +1168,7 @@ bool MeshQt::funcExperimentalNonMaximumSuppression()
 {
     QGMDialogEnterText dlgEnterTextVal;
 	dlgEnterTextVal.setDouble(5.0); //5 mm is standard for non maximum suppression distance
-	dlgEnterTextVal.setWindowTitle( tr("Give radius in Non Maximum Suppression") ); //a text much longer than this gets cropped
+	dlgEnterTextVal.setWindowTitle( tr("Give radius in Non Maximum Suppression!") ); //a text much longer than this gets cropped
 
 	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double NMSDistance) {this->funcExpNonMaxSupp(NMSDistance);});
 
@@ -1182,7 +1182,7 @@ bool MeshQt::funcExperimentalWatershed()
 {
     QGMDialogEnterText dlgEnterTextVal;
 	dlgEnterTextVal.setDouble(1.0);
-	dlgEnterTextVal.setWindowTitle( tr("Input not needed right now") );
+	dlgEnterTextVal.setWindowTitle( tr("Input not needed right now!") );
 
 	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double deletableInput) {this->funcExpWatershed(deletableInput);});
 
@@ -1194,9 +1194,9 @@ bool MeshQt::funcExperimentalClustering()
 {
     QGMDialogEnterText dlgEnterTextVal;
 	dlgEnterTextVal.setInt(1);
-	dlgEnterTextVal.setWindowTitle( tr("Input not needed right now") );
+	dlgEnterTextVal.setWindowTitle( tr("Give number of iterations for clustering!") );
 
-	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int deletableInput) {this->funcExpClustering(deletableInput);});
+	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int numberOfIterations) {this->funcExpClustering(numberOfIterations);});
 
 	return dlgEnterTextVal.exec() == QDialog::Accepted;
 }
