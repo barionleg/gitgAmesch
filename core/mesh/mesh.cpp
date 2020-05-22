@@ -5226,10 +5226,12 @@ bool Mesh::computeMSIIQuickGUI() {
 
 	// Save, if requested
 	if( saveFile ) {
-		//! \bug locale affects radius and "." remains from extension.
-		char tmpBuffer[512];
-		sprintf( tmpBuffer, "_r%0.2f_n%i_v%i.volume.ply", radius, radiiCount, xyzDim );
-		std::filesystem::path outFile = getFullName().replace_extension( tmpBuffer );
+		std::wstringstream extension;
+		extension.imbue(std::locale("C"));
+		extension << L"_r" << std::fixed << std::setprecision(2) << radius << L"_n" << L"_v" << xyzDim << ".volume.ply";
+
+		std::filesystem::path outFile = getFullName().replace_extension( "" );
+		outFile += extension.str();
 		if( !writeFile( outFile ) ) {
 			return( false );
 		}
