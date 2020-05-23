@@ -4756,7 +4756,7 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 	std::string inkscapeCommand;
 	getParamStringMeshWidget(MeshWidgetParams::INKSCAPE_COMMAND, &inkscapeCommand);
 	// 8.) Display with Inkscape:
-	if( !QProcess::startDetached( QString(inkscapeCommand.c_str()) + " " + fileName ) ) {
+	if( !QProcess::startDetached( QString(inkscapeCommand.c_str()) + " \"" + fileName + "\"" ) ) {
 		LOG::error() << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Inkscape won't start!\n";
 	}
 
