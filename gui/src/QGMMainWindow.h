@@ -286,7 +286,6 @@ signals:
 	void screenshotSVG();                                    //!< trigger a screenshot stored as SVG with a PNG embedded.
 	void screenshotRuler();                                  //!< trigger the export of an image of a ruler matching the screenshot resolution (in ortho mode).
 
-    void screenshotDirectory();                              //!< trigger screenshot of side-, top- and bottom view of all Objects in the directory
     void generateLatexFile();                                //!< trigger latex file    to be generated
     void generateLatexCatalog();                             //!< trigger latex catalog to be generated
 

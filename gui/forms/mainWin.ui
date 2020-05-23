@@ -99,8 +99,6 @@
      <property name="title">
       <string>Export Screenshots - Parse Directory</string>
      </property>
-     <addaction name="actionScreenshotDirectory"/>
-     <addaction name="separator"/>
      <addaction name="actionScreenshotViewsPNGDirectory"/>
      <addaction name="actionScreenshotViewsPDFDirectory"/>
     </widget>

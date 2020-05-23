@@ -163,9 +163,6 @@ public slots:
 	                      std::vector<double>&    rImageSizes );
 
 	// === LEGACY to be removed! ===========================================================================================================================
-	void screenshotDirectory();
-	QStringList screenshotDirectory(const bool rUseTiled, const QString& rColor, const int depth, const QString& rPath, const QStringList& rFilters, const QString& rMode, const QString& suffix);
-
 	void generateLatexFile();
 	void generateLatexCatalog();
 	QStringList generateLatexCatalog(int depth, const QString& rPath, bool rUseTiled,

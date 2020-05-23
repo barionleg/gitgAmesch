@@ -210,8 +210,6 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionScreenshotSVG,           SIGNAL(triggered()),   this,       SIGNAL(screenshotSVG())        );
 	QObject::connect( actionScreenshotRuler,         SIGNAL(triggered()),   this,       SIGNAL(screenshotRuler())      );
 
-    QObject::connect( actionScreenshotDirectory,     SIGNAL(triggered()),   this,       SIGNAL(screenshotDirectory()) );
-
     QObject::connect( actionGenerateLatexFile,       SIGNAL(triggered()),   this,       SIGNAL(generateLatexFile()) );
     QObject::connect( actionGenerateLatexCatalog,    SIGNAL(triggered()),   this,       SIGNAL(generateLatexCatalog()) );
 
