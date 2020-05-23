@@ -5236,9 +5236,8 @@ bool Mesh::computeMSIIQuickGUI() {
 		if( !writeFile( outFile ) ) {
 			return( false );
 		}
-		std::stringstream msgFileSaved;
-		msgFileSaved << "File was saved as:<br /><br />" << std::endl << outFile.c_str();
-		showInformation( "File saved", msgFileSaved.str() );
+		std::string msgFileSaved = "File was saved as:<br /><br />\n" + outFile.string();
+		showInformation( "File saved", msgFileSaved );
 	}
 
 	// Done.
