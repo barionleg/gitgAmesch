@@ -143,10 +143,9 @@ private:
 
 private:
 	// Screenshot - Views - Wrapping methods
-	bool screenshotViewsDirectory( QString& rPathChoosen, QStringList& rCurrFiles ); // Internal use only
+	bool screenshotViewsDirectoryFiles( QString& rPathChoosen, QStringList& rCurrFiles ); // Internal use only
 public:
-	bool screenshotViewsPDFDirectory();
-	bool screenshotViewsPNGDirectory();
+	bool screenshotViewsDirectory();
 	bool screenshotViewsPDFUser();
 	bool screenshotViewsPDF( const QString& rFileName );
 private:

@@ -31,6 +31,7 @@
 #include <random>
 #include <algorithm> // std::find_if
 #include <iomanip>
+#include <regex>
 
 #include <cstdlib>
 
@@ -16214,8 +16215,15 @@ bool Mesh::latexFetchFigureInfos( vector<pair<string,string>>* rStrings ) {
 	rStrings->push_back( pair<string,string>( string( "__FACE_COUNT__"  ),  to_string( getFaceNr()   ) ) ); //! __FACE_COUNT__
 
 	//! Meta-data:
-	rStrings->push_back( pair<string,string>( string( "__OBJECT_ID__" ),       getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID ) )       ); //! __OBJECT_ID__
-	rStrings->push_back( pair<string,string>( string( "__OBJECT_MATERIAL__" ), getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL ) ) ); //! __OBJECT_MATERIAL__
+	std::string metaObjectId       = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
+	std::string metaObjectMaterial = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
+	std::string metaObjectIdLaTeX;
+	std::string metaObjectMaterialLaTeX;
+	std::regex e( "_" );
+	std::regex_replace( std::back_inserter(metaObjectIdLaTeX), metaObjectId.begin(), metaObjectId.end(), e, "\\_" );
+	std::regex_replace( std::back_inserter(metaObjectMaterialLaTeX), metaObjectMaterial.begin(), metaObjectMaterial.end(), e, "\\_" );
+	rStrings->push_back( pair<string,string>( string( "__OBJECT_ID__" ), metaObjectIdLaTeX             ) ); //! __OBJECT_ID__
+	rStrings->push_back( pair<string,string>( string( "__OBJECT_MATERIAL__" ), metaObjectMaterialLaTeX ) ); //! __OBJECT_MATERIAL__
 	// Adapt web-reference
 	//! \todo extend for multiple links.
 	std::string strWebRef = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_REFERENCE_WEB );

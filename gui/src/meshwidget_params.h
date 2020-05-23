@@ -192,8 +192,7 @@ class MeshWidgetParams {
 			SCREENSHOT_CURRENT_VIEW_SINGLE_PDF, //!< Write a single image with the current view embedded into a PDF.
 			SCREENSHOT_VIEWS_IMAGES,            //!< Side-views of the mesh as PNGs or TIFFs.
 			SCREENSHOT_VIEWS_PDF,               //!< Side-views of the mesh as PNGs embedded into a PDF.
-			SCREENSHOT_VIEWS_PDF_DIRECTORY,     //!< Side-views of all meshes in a given directory as PNGs embedded via LaTeX into PDFs (one per mesh).
-			SCREENSHOT_VIEWS_PNG_DIRECTORY,     //!< Side-views of all meshes in a given directory as PNGs.
+			SCREENSHOT_VIEWS_DIRECTORY,         //!< Side-views or front-view of all meshes in a given directory as PNGs with or without embeding via LaTeX into PDFs (one per mesh).
 			EDIT_SET_CONEAXIS_CENTRALPIXEL,     //!< Use the central pixel of the viewport to set the axis of the cone. See Mesh::setConeAxis
 			SET_CURRENT_VIEW_TO_DEFAULT,        //!< Use the current view (matrix) to set the default view of the object.
 			SET_ORTHO_DPI,                      //!< Set the screen resolution for the orthographic rendering.
