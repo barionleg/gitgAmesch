@@ -3567,7 +3567,7 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled )
 	mMeshVisual->latexFetchFigureInfos( &replacmentStrings );
 
 	// Replace placeholders
-	latexTemplate.replace( QRegExp( "__FIGURE_IMAGE_FILE__" ), "\""+QString( prefixStem.c_str() )+"\".png" );
+	latexTemplate.replace( QRegExp( "__FIGURE_IMAGE_FILE__" ), "\""+QString( prefixStem.c_str() )+"\"" );
 	latexTemplate.replace( QRegExp( "__SCALE_FACTOR_STRING__" ), scaleFactorTex );
 	latexTemplate.replace( QRegExp( "__SCALE_FACTOR__" ), QString( "%1" ).arg( scaleFactor, 'f' ).trimmed() );
 	for( pair<string, string>& replacmentString : replacmentStrings ) {
