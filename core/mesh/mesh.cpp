@@ -578,6 +578,16 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			retVal = false;
 		    } break;
 		case APPLY_TRANSMAT_SELMVERT: {
+			if(hasDatumObjects())
+			{
+				bool proceed = true;
+				if(!showQuestion(&proceed, "Warning", "Warning: There are datum-objects in the scene that will be deleted by this operation.\nDo you want to continue?"))
+					break;
+
+				if(!proceed)
+					break;
+			}
+
 			Matrix4D valuesMatrix4x4;
 			if( !showEnterText( &valuesMatrix4x4, true ) ) {
 				break;
@@ -655,10 +665,32 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			}
 			break;
 		case UNROLL_AROUND_CONE:
+			if(hasDatumObjects())
+			{
+				bool proceed = true;
+				if(!showQuestion(&proceed, "Warning", "Warning: There are datum-objects in the scene that will be deleted by this operation.\nDo you want to continue?"))
+					break;
+
+				if(!proceed)
+					break;
+			}
+
+			removeAllDatumObjects();
 			bool isCylinderCase;
 			retVal = unrollAroundCone( &isCylinderCase );
 			break;
 		case UNROLL_AROUNG_CYLINDER:
+			if(hasDatumObjects())
+			{
+				bool proceed = true;
+				if(!showQuestion(&proceed, "Warning", "Warning: There are datum-objects in the scene that will be deleted by this operation.\nDo you want to continue?"))
+					break;
+
+				if(!proceed)
+					break;
+			}
+
+			removeAllDatumObjects();
 			retVal = unrollAroundCylinderRadius();
 			break;
 		case CONE_COVER_MESH:
@@ -13010,6 +13042,29 @@ bool Mesh::datumAddSphere( Vector3D rPos, double rRadius, unsigned char rRed, un
 	Sphere* someSphere = new Sphere( rPos, rRadius, rRed, rGreen, rBlue );
 	mDatumSpheres.push_back( someSphere );
 	return true;
+}
+
+//! Removes everything from the scene, except the mesh
+void Mesh::removeAllDatumObjects()
+{
+	for(auto& sphere : mDatumSpheres)
+	{
+		delete sphere;
+	}
+	mDatumSpheres.clear();
+
+	for(auto& box : mDatumBoxes)
+	{
+		delete box;
+	}
+	mDatumBoxes.clear();
+
+	mSelectedPositions.clear();
+}
+
+bool Mesh::hasDatumObjects()
+{
+	return !(mDatumSpheres.empty() && mDatumBoxes.empty() && mSelectedPositions.empty());
 }
 
 //! Apply a given transformation matrix Matrix4D to all Vertices (Mesh::mVertices).

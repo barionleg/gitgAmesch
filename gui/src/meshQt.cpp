@@ -625,6 +625,7 @@ bool MeshQt::showEnterText(Matrix4D* rMatrix4x4 , bool selectedVerticesOnly) {
 		Matrix4D matrix(values);
 		if(selectedVerticesOnly)
 		{
+			removeAllDatumObjects();
 			applyTransformation(matrix, &mSelectedMVerts);
 		}
 		else
@@ -1407,6 +1408,18 @@ bool MeshQt::centerAroundSphere() {
 
 //! Unrolls the mesh around a user-specified sphere.
 bool MeshQt::unrollAroundSphere() {
+	if(hasDatumObjects())
+	{
+		bool proceed = true;
+		if(!showQuestion(&proceed, "Warning", "Warning: There are datum-objects in the scene that will be deleted by this operation.\nDo you want to continue?"))
+			return false;
+
+		if(!proceed)
+			return false;
+	}
+
+	removeAllDatumObjects();
+
 	using namespace std::chrono;
 	high_resolution_clock::time_point tStart = high_resolution_clock::now();
 

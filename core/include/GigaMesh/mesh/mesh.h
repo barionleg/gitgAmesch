@@ -651,6 +651,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 
 		// Datum Sphere and Box
 		virtual bool     datumAddSphere( Vector3D rPos, double rRadius, unsigned char rRed=255, unsigned char rGreen=127, unsigned char rBlue=0 );
+		virtual void     removeAllDatumObjects();
+				bool     hasDatumObjects();
 
 		enum eTranslate {
 			TRANSLATE_PLACE_ON_XZ_ONLY,      //!< Place mesh on xz-plane with no further transformation.
