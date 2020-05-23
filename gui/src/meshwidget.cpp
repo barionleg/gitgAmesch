@@ -4150,8 +4150,8 @@ bool MeshWidget::screenshotSVG( const QString& rFileName, const QString& rFileNa
 	bool pointsLeft = true;
 	while( pointsLeft ) {
 		pointsLeft = false;
-		uint64_t sx = 0;
-		uint64_t sy = 0;
+		int64_t sx = 0;
+		int64_t sy = 0;
 		// find a first point
 		for( uint64_t ix=0; ix<imWidth; ix++ ) {
 			for( uint64_t iy=0; iy<imHeight; iy++ ) {
@@ -4729,7 +4729,7 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 	std::string inkscapeCommand;
 	getParamStringMeshWidget(MeshWidgetParams::INKSCAPE_COMMAND, &inkscapeCommand);
 	// 8.) Display with Inkscape:
-	if( !QProcess::startDetached( QString(inkscapeCommand.c_str()) + " " + fileName ) ) {
+	if( !QProcess::startDetached( QString(inkscapeCommand.c_str()) + " \"" + fileName + "\"" ) ) {
 		LOG::error() << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Inkscape won't start!\n";
 	}
 
