@@ -606,11 +606,8 @@ bool MeshWidget::callFunctionMeshWidget( MeshWidgetParams::eFunctionCall rFuncti
 		case SCREENSHOT_VIEWS_PDF:
 			retVal &= screenshotViewsPDFUser();
 			break;
-		case SCREENSHOT_VIEWS_PDF_DIRECTORY:
-			retVal &= screenshotViewsPDFDirectory();
-			break;
-		case SCREENSHOT_VIEWS_PNG_DIRECTORY:
-			retVal &= screenshotViewsPNGDirectory();
+		case SCREENSHOT_VIEWS_DIRECTORY:
+			retVal &= screenshotViewsDirectory();
 			break;
 		case EDIT_SET_CONEAXIS_CENTRALPIXEL:
 			retVal &= userSetConeAxisCentralPixel();
@@ -2342,18 +2339,18 @@ void MeshWidget::generateLatexCatalog() {
 
 //! User interaction: ask for directory to parse.
 //! @returns false in case of an error. True otherwise.
-bool MeshWidget::screenshotViewsDirectory(
+bool MeshWidget::screenshotViewsDirectoryFiles(
                 QString&       rPathChoosen,     //!< Current directory.
                 QStringList&   rCurrFiles        //!< List of files.
 ) {
 	QString pathChoosen = QFileDialog::getExistingDirectory( mMainWindow,
-															 tr( "Choose the Directory" ) );
+	                                                         tr( "Choose the Directory" ) );
 
 	if( pathChoosen.isEmpty() ) { // User cancel.
-		cout << "[MeshWidget::" << __FUNCTION__ << "] User canceled!" << endl;
+		std::cout << "[MeshWidget::" << __FUNCTION__ << "] User canceled!" << std::endl;
 		return( false );
 	}
-	cout << "[MeshWidget::" << __FUNCTION__ << "] chosen path: " << pathChoosen.toStdString() << endl;
+	std::cout << "[MeshWidget::" << __FUNCTION__ << "] chosen path: " << pathChoosen.toStdString() << std::endl;
 
 	// Filter files with certain patterns (types copied from load dialog except!!! txt / TXT)
 	QStringList filter3DFiles;
@@ -2374,81 +2371,34 @@ bool MeshWidget::screenshotViewsDirectory(
 	return( true );
 }
 
-//! Render side-views as PNG and embed those within a PDF using a LaTeX template.
+//! Render front-views or side-views as
+//! PNGs or PDFs having PNGs embeded created using a LaTeX template.
 //!
-//! User interaction: select a path to load the meshes consecutively and generate
-//! a PDF for each 3D-file found.
-//!
-//! @returns false in case of an error or user cancel. True otherwise.
-bool MeshWidget::screenshotViewsPDFDirectory() {
-	QString     pathChoosen;
-	QStringList currFiles;
-	if( !screenshotViewsDirectory( pathChoosen, currFiles ) ) {
-		return( false );
-	}
-
-	bool errorOccured = false;
-	// This could be outsourced
-	for( int i=0; i<currFiles.size(); ++i ) {
-		// mMainWindow->load( pathChoosen+'/'+currFiles.at(i) );
-		if( !fileOpen( pathChoosen+'/'+currFiles.at(i) ) ) {
-			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: File open failed for '" << (pathChoosen+'/'+currFiles.at(i)).toStdString() << "'!" << endl;
-			errorOccured = true;
-			continue;
-		}
-		if( mMeshVisual == nullptr ) {
-			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: No mesh loaded for '" << (pathChoosen+'/'+currFiles.at(i)).toStdString() << "'!" << endl;
-			errorOccured = true;
-			continue;
-		}
-
-		//! \todo add User interaction.
-		//===============================================================================================================
-		// Set properties - HEURISTIC for cuneiform tablets
-		//===============================================================================================================
-		// Set ligth and fixed resolution
-		callFunctionMeshWidget( SET_RENDER_LIGHT_SHADING );
-		orthoSetDPI( 600 );
-		// Compute function value and choose grayscale
-		double minFuncValue = -0.12910306806; // Values used for HeiCuBeDa
-		double maxFuncValue = +0.48764927169; // Values used for HeiCuBeDa
-		mMeshVisual->callFunctionMesh( MeshParams::FUNCVAL_FEATUREVECTOR_MAX_ELEMENT, false ); // False has NO influence.
-		mMeshVisual->setParamIntMeshGL( MeshGLParams::GLSL_COLMAP_CHOICE, MeshGLParams::GLSL_COLMAP_GRAYSCALE );
-		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_COLMAP_INVERT, true );
-		// Set fixed range for the function value for all renderings to achieve uniform coloring
-		mMeshVisual->setParamIntMeshGL( MeshGLParams::FUNCVAL_CUTOFF_CHOICE, MeshGLParams::FUNCVAL_CUTOFF_MINMAX_USER );
-		mMeshVisual->setParamFloatMeshGL( MeshGLParams::TEXMAP_FIXED_MIN, minFuncValue );
-		mMeshVisual->setParamFloatMeshGL( MeshGLParams::TEXMAP_FIXED_MAX, maxFuncValue );
-		// Turn of vertex sprite rendering
-		mMeshVisual->callFunctionMeshGL( MeshGLParams::SET_SHOW_VERTICES_NONE, false ); // False has NO influence.
-		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_SELECTION, false );
-		//===============================================================================================================
-
-		// Create PDF
-		QString prefixStem( string( std::filesystem::path( currFiles.at(i).toStdString() ).stem().string() ).c_str() );
-		screenshotViewsPDF( pathChoosen+'/'+prefixStem+".pdf" ); // Multiple Sides
-		//screenshotPDF( pathChoosen+'/'+prefixStem+".pdf", true ); // Fromt Sides
-	}
-
-	SHOW_MSGBOX_INFO( tr("Schreenshots - Views - PDF"), tr("Screenshots have been exported as PDF, LaTeX and PNG.") );
-
-	return( !errorOccured );
-}
-
-//! Render side-views as PNGs.
-//!
-//! User interaction: select a path to load the meshes consecutively and generate
-//! side-views for each 3D-file found.
+//! User interaction: select a path to load the meshes consecutively
+//! and generate views for each 3D-file found.
 //!
 //! @returns false in case of an error or user cancel. True otherwise.
-bool MeshWidget::screenshotViewsPNGDirectory() {
-	// Store settings from current Mesh and Widget
+bool MeshWidget::screenshotViewsDirectory() {
+	// Store settings from current Mesh and MeshWidget
 	MeshGLParams storeMeshGLParams( (MeshGLParams)mMeshVisual );
 	MeshWidgetParams storeMeshWidgetParams( (MeshWidgetParams)this );
 
+	// PDF or PNG
+	bool preferPNGoverPDF(true);
+	// Ask user about PDF creation or PNG rendering only
+	bool userCancel;
+	SHOW_QUESTION( tr( "PNG images or PDF documents" ),
+	               tr( "Do you want to create<br /><br />"
+	                   "... PNG images - choose: YES<br /><br />"
+	                   "... PDF documents - choose: NO" ),
+	               preferPNGoverPDF, userCancel );
+	if( userCancel ) {
+		return( false );
+	}
+
 	// Print resolution and tiled renderin (only in Orthographic projection mode)
-	bool   frontView = true;
-	bool   useTiled = false;
+	bool   frontView(true);
+	bool   useTiled(false);
 	double printResDPI;
 	getViewPortDPI( printResDPI );
 	bool orthoMode;
@@ -2466,14 +2416,6 @@ bool MeshWidget::screenshotViewsPNGDirectory() {
 		if( !dlgEnterTxt.getText( &printResDPI ) ) {
 			return( false );
 		}
-		// Ask user about tiled rendering
-		bool userCancel;
-		SHOW_QUESTION( tr( "Tiled rendering" ),
-		               tr( "Do you want to use tiled rendering?" ),
-		               useTiled, userCancel );
-		if( userCancel ) {
-			return( false );
-		}
 		// Ask user about single VS side views
 		SHOW_QUESTION( tr( "Front view | Side views" ),
 		               tr( "Do you want render<br /><br />"
@@ -2483,12 +2425,21 @@ bool MeshWidget::screenshotViewsPNGDirectory() {
 		if( userCancel ) {
 			return( false );
 		}
+		if( frontView | preferPNGoverPDF ) { // Tiled rendering is not an option for PDF and Views
+			// Ask user about tiled rendering
+			SHOW_QUESTION( tr( "Tiled rendering" ),
+				       tr( "Do you want to use tiled rendering?" ),
+				       useTiled, userCancel );
+			if( userCancel ) {
+				return( false );
+			}
+		}
 	}
 
 	// Let the user choose a path
 	QString     pathChoosen;
 	QStringList currFiles;
-	if( !screenshotViewsDirectory( pathChoosen, currFiles ) ) {
+	if( !screenshotViewsDirectoryFiles( pathChoosen, currFiles ) ) {
 		return( false );
 	}
 
@@ -2504,18 +2455,19 @@ bool MeshWidget::screenshotViewsPNGDirectory() {
 		return( false );
 	}
 
-	bool errorOccured = false;
-	// This could be outsourced
+	bool retVal = true;
 	for( int i=0; i<currFiles.size(); ++i ) {
 		// mMainWindow->load( pathChoosen+'/'+currFiles.at(i) );
 		if( !fileOpen( pathChoosen+'/'+currFiles.at(i) ) ) {
-			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: File open failed for '" << (pathChoosen+'/'+currFiles.at(i)).toStdString() << "'!" << endl;
-			errorOccured = true;
+			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: File open failed for '"
+			          << (pathChoosen+'/'+currFiles.at(i)).toStdString() << "'!" << std::endl;
+			retVal = false;
 			continue;
 		}
 		if( mMeshVisual == nullptr ) {
-			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: No mesh loaded for '" << (pathChoosen+'/'+currFiles.at(i)).toStdString() << "'!" << endl;
-			errorOccured = true;
+			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: No mesh loaded for '"
+			          << (pathChoosen+'/'+currFiles.at(i)).toStdString() << "'!" << std::endl;
+			retVal = false;
 			continue;
 		}
 
@@ -2525,82 +2477,103 @@ bool MeshWidget::screenshotViewsPNGDirectory() {
 			orthoSetDPI( printResDPI );
 		}
 
-		//! \todo finish User settings and clean-up!
-		//===============================================================================================================
-		// Set properties - HEURISTIC for cuneiform tablets
-		//===============================================================================================================
-		// Set ligth and fixed resolution
-//		setParamFlagMeshWidget( EXPORT_SIDE_VIEWS_SIX, false );
-//		setParamFlagMeshWidget( LIGHT_ENABLED, true );
-//		mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_MONO );
-		// Turn of vertex sprite rendering -- COPY+PASTE from BELOW!
-//		mMeshVisual->callFunctionMeshGL( MeshGLParams::SET_SHOW_VERTICES_NONE, false ); // False has NO influence.
-//		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_SELECTION, false );
-
 		// Create PNGs
 		string fileNamePattern;
 		getParamStringMeshWidget( FILENAME_EXPORT_VIEWS, &fileNamePattern );
 		QString prefixStem( string( std::filesystem::path( currFiles.at(i).toStdString() ).stem().string() ).c_str() );
 
 		if( frontView ) {
-			// FRONT View
-			double widthReal;  // Dummy var - unused in this context.
-			double heigthReal; // Dummy var - unused in this context.
-			screenshotSingle( ( pathChoosen+"/"+prefixStem+fileNameSuffix+".png" ),
-					   useTiled, widthReal, heigthReal );
+			if( preferPNGoverPDF ) {
+				// FRONT View PNG image
+				double widthReal;  // Dummy var - unused in this context.
+				double heigthReal; // Dummy var - unused in this context.
+				retVal |= screenshotSingle( pathChoosen+"/"+prefixStem+fileNameSuffix+".png",
+				                             useTiled, widthReal, heigthReal );
+			} else {
+				// FRONT View PDF document
+				QString prefixStem( string( std::filesystem::path( currFiles.at(i).toStdString() ).stem().string() ).c_str() );
+				retVal |= screenshotPDF( pathChoosen+'/'+prefixStem+fileNameSuffix+".pdf",
+				                         useTiled ); // Fromt Side
+			}
 		} else {
-			// SIDE Views
-			std::vector<QString> imageFiles;
-			std::vector<double>  imageSizes;
-			screenshotViews( QString( fileNamePattern.c_str() ),
-			                 QString( pathChoosen+"/"+prefixStem+fileNameSuffix ),
-			                 useTiled, imageFiles, imageSizes );
+			if( preferPNGoverPDF ) {
+				// SIDE Views PNG images
+				std::vector<QString> imageFiles;
+				std::vector<double>  imageSizes;
+				//! \todo add boolean return to screenshotViews
+				screenshotViews( QString( fileNamePattern.c_str() ),
+				                 QString( pathChoosen+"/"+prefixStem+fileNameSuffix ),
+				                 useTiled, imageFiles, imageSizes );
+			} else {
+				// SIDE Views PDF document
+				QString prefixStem( string( std::filesystem::path( currFiles.at(i).toStdString() ).stem().string() ).c_str() );
+				retVal |= screenshotViewsPDF( pathChoosen+'/'+prefixStem+fileNameSuffix+".pdf" ); // TILES always ON
+			}
 		}
-		/*
-		//===============================================================================================================
-		// Set properties - HEURISTIC for cuneiform tablets
-		//===============================================================================================================
-		// Set ligth and fixed resolution
-		setParamFlagMeshWidget( EXPORT_SIDE_VIEWS_SIX, true );
-		setParamFlagMeshWidget( LIGHT_ENABLED, false );
-		orthoSetDPI( printResDPI );
-		// Compute function value and choose grayscale
-		//double minFuncValue = -0.12910306806; // Values used for HeiCuBeDa 1%
-		//double maxFuncValue = +0.48764927169; // Values used for HeiCuBeDa 99%
-		double minFuncValue = -0.061743971965; // Values used for ErKon3D Springer LNCS 5%
-		double maxFuncValue = 0.205966176870; // Values used for ErKon3D Springer LNCS 98%
-		//double maxFuncValue = +0.554183392987; // Values used for ErKon3D Springer LNCS
-		mMeshVisual->callFunctionMesh( MeshParams::FUNCVAL_FEATUREVECTOR_MAX_ELEMENT, false ); // False has NO influence.
-		mMeshVisual->setParamIntMeshGL( MeshGLParams::GLSL_COLMAP_CHOICE, MeshGLParams::GLSL_COLMAP_GRAYSCALE );
-		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_COLMAP_INVERT, true );
-		// Set fixed range for the function value for all renderings to achieve uniform coloring
-		mMeshVisual->setParamIntMeshGL( MeshGLParams::FUNCVAL_CUTOFF_CHOICE, MeshGLParams::FUNCVAL_CUTOFF_MINMAX_USER );
-		mMeshVisual->setParamFloatMeshGL( MeshGLParams::TEXMAP_FIXED_MIN, minFuncValue );
-		mMeshVisual->setParamFloatMeshGL( MeshGLParams::TEXMAP_FIXED_MAX, maxFuncValue );
-		// Turn of vertex sprite rendering
-		mMeshVisual->callFunctionMeshGL( MeshGLParams::SET_SHOW_VERTICES_NONE, false ); // False has NO influence.
-		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_SELECTION, false );
-		//===============================================================================================================
 
-		// Create PNGs
-		// SIDE Views
-		//screenshotViews( fileNamePattern, ( pathChoosen+"/"+prefixStem ).toStdString(),
-		//                 useTiled, imageFiles, imageSizes );
-		// FRONT View
-		screenshotSingle( ( pathChoosen+"/"+prefixStem+".png" ),
-		                  useTiled, widthReal, heigthReal );
+		//! \todo clean-up.
+//		//===============================================================================================================
+//		// Set properties - HEURISTIC for cuneiform tablets
+//		//===============================================================================================================
+//		// Set ligth and fixed resolution
+//		setParamFlagMeshWidget( EXPORT_SIDE_VIEWS_SIX, false );
+//		setParamFlagMeshWidget( LIGHT_ENABLED, true );
+//		mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_MONO );
+//		// Turn of vertex sprite rendering -- COPY+PASTE from BELOW!
+//		mMeshVisual->callFunctionMeshGL( MeshGLParams::SET_SHOW_VERTICES_NONE, false ); // False has NO influence.
+//		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_SELECTION, false );
+//		.......
+//		//===============================================================================================================
+//		// Set properties - HEURISTIC for cuneiform tablets
+//		//===============================================================================================================
+//		// Set ligth and fixed resolution
+//		setParamFlagMeshWidget( EXPORT_SIDE_VIEWS_SIX, true );
+//		setParamFlagMeshWidget( LIGHT_ENABLED, false );
+//		orthoSetDPI( printResDPI );
+//		// Compute function value and choose grayscale
+//		//double minFuncValue = -0.12910306806; // Values used for HeiCuBeDa 1%
+//		//double maxFuncValue = +0.48764927169; // Values used for HeiCuBeDa 99%
+//		double minFuncValue = -0.061743971965; // Values used for ErKon3D Springer LNCS 5%
+//		double maxFuncValue = 0.205966176870; // Values used for ErKon3D Springer LNCS 98%
+//		//double maxFuncValue = +0.554183392987; // Values used for ErKon3D Springer LNCS
+//		mMeshVisual->callFunctionMesh( MeshParams::FUNCVAL_FEATUREVECTOR_MAX_ELEMENT, false ); // False has NO influence.
+//		mMeshVisual->setParamIntMeshGL( MeshGLParams::GLSL_COLMAP_CHOICE, MeshGLParams::GLSL_COLMAP_GRAYSCALE );
+//		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_COLMAP_INVERT, true );
+//		// Set fixed range for the function value for all renderings to achieve uniform coloring
+//		mMeshVisual->setParamIntMeshGL( MeshGLParams::FUNCVAL_CUTOFF_CHOICE, MeshGLParams::FUNCVAL_CUTOFF_MINMAX_USER );
+//		mMeshVisual->setParamFloatMeshGL( MeshGLParams::TEXMAP_FIXED_MIN, minFuncValue );
+//		mMeshVisual->setParamFloatMeshGL( MeshGLParams::TEXMAP_FIXED_MAX, maxFuncValue );
+//		// Turn of vertex sprite rendering
+//		mMeshVisual->callFunctionMeshGL( MeshGLParams::SET_SHOW_VERTICES_NONE, false ); // False has NO influence.
+//		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_SELECTION, false );
+//		//===============================================================================================================
 
-		// THIS is really QUICK and DIRTY
-		// Save file with function value and the created color.
-		// stops because of confirmation: mMeshVisual->callFunctionMeshGL( MeshGLParams::TRANSFORM_FUNCTION_VALUES_TO_RGB, false );
+//		// Create PNGs
+//		// SIDE Views
+//		//screenshotViews( fileNamePattern, ( pathChoosen+"/"+prefixStem ).toStdString(),
+//		//                 useTiled, imageFiles, imageSizes );
+//		// FRONT View
+//		screenshotSingle( ( pathChoosen+"/"+prefixStem+".png" ),
+//		                  useTiled, widthReal, heigthReal );
+
+//		// THIS is really QUICK and DIRTY
+//		// Save file with function value and the created color.
+//		// stops because of confirmation: mMeshVisual->callFunctionMeshGL( MeshGLParams::TRANSFORM_FUNCTION_VALUES_TO_RGB, false );
 //		mMeshVisual->runFunctionValueToRGBTransformation();
 //		mMeshVisual->writeFile( pathChoosen+"/"+prefixStem+"_FtElMax-as_VertexColor.ply" );
-*/
 	}
 
-	SHOW_MSGBOX_INFO( tr("Schreenshots - Views - PNG"), tr("Screenshots have been exported as PNG.") );
+	if( retVal ) {
+		SHOW_MSGBOX_INFO( tr( "Directory Schreenshots" ),
+		                  tr( "Screenshots have been exported for:<br /><br />" ) +
+		                  pathChoosen );
+	} else {
+		SHOW_MSGBOX_WARN( tr( "ERROR - Directory Schreenshots" ),
+		                  tr( "Errors occured creating screenshots for:<br /><br />" ) +
+		                  pathChoosen );
+	}
 
-	return( !errorOccured );
+	return( retVal );
 }
 
 //! Render side-views as PNG and embed those within a PDF using a LaTeX template.
@@ -3306,8 +3279,8 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled )
 	double widthReal;
 	double heigthReal;
 	screenshotSingle( filePrefixTex+".png", rUseTiled, widthReal, heigthReal );
-	cout << "[MeshWidget::" << __FUNCTION__ << "] allImageWidth: "  << widthReal << endl;
-	cout << "[MeshWidget::" << __FUNCTION__ << "] allImageHeigth: " << heigthReal << endl;
+	std::cout << "[MeshWidget::" << __FUNCTION__ << "] allImageWidth: "  << widthReal << std::endl;
+	std::cout << "[MeshWidget::" << __FUNCTION__ << "] allImageHeigth: " << heigthReal << std::endl;
 	double scaleFactor    = 1.0;
 	QString scaleFactorTex( "1:1" );
 
@@ -3315,12 +3288,12 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled )
 	double borderWidth = 10.0 * 2.0;
 	double ratioWidth  = widthReal  / ( 210.0 - borderWidth - 20.0 );
 	double ratioHeigth = heigthReal / ( 297.0 - borderWidth - 45.0 ); // for table heigth
-	cout << "[MeshWidget::" << __FUNCTION__ << "] ratioWidth:  " << ratioWidth  << endl;
-	cout << "[MeshWidget::" << __FUNCTION__ << "] ratioHeigth: " << ratioHeigth << endl;
+	std::cout << "[MeshWidget::" << __FUNCTION__ << "] ratioWidth:  " << ratioWidth  << std::endl;
+	std::cout << "[MeshWidget::" << __FUNCTION__ << "] ratioHeigth: " << ratioHeigth << std::endl;
 	double maxRatio = max( ratioWidth, ratioHeigth );
-	cout << "[MeshWidget::" << __FUNCTION__ << "] maxRatio: " << maxRatio << endl;
+	std::cout << "[MeshWidget::" << __FUNCTION__ << "] maxRatio: " << maxRatio << std::endl;
 	double log10pow = floor( log10( maxRatio ) );
-	cout << "[MeshWidget::" << __FUNCTION__ << "] log10pow: " << log10pow << endl;
+	std::cout << "[MeshWidget::" << __FUNCTION__ << "] log10pow: " << log10pow << std::endl;
 	scaleFactor       = 2.0/( ceil( maxRatio*2.0/pow( 10.0, log10pow ) )*pow( 10.0, log10pow ) );
 	scaleFactorTex    = "1:" + QString( "%1" ).arg( 1.0/scaleFactor, 'f' ).trimmed() ;
 
@@ -3354,7 +3327,7 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled )
 	// Write LaTex file
 	QFile fileLatexOut( filePrefixTex + ".tex" );
 	if( !fileLatexOut.open( QIODevice::WriteOnly ) ) {
-		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: LaTeX file could not be opened!" << endl;
+		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: LaTeX file could not be opened!" << std::endl;
 		return( false );
 	}
 
@@ -3370,7 +3343,7 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled )
 #endif
 
 	if( !screenshotPDFMake( qPrefixPath , filePrefixTex ) ) {
-		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: LaTeX file could not be compiled!" << endl;
+		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: LaTeX file could not be compiled!" << std::endl;
 		return( false );
 	}
 

@@ -95,13 +95,6 @@
       <string>Open Recent &amp;Files</string>
      </property>
     </widget>
-    <widget class="QMenu" name="menuExport_Screenshots_Parse_Directory">
-     <property name="title">
-      <string>Export Screenshots - Parse Directory</string>
-     </property>
-     <addaction name="actionScreenshotViewsPNGDirectory"/>
-     <addaction name="actionScreenshotViewsPDFDirectory"/>
-    </widget>
     <widget class="QMenu" name="menuImport">
      <property name="title">
       <string>Import</string>
@@ -146,8 +139,9 @@
     <addaction name="actionExportPlaneIntersectSVG"/>
     <addaction name="separator"/>
     <addaction name="menuExportScreenshots"/>
-    <addaction name="menuExport_Screenshots_Parse_Directory"/>
     <addaction name="menuExportImageStack"/>
+    <addaction name="separator"/>
+    <addaction name="actionScreenshotViewsDirectory"/>
     <addaction name="separator"/>
     <addaction name="actionUnloadFeatureVectors"/>
     <addaction name="actionUnload3D"/>
@@ -4185,9 +4179,9 @@ p, li { white-space: pre-wrap; }
     <string>Faces - GUI Pinpoint</string>
    </property>
   </action>
-  <action name="actionScreenshotViewsPNGDirectory">
+  <action name="actionScreenshotViewsDirectory">
    <property name="text">
-    <string>Screenshot Directory Views (PNG)</string>
+    <string>Screenshot Directory</string>
    </property>
   </action>
   <action name="actionScreenshotPDF">

@@ -210,8 +210,10 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionScreenshotSVG,           SIGNAL(triggered()),   this,       SIGNAL(screenshotSVG())        );
 	QObject::connect( actionScreenshotRuler,         SIGNAL(triggered()),   this,       SIGNAL(screenshotRuler())      );
 
+	// === LEGACY to be removed! ===========================================================================================================================
     QObject::connect( actionGenerateLatexFile,       SIGNAL(triggered()),   this,       SIGNAL(generateLatexFile()) );
     QObject::connect( actionGenerateLatexCatalog,    SIGNAL(triggered()),   this,       SIGNAL(generateLatexCatalog()) );
+	// =====================================================================================================================================================
 
 	//.
 	QObject::connect( actionViewDefaultViewLight,     SIGNAL(triggered()),  this,       SIGNAL(sDefaultViewLight())     );
@@ -1157,8 +1159,7 @@ void QGMMainWindow::initMeshSignals() {
 	actionScreenshotPDF->setProperty(                             "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_CURRENT_VIEW_SINGLE_PDF   );
 	actionScreenshotViews->setProperty(                           "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_IMAGES          );
 	actionScreenshotViewsPDF->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_PDF             );
-	actionScreenshotViewsPDFDirectory->setProperty(               "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_PDF_DIRECTORY   );
-	actionScreenshotViewsPNGDirectory->setProperty(               "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_PNG_DIRECTORY   );
+	actionScreenshotViewsDirectory->setProperty(                  "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_DIRECTORY           );
 	actionCurrentViewToDefault->setProperty(                      "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_CURRENT_VIEW_TO_DEFAULT      );
 	actionSetConeAxisCentralPixel->setProperty(                   "gmMeshWidgetFunctionCall", MeshWidgetParams::EDIT_SET_CONEAXIS_CENTRALPIXEL       );
 	actionOrthoSetDPI->setProperty(                               "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_ORTHO_DPI                    );
