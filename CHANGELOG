@@ -12,14 +12,20 @@ Current version
 +) Improved: Normal vector computation per vertex. See 'Edit -> Vertices - Recompute Normals" and enter values larger than 0.
 +) Improved: options of 'gigamesh-featurevectors'.
 +) Improved: When changing the light-position, only the ones manipulated are shown.
++) Improved: Datum objects and selected positions are now transformed as well, if all vertices are transformed by a matrix.
++) Improved: Scaling an object now also scales the pins as well.
 +) Bugfix: missing text for 'gigamesh-featurevectors --help' added.
 +) Bugfix: fixed a bug, when exporting screenshots with filenames containing a '.' .
 +) Bugfix: normals are now correctly imported when loading binary-ply files and obj-files.
 +) Bugfix: clipping planes now work in the textured-mesh renderer.
 +) Bugfix: fixed filenames when exporting png-fallbacks when libtiff is not available
++) Bugfix: fixed a bug when opening a file with blanks in inkscape.
++) Bugfix: fixed a filename-issue when generating single-view latex-reports.
 +) Changed: gigamesh-featurevectors stores the maximum element of the feature vector into the function value i.e. quality field.
 +) Changed: light sources can now be rotated with the keys '3' and '4'.
 +) Changed: Import and export actions in the "File" menu moved to according sub-menus.
++) Changed: Datum objects and selected positions are now removed when transforming only a selected set of vertices.
++) Changed: Datum objects and selected positions are now removed when the mesh is unrolled.
 +) Updated: Help. See 'Info -> Keyboard Layout'.
 
 Version 200405
