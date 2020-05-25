@@ -83,20 +83,45 @@ set(GUI_UI_FILES
 	forms/DialogFindTextures.ui
 )
 
+set(PY_INTER_SOURCES
+	python-interface/json.hpp
+	python-interface/httpMethod.cpp
+	python-interface/httpVersion.cpp
+	python-interface/httpParser.h
+	python-interface/httpParser.cpp
+	python-interface/tcpServer.h
+	python-interface/tcpServer.cpp
+	python-interface/json.hpp
+	python-interface/httpParser.h
+	python-interface/tcpServer.h
+)
+
+set(PY_INTER_HEADERS
+	python-interface/json.hpp
+	python-interface/httpParser.h
+	python-interface/tcpServer.h
+)
+
 #NOTE: instead of adding translations via resources, the ts-files can also be build by
 #      qt5_create_translation and then be added
-qt5_add_resources(GUI_RESOURCES "forms/gigamesh.qrc"
-								"src/shaders/shaders.qrc"
-								"languages/translations.qrc"
-								"latex_report_template/latex_templates.qrc"
-								"python-scripts/pythonscripts.qrc"
+qt5_add_resources(GUI_RESOURCES 
+	"forms/gigamesh.qrc"
+	"src/shaders/shaders.qrc"
+	"languages/translations.qrc"
+	"latex_report_template/latex_templates.qrc"
+	"python-scripts/pythonscripts.qrc"
 )
 
 #set here the paths of the ui-files, so autouic can find them
-set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/forms
-							   ${CMAKE_CURRENT_SOURCE_DIR}/normalSphereSelection)
+set(CMAKE_AUTOUIC_SEARCH_PATHS 
+	${CMAKE_CURRENT_SOURCE_DIR}/forms	  
+	${CMAKE_CURRENT_SOURCE_DIR}/normalSphereSelection
+	${CMAKE_CURRENT_SOURCE_DIR}/python-interface)
 
-add_executable(gigamesh ${GUI_SOURCES} ${GUI_RESOURCES} ${GUI_UI_FILES})
+#add_library(pyInter ${PY_INTER_FILES})
+qt5_wrap_cpp(PY_Inter PY_INTER_SOURCES)
+
+add_executable(gigamesh ${GUI_SOURCES} ${GUI_RESOURCES} ${GUI_UI_FILES} ${PY_INTER})
 
 add_definitions(${Qt5Widgets_DEFINITIONS})
 target_include_directories(gigamesh PRIVATE ${Qt5Widgets_INCLUDES})
@@ -114,6 +139,8 @@ target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 #needed, if ui-header files need references to custom classes (e.g. NormalSphereSelectionRenderWidget.h)
 target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/python-interface)
 
 target_link_libraries(gigamesh PRIVATE ${Qt5Widgets_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Network_LIBRARIES} psalm OpenGL::GL gigameshCore triangle)
 
