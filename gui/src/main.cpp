@@ -44,6 +44,7 @@
 
 // C++ includes:
 #include <GigaMesh/printbuildinfo.h>
+#include "tcpServer.h"
 
 using namespace std;
 
@@ -159,6 +160,9 @@ int main( int argc, char *argv[] ) {
 		winSize *= 2.0;
 		mainWindow.resize( winSize );
 	}
+
+	TcpServer server;
+	server.setMainWindow(&mainWindow);
 
 	// Pass arguments to the main window
 	if( targetFile.size() > 0 ) {

@@ -8,12 +8,13 @@
 #include "httpMethod.cpp"
 #include "httpVersion.cpp"
 #include <QObject>
-#include <json/json.hpp>
+#include <json.hpp>
 
 // for convenience
 using json = nlohmann::json;
 
 using namespace std;
+
 
 // example:
 // curl localhost:8080/load?filename=blub.ply

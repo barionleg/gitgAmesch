@@ -9,6 +9,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+#add_subdirectory(python-interface)
+
 if(CMAKE_VERSION VERSION_LESS "3.7.0")
 	set(CMAKE_INCLUDE_CURRENT_DIR ON)
 endif()
@@ -84,12 +86,9 @@ set(GUI_UI_FILES
 )
 
 set(PY_INTER_SOURCES
-	python-interface/json.hpp
 	python-interface/httpMethod.cpp
 	python-interface/httpVersion.cpp
-	python-interface/httpParser.h
 	python-interface/httpParser.cpp
-	python-interface/tcpServer.h
 	python-interface/tcpServer.cpp
 	python-interface/json.hpp
 	python-interface/httpParser.h
@@ -118,10 +117,10 @@ set(CMAKE_AUTOUIC_SEARCH_PATHS
 	${CMAKE_CURRENT_SOURCE_DIR}/normalSphereSelection
 	${CMAKE_CURRENT_SOURCE_DIR}/python-interface)
 
-#add_library(pyInter ${PY_INTER_FILES})
-qt5_wrap_cpp(PY_Inter PY_INTER_SOURCES)
+#qt5_wrap_cpp(gigamesh ${PY_INTER_SOURCES})
+qt5_wrap_cpp(PY_INTER_MOC ${PY_INTER_SOURCES})
 
-add_executable(gigamesh ${GUI_SOURCES} ${GUI_RESOURCES} ${GUI_UI_FILES} ${PY_INTER})
+add_executable(gigamesh ${GUI_SOURCES} ${GUI_RESOURCES} ${GUI_UI_FILES} ${PY_INTER_SOURCES} ${PY_INTER_MOC})# ${PY_INTER_HEADERS})
 
 add_definitions(${Qt5Widgets_DEFINITIONS})
 target_include_directories(gigamesh PRIVATE ${Qt5Widgets_INCLUDES})

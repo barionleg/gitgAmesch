@@ -212,6 +212,10 @@ MeshWidget::~MeshWidget() {
 	//doneCurrent();
 }
 
+MeshQt* MeshWidget::getMesh(){
+	return this->mMeshVisual;
+}
+
 //! Returns the resolution of back-plane of the viewport in dots per centimeter.
 //! Attention: Calling this function makes only sense, when in orthographic mode!
 //! @returns false in case of an error. true otherwise.

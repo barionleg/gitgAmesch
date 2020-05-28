@@ -1,8 +1,9 @@
-﻿#include "tcpServer.h"
+
+#include "tcpServer.h"
 //#include <string>
 #include <QString>
 
-MyTcpServer::MyTcpServer(QObject *parent) :
+TcpServer::TcpServer(QObject *parent) :
     QObject(parent)
 {
     server = new QTcpServer(this);
@@ -18,16 +19,16 @@ MyTcpServer::MyTcpServer(QObject *parent) :
 
     if(!server->listen(QHostAddress::Any, 8080))
     {
-	qDebug() << "[myTcpServer::myTcpServer] Server could not start";
+	qDebug() << "[TcpServer::TcpServer] Server could not start";
     }
     else
     {
-	qDebug() << "[myTcpServer::myTcpServer] Server started.";
+	qDebug() << "[TcpServer::TcpServer] Server started.";
     }
 }
 
 
-string MyTcpServer::statusCodeAsString(httpStatusCode c)
+string TcpServer::statusCodeAsString(httpStatusCode c)
 {
 	switch (c)
 	{
@@ -42,7 +43,7 @@ string MyTcpServer::statusCodeAsString(httpStatusCode c)
 }
 
 
-void MyTcpServer::connected()//QTcpSocket *socket)
+void TcpServer::connected()//QTcpSocket *socket)
 {
 	httpStatusCode statusCode;
 	if(this->socket != nullptr && this->socket->isOpen()){
@@ -52,7 +53,7 @@ void MyTcpServer::connected()//QTcpSocket *socket)
 		statusCode = c503; //"\n503 Service Unavailable\r\n";
 	}
 
-	QString verConnected = QString::fromStdString(MyTcpServer::statusCodeAsString(statusCode));
+	QString verConnected = QString::fromStdString(TcpServer::statusCodeAsString(statusCode));
 	this->socket->write(verConnected.toLocal8Bit());
 	this->socket->flush();
 
@@ -61,9 +62,9 @@ void MyTcpServer::connected()//QTcpSocket *socket)
 }
 
 
-void MyTcpServer::reading(HTTP::Request *request)
+void TcpServer::reading(HTTP::Request *request)
 {
-	cout << endl << "[myTcpServer::reading] Reading data..." << endl;
+	cout << endl << "[TcpServer::reading] Reading data..." << endl;
 
 	bool headerEnd = false;
 
@@ -90,7 +91,7 @@ void MyTcpServer::reading(HTTP::Request *request)
 		}
 	}
 
-	cout << endl << "[myTcpServer::reading] Received request: " << endl;
+	cout << endl << "[TcpServer::reading] Received request: " << endl;
 
 	qDebug() << "Header: " << reqHead;
 
@@ -117,9 +118,9 @@ void MyTcpServer::reading(HTTP::Request *request)
 }
 
 
-void MyTcpServer::sending(QStringList *response)
+void TcpServer::sending(QStringList *response)
 {
-	cout << "[myTcpServer::sending] Sending data..." << endl;
+	cout << "[TcpServer::sending] Sending data..." << endl;
 
 	QByteArray mess;
 	mess += response->at(0).toLocal8Bit(); //responseBody.toUtf8().size()
@@ -135,11 +136,11 @@ void MyTcpServer::sending(QStringList *response)
 	//this->socket->waitForBytesWritten(response->at(0).toUtf8().size());
 	//this->socket->waitForReadyRead();
 
-	cout << "[myTcpServer::sending] Finished sending." << endl;
+	cout << "[TcpServer::sending] Finished sending." << endl;
 }
 
 
-void MyTcpServer::newConnection()
+void TcpServer::newConnection()
 {
 	this->socket = server->nextPendingConnection();
 
@@ -156,7 +157,7 @@ void MyTcpServer::newConnection()
 }
 
 
-QStringList MyTcpServer::parseCommand(string command,json parameters){//std::vector<std::string> parameters); {
+QStringList TcpServer::parseCommand(string command,json parameters){//std::vector<std::string> parameters); {
 
 	cout << endl << "[QGMMainWindow::receiveCommand] Received command: " << command << endl;
 
@@ -337,13 +338,13 @@ QStringList MyTcpServer::parseCommand(string command,json parameters){//std::vec
 	}
 
 	QStringList response;
-	response << QString::fromStdString(MyTcpServer::statusCodeAsString(statusCode)) << QString::fromStdString(data.dump());
+	response << QString::fromStdString(TcpServer::statusCodeAsString(statusCode)) << QString::fromStdString(data.dump());
 
 	return response;
 }
 
 
-void MyTcpServer::setMainWindow(QGMMainWindow *mainWindow)
+void TcpServer::setMainWindow(QGMMainWindow *mainWindow)
 {
 	this->mainWin = mainWindow;
 }

@@ -1,6 +1,6 @@
 
-#ifndef MYTCPSERVER_H
-#define MYTCPSERVER_H
+#ifndef TCPSERVER_H
+#define TCPSERVER_H
 
 #include <QObject>
 #include <QTcpSocket>
@@ -11,20 +11,20 @@
 #include <QGMMainWindow.h>
 #include "meshwidget.h"
 #include "httpParser.cpp"
-#include <json/json.hpp>
+#include <json.hpp>
 #include <string>
 
 // for convenience
 using json = nlohmann::json;
 
-class MyTcpServer : public QObject
+class TcpServer : public QObject
 {
     Q_OBJECT
     
 public:
-    explicit MyTcpServer(QObject *parent = 0);//,QGMMainWindow *mainWindow = 0);
+    explicit TcpServer(QObject *parent = 0);//,QGMMainWindow *mainWindow = 0);
     enum httpStatusCode { c200, c202, c404, c424, c500, c503 };
-	void setMainWindow(QGMMainWindow *mainWindow);
+    void setMainWindow(QGMMainWindow *mainWindow);
 
 public slots:
     void newConnection();
@@ -44,5 +44,5 @@ private:
 };
 
 
-#endif // MYTCPSERVER_H
+#endif // TCPSERVER_H
 

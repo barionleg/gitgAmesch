@@ -1750,6 +1750,18 @@ bool Mesh::getFacesInBeam( Vector3D rVertAPos, Vector3D rVertBPos, float rBeamPe
 	return ( facesInBeamCount != rFacesInBeam->size() );
 }
 
+bool Mesh::getMeshVertexNormals(std::vector<Vector3D>* rVertexNormals){
+	std::vector<Vertex*> rVertices;
+	getVertexList(&rVertices );
+
+	vector<Vertex*>::iterator itVertex;
+	for( itVertex=rVertices.begin(); itVertex!=rVertices.end(); itVertex++ ) {
+		rVertexNormals->push_back((*itVertex)->getNormal());
+	}
+
+	return true;
+}
+
 //! Compute the minimum edge length of all faces.
 //!
 //! Remark 1: Calling this method often will result in low performance.

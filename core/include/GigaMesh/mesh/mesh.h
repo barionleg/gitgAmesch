@@ -119,10 +119,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool     writeFile( const std::filesystem::path& rFileName );
 		virtual bool     importFeatureVectorsFromFile( const std::filesystem::path& rFileName );
 		virtual bool     exportFeatureVectors(const std::filesystem::path& rFileName);
-	private:
-		        bool     assignFeatureVectors( const std::vector<double>& rFeatureVecs, const uint64_t& rMaxFeatVecLen );
+		bool     assignFeatureVectors( const std::vector<double>& rFeatureVecs, const uint64_t& rMaxFeatVecLen );
 
-	public:
 		// IO Operations - overloaded from MeshSeed
 		virtual bool     getVertNormal( int rVertIdx, double* rNormal );
 
@@ -164,6 +162,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool    getVertexNextTo( Vector3D rVertPos, Vertex** rVertexNext );
 				bool    getVerticesInBeam( Vector3D rVertAPos, Vector3D rVertBPos, float rBeamPerimeterRadius, std::set<Vertex*>* rVertsInBeam );
 				bool    getFacesInBeam( Vector3D rVertAPos, Vector3D rVertBPos, float rBeamPerimeterRadius, std::set<Face*>* rFacesInBeam );
+				bool 	getMeshVertexNormals(std::vector<Vector3D>* rVertexNormals);
 				double  getEdgeLenMin();
 				double  getEdgeLenMax();
 				double  getAltitudeMin();

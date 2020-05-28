@@ -1207,6 +1207,10 @@ bool QGMMainWindow::setupMeshWidget( const QGLFormat& rGLFormat ) {
 	return true;
 }
 
+MeshWidget* QGMMainWindow::getWidget(){
+	return this->mMeshWidget;
+}
+
 //! Overloaded from QGMMainWindow
 void QGMMainWindow::closeEvent( QCloseEvent* rEvent ) {
 	emit unloadMesh();
