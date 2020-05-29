@@ -558,8 +558,6 @@ bool Plane::getChangeOfBasisTrans(
 		Matrix4D baseChangeMat( Matrix4D::INIT_BASE_CHANGE_TO_Z, &baseChangePosDir );
 		baseChangeMatAxis *= baseChangeMat;
 		rTransMat->set( baseChangeMatAxis );
-		cout << mVertA->getCenterOfGravity() * baseChangeMatAxis << endl;
-		cout << mVertB->getCenterOfGravity() * baseChangeMatAxis << endl;
 	} else { // Alternative, newer Version for a base change using the HNF.
 		Vector3D basePoint( mHNF );
 		basePoint *= -basePoint.getH(); //! \todo check if there is somewhere a sign error or a wrong normal orientation.

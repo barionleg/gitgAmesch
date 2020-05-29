@@ -1213,11 +1213,6 @@ bool PolyLine::getVertexCoordsInPlane(
 		return( false );
 	}
 
-	Plane::ePlaneDefinedBy planeDefType = mPlaneUsed->getDefinedBy();
-	if( planeDefType == Plane::AXIS_POINTS_AND_POSITION ) {
-		cout << "[PolyLine::" << __FUNCTION__ << "] Plane defined by Axis." << endl;
-	}
-
 	Matrix4D matBaseChange( Matrix4D::INIT_IDENTITY );
 	mPlaneUsed->getChangeOfBasisTrans( &matBaseChange, rProjectToPlaneUsingAxis );
 

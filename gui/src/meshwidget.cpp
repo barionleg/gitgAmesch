@@ -4773,11 +4773,6 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 		}
 		ctrPolyLinesDrawn++;
 
-		Plane::ePlaneDefinedBy planeDefType = intersectPlane->getDefinedBy();
-		if( planeDefType == Plane::AXIS_POINTS_AND_POSITION ) {
-			cout << "[MeshWidget::" << __FUNCTION__ << "] Plane defined by Axis." << endl;
-		}
-
 		delete intersectPlane;
 
 		size_t polyLen = static_cast<size_t>(currPoly->length());

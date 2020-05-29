@@ -7015,23 +7015,14 @@ bool Mesh::isolineToPolyline(
 	vector<Vector3D> labelCenters;
 	vector<Vector3D> labelNormals;
 	estLabelNormalSizeCenterVert( &labelCenters, &labelNormals );
-	vector<Vector3D>::iterator itLabelCenters;
+
 	for( auto& labelCenter : labelCenters) {
-		//LOG::debug() << "[Mesh::" << __FUNCTION__ << "] vertex count: " << labelCenter.getH() << "\n";
-		//labelCenter.dumpInfo();
 		labelCenter /= labelCenter.getH();
 	}
 
-	/*
-	for( const auto& labelNormal : labelNormals) {
-		cout << "[Mesh::" << __FUNCTION__ << "] label area: " << labelNormal.getLength3() << endl;
-		//labelNormal.normalize3();
-	}
-	*/
-
 	// Bit array:
-	uint64_t* facesVisitedBitArray;
-	uint64_t  faceBlocksNr = getBitArrayFaces( &facesVisitedBitArray );
+	      uint64_t* facesVisitedBitArray;
+	const uint64_t  faceBlocksNr = getBitArrayFaces( &facesVisitedBitArray );
 
 	auto setFaceVisited = [&facesVisitedBitArray] (Face* face) {
 		uint64_t  bOffset;
@@ -7040,13 +7031,15 @@ bool Mesh::isolineToPolyline(
 		facesVisitedBitArray[bOffset] |= static_cast<uint64_t>(1) << bNr;
 	};
 
-	for( uint64_t i=0; i<faceBlocksNr; i++ ) {
+	const uint64_t numBits = sizeof(uint64_t) * 8;
+
+	for( uint64_t i=0; i<faceBlocksNr; ++i ) {
 		if( facesVisitedBitArray[i] == 0xFFFFFFFFFFFFFFFF ) {
 			// whole block visited.
 			continue;
 		}
-		for( uint64_t j=0; j<64; j++ ) {
-			const uint64_t currFaceIndex = i*64+j;
+		for( uint64_t j=0; j<numBits; ++j ) {
+			const uint64_t currFaceIndex = i*numBits+j;
 
 			// skip unused bits within the last block:
 			if( ( i==faceBlocksNr-1 ) && ( currFaceIndex >= getFaceNr() ) ) {
@@ -7101,12 +7094,12 @@ bool Mesh::isolineToPolyline(
 			uint64_t  bitOffset;
 			uint64_t  bitNr;
 
-			// Trace in forward direction:
-			//----------------------------
 			// Fetch first point ...
 			// ... set visited ...
-			checkFaceFirst->getIndexOffsetBit( &bitOffset, &bitNr );
-			facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
+			setFaceVisited(checkFaceFirst);
+
+			// Trace in forward direction:
+			//----------------------------
 			if(!checkFaceFirst->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, true, &excludeFace ))
 			{
 				continue; //skip face, because it only touches the isoLine on its vertices
@@ -7171,15 +7164,16 @@ bool Mesh::isolineToPolyline(
 			while( checkFace != nullptr ) {
 				checkFace->getIndexOffsetBit( &bitOffset, &bitNr );
 
-				// ... and set visited ...
-				facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
-
 				//cout << "[Mesh::" << __FUNCTION__ << "] Face in Block No. " << bitOffset << " Bit No. " << bitNr << endl;
 				// check if we have been there to prevent infinite loops:
 				if( facesVisitedBitArray[bitOffset] & static_cast<uint64_t>(1)<<bitNr ) {
 					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] closed polyline (backward).\n";
 					break;
 				}
+
+				// ... and set visited ...
+				facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1) << bitNr;
+
 				// get the point ...
 				if( !checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, false, &excludeFace ) ) {
 					nextFace = nullptr;
