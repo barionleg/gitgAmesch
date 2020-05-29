@@ -7031,6 +7031,62 @@ bool Mesh::isolineToPolyline(
 		facesVisitedBitArray[bOffset] |= static_cast<uint64_t>(1) << bNr;
 	};
 
+	auto traceIsoLine = [&setFaceVisited, &facesVisitedBitArray] (Face* startFace, bool forward, double rIsoValue, PolyLine* isoLine)
+	{
+		Vector3D  isoPoint;
+		Face*     nextFace = nullptr;
+		Face*     excludeFace = nullptr;
+		uint64_t  bitOffset;
+		uint64_t  bitNr;
+
+		// Trace in forward direction:
+		//----------------------------
+		if(!startFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, forward, &excludeFace ))
+		{
+			return; //skip face, because it only touches the isoLine on its vertices
+		}
+		if(excludeFace != nullptr)
+		{
+			setFaceVisited(excludeFace);
+		}
+		// ... add to polyline with normal ....
+		Vector3D normalPos = startFace->getNormal( true );
+
+		forward ? isoLine->addFront( isoPoint, normalPos, startFace )
+		        : isoLine->addBack ( isoPoint, normalPos, startFace );
+
+		Face* checkFace = nextFace;
+		while( checkFace != nullptr ) {
+			checkFace->getIndexOffsetBit( &bitOffset, &bitNr );
+
+			// check if we have been there to prevent infinite loops:
+			if( facesVisitedBitArray[bitOffset] & static_cast<uint64_t>(1)<<bitNr ) {
+				break;
+			}
+			// set visited
+			facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
+
+			// get the point ...
+			if(!checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, forward, &excludeFace ))
+			{
+				nextFace = nullptr;
+				continue;
+			}
+			if(excludeFace != nullptr)
+			{
+				setFaceVisited(excludeFace);
+			}
+			// ... add to polyline with normal ...
+			normalPos = checkFace->getNormal( true );
+
+			forward ? isoLine->addFront( isoPoint, normalPos, checkFace )
+			        : isoLine->addBack ( isoPoint, normalPos, checkFace );
+
+			// .... move on:
+			checkFace = nextFace;
+		}
+	};
+
 	const uint64_t numBits = sizeof(uint64_t) * 8;
 
 	for( uint64_t i=0; i<faceBlocksNr; ++i ) {
@@ -7074,7 +7130,6 @@ bool Mesh::isolineToPolyline(
 				LOG::debug() << "[Mesh::" << __FUNCTION__ << "] is NOT on a label related border.\n";
 			}
 
-			//cout << "[Mesh::" << __FUNCTION__ << "] Trace Face in Block No. " << i << " Bit No. " << j << endl;
 			PolyLine* isoLine;
 			if( isLabelBorder && !isLabelLabelBorder ) {
 				// Remeber: Labels start at index 1!
@@ -7088,111 +7143,14 @@ bool Mesh::isolineToPolyline(
 					isoLine = new PolyLine();
 				}
 			}
-			Vector3D  isoPoint;
-			Face*     nextFace = nullptr;
-			Face*     excludeFace = nullptr;
-			uint64_t  bitOffset;
-			uint64_t  bitNr;
 
-			// Fetch first point ...
-			// ... set visited ...
 			setFaceVisited(checkFaceFirst);
 
-			// Trace in forward direction:
+			// Trace in forward and backward direction:
 			//----------------------------
-			if(!checkFaceFirst->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, true, &excludeFace ))
-			{
-				continue; //skip face, because it only touches the isoLine on its vertices
-			}
-			if(excludeFace != nullptr)
-			{
-				setFaceVisited(excludeFace);
-			}
-			// ... add to polyline with normal ....
-			Vector3D normalPos = checkFaceFirst->getNormal( true );
-			isoLine->addFront( isoPoint, normalPos, checkFaceFirst );
+			traceIsoLine(checkFaceFirst, true , rIsoValue, isoLine);
+			traceIsoLine(checkFaceFirst, false, rIsoValue, isoLine);
 
-			checkFace = nextFace;
-			while( checkFace != nullptr ) {
-				checkFace->getIndexOffsetBit( &bitOffset, &bitNr );
-				//cout << "[Mesh::" << __FUNCTION__ << "] Face in Block No. " << bitOffset << " Bit No. " << bitNr << endl;
-				// check if we have been there to prevent infinite loops:
-				if( facesVisitedBitArray[bitOffset] & static_cast<uint64_t>(1)<<bitNr ) {
-					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] closed polyline (forward).\n";
-					break;
-				}
-				// set visited
-				facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
-				// get the point ...
-				if(!checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, true, &excludeFace ))
-				{
-					nextFace = nullptr;
-					continue;
-				}
-				if(excludeFace != nullptr)
-				{
-					setFaceVisited(excludeFace);
-				}
-				// ... add to polyline with normal ...
-				normalPos = checkFace->getNormal( true );
-				isoLine->addFront( isoPoint, normalPos, checkFace );
-
-				// .... move on:
-				checkFace = nextFace;
-				// for debuging:
-				if( nextFace == nullptr ) {
-					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] open polyline (forward).\n";
-				}
-			}
-
-			// Trace in backward direction:
-			//------------------------------
-			if(!checkFaceFirst->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, false, &excludeFace ))
-			{
-				continue;
-			}
-			if(excludeFace != nullptr)
-			{
-				setFaceVisited(excludeFace);
-			}
-			// ... add to polyline with normal ....
-			normalPos = checkFaceFirst->getNormal( true );
-			isoLine->addBack( isoPoint, normalPos, checkFaceFirst );
-
-			// Trace in opposite direction
-			checkFace = nextFace;
-			while( checkFace != nullptr ) {
-				checkFace->getIndexOffsetBit( &bitOffset, &bitNr );
-
-				//cout << "[Mesh::" << __FUNCTION__ << "] Face in Block No. " << bitOffset << " Bit No. " << bitNr << endl;
-				// check if we have been there to prevent infinite loops:
-				if( facesVisitedBitArray[bitOffset] & static_cast<uint64_t>(1)<<bitNr ) {
-					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] closed polyline (backward).\n";
-					break;
-				}
-
-				// ... and set visited ...
-				facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1) << bitNr;
-
-				// get the point ...
-				if( !checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, false, &excludeFace ) ) {
-					nextFace = nullptr;
-					continue;
-				}
-				if(excludeFace != nullptr)
-				{
-					setFaceVisited(excludeFace);
-				}
-				// ... add to polyline with normal ...
-				normalPos = checkFace->getNormal( true );
-				isoLine->addBack( isoPoint, normalPos, checkFace );
-				// .... move on:
-				checkFace = nextFace;
-				// for debuging:
-				if( nextFace == nullptr ) {
-					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] open polyline (backward).\n";
-				}
-			}
 			// Add vertices of the polyline:
 			isoLine->addVerticesTo( &mVertices );
 			// Add polyline:
