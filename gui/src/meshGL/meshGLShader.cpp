@@ -493,7 +493,7 @@ MeshGLShader::~MeshGLShader() {
 			(mOpenGLContext->format().majorVersion() == 4 && mOpenGLContext->format().minorVersion() >= 3)))
 	{
 
-		mGL4_3Functions.glDeleteBuffers(mSSBOs.size(),mSSBOs.data());
+		mGL4_3Functions.glDeleteBuffers(static_cast<GLsizei>(mSSBOs.size()),mSSBOs.data());
 		if(mTransIsInitialized == 2)
 			mGL4_3Functions.glDeleteQueries(1,&mTransFragmentQuery);
 		else if(mTransIsInitialized == 1 || mTransIsInitialized == 3)
@@ -716,7 +716,7 @@ void MeshGLShader::glPaintTransparent()
 
 			if(mTransIsInitialized != (bufferMethod + 1) && mTransIsInitialized != 0)
 			{
-				mGL4_3Functions.glDeleteBuffers(mSSBOs.size(),mSSBOs.data());
+				mGL4_3Functions.glDeleteBuffers(static_cast<GLsizei>(mSSBOs.size()),mSSBOs.data());
 
 
 				if(mTransIsInitialized == 2)
@@ -749,7 +749,7 @@ void MeshGLShader::glPaintTransparent()
 			//free transparency buffers, if no longer needed
 			if(mTransIsInitialized)
 			{
-				mGL4_3Functions.glDeleteBuffers(mSSBOs.size(),mSSBOs.data());
+				mGL4_3Functions.glDeleteBuffers(static_cast<GLsizei>(mSSBOs.size()),mSSBOs.data());
 
 				if(mTransIsInitialized == 2)
 					mGL4_3Functions.glDeleteQueries(1,&mTransFragmentQuery);
@@ -855,7 +855,8 @@ void MeshGLShader::glPaintFrontalLightPerVertex( const QMatrix4x4 &rTransformMat
 		shaderSetLocationBasicAttribs(mShaderFrontalLightPerVertex, VBUFF_VERTICES_STRIPED, static_cast<unsigned>(sizeof(grVertexStripeElment)));
 
 		mVertBufObjs[VBUFF_VERTICES_STRIPED]->bind();
-		glDrawArrays( GL_POINTS, rFirstVertIdx, std::min(static_cast<size_t>(rXResolution) * rYResolution, mVertBufObjs[VBUFF_VERTICES_STRIPED]->size() / sizeof(grVertexStripeElment) - rFirstVertIdx) );
+		glDrawArrays( GL_POINTS, rFirstVertIdx, std::min(static_cast<GLsizei>(rXResolution * rYResolution),
+		                                                 static_cast<GLsizei>(mVertBufObjs[VBUFF_VERTICES_STRIPED]->size() / sizeof(grVertexStripeElment) - rFirstVertIdx)) );
 		PRINT_OPENGL_ERROR( "glDrawArrays( GL_POINTS, rFirstVertex, min((long unsigned int) rXResolution * rYResolution, mVertBufObjs[VBUFF_VERTICES_STRIPED]->size() / sizeof(grVertexStripeElment) - rFirstVertIdx) );" );
 		mVertBufObjs[VBUFF_VERTICES_STRIPED]->release();
 	}
@@ -1021,6 +1022,7 @@ void MeshGLShader::shaderSetLocationBasicLight( QOpenGLShaderProgram* rShaderPro
 	mWidgetParams->getParamFlagMeshWidget( MeshWidgetParams::LIGHT_ENABLED, &lightingSet );
 	rShaderProgram->setUniformValue( "uLightEnabled", static_cast<GLboolean>(lightingSet) );
 	if( !lightingSet ) {
+		rShaderProgram->setUniformValue( "uLightVectors", 0 );
 		return;
 	}
 
@@ -1104,9 +1106,17 @@ void MeshGLShader::shaderSetLocationBasicLight( QOpenGLShaderProgram* rShaderPro
 	// Light - show directions
 	MeshWidgetParams::eMouseModes currMouseMode;
 	mWidgetParams->getParamIntegerMeshWidget( MeshWidgetParams::MOUSE_MODE, reinterpret_cast<int*>(&currMouseMode) );
-	bool lightVectors = ( currMouseMode == MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_CAM ) || \
-						( currMouseMode == MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_WORLD );
+
+	int lightVectors = currMouseMode == MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_CAM    ? 1 :
+	                   currMouseMode == MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_OBJECT ? 2 :
+	                   0;
+
 	rShaderProgram->setUniformValue( "uLightVectors", lightVectors );
+
+	double lightVectorLength = 0.0;
+	getParamFloatMeshGL( MeshGLParams::LIGHTVECTOR_LENGTH, &lightVectorLength);
+	rShaderProgram->setUniformValue("uLightVeclLength", static_cast<GLfloat>(lightVectorLength));
+
 	// Limit number of directional vectors shown.
 	int maxLightVecs; // 5000 seems to be a good choice.
 	mWidgetParams->getParamIntegerMeshWidget( MeshWidgetParams::LIGHT_VECTORS_SHOWN_MAX, &maxLightVecs );
@@ -1244,7 +1254,7 @@ void MeshGLShader::shaderSetLocationVertexSprites( QOpenGLShaderProgram* rShader
 	rShaderProgram->enableAttributeArray( "vLabelID" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 	size_t offSetFlags = offSetLabelID + sizeof(GLfloat);
-	rShaderProgram->setAttributeBuffer( "vFlags", GL_FLOAT, offSetFlags, 1, sizeof(grVertexStripeElment) );
+	rShaderProgram->setAttributeBuffer( "vFlags", GL_FLOAT, static_cast<int>(offSetFlags), 1, static_cast<int>(sizeof(grVertexStripeElment)) );
 	rShaderProgram->enableAttributeArray( "vFlags" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 }
@@ -1262,7 +1272,7 @@ void MeshGLShader::shaderSetMeshBasicFuncVals(QOpenGLShaderProgram *rShaderProgr
 	rShaderProgram->enableAttributeArray( "vLabelID" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 	size_t offSetFlags = offSetLabelID + sizeof(GLfloat);
-	rShaderProgram->setAttributeBuffer( "vFlags", GL_FLOAT, offSetFlags, 1, sizeof(grVertexStripeElment) );
+	rShaderProgram->setAttributeBuffer( "vFlags", GL_FLOAT, static_cast<int>(offSetFlags), 1, static_cast<int>(sizeof(grVertexStripeElment)) );
 	rShaderProgram->enableAttributeArray( "vFlags" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 
@@ -1509,11 +1519,10 @@ void MeshGLShader::vboPaintVertices() {
 								 // the behaviour of the plane selection feature)
 
 		double spherePointNormals[12]{0.0};	//the normals of the shere selection points
-		bool showMeshSpherePos = true;
+
 		//! \todo SHOW_MESH_SPHERE_POSITIONS remove or implement.
-		//getParamFlagMeshGL( SHOW_MESH_SPHERE_POSITIONS, &showMeshSpherePos );	//this flag is never set... TODO: set it, so the pins are not constantly rendererd
-		if( /*showMeshSpherePos && */getSphereData(spherePoints, spherePointNormals) ) {
-			//grVertexStripeElment somePoint;
+
+		if( getSphereData(spherePoints, spherePointNormals) ) {
 			PinRenderer::PinVertex somePoint;
 			somePoint.color[0] = 255;
 			somePoint.color[1] =   0;
@@ -1689,7 +1698,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 		// Material - solid color:
 		GLfloat colorTmpStored[4];
 		mRenderColors->getColorSettings( MeshGLColors::COLOR_VERTEX_MONO, colorTmpStored );
@@ -1712,7 +1721,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 		// Material - solid color:
 		QColor colorSolid( 0, 128, 128, 255 );
 		mShaderVertexSprites->setUniformValue( "colorSolid", colorSolid );
@@ -1732,7 +1741,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 		// Material - solid color:
 		QColor colorSolid( 255, 0, 0, 255 );
 		mShaderVertexSprites->setUniformValue( "colorSolid", colorSolid );
@@ -1752,7 +1761,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 		// Material - solid color:
 		QColor colorSolid( 0, 0, 255, 255 );
 		mShaderVertexSprites->setUniformValue( "colorSolid", colorSolid );
@@ -1774,7 +1783,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 		// Material - solid color:
 		QColor colorSolid( 128, 0, 128, 255 );
 		mShaderVertexSprites->setUniformValue( "colorSolid", colorSolid );
@@ -1796,7 +1805,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 		// Material - solid color:
 		GLfloat colorTmpStored[4];
 		mRenderColors->getColorSettings( MeshGLColors::COLOR_VERTEX_LOCAL_MIN, colorTmpStored );
@@ -1818,7 +1827,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 		// Material - solid color:
 		GLfloat colorTmpStored[4];
 		mRenderColors->getColorSettings( MeshGLColors::COLOR_VERTEX_LOCAL_MAX, colorTmpStored );
@@ -1841,7 +1850,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 		// Material - solid color:
 		GLfloat colorTmpStored[4];
 		mRenderColors->getColorSettings( MeshGLColors::COLOR_VERTEX_LOCAL_MAX, colorTmpStored );
@@ -1864,7 +1873,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 		// Material - solid color:
 		QColor colorSolid( 64, 192, 192, 255 );
 		mShaderVertexSprites->setUniformValue( "colorSolid", colorSolid );
@@ -1884,7 +1893,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 		// Material - solid color:
 		QColor colorSolid( 255, 128, 0, 255 );
 		mShaderVertexSprites->setUniformValue( "colorSolid", colorSolid );
@@ -1904,7 +1913,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 
 		// Disc shape (only)
 		mShaderVertexSprites->setUniformValue( "uSpriteShape", SPRITE_SHAPE_DISC );
@@ -1915,7 +1924,7 @@ void MeshGLShader::vboPaintVertices() {
 		someBuffer.create();
 		someBuffer.setUsagePattern( QOpenGLBuffer::StaticDraw );
 		someBuffer.bind();
-		someBuffer.allocate( singlePoints.data(), sizeof(grVertexStripeElment)*singlePoints.size() );
+		someBuffer.allocate( singlePoints.data(), static_cast<int>(sizeof(grVertexStripeElment)*singlePoints.size()) );
 
 		// Strided data -- first there floats are the position vectors.
 		mShaderVertexSprites->setAttributeBuffer( "position", GL_FLOAT, 0, 3, sizeof(grVertexStripeElment) ); // rShaderLocationBasic->mVertexPos
@@ -1927,7 +1936,7 @@ void MeshGLShader::vboPaintVertices() {
 		PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 
 		// Draw
-		glDrawArrays( GL_POINTS, 0, singlePoints.size() );
+		glDrawArrays( GL_POINTS, 0, static_cast<GLsizei>(singlePoints.size()) );
 		PRINT_OPENGL_ERROR( "glDrawArrays( ... )" );
 
 		someBuffer.release();
@@ -2132,7 +2141,7 @@ void MeshGLShader::vboPaintFacesIndexed( eTexMapType rRenderColor ) {
 	mShaderVertexFuncValProgram->enableAttributeArray( "vLabelID" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 	size_t offSetFlags = offSetLabelID + sizeof(GLfloat);
-	mShaderVertexFuncValProgram->setAttributeBuffer( "vFlags", GL_FLOAT, offSetFlags, 1, sizeof(grVertexStripeElment) );
+	mShaderVertexFuncValProgram->setAttributeBuffer( "vFlags", GL_FLOAT, static_cast<int>(offSetFlags), 1, static_cast<int>(sizeof(grVertexStripeElment)) );
 	mShaderVertexFuncValProgram->enableAttributeArray( "vFlags" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 
@@ -2298,7 +2307,7 @@ void MeshGLShader::vboPaintFacesIndexed( eTexMapType rRenderColor ) {
 		// Z-shift
 		mShaderVertexFuncValProgram->setUniformValue( "uFaceShiftViewZ", faceShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		faceShiftZ -= 0.0001;
+		faceShiftZ -= 0.0001F;
 		// Draw
 		mVertBufObjs[VBUFF_FACES]->bind();
 		glDrawElements( GL_TRIANGLES, mVertBufObjs[VBUFF_FACES]->size()/sizeof(GLuint), GL_UNSIGNED_INT, nullptr );
@@ -2319,7 +2328,7 @@ void MeshGLShader::vboPaintFacesIndexed( eTexMapType rRenderColor ) {
 		// Z-shift
 		mShaderVertexFuncValProgram->setUniformValue( "uFaceShiftViewZ", faceShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		faceShiftZ -= 0.0001;
+		faceShiftZ -= 0.0001F;
 		// Draw
 		mVertBufObjs[VBUFF_FACES_FLAG_SELECTED]->bind();
 		glDrawElements( GL_TRIANGLES, mVertBufObjs[VBUFF_FACES_FLAG_SELECTED]->size()/sizeof(GLuint), GL_UNSIGNED_INT, nullptr );
@@ -2337,7 +2346,7 @@ void MeshGLShader::vboPaintFacesIndexed( eTexMapType rRenderColor ) {
 		// Z-shift
 		mShaderVertexFuncValProgram->setUniformValue( "uFaceShiftViewZ", faceShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		faceShiftZ -= 0.0001;
+		faceShiftZ -= 0.0001F;
 		// Map and draw elements
 		GLuint primSelID[3];
 		Face*  selFace = static_cast<Face*>(mPrimSelected);
@@ -2366,7 +2375,7 @@ void MeshGLShader::vboPaintFacesIndexed( eTexMapType rRenderColor ) {
 		someBuffer.create();
 		someBuffer.setUsagePattern( QOpenGLBuffer::StaticDraw );
 		someBuffer.bind();
-		someBuffer.allocate( someTriangles.data(), sizeof(grVertexElmentBasic)*someTriangles.size() );
+		someBuffer.allocate( someTriangles.data(), static_cast<int>(sizeof(grVertexElmentBasic)*someTriangles.size()) );
 
 		// Strided data -- first there floats are the position vectors.
 		mShaderVertexFuncValProgram->setAttributeBuffer( "position", GL_FLOAT, 0, 3, sizeof(grVertexElmentBasic) ); // rShaderLocationBasic->mVertexPos
@@ -2383,7 +2392,7 @@ void MeshGLShader::vboPaintFacesIndexed( eTexMapType rRenderColor ) {
 		PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 
 		// Draw
-		glDrawArrays( GL_TRIANGLES, 0, someTriangles.size() );
+		glDrawArrays( GL_TRIANGLES, 0, static_cast<GLsizei>(someTriangles.size()) );
 		PRINT_OPENGL_ERROR( "glDrawArrays( ... )" );
 
 		someBuffer.release();
@@ -2520,7 +2529,7 @@ void MeshGLShader::vboPaintWireframe() {
 	mShaderWireframe->enableAttributeArray( "vLabelID" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 	size_t offSetFlags = offSetLabelID + sizeof(GLfloat);
-	mShaderWireframe->setAttributeBuffer( "vFlags", GL_FLOAT, offSetFlags, 1, sizeof(grVertexStripeElment) );
+	mShaderWireframe->setAttributeBuffer( "vFlags", GL_FLOAT, static_cast<int>(offSetFlags), 1, static_cast<int>(sizeof(grVertexStripeElment)) );
 	mShaderWireframe->enableAttributeArray( "vFlags" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 
@@ -2610,7 +2619,7 @@ void MeshGLShader::vboPaintWireframe() {
 	GLfloat faceShiftZ = 0.0;
 	mShaderWireframe->setUniformValue( "uFaceShiftViewZ", faceShiftZ );
 	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-	faceShiftZ -= 0.0001;
+	faceShiftZ -= 0.0001F;
 	// Draw
 	mVertBufObjs[VBUFF_FACES]->bind();
 	glDrawElements( GL_TRIANGLES, mVertBufObjs[VBUFF_FACES]->size()/sizeof(GLuint), GL_UNSIGNED_INT, nullptr );
@@ -2630,7 +2639,7 @@ void MeshGLShader::vboPaintWireframe() {
 		// Z-shift
 		mShaderWireframe->setUniformValue( "uFaceShiftViewZ", faceShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		faceShiftZ -= 0.0001;
+		faceShiftZ -= 0.0001F;
 		// Draw
 		mVertBufObjs[VBUFF_FACES_FLAG_SELECTED]->bind();
 		glDrawElements( GL_TRIANGLES, mVertBufObjs[VBUFF_FACES_FLAG_SELECTED]->size()/sizeof(GLuint), GL_UNSIGNED_INT, nullptr );
@@ -2646,7 +2655,7 @@ void MeshGLShader::vboPaintWireframe() {
 		// Z-shift
 		mShaderWireframe->setUniformValue( "uFaceShiftViewZ", faceShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		faceShiftZ -= 0.0001;
+		faceShiftZ -= 0.0001F;
 		// Map and draw elements
 		GLuint primSelID[3];
 		Face*  selFace = static_cast<Face*>(mPrimSelected);
@@ -3139,7 +3148,7 @@ void MeshGLShader::vboPaintPolylines() {
 		mShaderPolyLines->enableAttributeArray( "vLabelID" );
 		PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 		size_t offSetFlags = offSetLabelID + sizeof(GLfloat);
-		mShaderPolyLines->setAttributeBuffer( "vFlags", GL_FLOAT, offSetFlags, 1, sizeof(grVertexStripeElment) );
+		mShaderPolyLines->setAttributeBuffer( "vFlags", GL_FLOAT, static_cast<int>(offSetFlags), 1, static_cast<int>(sizeof(grVertexStripeElment)) );
 		mShaderPolyLines->enableAttributeArray( "vFlags" );
 		PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 
@@ -3153,7 +3162,7 @@ void MeshGLShader::vboPaintPolylines() {
 		// Z-shift
 		mShaderPolyLines->setUniformValue( "uFaceShiftViewZ", faceShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		faceShiftZ -= 0.0001;
+		faceShiftZ -= 0.0001F;
 		// Draw
 		mVertBufObjs[VBUFF_POLYLINES]->bind();
 		glDrawElements( GL_LINES, mVertBufObjs[VBUFF_POLYLINES]->size()/sizeof(GLuint), GL_UNSIGNED_INT, nullptr );
@@ -3172,7 +3181,7 @@ void MeshGLShader::vboPaintPolylines() {
 		someBuffer.create();
 		someBuffer.bind();
 		someBuffer.setUsagePattern( QOpenGLBuffer::StaticDraw );
-		someBuffer.allocate( lineSegments.data(), sizeof(grVertexStripeElment)*lineSegments.size() );
+		someBuffer.allocate( lineSegments.data(), static_cast<int>(sizeof(grVertexStripeElment)*lineSegments.size()) );
 
 		// Strided data -- first there floats are the position vectors.
 		mShaderPolyLines->setAttributeBuffer( "position", GL_FLOAT, 0, 3, sizeof(grVertexStripeElment) ); // rShaderLocationBasic->mVertexPos
@@ -3202,7 +3211,7 @@ void MeshGLShader::vboPaintPolylines() {
 		mShaderPolyLines->enableAttributeArray( "vFlags" );
 		PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 		// Draw
-		glDrawArrays( GL_LINES, 0, lineSegments.size() );
+		glDrawArrays( GL_LINES, 0, static_cast<GLsizei>(lineSegments.size()) );
 		PRINT_OPENGL_ERROR( "glDrawArrays( ... )" );
 
 		someBuffer.release();
@@ -3422,7 +3431,8 @@ void MeshGLShader::vboPaintNPR() {
 
 	int enableFlags = 0;
 	getParamFlagMeshGL( SHOW_NPR_OUTLINES, &boolParam);
-	enableFlags |= boolParam ;
+	if(boolParam)
+		enableFlags |= 1 ;
 
 	getParamFlagMeshGL( SHOW_NPR_HATCHLINES, &boolParam);
 	enableFlags |= boolParam << 1;
@@ -3917,6 +3927,21 @@ void MeshGLShader::vboPaintTextured()
 	}
 	// ----------------------------------------------------
 	PRINT_OPENGL_ERROR("unknown error");
+
+	// Set the mesh plane as clipping plane:
+	double clipPlane[4];
+	getPlaneHNF( clipPlane );
+	lightInfo.clipPlane = QVector4D(clipPlane[0], clipPlane[1], clipPlane[2], clipPlane[3]);
+	// Set the COG of the selected primitve as clip plane (implictly using the camera's view direction):
+	if( mPrimSelected != nullptr ) {
+		Vector3D selPrimCog = mPrimSelected->getCenterOfGravity();
+		lightInfo.clipVertexPos = QVector3D( selPrimCog.getX(), selPrimCog.getY(), selPrimCog.getZ() );
+	}
+	else
+	{
+		lightInfo.clipVertexPos = QVector3D(0.0,0.0,0.0);
+	}
+
 	mTexturedMeshRenderer.render(ppvMatrix, pmvMatrix, *mMeshTextured, lightInfo);
 
 }
@@ -4060,6 +4085,7 @@ void MeshGLShader::vboPaintPins(std::vector<PinRenderer::PinVertex> &singlePoint
 
 void MeshGLShader::vboPaintTransparencyABuffer()
 {
+#ifdef GL_SHADER_STORAGE_BUFFER
 	int drawTransparency;
 	getParamIntMeshGL(MeshGLParams::SHADER_CHOICE, &drawTransparency);
 	static int lastWidth = 0;
@@ -4361,10 +4387,12 @@ void MeshGLShader::vboPaintTransparencyABuffer()
 
 	 glEnable(GL_MULTISAMPLE);
 	 glDepthFunc(GL_LESS);
+#endif
 }
 
 void MeshGLShader::vboPaintTransparencyALBuffer()
 {
+#ifdef GL_SHADER_STORAGE_BUFFER
 	int drawTransparency;
 	getParamIntMeshGL(MeshGLParams::SHADER_CHOICE, &drawTransparency);
 
@@ -4710,6 +4738,7 @@ void MeshGLShader::vboPaintTransparencyALBuffer()
 	mGL4_3Functions.glBindTexture(GL_TEXTURE_2D, 0);
 	mGL4_3Functions.glActiveTexture(GL_TEXTURE0);
 	mGL4_3Functions.glBindTexture(GL_TEXTURE_2D, 0);
+#endif
 }
 
 void MeshGLShader::vboPaintTransparencyWAVG()
@@ -4997,7 +5026,6 @@ void MeshGLShader::vboPaintPointcloud(eTexMapType rRenderColor, bool limitPoints
 	//glBindTexture( GL_TEXTURE_2D, mTextureMaps[0] );
 	//PRINT_OPENGL_ERROR( "glBindTexture( GL_TEXTURE_2D, mTextureMaps[0] )" );
 	mTextureMaps[0]->bind();
-	GLuint texId = mTextureMaps[0]->boundTextureId( QOpenGLTexture::BindingTarget2D );
 	PRINT_OPENGL_ERROR( "binding mTextureMaps[0]" );
 	//cout << "[MeshGLShader::" << __FUNCTION__ << "] texId: " << texId << endl;
 	// Set the ID of the texture map:
@@ -5099,7 +5127,7 @@ void MeshGLShader::vboPaintPointcloud(eTexMapType rRenderColor, bool limitPoints
 	mShaderPointcloud->enableAttributeArray( "vLabelID" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 	size_t offSetFlags = offSetLabelID + sizeof(GLfloat);
-	mShaderPointcloud->setAttributeBuffer( "vFlags", GL_FLOAT, offSetFlags, 1, sizeof(grVertexStripeElment) );
+	mShaderPointcloud->setAttributeBuffer( "vFlags", GL_FLOAT, static_cast<int>(offSetFlags), 1, static_cast<int>(sizeof(grVertexStripeElment)) );
 	mShaderPointcloud->enableAttributeArray( "vFlags" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 
@@ -5192,7 +5220,7 @@ void MeshGLShader::drawTruncatedCone( Vector3D rAxisTop, Vector3D rAxisBottom, d
 	mShaderVertexFuncValProgram->enableAttributeArray( "vLabelID" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 	size_t offSetFlags = offSetLabelID + sizeof(GLfloat);
-	mShaderVertexFuncValProgram->setAttributeBuffer( "vFlags", GL_FLOAT, offSetFlags, 1, sizeof(grVertexStripeElment) );
+	mShaderVertexFuncValProgram->setAttributeBuffer( "vFlags", GL_FLOAT, static_cast<int>(offSetFlags), 1, static_cast<int>(sizeof(grVertexStripeElment)) );
 	mShaderVertexFuncValProgram->enableAttributeArray( "vFlags" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 

@@ -225,6 +225,9 @@ void QGMDockSideBar::updateMeshParamInt( MeshGLParams::eParamInt rParamNr, int r
 					cerr << "[QGMDockSideBar::" << __FUNCTION__ << "] ERROR: parameter SHADER_CHOICE has an unknown choice: " << rSetValue << "!" << endl;
 			}
 			break;
+		case MeshGLParams::GLSL_COLMAP_CHOICE:
+		case MeshGLParams::FUNCVAL_CUTOFF_CHOICE:
+		case MeshGLParams::VERTEX_SPRITE_SHAPE:
 		case MeshGLParams::VIEWPARAMS_INT_UNDEFINED:
 		case MeshGLParams::COLMAP_LABEL_OFFSET:
 		case MeshGLParams::PARAMS_INT_COUNT:

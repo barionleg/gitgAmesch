@@ -29,6 +29,7 @@
 #include "QGMDialogNprSettings.h"
 #include "QGMDialogTransparencySettings.h"
 #include "qruntpsrpmscriptdialog.h"
+#include "QGMDialogMatrix.h"
 
 #include <QFileDialog>
 #include <QInputDialog>
@@ -376,7 +377,7 @@ bool MeshQt::readIsRegularGrid( bool* rIsGrid ) {
 //! Emits signal to tell the other widgets (menus!) that the mesh has or has no polylines.
 void MeshQt::polyLinesChanged() {
 	MeshGL::polyLinesChanged();
-	unsigned int selMPolysNr = mPolyLines.size();
+	auto selMPolysNr = mPolyLines.size();
 	if( selMPolysNr > 0 ) {
 		emit hasElement( Primitive::IS_POLYLINE, true );
 	} else {
@@ -606,26 +607,42 @@ bool MeshQt::showEnterText(
 }
 
 //! Let the user enter a 4x4 matrix i.e. 16 floating point values.
-bool MeshQt::showEnterText( Matrix4D* rMatrix4x4 ) {
-	QGMDialogEnterText dlgEnterTxt;
-	dlgEnterTxt.setWindowTitle( tr("Enter 4x4 Matrix (16 floating point values)") );
-	dlgEnterTxt.fetchClipboard( QGMDialogEnterText::CHECK_DOUBLE_MULTIPLE );
-	if( dlgEnterTxt.exec() == QDialog::Rejected ) {
-		return false;
-	}
-	vector<double> floatValues;
-	if( !dlgEnterTxt.getText( floatValues ) ) {
-		showWarning( tr("No matrix entered").toStdString(), tr("A 4x4 transformation matrix requires 16 floating point values!").toStdString() );
-		cerr << "[MeshQt::" << __FUNCTION__ << "] ERROR: No (proper) floating point values entered!" << endl;
-		return false;
-	}
-	if( floatValues.size() != 16 ) {
-		showWarning( tr("Wrong number of elements").toStdString(), tr( "A 4x4 transformation matrix requires 16 elements.\n\n%1 were entered!" ).arg( floatValues.size() ).toStdString() );
-		cerr << "[MeshQt::" << __FUNCTION__ << "] ERROR: Wrong number of elementes entered!" << endl;
-		return false;
-	}
-	rMatrix4x4->set( floatValues );
+bool MeshQt::showEnterText(Matrix4D* rMatrix4x4 , bool selectedVerticesOnly) {
 
+	QGMDialogMatrix dlgEnterMatrix;
+	dlgEnterMatrix.setWindowTitle( tr("Enter 4x4 Matrix"));
+	dlgEnterMatrix.fetchClipboard();
+
+	const auto cog = getCenterOfGravity();
+	const auto bboxCenter = getBoundingBoxCenter();
+
+	dlgEnterMatrix.setMeshCog(cog);
+	dlgEnterMatrix.setMeshBBoxCenter(bboxCenter);
+
+	connect(&dlgEnterMatrix, &QGMDialogMatrix::applyClicked, [this, &dlgEnterMatrix, selectedVerticesOnly](){
+		vector<double> values;
+		dlgEnterMatrix.getValues(values);
+		Matrix4D matrix(values);
+		if(selectedVerticesOnly)
+		{
+			removeAllDatumObjects();
+			applyTransformation(matrix, &mSelectedMVerts);
+		}
+		else
+		{
+			applyTransformationToWholeMesh(matrix);
+		}
+	});
+
+	if(dlgEnterMatrix.exec() == QDialog::Rejected )
+	{
+		return false;
+	}
+
+	vector<double> returnValues;
+
+	dlgEnterMatrix.getValues(returnValues);
+	rMatrix4x4->set( returnValues );
 	return true;
 }
 
@@ -1391,6 +1408,18 @@ bool MeshQt::centerAroundSphere() {
 
 //! Unrolls the mesh around a user-specified sphere.
 bool MeshQt::unrollAroundSphere() {
+	if(hasDatumObjects())
+	{
+		bool proceed = true;
+		if(!showQuestion(&proceed, "Warning", "Warning: There are datum-objects in the scene that will be deleted by this operation.\nDo you want to continue?"))
+			return false;
+
+		if(!proceed)
+			return false;
+	}
+
+	removeAllDatumObjects();
+
 	using namespace std::chrono;
 	high_resolution_clock::time_point tStart = high_resolution_clock::now();
 
@@ -4567,12 +4596,13 @@ bool MeshQt::importNormalVectorsFile( const QString& rFileName ) {
 		emit statusMessage( "ERROR - No normals imported (2)!" );
 		return false;
 	}
-	if( !assignImportedNormalsToVertices( &normalsFromFile ) ) {
+	if( !assignImportedNormalsToVertices( normalsFromFile ) ) {
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: No normals assigned!" << endl;
 		emit statusMessage( "ERROR - No normals assigned!" );
 		return false;
 	}
-	return false;
+	emit updateGL();
+	return true;
 }
 
 //! Import feature vectors and emit statusMessage.

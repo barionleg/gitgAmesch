@@ -29,6 +29,7 @@ set(GUI_SOURCES src/main.cpp
 				src/QGMDialogSliderHD.cpp             src/QGMDialogSliderHD.h
 				src/QGMDialogConeParam.cpp            src/QGMDialogConeParam.h
 				src/QGMDialogEnterText.cpp            src/QGMDialogEnterText.h
+                                src/QGMDialogMatrix.cpp               src/QGMDialogMatrix.h
 				src/QGMDialogPlaneParam.cpp           src/QGMDialogPlaneParam.h
 				src/QGMDialogNprSettings.cpp          src/QGMDialogNprSettings.h
 				src/MeshQtCSVImportExport.cpp         src/MeshQtCSVImportExport.h
@@ -81,6 +82,7 @@ set(GUI_UI_FILES
 	forms/qgmdocksidebar.ui
 	forms/dialogCutOffValues.ui
 	forms/DialogFindTextures.ui
+        forms/QGMDialogMatrix.ui
 )
 
 #NOTE: instead of adding translations via resources, the ts-files can also be build by
@@ -97,6 +99,11 @@ set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/forms
 							   ${CMAKE_CURRENT_SOURCE_DIR}/normalSphereSelection)
 
 add_executable(gigamesh ${GUI_SOURCES} ${GUI_RESOURCES} ${GUI_UI_FILES})
+
+if(APPLE)
+    set_target_properties(gigamesh PROPERTIES
+        MACOSX_BUNDLE ON)
+endif()
 
 add_definitions(${Qt5Widgets_DEFINITIONS})
 target_include_directories(gigamesh PRIVATE ${Qt5Widgets_INCLUDES})

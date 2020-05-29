@@ -47,6 +47,7 @@ MeshInfoData::MeshInfoData() {
 	mCountULongName[VERTICES_POLYLINE] = "Vertices of polylines";
 	mCountULongName[VERTICES_BORDER] = "Border vertices";
 	mCountULongName[VERTICES_NONMANIFOLD] = "Vertices non-manifold";
+	mCountULongName[VERTICES_SINGULAR] = "Vertices singular";
 	mCountULongName[VERTICES_ON_INVERTED_EDGE] = "Vertices along an inverted edge";
 	mCountULongName[VERTICES_PART_OF_ZERO_FACE] = "Vertices part of a zero area face";
 	mCountULongName[VERTICES_SYNTHETIC] = "Vertices synthetic";
@@ -70,6 +71,7 @@ MeshInfoData::MeshInfoData() {
 	mCountULongName[FACES_INVERTED] = "Inverted Faces";
 	mCountULongName[FACES_SELECTED] = "Selected Faces";
 	mCountULongName[FACES_WITH_SYNTH_VERTICES] = "Faces with synthetic vertices";
+	mCountULongName[CONNECTED_COMPONENTS] = "Connected components";
 
 	// Double names
 	mmCountDoubleName[BOUNDINGBOX_MIN_X]    = "Minimum x coordinate";
@@ -89,18 +91,13 @@ MeshInfoData::MeshInfoData() {
 	reset();
 }
 
-//! Destructor.
-MeshInfoData::~MeshInfoData() {
-	// Nothing
-}
-
 //! Reset all values.
 void MeshInfoData::reset() {
 	for( std::string& countValue : this->mStrings ) {
 		countValue = "";
 	}
-	for( unsigned long& countValue : this->mCountULong ) {
-		countValue = _NOT_A_NUMBER_UINT_;
+	for( auto& countValue : this->mCountULong ) {
+		countValue = _NOT_A_NUMBER_ULONG_;
 	}
 	for( double& countValue : this->mCountDouble ) {
 		countValue = _NOT_A_NUMBER_DBL_;
@@ -161,6 +158,15 @@ bool MeshInfoData::getMeshInfoHTML(
 	infoStr += "<body>\n";
 
 	infoStr += "<b>Filename:</b> " + this->mStrings[MeshInfoData::FILENAME] + "<br />\n";
+	infoStr += "<br />\n";
+
+	infoStr += "Connected components: ";
+	if( isnormal( static_cast<double>(this->mCountULong[MeshInfoData::CONNECTED_COMPONENTS]) ) ) {
+		infoStr += std::to_string( this->mCountULong[MeshInfoData::CONNECTED_COMPONENTS] );
+	} else {
+		infoStr += "not determined";
+	}
+	infoStr += "<br />\n";
 
 	// Outer table - Row I, Col I
 	infoStr += "<table align='center' border='" + tableBorder + "'>\n";
@@ -221,6 +227,7 @@ bool MeshInfoData::getMeshInfoHTML(
 	infoStr += "<tr><td>Polyline:</td><td align=\"right\">"                             + std::to_string( this->mCountULong[MeshInfoData::VERTICES_POLYLINE] )               + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_POLYLINE].str()               + "&#37;</td></tr>\n";
 	infoStr += "<tr><td>Border:</td><td align=\"right\">"                               + std::to_string( this->mCountULong[MeshInfoData::VERTICES_BORDER] )                 + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_BORDER].str()                 + "&#37;</td></tr>\n";
 	infoStr += "<tr><td>Non-manifold:</td><td align=\"right\">"                         + std::to_string( this->mCountULong[MeshInfoData::VERTICES_NONMANIFOLD] )            + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_NONMANIFOLD].str()            + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Singular:</td><td align=\"right\">"                             + std::to_string( this->mCountULong[MeshInfoData::VERTICES_SINGULAR] )               + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_SINGULAR].str()               + "&#37;</td></tr>\n";
 	infoStr += "<tr><td>Inverted edge<sup>b)</sup>:</td><td align=\"right\">"           + std::to_string( this->mCountULong[MeshInfoData::VERTICES_ON_INVERTED_EDGE] )       + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_ON_INVERTED_EDGE].str()       + "&#37;</td></tr>\n";
 	infoStr += "<tr><td>Part&nbsp;of&nbsp;zero&nbsp;area&nbsp;face:</td><td align=\"right\">"   + std::to_string( this->mCountULong[MeshInfoData::VERTICES_PART_OF_ZERO_FACE] )      + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_PART_OF_ZERO_FACE].str()      + "&#37;</td></tr>\n";
 	infoStr += "<tr><td>Synthetic:</td><td align=\"right\">"                            + std::to_string( this->mCountULong[MeshInfoData::VERTICES_SYNTHETIC] )              + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_SYNTHETIC].str()              + "&#37;</td></tr>\n";

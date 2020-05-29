@@ -167,7 +167,7 @@ Vertex::Vertex( Vector3D vertPos, Vector3D vertNormal )
 	setFlag( FLAG_NORMAL_SET );
 }
 
-Vertex::Vertex( Vector3D vertPos, Vector3D vertNormal, int setLabelTo )
+Vertex::Vertex(Vector3D vertPos, Vector3D vertNormal, uint64_t setLabelTo )
     : VERTEXINITDEFAULTS {
 	//! Constuctor using a position Vector3D, a direction Vector3D and a valid label no.
 	// defaults:
@@ -314,13 +314,23 @@ bool Vertex::setRGB( unsigned char setTexR, unsigned char setTexG, unsigned char
 	return true;
 }
 
+bool Vertex::setAlpha(unsigned char alpha)
+{
+	if(alpha > 255)
+	{
+		return false;
+	}
+	TEX_ALPHA = alpha;
+	return true;
+}
+
 bool Vertex::setAlpha( double rVal ) {
 	//! Set alpha/transparency for this vertex - range: 0.0 to 1.0
 	//! Will return false in case of an error.
 	if( ( rVal < 0.0 ) || ( rVal > 1.0 ) ) {
 		return false;
 	}
-	TEX_ALPHA = rVal * 255;
+	TEX_ALPHA = static_cast<unsigned char>(rVal * 255.0);
 	return true;
 }
 
@@ -552,9 +562,9 @@ double Vertex::distanceToCoord( const double* someXYZ ) {
 
 //! Copies the x-, y- an z-coordinate to a given array of type float - which has to be of size 3.
 bool Vertex::copyCoordsTo( float* rCoordArr ) {
-	rCoordArr[0] = POS_X;
-	rCoordArr[1] = POS_Y;
-	rCoordArr[2] = POS_Z;
+	rCoordArr[0] = static_cast<float>(POS_X);
+	rCoordArr[1] = static_cast<float>(POS_Y);
+	rCoordArr[2] = static_cast<float>(POS_Z);
 	return true;
 }
 
@@ -717,7 +727,9 @@ unsigned int Vertex::getOctreeIndex( Vector3D rCubeTopLeft, double rEdgeLen, uns
 		return 0;
 	}
 	Vector3D distToCenter = ( getPositionVector() - rCubeTopLeft ) / rEdgeLen;
-	unsigned int octInd1D = ceil( distToCenter.getX() ) + ceil( distToCenter.getY() ) * rXyzCubes + ceil( distToCenter.getZ() ) * rXyzCubes * rXyzCubes;
+	unsigned int octInd1D = static_cast<unsigned int>(ceil( distToCenter.getX() ) +
+	                                                  ceil( distToCenter.getY() ) * rXyzCubes +
+	                                                  ceil( distToCenter.getZ() )) * rXyzCubes * rXyzCubes;
 	return octInd1D;
 }
 
@@ -727,22 +739,22 @@ int Vertex::getType() {
 }
 
 //! Relates to Mesh::fetchSphereBitArray passes thru to neighbourfaces to reach the vertices in 1-ring distance.
-Vertex* Vertex::advanceInSphere( double*        sphereCenter,        //!< X, y and z-coordinate of the sphere's center
-								 double         radius,              //!< Radius of the sphere.
-                                 uint64_t* vertBitArrayVisited, //!< Bit array tagging visited vertices.
-								 set<Vertex*>*  nextArray,           //!< Vertices along the marching front.
-                                 uint64_t* faceBitArrayVisited, //!< Bit array tagging visited faces.
-								 bool           rOrderToFuncVal,     //!< Flag for visual debuging: will set the faces function value to the sequenze nr.
-								 double*        rSeqNr               //!< Sequenze number - only used when rOrderToFuncVal is set.
+Vertex* Vertex::advanceInSphere( [[maybe_unused]] double*        sphereCenter,        //!< X, y and z-coordinate of the sphere's center
+                                 [[maybe_unused]] double         radius,              //!< Radius of the sphere.
+                                 [[maybe_unused]] uint64_t* vertBitArrayVisited, //!< Bit array tagging visited vertices.
+                                 [[maybe_unused]] set<Vertex*>*  nextArray,           //!< Vertices along the marching front.
+                                 [[maybe_unused]] uint64_t* faceBitArrayVisited, //!< Bit array tagging visited faces.
+                                 [[maybe_unused]] bool           rOrderToFuncVal,     //!< Flag for visual debuging: will set the faces function value to the sequenze nr.
+                                 [[maybe_unused]] double*        rSeqNr               //!< Sequenze number - only used when rOrderToFuncVal is set.
 	) {
 	return nullptr;
 }
 
 //! Relates to Mesh::fetchSphereBitArray1R adds vertices and faces in 1-ring distance to the bit arrays.
-bool Vertex::mark1RingVisited( uint64_t* rVertBitArrayVisited, //!< Bit array tagging visited vertices.
-                               uint64_t* rFaceBitArrayVisited, //!< Bit array tagging visited faces.
-                               bool           rOrderToFuncVal,      //!< Flag for visual debuging: will set the faces function value to the sequenze nr.
-                               double*        rSeqNr                 //!< Sequenze number - only used when rOrderToFuncVal is set.
+bool Vertex::mark1RingVisited( [[maybe_unused]] uint64_t* rVertBitArrayVisited, //!< Bit array tagging visited vertices.
+                               [[maybe_unused]] uint64_t* rFaceBitArrayVisited, //!< Bit array tagging visited faces.
+                               [[maybe_unused]] bool           rOrderToFuncVal,      //!< Flag for visual debuging: will set the faces function value to the sequenze nr.
+                               [[maybe_unused]] double*        rSeqNr                 //!< Sequenze number - only used when rOrderToFuncVal is set.
 	) {
 	return true;
 }
@@ -795,7 +807,7 @@ bool Vertex::isFuncValLocalMaximum() {
 //! Implemented in VertexOfFace::funcValMedianOneRing
 //!
 //! @returns false in case of an error. True otherwise.
-bool Vertex::funcValMedianOneRing( double* rMedianValue , double rMinDist  ) {
+bool Vertex::funcValMedianOneRing( [[maybe_unused]] double* rMedianValue , [[maybe_unused]] double rMinDist  ) {
 	// This function requires faces. Therefore it is implemented in VertexOfFace.
 	return false;
 }
@@ -805,7 +817,7 @@ bool Vertex::funcValMedianOneRing( double* rMedianValue , double rMinDist  ) {
 //! Implemented in VertexOfFace::funcValMeanOneRing
 //!
 //! @returns false in case of an error. True otherwise.
-bool Vertex::funcValMeanOneRing( double* rMeanValue , double rMinDist  ) {
+bool Vertex::funcValMeanOneRing( [[maybe_unused]] double* rMeanValue , [[maybe_unused]] double rMinDist  ) {
 	// This function requires faces. Therefore it is implemented in VertexOfFace.
 	return false;
 }
@@ -959,7 +971,7 @@ bool Vertex::applyMeltingSphere( double rRadius, double rRel ) {
 }
 
 //! Move the vertex by the offset value
-Vertex *Vertex::applyNormalShift(float offsetDistance, int index) {
+Vertex *Vertex::applyNormalShift(float offsetDistance, [[maybe_unused]] int index) {
     Vector3D normal = this->getNormal(true);
     Vector3D pos = this->getPositionVector();
     Vector3D newPos = pos + offsetDistance * normal;
@@ -1003,7 +1015,7 @@ bool Vertex::getLabel( uint64_t& rGetLabelNr ) const {
 
 //! Retrieves all Vertices in 1-ring distance and adds them to the given list.
 //! Will exclude the calling Vertex.
-void Vertex::getNeighbourVertices( set<Vertex*>* someVertList  ) {
+void Vertex::getNeighbourVertices( [[maybe_unused]] set<Vertex*>* someVertList  ) {
 }
 
 bool Vertex::getNeighbourVerticesExcluding( set<Vertex*>* neighboursSelected, set<Vertex*>* verticesToExclude ) {
@@ -1033,19 +1045,19 @@ bool Vertex::getNeighbourVerticesExcluding( set<Vertex*>* neighboursSelected, se
 
 //! Adds the adjacent vertices of the 1-ring to rSomeVerts, when they have not been tagged in rVertBitArrayVisited.
 //! Will also tag the vertices added.
-bool Vertex::getAdjacentVerticesExcluding( vector<Vertex*>* rSomeVerts, uint64_t* rVertBitArrayVisited ) {
+bool Vertex::getAdjacentVerticesExcluding( [[maybe_unused]] vector<Vertex*>* rSomeVerts, [[maybe_unused]] uint64_t* rVertBitArrayVisited ) {
 	return true;
 }
 
 //! Return the reference to next vertex on the border within the 1-ring neighbourhood.
 //! Considers the bit-array for vertices tagged unvisited.
-Vertex* Vertex::getAdjacentNextBorderVertex( uint64_t* rVertBitArrayUnVisited ) {
+Vertex* Vertex::getAdjacentNextBorderVertex( [[maybe_unused]] uint64_t* rVertBitArrayUnVisited ) {
 	return nullptr;
 }
 
 //! When one of the next Vertex within orientated 1-ring neighbourhood
 //! is part of the list, the Vertex is returned - NULL otherwise.
-Vertex* Vertex::getConnection( set<Vertex*>* someVertList, bool reverse ) {
+Vertex* Vertex::getConnection( [[maybe_unused]] set<Vertex*>* someVertList, [[maybe_unused]] bool reverse ) {
 	return nullptr;
 }
 
@@ -1060,26 +1072,26 @@ void Vertex::disconnectFace( Face* someFace ) {
 }
 */
 //! Test if a given face is adjacent to this Vertex.
-bool Vertex::isAdjacent( Face* someFace ) {
+bool Vertex::isAdjacent( [[maybe_unused]] Face* someFace ) {
 	return false;
 }
 
 //! Typically called when a Face is initalized. Adds all Faces
 //! having this Vertex and the otherVert, but is not the
 //! calling Face.
-void Vertex::getFaces( Vertex* otherVert, set<Face*>* neighbourFaces, Face* callingFace ) {
+void Vertex::getFaces( [[maybe_unused]] Vertex* otherVert, [[maybe_unused]] set<Face*>* neighbourFaces, [[maybe_unused]] Face* callingFace ) {
 }
 
 //! Adds all adjacent Faces of this Vertex to the given list/set of Faces.
 //! Because we use a set, there will be NO duplicate faces.
 //!
 //! Typically called by Mesh::removeVertices()
-void Vertex::getFaces( set<Face*>* someFaceList ) {
+void Vertex::getFaces( [[maybe_unused]] set<Face*>* someFaceList ) {
 }
 
 //! Adds all adjacent Faces of this Vertex to the given list/set of Faces.
 //! Because we use a vector, there will can be duplicate faces, which is a rather odd case.
-void Vertex::getFaces( vector<Face*>* someFaceList ) {
+void Vertex::getFaces( [[maybe_unused]] vector<Face*>* someFaceList ) {
 }
 
 // Mesh checking ----------------------------------------------------------------------------
@@ -1367,7 +1379,7 @@ double Vertex::getOrthogonalAxisAngleToRadial( const Vector3D &rAxisTop, const V
 //! Initalize a marching front and visited faces for geodesic distance estimation with this Vertex as seed.
 //! Hint: 1-ring
 //! @returns false in case of an error.
-bool Vertex::getGeodesicEdgesSeed( deque<EdgeGeodesic*>* frontEdges, map<Vertex*,GeodEntry*>* geoDistList, uint64_t* faceBitArray, int faceNrBlocks, bool weightFuncVal ) {
+bool Vertex::getGeodesicEdgesSeed( deque<EdgeGeodesic*>* frontEdges, map<Vertex*,GeodEntry*>* geoDistList, uint64_t* faceBitArray, [[maybe_unused]] int faceNrBlocks, bool weightFuncVal ) {
 
 	// Check for invalid settings:
 	if( ( frontEdges == nullptr ) || ( geoDistList == nullptr ) ) {
@@ -1509,9 +1521,8 @@ bool Vertex::getGeodesicEdgesSeed( deque<EdgeGeodesic*>* frontEdges, map<Vertex*
 
 //! Assign a feature vectore stored in an external table.
 //! @returns false in case of an error (e.g. another vector already attached). True otherwise.
-bool Vertex::assignFeatureVec(
-        const double*         rAttachFeatureVec, 
-        const uint64_t   rSetFeatureVecLen
+bool Vertex::assignFeatureVec(const double*         rAttachFeatureVec,
+        unsigned int rSetFeatureVecLen
 ) {
 	if( ( rAttachFeatureVec == nullptr ) && ( rSetFeatureVecLen > 0 ) ) {
 		// No pointer => problem.
@@ -1562,7 +1573,7 @@ bool Vertex::assignFeatureVec(const std::initializer_list<double> featureVectorV
 
 	// Create and copy vector:
 
-	mFeatureVecLen = featureVectorValues.size();
+	mFeatureVecLen = static_cast<unsigned int>(featureVectorValues.size());
 	mFeatureVec    = new double[mFeatureVecLen];
 
 	if(mFeatureVec != nullptr)
@@ -2033,7 +2044,7 @@ void Vertex::resizeFeatureVector(unsigned int size)
 	mFeatureVecLen = size;
 
 	//copy data
-	for(int i = 0; i<mFeatureVecLen; ++i)
+	for(unsigned int i = 0; i<mFeatureVecLen; ++i)
 	{
 		mFeatureVec[i] = i < oldlen ? oldVec[i] : _NOT_A_NUMBER_DBL_;
 	}
@@ -2054,7 +2065,7 @@ void Vertex::resizeFeatureVector(unsigned int size)
 //! See VertexOfFace::getFeatureVecMedianOneRing
 //!
 //! @returns false in case of an error. True otherwise.
-bool Vertex::getFeatureVecMedianOneRing( vector<double>& rMedianValues, double rMinDist   ) {
+bool Vertex::getFeatureVecMedianOneRing( vector<double>& rMedianValues, [[maybe_unused]] double rMinDist   ) {
 	for( unsigned int i=0; i<mFeatureVecLen; i++ ) {
 		try {
 			rMedianValues.at( i ) = mFeatureVec[i];
@@ -2075,7 +2086,7 @@ bool Vertex::getFeatureVecMedianOneRing( vector<double>& rMedianValues, double r
 //! See VertexOfFace::getFeatureVecMeanOneRing
 //!
 //! @returns false in case of an error. True otherwise.
-bool Vertex::getFeatureVecMeanOneRing( vector<double>& rMeanValues, double rMinDist   ) {
+bool Vertex::getFeatureVecMeanOneRing( vector<double>& rMeanValues, [[maybe_unused]] double rMinDist   ) {
 	for( unsigned int i=0; i<mFeatureVecLen; i++ ) {
 		try {
 			rMeanValues.at( i ) = mFeatureVec[i];
@@ -2089,8 +2100,8 @@ bool Vertex::getFeatureVecMeanOneRing( vector<double>& rMeanValues, double rMinD
 }
 
 bool Vertex::getFeatureVecMeanOneRing(
-                const double& rMinDist ,
-                const vector<s1RingSectorPrecomp>& r1RingSecPrecomp ,
+                [[maybe_unused]] const double& rMinDist ,
+                [[maybe_unused]] const vector<s1RingSectorPrecomp>& r1RingSecPrecomp ,
                 vector<double>& rMeanValues
 ) {
 	for( unsigned int i=0; i<mFeatureVecLen; i++ ) {

@@ -141,6 +141,14 @@ bool cleanupGigaMeshData(
 	//----------------------------------------------------------
 	std::chrono::system_clock::time_point tStart = std::chrono::system_clock::now();
 
+	// Initial numbers of primitives
+	auto oldVertexNr = someMesh.getVertexNr();
+	auto oldFaceNr = someMesh.getFaceNr();
+	// and count of connected components (labels)
+	uint64_t labelCountIn;
+	someMesh.labelVerticesAll();
+	someMesh.labelCount( Primitive::IS_VERTEX, labelCountIn );
+
 	// Keep ONLY the largest connected component.
 	//----------------------------------------------------------
 	if( !keepLargestComponent ) {
@@ -161,10 +169,6 @@ bool cleanupGigaMeshData(
 		someMesh.selectVertLabelNo( labelNrs );
 		someMesh.removeVerticesSelected();
 	}
-
-	// Initial numbers of primitives
-	auto oldVertexNr = someMesh.getVertexNr();
-	auto oldFaceNr = someMesh.getFaceNr();
 
 	// MAIN cleaning procedure
 	//----------------------------------------------------------
@@ -202,27 +206,27 @@ bool cleanupGigaMeshData(
 		return( false );
 	}
 
+	// Fetch new count of connected components (labels)
+	uint64_t labelCountOut;
+	someMesh.labelVerticesAll();
+	someMesh.labelCount( Primitive::IS_VERTEX, labelCountOut );
+
 	// WRITE meta information
 	//----------------------------------------------------------
 	// Count primitives and their properties for meta information
 	MeshInfoData rFileInfos;
 	someMesh.getMeshInfoData( rFileInfos, true );
 	// Set filename for meta-data
-    std::filesystem::path fileNameOutMeta = fileNameOut;
-    fileNameOutMeta.replace_extension("info-clean.txt" );
+	std::filesystem::path fileNameOutMeta = fileNameOut;
+	fileNameOutMeta.replace_extension( "info-clean.txt" );
 	//fileNameOutMeta += suffix + ".info-clean.txt";
 	// Open file for meta-data
 	std::fstream fileStrOutMeta;
-    fileStrOutMeta.open( fileNameOutMeta, std::fstream::out );
+	fileStrOutMeta.open( fileNameOutMeta, std::fstream::out );
 #ifdef VERSION_PACKAGE
-	fileStrOutMeta << "[GigaMesh] CLEAN v." << VERSION_PACKAGE << std::endl;
+	fileStrOutMeta << "GigaMesh CLEAN Version:     " << VERSION_PACKAGE << std::endl;
 #else
-	fileStrOutMeta << "[GigaMesh] CLEAN unknown version" << std::endl;
-#endif
-#ifdef THREADS
-	fileStrOutMeta << "Threads (fixed):            " << std::thread::hardware_concurrency() * 2 << std::endl;
-#else
-	fileStrOutMeta << "Threads (fixed):            single" << std::endl;
+	fileStrOutMeta << "GigaMesh CLEAN Version:     unknown" << std::endl;
 #endif
 	fileStrOutMeta << "Threads (dynamic):          " << std::thread::hardware_concurrency() - 1 << std::endl;
 	fileStrOutMeta << "File Input:                 " << fileNameInName << std::endl;
@@ -234,6 +238,8 @@ bool cleanupGigaMeshData(
 	fileStrOutMeta << "Face count (in, out):       " << oldFaceNr   << ", " << rFileInfos.mCountULong[MeshInfoData::FACES_TOTAL]    << std::endl;
 	fileStrOutMeta << "Vertex count (diff):        " << ( static_cast<long>(rFileInfos.mCountULong[MeshInfoData::VERTICES_TOTAL]) - static_cast<long>(oldVertexNr) ) << std::endl;
 	fileStrOutMeta << "Face count (diff):          " << ( static_cast<long>(rFileInfos.mCountULong[MeshInfoData::FACES_TOTAL])    - static_cast<long>(oldFaceNr)   ) << std::endl;
+	fileStrOutMeta << "Connected components (in):  " << labelCountIn << std::endl;
+	fileStrOutMeta << "Connected components (out): " << labelCountOut << std::endl;
 	fileStrOutMeta << "Vertices at border (out):   " << rFileInfos.mCountULong[MeshInfoData::VERTICES_BORDER] << std::endl;
 	fileStrOutMeta << "Vertices synthetic (out):   " << rFileInfos.mCountULong[MeshInfoData::VERTICES_SYNTHETIC] << std::endl;
 	fileStrOutMeta << "Faces synthetic (out):      " << rFileInfos.mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES] << std::endl;
@@ -245,6 +251,18 @@ bool cleanupGigaMeshData(
 	// Done.
 	//----------------------------------------------------------
 	return( true );
+}
+
+
+//! Show software version.
+void printVersion() {
+	std::cout << "GigaMesh Software Framework CLEAN 3D-data " << VERSION_PACKAGE << std::endl;
+	std::cout << "Multi-threading with " << std::thread::hardware_concurrency() - 1 << " (dynamic) threads." << std::endl;
+#ifdef LIBPSALM
+	std::cout << "Hole filling enabled. POLISH possible." << std::endl;
+#else
+	std::cout << "Hole filling disabled. CLEAN only." << std::endl;
+#endif
 }
 
 //! Help i.e. usage of paramters.
@@ -261,7 +279,7 @@ void printHelp( const char* rExecName ) {
 	std::cout << "Options:" << std::endl;
 	std::cout << "  -h, --help                              Displays this help." << std::endl;
 	std::cout << "  -v, --version                           Displays version information." << std::endl;
-	std::cout << "  -k, --overwrite-existing                Overwrite exisitng files, which is not done by default" << std::endl;
+	std::cout << "  -k, --overwrite-existing                Overwrite existing files, which is not done by default" << std::endl;
 	std::cout << "                                          to prevent accidental data loss. If this option is not set" << std::endl;
 	std::cout << "                                          and the output file exists, the file will be skipped." << std::endl;
 	std::cout << std::endl;
@@ -273,9 +291,10 @@ void printHelp( const char* rExecName ) {
 	std::cout << "  -l, --keep-largest-component            Keep only the largest connected component." << std::endl;
 	std::cout << "  -s, --skip-largest-hole                 Do not fill the largest hole. Has no effect, when -r is used." << std::endl;
 	std::cout << "                                          Typically used for partial 3D-scans, where e.g. the backside is missing." << std::endl;
-	std::cout << "  -g, --skip-holes-larger SIZE            Holes with more than SIZE vertices are not filled. Has no effect, when -r is used." << std::endl;
+	std::cout << "  -g, --skip-holes-larger SIZE            Holes with more than SIZE vertices along its border are not filled." << std::endl;
 	std::cout << "                                          Typically used for surface with large holes, which often have a complex shape." << std::endl;
 	std::cout << "                                          The default for SIZE is 3000. Set 0 (zero) to attempted all holes to be filled." << std::endl;
+	std::cout << "                                          Has no effect, when -r is used." << std::endl;
 	std::cout << "  -n, --no-border-erosion                 Do not apply border erosion i.e. keep dangling faces along the border." << std::endl;
 	std::cout << std::endl;
 	std::cout << "Options to (pre)set the embedded Meta-data:" << std::endl;
@@ -284,11 +303,14 @@ void printHelp( const char* rExecName ) {
 	std::cout << "  -j, --set-id-remove-trailing-chars SIZE Remove SIZE trailing characters from the filename stem for the id."<< std::endl;
 	std::cout << "                                          Will be ignored if -i is not used." << std::endl;
 	std::cout << "  -o, --set-material-id-forced            Enforce id and material, even when NOT empty." << std::endl;
+	std::cout << std::endl;
+	std::cout << "Options for testing and debugging:" << std::endl;
 	std::cout << "    , --log-level [0-4]                   Sets the log level of this application.\n"
-				 "                                          Higher numbers increases verbosity.\n"
-				 "                                          (Default: 1)" << std::endl;
+	             "                                          Higher numbers increases verbosity.\n"
+	             "                                          (Default: 1)" << std::endl;
 	//std::cout << "" << std::endl;
 }
+
 
 
 //! Main routine for loading a (binary) PLY and store it after cleaning the mesh.
@@ -414,18 +436,7 @@ int main( int argc, char* argv[] ) {
 				break;
 
 			case 'v':
-				std::cout << "GigaMesh Software Framework CLEAN 3D-data " << VERSION_PACKAGE << std::endl;
-#ifdef THREADS
-				std::cout << "Multi-threading with " << std::thread::hardware_concurrency() * 2 << " (fixed) threads." << std::endl;
-#else
-				std::cout << "Single-threading. " << std::endl;
-#endif
-				std::cout << "Multi-threading with " << std::thread::hardware_concurrency() - 1 << " (dynamic) threads." << std::endl;
-#ifdef LIBPSALM
-				std::cout << "Hole filling enabled. POLISH possible." << std::endl;
-#else
-				std::cout << "Hole filling disabled. CLEAN only." << std::endl;
-#endif
+				printVersion();
 				std::exit( EXIT_SUCCESS );
 				break;
 

@@ -250,7 +250,6 @@ void main(void) {
 		if( uRenderColor == 1 )
 		{
                     outputColor  =  gVertex.vertexColor;
-                    outputColor.a = step(1.0/255.0, outputColor.a);
 		}
 	// ++++ Function value mapped to color ramp:
 		if( uRenderColor == 2 )

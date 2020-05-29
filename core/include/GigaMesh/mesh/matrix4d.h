@@ -103,13 +103,13 @@ class Matrix4D {
 		// Access -- Get values
 		double  get( int idxRow, int idxCol ) const;
 		double& get( int idxRow, int idxCol );
-		double getX( int idx) const;
+		double  getX( int idx) const;
 		double& getX( int idx );
-		double getY( int idx) const;
+		double  getY( int idx) const;
 		double& getY( int idx );
-		double getZ(int idx) const;
+		double  getZ(int idx) const;
 		double& getZ( int idx );
-		double getH(int idx) const;
+		double  getH(int idx) const;
 		double& getH( int idx );
 		double  getSumX();
 		double  getSumY();

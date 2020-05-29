@@ -27,7 +27,7 @@
 class MeshInfoData {
 	public:
 		MeshInfoData();
-		~MeshInfoData();
+		~MeshInfoData() = default;
 
 	public:
 		enum eMeshPropertyString {
@@ -51,6 +51,7 @@ class MeshInfoData {
 			VERTICES_POLYLINE,
 			VERTICES_BORDER,
 			VERTICES_NONMANIFOLD,
+			VERTICES_SINGULAR,             //!< AKA double cone
 			VERTICES_ON_INVERTED_EDGE,
 			VERTICES_PART_OF_ZERO_FACE,
 			VERTICES_SYNTHETIC,
@@ -74,10 +75,11 @@ class MeshInfoData {
 			FACES_INVERTED,
 			FACES_SELECTED,
 			FACES_WITH_SYNTH_VERTICES,     //!< Number of faces having only synthetic vertices i.e. all three vertices are synthetic.
+			CONNECTED_COMPONENTS,          //!< Number of connected components
 			ULONG_COUNT,                   //!< Number of elements.
 		};
 	public:
-		unsigned long mCountULong[ULONG_COUNT];
+		uint64_t mCountULong[ULONG_COUNT];
 	private:
 		std::string mCountULongName[ULONG_COUNT];
 

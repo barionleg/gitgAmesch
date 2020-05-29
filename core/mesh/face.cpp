@@ -73,13 +73,13 @@ Face::Face( unsigned int rIndex, VertexOfFace* setA, VertexOfFace* setB, VertexO
 	}
 
 	// Check for valid class type.
-	if( !setA->belongsToFace() ) {
+    if( setA != nullptr && !setA->belongsToFace() ) {
 		cerr << "[Face::" << __FUNCTION__ << "] ERROR: The class of vertex A is NOT VertexOfFace!" << endl;
 	}
-	if( !setB->belongsToFace() ) {
+    if( setB != nullptr && !setB->belongsToFace() ) {
 		cerr << "[Face::" << __FUNCTION__ << "] ERROR: The class of vertex B is NOT VertexOfFace!" << endl;
 	}
-	if( !setC->belongsToFace() ) {
+    if( setC != nullptr && !setC->belongsToFace() ) {
 		cerr << "[Face::" << __FUNCTION__ << "] ERROR: The class of vertex C is NOT VertexOfFace!" << endl;
 	}
 
@@ -2316,31 +2316,25 @@ bool Face::isOnFuncValIsoLine( double isoThres ) {
 	vertA->getFuncValue( &funcValA );
 	funcValA -= isoThres;
 	if( funcValA == 0.0 ) {
-		cerr << "[Face::" << __FUNCTION__ << "] Warning: Iso Line intersects Vertex A." << endl;
+		LOG::debug() << "[Face::" << __FUNCTION__ << "] Warning: Iso Line intersects Vertex A.\n";
 		return true;
 	}
 	vertB->getFuncValue( &funcValB );
 	funcValB -= isoThres;
 	if( funcValB == 0.0 ) {
-		cerr << "[Face::" << __FUNCTION__ << "] Warning: Iso Line intersects Vertex B." << endl;
+		LOG::debug() << "[Face::" << __FUNCTION__ << "] Warning: Iso Line intersects Vertex B.\n";
 		return true;
 	}
 	vertC->getFuncValue( &funcValC );
 	funcValC -= isoThres;
 	if( funcValC == 0.0 ) {
-		cerr << "[Face::" << __FUNCTION__ << "] Warning: Iso Line intersects Vertex C." << endl;
+		LOG::debug() << "[Face::" << __FUNCTION__ << "] Warning: Iso Line intersects Vertex C.\n";
 		return true;
 	}
-	if( ( funcValA * funcValB ) <= 0.0 ) {
-		return true;
-	}
-	if( ( funcValB * funcValC ) <= 0.0 ) {
-		return true;
-	}
-	if( ( funcValC * funcValA ) <= 0.0 ) {
-		return true;
-	}
-	return false;
+
+	return funcValA * funcValB <= 0.0 ||
+	       funcValB * funcValC <= 0.0 ||
+	       funcValC * funcValA <= 0.0;
 }
 
 //! Get next point to trace IsoLine
@@ -2371,9 +2365,9 @@ bool Face::getFuncValIsoPoint( double    isoThres,
 	*faceVisited = nullptr;
 
 	//cases, where only the isoline touches the face in one or all points
-	if((funcValA == 0.0 && funcValB == 0.0 && funcValC == 0.0) && //case all points are on isoValue
-	   (funcValA == 0.0 && funcValB * funcValC > 0.0)          && //case A is on, but B and C have same sign
-	   (funcValB == 0.0 && funcValC * funcValA > 0.0)          && //case B is on, but C and A have same sign
+	if((funcValA == 0.0 && funcValB == 0.0 && funcValC == 0.0) || //case all points are on isoValue
+	   (funcValA == 0.0 && funcValB * funcValC > 0.0)          || //case A is on, but B and C have same sign
+	   (funcValB == 0.0 && funcValC * funcValA > 0.0)          || //case B is on, but C and A have same sign
 	   (funcValC == 0.0 && funcValA * funcValB > 0.0)             //case C is on, but A and B have same sign
 	  )
 	{

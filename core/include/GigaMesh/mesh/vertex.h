@@ -58,22 +58,23 @@ class Vertex : public Primitive {
 		Vertex( unsigned int rSetIdx, double rPosX, double rPosY, double rPosZ );
 		Vertex( Vector3D vertPos );
 		Vertex( Vector3D vertPos, Vector3D vertNormal );
-		Vertex( Vector3D vertPos, Vector3D vertNormal, int setLabelTo );
+		Vertex( Vector3D vertPos, Vector3D vertNormal, uint64_t setLabelTo );
 		Vertex( Vertex* vertA, Vertex* vertB, double weightA=-1.0, double weightB=+1.0, double weightPos=0.0 );
 		~Vertex();
 
 		// Indexing:
-		virtual bool     setIndex( int setIdx );
-		virtual int      getIndex() const;
-		virtual int      getIndexOriginal();
+		        bool     setIndex( int setIdx ) override;
+				int      getIndex() const override;
+				int      getIndexOriginal() override;
 		virtual void     getIndexOffsetBit( int* bitOffset, int* bitNr );
 		        bool     markVisited( uint64_t* rVertBitArrayVisited );
 				bool     unmarkVisited( uint64_t* rVertBitArrayVisited );
 				bool     isMarked(const uint64_t* rVertBitArrayVisited );
 
 		// Color managment:
-		virtual bool     setRGB( unsigned char setTexR, unsigned char setTexG, unsigned char setTexB );
-		virtual bool     setAlpha( double rVal );
+		bool     setRGB( unsigned char setTexR, unsigned char setTexG, unsigned char setTexB ) override;
+		bool     setAlpha( double rVal ) override;
+virtual bool     setAlpha(unsigned char alpha);
 
 		// Information retrival:
 
@@ -91,20 +92,20 @@ class Vertex : public Primitive {
 			indexAndPositionVectorPair.second.at(2) = mPosition[2];
 		}
 		                                                                             
-		virtual double   getX() const;
-		virtual double   getY() const;
-		virtual double   getZ() const;
-		virtual double   getNormalX();
-		virtual double   getNormalY();
-		virtual double   getNormalZ();
+		        double   getX() const override;
+				double   getY() const override;
+				double   getZ() const override;
+				double   getNormalX() override;
+				double   getNormalY() override;
+				double   getNormalZ() override;
 		        double   getNormalLen() const;
 		        Vector3D getCenterOfGravity();
 		        Vector3D getNormal( bool normalized=true );
-		virtual bool     copyNormalXYZTo( float*  rNormalXYZ, bool rNormalized=true );
-		virtual bool     copyNormalXYZTo( double* rNormalXYZ, bool rNormalized=true );
-		virtual bool     copyNormalXYZTo( double* rNormalXYZ, double rSetLength );
-		virtual bool     copyRGBTo( unsigned char* rColor );
-		virtual bool     copyRGBATo( unsigned char* rColor );
+				bool     copyNormalXYZTo( float*  rNormalXYZ, bool rNormalized=true ) override;
+				bool     copyNormalXYZTo( double* rNormalXYZ, bool rNormalized=true ) override;
+				bool     copyNormalXYZTo( double* rNormalXYZ, double rSetLength ) override;
+				bool     copyRGBTo( unsigned char* rColor ) override;
+				bool     copyRGBATo( unsigned char* rColor ) override;
 		virtual unsigned char getR();
 		virtual unsigned char getG();
 		virtual unsigned char getB();
@@ -135,7 +136,7 @@ class Vertex : public Primitive {
 		virtual uint64_t    get1RingFaceCount() const; // ***
 		virtual double   get1RingSumAngles(); // ***
 		        unsigned int getOctreeIndex( Vector3D rCubeTopLeft, double rEdgeLen, unsigned int rXyzCubes );
-		        int      getType();
+				int      getType() override;
 
 		// Fetch sphere:
 		virtual Vertex*  advanceInSphere( double* sphereCenter, double radius, // ***
@@ -144,8 +145,8 @@ class Vertex : public Primitive {
 		virtual bool     mark1RingVisited( uint64_t* rVertBitArrayVisited, uint64_t* rFaceBitArrayVisited, // ***
 		                                   bool           rOrderToFuncVal,      double*        rSeqNr );
 		// Function value:
-		virtual bool     setFuncValue( double  setVal );
-		virtual bool     getFuncValue( double* rGetVal ) const;
+				bool     setFuncValue( double  setVal ) override;
+				bool     getFuncValue( double* rGetVal ) const override;
 		virtual bool     isFuncValFinite() const; // ***
 		virtual bool     isFuncValLocalMinimum(); // ***
 		virtual bool     isFuncValLocalMaximum(); // ***
@@ -179,13 +180,13 @@ class Vertex : public Primitive {
 		}
 		
 		// Transformation:
-		virtual bool     applyTransfrom( Matrix4D* transMat );
-		virtual bool     applyMeltingSphere( double rRadius, double rRel=1.0 );
+		        bool     applyTransfrom( Matrix4D* transMat ) override;
+				bool     applyMeltingSphere( double rRadius, double rRel=1.0 ) override;
         virtual Vertex*  applyNormalShift(float offsetDistance,int index);
 
 		// Labeling:
-		virtual bool     setLabel( uint64_t rSetLabelNr );
-		virtual bool     getLabel( uint64_t& rGetLabelNr ) const;
+		bool     setLabel( uint64_t rSetLabelNr ) override;
+		bool     getLabel( uint64_t& rGetLabelNr ) const override;
 
 		// Neighbourhood - related to labeling!
 		virtual void     getNeighbourVertices( std::set<Vertex*>* someVertList ); // ***
@@ -245,11 +246,11 @@ class Vertex : public Primitive {
 				                               uint64_t* faceBitArray, int faceNrBlocks, bool weightFuncVal );
 
 		// Feature vector functions
-				virtual bool     assignFeatureVec( const double *rAttachFeatureVec, const uint64_t rSetFeatureVecLen );
+				bool     assignFeatureVec( const double *rAttachFeatureVec, unsigned int rSetFeatureVecLen ) override;
 		virtual bool     assignFeatureVec( const std::initializer_list<double> featureVectorValues );
 				bool     assignFeatureVecValues( const std::vector<double>& newFeatureVec );
-		virtual bool     copyFeatureVecTo( double* rFetchFeatureVec ) const;
-		virtual bool     getFeatureVectorElements( std::vector<double>& rFeatVec ) const;
+				bool     copyFeatureVecTo( double* rFetchFeatureVec ) const override;
+				bool     getFeatureVectorElements( std::vector<double>& rFeatVec ) const override;
 		// Norm of the feature vector
 		        bool     getFeatureVecMeanStdDev( double& rFeatureVecMean, double& rFeatureVecStdDev ) const;
 		virtual bool     getFeatureVecLenMan( double* rFeatureVecLenMan );
@@ -269,9 +270,9 @@ class Vertex : public Primitive {
 				                             const std::vector<double>* rReferenceVec=nullptr, const std::vector<double>* rOffsetVec=nullptr,
 				                             const std::vector<double>* rWeightNum=nullptr, const std::vector<double>* rWeightDenom=nullptr );
 		// Other feature vector related functions
-		virtual bool         getFeatureElement( unsigned int rElementNr, double* rElementValue );
+				bool         getFeatureElement( unsigned int rElementNr, double* rElementValue ) override;
 		virtual bool         setFeatureElement( unsigned int elementNr, double value);
-		virtual unsigned int getFeatureVectorLen();
+				unsigned int getFeatureVectorLen() override;
 				int          cutOffFeatureElements( double rMinVal, double rMaxVal, bool rSetToNotANumber );
 		virtual void         resizeFeatureVector(unsigned int size);
 		// Feature vector smoothing:

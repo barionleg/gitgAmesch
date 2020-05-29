@@ -37,7 +37,8 @@ void UserInteraction::showInformation(
                 const std::string& rMsg,
                 [[maybe_unused]] const std::string& rToClipboard
 ) {
-	std::cout << rHead << " " << rMsg << std::endl;
+	std::cout << rHead << std::endl;
+	std::cout << rMsg  << std::endl;
 }
 
 //! Stub for higher level warnings. e.g. Messagebox with Qt.
@@ -45,7 +46,8 @@ void UserInteraction::showWarning(
                 const string& rHead,
                 const string& rMsg
 ) {
-	cout << rHead << " " << rMsg << endl;
+	std::cout << rHead << std::endl;
+	std::cout << rMsg  << std::endl;
 }
 
 //! Stub for higher level methods to enter a string.
@@ -85,7 +87,7 @@ bool UserInteraction::showEnterText( vector<double>& rDoubles ,  const char* rTi
 }
 
 //! Stub for higher level methods to enter 16 floating point values for a 4x$ Matrix e.g. using QGMDialogEnterText.
-bool UserInteraction::showEnterText( Matrix4D* rMatrix4x4  ) {
+bool UserInteraction::showEnterText(Matrix4D* rMatrix4x4  , bool selectedVerticesOnly) {
 	cerr << "[UserInteraction::" << __FUNCTION__ << "] ERROR: not implemented for commandlines use!" << endl;
 	return false;
 }

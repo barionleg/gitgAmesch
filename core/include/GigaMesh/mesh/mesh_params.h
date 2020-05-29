@@ -94,6 +94,7 @@ class MeshParams {
 			SELMVERTS_SHOW_INDICES,                    //!< Show the indices of the selected vertices.
 			SELMVERTS_SELECT_INDICES,                  //!< Select vertices using indicies given by the user.
 			SELMVERTS_RANDOM,                          //!< Randomly select vertices. Amount given by user.
+			SELMVERTS_SET_ALPHA,                       //!< Set the color-alpha value of selected vertices.
 			SELMFACES_WITH_SYNTHETIC_VERTICES,         //!< Select faces having synthetic vertices.
 			SELMFACES_WITH_THREE_BORDER_VERTICES,      //!< Select faces having three border vertices e.g. for erosion.
 			SELMFACES_WITH_THREE_SELECTED_VERTICES,    //!< Select faces having three vertices selected (SelMVerts).
@@ -156,6 +157,7 @@ class MeshParams {
 			SELMPRIMS_POS_DESELECT_ALL,				   //!< Call to de-select all positions.
 			SELMPRIMS_POS_DISTANCES,				   //!< Show distances of the selected positions.
 			SELMPRIMS_POS_CIRCLE_CENTERS,              //!< Compute circle centers of selected positions.
+			COMPUTE_FEATUREVECTORS_QUICK,              //!< Apply volume integral invariant filtering (MSII) with default options
 			GEODESIC_DISTANCE_TO_SELPRIM,              //!< Estimate the geodesic distance to a given primitive (SelPrim).
 			POLYLINES_FROM_MULTIPLE_FUNCTION_VALUES,   //!< Compute multiple isolines using the function values.
 			POLYLINES_FROM_FUNCTION_VALUE,             //!< Compute isolines using the function values.

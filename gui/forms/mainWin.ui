@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -95,22 +95,35 @@
       <string>Open Recent &amp;Files</string>
      </property>
     </widget>
-    <widget class="QMenu" name="menuExport_Polylines">
+    <widget class="QMenu" name="menuImport">
      <property name="title">
-      <string>&amp;Export Polylines</string>
+      <string>Import</string>
      </property>
+     <addaction name="actionImportFeatureVectors"/>
+     <addaction name="actionImportFunctionValues"/>
+     <addaction name="separator"/>
+     <addaction name="actionImportNormals"/>
+     <addaction name="actionImportTexMap"/>
+     <addaction name="separator"/>
+     <addaction name="actionImportVertexCoordinatesFromCSV"/>
+    </widget>
+    <widget class="QMenu" name="menuExport">
+     <property name="title">
+      <string>Export</string>
+     </property>
+     <addaction name="actionExportFeatureVectors"/>
+     <addaction name="actionExportFuncVals"/>
+     <addaction name="separator"/>
+     <addaction name="actionExportCoordinatesOfAllVerticesAsCSV"/>
+     <addaction name="actionExportCoordinatesOfSelectedVerticesAsCSV"/>
+     <addaction name="actionExportCoordinatesOfSelectedPrimitivesAsCSV"/>
+     <addaction name="separator"/>
+     <addaction name="actionExportFaceNormalAngles"/>
+     <addaction name="actionExport_Normal_Sphere_Data"/>
+     <addaction name="separator"/>
      <addaction name="actionExportPolylines"/>
      <addaction name="actionExportPolylinesProjected"/>
      <addaction name="actionExportPolylinesFuncVals"/>
-    </widget>
-    <widget class="QMenu" name="menuExport_Screenshots_Parse_Directory">
-     <property name="title">
-      <string>Export Screenshots - Parse Directory</string>
-     </property>
-     <addaction name="actionScreenshotDirectory"/>
-     <addaction name="separator"/>
-     <addaction name="actionScreenshotViewsPNGDirectory"/>
-     <addaction name="actionScreenshotViewsPDFDirectory"/>
     </widget>
     <addaction name="actionFileOpen"/>
     <addaction name="menuFileRecent"/>
@@ -120,26 +133,15 @@
     <addaction name="actionSaveFlagGMExtras"/>
     <addaction name="actionSaveFlagTextureExport"/>
     <addaction name="separator"/>
-    <addaction name="actionImportVertexCoordinatesFromCSV"/>
-    <addaction name="actionImportFeatureVectors"/>
-    <addaction name="actionImportFunctionValues"/>
-    <addaction name="actionImportNormals"/>
-    <addaction name="actionImportTexMap"/>
+    <addaction name="menuImport"/>
+    <addaction name="menuExport"/>
     <addaction name="separator"/>
-    <addaction name="actionExportFeatureVectors"/>
-    <addaction name="actionExportFuncVals"/>
-    <addaction name="separator"/>
-    <addaction name="actionExportCoordinatesOfAllVerticesAsCSV"/>
-    <addaction name="actionExportCoordinatesOfSelectedVerticesAsCSV"/>
-    <addaction name="actionExportCoordinatesOfSelectedPrimitivesAsCSV"/>
     <addaction name="actionExportPlaneIntersectSVG"/>
-    <addaction name="actionExportFaceNormalAngles"/>
-    <addaction name="menuExport_Polylines"/>
-    <addaction name="actionExport_Normal_Sphere_Data"/>
     <addaction name="separator"/>
     <addaction name="menuExportScreenshots"/>
-    <addaction name="menuExport_Screenshots_Parse_Directory"/>
     <addaction name="menuExportImageStack"/>
+    <addaction name="separator"/>
+    <addaction name="actionScreenshotViewsDirectory"/>
     <addaction name="separator"/>
     <addaction name="actionUnloadFeatureVectors"/>
     <addaction name="actionUnload3D"/>
@@ -305,6 +307,8 @@
      <addaction name="actionDatumAddSphere"/>
      <addaction name="separator"/>
      <addaction name="actionEditVerticesAdd"/>
+     <addaction name="separator"/>
+     <addaction name="actionExtrudePolylines"/>
     </widget>
     <widget class="QMenu" name="menuTransform_Extra">
      <property name="title">
@@ -360,6 +364,7 @@
     <addaction name="menuTransform_Extra"/>
     <addaction name="separator"/>
     <addaction name="actionEditRecomputeVertexNormals"/>
+    <addaction name="actionSet_Vertex_Alpha"/>
     <addaction name="separator"/>
     <addaction name="menuMoreExtra"/>
    </widget>
@@ -439,11 +444,6 @@
      <addaction name="actionRotPitch"/>
      <addaction name="actionRotRoll"/>
     </widget>
-    <widget class="QMenu" name="menuRotate_Plane">
-     <property name="title">
-      <string>Rotate - Plane</string>
-     </property>
-    </widget>
     <addaction name="menuToolbars"/>
     <addaction name="separator"/>
     <addaction name="actionViewActivateInspectionOptions"/>
@@ -482,8 +482,6 @@
     <addaction name="actionRotOrthoPlane"/>
     <addaction name="actionViewAxisUp"/>
     <addaction name="menuRotateViewByValue"/>
-    <addaction name="separator"/>
-    <addaction name="menuRotate_Plane"/>
     <addaction name="separator"/>
     <addaction name="actionSelPrimViewReference"/>
     <addaction name="actionCurrentViewToDefault"/>
@@ -693,6 +691,7 @@
     <addaction name="actionLightAmbient"/>
     <addaction name="actionSelectAmbient"/>
     <addaction name="actionLightVectorsShown"/>
+    <addaction name="actionLightVectorLength"/>
     <addaction name="separator"/>
     <addaction name="actionSelMatShininess"/>
     <addaction name="actionSelMatSpecular"/>
@@ -844,9 +843,10 @@
      <addaction name="actionRemove_Drawing_of_Octree"/>
      <addaction name="actionDelete_Octree"/>
     </widget>
-    <addaction name="actionApplyTpsRpmTransformation"/>
-    <addaction name="separator"/>
+    <addaction name="actionMSIIFilterApplyQuick"/>
     <addaction name="actionEstimateMSIIFeature"/>
+    <addaction name="separator"/>
+    <addaction name="actionApplyTpsRpmTransformation"/>
     <addaction name="separator"/>
     <addaction name="actionPolylinesFromMultipleFuncVals"/>
     <addaction name="actionPolylinesFromPlaneIntersect"/>
@@ -924,6 +924,8 @@
    <addaction name="separator"/>
    <addaction name="actionAmbientOcclusion"/>
    <addaction name="separator"/>
+   <addaction name="actionScreenshot"/>
+   <addaction name="separator"/>
    <addaction name="actionGridHighlightCenter"/>
    <addaction name="actionBackGroundGridRaster"/>
    <addaction name="actionBackGroundGridPolar"/>
@@ -937,6 +939,8 @@
    <addaction name="separator"/>
    <addaction name="actionRemoveUncleanSmall"/>
    <addaction name="actionEditMeshPolish"/>
+   <addaction name="separator"/>
+   <addaction name="actionMSIIFilterApplyQuick"/>
    <addaction name="separator"/>
    <addaction name="actionSelectVertex"/>
    <addaction name="actionSelMVertsGUIPinPoint"/>
@@ -1101,8 +1105,15 @@
    </property>
   </action>
   <action name="actionScreenshot">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_screenshot.svg</normaloff>:/GMToolBar/gigamesh_icon_screenshot.svg</iconset>
+   </property>
    <property name="text">
-    <string>&amp;Screenshot (TIFF/PNG)</string>
+    <string>&amp;Screenshot (PNG)</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Capture a screenshot as PNG file with transparent background.&lt;br/&gt;Choosing tiled rendering will capture the whole 3D-model.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="actionVideoFrameSize">
@@ -1123,7 +1134,10 @@
   </action>
   <action name="actionScreenshotViews">
    <property name="text">
-    <string>Scr&amp;eenshot Views (TIFF/PNG)</string>
+    <string>Scr&amp;eenshot Views (PNG)</string>
+   </property>
+   <property name="toolTip">
+    <string>Screenshot Views (PNG)</string>
    </property>
   </action>
   <action name="actionViewVerticesAll">
@@ -1598,6 +1612,10 @@
    </property>
   </action>
   <action name="actionScreenshotSVG">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_screenshot_svg.svg</normaloff>:/GMToolBar/gigamesh_icon_screenshot_svg.svg</iconset>
+   </property>
    <property name="text">
     <string>Screenshot (SVG+&amp;PNG)</string>
    </property>
@@ -2409,6 +2427,9 @@ p, li { white-space: pre-wrap; }
    <property name="text">
     <string>Plane - Set HNF by View</string>
    </property>
+   <property name="shortcut">
+    <string>F9</string>
+   </property>
   </action>
   <action name="actionAbout">
    <property name="text">
@@ -2574,7 +2595,7 @@ p, li { white-space: pre-wrap; }
      <normaloff>:/GMToolBar/gigamesh_icon_light_fixed_cam.svg</normaloff>:/GMToolBar/gigamesh_icon_light_fixed_cam.svg</iconset>
    </property>
    <property name="text">
-    <string>Light &amp;1 (Object fixed, Parallel)</string>
+    <string>Light &amp;1 (Camera fixed, Parallel)</string>
    </property>
    <property name="shortcut">
     <string>1</string>
@@ -2592,7 +2613,7 @@ p, li { white-space: pre-wrap; }
      <normaloff>:/GMToolBar/gigamesh_icon_light_fixed_object.svg</normaloff>:/GMToolBar/gigamesh_icon_light_fixed_object.svg</iconset>
    </property>
    <property name="text">
-    <string>Light &amp;2 (Camera fixed, Parallel)</string>
+    <string>Light &amp;2 (Object fixed, Parallel)</string>
    </property>
    <property name="shortcut">
     <string>2</string>
@@ -4158,12 +4179,16 @@ p, li { white-space: pre-wrap; }
     <string>Faces - GUI Pinpoint</string>
    </property>
   </action>
-  <action name="actionScreenshotViewsPNGDirectory">
+  <action name="actionScreenshotViewsDirectory">
    <property name="text">
-    <string>Screenshot Directory Views (PNG)</string>
+    <string>Screenshot Directory</string>
    </property>
   </action>
   <action name="actionScreenshotPDF">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_screenshot_pdf.svg</normaloff>:/GMToolBar/gigamesh_icon_screenshot_pdf.svg</iconset>
+   </property>
    <property name="text">
     <string>Screenshot (PDF with TEX+PNG)</string>
    </property>
@@ -4365,6 +4390,36 @@ p, li { white-space: pre-wrap; }
   <action name="actionPlaneOrientTowardsAxis">
    <property name="text">
     <string>Plane - Set orientation using Axis</string>
+   </property>
+  </action>
+  <action name="actionMSIIFilterApplyQuick">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_compute_msii_quick.svg</normaloff>:/GMToolBar/gigamesh_icon_compute_msii_quick.svg</iconset>
+   </property>
+   <property name="text">
+    <string>MSII Feature Vectors and Function Value (Quick)</string>
+   </property>
+   <property name="toolTip">
+    <string>Apply MSII filtering with default settings. Only a radius i.e. largest feature size is required.
+Volume based feature vectors are computed including a function value (Max element). 
+The latter will be shown, when the processing has finished.</string>
+   </property>
+  </action>
+  <action name="actionLightVectorLength">
+   <property name="text">
+    <string>Light Vectors Length</string>
+   </property>
+   <property name="toolTip">
+    <string>Set the length of the light vectors</string>
+   </property>
+  </action>
+  <action name="actionSet_Vertex_Alpha">
+   <property name="text">
+    <string>Vertices - Set Vertex Alpha</string>
+   </property>
+   <property name="toolTip">
+    <string>Set the alpha value of the selected vertices to value. Apply to all, if no vertex is selected.</string>
    </property>
   </action>
  </widget>

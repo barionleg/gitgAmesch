@@ -56,12 +56,6 @@
     #include <thread>
 #endif
 
-// CUDA/OpenCL
-#ifdef CUDA
-    #include <cuda.h>
-    #include "cudamesh.h"
-#endif
-
 #include "meshinfodata.h"
 #include "meshio.h"
 #include "mesh_params.h"
@@ -69,7 +63,6 @@
 // Helper classes
 #include "showprogress.h"
 #include "userinteraction.h"
-
 
 //!
 //! \brief Central class for mesh manipulation. (Layer 0)
@@ -80,10 +73,6 @@
 //!
 //! One should always call Mesh::establishStructure after creation.
 //! For performance and test reasons it is not integrated into Mesh::Mesh.
-//!
-//! Due to the design in respect to OpenCL/CUDA, we allocate memory for the longest
-//! feature vector x number of Primitive. In case a feature vector is shorter
-//! the unused elements have to be set to not-a-number.
 //!
 //! Layer 0
 //!
@@ -344,22 +333,27 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool	setSpherePoint(Vector3D& p, Vector3D &normal);
 		virtual bool	getSphereData(Vector3D* center, double* radius);
 		virtual bool	getSphereData(double* spherePoints, double* sphereNormals = nullptr);
-		virtual int	getSpherePointIdx();
+		virtual int	    getSpherePointIdx();
 				double	getSphereRadius();
 				bool	isUnrolledAroundSphere();
 		//---------------------------------------------------------------------------------------------------------------------------------------------
 
 		// texture map per vertex
 		virtual bool    assignImportedTexture( int rLineCount, uint64_t* rRefToPrimitves, unsigned char* rTexMap );
-		virtual bool    assignImportedNormalsToVertices( std::vector<grVector3ID>* rNormals );
+		virtual bool    assignImportedNormalsToVertices( const std::vector<grVector3ID>& rNormals );
 		virtual bool    multiplyColorWithFuncVal();
 		virtual bool    multiplyColorWithFuncVal( const double rMin, const double rMax );
+		virtual bool    assignAlphaToSelectedVertices(unsigned char alpha);
 
 		// feature vectors
 	protected:
 		virtual int    removeFeatureVectors();
 
 	public:
+		// Feature vector functions (NEW)
+		        bool   computeMSIIQuick( const double rRadius, const unsigned int rRadiiCount,
+		                                 const unsigned int rxyzDim );
+		        bool   computeMSIIQuickGUI();
 		//! \todo use MeshParams::eFunctionCall to avoid/reduce copy&paste code!
 		// Feature vector functions
 		 uint64_t getFeatureVecLenMax( int rPrimitiveType );
@@ -435,9 +429,6 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 
 		// Histogram:
 		virtual bool         getHistogramValues( eHistogramType rHistType, std::vector<unsigned int>* rNumArray, double* rValMin, double* rValMax );
-
-		// setup the mesh (with respect to CUDA/OpenCL)
-				void  estimateEdges();
 
 		// Labeling -- Connected Components
 		virtual bool labelsChanged();
@@ -660,6 +651,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 
 		// Datum Sphere and Box
 		virtual bool     datumAddSphere( Vector3D rPos, double rRadius, unsigned char rRed=255, unsigned char rGreen=127, unsigned char rBlue=0 );
+		virtual void     removeAllDatumObjects();
+				bool     hasDatumObjects();
 
 		enum eTranslate {
 			TRANSLATE_PLACE_ON_XZ_ONLY,      //!< Place mesh on xz-plane with no further transformation.
@@ -677,8 +670,12 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool     applyInvertOrientationFaces();
 				bool     applyInvertOrientationFaces( std::vector<Face*> rFacesToInvert );
 
-				bool     resetFaceNormals( double* rAreaTotal=nullptr );
-		virtual bool     resetVertexNormals();
+		// Surface normals
+		virtual bool     normalsVerticesChanged();
+		        bool     resetFaceNormals( double* rAreaTotal=nullptr );
+		        bool     resetVertexNormals();
+		        bool     normalsVerticesComputeSphere( double rRadius );
+
 		virtual bool     changedBoundingBox();
 
 		virtual bool	applyNormalShift(double offset);
@@ -756,9 +753,11 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		std::vector<std::tuple<Vector3D,Primitive*,bool> > mSelectedPositions;  //!< Selected coordinates, which are typically from a face or (solo) vertices.
 	public:
 		        bool addSelectedPosition( Vector3D rPos, Primitive* rPrimFrom, bool rLast );
-				bool getSelectedPosition( std::vector<std::tuple<Vector3D, Primitive *, bool> > *rVec );
-				bool getSelectedPositionLines(std::vector<std::tuple<Vector3D, Primitive *> > *rVec );
-				bool getSelectedPositionCircleCenters( std::vector<Vertex*>* rCenterVertices );
+		        bool getSelectedPosition( std::vector<std::tuple<Vector3D, Primitive *, bool> > *rVec );
+		        bool getSelectedPositionLines( std::vector<std::tuple<Vector3D, Primitive *> > *rVec );
+		        bool getSelectedPositionDistancesAll( std::vector<double>& rAllDistances );
+		        bool getSelectedPositionDistancesHTML( std::string& rDistanceText );
+		        bool getSelectedPositionCircleCenters( std::vector<Vertex*>* rCenterVertices );
 		virtual bool getAxisFromCircleCenters();
 		virtual bool getAxisFromCircleCenters( Vector3D* rTop, Vector3D* rBottom );
 

@@ -1,18 +1,27 @@
 cmake_minimum_required(VERSION 3.10)
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version")
 
 # CMAKEFile for building gigamesh
 
-# note for building on Ubuntu, if g++-8 is not the default compiler, you have two options:
-# 1. Export CC and CXX before calling cmake:
+# note: building GigaMesh requires a compiler which supports C++17 features. So please
+# make sure that your compiler has the following version or newer:
+# gcc        : 8
+# clang      : 7
+# msvc stl   : 19.14
+# apple clang: 11.0.0
+#
+# on ubuntu for example, you have the following options to set the gcc8 compiler, assuming it is in usr/bin/:
+# 1. Running cmake with:
+# cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-8 -DCMAKE_CC_COMPILER=/usr/bin/gcc-8
+#
+# 2. Export CC and CXX before calling cmake:
 # export CC=/usr/bin/gcc-8
 # export CXX=/usr/bin/g++-8
 #
-# 2. set g++-8 as alternative permanently:
-# sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 10
-# sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 10
+# 3. Set g++-8 as alternative permanently:
+# sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 90 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
 #
-# 3. Tested alternative to 1, running cmake with:
-# cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-8 -DCMAKE_CC_COMPILER=/usr/bin/gcc-8
+
 
 project(GigaMesh LANGUAGES CXX C
 			DESCRIPTION "GigaMesh is a software Framework for processing large meshes.")
@@ -36,7 +45,7 @@ string(STRIP "${COMP_GITHEAD}" COMP_GITHEAD)
 execute_process(COMMAND git log -1 --format=%ci
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                 OUTPUT_VARIABLE VERSION_PACKAGE)
-set(COMP_EDIT IWR\ FreeWare)
+set(COMP_EDIT IWR\ Open\ Source)
 string(STRIP "${VERSION_PACKAGE}" VERSION_PACKAGE)
 string(SUBSTRING "${VERSION_PACKAGE}" 2 9 VERSION_PACKAGE)
 string(REPLACE "-" "" VERSION_PACKAGE "${VERSION_PACKAGE}")
@@ -96,7 +105,7 @@ set(CPACK_SOURCE_STRIP_FILES TRUE)
 set(CPACK_STRIP_FILES "bin/gigamesh;bin/gigamesh-tolegacy;bin/gigamesh-clean;bin/gigamesh-info;bin/gigamesh-featurevectors;bin/gigamesh-borders")
 
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Hubert Mara <hubert.mara@iwr.uni-heidelberg.de>")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.14), libcairo2 (>= 1.6), libgcc1 (>= 1:3.0), qtbase5-dev(>= 5.5),libqt5core5a (>= 5), libqt5gui5 (>= 5) | libqt5gui5-gles (>= 5), libqt5opengl5 (>= 5) | libqt5opengl5-gles (>= 5), libstdc++6 (>= 5), libtiff5 (>= 4), inkscape(>=0.92)")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.14), libgcc1 (>= 1:3.0), qtbase5-dev(>= 5.5),libqt5core5a (>= 5), libqt5gui5 (>= 5) | libqt5gui5-gles (>= 5), libqt5opengl5 (>= 5) | libqt5opengl5-gles (>= 5), libstdc++6 (>= 5), libtiff5 (>= 4), inkscape(>=0.92)")
 set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://www.gigamesh.eu")
 set(CPACK_DEBIAN_PACKAGE_SECTION "science")
 
