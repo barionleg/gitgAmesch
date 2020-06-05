@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/gigamesh-tolegacy.dir/gigamesh-tolegacy.cpp.o  -o gigamesh-tolegacy ../core/libgigameshCore.a -lstdc++fs -lpthread ../external/libAlg/libalg.a ../external/libpsalm/libpsalm.a ../external/triangle/libtriangle.a 

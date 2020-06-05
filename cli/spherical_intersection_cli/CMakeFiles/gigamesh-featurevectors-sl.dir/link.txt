@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/gigamesh-featurevectors-sl.dir/src/standalone.cpp.o  -o gigamesh-featurevectors-sl ../../core/libgigameshCore.a input_parser/libinput_parser.a timer/libtimer.a object_io/libobject_io.a -pthread -lstdc++fs -lpthread ../../external/libAlg/libalg.a ../../external/libpsalm/libpsalm.a ../../external/triangle/libtriangle.a 

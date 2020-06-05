@@ -1,0 +1,2 @@
+/usr/bin/ar qc libalg.a  CMakeFiles/alg.dir/src/ablas.cpp.o CMakeFiles/alg.dir/src/ablasf.cpp.o CMakeFiles/alg.dir/src/ap.cpp.o CMakeFiles/alg.dir/src/conv.cpp.o CMakeFiles/alg.dir/src/corr.cpp.o CMakeFiles/alg.dir/src/fft.cpp.o CMakeFiles/alg.dir/src/ftbase.cpp.o CMakeFiles/alg.dir/src/ialglib.cpp.o
+/usr/bin/ranlib libalg.a

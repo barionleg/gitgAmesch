@@ -1,0 +1,2 @@
+/usr/bin/ar qc libobject_io.a  CMakeFiles/object_io.dir/src/obj.cpp.o CMakeFiles/object_io.dir/src/ply.cpp.o
+/usr/bin/ranlib libobject_io.a
