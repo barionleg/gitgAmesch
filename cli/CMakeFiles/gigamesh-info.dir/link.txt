@@ -1,1 +1,0 @@
-/usr/bin/c++     CMakeFiles/gigamesh-info.dir/gigamesh-info.cpp.o  -o gigamesh-info ../core/libgigameshCore.a -lstdc++fs -lpthread ../external/libAlg/libalg.a ../external/libpsalm/libpsalm.a ../external/triangle/libtriangle.a 

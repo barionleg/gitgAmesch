@@ -1,1 +1,0 @@
-/usr/bin/c++     CMakeFiles/gigamesh-clean.dir/gigamesh-clean.cpp.o  -o gigamesh-clean ../core/libgigameshCore.a ../external/libpsalm/libpsalm.a -lstdc++fs -lpthread ../external/libAlg/libalg.a ../external/triangle/libtriangle.a 

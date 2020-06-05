@@ -32,12 +32,12 @@ string TcpServer::statusCodeAsString(httpStatusCode c)
 {
 	switch (c)
 	{
-	case c200: return "200 OK\r\n";
-	case c202: return "202 Accepted\r\n";
-	case c404: return "424 Unknown command\r\n";
-	case c424: return "424 No mesh loaded\r\n";
-	case c500: return "500 \r\n";
-	case c503: return "503 Service Unavailable\r\n";
+	case c200: return "\n200 OK\r\n";
+	case c202: return "\n202 Accepted\r\n";
+	case c404: return "\n424 Unknown command\r\n";
+	case c424: return "\n424 No mesh loaded\r\n";
+	case c500: return "\n500 \r\n";
+	case c503: return "\n503 Service Unavailable\r\n";
 	//default: throw Exception("Bad httpStatusCode");
 	}
 }
@@ -53,8 +53,7 @@ void TcpServer::connected()//QTcpSocket *socket)
 		statusCode = c503; //"\n503 Service Unavailable\r\n";
 	}
 
-	QString verConnected = QString::fromStdString("HTTP/1.0 ");
-	verConnected += QString::fromStdString(TcpServer::statusCodeAsString(statusCode));
+	QString verConnected = QString::fromStdString(TcpServer::statusCodeAsString(statusCode));
 	this->socket->write(verConnected.toLocal8Bit());
 	this->socket->flush();
 
@@ -68,6 +67,7 @@ void TcpServer::reading(HTTP::Request *request)
 	cout << endl << "[TcpServer::reading] Reading data..." << endl;
 
 	bool headerEnd = false;
+
 	int maxSize = 1000000;
 	int bodySize = maxSize;
 	int receivedBytes = 0;
@@ -95,19 +95,24 @@ void TcpServer::reading(HTTP::Request *request)
 
 	qDebug() << "Header: " << reqHead;
 
-	request->httpParser(QString(reqHead).toStdString());
-
 	QByteArray reqBody;
-	while(receivedBytes < bodySize && HTTP::method_to_string(request->getMeth()) == "POST"){
+	// read message body
+	while(receivedBytes < bodySize ){
 		reqBody += this->socket->readLine(maxSize);
 		receivedBytes = reqBody.size();
 	}
 
 	qDebug() << "Body: " <<reqBody << "\n";
 
-	if( reqBody.size() != 0){
+	request->httpParser(QString(reqHead).toStdString());
+
+	if(HTTP::method_to_string(request->getMeth()) == "POST" && reqBody.size() != 0){
 		request->setPars(reqBody.toStdString());
 	}
+	/*
+	if(r.getMeth() == 'GET' && messBody.size() == 0){
+		cout <<
+	}*/
 
 	request->info();
 }
@@ -118,8 +123,7 @@ void TcpServer::sending(QStringList *response)
 	cout << "[TcpServer::sending] Sending data..." << endl;
 
 	QByteArray mess;
-	mess += "HTTP/1.0 ";
-	mess += response->at(0).toLocal8Bit(); 
+	mess += response->at(0).toLocal8Bit(); //responseBody.toUtf8().size()
 	int numbOfBytes = response->at(1).toLocal8Bit().size();
 	mess += "Content-Length: " + QVariant(numbOfBytes).toString() + "\r\n";
 	//mess += "Content-Type: json\r\n" ;

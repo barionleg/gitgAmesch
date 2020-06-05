@@ -1,1 +1,0 @@
-/usr/bin/c++     CMakeFiles/gigamesh-borders.dir/gigamesh-borders.cpp.o  -o gigamesh-borders ../core/libgigameshCore.a -lstdc++fs -lpthread ../external/libAlg/libalg.a ../external/libpsalm/libpsalm.a ../external/triangle/libtriangle.a 

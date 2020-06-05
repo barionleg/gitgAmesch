@@ -1,1 +1,0 @@
-/usr/bin/c++     CMakeFiles/gigamesh-sphere-profiles.dir/src/profiles.cpp.o  -o gigamesh-sphere-profiles ../../core/libgigameshCore.a input_parser/libinput_parser.a timer/libtimer.a object_io/libobject_io.a -pthread -lstdc++fs -lpthread ../../external/libAlg/libalg.a ../../external/libpsalm/libpsalm.a ../../external/triangle/libtriangle.a 
