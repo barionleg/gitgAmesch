@@ -144,8 +144,6 @@ QOpenGLShaderProgram* ShaderManager::initShader(ShaderManager::ShaderName shader
 	return nullptr;
 }
 
-#include <iostream>
-
 //! Adds shaders from source and links them.
 //! In case of an error a message is shown and
 //! @returns nullptr in case of an error. a new shaderprogram otherwise.

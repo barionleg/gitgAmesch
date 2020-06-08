@@ -32,7 +32,7 @@ class ShaderManager
 		ShaderManager() = default;
 		~ShaderManager();
 
-		enum class ShaderName : size_t {
+		enum ShaderName : std::size_t {
 			BOUNDING_BOX,					//!< Shader program rendering the bounding box of the mesh.
 			VERTEX_SPRITES,					//!< Shader program rendering only normals of vertices.
 			VERTEX_NORMALS,					//!< Shader program rendering only normals of vertices.
@@ -78,8 +78,8 @@ class ShaderManager
 
 		QOpenGLShaderProgram* initShader(ShaderName shaderName);
 
-		std::array<QOpenGLShaderProgram*, static_cast<size_t>(ShaderName::SHADER_COUNT)> mShaderPrograms = {nullptr};
-		std::array<bool, static_cast<size_t>(ShaderName::SHADER_COUNT)> mBrokenShader = {false};
+		std::array<QOpenGLShaderProgram*, static_cast<std::size_t>(ShaderName::SHADER_COUNT)> mShaderPrograms = {nullptr};
+		std::array<bool, static_cast<std::size_t>(ShaderName::SHADER_COUNT)>                  mBrokenShader = {false};
 };
 
 #endif // SHADERMANAGER_H

@@ -1871,7 +1871,8 @@ void MeshGLShader::vboPaintFacesIndexed() {
 	//----------------------------------
 	bool showIsolines;
 	getParamFlagMeshGL( MeshGLParams::SHOW_FUNC_VALUES_ISOLINES, &showIsolines );
-	mShaderDatumObjects->setUniformValue( "funcValIsoLineParams.mIsoLinesShow", static_cast<GLboolean>(showIsolines) );
+	//disable isoline for datum Objects
+	mShaderDatumObjects->setUniformValue( "funcValIsoLineParams.mIsoLinesShow", static_cast<GLboolean>(false) );
 	if( showIsolines ) {
 		bool showIsolinesOnly;
 		getParamFlagMeshGL( MeshGLParams::SHOW_FUNC_VALUES_ISOLINES_ONLY, &showIsolinesOnly );
