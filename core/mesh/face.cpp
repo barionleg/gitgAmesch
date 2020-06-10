@@ -269,7 +269,7 @@ bool Face::getVertABC( set<Vertex*>* rSomeVerts ) {
 
 // Indexing -------------------------------------------------------------------
 
-bool Face::setIndex( unsigned int rIndex ) {
+bool Face::setIndex( int rIndex ) {
 	//! Setes the index of a Primitive. Additionally it preserves the very first
 	//! index set. Returns false in case the index has not been set.
 	mIndex = rIndex;

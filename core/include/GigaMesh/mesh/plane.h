@@ -48,12 +48,12 @@ class Plane : public Primitive {
 		~Plane();
 
 		// Information retrival:
-		virtual double   getX() const;
-		virtual double   getY() const;
-		virtual double   getZ() const;
-		virtual double   getNormalX();
-		virtual double   getNormalY();
-		virtual double   getNormalZ();
+		double   getX() const override;
+		double   getY() const override;
+		double   getZ() const override;
+		double   getNormalX() override;
+		double   getNormalY() override;
+		double   getNormalZ() override;
 		Vector3D         getHNF() const;
 
 		        double   getHNFA() const;
@@ -61,12 +61,12 @@ class Plane : public Primitive {
 		        double   getHNFC() const;
 		        double   getHNFD() const;
 
-		virtual	int      getType();
+		int      getType() override;
 
 		        bool     isValid();
 
 		// Transformation
-		virtual bool     applyTransfrom( Matrix4D* transMat );
+		bool     applyTransfrom( Matrix4D* transMat ) override;
 
 		enum ePlaneVerts{ PLANE_VERT_A, PLANE_VERT_B, PLANE_VERT_C };
 
