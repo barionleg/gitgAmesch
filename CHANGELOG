@@ -1,5 +1,6 @@
 Current Version
-+) Improved: Rendering performance
++) Improved: Rendering performance.
++) Bugfix: fixed Screenshot Views (PDF with PNG+TEX), when exporting views with a vertical axis.
 
 Version 200529
 +) New: MSII filtering can be applied using the GUI with default settings. See 'Analyze -> MSII Feature Vectors and Function Value (Quick)'.
