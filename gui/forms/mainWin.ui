@@ -207,6 +207,8 @@
      <addaction name="actionExperimentalNonMaximumSuppression"/>
      <addaction name="actionExperimentalWatershed"/>
      <addaction name="actionExperimentalClustering"/>
+     <addaction name="actionExperimentalRANSAC"/>
+     <addaction name="actionExperimentalFeatureVectorReordering"/>
     </widget>
     <widget class="QMenu" name="menuColorPerVertexToFunctionValue">
      <property name="title">
@@ -4395,6 +4397,21 @@ p, li { white-space: pre-wrap; }
   <action name="actionExperimentalClustering">
    <property name="text">
     <string>Experimental Clustering</string>
+   </property>
+  </action>
+  <action name="actionElement">
+   <property name="text">
+    <string>Element</string>
+   </property>
+  </action>
+  <action name="actionExperimentalFeatureVectorReordering">
+   <property name="text">
+    <string>Experimental Feature Vector Reordering</string>
+   </property>
+  </action>
+  <action name="actionExperimentalRANSAC">
+   <property name="text">
+    <string>Experimental Wedge Fitting with RANSAC</string>
    </property>
   </action>
  </widget>

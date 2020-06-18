@@ -278,7 +278,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	QObject::connect( mMainWindow, SIGNAL(estimateVolume()),                             this, SLOT(estimateVolume())                    );
 	QObject::connect( mMainWindow, SIGNAL(compVolumePlane()),                            this, SLOT(compVolumePlane())                   );
 
-	// --- Octree reÃ¶ated ----------------------------------------------------------------------------------------------------------------------------------
+	// --- Octree reöated ----------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( mMainWindow, SIGNAL(generateOctree()),                     this, SLOT(generateOctree())                    );
 	QObject::connect( mMainWindow, SIGNAL(detectselfintersections()),            this, SLOT(detectselfintersections())           );
 	QObject::connect( mMainWindow, SIGNAL(drawOctree()),                         this, SLOT(drawOctree())                        );
@@ -288,7 +288,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	// #####################################################################################################################################################
 	// # FUNCTION VALUE
 	// #####################################################################################################################################################
-	// # Feature Vector reÃ¶ated
+	// # Feature Vector reöated
 	QObject::connect( mMainWindow, SIGNAL(sFuncVertFeatLengthEuc()),              this, SLOT(visualizeFeatLengthEuc())               );
 	QObject::connect( mMainWindow, SIGNAL(sFuncVertFeatLengthMan()),              this, SLOT(visualizeFeatLengthMan())               );
 	QObject::connect( mMainWindow, SIGNAL(sFuncVertFeatBVFunc()),                 this, SLOT(visualizeFeatBVFunc())                  );
@@ -313,9 +313,11 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	QObject::connect( mMainWindow, SIGNAL(visualizeVertFaceSphereMeanAngleMax()), this, SLOT(visualizeVertFaceSphereMeanAngleMax())  );
 
 		//MSEx
-	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalNonMaximumSuppression()),    this, SLOT(funcExperimentalNonMaximumSuppression()));
-	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalWatershed()),                this, SLOT(funcExperimentalWatershed())            );
-	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalClustering()),               this, SLOT(funcExperimentalClustering())           );
+	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalNonMaximumSuppression()),    this, SLOT(funcExperimentalNonMaximumSuppression())     );
+	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalWatershed()),                this, SLOT(funcExperimentalWatershed())                 );
+	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalClustering()),               this, SLOT(funcExperimentalClustering())                );
+	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalRANSAC()),                   this, SLOT(funcExperimentalRANSAC())                    );
+	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalFeatureVectorReordering()),  this, SLOT(funcExperimentalFeatureVectorReordering())   );
 	// #####################################################################################################################################################
 
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1177,7 +1179,6 @@ bool MeshQt::funcExperimentalNonMaximumSuppression()
 	//return true;
 }
 
-//watershed likely needs no input
 bool MeshQt::funcExperimentalWatershed()
 {
     QGMDialogEnterText dlgEnterTextVal;
@@ -1189,7 +1190,6 @@ bool MeshQt::funcExperimentalWatershed()
 	return dlgEnterTextVal.exec() == QDialog::Accepted;
 }
 
-//watershed likely needs no input
 bool MeshQt::funcExperimentalClustering()
 {
     QGMDialogEnterText dlgEnterTextVal;
@@ -1197,6 +1197,28 @@ bool MeshQt::funcExperimentalClustering()
 	dlgEnterTextVal.setWindowTitle( tr("Give number of iterations for clustering!") );
 
 	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int numberOfIterations) {this->funcExpClustering(numberOfIterations);});
+
+	return dlgEnterTextVal.exec() == QDialog::Accepted;
+}
+
+bool MeshQt::funcExperimentalRANSAC()
+{
+    QGMDialogEnterText dlgEnterTextVal;
+	dlgEnterTextVal.setInt(1);
+	dlgEnterTextVal.setWindowTitle( tr("Give number of iterations for RANSAC!") );
+
+	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int numberOfIterations) {this->funcExpRANSAC(numberOfIterations);});
+
+	return dlgEnterTextVal.exec() == QDialog::Accepted;
+}
+
+bool MeshQt::funcExperimentalFeatureVectorReordering()
+{
+    QGMDialogEnterText dlgEnterTextVal;
+	dlgEnterTextVal.setInt(1);
+	dlgEnterTextVal.setWindowTitle( tr("Input not needed right now!") );
+
+	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int deletableInput) {this->funcExpFeatVecReorder(deletableInput);});
 
 	return dlgEnterTextVal.exec() == QDialog::Accepted;
 }
@@ -1282,7 +1304,7 @@ bool MeshQt::unrollAroundCone( bool* rIsCylinderCase ) {
 			cout << "[Mesh::" << __FUNCTION__ << "] Angle candidate: " << angleCandidate << " in degree: " << angleCandidate*180.0/M_PI << endl;
 			bool userChoice;
 			if( showQuestion( &userChoice, tr("Set cutting plane").toStdString(),
-							  (tr( "A primitive was selected, which can be used to define the prime meridian as well as the cutting plane (meridian 180Â°). Press<br /><br />" ) +
+							  (tr( "A primitive was selected, which can be used to define the prime meridian as well as the cutting plane (meridian 180°). Press<br /><br />" ) +
 							  tr( "YES to use the selection for the prime meridian.<br /><br />" ) +
 							  tr( "NO to use the selection for the cutting plane.<br /><br />" ) +
 							  tr( "CANCEL to ignore the selection." )).toStdString()
@@ -1291,7 +1313,7 @@ bool MeshQt::unrollAroundCone( bool* rIsCylinderCase ) {
 					// YES for the prime meridian:
 					setParamFloatMesh( AXIS_PRIMEMERIDIAN, angleCandidate + M_PI );
 				} else {
-					// NO for the 180Â° meridian i.e. cutting plane:
+					// NO for the 180° meridian i.e. cutting plane:
 					setParamFloatMesh( AXIS_PRIMEMERIDIAN, angleCandidate );
 				}	// CANCEL to ignore.
 			}
@@ -1337,13 +1359,13 @@ bool MeshQt::unrollAroundCone( bool* rIsCylinderCase ) {
 
 	bool userChoice;
 	if( showQuestion( &userChoice, tr("Flip rollout").toStdString(), \
-					  tr("Do you want to flip the rollout i.e. rotate the mesh by 180Â°").toStdString() ) ) {
+					  tr("Do you want to flip the rollout i.e. rotate the mesh by 180°").toStdString() ) ) {
 		if( userChoice ) {
 			vector<double> rotAngle { M_PI };
 			Matrix4D rotFlip( Matrix4D::INIT_ROTATE_ABOUT_Z, &rotAngle );
 			applyTransformationToWholeMesh( rotFlip, true );
 			emit sDefaultViewLightZoom();
-			emit statusMessage( "Rollout rotated by 180Â° about the z-axis." );
+			emit statusMessage( "Rollout rotated by 180° about the z-axis." );
 		}
 	} else {
 		// User cancel.
@@ -1468,13 +1490,13 @@ bool MeshQt::unrollAroundSphere() {
 	// Ask user to change the orientation in case the rollout is upside-down
 	bool userChoice;
 	if( showQuestion( &userChoice, tr("Flip rollout").toStdString(),
-					  tr("Do you want to flip the rollout i.e. rotate the mesh by 180Â°").toStdString() ) ) {
+					  tr("Do you want to flip the rollout i.e. rotate the mesh by 180°").toStdString() ) ) {
 		if( userChoice ) {
 			vector<double> rotAngle { M_PI };
 			Matrix4D rotFlip( Matrix4D::INIT_ROTATE_ABOUT_Z, &rotAngle );
 			applyTransformationToWholeMesh( rotFlip, true );
 			emit sDefaultViewLightZoom();
-			emit statusMessage( "Rollout rotated by 180Â° about the z-axis." );
+			emit statusMessage( "Rollout rotated by 180° about the z-axis." );
 		}
 	} else {
 		// User cancel.
@@ -2723,7 +2745,7 @@ void MeshQt::estimateMSIIFeat( ParamsMSII params ) {
 	cout << "[MeshQt::" << __FUNCTION__ << "] after free" << endl;
 
 	// set up visualization
-	//! \bug will eventuallsÃ½ crash here with stack smashing - reason currently unknown :( Looks like there is an infite loop.
+	//! \bug will eventuallsý crash here with stack smashing - reason currently unknown :( Looks like there is an infite loop.
 	setParamFlagMeshGL( MeshGLParams::SHOW_DATUM_SPHERES, true );
 	cout << "[MeshQt::" << __FUNCTION__ << "] after flags1" << endl;
 	setParamFlagMeshGL( MeshGLParams::SHOW_DATUM_BOXES, true );

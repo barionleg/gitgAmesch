@@ -11,6 +11,7 @@ Please look at mesh.cpp for larger and more complete disclaimer by original crea
 
 #include<iostream>
 #include<vector>
+#include<list>
 #include<iterator>
 #include<queue>
 
@@ -26,40 +27,56 @@ Please look at mesh.cpp for larger and more complete disclaimer by original crea
 #include <GigaMesh/mesh/vertex.h>
 #include <GigaMesh/mesh/mesh.h>
 
+
 using namespace std;
 
 //helper methods exclusively called in the wedge extraction project
 //they all begin with wE
 
-//! distance calculation omitting square root for speed up
-double squaredDistanceBetweenTwoVertices(Vertex* &vertexNo1, Vertex* &vertexNo2){
+
+//! Distance calculation for vertices omitting square root for speed up
+double wESquaredDistanceBetweenTwoVertices(Vertex* &vertexNo1, Vertex* &vertexNo2){
 /*
 	return(	(vertexNo1->getX() - vertexNo2->getX()) * (vertexNo1->getX() - vertexNo2->getX())	+
 			(vertexNo1->getY() - vertexNo2->getY()) * (vertexNo1->getY() - vertexNo2->getY())	+
 			(vertexNo1->getZ() - vertexNo2->getZ()) * (vertexNo1->getZ() - vertexNo2->getZ())	);
 */
 
-	return(	pow((vertexNr1->getX() - vertexNr2->getX()), 2.0)+
-			pow((vertexNr1->getY() - vertexNr2->getY()), 2.0)+
-			pow((vertexNr1->getZ() - vertexNr2->getZ()), 2.0)	);
+	return(	pow((vertexNo1->getX() - vertexNo2->getX()), 2.0)+
+			pow((vertexNo1->getY() - vertexNo2->getY()), 2.0)+
+			pow((vertexNo1->getZ() - vertexNo2->getZ()), 2.0)	);
 
 }
 
-//! distance calculation for normals omitting square root for speed up
-double squaredDistanceBetweenTwoNormalsTreatedAsVertices(Vertex* &vertexNo1, Vertex* &vertexNo2){
+
+//! Distance calculation for normals interpreted as vertices omitting square root for speed up
+double wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(Vertex* &vertexNo1, Vertex* &vertexNo2){
 /*
 	return(	(vertexNo1->getX() - vertexNo2->getX()) * (vertexNo1->getX() - vertexNo2->getX())	+
 			(vertexNo1->getY() - vertexNo2->getY()) * (vertexNo1->getY() - vertexNo2->getY())	+
 			(vertexNo1->getZ() - vertexNo2->getZ()) * (vertexNo1->getZ() - vertexNo2->getZ())	);
 */
 
-	return(	pow((vertexNr1->getNormalX() - vertexNr2->getNormalX()), 2.0)+
-			pow((vertexNr1->getNormalY() - vertexNr2->getNormalY()), 2.0)+
-			pow((vertexNr1->getNormalZ() - vertexNr2->getNormalZ()), 2.0)	);
+	return(	pow((vertexNo1->getNormalX() - vertexNo2->getNormalX()), 2.0)+
+			pow((vertexNo1->getNormalY() - vertexNo2->getNormalY()), 2.0)+
+			pow((vertexNo1->getNormalZ() - vertexNo2->getNormalZ()), 2.0)	);
 
 }
 
-//!
+
+//! Distance calculation for normals interpreted as vertices omitting square root for speed up
+//! Input is a vertex and a normal given as a vector of doubles
+double wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(Vertex* &vertexNo1, vector<double> &normalComponents){
+
+	return(	pow((vertexNo1->getNormalX() - normalComponents[0]), 2.0)+
+			pow((vertexNo1->getNormalY() - normalComponents[1]), 2.0)+
+			pow((vertexNo1->getNormalZ() - normalComponents[2]), 2.0)	);
+
+}
+
+
+//! Random Selection of a specified number of Vertices from a vector
+//! Shuffles the input vector for the random selection, there may be quicker ways
 void wERandomlyChooseVerticesFromVector(vector<Vertex*> &inputVector, vector<Vertex*> &outputVector, int howManyVerticesWanted){
 
 	unsigned timeBasedSeed = chrono::system_clock::now().time_since_epoch().count();
@@ -80,59 +97,185 @@ void wERandomlyChooseVerticesFromVector(vector<Vertex*> &inputVector, vector<Ver
 		outputVector.push_back(inputVector[3]);
 	}
 
+}
 
+/*
+//! currently unused, no necessity because mean is used instead of median
+void wEFindMedianInListForGivenMean(list<Vertex*> &inputList, double &meanNormalX, double &meanNormalY, double &meanNormalZ, double &medianNormalX, double &medianNormalY, double &medianNormalZ){
+
+	//check back with supervisor
+
+}
+*/
+
+//! Notes down to which mean a Normal is nearest in a euclidian sence. This means, normals are interpreted as points
+void wEAssignNormalsToNearestMean(vector<int> &currentClustering, vector<Vertex*> &verticesWithCurrentLabel, vector<vector<double>> &normalMeanComponents){
+
+	for(int i=0; i<verticesWithCurrentLabel.size(); i++){
+
+		double distanceToNormal1 = wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], normalMeanComponents[0]);
+		double distanceToNormal2 = wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], normalMeanComponents[1]);
+		double distanceToNormal3 = wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], normalMeanComponents[2]);
+
+		if((distanceToNormal1 < distanceToNormal2) && (distanceToNormal1 < distanceToNormal3)) {
+			//normal 1 is nearest
+			currentClustering[i] = 1;
+		} else if ((distanceToNormal2 < distanceToNormal1) && (distanceToNormal2 < distanceToNormal3)){
+			//normal 2 is nearest
+			currentClustering[i] = 2;
+		} else if ((distanceToNormal3 < distanceToNormal1) && (distanceToNormal3 < distanceToNormal2)){
+			//normal 3 is nearest
+			currentClustering[i] = 3;
+		}
+
+	}
+
+}
+
+//! Notes down to which mean a Normal is nearest in an euclidian sence. This means, normals are interpreted as points
+void wEAssignNormalsToNearestMean(vector<int> &currentClustering, vector<Vertex*> &verticesWithCurrentLabel, vector<Vertex*> &threeRandomlyChosenVertices){
+
+	for(int i=0; i<verticesWithCurrentLabel.size(); i++){
+
+		double distanceToNormal1 = wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], threeRandomlyChosenVertices[0]);
+		double distanceToNormal2 = wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], threeRandomlyChosenVertices[1]);
+		double distanceToNormal3 = wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], threeRandomlyChosenVertices[2]);
+
+		if((distanceToNormal1 < distanceToNormal2) && (distanceToNormal1 < distanceToNormal3)) {
+			//normal 1 is nearest
+			currentClustering[i] = 1;
+		} else if ((distanceToNormal2 < distanceToNormal1) && (distanceToNormal2 < distanceToNormal3)){
+			//normal 2 is nearest
+			currentClustering[i] = 2;
+		} else if ((distanceToNormal3 < distanceToNormal1) && (distanceToNormal3 < distanceToNormal2)){
+			//normal 3 is nearest
+			currentClustering[i] = 3;
+		}
+
+	}
 
 }
 
 
-//! currently unused
-void wEFindMedianInListForGivenMean(list<Vertex*> &inputList, double &meanNormalX, double &meanNormalY, double &meanNormalZ, double &medianNormalX, double &medianNormalX, double &medianNormalX){
+//! Computes three means of normals according to a given clustering
+void wEComputeMeans(vector<int> &currentClustering, vector<Vertex*> &verticesWithCurrentLabel, vector<vector<double>> &normalMeanComponents){
 
-    //check back with supervisor
+	double firstNormalMeanComponentX = 0.0;
+	double firstNormalMeanComponentY = 0.0;
+	double firstNormalMeanComponentZ = 0.0;
+
+	int workedOnFirstCounter = 0;
+
+	double secondNormalMeanComponentX = 0.0;
+	double secondNormalMeanComponentY = 0.0;
+	double secondNormalMeanComponentZ = 0.0;
+
+	int workedOnSecondCounter = 0;
+
+	double thirdNormalMeanComponentX = 0.0;
+	double thirdNormalMeanComponentY = 0.0;
+	double thirdNormalMeanComponentZ = 0.0;
+
+	int workedOnThirdCounter = 0;
+
+	for(int i=0; i<currentClustering.size(); i++){
+
+		if(currentClustering[i] == 1){
+
+			firstNormalMeanComponentX += verticesWithCurrentLabel[i]->getNormalX();
+			firstNormalMeanComponentY += verticesWithCurrentLabel[i]->getNormalY();
+			firstNormalMeanComponentZ += verticesWithCurrentLabel[i]->getNormalZ();
+
+			workedOnFirstCounter++;
+
+		} else if (currentClustering[i] == 2){
+
+			secondNormalMeanComponentX += verticesWithCurrentLabel[i]->getNormalX();
+			secondNormalMeanComponentY += verticesWithCurrentLabel[i]->getNormalY();
+			secondNormalMeanComponentZ += verticesWithCurrentLabel[i]->getNormalX();
+
+			workedOnSecondCounter++;
+
+		} else if (currentClustering[i] == 3) {
+
+			thirdNormalMeanComponentX += verticesWithCurrentLabel[i]->getNormalX();
+			thirdNormalMeanComponentY += verticesWithCurrentLabel[i]->getNormalY();
+			thirdNormalMeanComponentZ += verticesWithCurrentLabel[i]->getNormalX();
+
+			workedOnThirdCounter++;
+
+		}
+	}
+
+	//average
+
+	firstNormalMeanComponentX = firstNormalMeanComponentX/workedOnFirstCounter;
+	firstNormalMeanComponentY = firstNormalMeanComponentY/workedOnFirstCounter;
+	firstNormalMeanComponentZ = firstNormalMeanComponentZ/workedOnFirstCounter;
+
+	secondNormalMeanComponentX = secondNormalMeanComponentX/workedOnSecondCounter;
+	secondNormalMeanComponentY = secondNormalMeanComponentY/workedOnSecondCounter;
+	secondNormalMeanComponentZ = secondNormalMeanComponentZ/workedOnSecondCounter;
+
+	thirdNormalMeanComponentX = thirdNormalMeanComponentX/workedOnThirdCounter;
+	thirdNormalMeanComponentY = thirdNormalMeanComponentY/workedOnThirdCounter;
+	thirdNormalMeanComponentZ = thirdNormalMeanComponentZ/workedOnThirdCounter;
+
+	//write in vector
+
+	normalMeanComponents[0][0] = firstNormalMeanComponentX;
+	normalMeanComponents[0][1] = firstNormalMeanComponentY;
+	normalMeanComponents[0][2] = firstNormalMeanComponentZ;
+
+	normalMeanComponents[1][0] = secondNormalMeanComponentX;
+	normalMeanComponents[1][1] = secondNormalMeanComponentY;
+	normalMeanComponents[1][2] = secondNormalMeanComponentZ;
+
+	normalMeanComponents[2][0] = thirdNormalMeanComponentX;
+	normalMeanComponents[2][1] = thirdNormalMeanComponentY;
+	normalMeanComponents[2][2] = thirdNormalMeanComponentZ;
 
 }
 
-
-//! assign
-void wEAssignNormalsToNearestMean(vector<double> &currentClustering, vector<Vertex*> &verticesWithCurrentLabel, vector<Vertex*> &threeVerticesWhoseNormalsAreUsed){
-
-}
-
-//! compute
-void wEComputeMean(vector<double> &currentClustering, vector<Vertex*> &verticesWithCurrentLabel, vector<Vertex*> &threeVerticesWhoseNormalsAreUsed){
-
-}
 
 //! computes the shortest distance between a point (arbPoint) and a line defined by two points lying on the line
 //! TODO could be rewritten using a class or other helper methods
-//! currently uses the square root, which could be omitted I think
+//! currently uses the square root and I don't like it
 double wEComputeShortestDistanceBetweenPointAndLine(Vertex* &arbPoint, Vertex* &point1OnLine, Vertex* &point2OnLine){
 
-	double lineVectorComponentX = point2OnLine->getX() - point1OnLine->getX();
-	double lineVectorComponentY = point2OnLine->getY() - point1OnLine->getY();
-	double lineVectorComponentZ = point2OnLine->getZ() - point1OnLine->getZ();
+	if((arbPoint!=point1OnLine)&&(arbPoint!=point2OnLine)){
 
-	double helperVectorComponentX = arbPoint->getX() - point1OnLine->getX();
-	double helperVectorComponentY = arbPoint->getY() - point1OnLine->getY();
-	double helperVectorComponentZ = arbPoint->getZ() - point1OnLine->getZ();
+		double lineVectorComponentX = point2OnLine->getX() - point1OnLine->getX();
+		double lineVectorComponentY = point2OnLine->getY() - point1OnLine->getY();
+		double lineVectorComponentZ = point2OnLine->getZ() - point1OnLine->getZ();
 
-	//the magnitude of the cross product of the vectors gives the area of the created parallelogram
-	//its height can be calculated by deviding the area by the distance of the points on the line
+		double helperVectorComponentX = arbPoint->getX() - point1OnLine->getX();
+		double helperVectorComponentY = arbPoint->getY() - point1OnLine->getY();
+		double helperVectorComponentZ = arbPoint->getZ() - point1OnLine->getZ();
 
-	//magnitude of the cross product of lineVector and helperVector
-	double crossProductComponentX = (lineVectorComponentY * helperVectorComponentZ) - (lineVectorComponentZ * helperVectorComponentY);
-	double crossProductComponentY = (lineVectorComponentZ * helperVectorComponentX) - (lineVectorComponentX * helperVectorComponentZ);
-	double crossProductComponentZ = (lineVectorComponentX * helperVectorComponentY) - (lineVectorComponentY * helperVectorComponentX);
+		//the magnitude of the cross product of the vectors gives the area of the created parallelogram
+		//its height can be calculated by deviding the area by the distance of the points on the line
 
-	//maybe sqrt can be omitted
-	double parallelogramArea = sqrt(pow(crossProductComponentX, 2.0) + pow(crossProductComponentY, 2.0) + pow(crossProductComponentZ, 2.0));
-	//maybe sqrt can be omitted
-	double lineSegmentLength = sqrt(pow(lineVectorComponentX, 2.0) + pow(lineVectorComponentY, 2.0) + pow(lineVectorComponentZ, 2.0));
+		//magnitude of the cross product of lineVector and helperVector
+		double crossProductComponentX = (lineVectorComponentY * helperVectorComponentZ) - (lineVectorComponentZ * helperVectorComponentY);
+		double crossProductComponentY = (lineVectorComponentZ * helperVectorComponentX) - (lineVectorComponentX * helperVectorComponentZ);
+		double crossProductComponentZ = (lineVectorComponentX * helperVectorComponentY) - (lineVectorComponentY * helperVectorComponentX);
 
-	return parallelogramArea / lineSegmentLength;
+		//maybe sqrt can be omitted
+		double parallelogramArea = sqrt(pow(crossProductComponentX, 2.0) + pow(crossProductComponentY, 2.0) + pow(crossProductComponentZ, 2.0));
+		//maybe sqrt can be omitted
+		double lineSegmentLength = sqrt(pow(lineVectorComponentX, 2.0) + pow(lineVectorComponentY, 2.0) + pow(lineVectorComponentZ, 2.0));
+
+		return parallelogramArea / lineSegmentLength;
+	} else {
+		//in case the arbitrary point is one of the vertices given to construct the line
+		return 0.0;
+	}
 
 }
 
+/*
+//! UNUSED Determines on which border of 2 clusters a border vertex lies
 void wEGetBorderGroupFromVertexByFeatureVector(Vertex* vertexInQuestion,int &foundBordergroup){
 
 	double borderTo1;
@@ -151,28 +294,215 @@ void wEGetBorderGroupFromVertexByFeatureVector(Vertex* vertexInQuestion,int &fou
 	}
 
 }
+*/
 
-void wEDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arbPoint, Vertex* &point1OnLineTetraederTop, Vertex* &point2OnLine, double &computedDistance){
+//! Determines on which border of 2 clusters a border vertex lies
+void wEGetBorderGroupFromVertexByFeatureVector(Vertex* &finalLineVertex1, Vertex* &finalLineVertex2, Vertex* &finalLineVertex3,
+				Vertex* &finalTetraederVertexGroup12, Vertex* &finalTetraederVertexGroup23, Vertex* &finalTetraederVertexGroup31){
 
-	double vector1ComponentX = arbPoint->getX() - point1OnLineTetraederTop->getX();
-	double vector1ComponentY = arbPoint->getY() - point1OnLineTetraederTop->getY();
-	double vector1ComponentZ = arbPoint->getZ() - point1OnLineTetraederTop->getZ();
+	double borderGroup1;
+	finalLineVertex1->getFeatureElement(21, &borderGroup1);
 
-	double vector2ComponentX = point2OnLine->getX() - point1OnLineTetraederTop->getX();
-	double vector2ComponentY = point2OnLine->getY() - point1OnLineTetraederTop->getY();
-	double vector2ComponentZ = point2OnLine->getZ() - point1OnLineTetraederTop->getZ();
+	double borderGroup2;
+	finalLineVertex2->getFeatureElement(21, &borderGroup2);
+
+	double borderGroup3;
+	finalLineVertex3->getFeatureElement(21, &borderGroup3);
+
+
+	if((int)borderGroup1 == 12){
+		finalTetraederVertexGroup12 = finalLineVertex1;
+	} else if ((int)borderGroup1 == 23){
+		finalTetraederVertexGroup23 = finalLineVertex1;
+	} else if ((int)borderGroup1 == 31){
+		finalTetraederVertexGroup31 = finalLineVertex1;
+	}
+
+	if((int)borderGroup2 == 12){
+		finalTetraederVertexGroup12 = finalLineVertex2;
+	} else if ((int)borderGroup2 == 23){
+		finalTetraederVertexGroup23 = finalLineVertex2;
+	} else if ((int)borderGroup1 == 31){
+		finalTetraederVertexGroup31 = finalLineVertex2;
+	}
+
+	if((int)borderGroup3 == 12){
+		finalTetraederVertexGroup12 = finalLineVertex3;
+	} else if ((int)borderGroup3 == 23){
+		finalTetraederVertexGroup23 = finalLineVertex3;
+	} else if ((int)borderGroup1 == 31){
+		finalTetraederVertexGroup31 = finalLineVertex3;
+	}
+
+}
+
+
+//! Calculates the squared distance between a projection point on a line (the result of projecting a point on a line) and a certain point on the line
+//! To determine the point on the line this formula is used: A and B on Line, P arbitrary point, Point on line given by: A + dot(AP,AB) / dot(AB,AB) * AB
+void wESquaredDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arbPoint, Vertex* &point1OnLineTetraederTop, Vertex* &point2OnLine, double &computedSquaredDistance){
+
+	if((arbPoint != point1OnLineTetraederTop) && (arbPoint != point2OnLine)){
+
+		double vector1ComponentX = arbPoint->getX() - point1OnLineTetraederTop->getX();
+		double vector1ComponentY = arbPoint->getY() - point1OnLineTetraederTop->getY();
+		double vector1ComponentZ = arbPoint->getZ() - point1OnLineTetraederTop->getZ();
+
+		double vector2ComponentX = point2OnLine->getX() - point1OnLineTetraederTop->getX();
+		double vector2ComponentY = point2OnLine->getY() - point1OnLineTetraederTop->getY();
+		double vector2ComponentZ = point2OnLine->getZ() - point1OnLineTetraederTop->getZ();
 
 
 
-	double dotProduct1 = vector1ComponentX * vector2ComponentX + vector1ComponentY * vector2ComponentY + vector1ComponentZ * vector2ComponentZ;
-	double dotProduct2 = vector1ComponentX * vector1ComponentX + vector1ComponentY * vector1ComponentY + vector1ComponentZ * vector1ComponentZ;
+		double dotProduct1 = vector1ComponentX * vector2ComponentX + vector1ComponentY * vector2ComponentY + vector1ComponentZ * vector2ComponentZ;
+		double dotProduct2 = vector1ComponentX * vector1ComponentX + vector1ComponentY * vector1ComponentY + vector1ComponentZ * vector1ComponentZ;
 
-	double projectedPointOnLineComponentX = point1OnLineTetraederTop->getX() + dotProduct1/dotProduct2 * vector2ComponentX;
-	double projectedPointOnLineComponentY = point1OnLineTetraederTop->getY() + dotProduct1/dotProduct2 * vector2ComponentY;
-	double projectedPointOnLineComponentZ = point1OnLineTetraederTop->getZ() + dotProduct1/dotProduct2 * vector2ComponentZ;
+		/*
 
-	//TODO continue computation of distance to TetraederTop
+		double projectedPointOnLineComponentX = point1OnLineTetraederTop->getX() + dotProduct1/dotProduct2 * vector2ComponentX;
+		double projectedPointOnLineComponentY = point1OnLineTetraederTop->getY() + dotProduct1/dotProduct2 * vector2ComponentY;
+		double projectedPointOnLineComponentZ = point1OnLineTetraederTop->getZ() + dotProduct1/dotProduct2 * vector2ComponentZ;
 
+		double distanceComponentX = projectedPointOnLineComponentX - point1OnLineTetraederTop->getX();
+		double distanceComponentY = projectedPointOnLineComponentY - point1OnLineTetraederTop->getY();
+		double distanceComponentZ = projectedPointOnLineComponentZ - point1OnLineTetraederTop->getZ();
+
+		*/
+
+		//can be shortened down (because of point1OnLineTetraederTop->getX() -point1OnLineTetraederTop->getX() = 0 ) to:
+
+		double distanceComponentX = dotProduct1/dotProduct2 * vector2ComponentX;
+		double distanceComponentY = dotProduct1/dotProduct2 * vector2ComponentY;
+		double distanceComponentZ = dotProduct1/dotProduct2 * vector2ComponentZ;
+
+		computedSquaredDistance = pow(distanceComponentX, 2.0) + pow(distanceComponentY, 2.0) + pow(distanceComponentZ, 2.0);
+
+	} else if (arbPoint == point1OnLineTetraederTop){
+		computedSquaredDistance = 0.0;
+	} else {
+
+		computedSquaredDistance = 	pow(point1OnLineTetraederTop->getX()-point2OnLine->getX(), 2.0) +
+									pow(point1OnLineTetraederTop->getY()-point2OnLine->getY(), 2.0) +
+									pow(point1OnLineTetraederTop->getZ()-point2OnLine->getZ(), 2.0);
+
+	}
+
+}
+
+/*
+//! export
+void writeWedgeToPlyOrObj(){
+}
+*/
+
+//copied from mesh.cpp, will be legacy soon
+//TODO: could be slimlined and moved to vertex class
+bool getSurroundingVerticesInOrder (list<Vertex*> &adjacentVertsInOrder, Vertex* &pi, bool printDebug) {
+
+	if(printDebug) {
+		cout << endl << "[Mesh::getSurroundingVerticesInOrder] pi: " << pi->getIndex() << endl;
+	}
+
+	set<Face*> facesVisited;
+	set<Face*> facesAdjacent;
+	pi->getFaces(&facesAdjacent);
+	Face* nextFace = nullptr;
+	Face* currentFace = (*facesAdjacent.begin());
+	facesVisited.insert( currentFace );
+	nextFace = currentFace->getNextFaceWith( pi, &facesVisited );
+	adjacentVertsInOrder.clear();
+
+	if(printDebug) {
+		cout << "[Mesh::getSurroundingVerticesInOrder] Vertex A,B,C: " << currentFace->getVertA()->getIndex() << "\t" <<
+		        currentFace->getVertB()->getIndex() << "\t" << currentFace->getVertC()->getIndex() << endl;
+		cout << "[Mesh::getSurroundingVerticesInOrder] size of facesAdjacent: " << facesAdjacent.size() << endl;
+		cout << "[Mesh::getSurroundingVerticesInOrder] curFaceID1: " << currentFace->getIndex() << endl;
+	}
+
+	if(pi == currentFace->getVertA()) {
+		adjacentVertsInOrder.push_back(currentFace->getVertA());
+		adjacentVertsInOrder.push_back(currentFace->getVertC());
+		adjacentVertsInOrder.push_back(currentFace->getVertB());
+	}
+	if(pi== currentFace->getVertB()) {
+		adjacentVertsInOrder.push_back(currentFace->getVertB());
+		adjacentVertsInOrder.push_back(currentFace->getVertC());
+		adjacentVertsInOrder.push_back(currentFace->getVertA());
+	}
+	if(pi == currentFace->getVertC()) {
+		adjacentVertsInOrder.push_back(currentFace->getVertC());
+		adjacentVertsInOrder.push_back(currentFace->getVertA());
+		adjacentVertsInOrder.push_back(currentFace->getVertB());
+	}
+
+	while( nextFace != nullptr ) {
+		currentFace = nextFace;
+		nextFace = currentFace->getNextFaceWith( pi, &facesVisited );
+		facesVisited.insert( currentFace );
+
+		if(printDebug) {
+			cout << "[Mesh::getSurroundingVerticesInOrder] curFaceID2: " << currentFace->getIndex() << endl;
+		}
+
+		if(find(adjacentVertsInOrder.begin(), adjacentVertsInOrder.end(), currentFace->getVertA()) == adjacentVertsInOrder.end()) {
+			adjacentVertsInOrder.push_back(currentFace->getVertA());
+		}
+		if(find(adjacentVertsInOrder.begin(), adjacentVertsInOrder.end(), currentFace->getVertB()) == adjacentVertsInOrder.end()) {
+			adjacentVertsInOrder.push_back(currentFace->getVertB());
+		}
+		if(find(adjacentVertsInOrder.begin(), adjacentVertsInOrder.end(), currentFace->getVertC()) == adjacentVertsInOrder.end()) {
+			adjacentVertsInOrder.push_back(currentFace->getVertC());
+		}
+	}
+
+	// in case of a border vertex we also have to dance around in the other direction:
+	// in this case, the vertices are pushed to the beginning, to ensure the correct order in the list
+	currentFace = (*facesAdjacent.begin());
+	nextFace = currentFace->getNextFaceWith( pi, &facesVisited );
+	    if(printDebug) {
+			cout << "[Mesh::getSurroundingVerticesInOrder] curFaceID3: " << currentFace->getIndex() << endl;
+		}
+
+		if(find(adjacentVertsInOrder.begin(), adjacentVertsInOrder.end(), currentFace->getVertA()) == adjacentVertsInOrder.end()) {
+			adjacentVertsInOrder.push_front(currentFace->getVertA());
+		}
+		if(find(adjacentVertsInOrder.begin(), adjacentVertsInOrder.end(), currentFace->getVertB()) == adjacentVertsInOrder.end()) {
+			adjacentVertsInOrder.push_front(currentFace->getVertB());
+		}
+		if(find(adjacentVertsInOrder.begin(), adjacentVertsInOrder.end(), currentFace->getVertC()) == adjacentVertsInOrder.end()) {
+			adjacentVertsInOrder.push_front(currentFace->getVertC());
+		}
+
+		while( nextFace != nullptr ) {
+		currentFace = nextFace;
+		nextFace = currentFace->getNextFaceWith( pi, &facesVisited );
+		facesVisited.insert( currentFace );
+
+		if(printDebug) {
+			cout << "[Mesh::getSurroundingVerticesInOrder] curFaceID4: " << currentFace->getIndex() << endl;
+		}
+
+		if(find(adjacentVertsInOrder.begin(), adjacentVertsInOrder.end(), currentFace->getVertA()) == adjacentVertsInOrder.end()) {
+			adjacentVertsInOrder.push_front(currentFace->getVertA());
+		}
+		if(find(adjacentVertsInOrder.begin(), adjacentVertsInOrder.end(), currentFace->getVertB()) == adjacentVertsInOrder.end()) {
+			adjacentVertsInOrder.push_front(currentFace->getVertB());
+		}
+		if(find(adjacentVertsInOrder.begin(), adjacentVertsInOrder.end(), currentFace->getVertC()) == adjacentVertsInOrder.end()) {
+			adjacentVertsInOrder.push_front(currentFace->getVertC());
+		}
+	}
+
+	adjacentVertsInOrder.erase(std::remove(adjacentVertsInOrder.begin(), adjacentVertsInOrder.end(), pi), adjacentVertsInOrder.end());
+
+	if(printDebug) {
+		cout << "[Mesh::getSurroundingVerticesInOrder] size of adjacentVertsInOrder: " << adjacentVertsInOrder.size() << endl;
+		list<Vertex*>::iterator iter;
+		for(iter=adjacentVertsInOrder.begin(); iter!=adjacentVertsInOrder.end();++iter) {
+			cout << (*iter)->getIndex() << endl;
+		}
+	}
+
+	return true;
 }
 
 
@@ -185,14 +515,14 @@ void wEDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arbPoint, Vertex*
 //! Takes as input the distance, how far NMS should look (the frontier will progress until vertices are too far away)
 //! will enlarge the feature vectors of all vertices to size 18
 //! Data will be written at Feature Vector Position 17 (boolean if maximum) and 18 (if maximum, then averaged MSII)
-bool experimentalNonMaximumSuppression(double &NMSDistance, vector<Vertex*> &mVertices, uint64_t &numberOfVertices){
+bool experimentalNonMaximumSuppression(double &NMSDistance, vector<Vertex*> &mVertices){
 
 	//these counters are used for feedback in the terminal
 	int processedVertexCounter = 0;
 	int maximaCounter = 0;
 
 	//look up vector, will be cleared for every vertex.
-	vector<bool> checkVisited (numberOfVertices);
+	vector<bool> checkVisited (mVertices.size());
 
 	//avoid using square root to speed things u
 	double squaredDistance = NMSDistance * NMSDistance;
@@ -271,7 +601,7 @@ bool experimentalNonMaximumSuppression(double &NMSDistance, vector<Vertex*> &mVe
 					bool stillInReach = false;
 
 					//helper method for distance calculation is used
-					if( squaredDistanceBetweenTwoVertices(adjacentVertex, pVertex) <= squaredDistance){
+					if( wESquaredDistanceBetweenTwoVertices(adjacentVertex, pVertex) <= squaredDistance){
 
 						stillInReach = true;
 
@@ -285,7 +615,7 @@ bool experimentalNonMaximumSuppression(double &NMSDistance, vector<Vertex*> &mVe
 
 						//legacy, position access deemed too absolute
 						//however I like it more
-						candidatesIterator->getFeatureElement(15, &adjacentVertexsMSIIcomponent16);
+						adjacentVertex->getFeatureElement(15, &adjacentVertexsMSIIcomponent16);
 
 						// if a bigger MSII value than the one of the current vertex (pVertex) was found, pVertex is not the (lokal) maximum
 						if(MSIIcomponent16 <= adjacentVertexsMSIIcomponent16){
@@ -345,7 +675,7 @@ bool experimentalNonMaximumSuppression(double &NMSDistance, vector<Vertex*> &mVe
 
 		if((processedVertexCounter % 10000) == 0){
 
-			cout << processedVertexCounter << " of " << numberOfVertices << " vertices have been processed until now." << endl;
+			cout << processedVertexCounter << " of " << mVertices.size() << " vertices have been processed until now." << endl;
 
 		}
 
@@ -361,12 +691,12 @@ bool experimentalNonMaximumSuppression(double &NMSDistance, vector<Vertex*> &mVe
 //! An experimental Watershed method using values computed in the Non Maximum Suppression Method
 //! will enlarge the feature vectors of all vertices to size 20
 //! Data will be written at Feature Vector Position 19 (order of processing) and 20 (label)
-bool experimentalWaterShed(vector<Vertex*> &mVertices, uint64_t &numberOfVertices){
+bool experimentalWatershed(double deletableInput, vector<Vertex*> &mVertices){
 
 	double counterForFutureWork = 1.0;
 
 	//prepare a look up vector to mark visited vertices
-	vector<bool> checkVisited (numberOfVertices);
+	vector<bool> checkVisited (mVertices.size());
 
 	//initialize the checks for visited vertices with false
 	for (int i = 0; i < checkVisited.size() ; i++){
@@ -559,7 +889,7 @@ bool experimentalWaterShed(vector<Vertex*> &mVertices, uint64_t &numberOfVertice
 
 		if(((int)counterForFutureWork % 10000) == 0){
 
-			cout << counterForFutureWork << " of " << numberOfVertices << " vertices have been processed." << endl;
+			cout << counterForFutureWork << " of " << mVertices.size() << " vertices have been processed." << endl;
 		}
 	}
 
@@ -626,7 +956,8 @@ bool experimentalWaterShed(vector<Vertex*> &mVertices, uint64_t &numberOfVertice
 //! An experimental clustering method
 //! It does not use in-cluster variance to judge how good the clustering is
 //! Instead it relies on multiple iterations and mean adjusting
-//! will enlarge the feature vectors of all vertices to size 21
+//! Even if the user specifies 0 iteration, one iteration is done
+//! Will enlarge the feature vectors of all vertices to size 21
 //! Data will be written at Feature Vector Position 21 (sub clustering)
 bool experimentalClustering(int numberOfIterations, vector<Vertex*> &mVertices){
 
@@ -696,7 +1027,8 @@ bool experimentalClustering(int numberOfIterations, vector<Vertex*> &mVertices){
 		//the random selection is done by a helper method
 		wERandomlyChooseVerticesFromVector(verticesWithCurrentLabel, threeRandomlyChosenVertices, 3);
 
-		vector<double> currentClustering (verticesWithCurrentLabel.size());
+		//the currentClustering will represent the solution after the given number of iterations.
+		vector<int> currentClustering (verticesWithCurrentLabel.size());
 
 		//the assignment to the nearest mean is done by a helper method
 		wEAssignNormalsToNearestMean(currentClustering, verticesWithCurrentLabel, threeRandomlyChosenVertices);
@@ -706,342 +1038,40 @@ bool experimentalClustering(int numberOfIterations, vector<Vertex*> &mVertices){
 		//Vertex* clusterCNr2 = threeRandomlyChosenVertices[1];
 		//Vertex* clusterCNr3 = threeRandomlyChosenVertices[2];
 
+		vector<vector<double>> normalMeans = {{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}};
+
 		for(int iteration=0;iteration<numberOfIterations;iteration++){
 
-			vector<Vertex*> normalMeans (verticesWithCurrentLabel.size());
+			//The mean computation is done by a helper method
+			wEComputeMeans(currentClustering, verticesWithCurrentLabel, normalMeans);
 
-			//the mean computation is done by a helper method
-			wEComputeMean(currentClustering, verticesWithCurrentLabel, normalMeans);
-
+			//Determining to which mean a normal is closest is done by a helper method
 			wEAssignNormalsToNearestMean(currentClustering, verticesWithCurrentLabel, normalMeans);
 
 		}
+		//Clustering did as many iterations as the user wanted.
 
+		//The final clustering is noted down per vertex
 
+		//write the clustering into the feature vector
+		for(int i = 0;i<verticesWithCurrentLabel.size();i++){
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-		cout << "finished" << endl;
-
-
-
-		//the vector finalClustering holds the final
-		//vector<double> finalClustering (verticesWithCurrentLabel.size());
-
-		//vector<double> nonFinalClustering (verticesWithCurrentLabel.size());
-
-
-		//compute clustering
-
-		//recompute as often as the user wants
-
-		vector<double> temporaryClustering (verticesWithCurrentLabel.size());
-
-
-		vector<Vertex*> verticesCluster1;
-		vector<Vertex*> verticesCluster2;
-		vector<Vertex*> verticesCluster3;
-
-		//perform the k-means assignment part on the vertices with the current label
-		for(int vertextNr = 0; vertextNr<verticesWithCurrentLabel.size(); vertextNr++){
-
-
-			Vertex* currentVertex = verticesWithCurrentLabel[vertextNr];
-
-			//find the smallest distance
-			//square root is omitted
-
-			//normals are used for clustering
-
-			//currently no check if normal exists
-
-			//currently no check if normal has length 1, is assumed
-
-			double distanceToMean1 = pow((currentVertex->getNormalX() - clusterCNr1->getNormalX()), 2.0) + pow((currentVertex->getNormalY() - clusterCNr1->getNormalY()), 2.0) + pow((currentVertex->getNormalZ() - clusterCNr1->getNormalZ()), 2.0);
-			double distanceToMean2 = pow((currentVertex->getNormalX() - clusterCNr2->getNormalX()), 2.0) + pow((currentVertex->getNormalY() - clusterCNr2->getNormalY()), 2.0) + pow((currentVertex->getNormalZ() - clusterCNr2->getNormalZ()), 2.0);
-			double distanceToMean3 = pow((currentVertex->getNormalX() - clusterCNr3->getNormalX()), 2.0) + pow((currentVertex->getNormalY() - clusterCNr3->getNormalY()), 2.0) + pow((currentVertex->getNormalZ() - clusterCNr3->getNormalZ()), 2.0);
-
-			//no check for greater equal
-			if((distanceToMean1 < distanceToMean2) && (distanceToMean1 < distanceToMean3)){
-
-				temporaryClustering[vertextNr] = 1.0; //cluster center 1 is the closest
-				verticesCluster1.push_back(currentVertex);
-
-			} else if((distanceToMean2 < distanceToMean1) && (distanceToMean2 < distanceToMean3)){
-
-				temporaryClustering[vertextNr] = 2.0; //cluster center 2 is the closest
-				verticesCluster2.push_back(currentVertex);
-
-			} else if((distanceToMean3 < distanceToMean1) && (distanceToMean3 < distanceToMean2)){
-
-				temporaryClustering[vertextNr] = 3.0; //cluster center 3 is the closest
-				verticesCluster3.push_back(currentVertex);
-
-			}
-		}
-
-		//first calculate the means of the clusters
-		//then calculate the variance of the clusters and decide according to the variance
-		//is there a step intended after the mean calculation, for example reclustering?
-		//yes recluster until no further change
-		//this is not yet implemented
-
-		//variance might need covariance matrix    int investigatedVertCounter = 0;
-
-
-		//cluster 1
-		//mean calculation
-		double mean1XComponent = 0.0;
-		double mean1YComponent = 0.0;
-		double mean1ZComponent = 0.0;
-		for(int i = 0; i<verticesCluster1.size(); i++){
-
-			Vertex* currentVertex = verticesCluster1[i];
-			mean1XComponent = mean1XComponent + currentVertex->getNormalX();
-			mean1YComponent = mean1YComponent + currentVertex->getNormalY();
-			mean1ZComponent = mean1ZComponent + currentVertex->getNormalZ();
+			Vertex* currentVertex = verticesWithCurrentLabel[i];
+			currentVertex->setFeatureElement(20, currentClustering[i]);
 
 		}
-		mean1XComponent = mean1XComponent/verticesCluster1.size();
-		mean1YComponent = mean1YComponent/verticesCluster1.size();
-		mean1ZComponent = mean1ZComponent/verticesCluster1.size();
+	}
 
-        //perform the clustering as often as the user wants
-        for(int iteration=0;iteration<numberOfIterations;iteration++){
+	cout << "The clustering algorithm found " << verticesWithoutLabel << " vertices without label." << endl;
+	cout << "The clustering algorithm worked on " << numberOfLabels  << " labels, k-means found 3 clusters in each labeled group." << endl;
 
-
-
-            vector<double> temporaryClustering (verticesWithCurrentLabel.size());
-
-
-
-            Vertex* clusterCNr1 = verticesWithCurrentLabel[randomNr1];
-            Vertex* clusterCNr2 = verticesWithCurrentLabel[randomNr2];
-            Vertex* clusterCNr3 = verticesWithCurrentLabel[randomNr3];
-
-            vector<Vertex*> verticesCluster1;
-            vector<Vertex*> verticesCluster2;
-            vector<Vertex*> verticesCluster3;
-
-            //perform the k-means assignment part on the vertices with the current label
-            for(int vertextNr = 0; vertextNr<verticesWithCurrentLabel.size(); vertextNr++){
-
-                Vertex* currentVertex = verticesWithCurrentLabel[vertextNr];
-
-                //find the smallest distance
-                //square root is omitted
-
-                //normals are used for clustering
-
-                //currently no check if normal exists
-
-                //currently no check if normal has length 1, is assumed
-
-                double distanceToMean1 = pow((currentVertex->getNormalX() - clusterCNr1->getNormalX()), 2.0) + pow((currentVertex->getNormalY() - clusterCNr1->getNormalY()), 2.0) + pow((currentVertex->getNormalZ() - clusterCNr1->getNormalZ()), 2.0);
-                double distanceToMean2 = pow((currentVertex->getNormalX() - clusterCNr2->getNormalX()), 2.0) + pow((currentVertex->getNormalY() - clusterCNr2->getNormalY()), 2.0) + pow((currentVertex->getNormalZ() - clusterCNr2->getNormalZ()), 2.0);
-                double distanceToMean3 = pow((currentVertex->getNormalX() - clusterCNr3->getNormalX()), 2.0) + pow((currentVertex->getNormalY() - clusterCNr3->getNormalY()), 2.0) + pow((currentVertex->getNormalZ() - clusterCNr3->getNormalZ()), 2.0);
-
-                //no check for greater equal
-                if((distanceToMean1 < distanceToMean2) && (distanceToMean1 < distanceToMean3)){
-
-                    temporaryClustering[vertextNr] = 1.0; //cluster center 1 is the closest
-                    verticesCluster1.push_back(currentVertex);
-
-                } else if((distanceToMean2 < distanceToMean1) && (distanceToMean2 < distanceToMean3)){
-
-                    temporaryClustering[vertextNr] = 2.0; //cluster center 2 is the closest
-                    verticesCluster2.push_back(currentVertex);
-
-                } else if((distanceToMean3 < distanceToMean1) && (distanceToMean3 < distanceToMean2)){
-
-                    temporaryClustering[vertextNr] = 3.0; //cluster center 3 is the closest
-                    verticesCluster3.push_back(currentVertex);
-
-                }
-            }
-
-            //first calculate the means of the clusters
-            //then calculate the variance of the clusters and decide according to the variance
-            //is there a step intended after the mean calculation, for example reclustering?
-            //yes recluster until no further change
-            //this is not yet implemented
-
-            //variance might need covariance matrix    int investigatedVertCounter = 0;
-
-
-            //cluster 1
-            //mean calculation
-            double mean1XComponent = 0.0;
-            double mean1YComponent = 0.0;
-            double mean1ZComponent = 0.0;
-            for(int i = 0; i<verticesCluster1.size(); i++){
-
-                Vertex* currentVertex = verticesCluster1[i];
-                mean1XComponent = mean1XComponent + currentVertex->getNormalX();
-                mean1YComponent = mean1YComponent + currentVertex->getNormalY();
-                mean1ZComponent = mean1ZComponent + currentVertex->getNormalZ();
-
-            }
-            mean1XComponent = mean1XComponent/verticesCluster1.size();
-            mean1YComponent = mean1YComponent/verticesCluster1.size();
-            mean1ZComponent = mean1ZComponent/verticesCluster1.size();
-
-            //variance calculation
-            double variance1XComponent = 0.0;
-            double variance1YComponent = 0.0;
-            double variance1ZComponent = 0.0;
-            for(int i = 0; i<verticesCluster1.size(); i++){
-
-                Vertex* currentVertex = verticesCluster1[i];
-                variance1XComponent = variance1XComponent + pow((currentVertex->getNormalX() - mean1XComponent), 2.0);
-                variance1YComponent = variance1YComponent + pow((currentVertex->getNormalY() - mean1YComponent), 2.0);
-                variance1ZComponent = variance1ZComponent + pow((currentVertex->getNormalZ() - mean1ZComponent), 2.0);
-
-            }
-            variance1XComponent = variance1XComponent/verticesCluster1.size();
-            variance1YComponent = variance1YComponent/verticesCluster1.size();
-            variance1ZComponent = variance1ZComponent/verticesCluster1.size();
-            //end of cluster 1 consideration
-
-
-            //cluster 2
-            //mean calculation
-            double mean2XComponent = 0.0;
-            double mean2YComponent = 0.0;
-            double mean2ZComponent = 0.0;
-            for(int i = 0; i<verticesCluster2.size(); i++){
-
-                Vertex* currentVertex = verticesCluster2[i];
-                mean2XComponent = mean2XComponent + currentVertex->getNormalX();
-                mean2YComponent = mean2YComponent + currentVertex->getNormalY();
-                mean2ZComponent = mean2ZComponent + currentVertex->getNormalZ();
-
-            }
-            mean2XComponent = mean2XComponent/verticesCluster2.size();
-            mean2YComponent = mean2YComponent/verticesCluster2.size();
-            mean2ZComponent = mean2ZComponent/verticesCluster2.size();
-
-            //variance calculation
-            double variance2XComponent = 0.0;
-            double variance2YComponent = 0.0;
-            double variance2ZComponent = 0.0;
-            for(int i = 0; i<verticesCluster2.size(); i++){
-
-                Vertex* currentVertex = verticesCluster2[i];
-                variance2XComponent = variance2XComponent + pow((currentVertex->getNormalX() - mean2XComponent), 2.0);
-                variance2YComponent = variance2YComponent + pow((currentVertex->getNormalY() - mean2YComponent), 2.0);
-                variance2ZComponent = variance2ZComponent + pow((currentVertex->getNormalZ() - mean2ZComponent), 2.0);
-
-            }
-            variance2XComponent = variance2XComponent/verticesCluster2.size();
-            variance2YComponent = variance2YComponent/verticesCluster2.size();
-            variance2ZComponent = variance2ZComponent/verticesCluster2.size();
-            //end of cluster 2 consideration
-
-
-            //cluster 3
-            //mean calculation
-            double mean3XComponent = 0.0;
-            double mean3YComponent = 0.0;
-            double mean3ZComponent = 0.0;
-            for(int i = 0; i<verticesCluster3.size(); i++){
-
-                Vertex* currentVertex = verticesCluster3[i];
-                mean3XComponent = mean3XComponent + currentVertex->getNormalX();
-                mean3YComponent = mean3YComponent + currentVertex->getNormalY();
-                mean3ZComponent = mean3ZComponent + currentVertex->getNormalZ();
-
-            }
-            mean3XComponent = mean3XComponent/verticesCluster3.size();
-            mean3YComponent = mean3YComponent/verticesCluster3.size();
-            mean3ZComponent = mean3ZComponent/verticesCluster3.size();
-
-            //variance calculation
-            double variance3XComponent = 0.0;
-            double variance3YComponent = 0.0;
-            double variance3ZComponent = 0.0;
-            for(int i = 0; i<verticesCluster3.size(); i++){
-
-                Vertex* currentVertex = verticesCluster3[i];
-                variance3XComponent = variance3XComponent + pow((currentVertex->getNormalX() - mean3XComponent), 2.0);
-                variance3YComponent = variance3YComponent + pow((currentVertex->getNormalY() - mean3YComponent), 2.0);
-                variance3ZComponent = variance3ZComponent + pow((currentVertex->getNormalZ() - mean3ZComponent), 2.0);
-
-            }
-            variance3XComponent = variance3XComponent/verticesCluster3.size();
-            variance3YComponent = variance3YComponent/verticesCluster3.size();
-            variance3ZComponent = variance3ZComponent/verticesCluster3.size();
-            //end of cluster 3 consideration
-
-
-            double totalVariance = variance1XComponent + variance1YComponent + variance1ZComponent + variance2XComponent + variance2YComponent + variance2ZComponent + variance3XComponent + variance3YComponent + variance3ZComponent;
-
-
-            //a better clustering has been found save that clustering
-            if(totalVariance < smallestVariance){
-
-                finalClustering.assign(temporaryClustering.begin(), temporaryClustering.end());
-                smallestVariance = totalVariance;
-
-            }
-
-        }
-        //k-means has been performed as often as the user wanted
-
-
-        //write the clustering into the feature vector
-        for(int i = 0;i<verticesWithCurrentLabel.size();i++){
-
-            Vertex* currentVertex = verticesWithCurrentLabel[i];
-            currentVertex->setFeatureElement(20, finalClustering[i]);
-
-        }
-    }
-
-
-
-
-    //loop over 1 till numberOfLabels
-    //a list forms all the vertices with the current label
-    //smallestVariance = infinite
-    //get the list's size, build a vector of double finalClustering
-    //FOR ITERATION NUMBER, deletableInput may become this value, for example 5 times
-    //a good value needs to be determined by me, maybe 2 is good, maybe 10 is good
-
-    //get the list's size, build a vector of doubles temporaryClustering
-
-    //loop over that list
-    //cluster
-
-    //cluster is:
-    //choose three at random (give them 1, 2, 3)
-    //all other get assigned the clustervalue of the nearest
-
-    //calculate variance
-    //if the calculated variance is smaller than the smallestVariance
-    //than write temporaryClustering in finalClustering
-    //set smallestVariance to the calculated variance
-
-
-    cout << "The clustering algorithm found " << verticesWithoutLabel << " vertices without label." << endl;
-    cout << "The clustering algorithm worked on " << numberOfLabels  << " labels, k-means found 3 clusters in each labeled group." << endl;
-
-    return true;
+	return true;
 
 }
 
-//! will enlarge the feature vectors of all vertices to size 24
+//! RANSAC algorithm that fits a tetraeder (into a found wedge)
+//! Will enlarge the feature vectors of all vertices to size 24
+//! Data will be written at Feature Vector Position 22 if vertices lie on a border between two clusterings
 bool experimentalRANSAC(int numberOfIterations, vector<Vertex*> &mVertices){
 
 	//will note down the number of different labels used
@@ -1054,15 +1084,15 @@ bool experimentalRANSAC(int numberOfIterations, vector<Vertex*> &mVertices){
 	//find the number of labels and the number of vertices, which were not labeled
 	for(auto pVertex : mVertices){
 
-		//if the feature vector has less than 24 elements, resize it to length 24
-		if(24 > pVertex->getFeatureVectorLen()){
+		//if the feature vector has less than 22 elements, resize it to length 22
+		if(22 > pVertex->getFeatureVectorLen()){
 
-			pVertex->resizeFeatureVector(24);
+			pVertex->resizeFeatureVector(22);
 
 		}
 
 		//clear data, that might sit in the feature vectors, remaining from previous runs of the clustering algorithm
-		//pVertex->setFeatureElement(20, 0.0);
+		pVertex->setFeatureElement(21, 0.0);
 
 		double givenLabel;
 		pVertex->getFeatureElement(19, &givenLabel);
@@ -1083,6 +1113,8 @@ bool experimentalRANSAC(int numberOfIterations, vector<Vertex*> &mVertices){
 	}
 
 	//number of clusters is now known
+
+	cout << "Number of Clusters is now known" << endl;
 
 	//loop over every labeled group
 	for(int labelIterator=1;labelIterator<=(int)numberOfLabels;labelIterator++){
@@ -1132,7 +1164,7 @@ bool experimentalRANSAC(int numberOfIterations, vector<Vertex*> &mVertices){
 						//this is important because on the border of a labeled group neighbours may belong to different clusters,
 						//but we only care about the current label group
 						double adjacentVertexLabel;
-						adjacentVertex->getFeatureElement(19, &adjacentVertexClusterGroup);
+						adjacentVertex->getFeatureElement(19, &adjacentVertexLabel);
 
 						if(labelIterator == (int)adjacentVertexLabel){
 
@@ -1153,22 +1185,22 @@ bool experimentalRANSAC(int numberOfIterations, vector<Vertex*> &mVertices){
 								if( (((int)currentVertexClusterGroup == 1) && ((int)adjacentVertexClusterGroup == 2))
 									|| (((int)currentVertexClusterGroup == 2 ) && ((int)adjacentVertexClusterGroup == 1)) ){
 
-									currentVertex->setFeatureElement(21, 1.0);
-									currentVertex->setFeatureElement(22, 2.0);
+									currentVertex->setFeatureElement(21, 12.0);
+									//currentVertex->setFeatureElement(22, 2.0);
 
 								//border case 2 and 3 (or 3 and 2)
 								} else if ( (((int)currentVertexClusterGroup == 2) && ((int)adjacentVertexClusterGroup == 3))
 									|| (((int)currentVertexClusterGroup == 3 ) && ((int)adjacentVertexClusterGroup == 2)) ){
 
-									currentVertex->setFeatureElement(22, 2.0);
-									currentVertex->setFeatureElement(23, 3.0);
+									currentVertex->setFeatureElement(21, 23.0);
+									//currentVertex->setFeatureElement(23, 3.0);
 
 								//border case 1 and 3 (or 3 and 1)
 								} else if ( (((int)currentVertexClusterGroup == 3) && ((int)adjacentVertexClusterGroup == 1))
 									|| (((int)currentVertexClusterGroup == 1 ) && ((int)adjacentVertexClusterGroup == 3)) ){
 
-									currentVertex->setFeatureElement(21, 1.0);
-									currentVertex->setFeatureElement(23, 3.0);
+									currentVertex->setFeatureElement(21, 31.0);
+									//currentVertex->setFeatureElement(23, 3.0);
 								}
 							}
 						}
@@ -1187,97 +1219,178 @@ bool experimentalRANSAC(int numberOfIterations, vector<Vertex*> &mVertices){
 		}
 		//The vector verticesBorderGroup now holds all the vertices which will be used for RANSAC
 
+		cout << "RANSAC can now start working with one wedge." << endl;
+
 		//the sum of distances represents the quality of the chosen points and their corresponding rays
 		//is initialized with a infinity placeholder
 		double smallestSumOfDistances = numeric_limits<double>::max();
+
+		cout << "max ini successful" << endl;
 
 		//unassigned pointer may be dangerous
 		//Werde ueberdenken
 		//could be filled with dummy data
 		Vertex* finalTetraederTop;
-		Vertex* finalTetraederVertex1;
-		Vertex* finalTetraederVertex2;
-		Vertex* finalTetraederVertex3;
+		Vertex* finalLineVertex1;
+		Vertex* finalLineVertex2;
+		Vertex* finalLineVertex3;
 
-		//RANSAC begins
-		for(int iteration=0;iteration<numberOfIterations;iteration++){
+		//only work on a border group if it includes at least 4 vertices. This is a necessary requirement, as RANSAC needs 4 randomly chosen vertices to start
+		if(verticesBorderGroup.size()>=4){
 
-			double currentDistanceForThisCoice = 0.0;
+			//RANSAC begins
+			for(int iteration=0;iteration<numberOfIterations;iteration++){
 
-			//randomly choose four vertices for RANSAC
-			vector<Vertex*> fourRandomlyChosenBorderVertices;
-			wERandomlyChooseVerticesFromVector(verticesBorderGroup, fourRandomlyChosenBorderVertices, 4);
+				double currentDistanceForThisCoice = 0.0;
 
-			Vertex* randomlyChosenTetraederTop = fourRandomlyChosenBorderVertices[0];
-			Vertex* randomlyChosenTetraederVertex1 = fourRandomlyChosenBorderVertices[1];
-			Vertex* randomlyChosenTetraederVertex2 = fourRandomlyChosenBorderVertices[2];
-			Vertex* randomlyChosenTetraederVertex3 = fourRandomlyChosenBorderVertices[3];
+				//randomly choose four vertices for RANSAC
+				vector<Vertex*> fourRandomlyChosenBorderVertices;
+				wERandomlyChooseVerticesFromVector(verticesBorderGroup, fourRandomlyChosenBorderVertices, 4);
+
+				cout << "random choice successful" << endl;
+
+				Vertex* randomlyChosenTetraederTop = fourRandomlyChosenBorderVertices[0];
+				Vertex* randomlyChosenTetraederVertex1 = fourRandomlyChosenBorderVertices[1];
+				Vertex* randomlyChosenTetraederVertex2 = fourRandomlyChosenBorderVertices[2];
+				Vertex* randomlyChosenTetraederVertex3 = fourRandomlyChosenBorderVertices[3];
+
+				for(auto borderVertex : verticesBorderGroup){
+
+					//find minimum distance to one of the rays
+					double minimumDistance = min(min(wEComputeShortestDistanceBetweenPointAndLine(borderVertex, randomlyChosenTetraederTop, randomlyChosenTetraederVertex1),
+												wEComputeShortestDistanceBetweenPointAndLine(borderVertex, randomlyChosenTetraederTop, randomlyChosenTetraederVertex2)),
+												wEComputeShortestDistanceBetweenPointAndLine(borderVertex, randomlyChosenTetraederTop, randomlyChosenTetraederVertex3));
+					currentDistanceForThisCoice += minimumDistance;
+				}
+
+				cout << "minimum distance computed" << endl;
+
+				if(currentDistanceForThisCoice < smallestSumOfDistances){
+
+					smallestSumOfDistances = currentDistanceForThisCoice;
+					finalTetraederTop = randomlyChosenTetraederTop;
+					finalLineVertex1 = randomlyChosenTetraederVertex1;
+					finalLineVertex2 = randomlyChosenTetraederVertex2;
+					finalLineVertex3 = randomlyChosenTetraederVertex3;
+
+				}
+
+				cout << "One RANSAC Iteration finished" << endl;
+
+			}
+			//RANSAC now has noted down the current best fit for rays.
+
+			cout << "RANSAC found a best fit for one wedge" << endl;
+
+			//possible bordergroups
+			/*
+			12
+			23
+			31
+			*/
+			/*
+			int borderGroupFinalTetVertex1;
+			wEGetBorderGroupFromVertexByFeatureVector(finalTetraederVertex1, borderGroupFinalTetVertex1);
+
+			int borderGroupFinalTetVertex2;
+			wEGetBorderGroupFromVertexByFeatureVector(finalTetraederVertex2, borderGroupFinalTetVertex2);
+
+			int borderGroupFinalTetVertex3;
+			wEGetBorderGroupFromVertexByFeatureVector(finalTetraederVertex3, borderGroupFinalTetVertex3);
+			*/
+
+			//determine to which bordergoup which finalTetraederVertex belongs
+
+			Vertex* finalTetraederVertexGroup12;
+			Vertex* finalTetraederVertexGroup23;
+			Vertex* finalTetraederVertexGroup31;
+
+			wEGetBorderGroupFromVertexByFeatureVector(finalLineVertex1, finalLineVertex2, finalLineVertex3, finalTetraederVertexGroup12, finalTetraederVertexGroup23, finalTetraederVertexGroup31);
+
+
+			//Determine which projected point on each line is farthest away
+			//A faster but less precise way is to simply calculate the distance between the tetraeder top and the vertex itself and NOT the projected point on the line
+
+			double biggestDistanceGroup12 = 0.0;
+			Vertex* finalVertexGroup12;
+
+			double biggestDistanceGroup23 = 0.0;
+			Vertex* finalVertexGroup23;
+
+			double biggestDistanceGroup31 = 0.0;
+			Vertex* finalVertexGroup31;
 
 			for(auto borderVertex : verticesBorderGroup){
 
-				//find minimum distance to one of the rays
-				double minimumDistance = min(wEComputeShortestDistanceBetweenPointAndLine(borderVertex, randomlyChosenTetraederTop, randomlyChosenTetraederVertex1,
-											wEComputeShortestDistanceBetweenPointAndLine(borderVertex, randomlyChosenTetraederTop, randomlyChosenTetraederVertex2),
-											wEComputeShortestDistanceBetweenPointAndLine(borderVertex, randomlyChosenTetraederTop, randomlyChosenTetraederVertex3));
-				currentDistanceForThisCoice += minimumDistance;
+				//int currentborderVertexGroup;
+				//wEGetBorderGroupFromVertexByFeatureVector(borderVertex, currentborderVertexGroup);
+
+				double currentBorderVertexGroup;
+				borderVertex->getFeatureElement(21, &currentBorderVertexGroup);
+
+				//keep of the biggest distance per border group
+				//note down the vertex that has the projection farthest away
+
+				if((int)currentBorderVertexGroup == 12){
+
+					double calculatedDistance;
+
+					wESquaredDistanceFromTetraederTopToProjectedPointOnLine(borderVertex, finalTetraederTop, finalVertexGroup12 , calculatedDistance);
+					if(calculatedDistance>biggestDistanceGroup12){
+
+						biggestDistanceGroup12 = calculatedDistance;
+						finalVertexGroup12 = borderVertex;
+
+					}
+
+				} else if ((int)currentBorderVertexGroup == 23){
+
+					double calculatedDistance;
+
+					wESquaredDistanceFromTetraederTopToProjectedPointOnLine(borderVertex, finalTetraederTop, finalVertexGroup23 , calculatedDistance);
+					if(calculatedDistance>biggestDistanceGroup23){
+
+						biggestDistanceGroup23 = calculatedDistance;
+						finalVertexGroup23 = borderVertex;
+
+					}
+
+				} else if ((int)currentBorderVertexGroup == 31){
+
+					double calculatedDistance;
+
+					wESquaredDistanceFromTetraederTopToProjectedPointOnLine(borderVertex, finalTetraederTop, finalVertexGroup31 , calculatedDistance);
+					if(calculatedDistance>biggestDistanceGroup31){
+
+						biggestDistanceGroup31 = calculatedDistance;
+						finalVertexGroup31 = borderVertex;
+
+					}
+
+				}
 			}
 
-			if(currentDistanceForThisCoice < smallestSumOfDistances){
 
-				smallestSumOfDistances = currentDistanceForThisCoice;
-				finalTetraederTop = randomlyChosenTetraederTop;
-				finalTetraederVertex1 = randomlyChosenTetraederVertex1;
-				finalTetraederVertex2 = randomlyChosenTetraederVertex2;
-				finalTetraederVertex3 = randomlyChosenTetraederVertex3;
-
-			}
-
-		}
-		//RANSAC now has noted down the current best fit for rays.
-
-		//possible bordergroups
 		/*
-		12
-		23
-		31
+
+		A Tetraeder is:
+		finalTetraederTop
+		finalVertexGroup12
+		finalVertexGroup23
+		finalVertexGroup31
+
 		*/
-		int borderGroupFinalTetVertex1;
-		wEGetBorderGroupFromVertexByFeatureVector(finalTetraederVertex1, borderGroupFinalTetVertex1);
 
-		int borderGroupFinalTetVertex2;
-		wEGetBorderGroupFromVertexByFeatureVector(finalTetraederVertex2, borderGroupFinalTetVertex2);
+		//writeWedgeToPlyOrObj();
 
-		int borderGroupFinalTetVertex3;
-		wEGetBorderGroupFromVertexByFeatureVector(finalTetraederVertex3, borderGroupFinalTetVertex3);
-
-		int biggestDistanceGroup1;
-		int biggestDistanceGroup2;
-		int biggestDistanceGroup3;
-
-		for(auto borderVertex : verticesBorderGroup){
-
-			int currentborderVertexGroup;
-			wEGetBorderGroupFromVertexByFeatureVector(borderVertex, currentborderVertexGroup);
-
-			if(currentborderVertexGroup == 12){
-
-			} else if (currentborderVertexGroup == 23){
-			} else if (currentborderVertexGroup == 31){
-			}
+		cout << "A Wedge was extracted" << endl;
 		}
-
-		//project all borderVertices of that group onto the line formed by finalTetraederTop and finalTetraederVertex1
-		//choose
-
-
-
-
-
-		//take the the point furthest away of the finalTetraederTop
 
 
 
 	}//all labeled groups have been worked upon
+
+    cout << "RANSAC terminated successfully!" << endl;
 
 	return true;
 

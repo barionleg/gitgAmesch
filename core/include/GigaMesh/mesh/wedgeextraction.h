@@ -12,38 +12,55 @@ Please look at mesh.cpp for larger and more complete disclaimer by original crea
 #ifndef WEDGEEXTRACTION_H
 #define WEDGEEXTRACTION_H
 
-//#include <iostream>
+#include <vector>
+#include <list>
+
+#include <GigaMesh/mesh/vertex.h>
+#include <GigaMesh/mesh/mesh.h>
 
 
 //helper methods exclusively called in the wedge extraction project
 
 
-double squaredDistanceBetweenTwoVertices(Vertex* &vertexNo1, Vertex* &vertexNo2);
+double wESquaredDistanceBetweenTwoVertices(Vertex* &vertexNo1, Vertex* &vertexNo2);
 
-double squaredDistanceBetweenTwoNormalsTreatedAsVertices(Vertex* &vertexNo1, Vertex* &vertexNo2);
+double wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(Vertex* &vertexNo1, Vertex* &vertexNo2);
 
-void wERandomlyChooseVerticesFromVector(vector<Vertex*> &inputVector, vector<Vertex*> &outputVector, int howManyVerticesWanted);
+double wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(Vertex* &vertexNo1, std::vector<double> &normalComponents);
 
-void wEFindMedianInListForGivenMean(list<Vertex*> &inputList, double &meanNormalX, double &meanNormalY, double &meanNormalZ, double &medianNormalX, double &medianNormalX, double &medianNormalX);
+void wERandomlyChooseVerticesFromVector(std::vector<Vertex*> &inputVector, std::vector<Vertex*> &outputVector, int howManyVerticesWanted);
+/*
+void wEFindMedianInListForGivenMean(std::list<Vertex*> &inputList, double &meanNormalX, double &meanNormalY, double &meanNormalZ, double &medianNormalX, double &medianNormalX, double &medianNormalX);
+*/
+void wEAssignNormalsToNearestMean(std::vector<int> &currentClustering, std::vector<Vertex*> &verticesWithCurrentLabel, std::vector<std::vector<double>> &normalMeanComponents);
 
-void wEAssignNormalsToNearestMean(vector<double> &currentClustering, vector<Vertex*> &verticesWithCurrentLabel, vector<Vertex*> &threeVerticesWhoseNormalsAreUsed);
+void wEAssignNormalsToNearestMean(std::vector<int> &currentClustering, std::vector<Vertex*> &verticesWithCurrentLabel, std::vector<Vertex*> &threeRandomlyChosenVertices);
 
-void wEComputeMean(vector<double> &currentClustering, vector<Vertex*> &verticesWithCurrentLabel, vector<Vertex*> &threeVerticesWhoseNormalsAreUsed);
-
+void wEComputeMeans(std::vector<int> &currentClustering, std::vector<Vertex*> &verticesWithCurrentLabel, std::vector<std::vector<double>> &normalMeanComponents);
+/*
 void wEGetBorderGroupFromVertexByFeatureVector(Vertex* vertexInQuestion,int &foundBordergroup);
+*/
+void wEGetBorderGroupFromVertexByFeatureVector(Vertex* &finalLineVertex1, Vertex* &finalLineVertex2, Vertex* &finalLineVertex3, Vertex* &finalTetraederVertexGroup12, Vertex* &finalTetraederVertexGroup23, Vertex* &finalTetraederVertexGroup31);
 
-void wEDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arbPoint, Vertex* &point1OnLine, Vertex* &point2OnLine, double &computedDistance);
+void wESquaredDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arbPoint, Vertex* &point1OnLine, Vertex* &point2OnLine, double &computedSquaredDistance);
+
+/*
+void writeWedgeToPlyOrObj();
+*/
+
+//copied from mesh.cpp, will be legacy soon
+bool getSurroundingVerticesInOrder (std::list<Vertex*> &adjacentVertsInOrder, Vertex* &pi, bool printDebug);
 
 //methods called in mesh.cpp
 
-bool experimentalNonMaximumSuppression(double &NMSDistance, vector<Vertex*> &mVertices, uint64_t &numberOfVertices);
+bool experimentalNonMaximumSuppression(double &NMSDistance, std::vector<Vertex*> &mVertices);
 
-bool experimentalWaterShed(vector<Vertex*> &mVertices, uint64_t &numberOfVertices);
+bool experimentalWatershed(double deletableInput, std::vector<Vertex*> &mVertices);
 
-bool experimentalClustering(int numberOfIterations, vector<Vertex*> &mVertices);
+bool experimentalClustering(int numberOfIterations, std::vector<Vertex*> &mVertices);
 
-bool experimentalRANSAC(int numberOfIterations, vector<Vertex*> &mVertices);
+bool experimentalRANSAC(int numberOfIterations, std::vector<Vertex*> &mVertices);
 
-bool experimentalFeatureVectorReordering(vector<Vertex*> &mVertices);
+bool experimentalFeatureVectorReordering(std::vector<Vertex*> &mVertices);
 
 #endif // WEDGEEXTRACTION_H
