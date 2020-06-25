@@ -204,11 +204,11 @@
      <addaction name="separator"/>
      <addaction name="actionFuncValToFeatureVector"/>
      <addaction name="separator"/>
-     <addaction name="actionExperimentalNonMaximumSuppression"/>
-     <addaction name="actionExperimentalWatershed"/>
-     <addaction name="actionExperimentalClustering"/>
-     <addaction name="actionExperimentalRANSAC"/>
-     <addaction name="actionExperimentalFeatureVectorReordering"/>
+     <addaction name="actionExperimentalSuppressNonMaxima"/>
+     <addaction name="actionExperimentalComputeWatershed"/>
+     <addaction name="actionExperimentalComputeClustering"/>
+     <addaction name="actionExperimentalComputeRANSAC"/>
+     <addaction name="actionExperimentalReorderFeatureVector"/>
     </widget>
     <widget class="QMenu" name="menuColorPerVertexToFunctionValue">
      <property name="title">
@@ -4384,17 +4384,17 @@ p, li { white-space: pre-wrap; }
     <string>Experimental Non Maximum Suppression</string>
    </property>
   </action>
-  <action name="actionExperimentalNonMaximumSuppression">
+  <action name="actionExperimentalSuppressNonMaxima">
    <property name="text">
     <string>Experimental Non Maximum Suppression</string>
    </property>
   </action>
-  <action name="actionExperimentalWatershed">
+  <action name="actionExperimentalComputeWatershed">
    <property name="text">
     <string>Experimental Watershed</string>
    </property>
   </action>
-  <action name="actionExperimentalClustering">
+  <action name="actionExperimentalComputeClustering">
    <property name="text">
     <string>Experimental Clustering</string>
    </property>
@@ -4404,12 +4404,12 @@ p, li { white-space: pre-wrap; }
     <string>Element</string>
    </property>
   </action>
-  <action name="actionExperimentalFeatureVectorReordering">
+  <action name="actionExperimentalReorderFeatureVector">
    <property name="text">
     <string>Experimental Feature Vector Reordering</string>
    </property>
   </action>
-  <action name="actionExperimentalRANSAC">
+  <action name="actionExperimentalComputeRANSAC">
    <property name="text">
     <string>Experimental Wedge Fitting with RANSAC</string>
    </property>

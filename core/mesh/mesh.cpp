@@ -16628,37 +16628,37 @@ bool Mesh::getAxisFromCircleCenters( Vector3D* rTop, Vector3D* rBottom ) {
 //MSExp
 
 //! stub method calling the real body in wedgeextraction.cpp
-bool Mesh::funcExpNonMaxSupp(double NMSDistance){
+bool Mesh::funcExpSuppNonMax(double NMSDistance){
 
-	return experimentalNonMaximumSuppression(NMSDistance, mVertices);
-
-}
-
-//! stub method calling the real body in wedgeextraction.cpp
-bool Mesh::funcExpWatershed(double deletableInput){
-
-	return experimentalWatershed(deletableInput, mVertices);
+	return experimentalSuppressNonMaxima(NMSDistance, mVertices);
 
 }
 
 //! stub method calling the real body in wedgeextraction.cpp
-bool Mesh::funcExpClustering(int numberOfIterations){
+bool Mesh::funcExpComputeWatershed(double deletableInput){
 
-	return experimentalClustering(numberOfIterations, mVertices);
-
-}
-
-//! stub method calling the real body in wedgeextraction.cpp
-bool Mesh::funcExpRANSAC(int numberOfIterations){
-
-	return experimentalRANSAC(numberOfIterations, mVertices);
+	return experimentalComputeWatershed(deletableInput, mVertices);
 
 }
 
 //! stub method calling the real body in wedgeextraction.cpp
-bool Mesh::funcExpFeatVecReorder(int deletableInput){
+bool Mesh::funcExpComputeClustering(int numberOfIterations){
 
-	return experimentalFeatureVectorReordering(mVertices);
+	return experimentalComputeClustering(numberOfIterations, mVertices);
+
+}
+
+//! stub method calling the real body in wedgeextraction.cpp
+bool Mesh::funcExpComputeRANSAC(int numberOfIterations){
+
+	return experimentalComputeRANSAC(numberOfIterations, mVertices);
+
+}
+
+//! stub method calling the real body in wedgeextraction.cpp
+bool Mesh::funcExpReorderFeatVec(int deletableInput){
+
+	return experimentalReorderFeatureVector(mVertices);
 
 }
 

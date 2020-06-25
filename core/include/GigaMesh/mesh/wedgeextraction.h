@@ -22,11 +22,11 @@ Please look at mesh.cpp for larger and more complete disclaimer by original crea
 //helper methods exclusively called in the wedge extraction project
 
 
-double wESquaredDistanceBetweenTwoVertices(Vertex* &vertexNo1, Vertex* &vertexNo2);
+double wEComputeSquaredDistanceBetweenTwoVertices(Vertex* &vertexNo1, Vertex* &vertexNo2);
 
-double wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(Vertex* &vertexNo1, Vertex* &vertexNo2);
+double wEComputeSquaredDistanceBetweenTwoNormalsTreatedAsVertices(Vertex* &vertexNo1, Vertex* &vertexNo2);
 
-double wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(Vertex* &vertexNo1, std::vector<double> &normalComponents);
+double wEComputeSquaredDistanceBetweenTwoNormalsTreatedAsVertices(Vertex* &vertexNo1, std::vector<double> &normalComponents);
 
 void wERandomlyChooseVerticesFromVector(std::vector<Vertex*> &inputVector, std::vector<Vertex*> &outputVector, int howManyVerticesWanted);
 /*
@@ -42,7 +42,7 @@ void wEGetBorderGroupFromVertexByFeatureVector(Vertex* vertexInQuestion,int &fou
 */
 void wEGetBorderGroupFromVertexByFeatureVector(Vertex* &finalLineVertex1, Vertex* &finalLineVertex2, Vertex* &finalLineVertex3, Vertex* &finalTetraederVertexGroup12, Vertex* &finalTetraederVertexGroup23, Vertex* &finalTetraederVertexGroup31);
 
-void wESquaredDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arbPoint, Vertex* &point1OnLine, Vertex* &point2OnLine, double &computedSquaredDistance);
+void wEComputeSquaredDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arbPoint, Vertex* &point1OnLine, Vertex* &point2OnLine, double &computedSquaredDistance);
 
 /*
 void writeWedgeToPlyOrObj();
@@ -53,7 +53,7 @@ bool getSurroundingVerticesInOrder (std::list<Vertex*> &adjacentVertsInOrder, Ve
 
 //methods called in mesh.cpp
 
-bool experimentalNonMaximumSuppression(double &NMSDistance, std::vector<Vertex*> &mVertices);
+bool experimentalSuppressNonMaxima(double &NMSDistance, std::vector<Vertex*> &mVertices);
 
 bool experimentalWatershed(double deletableInput, std::vector<Vertex*> &mVertices);
 
@@ -61,6 +61,6 @@ bool experimentalClustering(int numberOfIterations, std::vector<Vertex*> &mVerti
 
 bool experimentalRANSAC(int numberOfIterations, std::vector<Vertex*> &mVertices);
 
-bool experimentalFeatureVectorReordering(std::vector<Vertex*> &mVertices);
+bool experimentalReorderFeatureVector(std::vector<Vertex*> &mVertices);
 
 #endif // WEDGEEXTRACTION_H

@@ -35,7 +35,7 @@ using namespace std;
 
 
 //! Distance calculation for vertices omitting square root for speed up
-double wESquaredDistanceBetweenTwoVertices(Vertex* &vertexNo1, Vertex* &vertexNo2){
+double wEComputeSquaredDistanceBetweenTwoVertices(Vertex* &vertexNo1, Vertex* &vertexNo2){
 /*
 	return(	(vertexNo1->getX() - vertexNo2->getX()) * (vertexNo1->getX() - vertexNo2->getX())	+
 			(vertexNo1->getY() - vertexNo2->getY()) * (vertexNo1->getY() - vertexNo2->getY())	+
@@ -50,7 +50,7 @@ double wESquaredDistanceBetweenTwoVertices(Vertex* &vertexNo1, Vertex* &vertexNo
 
 
 //! Distance calculation for normals interpreted as vertices omitting square root for speed up
-double wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(Vertex* &vertexNo1, Vertex* &vertexNo2){
+double wEComputeSquaredDistanceBetweenTwoNormalsTreatedAsVertices(Vertex* &vertexNo1, Vertex* &vertexNo2){
 /*
 	return(	(vertexNo1->getX() - vertexNo2->getX()) * (vertexNo1->getX() - vertexNo2->getX())	+
 			(vertexNo1->getY() - vertexNo2->getY()) * (vertexNo1->getY() - vertexNo2->getY())	+
@@ -66,7 +66,7 @@ double wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(Vertex* &vertexNo1, V
 
 //! Distance calculation for normals interpreted as vertices omitting square root for speed up
 //! Input is a vertex and a normal given as a vector of doubles
-double wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(Vertex* &vertexNo1, vector<double> &normalComponents){
+double wEComputeSquaredDistanceBetweenTwoNormalsTreatedAsVertices(Vertex* &vertexNo1, vector<double> &normalComponents){
 
 	return(	pow((vertexNo1->getNormalX() - normalComponents[0]), 2.0)+
 			pow((vertexNo1->getNormalY() - normalComponents[1]), 2.0)+
@@ -113,9 +113,9 @@ void wEAssignNormalsToNearestMean(vector<int> &currentClustering, vector<Vertex*
 
 	for(int i=0; i<verticesWithCurrentLabel.size(); i++){
 
-		double distanceToNormal1 = wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], normalMeanComponents[0]);
-		double distanceToNormal2 = wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], normalMeanComponents[1]);
-		double distanceToNormal3 = wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], normalMeanComponents[2]);
+		double distanceToNormal1 = wEComputeSquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], normalMeanComponents[0]);
+		double distanceToNormal2 = wEComputeSquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], normalMeanComponents[1]);
+		double distanceToNormal3 = wEComputeSquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], normalMeanComponents[2]);
 
 		if((distanceToNormal1 < distanceToNormal2) && (distanceToNormal1 < distanceToNormal3)) {
 			//normal 1 is nearest
@@ -137,9 +137,9 @@ void wEAssignNormalsToNearestMean(vector<int> &currentClustering, vector<Vertex*
 
 	for(int i=0; i<verticesWithCurrentLabel.size(); i++){
 
-		double distanceToNormal1 = wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], threeRandomlyChosenVertices[0]);
-		double distanceToNormal2 = wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], threeRandomlyChosenVertices[1]);
-		double distanceToNormal3 = wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], threeRandomlyChosenVertices[2]);
+		double distanceToNormal1 = wEComputeSquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], threeRandomlyChosenVertices[0]);
+		double distanceToNormal2 = wEComputeSquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], threeRandomlyChosenVertices[1]);
+		double distanceToNormal3 = wEComputeSquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], threeRandomlyChosenVertices[2]);
 
 		if((distanceToNormal1 < distanceToNormal2) && (distanceToNormal1 < distanceToNormal3)) {
 			//normal 1 is nearest
@@ -339,7 +339,7 @@ void wEGetBorderGroupFromVertexByFeatureVector(Vertex* &finalLineVertex1, Vertex
 
 //! Calculates the squared distance between a projection point on a line (the result of projecting a point on a line) and a certain point on the line
 //! To determine the point on the line this formula is used: A and B on Line, P arbitrary point, Point on line given by: A + dot(AP,AB) / dot(AB,AB) * AB
-void wESquaredDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arbPoint, Vertex* &point1OnLineTetraederTop, Vertex* &point2OnLine, double &computedSquaredDistance){
+void wEComputeSquaredDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arbPoint, Vertex* &point1OnLineTetraederTop, Vertex* &point2OnLine, double &computedSquaredDistance){
 
 	if((arbPoint != point1OnLineTetraederTop) && (arbPoint != point2OnLine)){
 
@@ -515,7 +515,7 @@ bool getSurroundingVerticesInOrder (list<Vertex*> &adjacentVertsInOrder, Vertex*
 //! Takes as input the distance, how far NMS should look (the frontier will progress until vertices are too far away)
 //! will enlarge the feature vectors of all vertices to size 18
 //! Data will be written at Feature Vector Position 17 (boolean if maximum) and 18 (if maximum, then averaged MSII)
-bool experimentalNonMaximumSuppression(double &NMSDistance, vector<Vertex*> &mVertices){
+bool experimentalSuppressNonMaxima(double &NMSDistance, vector<Vertex*> &mVertices){
 
 	//these counters are used for feedback in the terminal
 	int processedVertexCounter = 0;
@@ -601,7 +601,7 @@ bool experimentalNonMaximumSuppression(double &NMSDistance, vector<Vertex*> &mVe
 					bool stillInReach = false;
 
 					//helper method for distance calculation is used
-					if( wESquaredDistanceBetweenTwoVertices(adjacentVertex, pVertex) <= squaredDistance){
+					if( wEComputeSquaredDistanceBetweenTwoVertices(adjacentVertex, pVertex) <= squaredDistance){
 
 						stillInReach = true;
 
@@ -691,7 +691,7 @@ bool experimentalNonMaximumSuppression(double &NMSDistance, vector<Vertex*> &mVe
 //! An experimental Watershed method using values computed in the Non Maximum Suppression Method
 //! will enlarge the feature vectors of all vertices to size 20
 //! Data will be written at Feature Vector Position 19 (order of processing) and 20 (label)
-bool experimentalWatershed(double deletableInput, vector<Vertex*> &mVertices){
+bool experimentalComputeWatershed(double deletableInput, vector<Vertex*> &mVertices){
 
 	double counterForFutureWork = 1.0;
 
@@ -959,11 +959,11 @@ bool experimentalWatershed(double deletableInput, vector<Vertex*> &mVertices){
 //! Even if the user specifies 0 iteration, one iteration is done
 //! Will enlarge the feature vectors of all vertices to size 21
 //! Data will be written at Feature Vector Position 21 (sub clustering)
-bool experimentalClustering(int numberOfIterations, vector<Vertex*> &mVertices){
+bool experimentalComputeClustering(int numberOfIterations, vector<Vertex*> &mVertices){
 
 	//will note down the number of different labels used
 	//is likely the same a the number of maxima that non maximum suppression produced
-	double numberOfLabels = 0.0;
+	int numberOfLabels = 0.0;
 
 	int verticesWithoutLabel = 0;
 
@@ -1000,9 +1000,10 @@ bool experimentalClustering(int numberOfIterations, vector<Vertex*> &mVertices){
 	}
 
 	//number of clusters is now known
+	//it is noted down as int numberOfLabels
 
 	//loop over every cluster
-	for(int labelIterator=1;labelIterator<=(int)numberOfLabels;labelIterator++){
+	for(int labelIterator=1;labelIterator<=numberOfLabels;labelIterator++){
 
 		vector<Vertex*> verticesWithCurrentLabel;
 
@@ -1012,8 +1013,7 @@ bool experimentalClustering(int numberOfIterations, vector<Vertex*> &mVertices){
 			double foundLabel;
 			investigatedVertex->getFeatureElement(19, &foundLabel);
 
-			//smelly, comparing doubles for equality, however I don't know a better way at the moment
-			if((double)labelIterator == foundLabel){
+			if(labelIterator == round(foundLabel)){
 
 				verticesWithCurrentLabel.push_back(investigatedVertex);
 
@@ -1021,7 +1021,7 @@ bool experimentalClustering(int numberOfIterations, vector<Vertex*> &mVertices){
 		}
 		//The vector verticesWithCurrentLabel now holds all the vertices which will be used for clustering
 		//there already is some randomness involved in creating this vector
-		//however another shuffling or random selection of 3 cluster means is done
+		//however another shuffling (resulting in a random selection of 3 future cluster means) is done
 
 		vector<Vertex*> threeRandomlyChosenVertices;
 		//the random selection is done by a helper method
@@ -1070,9 +1070,9 @@ bool experimentalClustering(int numberOfIterations, vector<Vertex*> &mVertices){
 }
 
 //! RANSAC algorithm that fits a tetraeder (into a found wedge)
-//! Will enlarge the feature vectors of all vertices to size 24
+//! Will enlarge the feature vectors of all vertices to size 22
 //! Data will be written at Feature Vector Position 22 if vertices lie on a border between two clusterings
-bool experimentalRANSAC(int numberOfIterations, vector<Vertex*> &mVertices){
+bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertices){
 
 	//will note down the number of different labels used
 	//is likely the same a the number of maxima that non maximum suppression produced
@@ -1091,7 +1091,7 @@ bool experimentalRANSAC(int numberOfIterations, vector<Vertex*> &mVertices){
 
 		}
 
-		//clear data, that might sit in the feature vectors, remaining from previous runs of the clustering algorithm
+		//clear data, that might sit in the feature vectors, remaining from previous runs of the RANSAC algorithm
 		pVertex->setFeatureElement(21, 0.0);
 
 		double givenLabel;
@@ -1335,7 +1335,7 @@ bool experimentalRANSAC(int numberOfIterations, vector<Vertex*> &mVertices){
 
 					double calculatedDistance;
 
-					wESquaredDistanceFromTetraederTopToProjectedPointOnLine(borderVertex, finalTetraederTop, finalVertexGroup12 , calculatedDistance);
+					wEComputeSquaredDistanceFromTetraederTopToProjectedPointOnLine(borderVertex, finalTetraederTop, finalVertexGroup12 , calculatedDistance);
 					if(calculatedDistance>biggestDistanceGroup12){
 
 						biggestDistanceGroup12 = calculatedDistance;
@@ -1347,7 +1347,7 @@ bool experimentalRANSAC(int numberOfIterations, vector<Vertex*> &mVertices){
 
 					double calculatedDistance;
 
-					wESquaredDistanceFromTetraederTopToProjectedPointOnLine(borderVertex, finalTetraederTop, finalVertexGroup23 , calculatedDistance);
+					wEComputeSquaredDistanceFromTetraederTopToProjectedPointOnLine(borderVertex, finalTetraederTop, finalVertexGroup23 , calculatedDistance);
 					if(calculatedDistance>biggestDistanceGroup23){
 
 						biggestDistanceGroup23 = calculatedDistance;
@@ -1359,7 +1359,7 @@ bool experimentalRANSAC(int numberOfIterations, vector<Vertex*> &mVertices){
 
 					double calculatedDistance;
 
-					wESquaredDistanceFromTetraederTopToProjectedPointOnLine(borderVertex, finalTetraederTop, finalVertexGroup31 , calculatedDistance);
+					wEComputeSquaredDistanceFromTetraederTopToProjectedPointOnLine(borderVertex, finalTetraederTop, finalVertexGroup31 , calculatedDistance);
 					if(calculatedDistance>biggestDistanceGroup31){
 
 						biggestDistanceGroup31 = calculatedDistance;
@@ -1371,19 +1371,19 @@ bool experimentalRANSAC(int numberOfIterations, vector<Vertex*> &mVertices){
 			}
 
 
-		/*
+			/*
 
-		A Tetraeder is:
-		finalTetraederTop
-		finalVertexGroup12
-		finalVertexGroup23
-		finalVertexGroup31
+			A Tetraeder is:
+			finalTetraederTop
+			finalVertexGroup12
+			finalVertexGroup23
+			finalVertexGroup31
 
-		*/
+			*/
 
-		//writeWedgeToPlyOrObj();
+			//writeWedgeToPlyOrObj();
 
-		cout << "A Wedge was extracted" << endl;
+			cout << "A Wedge was extracted" << endl;
 		}
 
 
@@ -1397,7 +1397,7 @@ bool experimentalRANSAC(int numberOfIterations, vector<Vertex*> &mVertices){
 }
 
 
-bool experimentalFeatureVectorReordering(vector<Vertex*> &mVertices){
+bool experimentalReorderFeatureVector(vector<Vertex*> &mVertices){
 
 	cout << "unfinished" << endl;
 
