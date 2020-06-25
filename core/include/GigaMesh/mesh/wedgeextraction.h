@@ -44,12 +44,11 @@ void wEGetBorderGroupFromVertexByFeatureVector(Vertex* &finalLineVertex1, Vertex
 
 void wEComputeSquaredDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arbPoint, Vertex* &point1OnLine, Vertex* &point2OnLine, double &computedSquaredDistance);
 
-/*
-void writeWedgeToPlyOrObj();
-*/
+void wEWriteExtractedTetraedersIntoFile(std::vector<std::vector<Vertex*>> extractedTetraeders);
 
 //copied from mesh.cpp, will be legacy soon
 bool getSurroundingVerticesInOrder (std::list<Vertex*> &adjacentVertsInOrder, Vertex* &pi, bool printDebug);
+
 
 //methods called in mesh.cpp
 

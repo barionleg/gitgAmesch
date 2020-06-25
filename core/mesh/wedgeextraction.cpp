@@ -10,6 +10,7 @@ Please look at mesh.cpp for larger and more complete disclaimer by original crea
 */
 
 #include<iostream>
+#include <fstream> //to write to a file
 #include<vector>
 #include<list>
 #include<iterator>
@@ -388,11 +389,67 @@ void wEComputeSquaredDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arb
 
 }
 
-/*
-//! export
-void writeWedgeToPlyOrObj(){
+
+//! Writes extracted Tetraeders into a .obj-file
+void wEWriteExtractedTetraedersIntoFile(vector<vector<Vertex*>> extractedTetraeders){
+
+	string customPrefix = "InputFileNameDatum";
+	string customSuffix = ".obj";
+	string tetraederOutputFile = customPrefix + customSuffix;
+	ofstream OutFile(tetraederOutputFile);
+
+	double vertexCoordinateX;
+	double vertexCoordinateY;
+	double vertexCoordinateZ;
+
+	if(OutFile.fail()){
+
+		cout << "Unable to open file to write tetraeder data!";
+
+	}
+	else{
+
+		OutFile << "# This file holds the extracted tetreaders." << endl;
+
+		//loop over tetraeder
+		for(int i=0; i < extractedTetraeders.size(); i++){
+
+			//loop over Vertices
+			for(int j=0; j < 4; j++){
+
+				vertexCoordinateX = extractedTetraeders[i][j]->getX();
+				vertexCoordinateY = extractedTetraeders[i][j]->getY();
+				vertexCoordinateZ = extractedTetraeders[i][j]->getZ();
+
+				//possibly shorten the accuracy down
+
+				OutFile << "v "  << vertexCoordinateX << " " << vertexCoordinateY << " " << vertexCoordinateZ << endl;
+			}
+
+		}
+		//vertices have been written down.
+
+		//now 4 faces per Tetraeder are written down
+		int fComp1;
+		int fComp2;
+		int fComp3;
+		int fComp4;
+		for(int t=0; t < extractedTetraeders.size(); t++){
+
+			fComp1 = 1+t*4;
+			fComp2 = 2+t*4;
+			fComp3 = 3+t*4;
+			fComp4 = 4+t*4;
+
+			OutFile << "f " << fComp1 << " " << fComp2 << " " << fComp3 << endl;
+			OutFile << "f " << fComp1 << " " << fComp2 << " " << fComp4 << endl;
+			OutFile << "f " << fComp1 << " " << fComp3 << " " << fComp4 << endl;
+			OutFile << "f " << fComp2 << " " << fComp3 << " " << fComp4 << endl;
+
+		}
+	}
 }
-*/
+
 
 //copied from mesh.cpp, will be legacy soon
 //TODO: could be slimlined and moved to vertex class
@@ -504,8 +561,6 @@ bool getSurroundingVerticesInOrder (list<Vertex*> &adjacentVertsInOrder, Vertex*
 
 	return true;
 }
-
-
 
 
 //methods called in mesh.cpp
@@ -1086,6 +1141,9 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 	int verticesWithoutLabel = 0;
 	int verticesWithoutAssignedCluster = 0;
 
+	//The extracted Tetraeders are collected and then written to a file
+	vector<vector<Vertex*>> extractedTetraeders;
+
 	//prepare data
 	//find the number of labels and the number of vertices, which were not labeled
 	for(auto pVertex : mVertices){
@@ -1384,13 +1442,16 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 
 			*/
 
-			//writeWedgeToPlyOrObj();
+			vector<Vertex*> foundTetraeder= {finalTetraederTop, finalVertexGroup12, finalVertexGroup23, finalVertexGroup31};
+
+			extractedTetraeders.push_back(foundTetraeder);
 
 		}
-
-
+		//One labeled group has been worked upon
 
 	}//all labeled groups have been worked upon
+
+	wEWriteExtractedTetraedersIntoFile(extractedTetraeders);
 
 	cout << "RANSAC terminated successfully!" << endl;
 	cout << "RANSAC encountered " << verticesWithoutAssignedCluster << " vertices that were not assigned to any cluster." << endl;
