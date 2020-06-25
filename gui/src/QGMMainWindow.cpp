@@ -266,7 +266,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	//.
 	QObject::connect( actionDatumAddSphere,          SIGNAL(triggered()), this, SIGNAL(sDatumAddSphere())   );
 
-	// --- Octree reÃ¶ated ----------------------------------------------------------------------------------------------------------------------------------
+	// --- Octree reöated ----------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( actionGenerateOctree,          SIGNAL(triggered()), this, SIGNAL(generateOctree())            );
 	QObject::connect( actionRemove_Drawing_of_Octree,SIGNAL(triggered()), this, SIGNAL(removeOctreedraw())            );
 	QObject::connect( actionDraw_Octree,             SIGNAL(triggered()), this, SIGNAL(drawOctree())            );
@@ -292,9 +292,11 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionFuncValToFeatureVector,         SIGNAL(triggered()),   this,       SIGNAL(sFuncValToFeatureVector())              );
 
 	// MSExp
-	QObject::connect( actionExperimentalNonMaximumSuppression,  SIGNAL(triggered()),         this, SIGNAL(sFuncExperimentalNonMaximumSuppression()) );
-    QObject::connect( actionExperimentalWatershed,              SIGNAL(triggered()),         this, SIGNAL(sFuncExperimentalWatershed())             );
-    QObject::connect( actionExperimentalClustering,             SIGNAL(triggered()),         this, SIGNAL(sFuncExperimentalClustering())            );
+	QObject::connect( actionExperimentalSuppressNonMaxima,    SIGNAL(triggered()), this,       SIGNAL(sFuncExperimentalSuppressNonMaxima())   );
+	QObject::connect( actionExperimentalComputeWatershed,     SIGNAL(triggered()), this,       SIGNAL(sFuncExperimentalComputeWatershed())     );
+	QObject::connect( actionExperimentalComputeClustering,    SIGNAL(triggered()), this,       SIGNAL(sFuncExperimentalComputeClustering())    );
+	QObject::connect( actionExperimentalComputeRANSAC,        SIGNAL(triggered()), this,       SIGNAL(sFuncExperimentalComputeRANSAC())        );
+	QObject::connect( actionExperimentalReorderFeatureVector, SIGNAL(triggered()), this,       SIGNAL(sFuncExperimentalReorderFeatureVector()) );
 
 
 	//! \todo Rename regarding new menu structure.

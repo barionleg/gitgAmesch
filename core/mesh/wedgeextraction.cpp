@@ -117,13 +117,13 @@ void wEAssignNormalsToNearestMean(vector<int> &currentClustering, vector<Vertex*
 		double distanceToNormal2 = wEComputeSquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], normalMeanComponents[1]);
 		double distanceToNormal3 = wEComputeSquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], normalMeanComponents[2]);
 
-		if((distanceToNormal1 < distanceToNormal2) && (distanceToNormal1 < distanceToNormal3)) {
+		if((distanceToNormal1 <= distanceToNormal2) && (distanceToNormal1 <= distanceToNormal3)) {
 			//normal 1 is nearest
 			currentClustering[i] = 1;
-		} else if ((distanceToNormal2 < distanceToNormal1) && (distanceToNormal2 < distanceToNormal3)){
+		} else if ((distanceToNormal2 <= distanceToNormal1) && (distanceToNormal2 <= distanceToNormal3)){
 			//normal 2 is nearest
 			currentClustering[i] = 2;
-		} else if ((distanceToNormal3 < distanceToNormal1) && (distanceToNormal3 < distanceToNormal2)){
+		} else if ((distanceToNormal3 <= distanceToNormal1) && (distanceToNormal3 <= distanceToNormal2)){
 			//normal 3 is nearest
 			currentClustering[i] = 3;
 		}
@@ -141,13 +141,13 @@ void wEAssignNormalsToNearestMean(vector<int> &currentClustering, vector<Vertex*
 		double distanceToNormal2 = wEComputeSquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], threeRandomlyChosenVertices[1]);
 		double distanceToNormal3 = wEComputeSquaredDistanceBetweenTwoNormalsTreatedAsVertices(verticesWithCurrentLabel[i], threeRandomlyChosenVertices[2]);
 
-		if((distanceToNormal1 < distanceToNormal2) && (distanceToNormal1 < distanceToNormal3)) {
+		if((distanceToNormal1 <= distanceToNormal2) && (distanceToNormal1 <= distanceToNormal3)) {
 			//normal 1 is nearest
 			currentClustering[i] = 1;
-		} else if ((distanceToNormal2 < distanceToNormal1) && (distanceToNormal2 < distanceToNormal3)){
+		} else if ((distanceToNormal2 <= distanceToNormal1) && (distanceToNormal2 <= distanceToNormal3)){
 			//normal 2 is nearest
 			currentClustering[i] = 2;
-		} else if ((distanceToNormal3 < distanceToNormal1) && (distanceToNormal3 < distanceToNormal2)){
+		} else if ((distanceToNormal3 <= distanceToNormal1) && (distanceToNormal3 <= distanceToNormal2)){
 			//normal 3 is nearest
 			currentClustering[i] = 3;
 		}
@@ -192,7 +192,7 @@ void wEComputeMeans(vector<int> &currentClustering, vector<Vertex*> &verticesWit
 
 			secondNormalMeanComponentX += verticesWithCurrentLabel[i]->getNormalX();
 			secondNormalMeanComponentY += verticesWithCurrentLabel[i]->getNormalY();
-			secondNormalMeanComponentZ += verticesWithCurrentLabel[i]->getNormalX();
+			secondNormalMeanComponentZ += verticesWithCurrentLabel[i]->getNormalZ();
 
 			workedOnSecondCounter++;
 
@@ -200,7 +200,7 @@ void wEComputeMeans(vector<int> &currentClustering, vector<Vertex*> &verticesWit
 
 			thirdNormalMeanComponentX += verticesWithCurrentLabel[i]->getNormalX();
 			thirdNormalMeanComponentY += verticesWithCurrentLabel[i]->getNormalY();
-			thirdNormalMeanComponentZ += verticesWithCurrentLabel[i]->getNormalX();
+			thirdNormalMeanComponentZ += verticesWithCurrentLabel[i]->getNormalZ();
 
 			workedOnThirdCounter++;
 
@@ -1023,42 +1023,47 @@ bool experimentalComputeClustering(int numberOfIterations, vector<Vertex*> &mVer
 		//there already is some randomness involved in creating this vector
 		//however another shuffling (resulting in a random selection of 3 future cluster means) is done
 
-		vector<Vertex*> threeRandomlyChosenVertices;
-		//the random selection is done by a helper method
-		wERandomlyChooseVerticesFromVector(verticesWithCurrentLabel, threeRandomlyChosenVertices, 3);
+		//clustering is only performed, if the verticesWithCurrentLabel are enough labels to begin with, which is 3 or more
 
-		//the currentClustering will represent the solution after the given number of iterations.
-		vector<int> currentClustering (verticesWithCurrentLabel.size());
+		if(verticesWithCurrentLabel.size() >= 3){
 
-		//the assignment to the nearest mean is done by a helper method
-		wEAssignNormalsToNearestMean(currentClustering, verticesWithCurrentLabel, threeRandomlyChosenVertices);
+			vector<Vertex*> threeRandomlyChosenVertices;
+			//the random selection is done by a helper method
+			wERandomlyChooseVerticesFromVector(verticesWithCurrentLabel, threeRandomlyChosenVertices, 3);
 
-		//the initial cluster centers
-		//Vertex* clusterCNr1 = threeRandomlyChosenVertices[0];
-		//Vertex* clusterCNr2 = threeRandomlyChosenVertices[1];
-		//Vertex* clusterCNr3 = threeRandomlyChosenVertices[2];
+			//the currentClustering will represent the solution after the given number of iterations.
+			vector<int> currentClustering (verticesWithCurrentLabel.size());
 
-		vector<vector<double>> normalMeans = {{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}};
+			//the assignment to the nearest mean is done by a helper method
+			wEAssignNormalsToNearestMean(currentClustering, verticesWithCurrentLabel, threeRandomlyChosenVertices);
 
-		for(int iteration=0;iteration<numberOfIterations;iteration++){
+			//the initial cluster centers
+			//Vertex* clusterCNr1 = threeRandomlyChosenVertices[0];
+			//Vertex* clusterCNr2 = threeRandomlyChosenVertices[1];
+			//Vertex* clusterCNr3 = threeRandomlyChosenVertices[2];
 
-			//The mean computation is done by a helper method
-			wEComputeMeans(currentClustering, verticesWithCurrentLabel, normalMeans);
+			vector<vector<double>> normalMeans = {{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}};
 
-			//Determining to which mean a normal is closest is done by a helper method
-			wEAssignNormalsToNearestMean(currentClustering, verticesWithCurrentLabel, normalMeans);
+			for(int iteration=0;iteration<numberOfIterations;iteration++){
 
-		}
-		//Clustering did as many iterations as the user wanted.
+				//The mean computation is done by a helper method
+				wEComputeMeans(currentClustering, verticesWithCurrentLabel, normalMeans);
 
-		//The final clustering is noted down per vertex
+				//Determining to which mean a normal is closest is done by a helper method
+				wEAssignNormalsToNearestMean(currentClustering, verticesWithCurrentLabel, normalMeans);
 
-		//write the clustering into the feature vector
-		for(int i = 0;i<verticesWithCurrentLabel.size();i++){
+			}
+			//Clustering did as many iterations as the user wanted.
 
-			Vertex* currentVertex = verticesWithCurrentLabel[i];
-			currentVertex->setFeatureElement(20, currentClustering[i]);
+			//The final clustering is noted down per vertex
 
+			//write the clustering into the feature vector
+			for(int i = 0;i<verticesWithCurrentLabel.size();i++){
+
+				Vertex* currentVertex = verticesWithCurrentLabel[i];
+				currentVertex->setFeatureElement(20, (double)currentClustering[i]);
+
+			}
 		}
 	}
 
@@ -1079,6 +1084,7 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 	double numberOfLabels = 0.0;
 
 	int verticesWithoutLabel = 0;
+	int verticesWithoutAssignedCluster = 0;
 
 	//prepare data
 	//find the number of labels and the number of vertices, which were not labeled
@@ -1097,6 +1103,9 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 		double givenLabel;
 		pVertex->getFeatureElement(19, &givenLabel);
 
+		double assignedCluster;
+		pVertex->getFeatureElement(20, &assignedCluster);
+
 		if(givenLabel < 1.0){
 
 			//a vertex was not labeled in the watershed step
@@ -1110,11 +1119,17 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 
 			}
 		}
+
+		//Assigned Clusters are either 1.0, 2.0 or 3.0
+		//If no Cluster was assigned, then it says at Position 21 (Index 20) value 0.0
+		if(assignedCluster < 0.5){
+			// a vertex was not assigned to a cluster in the clustering step
+			verticesWithoutAssignedCluster++;
+
+		}
 	}
 
 	//number of clusters is now known
-
-	cout << "Number of Clusters is now known" << endl;
 
 	//loop over every labeled group
 	for(int labelIterator=1;labelIterator<=(int)numberOfLabels;labelIterator++){
@@ -1219,13 +1234,9 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 		}
 		//The vector verticesBorderGroup now holds all the vertices which will be used for RANSAC
 
-		cout << "RANSAC can now start working with one wedge." << endl;
-
 		//the sum of distances represents the quality of the chosen points and their corresponding rays
 		//is initialized with a infinity placeholder
 		double smallestSumOfDistances = numeric_limits<double>::max();
-
-		cout << "max ini successful" << endl;
 
 		//unassigned pointer may be dangerous
 		//Werde ueberdenken
@@ -1247,8 +1258,6 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 				vector<Vertex*> fourRandomlyChosenBorderVertices;
 				wERandomlyChooseVerticesFromVector(verticesBorderGroup, fourRandomlyChosenBorderVertices, 4);
 
-				cout << "random choice successful" << endl;
-
 				Vertex* randomlyChosenTetraederTop = fourRandomlyChosenBorderVertices[0];
 				Vertex* randomlyChosenTetraederVertex1 = fourRandomlyChosenBorderVertices[1];
 				Vertex* randomlyChosenTetraederVertex2 = fourRandomlyChosenBorderVertices[2];
@@ -1263,8 +1272,6 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 					currentDistanceForThisCoice += minimumDistance;
 				}
 
-				cout << "minimum distance computed" << endl;
-
 				if(currentDistanceForThisCoice < smallestSumOfDistances){
 
 					smallestSumOfDistances = currentDistanceForThisCoice;
@@ -1275,12 +1282,8 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 
 				}
 
-				cout << "One RANSAC Iteration finished" << endl;
-
 			}
 			//RANSAC now has noted down the current best fit for rays.
-
-			cout << "RANSAC found a best fit for one wedge" << endl;
 
 			//possible bordergroups
 			/*
@@ -1383,14 +1386,15 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 
 			//writeWedgeToPlyOrObj();
 
-			cout << "A Wedge was extracted" << endl;
 		}
 
 
 
 	}//all labeled groups have been worked upon
 
-    cout << "RANSAC terminated successfully!" << endl;
+	cout << "RANSAC terminated successfully!" << endl;
+	cout << "RANSAC encountered " << verticesWithoutAssignedCluster << " vertices that were not assigned to any cluster." << endl;
+
 
 	return true;
 

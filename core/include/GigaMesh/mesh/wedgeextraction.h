@@ -55,11 +55,11 @@ bool getSurroundingVerticesInOrder (std::list<Vertex*> &adjacentVertsInOrder, Ve
 
 bool experimentalSuppressNonMaxima(double &NMSDistance, std::vector<Vertex*> &mVertices);
 
-bool experimentalWatershed(double deletableInput, std::vector<Vertex*> &mVertices);
+bool experimentalComputeWatershed(double deletableInput, std::vector<Vertex*> &mVertices);
 
-bool experimentalClustering(int numberOfIterations, std::vector<Vertex*> &mVertices);
+bool experimentalComputeClustering(int numberOfIterations, std::vector<Vertex*> &mVertices);
 
-bool experimentalRANSAC(int numberOfIterations, std::vector<Vertex*> &mVertices);
+bool experimentalComputeRANSAC(int numberOfIterations, std::vector<Vertex*> &mVertices);
 
 bool experimentalReorderFeatureVector(std::vector<Vertex*> &mVertices);
 
