@@ -1,6 +1,8 @@
 Current Version
++) New: Option to export backgrounds with PNGs: See 'File -> Export Screenshots -> PNG - Keep Background'.
 +) Improved: Rendering performance.
 +) Bugfix: fixed Screenshot Views (PDF with PNG+TEX), when exporting views with a vertical axis.
++) Bugfix: fixed potential crash when exporting tif screenshots without libtiff.
 
 Version 200529
 +) New: MSII filtering can be applied using the GUI with default settings. See 'Analyze -> MSII Feature Vectors and Function Value (Quick)'.

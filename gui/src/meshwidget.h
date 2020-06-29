@@ -210,7 +210,7 @@ private:
 	// Fetch screenshots:
 	bool prepareTile(uint64_t rTilesX, uint64_t rTilesY, unsigned char** rImRGBA, uint64_t* rImWidth, uint64_t* rImHeight, uint64_t rBorderSize = 0 );
 	bool fetchFrameAndZBufferTile(unsigned int rTilesX, unsigned int rTilesY, unsigned int rTX, unsigned int rTY, unsigned char* rImRGBA, uint64_t rImWidth, uint64_t rImHeight, OffscreenBuffer* offscreenBuffer, long rBorderSize = 0 );
-	bool fetchFrameAndZBuffer( unsigned char*& rImRGBA, uint64_t& rImWidth, uint64_t& rImHeight, bool rCropUsingZBuffer, OffscreenBuffer* offscreenBuffer );
+	bool fetchFrameAndZBuffer( unsigned char*& rImRGBA, uint64_t& rImWidth, uint64_t& rImHeight, bool rCropUsingZBuffer, OffscreenBuffer* offscreenBuffer, bool keepBackground = false );
 	bool fetchFrameBuffer( unsigned char** rImArray, int* rImWidth, int* rImHeight, bool rCropUsingZBuffer, OffscreenBuffer* offscreenBuffer );
 	// Write screenshots:
 	bool screenshotTIFF(const QString& rFileName , OffscreenBuffer *offscreenBuffer);

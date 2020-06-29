@@ -45,10 +45,7 @@ MeshWidgetParams::MeshWidgetParams() {
 	mParamFlag[LIGHT_AMBIENT]            = true;
 	mParamFlag[CROP_SCREENSHOTS]         = true;
 	mParamFlag[EXPORT_SVG_AXIS_DASHED]   = true;
-	mParamFlag[EXPORT_SIDE_VIEWS_SIX]          = true;
-	mParamFlag[SCREENSHOT_FILENAME_WITH_DPI]   = false;
-	mParamFlag[SHOW_MESH_REDUCED]        = false;
-	mParamFlag[ENABLE_SHOW_MESH_REDUCED] = false;
+	mParamFlag[EXPORT_SIDE_VIEWS_SIX]    = true;
 
 	// Initalize parameters (int):
 	for(int& paramInt : mParamInt) {

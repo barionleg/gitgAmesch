@@ -81,7 +81,8 @@ class MeshWidgetParams {
 		                 VIDEO_FRAME_FIXED,         //!< Switch between resizeable and fixed window size.
 		                 EXPORT_SVG_AXIS_DASHED,    //!< Export the rotational axis with(out) dashes to a SVG.
 		                 EXPORT_SIDE_VIEWS_SIX,     //!< Toggle between six and eigth side-views. The latter is typically only interesting for cuneiform tablets.
-		                 SCREENSHOT_FILENAME_WITH_DPI,   //!< Add the DPI for ortho images to the filename.
+			             SCREENSHOT_FILENAME_WITH_DPI,    //!< Add the DPI for ortho images to the filename.
+			             SCREENSHOT_PNG_BACKGROUND_OPAQUE, //!< Toggle between transparent background (false) and background color.
 		                 SHOW_MESH_REDUCED,         //!< Is set when the mesh is moved and the option is enabled the mesh should be shown as a reduced pointcloud or not
 		                 ENABLE_SHOW_MESH_REDUCED,  //!< Toggle if the mesh should be shown as a reduced pointcloud or not
 		                 PARAMS_FLAG_COUNT               //!< Number of flags available

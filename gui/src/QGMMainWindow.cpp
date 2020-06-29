@@ -465,6 +465,7 @@ void QGMMainWindow::initMeshWidgetSignals() {
 	actionExportScreenShotsViewsSix->setProperty( "gmMeshWidgetFlag",       MeshWidgetParams::EXPORT_SIDE_VIEWS_SIX );
 	actionExportSVGDashedAxis->setProperty(       "gmMeshWidgetFlag",       MeshWidgetParams::EXPORT_SVG_AXIS_DASHED );
 	actionScreenshotDPISuffix->setProperty(       "gmMeshWidgetFlag",       MeshWidgetParams::SCREENSHOT_FILENAME_WITH_DPI );
+	actionReplaceTransparencyBgColor->setProperty("gmMeshWidgetFlag",       MeshWidgetParams::SCREENSHOT_PNG_BACKGROUND_OPAQUE);
 	actionDisplay_as_pointcloud_when_moving->setProperty( "gmMeshWidgetFlag", MeshWidgetParams::ENABLE_SHOW_MESH_REDUCED);
 
 	mMeshWidgetFlag = new QActionGroup( this );

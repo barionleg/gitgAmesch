@@ -3496,13 +3496,13 @@ bool MeshWidget::fetchFrameAndZBufferTile( unsigned int rTilesX,    //!< Number 
 //! Typically used for PNGs, which support transparency.
 //!
 //! Optional flag: crop using the z-buffer.
-bool MeshWidget::fetchFrameAndZBuffer(
-                unsigned char*&   rImRGBA,          //!< Image as RGBA byte array (return value)
+bool MeshWidget::fetchFrameAndZBuffer(unsigned char*&   rImRGBA,          //!< Image as RGBA byte array (return value)
                 uint64_t&    rImWidth,         //!< Image heigth (return value)
                 uint64_t&    rImHeight,        //!< Image width (return value)
-				bool              rCropUsingZBuffer, //!< Crop image using the z-buffer
-				OffscreenBuffer*  offscreenBuffer	//!< Offscreenbuffer to fetch the render-result from
-) {
+                bool              rCropUsingZBuffer, //!< Crop image using the z-buffer
+                OffscreenBuffer*  offscreenBuffer,	//!< Offscreenbuffer to fetch the render-result from
+                bool keepBackground  //!< keep background or replace it by transparency
+                                      ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
@@ -3547,26 +3547,29 @@ bool MeshWidget::fetchFrameAndZBuffer(
 			rImRGBA[(ix+iy*rImWidth)*4]   = imArrayGL[ix*3+  (rImHeight-1-iy)*rImWidth*3];
 			rImRGBA[(ix+iy*rImWidth)*4+1] = imArrayGL[ix*3+1+(rImHeight-1-iy)*rImWidth*3];
 			rImRGBA[(ix+iy*rImWidth)*4+2] = imArrayGL[ix*3+2+(rImHeight-1-iy)*rImWidth*3];
-			if( pixelZBuffer[ix+(rImHeight-1-iy)*rImWidth] < 1.0f ) {
-				rImRGBA[(ix+iy*rImWidth)*4+3] = 255;
-				if( ix < xMin ) {
-					xMin = ix;
+			rImRGBA[(ix+iy*rImWidth)*4+3] = 255;
+			if(!keepBackground)
+			{
+				if( pixelZBuffer[ix+(rImHeight-1-iy)*rImWidth] < 1.0f ) {
+					if( ix < xMin ) {
+						xMin = ix;
+					}
+					if( ix > xMax ) {
+						xMax = ix;
+					}
+					if( iy < yMin ) {
+						yMin = iy;
+					}
+					if( iy > yMax ) {
+						yMax = iy;
+					}
+				} else {
+					// Use white color together with full transparency
+					rImRGBA[(ix+iy*rImWidth)*4]   = 255; //! \todo fetch background color used by the widget
+					rImRGBA[(ix+iy*rImWidth)*4+1] = 255;
+					rImRGBA[(ix+iy*rImWidth)*4+2] = 255;
+					rImRGBA[(ix+iy*rImWidth)*4+3] =   0;
 				}
-				if( ix > xMax ) {
-					xMax = ix;
-				}
-				if( iy < yMin ) {
-					yMin = iy;
-				}
-				if( iy > yMax ) {
-					yMax = iy;
-				}
-			} else {
-				// Use white color together with full transparency
-				rImRGBA[(ix+iy*rImWidth)*4]   = 255; //! \todo fetch background color used by the widget
-				rImRGBA[(ix+iy*rImWidth)*4+1] = 255;
-				rImRGBA[(ix+iy*rImWidth)*4+2] = 255;
-				rImRGBA[(ix+iy*rImWidth)*4+3] =   0;
 			}
 		}
 	}
@@ -3753,7 +3756,11 @@ bool MeshWidget::screenshotPNG(const QString& rFileName,
 	uint64_t imWidth;
 	uint64_t imHeight;
 	unsigned char* imRGBA;
-	if( !fetchFrameAndZBuffer( imRGBA, imWidth, imHeight, mParamFlag[CROP_SCREENSHOTS], offscreenBuffer ) ) {
+
+	bool opaqueBackground = false;
+	MeshWidgetParams::getParamFlagMeshWidget(MeshWidgetParams::SCREENSHOT_PNG_BACKGROUND_OPAQUE, &opaqueBackground);
+
+	if( !fetchFrameAndZBuffer( imRGBA, imWidth, imHeight, mParamFlag[CROP_SCREENSHOTS], offscreenBuffer, opaqueBackground ) ) {
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: fetchFrameAndZBuffer failed!" << endl;
 		return( false );
 	}

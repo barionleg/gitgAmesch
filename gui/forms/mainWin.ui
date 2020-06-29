@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -89,6 +89,7 @@
      <addaction name="actionExportSVGDashedAxis"/>
      <addaction name="actionScreenshotDPISuffix"/>
      <addaction name="actionExportScreenShotsViewsSix"/>
+     <addaction name="actionReplaceTransparencyBgColor"/>
     </widget>
     <widget class="QMenu" name="menuFileRecent">
      <property name="title">
@@ -4420,6 +4421,14 @@ The latter will be shown, when the processing has finished.</string>
    </property>
    <property name="toolTip">
     <string>Set the alpha value of the selected vertices to value. Apply to all, if no vertex is selected.</string>
+   </property>
+  </action>
+  <action name="actionReplaceTransparencyBgColor">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>PNG - Keep Background</string>
    </property>
   </action>
  </widget>
