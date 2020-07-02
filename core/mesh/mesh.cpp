@@ -16627,35 +16627,45 @@ bool Mesh::getAxisFromCircleCenters( Vector3D* rTop, Vector3D* rBottom ) {
 
 //MSExp
 
-//! stub method calling the real body in wedgeextraction.cpp
+//! Stub method calling the real body in wedgeextraction.cpp
 bool Mesh::funcExpSuppNonMax(double NMSDistance){
 
 	return experimentalSuppressNonMaxima(NMSDistance, mVertices);
 
 }
 
-//! stub method calling the real body in wedgeextraction.cpp
+//! Stub method calling the real body in wedgeextraction.cpp
 bool Mesh::funcExpComputeWatershed(double deletableInput){
 
 	return experimentalComputeWatershed(deletableInput, mVertices);
 
 }
 
-//! stub method calling the real body in wedgeextraction.cpp
+//! Stub method calling the real body in wedgeextraction.cpp
 bool Mesh::funcExpComputeClustering(int numberOfIterations){
 
 	return experimentalComputeClustering(numberOfIterations, mVertices);
 
 }
 
-//! stub method calling the real body in wedgeextraction.cpp
+//! Stub method calling the real body in wedgeextraction.cpp
 bool Mesh::funcExpComputeRANSAC(int numberOfIterations){
 
-	return experimentalComputeRANSAC(numberOfIterations, mVertices);
+	return experimentalComputeRANSAC(numberOfIterations, mVertices, "OutputFileNotNamed");
 
 }
 
-//! stub method calling the real body in wedgeextraction.cpp
+//! Stub method calling the real body in wedgeextraction.cpp
+//! This Method expects a fileName for the extracted Wedges
+//! As of 2020.07.01 it is not callable in the GigaMesh GUI
+//! It is aimed to be called in CLI
+bool Mesh::funcExpComputeRANSAC(int numberOfIterations, string outputFileName){
+
+	return experimentalComputeRANSAC(numberOfIterations, mVertices, outputFileName);
+
+}
+
+//! Stub method calling the real body in wedgeextraction.cpp
 bool Mesh::funcExpReorderFeatVec(int deletableInput){
 
 	return experimentalReorderFeatureVector(mVertices);

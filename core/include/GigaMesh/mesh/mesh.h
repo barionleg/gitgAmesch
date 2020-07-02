@@ -541,6 +541,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool funcExpComputeWatershed(double deletableInput);
 				bool funcExpComputeClustering(int numberOfIterations);
 				bool funcExpComputeRANSAC(int numberOfIterations);
+				bool funcExpComputeRANSAC(int numberOfIterations, std::string outputFileName);
 				bool funcExpReorderFeatVec(int deletableInput);
 		// Again some old style function value calls:
 				bool setVertFuncValCorrTo( std::vector<double>* rFeatVector );

@@ -267,7 +267,7 @@ double wEComputeShortestDistanceBetweenPointAndLine(Vertex* &arbPoint, Vertex* &
 		//maybe sqrt can be omitted
 		double lineSegmentLength = sqrt(pow(lineVectorComponentX, 2.0) + pow(lineVectorComponentY, 2.0) + pow(lineVectorComponentZ, 2.0));
 
-		return parallelogramArea / lineSegmentLength;
+		return (parallelogramArea / lineSegmentLength);
 	} else {
 		//in case the arbitrary point is one of the vertices given to construct the line
 		return 0.0;
@@ -310,28 +310,36 @@ void wEGetBorderGroupFromVertexByFeatureVector(Vertex* &finalLineVertex1, Vertex
 	double borderGroup3;
 	finalLineVertex3->getFeatureElement(21, &borderGroup3);
 
+	if(		(round(borderGroup1) == round(borderGroup2)) ||
+			(round(borderGroup1) == round(borderGroup3)) ||
+			(round(borderGroup2) == round(borderGroup3))){
+		 cout << "BAD Situation" << borderGroup1 << " " << borderGroup2 << " " << borderGroup3 << endl;
+	}
 
-	if((int)borderGroup1 == 12){
+
+
+
+	if(round(borderGroup1) == 12){
 		finalTetraederVertexGroup12 = finalLineVertex1;
-	} else if ((int)borderGroup1 == 23){
+	} else if (round(borderGroup1) == 23){
 		finalTetraederVertexGroup23 = finalLineVertex1;
-	} else if ((int)borderGroup1 == 31){
+	} else if (round(borderGroup1) == 31){
 		finalTetraederVertexGroup31 = finalLineVertex1;
 	}
 
-	if((int)borderGroup2 == 12){
+	if(round(borderGroup2) == 12){
 		finalTetraederVertexGroup12 = finalLineVertex2;
-	} else if ((int)borderGroup2 == 23){
+	} else if (round(borderGroup2) == 23){
 		finalTetraederVertexGroup23 = finalLineVertex2;
-	} else if ((int)borderGroup1 == 31){
+	} else if (round(borderGroup2) == 31){
 		finalTetraederVertexGroup31 = finalLineVertex2;
 	}
 
-	if((int)borderGroup3 == 12){
+	if(round(borderGroup3) == 12){
 		finalTetraederVertexGroup12 = finalLineVertex3;
-	} else if ((int)borderGroup3 == 23){
+	} else if (round(borderGroup3) == 23){
 		finalTetraederVertexGroup23 = finalLineVertex3;
-	} else if ((int)borderGroup1 == 31){
+	} else if (round(borderGroup3) == 31){
 		finalTetraederVertexGroup31 = finalLineVertex3;
 	}
 
@@ -344,37 +352,36 @@ void wEComputeSquaredDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arb
 
 	if((arbPoint != point1OnLineTetraederTop) && (arbPoint != point2OnLine)){
 
-		double vector1ComponentX = arbPoint->getX() - point1OnLineTetraederTop->getX();
-		double vector1ComponentY = arbPoint->getY() - point1OnLineTetraederTop->getY();
-		double vector1ComponentZ = arbPoint->getZ() - point1OnLineTetraederTop->getZ();
+		double vector1ComponentX = point1OnLineTetraederTop->getX() - arbPoint->getX();
+		double vector1ComponentY = point1OnLineTetraederTop->getY() - arbPoint->getY();
+		double vector1ComponentZ = point1OnLineTetraederTop->getZ() - arbPoint->getZ();
 
 		double vector2ComponentX = point2OnLine->getX() - point1OnLineTetraederTop->getX();
 		double vector2ComponentY = point2OnLine->getY() - point1OnLineTetraederTop->getY();
 		double vector2ComponentZ = point2OnLine->getZ() - point1OnLineTetraederTop->getZ();
 
+		//vector2 needs to be a normal
+		double normalizationFactor = sqrt(pow(vector2ComponentX,2.0) + pow(vector2ComponentY,2.0) + pow(vector2ComponentZ,2.0));
+		vector2ComponentX = vector2ComponentX/normalizationFactor;
+		vector2ComponentY = vector2ComponentY/normalizationFactor;
+		vector2ComponentZ = vector2ComponentZ/normalizationFactor;
 
 
 		double dotProduct1 = vector1ComponentX * vector2ComponentX + vector1ComponentY * vector2ComponentY + vector1ComponentZ * vector2ComponentZ;
-		double dotProduct2 = vector1ComponentX * vector1ComponentX + vector1ComponentY * vector1ComponentY + vector1ComponentZ * vector1ComponentZ;
 
-		/*
+		double projectedPointOnLineComponentX = arbPoint->getX() + vector1ComponentX - (dotProduct1 * vector2ComponentX);
+		double projectedPointOnLineComponentY = arbPoint->getY() + vector1ComponentY - (dotProduct1 * vector2ComponentY);
+		double projectedPointOnLineComponentZ = arbPoint->getZ() + vector1ComponentZ - (dotProduct1 * vector2ComponentZ);
 
-		double projectedPointOnLineComponentX = point1OnLineTetraederTop->getX() + dotProduct1/dotProduct2 * vector2ComponentX;
-		double projectedPointOnLineComponentY = point1OnLineTetraederTop->getY() + dotProduct1/dotProduct2 * vector2ComponentY;
-		double projectedPointOnLineComponentZ = point1OnLineTetraederTop->getZ() + dotProduct1/dotProduct2 * vector2ComponentZ;
 
 		double distanceComponentX = projectedPointOnLineComponentX - point1OnLineTetraederTop->getX();
 		double distanceComponentY = projectedPointOnLineComponentY - point1OnLineTetraederTop->getY();
 		double distanceComponentZ = projectedPointOnLineComponentZ - point1OnLineTetraederTop->getZ();
-
-		*/
-
-		//can be shortened down (because of point1OnLineTetraederTop->getX() -point1OnLineTetraederTop->getX() = 0 ) to:
-
+/*
 		double distanceComponentX = dotProduct1/dotProduct2 * vector2ComponentX;
 		double distanceComponentY = dotProduct1/dotProduct2 * vector2ComponentY;
 		double distanceComponentZ = dotProduct1/dotProduct2 * vector2ComponentZ;
-
+*/
 		computedSquaredDistance = pow(distanceComponentX, 2.0) + pow(distanceComponentY, 2.0) + pow(distanceComponentZ, 2.0);
 
 	} else if (arbPoint == point1OnLineTetraederTop){
@@ -391,9 +398,9 @@ void wEComputeSquaredDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arb
 
 
 //! Writes extracted Tetraeders into a .obj-file
-void wEWriteExtractedTetraedersIntoFile(vector<vector<Vertex*>> extractedTetraeders){
+void wEWriteExtractedTetraedersIntoFile(vector<vector<Vertex*>> extractedTetraeders, string outputFileName){
 
-	string customPrefix = "InputFileNameDatum";
+	string customPrefix = outputFileName;
 	string customSuffix = ".obj";
 	string tetraederOutputFile = customPrefix + customSuffix;
 	ofstream OutFile(tetraederOutputFile);
@@ -1132,11 +1139,11 @@ bool experimentalComputeClustering(int numberOfIterations, vector<Vertex*> &mVer
 //! RANSAC algorithm that fits a tetraeder (into a found wedge)
 //! Will enlarge the feature vectors of all vertices to size 22
 //! Data will be written at Feature Vector Position 22 if vertices lie on a border between two clusterings
-bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertices){
+bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertices, string outputFileName){
 
 	//will note down the number of different labels used
 	//is likely the same a the number of maxima that non maximum suppression produced
-	double numberOfLabels = 0.0;
+	int numberOfLabels = 0;
 
 	int verticesWithoutLabel = 0;
 	int verticesWithoutAssignedCluster = 0;
@@ -1164,14 +1171,15 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 		double assignedCluster;
 		pVertex->getFeatureElement(20, &assignedCluster);
 
-		if(givenLabel < 1.0){
+		//watershed labels start at 1
+		if(givenLabel < 0.5){
 
 			//a vertex was not labeled in the watershed step
 			verticesWithoutLabel++;
 
 		}else{ //find out how many labels are used
 
-			if(givenLabel > numberOfLabels){
+			if(round(givenLabel) > numberOfLabels){
 
 				numberOfLabels = givenLabel;
 
@@ -1190,7 +1198,7 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 	//number of clusters is now known
 
 	//loop over every labeled group
-	for(int labelIterator=1;labelIterator<=(int)numberOfLabels;labelIterator++){
+	for(int labelIterator=1;labelIterator<=numberOfLabels;labelIterator++){
 
 		//vector<Vertex*> verticesWithCurrentLabel;
 
@@ -1208,9 +1216,7 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 			double foundLabel;
 			currentVertex->getFeatureElement(19, &foundLabel);
 
-			//smelly, comparing doubles for equality, however I don't know a better way at the moment
-			//if((double)labelIterator == foundLabel){
-			if(labelIterator == (int)foundLabel){
+			if(labelIterator == round(foundLabel)){
 
 				//so a vertex was found to be part of the current label group
 
@@ -1239,14 +1245,14 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 						double adjacentVertexLabel;
 						adjacentVertex->getFeatureElement(19, &adjacentVertexLabel);
 
-						if(labelIterator == (int)adjacentVertexLabel){
+						if(labelIterator == round(adjacentVertexLabel)){
 
 							//so the neighbour belongs to the same label group
 
 							double adjacentVertexClusterGroup;
 							adjacentVertex->getFeatureElement(20, &adjacentVertexClusterGroup);
 
-							if((int)currentVertexClusterGroup!=(int)adjacentVertexClusterGroup){
+							if(round(currentVertexClusterGroup) != round(adjacentVertexClusterGroup)){
 
 								//the current Vertex was found to be a border vertex
 
@@ -1255,22 +1261,22 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 								//find out on what border the vertex lies
 
 								//border case 1 and 2 (or 2 and 1)
-								if( (((int)currentVertexClusterGroup == 1) && ((int)adjacentVertexClusterGroup == 2))
-									|| (((int)currentVertexClusterGroup == 2 ) && ((int)adjacentVertexClusterGroup == 1)) ){
+								if(			((round(currentVertexClusterGroup) == 1) && (round(adjacentVertexClusterGroup) == 2))
+									||		((round(currentVertexClusterGroup) == 2) && (round(adjacentVertexClusterGroup) == 1)) ){
 
 									currentVertex->setFeatureElement(21, 12.0);
 									//currentVertex->setFeatureElement(22, 2.0);
 
 								//border case 2 and 3 (or 3 and 2)
-								} else if ( (((int)currentVertexClusterGroup == 2) && ((int)adjacentVertexClusterGroup == 3))
-									|| (((int)currentVertexClusterGroup == 3 ) && ((int)adjacentVertexClusterGroup == 2)) ){
+								} else if (	((round(currentVertexClusterGroup) == 2) && (round(adjacentVertexClusterGroup) == 3))
+									||		((round(currentVertexClusterGroup) == 3) && (round(adjacentVertexClusterGroup) == 2)) ){
 
 									currentVertex->setFeatureElement(21, 23.0);
 									//currentVertex->setFeatureElement(23, 3.0);
 
 								//border case 1 and 3 (or 3 and 1)
-								} else if ( (((int)currentVertexClusterGroup == 3) && ((int)adjacentVertexClusterGroup == 1))
-									|| (((int)currentVertexClusterGroup == 1 ) && ((int)adjacentVertexClusterGroup == 3)) ){
+								} else if (	((round(currentVertexClusterGroup) == 3) && (round(adjacentVertexClusterGroup) == 1))
+									||		((round(currentVertexClusterGroup) == 1) && (round(adjacentVertexClusterGroup) == 3)) ){
 
 									currentVertex->setFeatureElement(21, 31.0);
 									//currentVertex->setFeatureElement(23, 3.0);
@@ -1293,11 +1299,11 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 		//The vector verticesBorderGroup now holds all the vertices which will be used for RANSAC
 
 		//the sum of distances represents the quality of the chosen points and their corresponding rays
-		//is initialized with a infinity placeholder
+		//is initialized with an infinity placeholder
 		double smallestSumOfDistances = numeric_limits<double>::max();
 
-		//unassigned pointer may be dangerous
-		//Werde ueberdenken
+		//unassigned pointers are dangerous
+		//They are filled 30 lines down from here
 		//could be filled with dummy data
 		Vertex* finalTetraederTop;
 		Vertex* finalLineVertex1;
@@ -1333,6 +1339,7 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 				if(currentDistanceForThisCoice < smallestSumOfDistances){
 
 					smallestSumOfDistances = currentDistanceForThisCoice;
+
 					finalTetraederTop = randomlyChosenTetraederTop;
 					finalLineVertex1 = randomlyChosenTetraederVertex1;
 					finalLineVertex2 = randomlyChosenTetraederVertex2;
@@ -1392,7 +1399,7 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 				//keep of the biggest distance per border group
 				//note down the vertex that has the projection farthest away
 
-				if((int)currentBorderVertexGroup == 12){
+				if(round(currentBorderVertexGroup) == 12){
 
 					double calculatedDistance;
 
@@ -1404,7 +1411,7 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 
 					}
 
-				} else if ((int)currentBorderVertexGroup == 23){
+				} else if (round(currentBorderVertexGroup) == 23){
 
 					double calculatedDistance;
 
@@ -1416,7 +1423,7 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 
 					}
 
-				} else if ((int)currentBorderVertexGroup == 31){
+				} else if (round(currentBorderVertexGroup) == 31){
 
 					double calculatedDistance;
 
@@ -1448,10 +1455,11 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 
 		}
 		//One labeled group has been worked upon
+		//The labeled group was only worked upon if it consisted of at least 4 vertices
 
 	}//all labeled groups have been worked upon
 
-	wEWriteExtractedTetraedersIntoFile(extractedTetraeders);
+	wEWriteExtractedTetraedersIntoFile(extractedTetraeders, outputFileName);
 
 	cout << "RANSAC terminated successfully!" << endl;
 	cout << "RANSAC encountered " << verticesWithoutAssignedCluster << " vertices that were not assigned to any cluster." << endl;

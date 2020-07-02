@@ -44,7 +44,7 @@ void wEGetBorderGroupFromVertexByFeatureVector(Vertex* &finalLineVertex1, Vertex
 
 void wEComputeSquaredDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arbPoint, Vertex* &point1OnLine, Vertex* &point2OnLine, double &computedSquaredDistance);
 
-void wEWriteExtractedTetraedersIntoFile(std::vector<std::vector<Vertex*>> extractedTetraeders);
+void wEWriteExtractedTetraedersIntoFile(std::vector<std::vector<Vertex*>> extractedTetraeders, std::string outputFileName);
 
 //copied from mesh.cpp, will be legacy soon
 bool getSurroundingVerticesInOrder (std::list<Vertex*> &adjacentVertsInOrder, Vertex* &pi, bool printDebug);
@@ -58,7 +58,7 @@ bool experimentalComputeWatershed(double deletableInput, std::vector<Vertex*> &m
 
 bool experimentalComputeClustering(int numberOfIterations, std::vector<Vertex*> &mVertices);
 
-bool experimentalComputeRANSAC(int numberOfIterations, std::vector<Vertex*> &mVertices);
+bool experimentalComputeRANSAC(int numberOfIterations, std::vector<Vertex*> &mVertices, std::string outputFileName);
 
 bool experimentalReorderFeatureVector(std::vector<Vertex*> &mVertices);
 
