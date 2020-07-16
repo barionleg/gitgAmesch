@@ -16635,9 +16635,9 @@ bool Mesh::funcExpSuppNonMax(double NMSDistance){
 }
 
 //! Stub method calling the real body in wedgeextraction.cpp
-bool Mesh::funcExpComputeWatershed(double deletableInput){
+bool Mesh::funcExpComputeWatershed(double watershedLimit){
 
-	return experimentalComputeWatershed(deletableInput, mVertices);
+	return experimentalComputeWatershed(watershedLimit, mVertices);
 
 }
 
@@ -16651,24 +16651,25 @@ bool Mesh::funcExpComputeClustering(int numberOfIterations){
 //! Stub method calling the real body in wedgeextraction.cpp
 bool Mesh::funcExpComputeRANSAC(int numberOfIterations){
 
-	return experimentalComputeRANSAC(numberOfIterations, mVertices, "OutputFileNotNamed");
+	return experimentalComputeRANSAC(numberOfIterations, mVertices, "OutputFileNotNamed", 0.1);
 
 }
 
 //! Stub method calling the real body in wedgeextraction.cpp
 //! This Method expects a fileName for the extracted Wedges
+//! This Method expects a minimum tetraeder height to omit falsely detected tetraeders.
 //! As of 2020.07.01 it is not callable in the GigaMesh GUI
 //! It is aimed to be called in CLI
-bool Mesh::funcExpComputeRANSAC(int numberOfIterations, string outputFileName){
+bool Mesh::funcExpComputeRANSAC(int numberOfIterations, string outputFileName, double minimumTetraederHeight){
 
-	return experimentalComputeRANSAC(numberOfIterations, mVertices, outputFileName);
+	return experimentalComputeRANSAC(numberOfIterations, mVertices, outputFileName, minimumTetraederHeight);
 
 }
 
 //! Stub method calling the real body in wedgeextraction.cpp
-bool Mesh::funcExpReorderFeatVec(int deletableInput){
+bool Mesh::funcExpReorderFeatVec(double deletableInput){
 
-	return experimentalReorderFeatureVector(mVertices);
+	return experimentalReorderFeatureVector(mVertices, deletableInput);
 
 }
 

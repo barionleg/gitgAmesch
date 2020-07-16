@@ -1170,7 +1170,7 @@ bool MeshQt::funcExperimentalSuppressNonMaxima()
 {
     QGMDialogEnterText dlgEnterTextVal;
 	dlgEnterTextVal.setDouble(5.0); //5 mm is standard for non maximum suppression distance
-	dlgEnterTextVal.setWindowTitle( tr("Give radius in Non Maximum Suppression!") ); //a text much longer than this gets cropped
+	dlgEnterTextVal.setWindowTitle( tr("Give radius in non maximum suppression!") ); //a text much longer than this gets cropped
 
 	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double NMSDistance) {this->funcExpSuppNonMax(NMSDistance);});
 
@@ -1182,10 +1182,10 @@ bool MeshQt::funcExperimentalSuppressNonMaxima()
 bool MeshQt::funcExperimentalComputeWatershed()
 {
     QGMDialogEnterText dlgEnterTextVal;
-	dlgEnterTextVal.setDouble(1.0);
-	dlgEnterTextVal.setWindowTitle( tr("Input not needed right now!") );
+	dlgEnterTextVal.setDouble(0.01);
+	dlgEnterTextVal.setWindowTitle( tr("Give value when to stop watershed!") );
 
-	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double deletableInput) {this->funcExpComputeWatershed(deletableInput);});
+	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double watershedLimit) {this->funcExpComputeWatershed(watershedLimit);});
 
 	return dlgEnterTextVal.exec() == QDialog::Accepted;
 }
@@ -1215,10 +1215,10 @@ bool MeshQt::funcExperimentalComputeRANSAC()
 bool MeshQt::funcExperimentalReorderFeatureVector()
 {
     QGMDialogEnterText dlgEnterTextVal;
-	dlgEnterTextVal.setInt(1);
+	dlgEnterTextVal.setDouble(1.0);
 	dlgEnterTextVal.setWindowTitle( tr("Input not needed right now!") );
 
-	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int deletableInput) {this->funcExpReorderFeatVec(deletableInput);});
+	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double deletableInput) {this->funcExpReorderFeatVec(deletableInput);});
 
 	return dlgEnterTextVal.exec() == QDialog::Accepted;
 }

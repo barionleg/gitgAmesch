@@ -37,6 +37,11 @@ void wEAssignNormalsToNearestMean(std::vector<int> &currentClustering, std::vect
 void wEAssignNormalsToNearestMean(std::vector<int> &currentClustering, std::vector<Vertex*> &verticesWithCurrentLabel, std::vector<Vertex*> &threeRandomlyChosenVertices);
 
 void wEComputeMeans(std::vector<int> &currentClustering, std::vector<Vertex*> &verticesWithCurrentLabel, std::vector<std::vector<double>> &normalMeanComponents);
+
+double wEComputeShortestDistanceBetweenPointAndRay(Vertex* &arbPoint, Vertex* &point1RayStart, Vertex* &point2OnRay);
+/*
+double wEComputeShortestDistanceBetweenPointAndLine(Vertex* &arbPoint, Vertex* &point1OnLine, Vertex* &point2OnLine);
+*/
 /*
 void wEGetBorderGroupFromVertexByFeatureVector(Vertex* vertexInQuestion,int &foundBordergroup);
 */
@@ -44,22 +49,26 @@ void wEGetBorderGroupFromVertexByFeatureVector(Vertex* &finalLineVertex1, Vertex
 
 void wEComputeSquaredDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arbPoint, Vertex* &point1OnLine, Vertex* &point2OnLine, double &computedSquaredDistance);
 
+bool wECheckTetraederHeight(std::vector<Vertex*> foundTetraeder, double &minimumHeight);
+
 void wEWriteExtractedTetraedersIntoFile(std::vector<std::vector<Vertex*>> extractedTetraeders, std::string outputFileName);
 
 //copied from mesh.cpp, will be legacy soon
 bool getSurroundingVerticesInOrder (std::list<Vertex*> &adjacentVertsInOrder, Vertex* &pi, bool printDebug);
+
+void wEBuildVertexNeighbourLookUpStructure(std::vector<Vertex*> &mVertices, std::map<Vertex*,std::set<Vertex*>> &vertexNeighbourLookUp);
 
 
 //methods called in mesh.cpp
 
 bool experimentalSuppressNonMaxima(double &NMSDistance, std::vector<Vertex*> &mVertices);
 
-bool experimentalComputeWatershed(double deletableInput, std::vector<Vertex*> &mVertices);
+bool experimentalComputeWatershed(double &watershedLimit, std::vector<Vertex*> &mVertices);
 
 bool experimentalComputeClustering(int numberOfIterations, std::vector<Vertex*> &mVertices);
 
-bool experimentalComputeRANSAC(int numberOfIterations, std::vector<Vertex*> &mVertices, std::string outputFileName);
+bool experimentalComputeRANSAC(int numberOfIterations, std::vector<Vertex*> &mVertices, std::string outputFileName, double minimumTetraederHeight);
 
-bool experimentalReorderFeatureVector(std::vector<Vertex*> &mVertices);
+bool experimentalReorderFeatureVector(std::vector<Vertex*> &mVertices, double deletableInput);
 
 #endif // WEDGEEXTRACTION_H
