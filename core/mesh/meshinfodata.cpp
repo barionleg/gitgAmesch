@@ -104,6 +104,31 @@ void MeshInfoData::reset() {
 	}
 }
 
+std::string urlEncode(std::string str){
+    std::string new_str = "";
+    char c;
+    int ic;
+    const char* chars = str.c_str();
+    char bufHex[10];
+    int len = strlen(chars);
+
+    for(int i=0;i<len;i++){
+        c = chars[i];
+        ic = c;
+        if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+            new_str += c;
+        }else {
+            sprintf(bufHex,"%X",c);
+            if(ic < 16) 
+                new_str += "%0"; 
+            else
+                new_str += "%";
+            new_str += bufHex;
+        }
+    }
+    return new_str;
+ }
+
 bool MeshInfoData::getMeshInfoXML(std::string& rInfoXML){
     std::string infoStr = "<?xml version=\"1.0\"?>\n<GigaMeshInfo xmlns=\"http://www.gigamesh.eu/ont#\">\n";
     infoStr+="<VertexInformation>\n";
@@ -226,7 +251,7 @@ bool MeshInfoData::getMeshInfoJSON(std::string& rInfoJSON){
 }
 
 bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
-    std::string indid=this->mStrings[MeshInfoData::FILENAME];
+    std::string indid=urlEncode(this->mStrings[MeshInfoData::FILENAME]);
     std::string infoStr = "@prefix rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n@prefix xsd:<http://www.w3.org/2001/XMLSchema#> .\n@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .\n@prefix owl:<http://www.w3.org/2002/07/owl#> .\n@prefix dcat:<http://www.w3.org/ns/dcat#> .\n@prefix prov:<http://www.w3.org/ns/prov#> .\n@prefix giga:<http://www.gigamesh.eu/ont#> .\n@prefix ex:<http://purl.org/net/ns/ex#> .\n@prefix geo:<http://www.opengis.net/ont/geosparql#> .\n@prefix wdt:<http://www.wikidata.org/prop/direct/> .\n";
     infoStr+="giga:GigameshInfo rdf:type owl:Class .\n";
     infoStr+="giga:TotalNumberOfVertices rdf:type owl:Class .\n";    
