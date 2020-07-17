@@ -107,8 +107,11 @@ class MeshInfoData {
 
 	public:
 		void reset();
-		bool getMeshInfoHTML( std::string& rInfoHTML );
-
+		bool getMeshInfoTTL( std::string& rInfoTTL );
+        bool getMeshInfoHTML( std::string& rInfoHTML );
+        bool getMeshInfoJSON( std::string& rInfoJSON );
+        bool getMeshInfoXML( std::string& rInfoXML );
+        
 		bool getMeshInfoPropertyName( const MeshInfoData::eMeshPropertyString     rPropId, std::string& rPropName );
 		bool getMeshInfoPropertyName( const MeshInfoData::eMeshPropertyULongCount rPropId, std::string& rPropName );
 		bool getMeshInfoPropertyName( const MeshInfoData::eMeshPropertyDouble     rPropId, std::string& rPropName );
