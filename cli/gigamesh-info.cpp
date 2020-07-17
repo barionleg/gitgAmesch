@@ -143,7 +143,7 @@ int main( int argc, char* argv[] ) {
 	int character = 0;
 	int optionIndex = 0;
 
-	while( ( character = getopt_long_only( argc, argv, ":o:atkvh",
+	while( ( character = getopt_long_only( argc, argv, ":o:atkxjlvh",
 	         longOptions, &optionIndex ) ) != -1 ) {
 		switch(character) {
 			case 0:
@@ -258,7 +258,7 @@ int main( int argc, char* argv[] ) {
 			}
 			if( optSideCarXML ) {
 				//! \todo integrate optReplaceFiles (bool)
-				// Determine filename for HTML sidecar file
+				// Determine filename for XML sidecar file
 				std::filesystem::path xmlFileName = std::filesystem::path( nonOptionArgumentString ).replace_extension( ".xml" );
 				// Fetch XML string
 				std::string xmlStr;
