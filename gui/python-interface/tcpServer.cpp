@@ -1,7 +1,46 @@
-
 #include "tcpServer.h"
-//#include <string>
-#include <QString>
+#include <typeinfo>
+
+
+using namespace std;
+using json = nlohmann::json;
+using namespace HTTP;
+
+
+void parseCSV(string& data_csv, map<string,vector<double>>& data_map){
+	istringstream rows;
+	rows.str(data_csv);
+	vector<string> varNames;
+	bool first = 1;
+	vector<double> allValues;
+
+	for(string row; getline(rows,row);){
+		vector<string> vals;
+		char splitBy=',';
+		splitStr(row,vals,splitBy);
+		for (std::vector<string>::iterator val = begin(vals); val != end(vals); ++val){
+			if(first){
+				varNames.push_back(*val);
+			}else{
+				allValues.push_back(atof((*val).c_str()));
+			}
+		}
+		first=0;
+	}
+
+	for(size_t i=0; i<varNames.size();++i){
+		vector<double> currValues;
+		//cout << varNames[i] << ": "; 
+		for(size_t j=0+i; j<allValues.size();j+=varNames.size()){
+			currValues.push_back(allValues[j]);
+			//cout << allValues[j] << ", "; 
+		}
+		data_map.insert(make_pair(varNames[i],currValues));
+		//cout << endl; 
+	}
+	
+}
+
 
 TcpServer::TcpServer(QObject *parent) :
     QObject(parent)
@@ -40,6 +79,7 @@ string TcpServer::statusCodeAsString(httpStatusCode c)
 	case c503: return "503 Service Unavailable\r\n";
 	//default: throw Exception("Bad httpStatusCode");
 	}
+    return "500 \r\n";
 }
 
 
@@ -74,7 +114,7 @@ void TcpServer::reading(HTTP::Request *request)
 
 	QByteArray reqHead;
 	// wait for message body
-	while(!headerEnd){ //while (socket->canReadLine()){//
+	while(!headerEnd){
 		QByteArray buffer;
 		buffer = this->socket->readLine(maxSize);
 		reqHead += buffer;
@@ -82,7 +122,6 @@ void TcpServer::reading(HTTP::Request *request)
 
 		// search for content length info
 		if(mess.find("Content-Length: ")!= -1){
-			//cout << mess.substr(mess.find("Content-Length: ")+16,std::string::npos) << endl;
 			bodySize = std::stoi(mess.substr(mess.find("Content-Length: ")+16,std::string::npos));
 		}
 		// search for end of message header
@@ -92,9 +131,7 @@ void TcpServer::reading(HTTP::Request *request)
 	}
 
 	cout << endl << "[TcpServer::reading] Received request: " << endl;
-
 	qDebug() << "Header: " << reqHead;
-
 	request->httpParser(QString(reqHead).toStdString());
 
 	QByteArray reqBody;
@@ -102,12 +139,8 @@ void TcpServer::reading(HTTP::Request *request)
 		reqBody += this->socket->readLine(maxSize);
 		receivedBytes = reqBody.size();
 	}
-
-	qDebug() << "Body: " <<reqBody << "\n";
-
-	if( reqBody.size() != 0){
-		request->setPars(reqBody.toStdString());
-	}
+	qDebug() << "Body: " << reqBody << "\n";
+	request->setBody(reqBody.toStdString());
 
 	request->info();
 }
@@ -120,17 +153,15 @@ void TcpServer::sending(QStringList *response)
 	QByteArray mess;
 	mess += "HTTP/1.0 ";
 	mess += response->at(0).toLocal8Bit(); 
-	int numbOfBytes = response->at(1).toLocal8Bit().size();
-	mess += "Content-Length: " + QVariant(numbOfBytes).toString() + "\r\n";
+	int numbOfBytes = response->at(1).toLocal8Bit().size()+1;
+	//mess += "Content-Length: " + QVariant(numbOfBytes).toString() + "\r\n";
 	//mess += "Content-Type: json\r\n" ;
 	mess += "\r\n\r\n" ;
 	mess += response->at(1).toLocal8Bit();
+	mess += "\r\n\r\n" ;
 
 	socket->write(mess);
 	socket->flush();
-
-	//this->socket->waitForBytesWritten(response->at(0).toUtf8().size());
-	//this->socket->waitForReadyRead();
 
 	cout << "[TcpServer::sending] Finished sending." << endl;
 }
@@ -145,7 +176,7 @@ void TcpServer::newConnection()
 	HTTP::Request r;
 	emit reading(&r);
 
-	QStringList requestData = parseCommand(r.getFunc(), r.getPars());
+	QStringList requestData = parseCommand(r);
 
 	emit sending(&requestData);
 
@@ -153,35 +184,39 @@ void TcpServer::newConnection()
 }
 
 
-QStringList TcpServer::parseCommand(string command,json parameters){//std::vector<std::string> parameters); {
+QStringList TcpServer::parseCommand(Request req){
 
-	cout << endl << "[QGMMainWindow::receiveCommand] Received command: " << command << endl;
+	string command=req.getFunc();
+	map<string,string> pars = req.getPars();
+	string return_type = "csv";
+	if( HTTP::method_to_string(req.getMeth())=="GET"){
+		if(pars.find("return_type") != pars.end()){
+			return_type = pars["return_type"];
+		}else{
+			cout << "[QGMMainWindow::parseCommand] Missing Return Type - Set to Default (csv)." << endl;
+		}
+	}
 
-	QString p1,p2,p3,p4,p5;
-	json j1, j2, j3,j4,j5;
-	if(parameters.size()>=1){
-		p1 = QString::fromStdString(parameters[0].dump());
-		j1 = parameters[0];
+	string body=req.getBody();
+	map<string,vector<double>> bodyPars;
+	if(body.size()>0){	
+		parseCSV(body,bodyPars);
 	}
-	if(parameters.size()>=2){
-		p2 = QString::fromStdString(parameters[1].dump());
-		j2 = parameters[1];
-	}
-	if(parameters.size()>=3){
-		p3 = QString::fromStdString(parameters[2].dump());
-		j3 = parameters[2];
-	}
-	if(parameters.size()>=4){
-		p4 = QString::fromStdString(parameters[3].dump());
-		j4 = parameters[3];
-	}
+	
+	cout << "[QGMMainWindow::parseCommand] Received command: " << command << endl;
 
 	json data;
-	//QString data;
+	QString data_str;
 	httpStatusCode statusCode;
 
 	if(command == "load"){
-		QString meshName = QString::fromStdString(p1.toStdString().substr(1,p1.size()-2));
+		QString meshName;
+		if(pars.find("filename") != pars.end()){
+			meshName = QString::fromStdString(pars["filename"]);
+		}else{
+			cout << "[QGMMainWindow::parseCommand] Missing Data Path - Set to Default ('../../testdata/cube.obj')." << endl;
+			meshName = QString::fromStdString("../../testdata/cube.obj");
+		}
 
 		this->mainWin->load(meshName);
 
@@ -190,14 +225,23 @@ QStringList TcpServer::parseCommand(string command,json parameters){//std::vecto
 	else if(command == "exportVertices"){
 
 		if(mainWin->getWidget()->getMesh() != nullptr){
-			if(this->mainWin->getWidget()->getMesh()->exportVertexCoordinatesToCSV(p1,false)){
+
+			QString path;
+			if(pars.find("filename") != pars.end()){
+				path = QString::fromStdString(pars["filename"]);
+			}else{
+				cout << "[QGMMainWindow::parseCommand] Missing Data Path - Set to Default ('../../testdata/cube.obj')." << endl;
+				path = QString::fromStdString("../../testdata/cube.obj");
+			}
+
+			if(this->mainWin->getWidget()->getMesh()->exportVertexCoordinatesToCSV(path,false)){
 				statusCode = c200;
 			}else{
-				cout << "[QGMMainWindow::receiveCommand] Error: Could not export!" << endl;
+				cout << "[QGMMainWindow::parseCommand] Error: Could not export!" << endl;
 				statusCode = c500;
 			}
 		} else {
-			std::cout << "[QGMMainWindow::receiveCommand] Error: No mesh loaded!" << std::endl;
+			std::cout << "[QGMMainWindow::parseCommand] Error: No mesh loaded!" << std::endl;
 			statusCode = c424;
 		}
 	}
@@ -209,16 +253,18 @@ QStringList TcpServer::parseCommand(string command,json parameters){//std::vecto
 			this->mainWin->getWidget()->getMesh()->getVertexList(&rVertices );
 
 			vector<Vertex*>::iterator itVertex;
+                        data_str += "vertices_x,vertices_y,vertices_z\n";
 			for( itVertex=rVertices.begin(); itVertex!=rVertices.end(); itVertex++ ) {
-				data.push_back((double)(*itVertex)->getIndex());
+                                //data.push_back((double)(*itVertex)->getIndex());
 				data.push_back((*itVertex)->getX());
 				data.push_back((*itVertex)->getY());
 				data.push_back((*itVertex)->getZ());
+                                data_str += QString::number((*itVertex)->getX()) + "," + QString::number((*itVertex)->getY()) + "," + QString::number((*itVertex)->getZ()) + "\n";
 			}
 
 			statusCode = c200;
 		} else {
-			std::cout << "[QGMMainWindow::receiveCommand] Error: No mesh loaded!" << std::endl;
+			std::cout << "[QGMMainWindow::parseCommand] Error: No mesh loaded!" << std::endl;
 			statusCode = c424;
 		}
 	}
@@ -228,15 +274,17 @@ QStringList TcpServer::parseCommand(string command,json parameters){//std::vecto
 			std::vector<Vector3D> normals;
 			this->mainWin->getWidget()->getMesh()->getMeshVertexNormals(&normals);
 
+                        data_str += "normals_x,normals_y,normals_z \n";
 			for (vector<Vector3D>::iterator normal = normals.begin(); normal != normals.end(); normal++){
 				data.push_back(normal->getX());
 				data.push_back(normal->getY());
 				data.push_back(normal->getZ());
+				data_str += QString::number(normal->getX()) + "," + QString::number(normal->getY()) + "," + QString::number(normal->getZ()) + "\n";
 			}
 
 			statusCode = c200;
 		} else {
-			std::cout << "[QGMMainWindow::receiveCommand] Error: No mesh loaded!" << std::endl;
+			std::cout << "[QGMMainWindow::parseCommand] Error: No mesh loaded!" << std::endl;
 			statusCode = c424;
 		}
 	}
@@ -244,53 +292,128 @@ QStringList TcpServer::parseCommand(string command,json parameters){//std::vecto
 		if(mainWin->getWidget()->getMesh() != nullptr){
 
 			Vector3D boxSize;
-
 			this->mainWin->getWidget()->getMesh()->getBoundingBoxSize(boxSize);
 
 			data.push_back(boxSize.getX());
 			data.push_back(boxSize.getY());
 			data.push_back(boxSize.getZ());
+			data_str += QString::number(boxSize.getX()) + "," + QString::number(boxSize.getY()) + "," + QString::number(boxSize.getZ()) + "\n";			
+			
 			statusCode = c200;
 		} else {
-			std::cout << "[QGMMainWindow::receiveCommand] Error: No mesh loaded!" << std::endl;
+			std::cout << "[QGMMainWindow::parseCommand] Error: No mesh loaded!" << std::endl;
 			statusCode = c424;
 		}
 	}
 	else if(command=="getVerticesInBeam"){
 		if(mainWin->getWidget()->getMesh() != nullptr){
 
-			if(j1.size()/4+j2.size()==j1.size()){
-				cout << "Number of vertices and normals unequal." << endl;
+                        bool parSucc = true;
+
+                        vector<double> vertices_x;
+                        if(bodyPars.find("vertices_x") != bodyPars.end()){
+                                vertices_x = bodyPars["vertices_x"];
+			}else{
+                                cout << "[QGMMainWindow::parseCommand] Missing x coordinates of vertices." << endl;
+                                parSucc = false;
+			}
+                        vector<double> vertices_y;
+                        if(bodyPars.find("vertices_y") != bodyPars.end()){
+                                vertices_y = bodyPars["vertices_y"];
+                        }else{
+                                cout << "[QGMMainWindow::parseCommand] Missing y coordinates of vertices." << endl;
+                                parSucc = false;
+                        }
+                        vector<double> vertices_z;
+                        if(bodyPars.find("vertices_z") != bodyPars.end()){
+                                vertices_z = bodyPars["vertices_z"];
+                        }else{
+                                cout << "[QGMMainWindow::parseCommand] Missing z coordinates of vertices." << endl;
+                                parSucc = false;
+                        }
+
+                        vector<double> normals_x;
+                        if(bodyPars.find("normals_x") != bodyPars.end()){
+                                normals_x = bodyPars["normals_x"];
+                        }else{
+                                cout << "[QGMMainWindow::parseCommand] Missing x coordinates of normals." << endl;
+                                parSucc = false;
+                        }
+                        vector<double> normals_y;
+                        if(bodyPars.find("normals_y") != bodyPars.end()){
+                                normals_y = bodyPars["normals_y"];
+                        }else{
+                                cout << "[QGMMainWindow::parseCommand] Missing y coordinates of normals." << endl;
+                        }
+                        vector<double> normals_z;
+                        if(bodyPars.find("normals_z") != bodyPars.end()){
+                                normals_z = bodyPars["normals_z"];
+                        }else{
+                                cout << "[QGMMainWindow::parseCommand] Missing z coordinates of normals." << endl;
+                                parSucc = false;
+                        }
+
+			vector<double> beamSize;
+			if(bodyPars.find("beam_size") != bodyPars.end()){
+				beamSize = bodyPars["beam_size"];
+			}else{
+				cout << "[QGMMainWindow::parseCommand] Missing size of beam." << endl;
+                                parSucc = false;
 			}
 
-			int i = 1,j = 0;
-			while(i+3<=j1.size() && j+2<=j2.size()){ //j1.size();i+=4){
-				set<Vertex*> verticesInBeam;
-				Vector3D vertex;
-				Vector3D normal;
-				if(j1.size()>2){
-					vertex = Vector3D(double(j1[i]),double(j1[i+1]),double(j1[i+2]));
-				}
-				if(j2.size()>2){
-					normal = Vector3D(double(j2[j]),double(j2[j+1]),double(j2[j+2]));
-				}
-
-				this->mainWin->getWidget()->getMesh()->getVerticesInBeam(vertex,vertex+normal*j3[int(j/3)]*2,j4[int(j/3)],&verticesInBeam);
-
-				json j_entry;
-				for (set<Vertex*>::iterator v = verticesInBeam.begin(); v != verticesInBeam.end(); v++){
-					Vertex* vert = *v;
-					j_entry.push_back(vert->getX());
-					j_entry.push_back(vert->getY());
-					j_entry.push_back(vert->getZ());
-				}
-				data.push_back(j_entry);
-
-				i+=4;
-				j+=3;
+			vector<double> beamLength;
+                        if(bodyPars.find("beam_length") != bodyPars.end()){
+				beamLength = bodyPars["beam_length"];
+			}else{
+                                cout << "[QGMMainWindow::parseCommand] Missing length of beam." << endl;
+                                parSucc = false;
 			}
 
-			statusCode = c200;
+                        if(parSucc){
+                            data_str += "x,y,z\n";
+                            int i = 0;
+                            while(i < vertices_x.size()){
+
+                                    set<Vertex*> verticesInBeam;
+                                    Vector3D vertex;
+                                    Vector3D normal;
+
+                                    vertex = Vector3D(double(vertices_x[i]),double(vertices_y[i]),double(vertices_z[i]));
+                                    normal = Vector3D(double(normals_x[i]),double(normals_y[i]),double(normals_z[i]));
+
+                                    this->mainWin->getWidget()->getMesh()->getVerticesInBeam(vertex,vertex+normal*beamLength[i]*2,beamSize[i],&verticesInBeam);
+
+                                    json j_entry;
+                                    for (set<Vertex*>::iterator v = verticesInBeam.begin(); v != verticesInBeam.end(); v++){
+                                            Vertex* vert = *v;
+                                            j_entry.push_back(vert->getX());
+                                            j_entry.push_back(vert->getY());
+                                            j_entry.push_back(vert->getZ());
+                                            data_str += QString::number(vert->getX()) + "," + QString::number(vert->getY()) + "," + QString::number(vert->getZ()) + "\n";
+                                    }
+                                    data.push_back(j_entry);
+
+                                    i+=1;
+                            }
+                            statusCode = c200;
+                        }else{
+                            cout << "[QGMMainWindow::parseCommand] Could not execute command due to missing parameter." << endl;
+                            statusCode = c424;
+                        }
+
+			/*
+			for(map<string,vector<double>>::iterator it = bodyPars.begin();it != bodyPars.end();it++)	{
+				cout << it->first << " ";
+				data_str += QString::fromStdString(it->first);
+				vector<double> values = it->second;
+				for(size_t i=0; i<values.size();i++){
+					cout << double(values[i]) << " " ;
+					data_str += QString::fromStdString(",") + QString::number(values[i]);
+				}
+				cout << endl;
+				data_str += QString::fromStdString("\n");
+			}
+			*/
 		} else {
 			std::cout << "[QGMMainWindow::receiveCommand] Error: No mesh loaded!" << std::endl;
 			statusCode = c424;
@@ -300,11 +423,13 @@ QStringList TcpServer::parseCommand(string command,json parameters){//std::vecto
 		if(mainWin->getWidget()->getMesh() != nullptr){
 
 			vector<double> funcVals;
-			for (int i = 0; i < j1.size();i++){
-				funcVals.push_back(double(j1[i]));
+			if(bodyPars.find("func_values") != bodyPars.end()){
+				funcVals = bodyPars["func_values"];
+			}else{
+				cout << "[QGMMainWindow::parseCommand] Missing function values for feature vectors." << endl;
 			}
 
-			bool succ = this->mainWin->getWidget()->getMesh()->assignFeatureVectors(funcVals,j2);//(const vector<double>&   rFeatureVecs = j1, const uint64_t&rMaxFeatVecLen = 1);
+			bool succ = this->mainWin->getWidget()->getMesh()->assignFeatureVectors(funcVals,1);  // TODO second par
 			if(!succ){
 				cout << "[QGMMainWindow::receiveCommand] Could not assign feature values!" << endl;
 				statusCode = c424;
@@ -324,17 +449,22 @@ QStringList TcpServer::parseCommand(string command,json parameters){//std::vecto
 
 			statusCode = c200;
 		} else {
-			std::cout << "[QGMMainWindow::receiveCommand] Error: No mesh loaded!" << std::endl;
+			std::cout << "[QGMMainWindow::parseCommand] Error: No mesh loaded!" << std::endl;
 			statusCode = c424;
 		}
 	}
 	else{
-		std::cout << "[QGMMainWindow::receiveCommand] Error: Unknown command!" << std::endl;
+		std::cout << "[QGMMainWindow::parseCommand] Error: Unknown command!" << std::endl;
 		statusCode = c404;
 	}
 
 	QStringList response;
-	response << QString::fromStdString(TcpServer::statusCodeAsString(statusCode)) << QString::fromStdString(data.dump());
+    response << QString::fromStdString(TcpServer::statusCodeAsString(statusCode));
+	if(return_type == "json"){
+		response << QString::fromStdString(data.dump());
+	}else{
+		response << data_str;
+	}
 
 	return response;
 }

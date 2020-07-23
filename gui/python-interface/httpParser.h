@@ -1,38 +1,36 @@
+#ifndef HTTP_PARSER_H
+#define HTTP_PARSER_H
 
-#include <string>
 #include <iostream>
 #include <vector>
+#include <string>
 #include <sstream>
 #include <algorithm>
 #include <iterator>
 #include "httpMethod.cpp"
 #include "httpVersion.cpp"
 #include <QObject>
+#include <map>
 #include <json.hpp>
 
-// for convenience
-using json = nlohmann::json;
 
-using namespace std;
-
-
-// example:
-// curl localhost:8080/load?filename=blub.ply
-// "GET /load?filename=blub.ply HTTP/1.1\r\nHost: localhost:8080\r\nUser-Agent: curl/7.67.0\r\nAccept: */*\r\n\r\n"
+template <class Container>
+void splitStr(const std::string& str, Container& cont, char delim = ' ');
 
 
 namespace HTTP
 {
+
 	class Request : public QObject
 	{
 		Q_OBJECT
 
 		private:
-			string ver;
+			std::string ver;
 			Method meth;
-			string func;
-			//std::vector<std::string> pars;
-			json pars;
+			std::string func;
+			std::map<std::string, std::string> pars;
+			std::string body;
 
 		signals:
 			void handleRequest();
@@ -42,24 +40,28 @@ namespace HTTP
 			Request();
 
 			// Non-Default-Constructor
-			Request(Method meth, string ver,string func,json pars);
+			Request(Method meth, std::string ver, std::string func, std::map<std::string, std::string> pars, std::string body);
 
 			// Copy-Constructor
 			Request(Request &r);
 
-			void httpParser(string request);
+			void httpParser(std::string request);
 
 			Method getMeth();
 			
-			string getVer();
+			std::string getVer();
 			
-			string getFunc();
+			std::string getFunc();
 			
-			json getPars();
+			std::map<std::string, std::string> getPars();
+
+			std::string getBody();
 			
-			void setPars(string parameters);
+			void setPars(std::string& parameters, std::map<std::string, std::string>& pars_map);
+
+			void setBody(std::string b);
 			
-			void setPars(json parameters);
+			void setPars(std::map<std::string, std::string> parameters);
 			
 			void info();
 	};
@@ -67,5 +69,4 @@ namespace HTTP
 }
 
 
-
-
+#endif // HTTP_PARSER_H
