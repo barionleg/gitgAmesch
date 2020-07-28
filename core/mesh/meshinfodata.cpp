@@ -130,7 +130,7 @@ std::string urlEncode(std::string str){
  }
 
 bool MeshInfoData::getMeshInfoXML(std::string& rInfoXML){
-    std::string infoStr = "<?xml version=\"1.0\"?>\n<GigaMeshInfo xmlns=\"http://www.gigamesh.eu/ont#\">\n";
+    std::string infoStr = "<?xml version=\"1.0\"?>\n<GigaMeshInfo xmlns=\"http://www.gigamesh.eu/ont#\" xmlns:dc=\"http://purl.org/dc/terms/\">\n";
     infoStr+="<VertexInformation>\n";
     infoStr+="<TotalNumberOfVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_TOTAL])+"</TotalNumberOfVertices>\n";
     infoStr+="<NaNVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_NAN])+"</NaNVertices>\n";
@@ -175,14 +175,20 @@ bool MeshInfoData::getMeshInfoXML(std::string& rInfoXML){
     infoStr+="<BoundingBoxWidth>"+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_WIDTH])+"</BoundingBoxWidth>\n";
     infoStr+="<BoundingBoxHeight>"+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_HEIGHT])+"</BoundingBoxHeight>\n";
     infoStr+="</BoundingBox>\n";    
-    infoStr+="<Metadata>\n";
+    infoStr+="<MetadataObject>\n";
     infoStr+="<Filename>"+this->mStrings[MeshInfoData::FILENAME]+"</Filename>\n";
     infoStr+="<GigaMeshVersion> </GigaMeshVersion>\n";
+    //infoStr+="<pcname>"+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_AREA])+"</pcname>\n"; 
+    //infoStr+="<dc:license>"+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_AREA])+"</dc:license>\n"; 
+    //infoStr+="<dc:format>"+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_AREA])+"</dc:format>\n";  
+    //infoStr+="<dc:date>"+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_AREA])+"</dc:date>\n";  
+    //infoStr+="<dc:contributor>"+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_AREA])+"</dc:contributor>\n";   
+    //infoStr+="<dc:creator>"+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_AREA])+"</dc:creator>\n";   
     infoStr+="<TotalArea>"+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_AREA])+"</TotalArea>\n";    
     infoStr+="<TotalVolumeDX>"+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_VOLUME_DX])+"</TotalVolumeDX>\n"; 
     infoStr+="<TotalVolumeDY>"+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_VOLUME_DY])+"</TotalVolumeDY>\n";
     infoStr+="<TotalVolumeDZ>"+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_VOLUME_DZ])+"</TotalVolumeDZ>\n"; 
-    infoStr+="</Metadata>\n";
+    infoStr+="</MetadataObject>\n";
     infoStr+="</GigaMeshInfo>";
     rInfoXML = infoStr;
 	return( true );    
