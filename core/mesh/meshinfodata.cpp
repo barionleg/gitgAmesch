@@ -28,8 +28,11 @@
 #include <iostream>     // std::cout
 #include <string>       // std::string, std::to_string
 #include <math.h>       // sqrt
+#include <fstream>      // filestreams
 
 #include <GigaMesh/mesh/gmcommon.h>
+#include <GigaMesh/logging/Logging.h>
+
 
 //! Constructer calls MeshInfoData::reset() and sets the names for the enumerators.
 MeshInfoData::MeshInfoData() {
@@ -128,6 +131,76 @@ std::string urlEncode(std::string str){
     }
     return new_str;
  }
+
+//! Write mesh info to given file.
+//! @returns false in case of an error. True otherwise.
+bool MeshInfoData::writeMeshInfo( 
+        std::filesystem::path rFilenameInfo, 
+        bool rReplace
+) {
+	std::string fileExtension = rFilenameInfo.extension();
+
+	if( fileExtension.empty() ) {
+		LOG::error() << "[MeshInfoData::" << __FUNCTION__ << "] No extension/type for file '" << rFilenameInfo << "' specified!\n";
+		return( false );
+	}
+
+	for( char& character : fileExtension ) {
+		character = std::tolower(character);
+	}
+	if( fileExtension.at(0) == '.') {
+		fileExtension.erase( fileExtension.begin() );
+	}
+	LOG::debug() << "[MeshInfoData::" << __FUNCTION__ << "] extension: " << fileExtension << "\n";
+
+	std::string infoStr;
+	if( fileExtension == "html" ) {
+		// Fetch HTML string
+		if( !this->getMeshInfoHTML( infoStr ) ) {
+			std::wcerr <<  "[MeshInfoData::" << __FUNCTION__ << "] ERROR: Could not fetch the HTML infos!" << std::endl;
+			return( false );
+		}
+	} else if ( fileExtension == "ttl" ) {
+		// Fetch TTL string
+		if( !this->getMeshInfoTTL( infoStr ) ) {
+			std::wcerr <<  "[MeshInfoData::" << __FUNCTION__ << "] ERROR: Could not fetch the TTL infos!" << std::endl;
+			return( false );
+		}
+	} else if ( fileExtension == "json" ) {
+		// Fetch JSON string
+		if( !this->getMeshInfoJSON( infoStr ) ) {
+			std::wcerr <<  "[MeshInfoData::" << __FUNCTION__ << "] ERROR: Could not fetch the JSON infos!" << std::endl;
+			return( false );
+		}
+	} else if ( fileExtension == "xml" ) {
+		// Fetch XML string
+		if( !this->getMeshInfoXML( infoStr ) ) {
+			std::wcerr <<  "[MeshInfoData::" << __FUNCTION__ << "] ERROR: Could not fetch the XML infos!" << std::endl;
+			return( false );
+		}
+	} else {
+		LOG::error() << "[MeshInfoData::" << __FUNCTION__ << "] No valid extension/type for file '" << rFilenameInfo << "' specified!\n";
+		return( false );
+	}
+
+	//!\todo implement overwrite flag
+	if( rReplace ) {
+		// check ....
+	}
+
+	// Write to file.
+	std::fstream fileStrOut;
+	fileStrOut.open( rFilenameInfo, std::fstream::out );
+	if( fileStrOut.is_open() ) {
+		fileStrOut << infoStr;
+		fileStrOut.close();
+	} else {
+		LOG::error() << "[MeshInfoData::" << __FUNCTION__ << "] Could not write file '" << rFilenameInfo << "'!\n";
+		return( false );
+	}
+
+	return( true );
+}
 
 bool MeshInfoData::getMeshInfoXML(std::string& rInfoXML){
     std::string infoStr = "<?xml version=\"1.0\"?>\n<GigaMeshInfo xmlns=\"http://www.gigamesh.eu/ont#\" xmlns:dc=\"http://purl.org/dc/terms/\">\n";

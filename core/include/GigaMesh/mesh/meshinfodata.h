@@ -23,6 +23,7 @@
 #define MESHINFODATA_H
 
 #include <string>
+#include <filesystem>
 
 class MeshInfoData {
 	public:
@@ -107,11 +108,17 @@ class MeshInfoData {
 
 	public:
 		void reset();
-		bool getMeshInfoTTL( std::string& rInfoTTL );
-        bool getMeshInfoHTML( std::string& rInfoHTML );
-        bool getMeshInfoJSON( std::string& rInfoJSON );
-        bool getMeshInfoXML( std::string& rInfoXML );
-        
+
+		// Fetch formatted text
+		bool getMeshInfoTTL(  std::string& rInfoTTL  );
+		bool getMeshInfoHTML( std::string& rInfoHTML );
+		bool getMeshInfoJSON( std::string& rInfoJSON );
+		bool getMeshInfoXML(  std::string& rInfoXML  );
+
+		// Write formatted text
+		bool writeMeshInfo( std::filesystem::path rFilenameInfo, bool rReplace=true );
+
+		// Property names
 		bool getMeshInfoPropertyName( const MeshInfoData::eMeshPropertyString     rPropId, std::string& rPropName );
 		bool getMeshInfoPropertyName( const MeshInfoData::eMeshPropertyULongCount rPropId, std::string& rPropName );
 		bool getMeshInfoPropertyName( const MeshInfoData::eMeshPropertyDouble     rPropId, std::string& rPropName );

@@ -1,4 +1,7 @@
 Current Version
++) New: Export of mesh meta-data as HTML, JSON, XML and TTL (Terse RDF Triple Language).
++) New: Meta-data export CLI options for 'gigamesh-info'. See options '-j -x -t -l -a' as well as '--help'.
++) New: Meta-data export GUI menus. See 'File -> Export Meta-Data'.
 +) New: Option to export backgrounds with PNGs: See 'File -> Export Screenshots -> PNG - Keep Background'.
 +) Improved: Rendering performance.
 +) Bugfix: fixed Screenshot Views (PDF with PNG+TEX), when exporting views with a vertical axis.

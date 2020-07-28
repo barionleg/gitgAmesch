@@ -86,14 +86,15 @@ void printHelp( const char* rExecName ) {
 	std::cout << "  -v, --version                           Displays version information." << std::endl << std::endl;
 	std::cout << "  -o, --output-csv-file <file>            Write the collected information to a CSV file. One line per file." << std::endl;
 	std::cout << "                                          The information will be written to stdout, when this option is not set." << std::endl;
-	std::cout << "  -j, --write-sidecar-file-json            Write mesh information in JSON as side car file." << std::endl;
-	std::cout << "  -l, --write-sidecar-file-ttl               Write mesh information in TTL as side car file." << std::endl;
+	std::cout << "  -j, --write-sidecar-file-json           Write mesh information in JSON as side car file." << std::endl;
+	std::cout << "  -l, --write-sidecar-file-ttl            Write mesh information in TTL as side car file." << std::endl;
 	std::cout << "  -x, --write-sidecar-file-xml            Write mesh information in XML as side car file." << std::endl;
-    std::cout << "  -t, --write-sidecar-file-html           Write mesh information in HTML as side car file." << std::endl;
-	//! \todo integrate '-k' option for '-t' and NOT for '-o'
+	std::cout << "  -t, --write-sidecar-file-html           Write mesh information in HTML as side car file." << std::endl;
+	std::cout << "  -a, --write-sidecar-files               Write all the above side car files." << std::endl;
+	//! \todo integrate '-k' option for '-j/l/x/t/a' and NOT for '-o'
 //	std::cout << "  -k, --overwrite-existing                Overwrite exisitng files, which is not done by default" << std::endl;
 //	std::cout << "                                          to prevent accidental data loss." << std::endl;
-	std::cout << "  -a, --show-absolute-filename            Show the filename with extenstion and absolute path." << std::endl;
+	std::cout << "  -s, --show-absolute-filename            Show the filename with extenstion and absolute path." << std::endl;
 	std::cout << "                                          If not given only the stem of the filename is printed." << std::endl;
 	std::cout << "                                          Affects all types of output i.e. side car files and tabular." << std::endl;
 	std::cout << std::endl;
@@ -117,23 +118,24 @@ int main( int argc, char* argv[] ) {
 
 	// Default flags
 	//! \todo integrate bool optReplaceFiles = false;
+	bool optAbsolutePath = false;
 	bool optSideCarHTML  = false;
-	bool optSideCarXML  = false;
+	bool optSideCarXML   = false;
 	bool optSideCarJSON  = false;
-	bool optSideCarTTL  = false;
-    bool optAbsolutePath = false;
+	bool optSideCarTTL   = false;
 
 	// PARSE command line options
 	//--------------------------------------------------------------------------
 	// https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html#Getopt-Long-Option-Example
 	static struct option longOptions[] = {
 		{ "output-csv-file",              required_argument, nullptr, 'o' },
-		{ "show-absolute-filename",       no_argument,       nullptr, 'a' },
+		{ "show-absolute-filename",       no_argument,       nullptr, 's' },
 		{ "write-sidecar-file-html",      no_argument,       nullptr, 't' },
-		{ "write-sidecar-file-xml",      no_argument,       nullptr, 'x' },
+		{ "write-sidecar-file-xml",       no_argument,       nullptr, 'x' },
 		{ "write-sidecar-file-json",      no_argument,       nullptr, 'j' },
-		{ "write-sidecar-file-ttl",      no_argument,       nullptr, 'l' },
-        { "overwrite-existing",           no_argument,       nullptr, 'k' },
+		{ "write-sidecar-file-ttl",       no_argument,       nullptr, 'l' },
+		{ "write-sidecar-files",          no_argument,       nullptr, 'a' },
+		{ "overwrite-existing",           no_argument,       nullptr, 'k' },
 		{ "version",                      no_argument,       nullptr, 'v' },
 		{ "help",                         no_argument,       nullptr, 'h' },
 		{ "log-level",                    required_argument, nullptr,  0  },
@@ -143,7 +145,7 @@ int main( int argc, char* argv[] ) {
 	int character = 0;
 	int optionIndex = 0;
 
-	while( ( character = getopt_long_only( argc, argv, ":o:atkxjlvh",
+	while( ( character = getopt_long_only( argc, argv, ":o:stkxjlavh",
 	         longOptions, &optionIndex ) ) != -1 ) {
 		switch(character) {
 			case 0:
@@ -169,7 +171,7 @@ int main( int argc, char* argv[] ) {
 				fileNameCSVOut = std::string( optarg );
 				break;
 
-			case 'a':
+			case 's':
 				optAbsolutePath = true;
 				break;
 
@@ -180,15 +182,22 @@ int main( int argc, char* argv[] ) {
 			case 'l':
 				optSideCarTTL = true;
 				break;
-                
+
 			case 'j':
 				optSideCarJSON = true;
 				break;
-                
+
 			case 'x':
 				optSideCarXML = true;
 				break;
-                
+
+			case 'a':
+				optSideCarHTML = true;
+				optSideCarTTL  = true;
+				optSideCarJSON = true;
+				optSideCarXML  = true;
+				break;
+
 			case 'k': // replaces output files
 				std::cout << "[GigaMesh] Warning: files might be replaced!" << std::endl;
 				//! \todo integrate optReplaceFiles = true;
@@ -225,6 +234,7 @@ int main( int argc, char* argv[] ) {
 	// Process given files
 	std::vector<MeshInfoData> fileInfosAll;
 	unsigned long filesProcessed = 0;
+	unsigned long filesMeshInfo = 0;
 	for( int nonOptionArgumentCount = optind;
 	     nonOptionArgumentCount < argc; nonOptionArgumentCount++ ) {
 
@@ -243,68 +253,32 @@ int main( int argc, char* argv[] ) {
 				//! \todo integrate optReplaceFiles (bool)
 				// Determine filename for HTML sidecar file
 				std::filesystem::path htmlFileName = std::filesystem::path( nonOptionArgumentString ).replace_extension( ".html" );
-				// Fetch HTML string
-				std::string htmlStr;
-				fileInfoSingle.getMeshInfoHTML( htmlStr );
-				// Write HTML to file.
-				std::fstream fileStrOutHTML;
-				fileStrOutHTML.open( htmlFileName, std::fstream::out );
-				if( fileStrOutHTML.is_open() ) {
-					fileStrOutHTML << htmlStr;
-					fileStrOutHTML.close();
-				} else {
-					std::wcerr <<  "[GigaMesh] ERROR: Could not write to: " << htmlFileName << "!" << std::endl;
+				if( fileInfoSingle.writeMeshInfo( htmlFileName ) ) {
+					filesMeshInfo++;
 				}
 			}
 			if( optSideCarXML ) {
 				//! \todo integrate optReplaceFiles (bool)
 				// Determine filename for XML sidecar file
 				std::filesystem::path xmlFileName = std::filesystem::path( nonOptionArgumentString ).replace_extension( ".xml" );
-				// Fetch XML string
-				std::string xmlStr;
-				fileInfoSingle.getMeshInfoXML( xmlStr );
-				// Write XML to file.
-				std::fstream fileStrOutXML;
-				fileStrOutXML.open( xmlFileName, std::fstream::out );
-				if( fileStrOutXML.is_open() ) {
-					fileStrOutXML << xmlStr;
-					fileStrOutXML.close();
-				} else {
-					std::wcerr <<  "[GigaMesh] ERROR: Could not write to: " << xmlFileName << "!" << std::endl;
+				if( fileInfoSingle.writeMeshInfo( xmlFileName ) ) {
+					filesMeshInfo++;
 				}
 			}
 			if( optSideCarJSON ) {
 				//! \todo integrate optReplaceFiles (bool)
 				// Determine filename for JSON sidecar file
 				std::filesystem::path jsonFileName = std::filesystem::path( nonOptionArgumentString ).replace_extension( ".json" );
-				// Fetch JSON string
-				std::string jsonStr;
-				fileInfoSingle.getMeshInfoJSON( jsonStr );
-				// Write JSON to file.
-				std::fstream fileStrOutJSON;
-				fileStrOutJSON.open( jsonFileName, std::fstream::out );
-				if( fileStrOutJSON.is_open() ) {
-					fileStrOutJSON << jsonStr;
-					fileStrOutJSON.close();
-				} else {
-					std::wcerr <<  "[GigaMesh] ERROR: Could not write to: " << jsonFileName << "!" << std::endl;
+				if( fileInfoSingle.writeMeshInfo( jsonFileName ) ) {
+					filesMeshInfo++;
 				}
 			}
-            if( optSideCarTTL ) {
+			if( optSideCarTTL ) {
 				//! \todo integrate optReplaceFiles (bool)
 				// Determine filename for TTL sidecar file
 				std::filesystem::path ttlFileName = std::filesystem::path( nonOptionArgumentString ).replace_extension( ".ttl" );
-				// Fetch TTL string
-				std::string ttlStr;
-				fileInfoSingle.getMeshInfoTTL( ttlStr );
-				// Write TTL to file.
-				std::fstream fileStrOutTTL;
-				fileStrOutTTL.open( ttlFileName, std::fstream::out );
-				if( fileStrOutTTL.is_open() ) {
-					fileStrOutTTL << ttlStr;
-					fileStrOutTTL.close();
-				} else {
-					std::wcerr <<  "[GigaMesh] ERROR: Could not write to: " << ttlFileName << "!" << std::endl;
+				if( fileInfoSingle.writeMeshInfo( ttlFileName ) ) {
+					filesMeshInfo++;
 				}
 			}
 			fileInfosAll.push_back( fileInfoSingle );
@@ -366,6 +340,7 @@ int main( int argc, char* argv[] ) {
 		}
 	}
 
-	std::cout << "[GigaMesh] Processed files: " << filesProcessed << std::endl;
+	std::cout << "[GigaMesh] Meshinfo sidecar files written: " << filesMeshInfo << std::endl;
+	std::cout << "[GigaMesh] Processed files:                " << filesProcessed << std::endl;
 	std::exit( EXIT_SUCCESS );
 }

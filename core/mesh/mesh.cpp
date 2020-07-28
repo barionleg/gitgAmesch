@@ -311,6 +311,67 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 		case FILE_SAVE_AS:
 			retVal = writeFileUserInteract();
 			break;
+		case EXPORT_METADATA_HTML: {
+				MeshInfoData metaInfo;
+				getMeshInfoData( metaInfo, true );
+				std::filesystem::path htmlFileName = getFullName().replace_extension( ".html" );
+				if( metaInfo.writeMeshInfo( htmlFileName ) ) {
+					showInformation( "Meta-Data HTML page", std::string("Sidecar file saved as:<br />")+htmlFileName.string() );
+				}
+			} break;
+		case EXPORT_METADATA_JSON: {
+				MeshInfoData metaInfo;
+				getMeshInfoData( metaInfo, true );
+				std::filesystem::path jsonFileName = getFullName().replace_extension( ".json" );
+				if( metaInfo.writeMeshInfo( jsonFileName ) ) {
+					showInformation( "Meta-Data JSON", std::string("Sidecar file saved as:<br />")+jsonFileName.string() );
+				}
+			} break;
+		case EXPORT_METADATA_TTL: {
+				MeshInfoData metaInfo;
+				getMeshInfoData( metaInfo, true );
+				std::filesystem::path ttlFileName = getFullName().replace_extension( ".ttl" );
+				if( metaInfo.writeMeshInfo( ttlFileName ) ) {
+					showInformation( "Meta-Data TTL (Turtle, RDF)", std::string("Sidecar file saved as:<br />")+ttlFileName.string() );
+				}
+			} break;
+		case EXPORT_METADATA_XML: {
+				MeshInfoData metaInfo;
+				getMeshInfoData( metaInfo, true );
+				std::filesystem::path xmlFileName = getFullName().replace_extension( ".xml" );
+				if( metaInfo.writeMeshInfo( xmlFileName ) ) {
+					showInformation( "Meta-Data XML", std::string("Sidecar file saved as:<br />")+xmlFileName.string() );
+				}
+			} break;
+		case EXPORT_METADATA_ALL: {
+				MeshInfoData metaInfo;
+				getMeshInfoData( metaInfo, true );
+				std::filesystem::path htmlFileName = getFullName().replace_extension( ".html" );
+				std::filesystem::path jsonFileName = getFullName().replace_extension( ".json" );
+				std::filesystem::path ttlFileName = getFullName().replace_extension( ".ttl" );
+				std::filesystem::path xmlFileName = getFullName().replace_extension( ".xml" );
+				if( !metaInfo.writeMeshInfo( htmlFileName ) ) {
+					showWarning( "Meta-Data HTML page", std::string("Could NOT be saved!") );
+					break;
+				}
+				if( !metaInfo.writeMeshInfo( jsonFileName ) ) {
+					showWarning( "Meta-Data JSON", std::string("Could NOT be saved!") );
+					break;
+				}
+				if( !metaInfo.writeMeshInfo( ttlFileName ) ) {
+					showWarning( "Meta-Data TTL (Turtle, RDF)", std::string("Could NOT be saved!") );
+					break;
+				}
+				if( !metaInfo.writeMeshInfo( xmlFileName ) ) {
+					showWarning( "Meta-Data XML", std::string("Could NOT be saved!") );
+					break;
+				}
+				showInformation( "Meta-Data", std::string("Sidecar files saved as:<br />") +
+				                              htmlFileName.string() + "<br />" +
+				                              jsonFileName.string() + "<br />" +
+				                              ttlFileName.string() + "<br />" +
+				                              xmlFileName.string() + "<br />" );
+			} break;
 		case PLANE_FLIP:
 			retVal = flipPlane();
 			break;
@@ -382,7 +443,7 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 				retVal = selectPolyVertexCount( valMin, valMax );
 			}
 			retVal = true;
-		    } break;
+			} break;
 		case SELECT_MESH_PLANE_AXIS_SELPRIM:
 			retVal = setPlaneHNFbyAxisSelPrim();
 			break;
