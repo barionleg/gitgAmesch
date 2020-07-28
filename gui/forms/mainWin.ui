@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>21</height>
+     <height>45</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -126,6 +126,17 @@
      <addaction name="actionExportPolylinesProjected"/>
      <addaction name="actionExportPolylinesFuncVals"/>
     </widget>
+    <widget class="QMenu" name="menuExport_Meta_Data">
+     <property name="title">
+      <string>Export Meta-Data</string>
+     </property>
+     <addaction name="actionExportMetaDataHTML"/>
+     <addaction name="actionExportMetaDataTTL"/>
+     <addaction name="actionExportMetaDataJSON"/>
+     <addaction name="actionExportMetaDataXML"/>
+     <addaction name="separator"/>
+     <addaction name="actionExportMetaDataAll"/>
+    </widget>
     <addaction name="actionFileOpen"/>
     <addaction name="menuFileRecent"/>
     <addaction name="actionFileReload"/>
@@ -143,6 +154,8 @@
     <addaction name="menuExportImageStack"/>
     <addaction name="separator"/>
     <addaction name="actionScreenshotViewsDirectory"/>
+    <addaction name="separator"/>
+    <addaction name="menuExport_Meta_Data"/>
     <addaction name="separator"/>
     <addaction name="actionUnloadFeatureVectors"/>
     <addaction name="actionUnload3D"/>
@@ -4429,6 +4442,31 @@ The latter will be shown, when the processing has finished.</string>
    </property>
    <property name="text">
     <string>PNG - Keep Background</string>
+   </property>
+  </action>
+  <action name="actionExportMetaDataHTML">
+   <property name="text">
+    <string>HTML page</string>
+   </property>
+  </action>
+  <action name="actionExportMetaDataXML">
+   <property name="text">
+    <string>XML</string>
+   </property>
+  </action>
+  <action name="actionExportMetaDataJSON">
+   <property name="text">
+    <string>JSON</string>
+   </property>
+  </action>
+  <action name="actionExportMetaDataTTL">
+   <property name="text">
+    <string>TTL (Turtle, RDF)</string>
+   </property>
+  </action>
+  <action name="actionExportMetaDataAll">
+   <property name="text">
+    <string>All above (HTML, TTL, JSON and XML)</string>
    </property>
   </action>
  </widget>

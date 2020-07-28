@@ -1027,6 +1027,11 @@ void QGMMainWindow::initMeshSignals() {
 	// === MeshGL/MeshQt - Function/Method CALL ============================================================================================================
 	// ... File load, save, import, export  ................................................................................................................
 	actionFileSaveAs->setProperty(                                "gmMeshFunctionCall", MeshParams::FILE_SAVE_AS                                 );
+	actionExportMetaDataHTML->setProperty(                        "gmMeshFunctionCall", MeshParams::EXPORT_METADATA_HTML                         );
+	actionExportMetaDataJSON->setProperty(                        "gmMeshFunctionCall", MeshParams::EXPORT_METADATA_JSON                         );
+	actionExportMetaDataTTL->setProperty(                         "gmMeshFunctionCall", MeshParams::EXPORT_METADATA_TTL                          );
+	actionExportMetaDataXML->setProperty(                         "gmMeshFunctionCall", MeshParams::EXPORT_METADATA_XML                          );
+	actionExportMetaDataAll->setProperty(                         "gmMeshFunctionCall", MeshParams::EXPORT_METADATA_ALL                          );
 	actionImportVertexCoordinatesFromCSV->setProperty(            "gmMeshGLFunctionCall", MeshGLParams::IMPORT_COORDINATES_OF_VERTICES           );
 	actionExportCoordinatesOfAllVerticesAsCSV->setProperty(       "gmMeshFunctionCall", MeshParams::EXPORT_COORDINATES_OF_VERTICES               );
 	actionExportCoordinatesOfSelectedVerticesAsCSV->setProperty(  "gmMeshFunctionCall", MeshParams::EXPORT_COORDINATES_OF_SELECTED_VERTICES      );
