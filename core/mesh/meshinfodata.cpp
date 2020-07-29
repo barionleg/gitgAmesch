@@ -30,6 +30,7 @@
 #include <math.h>       // sqrt
 #include <fstream>      // filestreams
 #include <cctype>       // std::tolower
+#include <thread>       // std::thread
 
 #include <GigaMesh/mesh/gmcommon.h>
 #include <GigaMesh/logging/Logging.h>
@@ -203,7 +204,91 @@ bool MeshInfoData::writeMeshInfo(
 	return( true );
 }
 
-bool MeshInfoData::getMeshInfoXML(std::string& rInfoXML){
+//! Writes Meta-Data about an executed process.
+//! 
+//! @returns false in case of an error. True otherwise.
+bool MeshInfoData::writeMeshInfoProcess(
+        const MeshInfoData&                            rMeshInfoPrevious,
+        const std::filesystem::path&                   rFileNameOut,
+        const std::string&                             rFunctionExecuted,
+        const uint64_t&                                rIterationCount,
+        const std::chrono::system_clock::time_point&   rTimeStart,
+        const std::chrono::system_clock::time_point&   rTimeStop
+) {
+	// Sanity check
+	//----------------------------------------------------------
+	if( rFileNameOut.empty() ) {
+		LOG::error() << "[MeshInfoData::" << __FUNCTION__ << "] Empty filename given!\n";
+		return( false );
+	}
+
+	// Set filename for meta-data
+	//----------------------------------------------------------
+	std::filesystem::path fileNameOutMeta = rFileNameOut;
+	fileNameOutMeta.replace_extension( std::string( rFunctionExecuted + ".txt" ) );
+
+	// Pre-compute information, which is (sort of) redundant
+	//----------------------------------------------------------
+	int64_t vertexCountDiff       = ( static_cast<long>(mCountULong[MeshInfoData::VERTICES_TOTAL])  - static_cast<long>(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_TOTAL])  );
+	int64_t faceCountDiff         = ( static_cast<long>(mCountULong[MeshInfoData::FACES_TOTAL])     - static_cast<long>(rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_TOTAL])     );
+	int64_t vertexBorderCountDiff = ( static_cast<long>(mCountULong[MeshInfoData::VERTICES_BORDER]) - static_cast<long>(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_BORDER]) );
+	time_t startTime = std::chrono::system_clock::to_time_t( rTimeStart );
+	time_t endTime   = std::chrono::system_clock::to_time_t( rTimeStop );
+	double timeElapsed = ( std::chrono::duration<double>( rTimeStop - rTimeStart ) ).count();
+
+	// Open file for meta-data
+	//----------------------------------------------------------
+	std::fstream fileStrOutMeta;
+	fileStrOutMeta.open( fileNameOutMeta, std::fstream::out );
+	if( !fileStrOutMeta.is_open() ) {
+		LOG::error() << "[MeshInfoData::" << __FUNCTION__ << "] Could not open file '" << fileNameOutMeta << "' for writing!\n";
+		return( false );
+	}
+
+	// WRITE Meta-Data
+	//----------------------------------------------------------
+	// Note: Redundant data is marked with a '#'
+#ifdef VERSION_PACKAGE
+	fileStrOutMeta << "GigaMesh Version:            " << VERSION_PACKAGE << std::endl;
+#else
+	fileStrOutMeta << "GigaMesh Version:            unknown" << std::endl;
+#endif
+	fileStrOutMeta << "CPU Threads (available):     " << std::thread::hardware_concurrency() - 1 << std::endl;
+	fileStrOutMeta << "Username:                    " << std::endl; //! \todo add username.
+	fileStrOutMeta << "Hostname:                    " << std::endl; //! \todo add hostname.
+	fileStrOutMeta << "File Input:                  " << rMeshInfoPrevious.mStrings[MeshInfoData::FILENAME] << std::endl;
+	fileStrOutMeta << "File Output:                 " << rFileNameOut.string() << std::endl;
+	fileStrOutMeta << "Model Id:                    " << mStrings[MeshInfoData::MODEL_ID] << std::endl;
+	fileStrOutMeta << "Model Material:              " << mStrings[MeshInfoData::MODEL_MATERIAL] << std::endl;
+	fileStrOutMeta << "Web-Reference:               " << mStrings[MeshInfoData::MODEL_WEBREFERENCE] << std::endl;
+	fileStrOutMeta << "Function:                    " << rFunctionExecuted << std::endl;
+	fileStrOutMeta << "Vertex count (in):           " << rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_TOTAL] << std::endl;
+	fileStrOutMeta << "Vertex count (out)           " << mCountULong[MeshInfoData::VERTICES_TOTAL] << std::endl;
+	fileStrOutMeta << "Face count (in):             " << rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_TOTAL]  << std::endl;
+	fileStrOutMeta << "Face count (out):            " << mCountULong[MeshInfoData::FACES_TOTAL] << std::endl;
+	fileStrOutMeta << "# Vertex count (diff):       " << vertexCountDiff << std::endl;
+	fileStrOutMeta << "# Face count (diff):         " << faceCountDiff << std::endl;
+	fileStrOutMeta << "Connected components (in):   " << rMeshInfoPrevious.mCountULong[CONNECTED_COMPONENTS] << std::endl;
+	fileStrOutMeta << "Connected components (out):  " << mCountULong[CONNECTED_COMPONENTS] << std::endl;
+	fileStrOutMeta << "Vertices at border (in):     " << rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_BORDER] << std::endl;
+	fileStrOutMeta << "Vertices at border (out):    " << mCountULong[MeshInfoData::VERTICES_BORDER] << std::endl;
+	fileStrOutMeta << "# Vertex at border (diff):   " << vertexBorderCountDiff << std::endl;
+	fileStrOutMeta << "Vertices synthetic (in):     " << rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_SYNTHETIC] << std::endl;
+	fileStrOutMeta << "Vertices synthetic (out):    " << mCountULong[MeshInfoData::VERTICES_SYNTHETIC] << std::endl;
+	fileStrOutMeta << "Faces synthetic (in):        " << rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES] << std::endl;
+	fileStrOutMeta << "Faces synthetic (out):       " << mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES] << std::endl;
+	fileStrOutMeta << "Iterations:                  " << rIterationCount << std::endl;
+	fileStrOutMeta << "Start time:                  " << std::ctime( &startTime );
+	fileStrOutMeta << "Finish time:                 " << std::ctime( &endTime );
+	fileStrOutMeta << "# Timespan (sec):            " << timeElapsed << std::endl;
+	fileStrOutMeta.close();
+	std::wcout << "[MeshInfoData::" << __FUNCTION__ << "] Wrote meta-data to: " << fileNameOutMeta << std::endl;
+
+	// Done
+	return( true );
+}
+
+bool MeshInfoData::getMeshInfoXML( std::string& rInfoXML ){
     std::string infoStr = "<?xml version=\"1.0\"?>\n<GigaMeshInfo xmlns=\"http://www.gigamesh.eu/ont#\" xmlns:dc=\"http://purl.org/dc/terms/\">\n";
     infoStr+="<VertexInformation>\n";
     infoStr+="<TotalNumberOfVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_TOTAL])+"</TotalNumberOfVertices>\n";

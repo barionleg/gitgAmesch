@@ -942,7 +942,7 @@ bool MeshQt::removeUncleanSmallUser() {
 	bool applyErosion;
 	bool userCancel;
 	SHOW_QUESTION( tr("Apply border erosion"), tr("Do you want to remove dangling faces along the borders?") +
-										   QString("<br /><br />") + tr("Recommended: YES"), applyErosion, userCancel );
+	               QString("<br /><br />") + tr("Recommended: YES"), applyErosion, userCancel );
 	if( userCancel ) {
 		return( false );
 	}
@@ -956,14 +956,14 @@ bool MeshQt::removeUncleanSmallUser() {
 	QString fileName = "";
 	if( saveFile ) {
 		// Show file dialog
-        QString fileLocation = QString::fromStdWString( getFileLocation().wstring() );
+		QString fileLocation = QString::fromStdWString( getFileLocation().wstring() );
 		fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as" ), fileLocation, tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) );
 	}
 
 	// Store old mesh size to determine the number of changes
 	uint64_t oldVertexNr = getVertexNr();
 	uint64_t oldFaceNr   = getFaceNr();
-	bool retVal = MeshGL::removeUncleanSmall( percentArea, applyErosion, fileName.toStdString() );
+	bool retVal = removeUncleanSmall( fileName.toStdString(), percentArea, applyErosion );
 	SHOW_MSGBOX_INFO( tr("Primitives removed"), tr( "%1 Vertices\n%2 Faces" ).arg( oldVertexNr - getVertexNr() ).arg( oldFaceNr - getFaceNr() ) );
 	return retVal;
 }
@@ -1037,8 +1037,10 @@ bool MeshQt::completeRestore() {
 	}
 
 	// Iterative cleaning is done in the Mesh class.
-	string resultMsg;
-	MeshGL::completeRestore( fileName.toStdString(), percentArea, applyErosion, prevent, maxNrVertices, &resultMsg );
+	uint64_t iterationCount;
+	std::string resultMsg;
+	MeshGL::completeRestore( fileName.toStdString(), percentArea, applyErosion, prevent, maxNrVertices, 
+	                         &resultMsg, iterationCount );
 	SHOW_MSGBOX_INFO( tr("Complete Restore finished"), QString( resultMsg.c_str() ) );
 
 	return true;

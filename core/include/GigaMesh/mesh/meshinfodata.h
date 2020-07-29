@@ -117,6 +117,10 @@ class MeshInfoData {
 
 		// Write formatted text
 		bool writeMeshInfo( std::filesystem::path rFilenameInfo, bool rReplace=true );
+		bool writeMeshInfoProcess( const MeshInfoData& rMeshInfoPrevious, const std::filesystem::path& rFileNameOut,
+		                           const std::string& rFunctionExecuted, const uint64_t& rIterationCount,
+		                           const std::chrono::system_clock::time_point& rTimeStart, 
+		                           const std::chrono::system_clock::time_point& rTimeStop );
 
 		// Property names
 		bool getMeshInfoPropertyName( const MeshInfoData::eMeshPropertyString     rPropId, std::string& rPropName );

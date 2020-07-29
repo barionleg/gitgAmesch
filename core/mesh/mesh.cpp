@@ -1423,13 +1423,13 @@ bool Mesh::getVertNormal( int rVertIdx, double* rNormal ) {
 
 //! Returns the actual number of vertices, excluding vertices marked for removal, including new vertices.
 //! See also Mesh::getVertexPos
-uint64_t Mesh::getVertexNr() {
+uint64_t Mesh::getVertexNr() const {
 	return mVertices.size();
 }
 
 //! Retrieves the n-th Vertex, excluding vertices marked for removal, including new vertices.
 //! @returns the nullptr in case of an error.
-Vertex* Mesh::getVertexPos( uint64_t rPosIdx ) {
+Vertex* Mesh::getVertexPos( uint64_t rPosIdx ) const {
 	if( rPosIdx >= getVertexNr() ) {
 		std::cerr << "[Mesh::" << __FUNCTION__ << "] Index too large!" << std::endl;
 		return( nullptr );
@@ -1584,16 +1584,16 @@ const vector<Face*>* Mesh::getPrimitiveListFaces() {
 //! See also Mesh::getFacePos
 //!
 //! @returns the actual number of faces.
-uint64_t Mesh::getFaceNr() {
+uint64_t Mesh::getFaceNr() const {
 	return mFaces.size();
 }
 
 //! Retrieves the n-th Face, excluding faces marked for removal, including new faces.
 //!
 //! @returns NULL in case of an error.
-Face* Mesh::getFacePos( uint64_t posIdx ) {
+Face* Mesh::getFacePos( uint64_t posIdx ) const {
 	if( posIdx >= getFaceNr() ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] Index (" << posIdx << ") too large - Max: " << getFaceNr() << "!" << endl;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] Index (" << posIdx << ") too large - Max: " << getFaceNr() << "!" << std::endl;
 		return nullptr;
 	}
 	return mFaces.at( posIdx );
@@ -9991,16 +9991,66 @@ bool Mesh::removeVerticesSelected() {
 //! Select and remove solo, non-manifold, double-cones and small area vertices.
 //! Optional: save result to rFileName.
 //! This method has to follow a strict order to achieve a clean Mesh.
+//! 
+//! Public version writing meta-data.
 //!
 //! \returns false in case of an error. True otherwise.
 bool Mesh::removeUncleanSmall(
-                double          rPercentArea,   //!< Area relative to the whole mesh.
-                bool            rApplyErosion,  //!< Add extra border cleaning.
-                const filesystem::path&   rFileName       //!< Filename to store intermediate results and the final mesh.
+        const filesystem::path&   rFileName,      //!< Filename to store intermediate results and the final mesh.
+        double                    rPercentArea,   //!< Area relative to the whole mesh.
+        bool                      rApplyErosion   //!< Add extra border cleaning.
 ) {
+	bool retVal = false;
 
+	// Track changes for meta-data
+	//----------------------------------------------------------
+	MeshInfoData rFileInfosPrevious;
+	this->getMeshInfoData( rFileInfosPrevious, true );
+	uint64_t iterationCount = 0;
+
+	// Measure compute time
+	//----------------------------------------------------------
+	std::chrono::system_clock::time_point tStart = std::chrono::system_clock::now();
+
+	// CLEAN the mesh
+	//----------------------------------------------------------
+	retVal = removeUncleanSmallCore( rFileName, rPercentArea, rApplyErosion, iterationCount );
+
+	// Measure compute time
+	//----------------------------------------------------------
+	std::chrono::system_clock::time_point tStop = std::chrono::system_clock::now();
+
+	// Dump Meta-Data about the cleaning process.
+	//----------------------------------------------------------
+	MeshInfoData rFileInfos;
+	this->getMeshInfoData( rFileInfos, true );
+	if( !rFileInfos.writeMeshInfoProcess( rFileInfosPrevious, rFileName, "mesh_clean", iterationCount,
+	                                 tStart, tStop ) ) {
+		LOG::error() << "[Mesh::" << __FUNCTION__ << "] Writing meta-data failed!\n";
+		return( false );
+	}
+
+	return( retVal );
+
+}
+
+//! Select and remove solo, non-manifold, double-cones and small area vertices.
+//! Optional: save result to rFileName.
+//! This method has to follow a strict order to achieve a clean Mesh.
+//! 
+//! Core version without writing meta-data.
+//!
+//! \returns false in case of an error. True otherwise.
+bool Mesh::removeUncleanSmallCore(
+        const filesystem::path&   rFileName,      //!< Filename to store intermediate results and the final mesh.
+        double                    rPercentArea,   //!< Area relative to the whole mesh.
+        bool                      rApplyErosion,  //!< Add extra border cleaning.
+        uint64_t&                 rIteration      //!< Returns the number of iterations in step #7.
+) {
 	uint64_t vertNoPrev = getVertexNr();
 	uint64_t faceNoPrev = getFaceNr();
+	// Reset counter
+	rIteration = 0;
 
 	set<Vertex*> verticesToRemove;
 	set<Face*> facesToRemove;
@@ -10012,56 +10062,58 @@ bool Mesh::removeUncleanSmall(
 
 	//! 1a.) Select and remove vertices with not-a-number coordinates and ...
 	//!     These vertices have to be removed before Non-Manifold and Double-Cones (Singularities) as they may introduce these other types.
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Not-A-Number Vertices -----------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Not-A-Number Vertices -----------------------" << std::endl;
 	getVertNotANumber( &verticesToRemove );
 	Mesh::removeVertices( &verticesToRemove );
 	//! 1b.) Select and remove vertices of faces having an areo of zero.
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Zero area faces -----------------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Zero area faces -----------------------------" << std::endl;
 	getVertPartOfZeroFace( &verticesToRemove );
 	Mesh::removeVertices( &verticesToRemove );
 	//! 2.) Select and remove sticky faces.
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Sticky --------------------------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Sticky --------------------------------------" << std::endl;
 	getFaceSticky( &facesToRemove );
 	removeFaces( &facesToRemove );
 	//! 3.) Select and remove non-manifold faces.
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Non-Manifold --------------------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Non-Manifold --------------------------------" << std::endl;
 	getFaceNonManifold( &facesToRemove );
 	removeFaces( &facesToRemove );
 	// more agressive removal: getVertNonManifoldFaces( &verticesToRemove );
 	//! 4.) Select and remove vertices on edges connecting faces with inverted orientation.
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Inverted ------------------------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Inverted ------------------------------------" << std::endl;
 	getVertInverted( verticesToRemove );
 	Mesh::removeVertices( &verticesToRemove );
 	//! 5.) OPTIONAL apply erosion to remove 'dangling' faces.
 	if( rApplyErosion ) {
-		cout << "[Mesh::" << __FUNCTION__ << "] --- Border Erosion ------------------------------" << endl;
+		std::cout << "[Mesh::" << __FUNCTION__ << "] --- Border Erosion ------------------------------" << std::endl;
 		if( !removeFacesBorderErosion() ) {
-			cout << "[Mesh::" << __FUNCTION__ << "] ERROR: removeFacesBorderErosion failed!" << endl;
+			std::cout << "[Mesh::" << __FUNCTION__ << "] ERROR: removeFacesBorderErosion failed!" << std::endl;
 		}
 	}
 	//! 6.) Select double cones.
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Double Cones --------------------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Double Cones --------------------------------" << std::endl;
 	getDoubleCones( &verticesToRemove );
 	//! 7.) Remove and select double-cones until there are no more showing up.
 	do {
 		Mesh::removeVertices( &verticesToRemove ); // "Mesh::" avoids the unnecessary regeneration of OpenGL VBOs within the GUI version - will be taken care of in step 7.
 		getDoubleCones( &verticesToRemove );
+		rIteration++;
 	} while( verticesToRemove.size() > 0 );
 	//!     In very rare cases there may be new 'dangling' faces at this point, but no further optional
 	//!     erosion will be applied as it requires another slow loop over 4., 5. and 6.
 	//! 8.) ... solo vertices and ...
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Solo Vertices -------------------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Solo Vertices -------------------------------" << std::endl;
 	getVertSolo( &verticesToRemove );
 	Mesh::removeVertices( &verticesToRemove );
 	//! 9.) ... label and select small areas.
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Small Areas ---------------------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Small Areas ---------------------------------" << std::endl;
 	// first we reset the label and set all NOT to be labled.
 	labelVerticesAll();
 	getVertLabelAreaRelativeLT( rPercentArea, &verticesToRemove );
 	//! 10.) Final remove (including reloading OpenGL buffers and lists.
 	removeVertices( &verticesToRemove );
 
-	cout << "[Mesh::" << __FUNCTION__ << "] removed " << vertNoPrev - getVertexNr() << " vertices and " << faceNoPrev - getFaceNr() << " faces." << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] removed " << vertNoPrev - getVertexNr() << " vertices and " 
+	          << faceNoPrev - getFaceNr() << " faces." << std::endl;
 	if( rFileName.empty() ) {
 		return( true );
 	}
@@ -10252,21 +10304,33 @@ bool Mesh::completeRestore() {
 //!
 //! @returns false in case of an error. True otherwise.
 bool Mesh::completeRestore(
-                const filesystem::path& rFilename,            //!< Optional filname for storing the mesh after each operation. An empty string will prevent saving the mesh.
-                double        rPercentArea,         //!< Connected components with an area smaller are removed. See Mesh::removeUncleanSmall
-                bool          rApplyErosion,        //!< Optional border erosion.
-                bool          rPrevent,             //!< Prevent longest polyline from filling.
-                uint64_t rMaxNumberVertices,   //!< Maximum number of vertices/edges used for filling holes as libpsalm has troubles with larger/complex holes.
-                string*       rResultMsg            //!< String to be passed up for displayed as messagebox.
+        const filesystem::path& rFilename,            //!< Optional filname for storing the mesh after each operation. An empty string will prevent saving the mesh.
+        double                  rPercentArea,         //!< Connected components with an area smaller are removed. See Mesh::removeUncleanSmall
+        bool                    rApplyErosion,        //!< Optional border erosion.
+        bool                    rPrevent,             //!< Prevent longest polyline from filling.
+        uint64_t                rMaxNumberVertices,   //!< Maximum number of vertices/edges used for filling holes as libpsalm has troubles with larger/complex holes.
+        string*                 rResultMsg,           //!< Returns string for display in e.g. a messagebox.
+        uint64_t&               rIterationCount       //!< Returns number of iterations.
 ) {
+	// Measure compute time
+	//----------------------------------------------------------
+	std::chrono::system_clock::time_point tStart = std::chrono::system_clock::now();
+
+	bool retVal = true;
 	// Store old mesh size to determine the number of changes
-	uint64_t polishIterations = 0;
-	uint64_t holesFilled = 0;
-	uint64_t holesFail = 0;
-	uint64_t holesSkipped = 0;
 	uint64_t oldVertexNr;
 	uint64_t oldFaceNr;
-	bool retVal = true;
+
+	// Track changes for meta-data
+	MeshInfoData rFileInfosPrevious;
+	this->getMeshInfoData( rFileInfosPrevious, true );
+
+	// Track iterations and changes to so-called holes
+	rIterationCount = 0;
+	uint64_t totalHolesFilled = 0;
+	uint64_t totalHolesFail = 0;
+	uint64_t totalHolesSkipped = 0;
+	bool someHolesFilled = true; // Exit condition for the following do-while loop
 
 	do {
 		// Track changes to the number of vertices and faces.
@@ -10274,7 +10338,8 @@ bool Mesh::completeRestore(
 
 		oldVertexNr = getVertexNr();
 		oldFaceNr = getFaceNr();
-		removeUncleanSmall( rPercentArea, rApplyErosion, rFilename );
+		uint64_t subIterationCount = 0;
+		removeUncleanSmallCore( rFilename, rPercentArea, rApplyErosion, subIterationCount );
 		convertBordersToPolylines();
 
 		if( rPrevent ) {
@@ -10282,41 +10347,48 @@ bool Mesh::completeRestore(
 			removePolylinesSelected();
 		}
 
+		uint64_t holesFilled  = 0;
+		uint64_t holesFail    = 0;
+		uint64_t holesSkipped = 0;
 		fillPolyLines( rMaxNumberVertices, holesFilled, holesFail, holesSkipped );
-//		holesFailTotal += holesFail;
+		totalHolesFilled  += holesFilled;
+		totalHolesFail    += holesFail;
+		totalHolesSkipped += holesSkipped;
+		someHolesFilled = ( holesFilled != 0 );
+
 		removePolylinesAll();
 
-		polishIterations++;
+		rIterationCount++;
 
 	} while( ( oldVertexNr - getVertexNr() ) != 0 ||
-		 ( oldFaceNr - getFaceNr() ) !=0      ||
-		 ( holesFilled != 0 ) );
+	         ( oldFaceNr - getFaceNr() ) !=0      ||
+	         ( someHolesFilled ) );
 
 	string tempstr;
-	if( ( holesFail == 0 ) && ( holesSkipped == 0 ) ) {
+	if( ( totalHolesFail == 0 ) && ( totalHolesSkipped == 0 ) ) {
 		tempstr = "All holes were filled.";
 	}
-	if( holesFail>1 ) {
-		tempstr = to_string( holesFail ) + " holes were NOT filled.";
+	if( totalHolesFail>1 ) {
+		tempstr = to_string( totalHolesFail ) + " holes were NOT filled.";
 		retVal = false;
 	}
-	if( holesFail==1 ) {
-		tempstr = to_string( holesFail ) + " holes were NOT filled.";
+	if( totalHolesFail==1 ) {
+		tempstr = to_string( totalHolesFail ) + " holes were NOT filled.";
 		retVal = false;
 	}
-	if( holesSkipped>1 ) {
-		tempstr = to_string( holesSkipped ) + " holes were SKIPPED filled.";
+	if( totalHolesSkipped>1 ) {
+		tempstr = to_string( totalHolesSkipped ) + " holes were SKIPPED filled.";
 		retVal = false;
 	}
-	if( holesSkipped==1 ) {
-		tempstr = to_string( holesSkipped ) + " holes were SKIPPED filled.";
+	if( totalHolesSkipped==1 ) {
+		tempstr = to_string( totalHolesSkipped ) + " holes were SKIPPED filled.";
 		retVal = false;
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] " << tempstr << endl;
-	cout << "[Mesh::" << __FUNCTION__ << "] " << to_string( polishIterations ) << " iterations." << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] " << tempstr << std::endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] " << std::to_string( rIterationCount ) << " iterations." << std::endl;
 
 	if( rResultMsg != nullptr ) {
-		(*rResultMsg) = tempstr + "\n\n" + to_string( polishIterations ) + " iterations.";
+		(*rResultMsg) = tempstr + "\n\n" + std::to_string( rIterationCount ) + " iterations.";
 	}
 
 	// Adjust/refresh selected vertices:
@@ -10337,6 +10409,22 @@ bool Mesh::completeRestore(
 	}
 	selectedMFacesChanged();
 
+	// Measure compute time
+	//----------------------------------------------------------
+	std::chrono::system_clock::time_point tStop = std::chrono::system_clock::now();
+
+	// Dump Meta-Data about the cleaning process.
+	//----------------------------------------------------------
+	MeshInfoData rFileInfos;
+	this->getMeshInfoData( rFileInfos, true );
+	if( !rFileInfos.writeMeshInfoProcess( rFileInfosPrevious, rFilename, "mesh_polish", rIterationCount,
+	                                 tStart, tStop ) ) {
+		LOG::error() << "[Mesh::" << __FUNCTION__ << "] Writing meta-data failed!\n";
+		return( false );
+	}
+
+	// Done
+	//----------------------------------------------------------
 	return( retVal );
 }
 
@@ -10448,7 +10536,7 @@ Vector3D Mesh::getBoundingBoxCenter() {
 }
 
 //! Compute and returns the size of the bounding box.
-bool Mesh::getBoundingBoxSize( Vector3D& rBbSize ) {
+bool Mesh::getBoundingBoxSize( Vector3D& rBbSize ) const {
 	rBbSize.setX( mMaxX - mMinX );
 	rBbSize.setY( mMaxY - mMinY );
 	rBbSize.setZ( mMaxZ - mMinZ );
@@ -12043,7 +12131,7 @@ bool Mesh::estGeodesicPatch( map<Vertex*,GeodEntry*>* geoDistList,              
 		double vCB = ( vertBPos - vertCPos ).getLength3();
 		double vBA = ( vertAPos - vertBPos ).getLength3();
 		// Add optional weight
-		Vertex* vertA = edgeToProc->getVertA();
+		// Vertex* vertA = edgeToProc->getVertA(); // <- unused
 		// Vertex* vertB = edgeToProc->getVertB(); // <- unused
 		if( weightFuncVal ) {
 		//if( ( weightFuncVal ) && (!badAngle) ) {
@@ -15360,19 +15448,21 @@ uint8_t* Mesh::rasterToVolume( const float* rasterArray, const int xDim, const i
 // --- IMPORT / EXPORT -----------------------------------------------------------------------------------
 
 //! Uses PSALM as library to fill (closed!) polygonal lines e.g from holes.
+//! 
+//! In case the polygonal lines are non-manifold the results will be unexpected.
 //!
 //! @returns false in case of an error. True otherwise.
 bool Mesh::fillPolyLines(
-                const uint64_t& rMaxNrVertices,	//!< Maximum numbers of vertices within a border for processing. 0 means no limit.
-                uint64_t& rFilled,										//!< Number of holes filled.
-                uint64_t& rFail,										//!< Number of holes failed to fill by libpsalm.
-                uint64_t& rSkipped				//!< Number of holes skipped.
+        const uint64_t&   rMaxNrVertices,   //!< Maximum numbers of vertices within a border for processing. 0 means no limit.
+        uint64_t&         rFilled,          //!< Returns number of holes filled.
+        uint64_t&         rFail,            //!< Returns number of holes failed to fill by libpsalm.
+        uint64_t&         rSkipped          //!< Returns number of holes skipped.
 ) {
 #ifndef LIBPSALM
 	rFilled = 0;
 	rFail   = mPolyLines.size();
-	cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: libpsalm missing!" << endl;
-	cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: All " << rFail << " holes ignored!" << endl;
+	std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: libpsalm missing!" << std::endl;
+	std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: All " << rFail << " holes ignored!" << std::endl;
 	return( false );
 #else
 	// (Re)Set counters:
@@ -15394,9 +15484,9 @@ bool Mesh::fillPolyLines(
 		currFace = getFacePos( faceIdx );
 		currFace->setIndex( faceIdx );
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] set indices took " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds. " << endl;
-	cout << "[Mesh::" << __FUNCTION__ << "] Total number of polylines/holes: " << mPolyLines.size() << endl;
-	cout << "[Mesh::" << __FUNCTION__ << "] Maximum number of vertices/edges: " << rMaxNrVertices << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] set indices took " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds. " << std::endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Total number of polylines/holes: " << mPolyLines.size() << std::endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Maximum number of vertices/edges: " << rMaxNrVertices << std::endl;
 
 	Vertex* vertexRef;
 	float holeCtr = 0.0;
@@ -15411,12 +15501,12 @@ bool Mesh::fillPolyLines(
 		uint64_t numVertices   = ((*itPoly)->length())-1;
 		// Take care about smallest holes
 		if( numVertices < 3 ) {
-			cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Hole has to have more than three vertices. It has only " << numVertices << "!" << endl;
+			std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Hole has to have more than three vertices. It has only " << numVertices << "!" << std::endl;
 			continue;
 		}
 		// Skip holes larger than ... given by user.
 		if( ( rMaxNrVertices > 0 ) && ( rMaxNrVertices < numVertices ) ) {
-			cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " SKIPPED: to many vertices; " << numVertices << endl;
+			std::cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " SKIPPED: to many vertices; " << numVertices << std::endl;
 			rSkipped++;
 			continue;
 		}
@@ -15434,7 +15524,7 @@ bool Mesh::fillPolyLines(
 			mFaces.push_back( newFace );
 			borderAndNewFaces.insert( newFace );
 			rFilled++;
-			cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " ADD vertices: none faces: 1" << endl;
+			std::cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " ADD vertices: none faces: 1" << std::endl;
 		} else if( numVertices == 4 ) { // Quadtriangular hole. Attention: concave quadtriangles!
 			VertexOfFace* vertA = static_cast<VertexOfFace*>((*itPoly)->getVertexRef( 0 ));
 			VertexOfFace* vertB = static_cast<VertexOfFace*>((*itPoly)->getVertexRef( 1 ));
@@ -15470,7 +15560,7 @@ bool Mesh::fillPolyLines(
 			borderAndNewFaces.insert( newFaceA );
 			borderAndNewFaces.insert( newFaceB );
 			rFilled += 2;
-			cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " ADD vertices: none faces: 2" << endl;
+			std::cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " ADD vertices: none faces: 2" << std::endl;
 		} else {
 			// Apply libpsalm:
 			vector<long>   vertexIDs;
@@ -15523,7 +15613,8 @@ bool Mesh::fillPolyLines(
 			// Estimate average density:
 			borderDensity = numVertices / borderDensity;
 			// Alternative:
-			cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " BORDER vertices: " << numVertices << " density: " << borderDensity << " faces: " << borderAndNewFaces.size() << endl;
+			std::cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " BORDER vertices: " << numVertices << " density: " 
+			          << borderDensity << " faces: " << borderAndNewFaces.size() << std::endl;
 			//--------------------------------------------------------------------------------------------------------------------------------------
 			// Variable for the return values of fillhole:
 			size_t        numNewVertices = 0;
@@ -15534,12 +15625,13 @@ bool Mesh::fillPolyLines(
 			if( !fill_hole( numVertices, vertexIDs.data(), coordinates.data(),
 			                nullptr, nullptr, // was normals along the border (optional)
 			                &numNewVertices, &newCoordinates, &numNewFaces, &newVertexIDs ) ) {
-				cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Hole No. " << holeCtr << " having " << numVertices << "vertices FAILED!" << endl;
+				std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Hole No. " << holeCtr << " having " 
+				          << numVertices << "vertices FAILED!" << std::endl;
 				rFail++;
 				continue;
 			}
 			// Add the new vertices and faces
-			cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " ADD vertices: " << numNewVertices << " faces: " << numNewFaces << endl;
+			std::cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " ADD vertices: " << numNewVertices << " faces: " << numNewFaces << std::endl;
 			vector<VertexOfFace*> tmpRefNewVertices; // We need this temporarly for connecting the faces.
 			tmpRefNewVertices.resize( numNewVertices, nullptr );
 			for( size_t i=0; i<numNewVertices; ++i ) {
@@ -15593,7 +15685,7 @@ bool Mesh::fillPolyLines(
 				// Tag as synthetic:
 				newFace->setFlag( FLAG_SYNTHETIC );
 			}
-			cout << "[Mesh::" << __FUNCTION__ << "] New density: " << (numNewVertices+numVertices)/newArea << endl;
+			std::cout << "[Mesh::" << __FUNCTION__ << "] New density: " << (numNewVertices+numVertices)/newArea << std::endl;
 			delete[] newCoordinates; // created in libpsalm
 			delete[] newVertexIDs;   // created in libpsalm
 			rFilled++;
@@ -15611,7 +15703,7 @@ bool Mesh::fillPolyLines(
 	    //(*itFace)->connectToFaces();
 	//}
 	showProgressStop( "Fill holes" );
-	cout << "[Mesh::" << __FUNCTION__ << "] took " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds. " << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] took " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds. " << std::endl;
 	return( true );
 #endif
 }
@@ -16408,8 +16500,8 @@ bool Mesh::showInfoMeshHTML() {
 //!
 //! @returns false in case of an error. True otherwise.
 bool Mesh::getMeshInfoData(
-                MeshInfoData& rMeshInfos,
-                bool          rAbsolutePath
+        MeshInfoData& rMeshInfos,
+        const bool    rAbsolutePath
 ) {
 	// Initialize
 	rMeshInfos.reset();
@@ -16567,6 +16659,9 @@ bool Mesh::getMeshInfoData(
 		}
 		showProgress( static_cast<double>( faceIdx+getVertexNr() )/progressSteps, "Mesh information" );
 	}
+
+	// Labeled connected components
+	labelCount( Primitive::IS_VERTEX, rMeshInfos.mCountULong[MeshInfoData::CONNECTED_COMPONENTS] );
 
 	// Done.
 	showProgressStop( "Mesh information" );
