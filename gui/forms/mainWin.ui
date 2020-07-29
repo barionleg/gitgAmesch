@@ -4445,26 +4445,49 @@ The latter will be shown, when the processing has finished.</string>
    </property>
   </action>
   <action name="actionExportMetaDataHTML">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_export_html.svg</normaloff>:/GMToolBar/gigamesh_icon_export_html.svg</iconset>
+   </property>
    <property name="text">
     <string>HTML page</string>
    </property>
   </action>
   <action name="actionExportMetaDataXML">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_export_xml.svg</normaloff>:/GMToolBar/gigamesh_icon_export_xml.svg</iconset>
+   </property>
    <property name="text">
     <string>XML</string>
    </property>
   </action>
   <action name="actionExportMetaDataJSON">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_export_json.svg</normaloff>:/GMToolBar/gigamesh_icon_export_json.svg</iconset>
+   </property>
    <property name="text">
-    <string>JSON</string>
+    <string>JSON-LD</string>
+   </property>
+   <property name="toolTip">
+    <string>JSON for Linking Data</string>
    </property>
   </action>
   <action name="actionExportMetaDataTTL">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_export_ttl.svg</normaloff>:/GMToolBar/gigamesh_icon_export_ttl.svg</iconset>
+   </property>
    <property name="text">
     <string>TTL (Turtle, RDF)</string>
    </property>
   </action>
   <action name="actionExportMetaDataAll">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_export_all.svg</normaloff>:/GMToolBar/gigamesh_icon_export_all.svg</iconset>
+   </property>
    <property name="text">
     <string>All above (HTML, TTL, JSON and XML)</string>
    </property>

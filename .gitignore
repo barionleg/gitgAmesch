@@ -55,8 +55,8 @@ build/
 *.svg
 *.jpg
 # Exception: menu icons
-!forms/*.png
-!forms/*.svg
+!gui/forms/*.png
+!gui/forms/*.svg
 
 # Matlab (and related)
 *.mat
