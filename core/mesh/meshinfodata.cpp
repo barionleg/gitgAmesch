@@ -29,6 +29,7 @@
 #include <string>       // std::string, std::to_string
 #include <math.h>       // sqrt
 #include <fstream>      // filestreams
+#include <cctype>       // std::tolower
 
 #include <GigaMesh/mesh/gmcommon.h>
 #include <GigaMesh/logging/Logging.h>
@@ -138,7 +139,7 @@ bool MeshInfoData::writeMeshInfo(
         std::filesystem::path rFilenameInfo, 
         bool rReplace
 ) {
-	std::string fileExtension = rFilenameInfo.extension();
+	std::string fileExtension = rFilenameInfo.extension().string();
 
 	if( fileExtension.empty() ) {
 		LOG::error() << "[MeshInfoData::" << __FUNCTION__ << "] No extension/type for file '" << rFilenameInfo << "' specified!\n";
