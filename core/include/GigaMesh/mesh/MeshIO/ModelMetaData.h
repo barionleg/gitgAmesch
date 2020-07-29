@@ -38,10 +38,10 @@ class ModelMetaData
 		enum eMetaStrings {
 			META_MODEL_ID,         //!< Given Id. Typically an inventory number.
 			META_MODEL_MATERIAL,   //!< Material of the real world object. e.g. 'original, clay' for 3D-scans of cuneiform tablets.
-			META_REFERENCE_WEB,    //!< Http URL with name format style '[URL|Name}'.#
+			META_REFERENCE_WEB,    //!< Http URL with name format style '[URL|Name]'.
 			META_FILENAME,         //!< Filename, when loaded.
 			META_TEXTUREFILE,      //!< Meshlab texturefile stored in ply: e.g. "comment TextureFile texture.png"
-			META_STRINGS_COUNT    //!< Total number of strings for meta-data.
+			META_STRINGS_COUNT     //!< Total number of strings for meta-data.
 		};
 
 		bool         setModelMetaString( eMetaStrings rMetaStrID, const std::string& rModelMeta );
@@ -50,15 +50,17 @@ class ModelMetaData
 		bool         getModelMetaStringId( const std::string& rModelMetaStringName, eMetaStrings& rMetaStrID ) const;
 		bool         clearModelMetaStrings();
 
+		// Texture mapping
 		[[nodiscard]] bool hasTextureCoordinates() const;
 		void setHasTextureCoordinates(bool hasTextureCoordinates);
-
 
 		TextureHandle addTextureName(const std::filesystem::path& textureName);
 		[[nodiscard]] std::filesystem::path getTextureName(TextureHandle id) const;
 		[[nodiscard]] bool hasTextureFiles() const;
 		std::vector<std::filesystem::path>& getTexturefilesRef();
 
+		// Naming of the file
+		//! \todo Check relevance as it seem to be not used anymore.
 		std::filesystem::path getFileName() const;
 		void setFileName(const std::filesystem::path& fileName);
 
@@ -66,7 +68,7 @@ class ModelMetaData
 		std::array<std::string, META_STRINGS_COUNT> mMetaDataStrings;         //!< Meta-Data contents
 		std::array<std::string, META_STRINGS_COUNT> mMetaDataStringNames;     //!< Meta-Data names
 
-		std::vector<std::filesystem::path> mTextureFiles;                               //!< Stores referenced texture-files
+		std::vector<std::filesystem::path> mTextureFiles;                     //!< Stores referenced texture-files
 		std::filesystem::path mFileName;
 		bool mHasTextureCoordinates = false;                                  //!< Stores if the mesh has texture-coordinates
 };

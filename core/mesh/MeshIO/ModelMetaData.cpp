@@ -99,7 +99,6 @@ bool ModelMetaData::clearModelMetaStrings() {
 	mMetaDataStringNames[META_REFERENCE_WEB]    = "ModelReferenceWeb";
 	mMetaDataStringNames[META_TEXTUREFILE]      = "TextureFile";
 
-	mFileName = "ModelFileName";
 	// Done.
 	return( true );
 }
