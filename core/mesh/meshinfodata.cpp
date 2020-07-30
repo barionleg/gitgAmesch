@@ -238,7 +238,10 @@ bool MeshInfoData::writeMeshInfoProcess(
 
 	// Open file for meta-data
 	//----------------------------------------------------------
-	std::fstream fileStrOutMeta;
+	std::string xmlMeta="";
+	std::string jsonMeta="";
+	std::string ttlMeta="";
+    std::fstream fileStrOutMeta;
 	fileStrOutMeta.open( fileNameOutMeta, std::fstream::out );
 	if( !fileStrOutMeta.is_open() ) {
 		LOG::error() << "[MeshInfoData::" << __FUNCTION__ << "] Could not open file '" << fileNameOutMeta << "' for writing!\n";
@@ -283,8 +286,55 @@ bool MeshInfoData::writeMeshInfoProcess(
 	fileStrOutMeta << "# Timespan (sec):            " << timeElapsed << std::endl;
 	fileStrOutMeta.close();
 	std::wcout << "[MeshInfoData::" << __FUNCTION__ << "] Wrote meta-data to: " << fileNameOutMeta << std::endl;
-
-	// Done
+    std::string indid=urlEncode(this->mStrings[MeshInfoData::FILENAME]);
+    std::string indidnotencoded=this->mStrings[MeshInfoData::FILENAME];
+    std::size_t pos = indidnotencoded.find_last_of("/");
+    std::string indname = indidnotencoded.substr(pos+1,indidnotencoded.size());
+    std::string funcid=urlEncode(rFunctionExecuted);    
+    std::string starttime=urlEncode(std::ctime( &startTime ));   
+    std::string actid=funcid+"_"+indid+"_"+starttime;           
+    std::string newindid=indid+"_"+funcid+"_"+endtime; 
+    std::string personid="person"; 
+    ttlmeta+="giga:"+urlEncode(rFunctionExecuted)+" rdf:type giga:ProcessingFunction, prov:Agent .\n";
+    ttlmeta+="giga:"+indid+" rdf:type prov:Entity .\n";    
+    ttlmeta+="giga:"+actid+" rdf:type prov:Activity .\n";
+    ttlmeta+="giga:iterations rdf:type owl:DatatypeProperty .\n";
+    ttlmeta+="giga:iterations rdfs:domain giga:ProcessingFunction .\n";
+    ttlmeta+="giga:iterations rdfs:range xsd:integer .\n";
+    ttlmeta+="giga:iterations rdfs:label \"Number of iterations of the processing function\"@en .\n";
+    ttlmeta+="giga:cputhreads rdf:type owl:DatatypeProperty .\n";
+    ttlmeta+="giga:cputhreads rdfs:domain giga:ProcessingFunction .\n";
+    ttlmeta+="giga:cputhreads rdfs:range xsd:integer .\n";
+    ttlmeta+="giga:cputhreads rdfs:label \"Number of available CPU threads which could have been used by the processing function\"@en .\n";
+    ttlmeta+="giga:gigaMeshVersion rdf:type owl:DatatypeProperty .\n";
+    ttlmeta+="giga:gigaMeshVersion rdfs:range xsd:string .\n";
+    ttlmeta+="giga:gigaMeshVersion rdfs:domain giga:ProcessingFunction .\n";
+    ttlmeta+="giga:gigaMeshVersion rdfs:label \"The version of the Gigamesh software of this processing algorithm\"@en .\n";
+    ttlmeta+="prov:startedAtTime rdf:type owl:DatatypeProperty .\n";
+    ttlmeta+="prov:startedAtTime rdfs:range xsd:dateTime .\n";
+    ttlmeta+="prov:startedAtTime rdfs:label \"Time of the start of the activity\"@en .\n";
+    ttlmeta+="prov:endedAtTime rdf:type owl:DatatypeProperty .\n";
+    ttlmeta+="prov:endedAtTime rdfs:range xsd:dateTime .\n";
+    ttlmeta+="prov:endedAtTime rdfs:label \"Time of the end of the activity\"@en .\n";
+    ttlmeta+="giga:"+actid+" rdfs:label \""+indname+" processed by "+rFunctionExecuted+"\"@en .\n";
+    ttlmeta+="giga:"+actid+" giga:iterations \""+rIterationCount+"\"^^xsd:integer .\n";
+    ttlmeta+="giga:"+actid+" prov:wasAssociatedWith giga:"+funcid+" .\n";
+    ttlmeta+="giga:"+actid+" giga:gigaMeshVersion \""+VERSION_PACKAGE+"\"^^xsd:string .\n";
+    ttlmeta+="giga:"+actid+" giga:cputhreads \""+std::string(std::thread::hardware_concurrency() - 1)+"\"^^xsd:integer .\n";
+    ttlmeta+="giga:"+actid+" prov:startedAtTime \""+std::ctime( &startTime )+"\"^^xsd:dateTime .\n";
+    ttlmeta+="giga:"+actid+" prov:endedAtTime \""+std::ctime( &endTime )+"\"^^xsd:dateTime .\n";
+    ttlmeta+="giga:"+actid+" prov:used giga:"+indid+" .\n";
+    ttlmeta+="giga:"+newindid+" prov:wasGeneratedBy giga:"+actid+" .\n";
+    ttlmeta+="giga:"+newindid+" prov:wasDerivedFrom giga:"+indid+" .\n";
+    ttlmeta+="giga:"+newindid+" prov:wasAttributedTo giga:"+funcid+" .\n";
+    ttlmeta+="giga:"+personid+" rdf:type foaf:Person .\n";
+    ttlmeta+="giga:"+personid+" foaf:userName \"username\" .\n";
+    ttlmeta+="giga:"+newindid+" dc:contributor giga:"+personid+" .\n";  
+    ttlmeta+="giga:"+actid+" prov:actedOnBehalfOf giga:"+personid+" .\n";    
+    jsonMeta+="{\n"
+    jsonMeta+="}\n"
+    
+    // Done
 	return( true );
 }
 
