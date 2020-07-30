@@ -16,6 +16,7 @@ Please look at mesh.cpp for larger and more complete disclaimer by original crea
 #include <list>
 
 #include <GigaMesh/mesh/vertex.h>
+#include <GigaMesh/mesh/face.h> //added 23.07. in experimental state to add extra vertices to mesh
 #include <GigaMesh/mesh/mesh.h>
 
 
@@ -49,9 +50,13 @@ void wEGetBorderGroupFromVertexByFeatureVector(Vertex* &finalLineVertex1, Vertex
 
 void wEComputeSquaredDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arbPoint, Vertex* &point1OnLine, Vertex* &point2OnLine, double &computedSquaredDistance);
 
+double wEComputeTetraederHeight(std::vector<Vertex*> foundTetraeder);
+
 bool wECheckTetraederHeight(std::vector<Vertex*> foundTetraeder, double &minimumHeight);
 
 void wEWriteExtractedTetraedersIntoFile(std::vector<std::vector<Vertex*>> extractedTetraeders, std::string outputFileName);
+
+void wETempNoteDownExtractedTetraeders(std::vector<std::vector<Vertex*>> &extractedTetraeders, int numberOfVertices, int numberOfFaces, std::vector<double> &RANSACQuality);
 
 //copied from mesh.cpp, will be legacy soon
 bool getSurroundingVerticesInOrder (std::list<Vertex*> &adjacentVertsInOrder, Vertex* &pi, bool printDebug);
@@ -67,8 +72,16 @@ bool experimentalComputeWatershed(double &watershedLimit, std::vector<Vertex*> &
 
 bool experimentalComputeClustering(int numberOfIterations, std::vector<Vertex*> &mVertices);
 
-bool experimentalComputeRANSAC(int numberOfIterations, std::vector<Vertex*> &mVertices, std::string outputFileName, double minimumTetraederHeight);
+bool experimentalComputeRANSAC(	int numberOfIterations,
+								std::string outputFileName,
+								double minimumTetraederHeight,
+								bool extendMesh,
+								bool addSeparationWall,
+								bool visualizeRANSACQuality,
+								bool visualizeTetraederHeight,
+								std::vector<Vertex*> &mVertices,
+								std::vector<Face*> &mFaces);
 
-bool experimentalReorderFeatureVector(std::vector<Vertex*> &mVertices, double deletableInput);
+bool experimentalReorderFeatureVector(std::vector<Vertex*> &mVertices, std::vector<Face*> &mFaces, double deletableInput);
 
 #endif // WEDGEEXTRACTION_H

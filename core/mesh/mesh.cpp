@@ -16651,25 +16651,41 @@ bool Mesh::funcExpComputeClustering(int numberOfIterations){
 //! Stub method calling the real body in wedgeextraction.cpp
 bool Mesh::funcExpComputeRANSAC(int numberOfIterations){
 
-	return experimentalComputeRANSAC(numberOfIterations, mVertices, "OutputFileNotNamed", 0.1);
+	return experimentalComputeRANSAC(numberOfIterations, "OutputFileNotNamed", -1.0, false, false, false, false, mVertices, mFaces);
 
 }
 
 //! Stub method calling the real body in wedgeextraction.cpp
 //! This Method expects a fileName for the extracted Wedges
-//! This Method expects a minimum tetraeder height to omit falsely detected tetraeders.
+//! This Method expects a minimum tetraeder height to omit tetraeders that are deemed to flat.
+//! This Method should always be called with the parameter extendMesh false
 //! As of 2020.07.01 it is not callable in the GigaMesh GUI
-//! It is aimed to be called in CLI
-bool Mesh::funcExpComputeRANSAC(int numberOfIterations, string outputFileName, double minimumTetraederHeight){
+//! This may change till final release
+bool Mesh::funcExpComputeRANSAC(	int numberOfIterations,
+									string outputFileName,
+									double minimumTetraederHeight,
+									bool extendMesh,
+									bool addSeparationWall,
+									bool visualizeRANSACQuality,
+									bool visualizeTetraederHeight){
 
-	return experimentalComputeRANSAC(numberOfIterations, mVertices, outputFileName, minimumTetraederHeight);
+	return experimentalComputeRANSAC(	numberOfIterations,
+										outputFileName,
+										minimumTetraederHeight,
+										extendMesh,
+										addSeparationWall,
+										visualizeRANSACQuality,
+										visualizeTetraederHeight,
+										mVertices,
+										mFaces);
 
 }
 
 //! Stub method calling the real body in wedgeextraction.cpp
+//! Will not be present in final version
 bool Mesh::funcExpReorderFeatVec(double deletableInput){
 
-	return experimentalReorderFeatureVector(mVertices, deletableInput);
+	return experimentalReorderFeatureVector(mVertices, mFaces, deletableInput);
 
 }
 

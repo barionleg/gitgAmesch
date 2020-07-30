@@ -541,7 +541,13 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool funcExpComputeWatershed(double watershedLimit);
 				bool funcExpComputeClustering(int numberOfIterations);
 				bool funcExpComputeRANSAC(int numberOfIterations);
-				bool funcExpComputeRANSAC(int numberOfIterations, std::string outputFileName, double minimumTetraederHeight);
+				bool funcExpComputeRANSAC(	int numberOfIterations,
+											std::string outputFileName,
+											double minimumTetraederHeight,
+											bool extendMesh,
+											bool addSeparationWall,
+											bool visualizeRANSACQuality,
+											bool visualizeTetraederHeight);
 				bool funcExpReorderFeatVec(double deletableInput);
 		// Again some old style function value calls:
 				bool setVertFuncValCorrTo( std::vector<double>* rFeatVector );

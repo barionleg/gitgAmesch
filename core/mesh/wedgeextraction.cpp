@@ -28,6 +28,8 @@ Please look at mesh.cpp for larger and more complete disclaimer by original crea
 #include <GigaMesh/mesh/wedgeextraction.h>
 
 #include <GigaMesh/mesh/vertex.h>
+#include <GigaMesh/mesh/face.h> 			//for mesh extension, experimental state
+#include <GigaMesh/mesh/vertexofface.h> 	//for mesh extension, experimental state
 #include <GigaMesh/mesh/mesh.h>
 
 
@@ -37,6 +39,22 @@ using namespace std;
 //they all begin with wE
 
 double temporaryRANSACParameter = 0.1;
+
+//hacky solution for mesh extension testing
+//problem of putting it in the method body: the pointers will be invalid
+
+vector<vector<VertexOfFace>> tempVOFCollection;
+
+//unsigned char as numbers gives the range 0 - 255
+vector<unsigned char> RANSACQualityColourPerTetraeder;
+vector<unsigned char> tetraederDepthColourPerTetraeder;
+
+vector<vector<VertexOfFace*>> tempVOFPCollection;
+
+vector<Face> tempFCollection;
+
+vector<Face*> tempFPCollection;
+
 
 //! Distance calculation for vertices omitting square root for speed up
 double wEComputeSquaredDistanceBetweenTwoVertices(Vertex* &vertexNo1, Vertex* &vertexNo2){
@@ -434,6 +452,45 @@ void wEComputeSquaredDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arb
 }
 
 
+double wEComputeTetraederHeight(std::vector<Vertex*> foundTetraeder){
+
+	//every found tetraeder should consist of 4 vertices
+	//this is checked for the sake of implementation
+	if(foundTetraeder.size() == 4){
+
+		double vector1ComponentX = foundTetraeder[2]->getX() - foundTetraeder[1]->getX();
+		double vector1ComponentY = foundTetraeder[2]->getY() - foundTetraeder[1]->getY();
+		double vector1ComponentZ = foundTetraeder[2]->getZ() - foundTetraeder[1]->getZ();
+
+		double vector2ComponentX = foundTetraeder[3]->getX() - foundTetraeder[1]->getX();
+		double vector2ComponentY = foundTetraeder[3]->getY() - foundTetraeder[1]->getY();
+		double vector2ComponentZ = foundTetraeder[3]->getZ() - foundTetraeder[1]->getZ();
+
+		double crossProductComponentX = (vector1ComponentY * vector2ComponentZ) - (vector1ComponentZ * vector2ComponentY);
+		double crossProductComponentY = (vector1ComponentZ * vector2ComponentX) - (vector1ComponentX * vector2ComponentZ);
+		double crossProductComponentZ = (vector1ComponentX * vector2ComponentY) - (vector1ComponentY * vector2ComponentX);
+
+		double planeComponentD =	(crossProductComponentX * foundTetraeder[1]->getX() * -1.0) +
+									(crossProductComponentY * foundTetraeder[1]->getY() * -1.0) +
+									(crossProductComponentZ * foundTetraeder[1]->getZ() * -1.0);
+
+
+		double distanceTopFromPlane =	( abs(	(crossProductComponentX * foundTetraeder[0]->getX()) +
+												(crossProductComponentY * foundTetraeder[0]->getY()) +
+												(crossProductComponentZ * foundTetraeder[0]->getZ()) +
+												planeComponentD ) ) /
+										( sqrt( pow(crossProductComponentX, 2.0) + pow(crossProductComponentY, 2.0) + pow(crossProductComponentZ, 2.0) ) );
+
+
+		return distanceTopFromPlane;
+
+
+	} else {
+		return 0.0;
+	}
+}
+
+
 //! Checks if a tetraeder is tall enough (considering the tetraeder top (the wedge vertex with highest MSII value) as top wedge from where to consider the height)
 //! The found Tetraeder is made of 4 vertices: tetraeder top, vertex 1, vertex 2, vertex 3
 bool wECheckTetraederHeight(vector<Vertex*> foundTetraeder, double &minimumHeight){
@@ -498,7 +555,7 @@ void wEWriteExtractedTetraedersIntoFile(vector<vector<Vertex*>> extractedTetraed
 	}
 	else{
 
-		OutFile << "# This file holds the extracted tetreaders." << endl;
+		OutFile << "# This file holds the extracted tetraeders." << endl;
 
 		//loop over tetraeder
 		for(int i=0; i < extractedTetraeders.size(); i++){
@@ -532,11 +589,109 @@ void wEWriteExtractedTetraedersIntoFile(vector<vector<Vertex*>> extractedTetraed
 
 			OutFile << "f " << fComp1 << " " << fComp2 << " " << fComp3 << endl;
 			OutFile << "f " << fComp1 << " " << fComp2 << " " << fComp4 << endl;
-			OutFile << "f " << fComp1 << " " << fComp3 << " " << fComp4 << endl;
+			//OutFile << "f " << fComp1 << " " << fComp3 << " " << fComp4 << endl; //may be not counterclockwise
+			OutFile << "f " << fComp1 << " " << fComp4 << " " << fComp3 << endl; //counterclockwise equivalent to line before
 			OutFile << "f " << fComp2 << " " << fComp3 << " " << fComp4 << endl;
 
 		}
 	}
+}
+
+//! a hacky helper method, that will not end up in the final version
+void wETempNoteDownExtractedTetraeders(vector<vector<Vertex*>> &extractedTetraeders, int numberOfVertices, int numberOfFaces, vector<double> &RANSACQuality){
+
+	int VertexExtensionCounter = numberOfVertices;
+	int FaceExtensionCounter = numberOfFaces;
+
+	//collect all tetraeder VerticesOfFace
+	for(int i=0; i<extractedTetraeders.size(); i++){
+
+		vector<VertexOfFace> currentTetraeder;
+
+		for(int j=0; j<4; j++){
+
+			VertexExtensionCounter++;
+			double tempX = extractedTetraeders[i][j]->getX();
+			double tempY = extractedTetraeders[i][j]->getY();
+			double tempZ = extractedTetraeders[i][j]->getZ();
+			VertexOfFace tempVOF(VertexExtensionCounter, tempX, tempY, tempZ);
+
+			//a first test to make the vertices red
+			tempVOF.setRGB(100,0,0);
+
+			currentTetraeder.push_back(tempVOF);
+
+
+
+		}
+
+		tempVOFCollection.push_back(currentTetraeder);
+	}
+
+
+	//collect all pointers to VerticesOfFace
+	for(int i=0; i<tempVOFCollection.size(); i++){
+
+		vector<VertexOfFace*> currentTetraederPs;
+		for(int j=0; j<4; j++){
+			VertexOfFace * tempVertexOfFaceP = &tempVOFCollection[i][j];
+
+			currentTetraederPs.push_back(tempVertexOfFaceP);
+		}
+
+		tempVOFPCollection.push_back(currentTetraederPs);
+	}
+
+	//create faces
+
+	for(int i=0; i<tempVOFPCollection.size(); i++){
+
+		VertexOfFace * tempVOFP1 = tempVOFPCollection[i][0];
+		VertexOfFace * tempVOFP2 = tempVOFPCollection[i][1];
+		VertexOfFace * tempVOFP3 = tempVOFPCollection[i][2];
+		VertexOfFace * tempVOFP4 = tempVOFPCollection[i][3];
+
+
+		FaceExtensionCounter++;
+		Face customFace1(FaceExtensionCounter, tempVOFP1, tempVOFP2, tempVOFP3);
+		FaceExtensionCounter++;
+		Face customFace2(FaceExtensionCounter, tempVOFP1, tempVOFP2, tempVOFP4);
+		FaceExtensionCounter++;
+		Face customFace3(FaceExtensionCounter, tempVOFP1, tempVOFP4, tempVOFP3);
+		FaceExtensionCounter++;
+		Face customFace4(FaceExtensionCounter, tempVOFP2, tempVOFP3, tempVOFP4);
+
+		tempFCollection.push_back(customFace1);
+		tempFCollection.push_back(customFace2);
+		tempFCollection.push_back(customFace3);
+		tempFCollection.push_back(customFace4);
+	}
+
+	//collect pointers to faces
+
+	for(int i=0; i<tempFCollection.size(); i++){
+		Face* tempFacePointer = &tempFCollection[i];
+
+		tempFPCollection.push_back(tempFacePointer);
+
+	}
+
+	// TESTING
+	//how to add vertex or face
+
+	//int countingFurther = mVertices.size();
+
+	//VertexOfFace testVert1(countingFurther+1, 4.0, -1.0, 2.0);
+	//VertexOfFace testVert2(countingFurther+2, 8.0, 5.0, -2.0);
+	//VertexOfFace testVert3(countingFurther+3, -4.0, 1.0, 6.0);
+
+	//int countingFF = mFaces.size();
+
+	//Face customFace(countingFF+1, testVert1, testVert2, testVert3)
+	//VertexOfFace* pointy1 = &testVert1;
+	//VertexOfFace* pointy2 = &testVert2;
+	//VertexOfFace* pointy3 = &testVert3;
+
 }
 
 
@@ -881,10 +1036,11 @@ bool experimentalSuppressNonMaxima(double &NMSDistance, vector<Vertex*> &mVertic
 		}
 
 		processedVertexCounter++;
+		int totalNumberOfVertices = mVertices.size();
 
 		if((processedVertexCounter % 10000) == 0){
 
-			cout << processedVertexCounter << " of " << mVertices.size() << " vertices have been processed until now." << endl;
+			cout << processedVertexCounter << " of " << totalNumberOfVertices << " vertices have been processed until now." << endl;
 
 		}
 
@@ -1378,9 +1534,12 @@ bool experimentalComputeWatershed(double &watershedLimit, vector<Vertex*> &mVert
 		//DO NOT // watershedCoast.erase(prev(watershedCoast.end())); //THIS IS WRONG, meanwhile the highest element no longer has to be the vertex we looked at, because we inserted other vertices
 		watershedCoast.erase(VPWMSIIValue);
 
+		int totalNumberOfVertices = mVertices.size();
+
 		if(((int)counterForFutureWork % 10000) == 0){
 
-			cout << counterForFutureWork << " of " << mVertices.size() << " vertices have been processed." << endl;
+			cout << counterForFutureWork << " of " << totalNumberOfVertices << " vertices have been processed." << endl;
+
 		}
 	}
 
@@ -1519,7 +1678,6 @@ bool experimentalComputeClustering(int numberOfIterations, vector<Vertex*> &mVer
 		//however another shuffling (resulting in a random selection of 3 future cluster means) is done
 
 		//clustering is only performed, if the verticesWithCurrentLabel are enough labels to begin with, which is 3 or more
-
 		if(verticesWithCurrentLabel.size() >= 3){
 
 			vector<Vertex*> threeRandomlyChosenVertices;
@@ -1572,7 +1730,15 @@ bool experimentalComputeClustering(int numberOfIterations, vector<Vertex*> &mVer
 //! RANSAC algorithm that fits a tetraeder (into a found wedge)
 //! Will enlarge the feature vectors of all vertices to size 22
 //! Data will be written at Feature Vector Position 22 if vertices lie on a border between two clusterings
-bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertices, string outputFileName, double minimumTetraederHeight){
+bool experimentalComputeRANSAC(	int numberOfIterations,
+								string outputFileName,
+								double minimumTetraederHeight,
+								bool extendMesh,
+								bool addSeparationWall,
+								bool visualizeRANSACQuality,
+								bool visualizeTetraederHeight,
+								vector<Vertex*> &mVertices,
+								vector<Face*> &mFaces){
 
 	//will note down the number of different labels used
 	//is likely the same a the number of maxima that non maximum suppression produced
@@ -1583,6 +1749,8 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 
 	//The extracted Tetraeders are collected and then written to a file
 	vector<vector<Vertex*>> extractedTetraeders;
+
+	vector<double> RANSACQuality;
 
 	//prepare data
 	//find the number of labels and the number of vertices, which were not labeled
@@ -1957,13 +2125,19 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 
 			vector<Vertex*> foundTetraeder= {finalTetraederTop, finalTetraederVertex1, finalTetraederVertex2, finalTetraederVertex3};
 
-			double allowedMinimumHeight = temporaryRANSACParameter;
+			//double allowedMinimumHeight = temporaryRANSACParameter;
 
 			//use the temporary RANSAC PARAMETER, a temporary global, to only allow tetraeders with sufficient height
-
+			/*
 			if(wECheckTetraederHeight(foundTetraeder, allowedMinimumHeight)){
 				extractedTetraeders.push_back(foundTetraeder);
 			}
+			*/
+
+			//24.07. don't omit any tetraeders right now
+			extractedTetraeders.push_back(foundTetraeder);
+
+			RANSACQuality.push_back(smallestSumOfDistances);
 
 
 
@@ -1974,7 +2148,31 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 
 	}//all labeled groups have been worked upon
 
+	//Export found Wedges into file
 	wEWriteExtractedTetraedersIntoFile(extractedTetraeders, outputFileName);
+
+
+
+	//The goal is to have Tetraeders show up in mesh
+
+	//The solution is far from perfect
+	//Write the objects into the global collectors.
+
+	//let Feature Vector Reorder add them to the mesh.
+	//this way, only Feature Vector Reorder corrupts the status quo
+
+	//int numberOfVertices = mVertices.size();
+	//int numberOfFaces = mFaces.size();
+
+
+	//needs to be reimplemented in a better form
+
+	//the bool extendMesh can be used
+	//cout << "Augmentation of mesh beginns" << endl;
+	//wETempNoteDownExtractedTetraeders(extractedTetraeders, numberOfVertices, numberOfFaces, RANSACQuality);
+
+
+
 
 	cout << "RANSAC terminated successfully!" << endl;
 	cout << "RANSAC encountered " << verticesWithoutAssignedCluster << " vertices that were not assigned to any cluster." << endl;
@@ -1985,9 +2183,60 @@ bool experimentalComputeRANSAC(int numberOfIterations, vector<Vertex*> &mVertice
 }
 
 
-bool experimentalReorderFeatureVector(vector<Vertex*> &mVertices, double deletableInput){
+bool experimentalReorderFeatureVector(vector<Vertex*> &mVertices, vector<Face*> &mFaces, double deletableInput){
 
 	temporaryRANSACParameter = deletableInput;
+
+
+	// TESTING
+	//how to add vertex or face
+
+	//int countingFurther = mVertices.size();
+
+	//VertexOfFace testVert1(countingFurther+1, 4.0, -1.0, 2.0);
+	//VertexOfFace testVert2(countingFurther+2, 8.0, 5.0, -2.0);
+	//VertexOfFace testVert3(countingFurther+3, -4.0, 1.0, 6.0);
+
+	//int countingFF = mFaces.size();
+
+	//Face customFace(countingFF+1, testVert1, testVert2, testVert3)
+	//VertexOfFace* pointy1 = &testVert1;
+	//VertexOfFace* pointy2 = &testVert2;
+	//VertexOfFace* pointy3 = &testVert3;
+/*
+	VertexOfFace testVert1(60, 4.0, -1.0, 2.0);
+VertexOfFace testVert2(61, 8.0, 5.0, -2.0);
+VertexOfFace testVert3(62, -4.0, 1.0, 6.0);
+
+VertexOfFace* pointy1 = &testVert1;
+VertexOfFace* pointy2 = &testVert2;
+VertexOfFace* pointy3 = &testVert3;
+
+Face customFace(50, pointy1, pointy2, pointy3);
+
+	mVertices.push_back(pointy1);
+	mVertices.push_back(pointy2);
+	mVertices.push_back(pointy3);
+
+	Face* pointy4 = &customFace;
+	mFaces.push_back(pointy4);
+	*/
+
+	/*
+	//add new vertices to current Mesh
+	for(int i=0; i<tempVOFPCollection.size(); i++){
+		for(int j=0; j<4; j++){
+			VertexOfFace* tempVOFPointer = tempVOFPCollection[i][j];
+			mVertices.push_back(tempVOFPointer);
+		}
+	}
+
+	//add new faces to current Mesh
+	for(int i=0; i<tempFPCollection.size(); i++){
+		Face* tempFacePointer = tempFPCollection[i];
+		mFaces.push_back(tempFacePointer);
+	}
+*/
 
 	cout << "unfinished" << endl;
 

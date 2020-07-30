@@ -1193,7 +1193,7 @@ bool MeshQt::funcExperimentalComputeWatershed()
 bool MeshQt::funcExperimentalComputeClustering()
 {
     QGMDialogEnterText dlgEnterTextVal;
-	dlgEnterTextVal.setInt(1);
+	dlgEnterTextVal.setInt(100);
 	dlgEnterTextVal.setWindowTitle( tr("Give number of iterations for clustering!") );
 
 	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int numberOfIterations) {this->funcExpComputeClustering(numberOfIterations);});
@@ -1204,7 +1204,7 @@ bool MeshQt::funcExperimentalComputeClustering()
 bool MeshQt::funcExperimentalComputeRANSAC()
 {
     QGMDialogEnterText dlgEnterTextVal;
-	dlgEnterTextVal.setInt(1);
+	dlgEnterTextVal.setInt(100);
 	dlgEnterTextVal.setWindowTitle( tr("Give number of iterations for RANSAC!") );
 
 	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int numberOfIterations) {this->funcExpComputeRANSAC(numberOfIterations);});
