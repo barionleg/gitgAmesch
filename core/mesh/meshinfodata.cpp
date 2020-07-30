@@ -31,6 +31,8 @@
 #include <fstream>      // filestreams
 #include <cctype>       // std::tolower
 #include <thread>       // std::thread
+#include <sstream>
+#include <random>
 
 #include <GigaMesh/mesh/gmcommon.h>
 #include <GigaMesh/logging/Logging.h>
@@ -107,6 +109,29 @@ void MeshInfoData::reset() {
 	for( double& countValue : this->mCountDouble ) {
 		countValue = _NOT_A_NUMBER_DBL_;
 	}
+}
+
+unsigned int random_char() {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, 255);
+    return dis(gen);
+}
+
+std::string generate_hex(const unsigned int len) {
+    std::stringstream ss;
+    for (auto i = 0; i < len; i++) {
+        const auto rc = random_char();
+        std::stringstream hexstream;
+        hexstream << std::hex << rc;
+        auto hex = hexstream.str();
+        ss << (hex.length() < 2 ? '0' + hex : hex);
+    }
+    return ss.str();
+}
+
+std::string generate_UUID(){
+    return generate_hex(8)+"-"+generate_hex(4)+"-"+generate_hex(4)+"-"+generate_hex(12)
 }
 
 std::string urlEncode(std::string str){
@@ -306,10 +331,11 @@ bool MeshInfoData::writeMeshInfoProcess(
     std::string indname = indidnotencoded.substr(pos+1,indidnotencoded.size());
     std::string funcid=urlEncode(rFunctionExecuted);    
     std::string starttime=urlEncode(std::ctime( &startTime ));   
-    std::string actid=funcid+"_"+indid+"_"+starttime;           
+    std::string actid=funcid+"_"+generate_UUID();           
     std::string newindid=indid+"_"+funcid+"_"+endtime; 
     std::string personid="person"; 
-    ttlmeta+="giga:"+urlEncode(rFunctionExecuted)+" rdf:type giga:ProcessingFunction, prov:Agent .\n";
+    ttlmeta+="giga:"+urlEncode(rFunctionExecuted)+" rdf:type giga:ProcessingFunction .\n";
+    ttlmeta+="giga:ProcessingFunction rdfs:subClassOf prov:Agent .\n";
     ttlmeta+="giga:"+indid+" rdf:type prov:Entity .\n";    
     ttlmeta+="giga:"+actid+" rdf:type prov:Activity .\n";
     ttlmeta+="giga:iterations rdf:type owl:DatatypeProperty .\n";
@@ -324,16 +350,59 @@ bool MeshInfoData::writeMeshInfoProcess(
     ttlmeta+="giga:gigaMeshVersion rdfs:range xsd:string .\n";
     ttlmeta+="giga:gigaMeshVersion rdfs:domain giga:ProcessingFunction .\n";
     ttlmeta+="giga:gigaMeshVersion rdfs:label \"The version of the Gigamesh software of this processing algorithm\"@en .\n";
+    ttlmeta+="giga:vertexCountDifference rdf:type owl:DatatypeProperty .\n";
+    ttlmeta+="giga:vertexCountDifference rdfs:range xsd:integer .\n";
+    ttlmeta+="giga:vertexCountDifference rdfs:seeAlso giga:totalNumberOfVertices .\n";
+    ttlmeta+="giga:vertexCountDifference rdfs:domain giga:ProcessingFunction .\n";
+    ttlmeta+="giga:vertexCountDifference rdfs:label \"The difference of vertex counts after a processing function has been applied\"@en .\n";
+    ttlmeta+="giga:borderVertexCountDifference rdf:type owl:DatatypeProperty .\n";
+    ttlmeta+="giga:borderVertexCountDifference rdfs:range xsd:integer .\n";
+    ttlmeta+="giga:borderVertexCountDifference rdfs:seeAlso giga:borderVertices .\n";
+    ttlmeta+="giga:borderVertexCountDifference rdfs:domain giga:ProcessingFunction .\n";
+    ttlmeta+="giga:borderVertexCountDifference rdfs:label \"The difference of border vertex counts after a processing function has been applied\"@en .\n";
+    ttlmeta+="giga:facesCountDifference rdf:type owl:DatatypeProperty .\n";
+    ttlmeta+="giga:facesCountDifference rdfs:range xsd:integer .\n";
+    ttlmeta+="giga:facesCountDifference rdfs:seeAlso giga:totalNumberOfFaces .\n";
+    ttlmeta+="giga:facesCountDifference rdfs:domain giga:ProcessingFunction .\n";
+    ttlmeta+="giga:facesCountDifference rdfs:label \"The difference of faces counts after a processing function has been applied\"@en .\n";
+    ttlmeta+="giga:connectedComponentsCountDifference rdf:type owl:DatatypeProperty .\n";
+    ttlmeta+="giga:connectedComponentsCountDifference rdfs:range xsd:integer .\n";
+    ttlmeta+="giga:connectedComponentsCountDifference rdfs:seeAlso giga:amountOfConnectedComponents .\n";
+    ttlmeta+="giga:connectedComponentsCountDifference rdfs:domain giga:ProcessingFunction .\n";
+    ttlmeta+="giga:connectedComponentsCountDifference rdfs:label \"The difference of connected component counts after a processing function has been applied\"@en .\n";
+    ttlmeta+="giga:syntheticVertexCountDifference rdf:type owl:DatatypeProperty .\n";
+    ttlmeta+="giga:syntheticVertexCountDifference rdfs:range xsd:integer .\n";
+    ttlmeta+="giga:syntheticVertexCountDifference rdfs:seeAlso giga:syntheticVertices .\n";
+    ttlmeta+="giga:syntheticVertexCountDifference rdfs:domain giga:ProcessingFunction .\n";
+    ttlmeta+="giga:syntheticVertexCountDifference rdfs:label \"The difference of synthetic vertex counts after a processing function has been applied\"@en .\n";
+    ttlmeta+="giga:syntheticFacesCountDifference rdf:type owl:DatatypeProperty .\n";
+    ttlmeta+="giga:syntheticFacesCountDifference rdfs:range xsd:integer .\n";
+    ttlmeta+="giga:syntheticFacesCountDifference rdfs:seeAlso giga:syntheticVertexFaces .\n";
+    ttlmeta+="giga:syntheticFacesCountDifference rdfs:domain giga:ProcessingFunction .\n";
+    ttlmeta+="giga:syntheticFacesCountDifference rdfs:label \"The difference of synthetic faces counts after a processing function has been applied\"@en .\n";
+    ttlmeta+="giga:duration rdf:type owl:DatatypeProperty .\n";
+    ttlmeta+="giga:duration rdfs:range xsd:integer .\n";
+    ttlmeta+="giga:duration rdfs:domain giga:ProcessingFunction .\n";
+    ttlmeta+="giga:duration rdfs:label \"The execution time of the processing function\"@en .\n";
     ttlmeta+="prov:startedAtTime rdf:type owl:DatatypeProperty .\n";
     ttlmeta+="prov:startedAtTime rdfs:range xsd:dateTime .\n";
     ttlmeta+="prov:startedAtTime rdfs:label \"Time of the start of the activity\"@en .\n";
     ttlmeta+="prov:endedAtTime rdf:type owl:DatatypeProperty .\n";
     ttlmeta+="prov:endedAtTime rdfs:range xsd:dateTime .\n";
     ttlmeta+="prov:endedAtTime rdfs:label \"Time of the end of the activity\"@en .\n";
+    ttlmeta+="prov:generatedAtTime rdf:type owl:DatatypeProperty .\n";
+    ttlmeta+="prov:generatedAtTime rdfs:range xsd:dateTime .\n";
+    ttlmeta+="prov:generatedAtTime rdfs:label \"Time when an entity was generated\"@en .\n";
     ttlmeta+="giga:"+actid+" rdfs:label \""+indname+" processed by "+rFunctionExecuted+"\"@en .\n";
     ttlmeta+="giga:"+actid+" giga:iterations \""+rIterationCount+"\"^^xsd:integer .\n";
     ttlmeta+="giga:"+actid+" prov:wasAssociatedWith giga:"+funcid+" .\n";
     ttlmeta+="giga:"+actid+" giga:gigaMeshVersion \""+VERSION_PACKAGE+"\"^^xsd:string .\n";
+    ttlmeta+="giga:"+actid+" giga:vertexCountDifference \""+vertexCountDiff+"\"^^xsd:integer .\n";
+    ttlmeta+="giga:"+actid+" giga:syntheticVertexCountDifference \""+std::string(mCountULong[MeshInfoData::VERTICES_SYNTHETIC] -rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_SYNTHETIC] )+"\"^^xsd:integer .\n";
+    ttlmeta+="giga:"+actid+" giga:syntheticFacesCountDifference \""+std::string(mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES]-rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES]) +"\"^^xsd:integer .\n";
+    ttlmeta+="giga:"+actid+" giga:borderVertexCountDifference \""+vertexBorderCountDiff+"\"^^xsd:integer .\n";
+    ttlmeta+="giga:"+actid+" giga:facesCountDifference \""+faceCountDiff+"\"^^xsd:integer .\n";
+    ttlmeta+="giga:"+actid+" giga:connectedComponentCountDifference \""+std::string(mCountULong[CONNECTED_COMPONENTS]-rMeshInfoPrevious.mCountULong[CONNECTED_COMPONENTS])+"\"^^xsd:integer .\n";
     ttlmeta+="giga:"+actid+" giga:cputhreads \""+std::string(std::thread::hardware_concurrency() - 1)+"\"^^xsd:integer .\n";
     ttlmeta+="giga:"+actid+" prov:startedAtTime \""+std::ctime( &startTime )+"\"^^xsd:dateTime .\n";
     ttlmeta+="giga:"+actid+" prov:endedAtTime \""+std::ctime( &endTime )+"\"^^xsd:dateTime .\n";
@@ -341,13 +410,125 @@ bool MeshInfoData::writeMeshInfoProcess(
     ttlmeta+="giga:"+newindid+" prov:wasGeneratedBy giga:"+actid+" .\n";
     ttlmeta+="giga:"+newindid+" prov:wasDerivedFrom giga:"+indid+" .\n";
     ttlmeta+="giga:"+newindid+" prov:wasAttributedTo giga:"+funcid+" .\n";
+    ttlmeta+="giga:"+newindid+" prov:generatedAtTime \""+std::ctime( &endTime )+"\"^^xsd:dateTime .\n";  
     ttlmeta+="giga:"+personid+" rdf:type foaf:Person .\n";
-    ttlmeta+="giga:"+personid+" foaf:userName \"username\" .\n";
+    ttlmeta+="giga:"+personid+" foaf:userName \""+userName+"\" .\n";
     ttlmeta+="giga:"+newindid+" dc:contributor giga:"+personid+" .\n";  
     ttlmeta+="giga:"+actid+" prov:actedOnBehalfOf giga:"+personid+" .\n";    
-    jsonMeta+="{\n"
-    jsonMeta+="}\n"
+    jsonMeta+="{\n";
     
+    jsonMeta+="}\n";
+    xmlMeta+="<?xml version=\"1.0\"?>\n";
+    xmlMeta+="<GigaMeshMetaData xmlns=\"http://www.gigamesh.eu/ont#\" xmlns:dc=\"http://purl.org/dc/terms/\" xmlns:prov=\"http://www.w3.org/ns/prov#\" xmlns:om=\"http://www.ontology-of-units-of-measure.org/resource/om-2/ \">";
+    xmlMeta+="<Mesh id=\""+indid+"\">\n";      
+    xmlMeta+="<TotalNumberOfVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_TOTAL])+"</TotalNumberOfVertices>\n";
+    xmlMeta+="<NaNVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_NAN])+"</NaNVertices>\n";
+    xmlMeta+="<NormalLengthVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_NORMAL_LEN_NORMAL])+"</NormalLengthVertices>\n";
+    xmlMeta+="<IsolatedVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_SOLO])+"</IsolatedVertices>\n";
+    xmlMeta+="<BorderVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_BORDER])+"</BorderVertices>\n";
+    xmlMeta+="<NonManifoldVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_NONMANIFOLD])+"</NonManifoldVertices>\n";
+    xmlMeta+="<SingularVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_SINGULAR])+"</SingularVertices>\n";
+    xmlMeta+="<VerticesOnInvertedEdge>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_ON_INVERTED_EDGE])+"</VerticesOnInvertedEdge>\n";
+    xmlMeta+="<VerticesPartOfZeroAreaFace>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_PART_OF_ZERO_FACE])+"</VerticesPartOfZeroAreaFace>\n";
+    xmlMeta+="<SyntheticVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_SYNTHETIC])+"</SyntheticVertices>\n";
+    xmlMeta+="<ManuallyAddedVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_MANUAL])+"</ManuallyAddedVertices>\n";
+    xmlMeta+="<CircleCenterVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_CIRCLE_CENTER])+"</CircleCenterVertices>\n";
+    xmlMeta+="<SelectedVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_SELECTED])+"</SelectedVertices>\n";
+    xmlMeta+="<FiniteFunctionValueVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_FUNCVAL_FINITE])+"</FiniteFunctionValueVertices>\n";
+    xmlMeta+="<LocalFunctionMinValueVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_FUNCVAL_LOCAL_MIN])+"</LocalFunctionMinValueVertices>\n";
+    xmlMeta+="<LocalFunctionMaxValueVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_FUNCVAL_LOCAL_MAX])+"</LocalFunctionMaxValueVertices>\n";
+    xmlMeta+="</VertexInformation>\n";
+    xmlMeta+="<FacesInformation>\n";
+    xmlMeta+="<TotalNumberOfFaces>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_TOTAL])+"</TotalNumberOfFaces>\n";
+    xmlMeta+="<SoloFaces>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_SOLO])+"</SoloFaces>\n";
+    xmlMeta+="<BorderFaces>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_BORDER])+"</BorderFaces>\n";
+    xmlMeta+="<ThreeBorderVertexFaces>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_BORDER_THREE_VERTICES])+"</ThreeBorderVertexFaces>\n";
+    xmlMeta+="<BorderFacesBridgeTriConnection>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_BORDER_BRDIGE_TRICONN])+"</BorderFacesBridgeTriConnection>\n";
+    xmlMeta+="<BridgeBorderFaces>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_BORDER_BRDIGE])+"</BridgeBorderFaces>\n";
+    xmlMeta+="<DanglingBorderFaces>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_BORDER_DANGLING])+"</DanglingBorderFaces>\n";
+    xmlMeta+="<ManifoldFaces>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_MANIFOLD])+"</ManifoldFaces>\n";
+    xmlMeta+="<NonManifoldFaces>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_NONMANIFOLD])+"</NonManifoldFaces>\n";
+    xmlMeta+="<StickyFaces>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_STICKY])+"</StickyFaces>\n";
+    xmlMeta+="<ZeroAreaFaces>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_ZEROAREA])+"</ZeroAreaFaces>\n";
+    xmlMeta+="<InvertedFaces>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_INVERTED])+"</InvertedFaces>\n";
+    xmlMeta+="<SelectedFaces>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_SELECTED])+"</SelectedFaces>\n";
+    xmlMeta+="<SyntheticVertexFaces>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES])+"</SyntheticVertexFaces>\n";
+    xmlMeta+="</FacesInformation>\n";
+    xmlMeta+="<BoundingBox>\n";
+    xmlMeta+="<MinimumXCoordinate>"+std::to_string(rMeshInfoPrevious.mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_X])+"</MinimumXCoordinate>\n";
+    xmlMeta+="<MinimumYCoordinate>"+std::to_string(rMeshInfoPrevious.mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Y])+"</MinimumYCoordinate>\n";
+    xmlMeta+="<MinimumZCoordinate>"+std::to_string(rMeshInfoPrevious.mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Z])+"</MinimumZCoordinate>\n";
+    xmlMeta+="<MaximumXCoordinate>"+std::to_string(rMeshInfoPrevious.mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_X])+"</MaximumXCoordinate>\n";
+    xmlMeta+="<MaximumYCoordinate>"+std::to_string(rMeshInfoPrevious.mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Y])+"</MaximumYCoordinate>\n";
+    xmlMeta+="<MaximumZCoordinate>"+std::to_string(rMeshInfoPrevious.mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Z])+"</MaximumZCoordinate>\n";
+    xmlMeta+="<BoundingBoxWidth>"+std::to_string(rMeshInfoPrevious.mCountDouble[MeshInfoData::BOUNDINGBOX_WIDTH])+"</BoundingBoxWidth>\n";
+    xmlMeta+="<BoundingBoxHeight>"+std::to_string(rMeshInfoPrevious.mCountDouble[MeshInfoData::BOUNDINGBOX_HEIGHT])+"</BoundingBoxHeight>\n";
+    xmlMeta+="</BoundingBox>\n";    
+    xmlMeta+="</Mesh>\n";  
+    xmlMeta+="<Mesh id=\""+newindid+"\">\n";      
+    xmlMeta+="<TotalNumberOfVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_TOTAL])+"</TotalNumberOfVertices>\n";
+    xmlMeta+="<NaNVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_NAN])+"</NaNVertices>\n";
+    xmlMeta+="<NormalLengthVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_NORMAL_LEN_NORMAL])+"</NormalLengthVertices>\n";
+    xmlMeta+="<IsolatedVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_SOLO])+"</IsolatedVertices>\n";
+    xmlMeta+="<BorderVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_BORDER])+"</BorderVertices>\n";
+    xmlMeta+="<NonManifoldVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_NONMANIFOLD])+"</NonManifoldVertices>\n";
+    xmlMeta+="<SingularVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_SINGULAR])+"</SingularVertices>\n";
+    xmlMeta+="<VerticesOnInvertedEdge>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_ON_INVERTED_EDGE])+"</VerticesOnInvertedEdge>\n";
+    xmlMeta+="<VerticesPartOfZeroAreaFace>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_PART_OF_ZERO_FACE])+"</VerticesPartOfZeroAreaFace>\n";
+    xmlMeta+="<SyntheticVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_SYNTHETIC])+"</SyntheticVertices>\n";
+    xmlMeta+="<ManuallyAddedVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_MANUAL])+"</ManuallyAddedVertices>\n";
+    xmlMeta+="<CircleCenterVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_CIRCLE_CENTER])+"</CircleCenterVertices>\n";
+    xmlMeta+="<SelectedVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_SELECTED])+"</SelectedVertices>\n";
+    xmlMeta+="<FiniteFunctionValueVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_FUNCVAL_FINITE])+"</FiniteFunctionValueVertices>\n";
+    xmlMeta+="<LocalFunctionMinValueVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_FUNCVAL_LOCAL_MIN])+"</LocalFunctionMinValueVertices>\n";
+    xmlMeta+="<LocalFunctionMaxValueVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_FUNCVAL_LOCAL_MAX])+"</LocalFunctionMaxValueVertices>\n";
+    xmlMeta+="</VertexInformation>\n";
+    xmlMeta+="<FacesInformation>\n";
+    xmlMeta+="<TotalNumberOfFaces>"+std::to_string(this->mCountULong[MeshInfoData::FACES_TOTAL])+"</TotalNumberOfFaces>\n";
+    xmlMeta+="<SoloFaces>"+std::to_string(this->mCountULong[MeshInfoData::FACES_SOLO])+"</SoloFaces>\n";
+    xmlMeta+="<BorderFaces>"+std::to_string(this->mCountULong[MeshInfoData::FACES_BORDER])+"</BorderFaces>\n";
+    xmlMeta+="<ThreeBorderVertexFaces>"+std::to_string(this->mCountULong[MeshInfoData::FACES_BORDER_THREE_VERTICES])+"</ThreeBorderVertexFaces>\n";
+    xmlMeta+="<BorderFacesBridgeTriConnection>"+std::to_string(this->mCountULong[MeshInfoData::FACES_BORDER_BRDIGE_TRICONN])+"</BorderFacesBridgeTriConnection>\n";
+    xmlMeta+="<BridgeBorderFaces>"+std::to_string(this->mCountULong[MeshInfoData::FACES_BORDER_BRDIGE])+"</BridgeBorderFaces>\n";
+    xmlMeta+="<DanglingBorderFaces>"+std::to_string(this->mCountULong[MeshInfoData::FACES_BORDER_DANGLING])+"</DanglingBorderFaces>\n";
+    xmlMeta+="<ManifoldFaces>"+std::to_string(this->mCountULong[MeshInfoData::FACES_MANIFOLD])+"</ManifoldFaces>\n";
+    xmlMeta+="<NonManifoldFaces>"+std::to_string(this->mCountULong[MeshInfoData::FACES_NONMANIFOLD])+"</NonManifoldFaces>\n";
+    xmlMeta+="<StickyFaces>"+std::to_string(this->mCountULong[MeshInfoData::FACES_STICKY])+"</StickyFaces>\n";
+    xmlMeta+="<ZeroAreaFaces>"+std::to_string(this->mCountULong[MeshInfoData::FACES_ZEROAREA])+"</ZeroAreaFaces>\n";
+    xmlMeta+="<InvertedFaces>"+std::to_string(this->mCountULong[MeshInfoData::FACES_INVERTED])+"</InvertedFaces>\n";
+    xmlMeta+="<SelectedFaces>"+std::to_string(this->mCountULong[MeshInfoData::FACES_SELECTED])+"</SelectedFaces>\n";
+    xmlMeta+="<SyntheticVertexFaces>"+std::to_string(this->mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES])+"</SyntheticVertexFaces>\n";
+    xmlMeta+="</FacesInformation>\n";
+    xmlMeta+="<BoundingBox>\n";
+    xmlMeta+="<MinimumXCoordinate>"+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_X])+"</MinimumXCoordinate>\n";
+    xmlMeta+="<MinimumYCoordinate>"+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Y])+"</MinimumYCoordinate>\n";
+    xmlMeta+="<MinimumZCoordinate>"+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Z])+"</MinimumZCoordinate>\n";
+    xmlMeta+="<MaximumXCoordinate>"+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_X])+"</MaximumXCoordinate>\n";
+    xmlMeta+="<MaximumYCoordinate>"+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Y])+"</MaximumYCoordinate>\n";
+    xmlMeta+="<MaximumZCoordinate>"+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Z])+"</MaximumZCoordinate>\n";
+    xmlMeta+="<BoundingBoxWidth>"+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_WIDTH])+"</BoundingBoxWidth>\n";
+    xmlMeta+="<BoundingBoxHeight>"+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_HEIGHT])+"</BoundingBoxHeight>\n";
+    xmlMeta+="</BoundingBox>\n";    
+    xmlMeta+="<prov:wasAttributedTo>"+funcid+"</prov:wasAttributedTo>\n";
+    xmlMeta+="<prov:wasGeneratedBy>"+actid+"</prov:wasGeneratedBy>\n";    
+    xmlMeta+="<prov:wasDerivedFrom>"+indid+"</prov:wasDerivedFrom>\n";  
+    xmlMeta+="<prov:generatedAtTime>"+std::ctime( &endTime )+"</prov:generatedAtTime>\n";  
+    xmlMeta+="</Mesh>\n";    
+    xmlMeta+="<ProcessingInformation id=\""+actid+"\">\n";
+    xmlMeta+="<cputhreads>"+std::string(std::thread::hardware_concurrency() - 1)+"</cputhreads>\n";
+    xmlMeta+="<iterations>"+rIterationCount+"</iterations>\n";
+    xmlMeta+="<duration unit=\"om:second\">"+timeElapsed+"</duration>\n";
+    xmlMeta+="<connectedComponentCountDifference>"+std::string(mCountULong[CONNECTED_COMPONENTS]-rMeshInfoPrevious.mCountULong[CONNECTED_COMPONENTS])+"</connectedComponentCountDifference>\n";
+    xmlMeta+="<syntheticVertexCountDifference>"+std::string(mCountULong[MeshInfoData::VERTICES_SYNTHETIC] -rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_SYNTHETIC] )+"</syntheticVertexCountDifference>\n";
+    xmlMeta+="<syntheticFacesCountDifference>"+std::string(mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES]-rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES])+"</syntheticFacesCountDifference>\n";
+    xmlMeta+="<vertexCountDifference>"+vertexCountDiff+"</vertexCountDifference>\n";
+    xmlMeta+="<facesCountDifference>"+facesCountDiff+"</facesCountDifference>\n";
+    xmlMeta+="<prov:startedAtTime>"+std::ctime( &startTime )+"</prov:startedAtTime>\n";
+    xmlMeta+="<prov:endedAtTime>"+std::ctime( &endTime )+"</prov:endedAtTime>\n";
+    xmlMeta+="<prov:used>"+indid+"</prov:used>";
+    xmlMeta+="<prov:wasAssociatedWith>\n<"+funcid+">\n<prov:actedOnBehalfOf>\n<foaf:Person id=\""+personid+"\">\n<foaf:userName>"+userName+"</foaf:userName>\n</foaf:Person>\n</prov:actedOnBehalfOf>\n</"+funcid+">\n</prov:wasAssociatedWith>\n";
+    xmlMeta+="</ProcessingInformation>\n";
+    xmlMeta+="</GigaMeshMetaData>\n";
     // Done
 	return( true );
 }
