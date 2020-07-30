@@ -131,7 +131,7 @@ std::string generate_hex(const unsigned int len) {
 }
 
 std::string generate_UUID(){
-    return generate_hex(8)+"-"+generate_hex(4)+"-"+generate_hex(4)+"-"+generate_hex(12)
+    return generate_hex(8)+"-"+generate_hex(4)+"-"+generate_hex(4)+"-"+generate_hex(12);
 }
 
 std::string urlEncode(std::string str){
@@ -276,7 +276,7 @@ bool MeshInfoData::writeMeshInfoProcess(
 	//----------------------------------------------------------
 	std::string xmlMeta="";
 	std::string jsonMeta="";
-	std::string ttlMeta="";
+	std::string ttlmeta="";
     std::fstream fileStrOutMeta;
 	fileStrOutMeta.open( fileNameOutMeta, std::fstream::out );
 	if( !fileStrOutMeta.is_open() ) {
@@ -332,7 +332,7 @@ bool MeshInfoData::writeMeshInfoProcess(
     std::string funcid=urlEncode(rFunctionExecuted);    
     std::string starttime=urlEncode(std::ctime( &startTime ));   
     std::string actid=funcid+"_"+generate_UUID();           
-    std::string newindid=indid+"_"+funcid+"_"+endtime; 
+    std::string newindid=generate_UUID(); 
     std::string personid="person"; 
     ttlmeta+="giga:"+urlEncode(rFunctionExecuted)+" rdf:type giga:ProcessingFunction .\n";
     ttlmeta+="giga:ProcessingFunction rdfs:subClassOf prov:Agent .\n";
@@ -394,23 +394,29 @@ bool MeshInfoData::writeMeshInfoProcess(
     ttlmeta+="prov:generatedAtTime rdfs:range xsd:dateTime .\n";
     ttlmeta+="prov:generatedAtTime rdfs:label \"Time when an entity was generated\"@en .\n";
     ttlmeta+="giga:"+actid+" rdfs:label \""+indname+" processed by "+rFunctionExecuted+"\"@en .\n";
-    ttlmeta+="giga:"+actid+" giga:iterations \""+rIterationCount+"\"^^xsd:integer .\n";
+    ttlmeta+="giga:"+actid+" giga:iterations \""+std::to_string(rIterationCount)+"\"^^xsd:integer .\n";
     ttlmeta+="giga:"+actid+" prov:wasAssociatedWith giga:"+funcid+" .\n";
     ttlmeta+="giga:"+actid+" giga:gigaMeshVersion \""+VERSION_PACKAGE+"\"^^xsd:string .\n";
-    ttlmeta+="giga:"+actid+" giga:vertexCountDifference \""+vertexCountDiff+"\"^^xsd:integer .\n";
-    ttlmeta+="giga:"+actid+" giga:syntheticVertexCountDifference \""+std::string(mCountULong[MeshInfoData::VERTICES_SYNTHETIC] -rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_SYNTHETIC] )+"\"^^xsd:integer .\n";
-    ttlmeta+="giga:"+actid+" giga:syntheticFacesCountDifference \""+std::string(mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES]-rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES]) +"\"^^xsd:integer .\n";
-    ttlmeta+="giga:"+actid+" giga:borderVertexCountDifference \""+vertexBorderCountDiff+"\"^^xsd:integer .\n";
-    ttlmeta+="giga:"+actid+" giga:facesCountDifference \""+faceCountDiff+"\"^^xsd:integer .\n";
-    ttlmeta+="giga:"+actid+" giga:connectedComponentCountDifference \""+std::string(mCountULong[CONNECTED_COMPONENTS]-rMeshInfoPrevious.mCountULong[CONNECTED_COMPONENTS])+"\"^^xsd:integer .\n";
-    ttlmeta+="giga:"+actid+" giga:cputhreads \""+std::string(std::thread::hardware_concurrency() - 1)+"\"^^xsd:integer .\n";
-    ttlmeta+="giga:"+actid+" prov:startedAtTime \""+std::ctime( &startTime )+"\"^^xsd:dateTime .\n";
-    ttlmeta+="giga:"+actid+" prov:endedAtTime \""+std::ctime( &endTime )+"\"^^xsd:dateTime .\n";
+    ttlmeta+="giga:"+actid+" giga:vertexCountDifference \""+std::to_string(vertexCountDiff)+"\"^^xsd:integer .\n";
+    ttlmeta+="giga:"+actid+" giga:syntheticVertexCountDifference \""+std::to_string(mCountULong[MeshInfoData::VERTICES_SYNTHETIC] -rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_SYNTHETIC] )+"\"^^xsd:integer .\n";
+    ttlmeta+="giga:"+actid+" giga:syntheticFacesCountDifference \""+std::to_string(mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES]-rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES]) +"\"^^xsd:integer .\n";
+    ttlmeta+="giga:"+actid+" giga:borderVertexCountDifference \""+std::to_string(vertexBorderCountDiff)+"\"^^xsd:integer .\n";
+    ttlmeta+="giga:"+actid+" giga:facesCountDifference \""+std::to_string(faceCountDiff)+"\"^^xsd:integer .\n";
+    ttlmeta+="giga:"+actid+" giga:connectedComponentCountDifference \""+std::to_string(mCountULong[CONNECTED_COMPONENTS]-rMeshInfoPrevious.mCountULong[CONNECTED_COMPONENTS])+"\"^^xsd:integer .\n";
+    ttlmeta+="giga:"+actid+" giga:cputhreads \""+std::to_string(std::thread::hardware_concurrency() - 1)+"\"^^xsd:integer .\n";
+    char startTimeBuf[256];
+    const std::tm * startptm = std::localtime(&startTime);
+    strftime(startTimeBuf, sizeof(startTimeBuf), "%Y-%m-%dT%H:%M:%S", startptm);
+    ttlmeta+="giga:"+actid+" prov:startedAtTime \""+std::string(startTimeBuf)+"\"^^xsd:dateTime .\n";
+    char endTimeBuf[256];
+    const std::tm * endptm = std::localtime(&endTime);
+    strftime(endTimeBuf, sizeof(endTimeBuf), "%Y-%m-%dT%H:%M:%S", endptm);
+    ttlmeta+="giga:"+actid+" prov:endedAtTime \""+std::string(endTimeBuf)+"\"^^xsd:dateTime .\n";
     ttlmeta+="giga:"+actid+" prov:used giga:"+indid+" .\n";
     ttlmeta+="giga:"+newindid+" prov:wasGeneratedBy giga:"+actid+" .\n";
     ttlmeta+="giga:"+newindid+" prov:wasDerivedFrom giga:"+indid+" .\n";
     ttlmeta+="giga:"+newindid+" prov:wasAttributedTo giga:"+funcid+" .\n";
-    ttlmeta+="giga:"+newindid+" prov:generatedAtTime \""+std::ctime( &endTime )+"\"^^xsd:dateTime .\n";  
+    ttlmeta+="giga:"+newindid+" prov:generatedAtTime \""+std::string(endTimeBuf)+"\"^^xsd:dateTime .\n";  
     ttlmeta+="giga:"+personid+" rdf:type foaf:Person .\n";
     ttlmeta+="giga:"+personid+" foaf:userName \""+userName+"\" .\n";
     ttlmeta+="giga:"+newindid+" dc:contributor giga:"+personid+" .\n";  
@@ -512,19 +518,19 @@ bool MeshInfoData::writeMeshInfoProcess(
     xmlMeta+="<prov:wasAttributedTo>"+funcid+"</prov:wasAttributedTo>\n";
     xmlMeta+="<prov:wasGeneratedBy>"+actid+"</prov:wasGeneratedBy>\n";    
     xmlMeta+="<prov:wasDerivedFrom>"+indid+"</prov:wasDerivedFrom>\n";  
-    xmlMeta+="<prov:generatedAtTime>"+std::ctime( &endTime )+"</prov:generatedAtTime>\n";  
+    xmlMeta+="<prov:generatedAtTime>"+std::string(endTimeBuf)+"</prov:generatedAtTime>\n";  
     xmlMeta+="</Mesh>\n";    
     xmlMeta+="<ProcessingInformation id=\""+actid+"\">\n";
-    xmlMeta+="<cputhreads>"+std::string(std::thread::hardware_concurrency() - 1)+"</cputhreads>\n";
-    xmlMeta+="<iterations>"+rIterationCount+"</iterations>\n";
-    xmlMeta+="<duration unit=\"om:second\">"+timeElapsed+"</duration>\n";
-    xmlMeta+="<connectedComponentCountDifference>"+std::string(mCountULong[CONNECTED_COMPONENTS]-rMeshInfoPrevious.mCountULong[CONNECTED_COMPONENTS])+"</connectedComponentCountDifference>\n";
-    xmlMeta+="<syntheticVertexCountDifference>"+std::string(mCountULong[MeshInfoData::VERTICES_SYNTHETIC] -rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_SYNTHETIC] )+"</syntheticVertexCountDifference>\n";
-    xmlMeta+="<syntheticFacesCountDifference>"+std::string(mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES]-rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES])+"</syntheticFacesCountDifference>\n";
-    xmlMeta+="<vertexCountDifference>"+vertexCountDiff+"</vertexCountDifference>\n";
-    xmlMeta+="<facesCountDifference>"+facesCountDiff+"</facesCountDifference>\n";
-    xmlMeta+="<prov:startedAtTime>"+std::ctime( &startTime )+"</prov:startedAtTime>\n";
-    xmlMeta+="<prov:endedAtTime>"+std::ctime( &endTime )+"</prov:endedAtTime>\n";
+    xmlMeta+="<cputhreads>"+std::to_string(std::thread::hardware_concurrency() - 1)+"</cputhreads>\n";
+    xmlMeta+="<iterations>"+std::to_string(rIterationCount)+"</iterations>\n";
+    xmlMeta+="<duration unit=\"om:second\">"+std::to_string(timeElapsed)+"</duration>\n";
+    xmlMeta+="<connectedComponentCountDifference>"+std::to_string(mCountULong[CONNECTED_COMPONENTS]-rMeshInfoPrevious.mCountULong[CONNECTED_COMPONENTS])+"</connectedComponentCountDifference>\n";
+    xmlMeta+="<syntheticVertexCountDifference>"+std::to_string(mCountULong[MeshInfoData::VERTICES_SYNTHETIC] -rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_SYNTHETIC] )+"</syntheticVertexCountDifference>\n";
+    xmlMeta+="<syntheticFacesCountDifference>"+std::to_string(mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES]-rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES])+"</syntheticFacesCountDifference>\n";
+    xmlMeta+="<vertexCountDifference>"+std::to_string(vertexCountDiff)+"</vertexCountDifference>\n";
+    xmlMeta+="<facesCountDifference>"+std::to_string(faceCountDiff)+"</facesCountDifference>\n";
+    xmlMeta+="<prov:startedAtTime>"+std::string(startTimeBuf)+"</prov:startedAtTime>\n";
+    xmlMeta+="<prov:endedAtTime>"+std::string(endTimeBuf)+"</prov:endedAtTime>\n";
     xmlMeta+="<prov:used>"+indid+"</prov:used>";
     xmlMeta+="<prov:wasAssociatedWith>\n<"+funcid+">\n<prov:actedOnBehalfOf>\n<foaf:Person id=\""+personid+"\">\n<foaf:userName>"+userName+"</foaf:userName>\n</foaf:Person>\n</prov:actedOnBehalfOf>\n</"+funcid+">\n</prov:wasAssociatedWith>\n";
     xmlMeta+="</ProcessingInformation>\n";
