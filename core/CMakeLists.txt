@@ -14,6 +14,7 @@ set(SOURCES_CORE mesh/geodentry.cpp
 	mesh/userinteraction.cpp
 	mesh/showprogress.cpp
 	mesh/printbuildinfo.cpp
+	mesh/getuserandhostname.cpp
 	mesh/compfeaturevecs.cpp
 	mesh/polyline.cpp
 	mesh/polyedge.cpp
@@ -66,6 +67,7 @@ set(HEADERS_CORE
 	)
 
 set(PUBLIC_HEADERS_CORE ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/printbuildinfo.h
+						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/getuserandhostname.h
 						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/logging/Logging.h
 						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/logging/Logger.h
 						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/mesh.h

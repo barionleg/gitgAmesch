@@ -34,7 +34,7 @@
 
 #include <GigaMesh/mesh/gmcommon.h>
 #include <GigaMesh/logging/Logging.h>
-
+#include <GigaMesh/getuserandhostname.h>
 
 //! Constructer calls MeshInfoData::reset() and sets the names for the enumerators.
 MeshInfoData::MeshInfoData() {
@@ -236,6 +236,17 @@ bool MeshInfoData::writeMeshInfoProcess(
 	time_t endTime   = std::chrono::system_clock::to_time_t( rTimeStop );
 	double timeElapsed = ( std::chrono::duration<double>( rTimeStop - rTimeStart ) ).count();
 
+	// Fetch username and host for the technical meta-data
+	//----------------------------------------------------------
+	std::string userName( "unknown" );
+	std::string hostName( "unknown" );
+	getUserAndHostName( userName, hostName );
+
+	// Fetch username and host for the technical meta-data
+	//----------------------------------------------------------
+	//! \todo Proper UUID generation.
+	// getModelMetaString( eMetaStrings rMetaStrID )
+
 	// Open file for meta-data
 	//----------------------------------------------------------
 	std::string xmlMeta="";
@@ -257,14 +268,17 @@ bool MeshInfoData::writeMeshInfoProcess(
 	fileStrOutMeta << "GigaMesh Version:            unknown" << std::endl;
 #endif
 	fileStrOutMeta << "CPU Threads (available):     " << std::thread::hardware_concurrency() - 1 << std::endl;
-	fileStrOutMeta << "Username:                    " << std::endl; //! \todo add username.
-	fileStrOutMeta << "Hostname:                    " << std::endl; //! \todo add hostname.
+	fileStrOutMeta << "Username:                    " << userName << std::endl;
+	fileStrOutMeta << "Hostname:                    " << hostName << std::endl;
 	fileStrOutMeta << "File Input:                  " << rMeshInfoPrevious.mStrings[MeshInfoData::FILENAME] << std::endl;
 	fileStrOutMeta << "File Output:                 " << rFileNameOut.string() << std::endl;
 	fileStrOutMeta << "Model Id:                    " << mStrings[MeshInfoData::MODEL_ID] << std::endl;
 	fileStrOutMeta << "Model Material:              " << mStrings[MeshInfoData::MODEL_MATERIAL] << std::endl;
 	fileStrOutMeta << "Web-Reference:               " << mStrings[MeshInfoData::MODEL_WEBREFERENCE] << std::endl;
-	fileStrOutMeta << "Function:                    " << rFunctionExecuted << std::endl;
+	fileStrOutMeta << "UUID parent model:           " << std::endl; //! \todo Proper UUID generation.
+	fileStrOutMeta << "UUID created model:          " << std::endl; //! \todo Proper UUID generation.
+	fileStrOutMeta << "UUID of this process:        " << std::endl; //! \todo Proper UUID generation.
+	fileStrOutMeta << "Processed function:          " << rFunctionExecuted << std::endl;
 	fileStrOutMeta << "Vertex count (in):           " << rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_TOTAL] << std::endl;
 	fileStrOutMeta << "Vertex count (out)           " << mCountULong[MeshInfoData::VERTICES_TOTAL] << std::endl;
 	fileStrOutMeta << "Face count (in):             " << rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_TOTAL]  << std::endl;

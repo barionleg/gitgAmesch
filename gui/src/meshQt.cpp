@@ -3906,7 +3906,7 @@ bool MeshQt::editMetaData() {
 	string modelID = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
 	if( modelID.empty() ) {
 		// Prepare suggestion
-        QString suggestId( QString::fromStdWString(getBaseName().wstring()) );
+		QString suggestId( QString::fromStdWString(getBaseName().wstring()) );
 		cout << "[MeshQt::" << __FUNCTION__ << "] Basename: " << suggestId.toStdString().c_str() << endl;
 		suggestId.replace( "_", " " );
 		suggestId.replace( QRegularExpression( "GM[oOcCfFpPxX]*$" ), "" );
