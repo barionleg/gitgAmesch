@@ -209,7 +209,7 @@ QStringList TcpServer::parseCommand(Request req){
 	QString data_str;
 	httpStatusCode statusCode;
 
-	if(command == "load"){
+        if(command=="load"){
 		QString meshName;
 		if(pars.find("filename") != pars.end()){
 			meshName = QString::fromStdString(pars["filename"]);
@@ -222,7 +222,7 @@ QStringList TcpServer::parseCommand(Request req){
 
 		statusCode = c200;
 	}
-	else if(command == "exportVertices"){
+        else if(command=="exportVertices"){
 
 		if(mainWin->getWidget()->getMesh() != nullptr){
 
@@ -539,6 +539,36 @@ QStringList TcpServer::parseCommand(Request req){
                         statusCode = c424;
                 }
         }
+        else if(command=="featureElementsByIndex"){
+                if(mainWin->getWidget()->getMesh() != nullptr){
+
+                        bool parSucc = true;
+                        int numbElement;
+                        if(pars.find("element_nr") != pars.end()){
+                                numbElement = std::stod(pars["element_nr"]);
+                        }else{
+                            cout << "[QGMMainWindow::parseCommand] Missing number of elements." << endl;
+                            parSucc = false;
+                        }
+
+                        if(parSucc){
+
+                            if(this->mainWin->getWidget()->getMesh()->funcVertFeatureVecElementByIndex(numbElement)){
+                                statusCode = c200;
+                            }else{
+                                cout << "[QGMMainWindow::parseCommand] Error in execution of command." << endl;
+                                statusCode = c424;
+                            }
+                        }else{
+                            cout << "[QGMMainWindow::parseCommand] Could not execute command due to missing parameter." << endl;
+                            statusCode = c424;
+                        }
+
+                } else {
+                        std::cout << "[QGMMainWindow::receiveCommand] Error: No mesh loaded!" << std::endl;
+                        statusCode = c424;
+                }
+        }
 	else if(command=="assignFeatVec"){
 		if(mainWin->getWidget()->getMesh() != nullptr){
 
@@ -579,7 +609,7 @@ QStringList TcpServer::parseCommand(Request req){
 	}
 
 	QStringList response;
-    response << QString::fromStdString(TcpServer::statusCodeAsString(statusCode));
+        response << QString::fromStdString(TcpServer::statusCodeAsString(statusCode));
 	if(return_type == "json"){
 		response << QString::fromStdString(data.dump());
 	}else{

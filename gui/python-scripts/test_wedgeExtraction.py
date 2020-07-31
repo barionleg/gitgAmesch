@@ -65,6 +65,9 @@ def main():
 
 	#curl localhost:8080/load?filename=/home/maike/Dokumente/gigamesh/testMesh.ply
 	#curl localhost:8080/nonMaxSupp?nms_distance=1.5
+	#curl localhost:8080/watershed?deletable_input=0.0
+	#curl localhost:8080/clustering?number_iterations=100
+	#curl localhost:8080/ransac?number_iterations=100
 
 
 	# ... with python requests
@@ -88,7 +91,7 @@ def main():
 		print(str(r.status_code) + " - Error while NMS!")
 
 	# request watershed
-	r = requests.post(url+'/watershed?deletable_input=1.5')
+	r = requests.post(url+'/watershed?deletable_input=0.0')
 	if(r):
 		print(str(r.status_code) + " - watershed completed.")
 	else:
@@ -107,6 +110,13 @@ def main():
 		print(str(r.status_code) + " - ransac completed.")
 	else:
 		print(str(r.status_code) + " - Error while ransac!")
+
+	# request ransac
+	r = requests.post(url+'/featureElementsByIndex?element_nr=21')
+	if(r):
+		print(str(r.status_code) + " - featureElementsByIndex completed.")
+	else:
+		print(str(r.status_code) + " - Error while feature Elements By Index!")
 
 	return 0
 
