@@ -16,17 +16,18 @@ Please look at mesh.cpp for larger and more complete disclaimer by original crea
 #include <list>
 
 #include <GigaMesh/mesh/vertex.h>
+#include <GigaMesh/mesh/face.h> //added 23.07. in experimental state to add extra vertices to mesh
 #include <GigaMesh/mesh/mesh.h>
 
 
 //helper methods exclusively called in the wedge extraction project
 
 
-double wESquaredDistanceBetweenTwoVertices(Vertex* &vertexNo1, Vertex* &vertexNo2);
+double wEComputeSquaredDistanceBetweenTwoVertices(Vertex* &vertexNo1, Vertex* &vertexNo2);
 
-double wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(Vertex* &vertexNo1, Vertex* &vertexNo2);
+double wEComputeSquaredDistanceBetweenTwoNormalsTreatedAsVertices(Vertex* &vertexNo1, Vertex* &vertexNo2);
 
-double wESquaredDistanceBetweenTwoNormalsTreatedAsVertices(Vertex* &vertexNo1, std::vector<double> &normalComponents);
+double wEComputeSquaredDistanceBetweenTwoNormalsTreatedAsVertices(Vertex* &vertexNo1, std::vector<double> &normalComponents);
 
 void wERandomlyChooseVerticesFromVector(std::vector<Vertex*> &inputVector, std::vector<Vertex*> &outputVector, int howManyVerticesWanted);
 /*
@@ -37,30 +38,51 @@ void wEAssignNormalsToNearestMean(std::vector<int> &currentClustering, std::vect
 void wEAssignNormalsToNearestMean(std::vector<int> &currentClustering, std::vector<Vertex*> &verticesWithCurrentLabel, std::vector<Vertex*> &threeRandomlyChosenVertices);
 
 void wEComputeMeans(std::vector<int> &currentClustering, std::vector<Vertex*> &verticesWithCurrentLabel, std::vector<std::vector<double>> &normalMeanComponents);
+
+double wEComputeShortestDistanceBetweenPointAndRay(Vertex* &arbPoint, Vertex* &point1RayStart, Vertex* &point2OnRay);
+/*
+double wEComputeShortestDistanceBetweenPointAndLine(Vertex* &arbPoint, Vertex* &point1OnLine, Vertex* &point2OnLine);
+*/
 /*
 void wEGetBorderGroupFromVertexByFeatureVector(Vertex* vertexInQuestion,int &foundBordergroup);
 */
 void wEGetBorderGroupFromVertexByFeatureVector(Vertex* &finalLineVertex1, Vertex* &finalLineVertex2, Vertex* &finalLineVertex3, Vertex* &finalTetraederVertexGroup12, Vertex* &finalTetraederVertexGroup23, Vertex* &finalTetraederVertexGroup31);
 
-void wESquaredDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arbPoint, Vertex* &point1OnLine, Vertex* &point2OnLine, double &computedSquaredDistance);
+void wEComputeSquaredDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arbPoint, Vertex* &point1OnLine, Vertex* &point2OnLine, double &computedSquaredDistance);
 
-/*
-void writeWedgeToPlyOrObj();
-*/
+double wEComputeTetraederHeight(std::vector<Vertex*> foundTetraeder);
+
+bool wECheckTetraederHeight(std::vector<Vertex*> foundTetraeder, double &minimumHeight);
+
+void wEWriteExtractedTetraedersIntoFile(std::vector<std::vector<Vertex*>> extractedTetraeders, std::string outputFileName);
+
+void wETempNoteDownExtractedTetraeders(std::vector<std::vector<Vertex*>> &extractedTetraeders, int numberOfVertices, int numberOfFaces, std::vector<double> &RANSACQuality);
 
 //copied from mesh.cpp, will be legacy soon
 bool getSurroundingVerticesInOrder (std::list<Vertex*> &adjacentVertsInOrder, Vertex* &pi, bool printDebug);
 
+void wEBuildVertexNeighbourLookUpStructure(std::vector<Vertex*> &mVertices, std::map<Vertex*,std::set<Vertex*>> &vertexNeighbourLookUp);
+
+
 //methods called in mesh.cpp
 
-bool experimentalNonMaximumSuppression(double &NMSDistance, std::vector<Vertex*> &mVertices);
+bool experimentalSuppressNonMaxima(double &NMSDistance, std::vector<Vertex*> &mVertices);
 
-bool experimentalWatershed(double deletableInput, std::vector<Vertex*> &mVertices);
+bool experimentalComputeWatershed(double &watershedLimit, std::vector<Vertex*> &mVertices);
 
-bool experimentalClustering(int numberOfIterations, std::vector<Vertex*> &mVertices);
+bool experimentalComputeClustering(int numberOfIterations, std::vector<Vertex*> &mVertices);
 
-bool experimentalRANSAC(int numberOfIterations, std::vector<Vertex*> &mVertices);
+bool experimentalComputeRANSAC(	int numberOfIterations,
+								std::string outputFileName,
+								bool useNMSResultsForTetraederTop,
+								double minimumTetraederHeight,
+								bool extendMesh,
+								bool addSeparationWall,
+								bool visualizeRANSACQuality,
+								bool visualizeTetraederHeight,
+								std::vector<Vertex*> &mVertices,
+								std::vector<Face*> &mFaces);
 
-bool experimentalFeatureVectorReordering(std::vector<Vertex*> &mVertices);
+bool experimentalReorderFeatureVector(std::vector<Vertex*> &mVertices, std::vector<Face*> &mFaces, double deletableInput);
 
 #endif // WEDGEEXTRACTION_H

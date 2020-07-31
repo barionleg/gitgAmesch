@@ -16639,38 +16639,67 @@ bool Mesh::getAxisFromCircleCenters( Vector3D* rTop, Vector3D* rBottom ) {
 
 //MSExp
 
-//! stub method calling the real body in wedgeextraction.cpp
-bool Mesh::funcExpNonMaxSupp(double NMSDistance){
+//! Stub method calling the real body in wedgeextraction.cpp
+bool Mesh::funcExpSuppNonMax(double NMSDistance){
 
-	return experimentalNonMaximumSuppression(NMSDistance, mVertices);
-
-}
-
-//! stub method calling the real body in wedgeextraction.cpp
-bool Mesh::funcExpWatershed(double deletableInput){
-
-	return experimentalWatershed(deletableInput, mVertices);
+	return experimentalSuppressNonMaxima(NMSDistance, mVertices);
 
 }
 
-//! stub method calling the real body in wedgeextraction.cpp
-bool Mesh::funcExpClustering(int numberOfIterations){
+//! Stub method calling the real body in wedgeextraction.cpp
+bool Mesh::funcExpComputeWatershed(double watershedLimit){
 
-	return experimentalClustering(numberOfIterations, mVertices);
-
-}
-
-//! stub method calling the real body in wedgeextraction.cpp
-bool Mesh::funcExpRANSAC(int numberOfIterations){
-
-	return experimentalRANSAC(numberOfIterations, mVertices);
+	return experimentalComputeWatershed(watershedLimit, mVertices);
 
 }
 
-//! stub method calling the real body in wedgeextraction.cpp
-bool Mesh::funcExpFeatVecReorder(int deletableInput){
+//! Stub method calling the real body in wedgeextraction.cpp
+bool Mesh::funcExpComputeClustering(int numberOfIterations){
 
-	return experimentalFeatureVectorReordering(mVertices);
+	return experimentalComputeClustering(numberOfIterations, mVertices);
+
+}
+
+//! Stub method calling the real body in wedgeextraction.cpp
+bool Mesh::funcExpComputeRANSAC(int numberOfIterations){
+
+	return experimentalComputeRANSAC(numberOfIterations, "OutputFileNotNamed", false, -1.0, false, false, false, false, mVertices, mFaces);
+
+}
+
+//! Stub method calling the real body in wedgeextraction.cpp
+//! This Method expects a fileName for the extracted Wedges
+//! This Method expects a minimum tetraeder height to omit tetraeders that are deemed to flat.
+//! This Method should always be called with the parameter extendMesh false
+//! As of 2020.07.01 it is not callable in the GigaMesh GUI
+//! This may change till final release
+bool Mesh::funcExpComputeRANSAC(	int numberOfIterations,
+									string outputFileName,
+									bool useNMSResultsForTetraederTop,
+									double minimumTetraederHeight,
+									bool extendMesh,
+									bool addSeparationWall,
+									bool visualizeRANSACQuality,
+									bool visualizeTetraederHeight){
+
+	return experimentalComputeRANSAC(	numberOfIterations,
+										outputFileName,
+										useNMSResultsForTetraederTop,
+										minimumTetraederHeight,
+										extendMesh,
+										addSeparationWall,
+										visualizeRANSACQuality,
+										visualizeTetraederHeight,
+										mVertices,
+										mFaces);
+
+}
+
+//! Stub method calling the real body in wedgeextraction.cpp
+//! Will not be present in final version
+bool Mesh::funcExpReorderFeatVec(double deletableInput){
+
+	return experimentalReorderFeatureVector(mVertices, mFaces, deletableInput);
 
 }
 

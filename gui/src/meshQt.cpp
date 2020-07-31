@@ -313,11 +313,11 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	QObject::connect( mMainWindow, SIGNAL(visualizeVertFaceSphereMeanAngleMax()), this, SLOT(visualizeVertFaceSphereMeanAngleMax())  );
 
 		//MSEx
-	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalNonMaximumSuppression()),    this, SLOT(funcExperimentalNonMaximumSuppression())     );
-	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalWatershed()),                this, SLOT(funcExperimentalWatershed())                 );
-	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalClustering()),               this, SLOT(funcExperimentalClustering())                );
-	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalRANSAC()),                   this, SLOT(funcExperimentalRANSAC())                    );
-	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalFeatureVectorReordering()),  this, SLOT(funcExperimentalFeatureVectorReordering())   );
+	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalSuppressNonMaxima()),    this, SLOT(funcExperimentalSuppressNonMaxima())     );
+	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalComputeWatershed()),      this, SLOT(funcExperimentalComputeWatershed())      );
+	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalComputeClustering()),     this, SLOT(funcExperimentalComputeClustering())     );
+	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalComputeRANSAC()),         this, SLOT(funcExperimentalComputeRANSAC())         );
+	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalReorderFeatureVector()),  this, SLOT(funcExperimentalReorderFeatureVector())  );
 	// #####################################################################################################################################################
 
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1166,59 +1166,59 @@ bool MeshQt::funcValsToFeatureVector()
 
 //MSExp
 
-bool MeshQt::funcExperimentalNonMaximumSuppression()
+bool MeshQt::funcExperimentalSuppressNonMaxima()
 {
     QGMDialogEnterText dlgEnterTextVal;
 	dlgEnterTextVal.setDouble(5.0); //5 mm is standard for non maximum suppression distance
-	dlgEnterTextVal.setWindowTitle( tr("Give radius in Non Maximum Suppression!") ); //a text much longer than this gets cropped
+	dlgEnterTextVal.setWindowTitle( tr("Give radius in non maximum suppression!") ); //a text much longer than this gets cropped
 
-	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double NMSDistance) {this->funcExpNonMaxSupp(NMSDistance);});
+	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double NMSDistance) {this->funcExpSuppNonMax(NMSDistance);});
 
 	//I am not sure, if this does anything else than return true, if all went well
 	return dlgEnterTextVal.exec() == QDialog::Accepted;
 	//return true;
 }
 
-bool MeshQt::funcExperimentalWatershed()
+bool MeshQt::funcExperimentalComputeWatershed()
+{
+    QGMDialogEnterText dlgEnterTextVal;
+	dlgEnterTextVal.setDouble(0.01);
+	dlgEnterTextVal.setWindowTitle( tr("Give value when to stop watershed!") );
+
+	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double watershedLimit) {this->funcExpComputeWatershed(watershedLimit);});
+
+	return dlgEnterTextVal.exec() == QDialog::Accepted;
+}
+
+bool MeshQt::funcExperimentalComputeClustering()
+{
+    QGMDialogEnterText dlgEnterTextVal;
+	dlgEnterTextVal.setInt(100);
+	dlgEnterTextVal.setWindowTitle( tr("Give number of iterations for clustering!") );
+
+	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int numberOfIterations) {this->funcExpComputeClustering(numberOfIterations);});
+
+	return dlgEnterTextVal.exec() == QDialog::Accepted;
+}
+
+bool MeshQt::funcExperimentalComputeRANSAC()
+{
+    QGMDialogEnterText dlgEnterTextVal;
+	dlgEnterTextVal.setInt(100);
+	dlgEnterTextVal.setWindowTitle( tr("Give number of iterations for RANSAC!") );
+
+	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int numberOfIterations) {this->funcExpComputeRANSAC(numberOfIterations);});
+
+	return dlgEnterTextVal.exec() == QDialog::Accepted;
+}
+
+bool MeshQt::funcExperimentalReorderFeatureVector()
 {
     QGMDialogEnterText dlgEnterTextVal;
 	dlgEnterTextVal.setDouble(1.0);
 	dlgEnterTextVal.setWindowTitle( tr("Input not needed right now!") );
 
-	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double deletableInput) {this->funcExpWatershed(deletableInput);});
-
-	return dlgEnterTextVal.exec() == QDialog::Accepted;
-}
-
-bool MeshQt::funcExperimentalClustering()
-{
-    QGMDialogEnterText dlgEnterTextVal;
-	dlgEnterTextVal.setInt(1);
-	dlgEnterTextVal.setWindowTitle( tr("Give number of iterations for clustering!") );
-
-	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int numberOfIterations) {this->funcExpClustering(numberOfIterations);});
-
-	return dlgEnterTextVal.exec() == QDialog::Accepted;
-}
-
-bool MeshQt::funcExperimentalRANSAC()
-{
-    QGMDialogEnterText dlgEnterTextVal;
-	dlgEnterTextVal.setInt(1);
-	dlgEnterTextVal.setWindowTitle( tr("Give number of iterations for RANSAC!") );
-
-	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int numberOfIterations) {this->funcExpRANSAC(numberOfIterations);});
-
-	return dlgEnterTextVal.exec() == QDialog::Accepted;
-}
-
-bool MeshQt::funcExperimentalFeatureVectorReordering()
-{
-    QGMDialogEnterText dlgEnterTextVal;
-	dlgEnterTextVal.setInt(1);
-	dlgEnterTextVal.setWindowTitle( tr("Input not needed right now!") );
-
-	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int deletableInput) {this->funcExpFeatVecReorder(deletableInput);});
+	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double deletableInput) {this->funcExpReorderFeatVec(deletableInput);});
 
 	return dlgEnterTextVal.exec() == QDialog::Accepted;
 }

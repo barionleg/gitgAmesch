@@ -536,11 +536,19 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool funcVertSphereSurfaceNumberOfComponents();
 				bool funcValToFeatureVector(unsigned int dim);
 				//MSExp
-				bool funcExpNonMaxSupp(double NMSDistance);
-				bool funcExpWatershed(double deletableInput);
-				bool funcExpClustering(int numberOfIterations);
-				bool funcExpRANSAC(int numberOfIterations);
-				bool funcExpFeatVecReorder(int deletableInput);
+				bool funcExpSuppNonMax(double NMSDistance);
+				bool funcExpComputeWatershed(double watershedLimit);
+				bool funcExpComputeClustering(int numberOfIterations);
+				bool funcExpComputeRANSAC(int numberOfIterations);
+				bool funcExpComputeRANSAC(	int numberOfIterations,
+											std::string outputFileName,
+											bool useNMSResultsForTetraederTop,
+											double minimumTetraederHeight,
+											bool extendMesh,
+											bool addSeparationWall,
+											bool visualizeRANSACQuality,
+											bool visualizeTetraederHeight);
+				bool funcExpReorderFeatVec(double deletableInput);
 		// Again some old style function value calls:
 				bool setVertFuncValCorrTo( std::vector<double>* rFeatVector );
 				bool setVertFuncValDistanceToSelPrim();

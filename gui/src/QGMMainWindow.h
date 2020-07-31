@@ -194,10 +194,10 @@ signals:
 	void exportFaceNormalAngles();                           //!< triggers the export of the faces normals as sphereical angles
 	void exportNormalSphereData();                           //!< triggers the export of the normal sphere data
 	//.
-	void saveStillImages360HLR();                            //!< triggers the generation of still images for a horizontal 360Â° rotation (left->right).
-	void saveStillImages360VUp();                            //!< triggers the generation of still images for a vertical 360Â° rotation (upwards).
-	void saveStillImages360PrimN();                          //!< triggers the generation of still images for a 360Â° rotation about the selected primitves normal.
-	void saveStillImages360PlaneN();                         //!< triggers the generation of still images for a 360Â° rotation about the mesh plane.
+	void saveStillImages360HLR();                            //!< triggers the generation of still images for a horizontal 360° rotation (left->right).
+	void saveStillImages360VUp();                            //!< triggers the generation of still images for a vertical 360° rotation (upwards).
+	void saveStillImages360PrimN();                          //!< triggers the generation of still images for a 360° rotation about the selected primitves normal.
+	void saveStillImages360PlaneN();                         //!< triggers the generation of still images for a 360° rotation about the mesh plane.
 	//.
 	void sphericalImagesLight();                             //!< triggers the generation of still images with the light source in the spherical orbit.
 	void sphericalImages();                                  //!< triggers the generation of still images in a spherical orbit.
@@ -342,7 +342,7 @@ signals:
 	//.
 	void sDatumAddSphere();                                  //!< Manually enter a datum sphere.
 
-	// --- Octree reÃ¶ated ----------------------------------------------------------------------------------------------------------------------------------
+	// --- Octree reöated ----------------------------------------------------------------------------------------------------------------------------------
 	void generateOctree();
 	void generateOctree(unsigned int);
 	void detectselfintersections();
@@ -368,9 +368,11 @@ signals:
 	void sFuncVertFeatAutoCorrSelVert();                     //!< Visualize Auto-Correlation and Correlation to a selected Vertex using OpenGL.
 	void sFuncValToFeatureVector();                          //!< Assign function value to Nth feature vector component
 	//MSExp
-	void sFuncExperimentalNonMaximumSuppression();           //!< Experimental Non Maximum Suppression
-	void sFuncExperimentalWatershed();                       //!< Experimental Watershed
-	void sFuncExperimentalClustering();                      //!< Experimental Clustering
+	void sFuncExperimentalSuppressNonMaxima();               //!< Experimental Non Maximum Suppression
+	void sFuncExperimentalComputeWatershed();                //!< Experimental Watershed
+	void sFuncExperimentalComputeClustering();               //!< Experimental Clustering
+	void sFuncExperimentalComputeRANSAC();                   //!< Experimental Wedge Extraction using RANSAC
+	void sFuncExperimentalReorderFeatureVector();            //!< Experimental Reordering of Feature Vectors
 	// # Distance to plane, line, selected primitive and cone
 	void visualizeDistanceToPlane();                         //!< triggers the plane distance estimation.
 	void visualizeDistanceToCone();                          //!< triggers distance to cone estimation (if cone has been selected)
