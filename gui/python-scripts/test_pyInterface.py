@@ -148,7 +148,14 @@ def main():
 		print(str(r.status_code) + " - Could not receive vertices in beam.")
 	print('Number of vertices in beam: ' + str(len(verticesInBeam)-1))
 	verticesInBeam_csv = lst2csv(verticesInBeam)
-	print(verticesInBeam_csv)
+	# print(verticesInBeam_csv)
+
+	# request non maximum supression
+	r = requests.post(url+'/nonMaxSupp?nms_distance=0.5')
+	if(r):
+		print(str(r.status_code) + " - NMS completed.")
+	else:
+		print(str(r.status_code) + " - Error while NMS!")
 
 	return 0
 

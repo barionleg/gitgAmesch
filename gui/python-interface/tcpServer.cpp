@@ -419,6 +419,126 @@ QStringList TcpServer::parseCommand(Request req){
 			statusCode = c424;
 		}
 	}
+        else if(command=="nonMaxSupp"){
+                if(mainWin->getWidget()->getMesh() != nullptr){
+
+                        bool parSucc = true;
+                        double nmsDistances;
+                        if(pars.find("nms_distance") != pars.end()){
+                                nmsDistances = std::stod(pars["nms_distance"]);
+                        }else{
+                            cout << "[QGMMainWindow::parseCommand] Missing NMS distance." << endl;
+                            parSucc = false;
+                        }
+
+                        if(parSucc){
+
+                            if(this->mainWin->getWidget()->getMesh()->funcExpNonMaxSupp(nmsDistances)){
+                                statusCode = c200;
+                            }else{
+                                cout << "[QGMMainWindow::parseCommand] Error in execution of command." << endl;
+                                statusCode = c424;
+                            }
+                        }else{
+                            cout << "[QGMMainWindow::parseCommand] Could not execute command due to missing parameter." << endl;
+                            statusCode = c424;
+                        }
+
+                } else {
+                        std::cout << "[QGMMainWindow::receiveCommand] Error: No mesh loaded!" << std::endl;
+                        statusCode = c424;
+                }
+        }
+        else if(command=="watershed"){
+                if(mainWin->getWidget()->getMesh() != nullptr){
+
+                        bool parSucc = true;
+                        double delInput;
+                        if(pars.find("deletable_input") != pars.end()){
+                                delInput = std::stod(pars["deletable_input"]);
+                        }else{
+                            cout << "[QGMMainWindow::parseCommand] Missing deletable input." << endl;
+                            parSucc = false;
+                        }
+
+                        if(parSucc){
+
+                            if(this->mainWin->getWidget()->getMesh()->funcExpWatershed(delInput)){
+                                statusCode = c200;
+                            }else{
+                                cout << "[QGMMainWindow::parseCommand] Error in execution of command." << endl;
+                                statusCode = c424;
+                            }
+                        }else{
+                            cout << "[QGMMainWindow::parseCommand] Could not execute command due to missing parameter." << endl;
+                            statusCode = c424;
+                        }
+
+                } else {
+                        std::cout << "[QGMMainWindow::receiveCommand] Error: No mesh loaded!" << std::endl;
+                        statusCode = c424;
+                }
+        }
+        else if(command=="clustering"){
+                if(mainWin->getWidget()->getMesh() != nullptr){
+
+                        bool parSucc = true;
+                        int numbInter;
+                        if(pars.find("number_iterations") != pars.end()){
+                                numbInter = std::stod(pars["number_iterations"]);
+                        }else{
+                            cout << "[QGMMainWindow::parseCommand] Missing number of iterations." << endl;
+                            parSucc = false;
+                        }
+
+                        if(parSucc){
+
+                            if(this->mainWin->getWidget()->getMesh()->funcExpClustering(numbInter)){
+                                statusCode = c200;
+                            }else{
+                                cout << "[QGMMainWindow::parseCommand] Error in execution of command." << endl;
+                                statusCode = c424;
+                            }
+                        }else{
+                            cout << "[QGMMainWindow::parseCommand] Could not execute command due to missing parameter." << endl;
+                            statusCode = c424;
+                        }
+
+                } else {
+                        std::cout << "[QGMMainWindow::receiveCommand] Error: No mesh loaded!" << std::endl;
+                        statusCode = c424;
+                }
+        }
+        else if(command=="ransac"){
+                if(mainWin->getWidget()->getMesh() != nullptr){
+
+                        bool parSucc = true;
+                        int numbInter;
+                        if(pars.find("number_iterations") != pars.end()){
+                                numbInter = std::stod(pars["number_iterations"]);
+                        }else{
+                            cout << "[QGMMainWindow::parseCommand] Missing number of iterations." << endl;
+                            parSucc = false;
+                        }
+
+                        if(parSucc){
+
+                            if(this->mainWin->getWidget()->getMesh()->funcExpRANSAC(numbInter)){
+                                statusCode = c200;
+                            }else{
+                                cout << "[QGMMainWindow::parseCommand] Error in execution of command." << endl;
+                                statusCode = c424;
+                            }
+                        }else{
+                            cout << "[QGMMainWindow::parseCommand] Could not execute command due to missing parameter." << endl;
+                            statusCode = c424;
+                        }
+
+                } else {
+                        std::cout << "[QGMMainWindow::receiveCommand] Error: No mesh loaded!" << std::endl;
+                        statusCode = c424;
+                }
+        }
 	else if(command=="assignFeatVec"){
 		if(mainWin->getWidget()->getMesh() != nullptr){
 
