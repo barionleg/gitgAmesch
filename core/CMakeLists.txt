@@ -93,6 +93,7 @@ set(PUBLIC_HEADERS_CORE ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/printbuildi
 						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/matrix4d.h
 						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/voxelfilter25d.h
 						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/meshinfodata.h
+						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/wedgeextraction.h
 						)
 
 add_library(gigameshCore STATIC ${SOURCES_CORE} ${HEADERS_CORE} ${PUBLIC_HEADERS_CORE})

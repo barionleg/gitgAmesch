@@ -79,6 +79,7 @@ private:
 
 public:
 	bool setupMeshWidget( const QGLFormat& rGLFormat );
+	MeshWidget* getWidget();
 
 protected:
 	virtual void closeEvent( QCloseEvent* rEvent );
