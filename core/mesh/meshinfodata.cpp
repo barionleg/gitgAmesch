@@ -251,7 +251,13 @@ bool MeshInfoData::writeMeshInfoProcess(
 	//----------------------------------------------------------
 	std::filesystem::path fileNameOutMeta = rFileNameOut;
 	fileNameOutMeta.replace_extension( std::string( rFunctionExecuted + ".txt" ) );
-
+	std::filesystem::path fileNameOutMetaTTL = rFileNameOut;
+	fileNameOutMetaTTL.replace_extension( std::string( rFunctionExecuted + ".ttl" ) );
+	std::filesystem::path fileNameOutMetaXML = rFileNameOut;
+	fileNameOutMetaXML.replace_extension( std::string( rFunctionExecuted + ".xml" ) );
+	std::filesystem::path fileNameOutMetaJSON = rFileNameOut;
+	fileNameOutMetaJSON.replace_extension( std::string( rFunctionExecuted + ".json" ) );
+    
 	// Pre-compute information, which is (sort of) redundant
 	//----------------------------------------------------------
 	int64_t vertexCountDiff       = ( static_cast<long>(mCountULong[MeshInfoData::VERTICES_TOTAL])  - static_cast<long>(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_TOTAL])  );
@@ -283,7 +289,26 @@ bool MeshInfoData::writeMeshInfoProcess(
 		LOG::error() << "[MeshInfoData::" << __FUNCTION__ << "] Could not open file '" << fileNameOutMeta << "' for writing!\n";
 		return( false );
 	}
-
+    std::fstream fileStrOutMetaTTL;
+	fileStrOutMetaTTL.open( fileNameOutMetaTTL, std::fstream::out );
+	if( !fileStrOutMetaTTL.is_open() ) {
+		LOG::error() << "[MeshInfoData::" << __FUNCTION__ << "] Could not open file '" << fileNameOutMetaTTL << "' for writing!\n";
+		return( false );
+	}
+    std::fstream fileStrOutMetaXML;
+	fileStrOutMetaXML.open( fileNameOutMetaXML, std::fstream::out );
+	if( !fileStrOutMetaXML.is_open() ) {
+		LOG::error() << "[MeshInfoData::" << __FUNCTION__ << "] Could not open file '" << fileNameOutMetaXML << "' for writing!\n";
+		return( false );
+	}
+    std::fstream fileStrOutMetaJSON;
+	fileStrOutMetaJSON.open( fileNameOutMetaJSON, std::fstream::out );
+	if( !fileStrOutMetaJSON.is_open() ) {
+		LOG::error() << "[MeshInfoData::" << __FUNCTION__ << "] Could not open file '" << fileNameOutMetaJSON << "' for writing!\n";
+		return( false );
+	}
+	
+	
 	// WRITE Meta-Data
 	//----------------------------------------------------------
 	// Note: Redundant data is marked with a '#'
@@ -334,9 +359,25 @@ bool MeshInfoData::writeMeshInfoProcess(
     std::string actid=funcid+"_"+generate_UUID();           
     std::string newindid=generate_UUID(); 
     std::string personid="person"; 
+    ttlmeta+="@prefix rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix foaf:<http://xmlns.com/foaf/0.1/> . \n@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n@prefix xsd:<http://www.w3.org/2001/XMLSchema#> .\n@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .\n@prefix owl:<http://www.w3.org/2002/07/owl#> .\n@prefix dcat:<http://www.w3.org/ns/dcat#> .\n@prefix prov:<http://www.w3.org/ns/prov#> .\n@prefix giga:<http://www.gigamesh.eu/ont#> .\n@prefix dc:<http://purl.org/dc/terms/> .\n@prefix ex:<http://purl.org/net/ns/ex#> .\n@prefix geo:<http://www.opengis.net/ont/geosparql#> .\n@prefix wdt:<http://www.wikidata.org/prop/direct/> .\n@prefix om:<http://www.ontology-of-units-of-measure.org/resource/om-2/>.\n";
     ttlmeta+="giga:"+urlEncode(rFunctionExecuted)+" rdf:type giga:ProcessingFunction .\n";
     ttlmeta+="giga:ProcessingFunction rdfs:subClassOf prov:Agent .\n";
-    ttlmeta+="giga:"+indid+" rdf:type prov:Entity .\n";    
+    ttlmeta+="giga:"+indid+" rdf:type giga:Mesh .\n";    
+    ttlmeta+="giga:Mesh rdfs:subClassOf prov:Entity .\n";    
+    ttlmeta+="om:Unit rdf:type owl:Class .\n";
+    ttlmeta+="om:Unit rdfs:label \"Unit\"@en .\n";
+    ttlmeta+="om:TimeUnit rdfs:subClassOf om:Unit .\n";
+    ttlmeta+="om:TimeUnit rdfs:label \"time unit\"@en .\n";
+    ttlmeta+="om:second-Time rdf:type om:TimeUnit, owl:NamedIndividual  .\n";
+    ttlmeta+="om:second-Time rdfs:label \"second\"@en .\n";
+    ttlmeta+="prov:Entity rdf:type owl:Class .\n";
+    ttlmeta+="prov:Entity rdfs:label \"Entity\"@en .\n";     
+    ttlmeta+="prov:Agent rdf:type owl:Class .\n";
+    ttlmeta+="prov:Agent rdfs:label \"Agent\"@en .\n"; 
+    ttlmeta+="prov:Activity rdf:type owl:Class .\n";   
+    ttlmeta+="prov:Activity rdfs:label \"Activity\"@en .\n"; 
+    ttlmeta+="foaf:Person rdf:type owl:Class .\n";    
+    ttlmeta+="foaf:Person rdfs:label \"Person\"@en .\n"; 
     ttlmeta+="giga:"+actid+" rdf:type prov:Activity .\n";
     ttlmeta+="giga:iterations rdf:type owl:DatatypeProperty .\n";
     ttlmeta+="giga:iterations rdfs:domain giga:ProcessingFunction .\n";
@@ -365,11 +406,11 @@ bool MeshInfoData::writeMeshInfoProcess(
     ttlmeta+="giga:facesCountDifference rdfs:seeAlso giga:totalNumberOfFaces .\n";
     ttlmeta+="giga:facesCountDifference rdfs:domain giga:ProcessingFunction .\n";
     ttlmeta+="giga:facesCountDifference rdfs:label \"The difference of faces counts after a processing function has been applied\"@en .\n";
-    ttlmeta+="giga:connectedComponentsCountDifference rdf:type owl:DatatypeProperty .\n";
-    ttlmeta+="giga:connectedComponentsCountDifference rdfs:range xsd:integer .\n";
-    ttlmeta+="giga:connectedComponentsCountDifference rdfs:seeAlso giga:amountOfConnectedComponents .\n";
-    ttlmeta+="giga:connectedComponentsCountDifference rdfs:domain giga:ProcessingFunction .\n";
-    ttlmeta+="giga:connectedComponentsCountDifference rdfs:label \"The difference of connected component counts after a processing function has been applied\"@en .\n";
+    ttlmeta+="giga:connectedComponentCountDifference rdf:type owl:DatatypeProperty .\n";
+    ttlmeta+="giga:connectedComponentCountDifference rdfs:range xsd:integer .\n";
+    ttlmeta+="giga:connectedComponentCountDifference rdfs:seeAlso giga:amountOfConnectedComponents .\n";
+    ttlmeta+="giga:connectedComponentCountDifference rdfs:domain giga:ProcessingFunction .\n";
+    ttlmeta+="giga:connectedComponentCountDifference rdfs:label \"The difference of connected component counts after a processing function has been applied\"@en .\n";
     ttlmeta+="giga:syntheticVertexCountDifference rdf:type owl:DatatypeProperty .\n";
     ttlmeta+="giga:syntheticVertexCountDifference rdfs:range xsd:integer .\n";
     ttlmeta+="giga:syntheticVertexCountDifference rdfs:seeAlso giga:syntheticVertices .\n";
@@ -393,9 +434,28 @@ bool MeshInfoData::writeMeshInfoProcess(
     ttlmeta+="prov:generatedAtTime rdf:type owl:DatatypeProperty .\n";
     ttlmeta+="prov:generatedAtTime rdfs:range xsd:dateTime .\n";
     ttlmeta+="prov:generatedAtTime rdfs:label \"Time when an entity was generated\"@en .\n";
+    ttlmeta+="prov:actedOnBehalfOf rdf:type owl:ObjectProperty .\n";
+    ttlmeta+="prov:actedOnBehalfOf rdfs:label \"acted on behalf of\"@en .\n";
+    ttlmeta+="prov:used rdf:type owl:ObjectProperty .\n";
+    ttlmeta+="prov:used rdfs:label \"used\"@en .\n";
+    ttlmeta+="prov:wasAssociatedWith rdf:type owl:ObjectProperty .\n";
+    ttlmeta+="prov:wasAssociatedWith rdfs:label \"was associated with\"@en .\n";
+    ttlmeta+="prov:wasAttributedTo rdf:type owl:ObjectProperty .\n";
+    ttlmeta+="prov:wasAttributedTo rdfs:label \"was attributed to\"@en .\n";
+    ttlmeta+="prov:wasDerivedFrom rdf:type owl:ObjectProperty .\n";
+    ttlmeta+="prov:wasDerivedFrom rdfs:label \"was derived from\"@en .\n";
+    ttlmeta+="prov:wasGeneratedBy rdf:type owl:ObjectProperty .\n";
+    ttlmeta+="prov:wasGeneratedBy rdfs:label \"was generated by\"@en .\n";
+    ttlmeta+="dc:contributor rdf:type owl:ObjectProperty .\n";
+    ttlmeta+="dc:contributor rdfs:label \"contributor\"@en .\n";
     ttlmeta+="giga:"+actid+" rdfs:label \""+indname+" processed by "+rFunctionExecuted+"\"@en .\n";
     ttlmeta+="giga:"+actid+" giga:iterations \""+std::to_string(rIterationCount)+"\"^^xsd:integer .\n";
     ttlmeta+="giga:"+actid+" prov:wasAssociatedWith giga:"+funcid+" .\n";
+    ttlmeta+="giga:"+actid+" giga:duration giga:"+actid+"_duration . \n";
+    ttlmeta+="giga:"+actid+"_duration om:hasUnit om:second-Time . \n";
+    ttlmeta+="giga:"+actid+"_duration om:hasPhenomenon giga:"+actid+" . \n";
+    ttlmeta+="giga:"+actid+"_duration om:hasNumericalValue \""+std::to_string(timeElapsed)+"\"^^xsd:integer . \n";
+    ttlmeta+="giga:"+funcid+" rdfs:label \""+funcid+"\" .\n";
     ttlmeta+="giga:"+actid+" giga:gigaMeshVersion \""+VERSION_PACKAGE+"\"^^xsd:string .\n";
     ttlmeta+="giga:"+actid+" giga:vertexCountDifference \""+std::to_string(vertexCountDiff)+"\"^^xsd:integer .\n";
     ttlmeta+="giga:"+actid+" giga:syntheticVertexCountDifference \""+std::to_string(mCountULong[MeshInfoData::VERTICES_SYNTHETIC] -rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_SYNTHETIC] )+"\"^^xsd:integer .\n";
@@ -413,6 +473,7 @@ bool MeshInfoData::writeMeshInfoProcess(
     strftime(endTimeBuf, sizeof(endTimeBuf), "%Y-%m-%dT%H:%M:%S", endptm);
     ttlmeta+="giga:"+actid+" prov:endedAtTime \""+std::string(endTimeBuf)+"\"^^xsd:dateTime .\n";
     ttlmeta+="giga:"+actid+" prov:used giga:"+indid+" .\n";
+    ttlmeta+="giga:"+newindid+" rdf:type giga:Mesh .\n";
     ttlmeta+="giga:"+newindid+" prov:wasGeneratedBy giga:"+actid+" .\n";
     ttlmeta+="giga:"+newindid+" prov:wasDerivedFrom giga:"+indid+" .\n";
     ttlmeta+="giga:"+newindid+" prov:wasAttributedTo giga:"+funcid+" .\n";
@@ -421,9 +482,13 @@ bool MeshInfoData::writeMeshInfoProcess(
     ttlmeta+="giga:"+personid+" foaf:userName \""+userName+"\" .\n";
     ttlmeta+="giga:"+newindid+" dc:contributor giga:"+personid+" .\n";  
     ttlmeta+="giga:"+actid+" prov:actedOnBehalfOf giga:"+personid+" .\n";    
+    fileStrOutMetaTTL << ttlmeta << std::endl;
+    fileStrOutMetaTTL.close();
     jsonMeta+="{\n";
     
     jsonMeta+="}\n";
+    fileStrOutMetaJSON << jsonMeta << std::endl;
+    fileStrOutMetaJSON.close();
     xmlMeta+="<?xml version=\"1.0\"?>\n";
     xmlMeta+="<GigaMeshMetaData xmlns=\"http://www.gigamesh.eu/ont#\" xmlns:dc=\"http://purl.org/dc/terms/\" xmlns:prov=\"http://www.w3.org/ns/prov#\" xmlns:om=\"http://www.ontology-of-units-of-measure.org/resource/om-2/ \">";
     xmlMeta+="<Mesh id=\""+indid+"\">\n";      
@@ -535,6 +600,8 @@ bool MeshInfoData::writeMeshInfoProcess(
     xmlMeta+="<prov:wasAssociatedWith>\n<"+funcid+">\n<prov:actedOnBehalfOf>\n<foaf:Person id=\""+personid+"\">\n<foaf:userName>"+userName+"</foaf:userName>\n</foaf:Person>\n</prov:actedOnBehalfOf>\n</"+funcid+">\n</prov:wasAssociatedWith>\n";
     xmlMeta+="</ProcessingInformation>\n";
     xmlMeta+="</GigaMeshMetaData>\n";
+    fileStrOutMetaXML << xmlMeta << std::endl;
+    fileStrOutMetaXML.close();
     // Done
 	return( true );
 }
@@ -680,7 +747,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     std::string indidnotencoded=this->mStrings[MeshInfoData::FILENAME];
     std::size_t pos = indidnotencoded.find_last_of("/");
     std::string indname = indidnotencoded.substr(pos+1,indidnotencoded.size());
-    std::string infoStr = "@prefix rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix foaf:<http://xmlns.com/foaf/0.1/> . \n@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n@prefix xsd:<http://www.w3.org/2001/XMLSchema#> .\n@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .\n@prefix owl:<http://www.w3.org/2002/07/owl#> .\n@prefix dcat:<http://www.w3.org/ns/dcat#> .\n@prefix prov:<http://www.w3.org/ns/prov#> .\n@prefix giga:<http://www.gigamesh.eu/ont#> .\n@prefix dc:<http://purl.org/dc/terms/> .\n@prefix ex:<http://purl.org/net/ns/ex#> .\n@prefix geo:<http://www.opengis.net/ont/geosparql#> .\n@prefix wdt:<http://www.wikidata.org/prop/direct/> .\n";
+    std::string infoStr = "@prefix rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix foaf:<http://xmlns.com/foaf/0.1/> . \n@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n@prefix xsd:<http://www.w3.org/2001/XMLSchema#> .\n@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .\n@prefix owl:<http://www.w3.org/2002/07/owl#> .\n@prefix dcat:<http://www.w3.org/ns/dcat#> .\n@prefix prov:<http://www.w3.org/ns/prov#> .\n@prefix giga:<http://www.gigamesh.eu/ont#> .\n@prefix dc:<http://purl.org/dc/terms/> .\n@prefix ex:<http://purl.org/net/ns/ex#> .\n@prefix geo:<http://www.opengis.net/ont/geosparql#> .\n@prefix wdt:<http://www.wikidata.org/prop/direct/> .\n@prefix om:<http://www.ontology-of-units-of-measure.org/resource/om-2/>.\n";
     infoStr+="giga:GigameshInfo rdf:type owl:Class .\n";
     infoStr+="giga:GigameshInfo rdfs:label \"Gigamesh Info\"@en .\n";
     infoStr+="prov:Entity rdf:type owl:Class .\n";
