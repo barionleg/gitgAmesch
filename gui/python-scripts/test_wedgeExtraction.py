@@ -93,28 +93,28 @@ def main():
 	# request watershed
 	r = requests.post(url+'/watershed?deletable_input=0.0')
 	if(r):
-		print(str(r.status_code) + " - watershed completed.")
+		print(str(r.status_code) + " - Watershed completed.")
 	else:
 		print(str(r.status_code) + " - Error while watershed!")
 
 	# request clustering
 	r = requests.post(url+'/clustering?number_iterations=100')
 	if(r):
-		print(str(r.status_code) + " - clustering completed.")
+		print(str(r.status_code) + " - Clustering completed.")
 	else:
 		print(str(r.status_code) + " - Error while clustering!")
 
 	# request ransac
 	r = requests.post(url+'/ransac?number_iterations=100')
 	if(r):
-		print(str(r.status_code) + " - ransac completed.")
+		print(str(r.status_code) + " - RANSAC completed.")
 	else:
 		print(str(r.status_code) + " - Error while ransac!")
 
 	# request ransac
 	r = requests.post(url+'/featureElementsByIndex?element_nr=21')
 	if(r):
-		print(str(r.status_code) + " - featureElementsByIndex completed.")
+		print(str(r.status_code) + " - Feature Elements By Index completed.")
 	else:
 		print(str(r.status_code) + " - Error while feature Elements By Index!")
 

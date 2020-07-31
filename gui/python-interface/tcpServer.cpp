@@ -433,7 +433,7 @@ QStringList TcpServer::parseCommand(Request req){
 
                         if(parSucc){
 
-                            if(this->mainWin->getWidget()->getMesh()->funcExpNonMaxSupp(nmsDistances)){
+                            if(this->mainWin->getWidget()->getMesh()->funcExpSuppNonMax(nmsDistances)){
                                 statusCode = c200;
                             }else{
                                 cout << "[QGMMainWindow::parseCommand] Error in execution of command." << endl;
@@ -463,7 +463,7 @@ QStringList TcpServer::parseCommand(Request req){
 
                         if(parSucc){
 
-                            if(this->mainWin->getWidget()->getMesh()->funcExpWatershed(delInput)){
+                            if(this->mainWin->getWidget()->getMesh()->funcExpComputeWatershed(delInput)){
                                 statusCode = c200;
                             }else{
                                 cout << "[QGMMainWindow::parseCommand] Error in execution of command." << endl;
@@ -485,7 +485,7 @@ QStringList TcpServer::parseCommand(Request req){
                         bool parSucc = true;
                         int numbInter;
                         if(pars.find("number_iterations") != pars.end()){
-                                numbInter = std::stod(pars["number_iterations"]);
+                                numbInter = std::stoi(pars["number_iterations"]);
                         }else{
                             cout << "[QGMMainWindow::parseCommand] Missing number of iterations." << endl;
                             parSucc = false;
@@ -493,7 +493,7 @@ QStringList TcpServer::parseCommand(Request req){
 
                         if(parSucc){
 
-                            if(this->mainWin->getWidget()->getMesh()->funcExpClustering(numbInter)){
+                            if(this->mainWin->getWidget()->getMesh()->funcExpComputeClustering(numbInter)){
                                 statusCode = c200;
                             }else{
                                 cout << "[QGMMainWindow::parseCommand] Error in execution of command." << endl;
@@ -513,24 +513,104 @@ QStringList TcpServer::parseCommand(Request req){
                 if(mainWin->getWidget()->getMesh() != nullptr){
 
                         bool parSucc = true;
+
                         int numbInter;
                         if(pars.find("number_iterations") != pars.end()){
-                                numbInter = std::stod(pars["number_iterations"]);
+                                numbInter = std::stoi(pars["number_iterations"]);
                         }else{
-                            cout << "[QGMMainWindow::parseCommand] Missing number of iterations." << endl;
+                            cout << "[QGMMainWindow::parseCommand] Missing number of iterations - set to default (100)." << endl;
+                            numbInter = 100;
                             parSucc = false;
                         }
 
+                        cout << "-------->" << this->mainWin->getWidget()->getMesh()->getFullName().string() << endl;
+                        cout << "-------->" << this->mainWin->getWidget()->getMesh()->getBaseName().string() << endl;
+
+                        /*
+                        QString filename;
+                        if(pars.find("output_filename") != pars.end()){
+                                filename = QString::fromStdString(pars["output_filename"]);
+                        }else{
+                                cout << "[QGMMainWindow::parseCommand] Missing output filename - set to default." << endl;
+                                filename = "Outputfilename";
+
+                                // todo: current filename + extension
+                                parSucc = false;
+                        }
+
+                        bool useNMSResultsForTetraederTop;
+                        if(pars.find("use_nms_results_for_tetrahedra_top") != pars.end()){
+                                useNMSResultsForTetraederTop = std::stoi(pars["use_nms_results_for_tetrahedra_top"]);
+                        }else{
+                            cout << "[QGMMainWindow::parseCommand] Missing boolean whether to use nms results for tetrahedra top - set to default (false)." << endl;
+                            useNMSResultsForTetraederTop = false;
+                            parSucc = false;
+                        }
+
+                        double minTetrahedraHeight;
+                        if(pars.find("minimum_tetrahedra_height") != pars.end()){
+                                minTetrahedraHeight = std::stod(pars["minimum_tetrahedra_height"]);
+                        }else{
+                            cout << "[QGMMainWindow::parseCommand] Missing minimal tetrahedra height - set to default (-1.0)." << endl;
+                            minTetrahedraHeight = -1.0;
+                            parSucc = false;
+                        }
+
+                        bool extendMesh;
+                        if(pars.find("extent_mesh") != pars.end()){
+                                extendMesh = std::stoi(pars["extent_mesh"]);
+                        }else{
+                            cout << "[QGMMainWindow::parseCommand] Missing boolean whether to extent mesh - set to default (false)." << endl;
+                            extendMesh = false;
+                            parSucc = false;
+                        }
+
+                        bool addSeparationWall;
+                        if(pars.find("add_separation_wall") != pars.end()){
+                                addSeparationWall = std::stoi(pars["add_separation_wall"]);
+                        }else{
+                            cout << "[QGMMainWindow::parseCommand] Missing boolean whether to add separation wall - set to default (false)." << endl;
+                            addSeparationWall = false;
+                            parSucc = false;
+                        }
+
+                        bool visualizeRANSACQuality;
+                        if(pars.find("visualize_ransac_quality") != pars.end()){
+                                visualizeRANSACQuality = std::stoi(pars["visualize_ransac_quality"]);
+                        }else{
+                            cout << "[QGMMainWindow::parseCommand] Missing boolean whether to visualize ransac quality - set to default (false)." << endl;
+                            visualizeRANSACQuality = false;
+                            parSucc = false;
+                        }
+
+                        bool visualizeTetraederHeight;
+                        if(pars.find("visualize_tetraeder_height") != pars.end()){
+                                visualizeTetraederHeight = std::stoi(pars["visualize_tetraeder_height"]);
+                        }else{
+                            cout << "[QGMMainWindow::parseCommand] Missing boolean whether to visualize tetraeder height - set to default (false)." << endl;
+                            visualizeTetraederHeight = false;
+                            parSucc = false;
+                        }*/
+
                         if(parSucc){
 
-                            if(this->mainWin->getWidget()->getMesh()->funcExpRANSAC(numbInter)){
+                            /*if(this->mainWin->getWidget()->getMesh()->funcExpComputeRANSAC(numbInter,
+                                                                                           filename.toStdString(),
+                                                                                           useNMSResultsForTetraederTop,
+                                                                                           minTetrahedraHeight,
+                                                                                           extendMesh,
+                                                                                           addSeparationWall,
+                                                                                           visualizeRANSACQuality,
+                                                                                           visualizeTetraederHeight*/
+                            if(this->mainWin->getWidget()->getMesh()->funcExpComputeRANSAC(numbInter
+                                                                                           )){
                                 statusCode = c200;
                             }else{
                                 cout << "[QGMMainWindow::parseCommand] Error in execution of command." << endl;
                                 statusCode = c424;
                             }
                         }else{
-                            cout << "[QGMMainWindow::parseCommand] Could not execute command due to missing parameter." << endl;
+                            cout << "[QGMMainWindow::parseCommand] Executed command with default parameters." << endl;
                             statusCode = c424;
                         }
 
@@ -545,7 +625,7 @@ QStringList TcpServer::parseCommand(Request req){
                         bool parSucc = true;
                         int numbElement;
                         if(pars.find("element_nr") != pars.end()){
-                                numbElement = std::stod(pars["element_nr"]);
+                                numbElement = std::stoi(pars["element_nr"]);
                         }else{
                             cout << "[QGMMainWindow::parseCommand] Missing number of elements." << endl;
                             parSucc = false;
