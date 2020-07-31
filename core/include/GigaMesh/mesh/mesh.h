@@ -543,6 +543,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool funcExpComputeRANSAC(int numberOfIterations);
 				bool funcExpComputeRANSAC(	int numberOfIterations,
 											std::string outputFileName,
+											bool useNMSResultsForTetraederTop,
 											double minimumTetraederHeight,
 											bool extendMesh,
 											bool addSeparationWall,

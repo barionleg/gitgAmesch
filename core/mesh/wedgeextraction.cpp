@@ -1732,6 +1732,7 @@ bool experimentalComputeClustering(int numberOfIterations, vector<Vertex*> &mVer
 //! Data will be written at Feature Vector Position 22 if vertices lie on a border between two clusterings
 bool experimentalComputeRANSAC(	int numberOfIterations,
 								string outputFileName,
+								bool useNMSResultsForTetraederTop,
 								double minimumTetraederHeight,
 								bool extendMesh,
 								bool addSeparationWall,

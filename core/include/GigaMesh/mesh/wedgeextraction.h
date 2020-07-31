@@ -74,6 +74,7 @@ bool experimentalComputeClustering(int numberOfIterations, std::vector<Vertex*> 
 
 bool experimentalComputeRANSAC(	int numberOfIterations,
 								std::string outputFileName,
+								bool useNMSResultsForTetraederTop,
 								double minimumTetraederHeight,
 								bool extendMesh,
 								bool addSeparationWall,

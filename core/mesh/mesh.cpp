@@ -16651,7 +16651,7 @@ bool Mesh::funcExpComputeClustering(int numberOfIterations){
 //! Stub method calling the real body in wedgeextraction.cpp
 bool Mesh::funcExpComputeRANSAC(int numberOfIterations){
 
-	return experimentalComputeRANSAC(numberOfIterations, "OutputFileNotNamed", -1.0, false, false, false, false, mVertices, mFaces);
+	return experimentalComputeRANSAC(numberOfIterations, "OutputFileNotNamed", false, -1.0, false, false, false, false, mVertices, mFaces);
 
 }
 
@@ -16663,6 +16663,7 @@ bool Mesh::funcExpComputeRANSAC(int numberOfIterations){
 //! This may change till final release
 bool Mesh::funcExpComputeRANSAC(	int numberOfIterations,
 									string outputFileName,
+									bool useNMSResultsForTetraederTop,
 									double minimumTetraederHeight,
 									bool extendMesh,
 									bool addSeparationWall,
@@ -16671,6 +16672,7 @@ bool Mesh::funcExpComputeRANSAC(	int numberOfIterations,
 
 	return experimentalComputeRANSAC(	numberOfIterations,
 										outputFileName,
+										useNMSResultsForTetraederTop,
 										minimumTetraederHeight,
 										extendMesh,
 										addSeparationWall,
