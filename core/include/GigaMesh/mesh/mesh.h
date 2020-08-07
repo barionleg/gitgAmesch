@@ -42,6 +42,8 @@
 #include "plane.h"
 #include "octree.h"
 
+//#include "vertexofface.h" //MSEx, used to augment the Mesh with a hacky solution
+
 #include "polyline.h"
 #include "sphere.h"
 #include "rectbox.h"
@@ -536,13 +538,16 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool funcVertSphereVolumeArea();
 				bool funcVertSphereSurfaceNumberOfComponents();
 				bool funcValToFeatureVector(unsigned int dim);
+
 				//MSExp
+				std::vector<std::vector<double>> meshIntrinsicExtractedTetraeders;
 				bool funcExpSuppNonMax(double NMSDistance);
 				bool funcExpComputeWatershed(double watershedLimit);
 				bool funcExpComputeClustering(int numberOfIterations);
 				bool funcExpComputeRANSAC(int numberOfIterations);
 				bool funcExpComputeRANSAC(	int numberOfIterations,
 											std::string outputFileName,
+											std::vector<std::vector<double>> &meshIntrinsicExtractedTetraeders,
 											bool useNMSResultsForTetraederTop,
 											double minimumTetraederHeight,
 											bool extendMesh,
@@ -550,6 +555,9 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 											bool visualizeRANSACQuality,
 											bool visualizeTetraederHeight);
 				bool funcExpReorderFeatVec(double deletableInput);
+				//std::vector<std::vector<VertexOfFace>> meshAugmentVOFs;
+				//std::vector<Face> meshAugmentFs;
+
 		// Again some old style function value calls:
 				bool setVertFuncValCorrTo( std::vector<double>* rFeatVector );
 				bool setVertFuncValDistanceToSelPrim();
