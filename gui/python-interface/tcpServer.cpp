@@ -523,87 +523,31 @@ QStringList TcpServer::parseCommand(Request req){
                             parSucc = false;
                         }
 
-                        cout << "-------->" << this->mainWin->getWidget()->getMesh()->getFullName().string() << endl;
-                        cout << "-------->" << this->mainWin->getWidget()->getMesh()->getBaseName().string() << endl;
-
-                        /*
-                        QString filename;
-                        if(pars.find("output_filename") != pars.end()){
-                                filename = QString::fromStdString(pars["output_filename"]);
-                        }else{
-                                cout << "[QGMMainWindow::parseCommand] Missing output filename - set to default." << endl;
-                                filename = "Outputfilename";
-
-                                // todo: current filename + extension
-                                parSucc = false;
-                        }
-
-                        bool useNMSResultsForTetraederTop;
-                        if(pars.find("use_nms_results_for_tetrahedra_top") != pars.end()){
-                                useNMSResultsForTetraederTop = std::stoi(pars["use_nms_results_for_tetrahedra_top"]);
-                        }else{
-                            cout << "[QGMMainWindow::parseCommand] Missing boolean whether to use nms results for tetrahedra top - set to default (false)." << endl;
-                            useNMSResultsForTetraederTop = false;
-                            parSucc = false;
-                        }
-
-                        double minTetrahedraHeight;
-                        if(pars.find("minimum_tetrahedra_height") != pars.end()){
-                                minTetrahedraHeight = std::stod(pars["minimum_tetrahedra_height"]);
-                        }else{
-                            cout << "[QGMMainWindow::parseCommand] Missing minimal tetrahedra height - set to default (-1.0)." << endl;
-                            minTetrahedraHeight = -1.0;
-                            parSucc = false;
-                        }
-
-                        bool extendMesh;
-                        if(pars.find("extent_mesh") != pars.end()){
-                                extendMesh = std::stoi(pars["extent_mesh"]);
-                        }else{
-                            cout << "[QGMMainWindow::parseCommand] Missing boolean whether to extent mesh - set to default (false)." << endl;
-                            extendMesh = false;
-                            parSucc = false;
-                        }
-
-                        bool addSeparationWall;
-                        if(pars.find("add_separation_wall") != pars.end()){
-                                addSeparationWall = std::stoi(pars["add_separation_wall"]);
-                        }else{
-                            cout << "[QGMMainWindow::parseCommand] Missing boolean whether to add separation wall - set to default (false)." << endl;
-                            addSeparationWall = false;
-                            parSucc = false;
-                        }
-
-                        bool visualizeRANSACQuality;
-                        if(pars.find("visualize_ransac_quality") != pars.end()){
-                                visualizeRANSACQuality = std::stoi(pars["visualize_ransac_quality"]);
-                        }else{
-                            cout << "[QGMMainWindow::parseCommand] Missing boolean whether to visualize ransac quality - set to default (false)." << endl;
-                            visualizeRANSACQuality = false;
-                            parSucc = false;
-                        }
-
-                        bool visualizeTetraederHeight;
-                        if(pars.find("visualize_tetraeder_height") != pars.end()){
-                                visualizeTetraederHeight = std::stoi(pars["visualize_tetraeder_height"]);
-                        }else{
-                            cout << "[QGMMainWindow::parseCommand] Missing boolean whether to visualize tetraeder height - set to default (false)." << endl;
-                            visualizeTetraederHeight = false;
-                            parSucc = false;
-                        }*/
+                        string filename = this->mainWin->getWidget()->getMesh()->getFullName().string();
+                        if(filename.find(".obj")!=-1) {filename = filename.substr(0,filename.find(".obj"));}
+                        if(filename.find(".ply")!=-1) {filename = filename.substr(0,filename.find(".ply"));}
+                        filename += ".wedges"; //.csv";
 
                         if(parSucc){
-
-                            /*if(this->mainWin->getWidget()->getMesh()->funcExpComputeRANSAC(numbInter,
-                                                                                           filename.toStdString(),
-                                                                                           useNMSResultsForTetraederTop,
-                                                                                           minTetrahedraHeight,
-                                                                                           extendMesh,
-                                                                                           addSeparationWall,
-                                                                                           visualizeRANSACQuality,
-                                                                                           visualizeTetraederHeight*/
-                            if(this->mainWin->getWidget()->getMesh()->funcExpComputeRANSAC(numbInter
-                                                                                           )){
+                            vector<vector<double>> meshIntrinsicExtractedTetraeders;
+                            if(this->mainWin->getWidget()->getMesh()->funcExpComputeRANSAC(numbInter,
+                                                                                           filename,
+                                                                                           meshIntrinsicExtractedTetraeders,
+                                                                                           false,
+                                                                                           0.0,
+                                                                                           false,
+                                                                                           false,
+                                                                                           true,
+                                                                                           true)){
+                                for (int i = 0; i < meshIntrinsicExtractedTetraeders.size(); i++) {
+                                        for (int j = 0; j < meshIntrinsicExtractedTetraeders[i].size(); j++){
+                                            data_str += QString::number(meshIntrinsicExtractedTetraeders[i][j] );
+                                            if(j != meshIntrinsicExtractedTetraeders[i].size()-1){
+                                                data_str += ",";
+                                            }
+                                        }
+                                        data_str += "\n";
+                                    }
                                 statusCode = c200;
                             }else{
                                 cout << "[QGMMainWindow::parseCommand] Error in execution of command." << endl;

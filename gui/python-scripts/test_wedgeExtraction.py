@@ -68,6 +68,7 @@ def main():
 	#curl localhost:8080/watershed?deletable_input=0.0
 	#curl localhost:8080/clustering?number_iterations=100
 	#curl localhost:8080/ransac?number_iterations=100
+	#curl localhost:8080/featureElementsByIndex?element_nr=21
 
 
 	# ... with python requests
@@ -108,10 +109,12 @@ def main():
 	r = requests.post(url+'/ransac?number_iterations=100')
 	if(r):
 		print(str(r.status_code) + " - RANSAC completed.")
+		print("\n"  + r.content.decode('utf-8') + "\n")
 	else:
 		print(str(r.status_code) + " - Error while ransac!")
 
-	# request ransac
+
+	# request visualization of feature vector
 	r = requests.post(url+'/featureElementsByIndex?element_nr=21')
 	if(r):
 		print(str(r.status_code) + " - Feature Elements By Index completed.")
