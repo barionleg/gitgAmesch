@@ -43,17 +43,17 @@ double temporaryRANSACParameter = 0.1;
 //hacky solution for mesh extension testing
 //problem of putting it in the method body: the pointers will be invalid
 
-vector<vector<VertexOfFace>> tempVOFCollection;
+//vector<vector<VertexOfFace>> tempVOFCollection;
 
 //unsigned char as numbers gives the range 0 - 255
-vector<unsigned char> RANSACQualityColourPerTetraeder;
-vector<unsigned char> tetraederDepthColourPerTetraeder;
+//vector<unsigned char> RANSACQualityColourPerTetraeder;
+//vector<unsigned char> tetraederDepthColourPerTetraeder;
 
-vector<vector<VertexOfFace*>> tempVOFPCollection;
+//vector<vector<VertexOfFace*>> tempVOFPCollection;
 
-vector<Face> tempFCollection;
+//vector<Face> tempFCollection;
 
-vector<Face*> tempFPCollection;
+//vector<Face*> tempFPCollection;
 
 
 //! Distance calculation for vertices omitting square root for speed up
@@ -452,7 +452,7 @@ void wEComputeSquaredDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arb
 }
 
 
-double wEComputeTetraederHeight(std::vector<Vertex*> foundTetraeder){
+double wEComputeTetraederHeight(std::vector<Vertex*> &foundTetraeder){
 
 	//every found tetraeder should consist of 4 vertices
 	//this is checked for the sake of implementation
@@ -493,7 +493,7 @@ double wEComputeTetraederHeight(std::vector<Vertex*> foundTetraeder){
 
 //! Checks if a tetraeder is tall enough (considering the tetraeder top (the wedge vertex with highest MSII value) as top wedge from where to consider the height)
 //! The found Tetraeder is made of 4 vertices: tetraeder top, vertex 1, vertex 2, vertex 3
-bool wECheckTetraederHeight(vector<Vertex*> foundTetraeder, double &minimumHeight){
+bool wECheckTetraederHeight(vector<Vertex*> &foundTetraeder, double &minimumHeight){
 
 	//every found tetraeder should consist of 4 vertices
 	//this is checked for the sake of implementation
@@ -537,7 +537,7 @@ bool wECheckTetraederHeight(vector<Vertex*> foundTetraeder, double &minimumHeigh
 
 
 //! Writes extracted Tetraeders into a .obj-file
-void wEWriteExtractedTetraedersIntoFile(vector<vector<Vertex*>> extractedTetraeders, string outputFileName){
+void wEWriteExtractedTetraedersIntoFile(vector<vector<Vertex*>> &extractedTetraeders, string outputFileName){
 
 	string customPrefix = outputFileName;
 	string customSuffix = ".obj";
@@ -597,6 +597,230 @@ void wEWriteExtractedTetraedersIntoFile(vector<vector<Vertex*>> extractedTetraed
 	}
 }
 
+void wEWriteExtractedTetraedersAndMeshIntoFile(	vector<vector<Vertex*>> &extractedTetraeders,
+												string outputFileName,
+												vector<Vertex*> &mVertices,
+												vector<Face*> &mFaces){
+
+	cout << "Ply Method starts" << endl;
+
+	string customPrefix = outputFileName;
+	string customRemark = "ContainsMesh";
+	string customSuffix = ".ply";
+	string tetraederOutputFile = customPrefix + customRemark + customSuffix;
+	ofstream OutFile(tetraederOutputFile);
+
+	double vertexCoordinateX;
+	double vertexCoordinateY;
+	double vertexCoordinateZ;
+
+	unsigned char vertexColorR;
+	unsigned char vertexColorG;
+	unsigned char vertexColorB;
+
+	int intVertexColorR;
+	int intVertexColorG;
+	int intVertexColorB;
+
+	if(OutFile.fail()){
+
+		cout << "Unable to open file to write tetraeder data!";
+
+	}
+	else{
+
+
+		OutFile << "ply" << endl;
+		OutFile << "format ascii 1.0" << endl;
+		OutFile << "comment mesh and extracted wedges" << endl;
+
+		//Total Number of Vertices needs to be known
+		//It is the Mesh's number of vertices + (number of Tetraeders * 4)
+
+		int numberOfMeshVertices = mVertices.size();
+		int numberOfTetraederVertices = extractedTetraeders.size() * 4;
+		int numberOfAllVertices = numberOfMeshVertices + numberOfTetraederVertices;
+
+		OutFile << "element vertex " << numberOfAllVertices << endl;
+		OutFile << "property float x" << endl;
+		OutFile << "property float y" << endl;
+		OutFile << "property float z" << endl;
+
+		//colors
+
+		OutFile << "property uchar red" << endl;
+		OutFile << "property uchar green" << endl;
+		OutFile << "property uchar blue" << endl;
+
+		//faces
+		//Total Number of Faces needs to be known
+
+		int numberOfMeshFaces = mFaces.size();
+		int numberOfTetraederFaces = extractedTetraeders.size() * 4; //same number as vertices
+		int numberOfAllFaces = numberOfMeshFaces + numberOfTetraederFaces;
+
+		OutFile << "element face " << numberOfAllFaces << endl;
+
+		OutFile << "property list uchar int vertex_index" << endl; //that means, every face (consisting of 3 vertices) needs to have 3 in the beginning)
+
+		OutFile << "end_header" << endl;
+
+		//list every vertex
+		//example: 0 0 0 255 255 255
+
+		cout << "meshV" << endl;
+
+		//cout << mVertices.size() << endl;
+		//cout << mVertices.at(0) << endl; //exists, so indices start at 0
+		//cout << mVertices.at(1) << endl;
+
+		//all mesh vertices
+		for(int i=0; i<mVertices.size(); i++){
+
+			Vertex* currentVertexP = mVertices.at(i);
+			vertexCoordinateX = currentVertexP->getX();
+			vertexCoordinateY = currentVertexP->getY();
+			vertexCoordinateZ = currentVertexP->getZ();
+
+			//colors seem to be off with this solution
+
+			vertexColorR = currentVertexP->getR();
+			vertexColorG = currentVertexP->getG();
+			vertexColorB = currentVertexP->getB();
+
+			intVertexColorR = vertexColorR;
+			intVertexColorG = vertexColorG;
+			intVertexColorB = vertexColorB;
+
+			//original mesh colors used
+			OutFile << vertexCoordinateX << " " << vertexCoordinateY << " " << vertexCoordinateZ << " " << intVertexColorR << " " << intVertexColorG << " " << intVertexColorB << endl;
+
+		}
+
+		cout << "TetV" << endl;
+
+		//all additional
+
+		//cout << extractedTetraeders.size() << endl;
+
+		for(int i=0; i<extractedTetraeders.size(); i++){
+
+			//cout << extractedTetraeders[i].size() << endl;
+
+			for(int j=0; j<4; j++){
+
+				//Vertex* currentVertexET = extractedTetraeders[i][j];
+
+				vertexCoordinateX = extractedTetraeders[i][j]->getX();
+				vertexCoordinateY = extractedTetraeders[i][j]->getY();
+				vertexCoordinateZ = extractedTetraeders[i][j]->getZ();
+
+				intVertexColorR = 0;
+				intVertexColorG = 200;
+				intVertexColorB = 0;
+
+				//green is used
+				OutFile << vertexCoordinateX << " " << vertexCoordinateY << " " << vertexCoordinateZ << " " << intVertexColorR << " " << intVertexColorG << " " << intVertexColorB << endl;
+
+			}
+
+		}
+
+		cout << "meshFac" << endl;
+
+
+		//list every face
+		//remember: indices in ply start at 0
+		//example: 3 0 1 2
+
+		//all mesh faces
+		for(int i=0; i<mFaces.size(); i++){
+
+			Face* currentFace = mFaces[i];
+
+			Vertex* faceVertexA = currentFace->getVertA();
+			Vertex* faceVertexB = currentFace->getVertB();
+			Vertex* faceVertexC = currentFace->getVertC();
+
+			int vertexAInOr = faceVertexA->getIndexOriginal();
+			int vertexBInOr = faceVertexB->getIndexOriginal();
+			int vertexCInOr = faceVertexC->getIndexOriginal();
+
+			OutFile << "3" << " " << vertexAInOr << " " << vertexBInOr << " " << vertexCInOr << endl;
+		}
+
+		cout << "additionalFac" << endl;
+
+
+
+		//all tetraeder faces
+		//remember, first all original mesh vertices are named, then start the additional vertices
+
+		int offsetToOriginalMeshVertices = mVertices.size();
+
+		int fComp1;
+		int fComp2;
+		int fComp3;
+		int fComp4;
+
+		for(int i=0; i<extractedTetraeders.size(); i++){
+
+			int vertexT1Index = offsetToOriginalMeshVertices + i*4;
+			int vertexT2Index = offsetToOriginalMeshVertices + 1 + i*4;
+			int vertexT3Index = offsetToOriginalMeshVertices + 2 + i*4;
+			int vertexT4Index = offsetToOriginalMeshVertices + 3 + i*4;
+
+			OutFile << "3" << " " << vertexT1Index << " " << vertexT2Index << " " << vertexT3Index << endl;
+			OutFile << "3" << " " << vertexT1Index << " " << vertexT2Index << " " << vertexT4Index << endl;
+			OutFile << "3" << " " << vertexT1Index << " " << vertexT4Index << " " << vertexT3Index << endl;
+			OutFile << "3" << " " << vertexT2Index << " " << vertexT3Index << " " << vertexT4Index << endl;
+
+		}
+	}
+}
+
+
+//! Method to write extracted tetraeders into mesh
+//! Per Tetraeder 14 doubles are collected
+//! Information: RANSACQuality, TetraederHeight, then for 4 Vertices X, Y, Z coordinate
+void wEWriteExtractedTetraedersIntoMeshForCollection(	vector<vector<double>> &meshIntrinsicExtractedTetraeders,
+														vector<vector<Vertex*>> &extractedTetraeders,
+														vector<double> &RANSACQualities,
+														vector<double> &TetraederHeights){
+
+	if( (extractedTetraeders.size()==RANSACQualities.size()) && (extractedTetraeders.size()==TetraederHeights.size()) ){
+
+		cout << "Extracted tetraeders will be collected in mesh." << endl;
+
+		for(int i=0; i<extractedTetraeders.size(); i++){
+
+			vector<double> collectionOfTetraederInformation;
+
+			//First RANSAC Quality and then Tetraeder Height is added
+			collectionOfTetraederInformation.push_back(RANSACQualities[i]);
+			collectionOfTetraederInformation.push_back(TetraederHeights[i]);
+
+			//Collect for the Tetraeder for all 4 vertices the X, Y and Z coordinate
+			for(int j=0; j < 4; j++){
+
+				collectionOfTetraederInformation.push_back(extractedTetraeders[i][j]->getX());
+				collectionOfTetraederInformation.push_back(extractedTetraeders[i][j]->getY());
+				collectionOfTetraederInformation.push_back(extractedTetraeders[i][j]->getZ());
+
+			}
+
+			meshIntrinsicExtractedTetraeders.push_back(collectionOfTetraederInformation);
+		}
+
+	} else {
+
+		cout << "Extracted tetraeders were not collected in mesh. An internal error is the cause." << endl;
+
+	}
+
+}
+
+/*
 //! a hacky helper method, that will not end up in the final version
 void wETempNoteDownExtractedTetraeders(vector<vector<Vertex*>> &extractedTetraeders, int numberOfVertices, int numberOfFaces, vector<double> &RANSACQuality){
 
@@ -692,7 +916,7 @@ void wETempNoteDownExtractedTetraeders(vector<vector<Vertex*>> &extractedTetraed
 	//VertexOfFace* pointy2 = &testVert2;
 	//VertexOfFace* pointy3 = &testVert3;
 
-}
+}*/
 
 
 //copied from mesh.cpp, will be legacy soon
@@ -1732,6 +1956,7 @@ bool experimentalComputeClustering(int numberOfIterations, vector<Vertex*> &mVer
 //! Data will be written at Feature Vector Position 22 if vertices lie on a border between two clusterings
 bool experimentalComputeRANSAC(	int numberOfIterations,
 								string outputFileName,
+								vector<vector<double>> &meshIntrinsicExtractedTetraeders,
 								bool useNMSResultsForTetraederTop,
 								double minimumTetraederHeight,
 								bool extendMesh,
@@ -1751,7 +1976,8 @@ bool experimentalComputeRANSAC(	int numberOfIterations,
 	//The extracted Tetraeders are collected and then written to a file
 	vector<vector<Vertex*>> extractedTetraeders;
 
-	vector<double> RANSACQuality;
+	vector<double> RANSACQualities;
+	vector<double> TetraederHeights;
 
 	//prepare data
 	//find the number of labels and the number of vertices, which were not labeled
@@ -2136,9 +2362,16 @@ bool experimentalComputeRANSAC(	int numberOfIterations,
 			*/
 
 			//24.07. don't omit any tetraeders right now
+
+
+			//collect the extracted tetraeder
 			extractedTetraeders.push_back(foundTetraeder);
 
-			RANSACQuality.push_back(smallestSumOfDistances);
+			//collect the extracted tetraeders RANSAC quality
+			RANSACQualities.push_back(smallestSumOfDistances);
+
+			//collect the extracted tetraeders height
+			TetraederHeights.push_back(wEComputeTetraederHeight(foundTetraeder));
 
 
 
@@ -2151,6 +2384,11 @@ bool experimentalComputeRANSAC(	int numberOfIterations,
 
 	//Export found Wedges into file
 	wEWriteExtractedTetraedersIntoFile(extractedTetraeders, outputFileName);
+
+	wEWriteExtractedTetraedersIntoMeshForCollection(meshIntrinsicExtractedTetraeders, extractedTetraeders, RANSACQualities, TetraederHeights);
+
+	cout << "ply building starts" << endl;
+	wEWriteExtractedTetraedersAndMeshIntoFile(extractedTetraeders, outputFileName, mVertices, mFaces);
 
 
 
@@ -2176,7 +2414,9 @@ bool experimentalComputeRANSAC(	int numberOfIterations,
 
 
 	cout << "RANSAC terminated successfully!" << endl;
-	cout << "RANSAC encountered " << verticesWithoutAssignedCluster << " vertices that were not assigned to any cluster." << endl;
+
+	//obsolete output, as with improved watershed, some vertices will not be reached
+	//cout << "RANSAC encountered " << verticesWithoutAssignedCluster << " vertices that were not assigned to any cluster." << endl;
 
 
 	return true;
@@ -2184,19 +2424,276 @@ bool experimentalComputeRANSAC(	int numberOfIterations,
 }
 
 
-bool experimentalReorderFeatureVector(vector<Vertex*> &mVertices, vector<Face*> &mFaces, double deletableInput){
+bool experimentalReorderFeatureVector(	//vector<vector<double>> &meshIntrinsicExtractedTetraeders,
+										//vector<vector<VertexOfFace>> &meshAugmentVOFs,
+										//vector<Face> &meshAugmentFs,
+										vector<Vertex*> &mVertices,
+										vector<Face*> &mFaces,
+										double deletableInput){
 
-	temporaryRANSACParameter = deletableInput;
+	//temporaryRANSACParameter = deletableInput;
 
 
+	//cout << "Mesh augmentation has started." << endl;
+/*
+	cout << meshIntrinsicExtractedTetraeders.size() << endl;
+
+	int totalNumberNewVertices = meshIntrinsicExtractedTetraeders.size() * 4;
+	VertexOfFace * pointerToVOF = new VertexOfFace[totalNumberNewVertices];
+	//Face * facePointer = new Face(0, nullptr, nullptr, nullptr)[totalNumberNewVertices]; //same number like vertex
+	vector<Face> vectorOfFaces;
+
+	//calculate Colors
+
+
+
+
+
+	int countingFurtherVertices = mVertices.size();
+	int countingFurtherFaces = mFaces.size();
+	int NewVOF = 0;
+	int NewFace = 0;
+
+	//loop over all tetraeders
+	for(int i=0; i<meshIntrinsicExtractedTetraeders.size(); i++){
+
+		cout << "run " << i << endl;
+
+		cout << meshIntrinsicExtractedTetraeders[i].size() << endl;
+
+		vector<VertexOfFace> VOFCollectionPerTetraeder;
+		//create VOFs
+
+		//VOF1
+		countingFurtherVertices++;
+		VertexOfFace augVOF1(	countingFurtherVertices,
+								meshIntrinsicExtractedTetraeders[i][2],
+								meshIntrinsicExtractedTetraeders[i][3],
+								meshIntrinsicExtractedTetraeders[i][4]);
+		augVOF1.setRGB(0,255,0);
+		//VOFCollectionPerTetraeder.push_back(augVOF1);
+		pointerToVOF[NewVOF] = augVOF1;
+		VertexOfFace * pointVOF1 = &pointerToVOF[NewVOF];
+		NewVOF++;
+
+		cout << "jeweils first" << endl;
+
+		//VOF2
+		countingFurtherVertices++;
+		VertexOfFace augVOF2(	countingFurtherVertices,
+								meshIntrinsicExtractedTetraeders[i][5],
+								meshIntrinsicExtractedTetraeders[i][6],
+								meshIntrinsicExtractedTetraeders[i][7]);
+		augVOF2.setRGB(0,255,0);
+		//VOFCollectionPerTetraeder.push_back(augVOF2);
+		pointerToVOF[NewVOF] = augVOF2;
+		VertexOfFace * pointVOF2 = &pointerToVOF[NewVOF];
+		NewVOF++;
+
+		//VOF3
+		countingFurtherVertices++;
+		VertexOfFace augVOF3(	countingFurtherVertices,
+								meshIntrinsicExtractedTetraeders[i][8],
+								meshIntrinsicExtractedTetraeders[i][9],
+								meshIntrinsicExtractedTetraeders[i][10]);
+		augVOF3.setRGB(0,255,0);
+		//VOFCollectionPerTetraeder.push_back(augVOF3);
+		pointerToVOF[NewVOF] = augVOF3;
+		VertexOfFace * pointVOF3 = &pointerToVOF[NewVOF];
+		NewVOF++;
+
+		//VOF4
+		countingFurtherVertices++;
+		VertexOfFace augVOF4(	countingFurtherVertices,
+								meshIntrinsicExtractedTetraeders[i][11],
+								meshIntrinsicExtractedTetraeders[i][12],
+								meshIntrinsicExtractedTetraeders[i][13]);
+		augVOF4.setRGB(0,255,0);
+		//VOFCollectionPerTetraeder.push_back(augVOF4);
+		pointerToVOF[NewVOF] = augVOF4;
+		VertexOfFace * pointVOF4 = &pointerToVOF[NewVOF];
+		NewVOF++;
+
+		mVertices.push_back(pointVOF1);
+		mVertices.push_back(pointVOF2);
+		mVertices.push_back(pointVOF3);
+		mVertices.push_back(pointVOF4);
+
+		//meshAugmentVOFs.push_back(VOFCollectionPerTetraeder);
+
+		cout << "some VOFs finished" << endl;
+*/
+
+		//create faces
+		//Order may need to be rethought
+
+		/*
+		VertexOfFace * VOFPointer1 = &meshAugmentVOFs[i][0];
+		VertexOfFace * VOFPointer2 = &meshAugmentVOFs[i][1];
+		VertexOfFace * VOFPointer3 = &meshAugmentVOFs[i][2];
+		VertexOfFace * VOFPointer4 = &meshAugmentVOFs[i][3];
+
+		countingFurtherFaces++;
+		Face tetraederFace1 = Face(countingFurtherFaces, VOFPointer1, VOFPointer2, VOFPointer3);
+		meshAugmentFs.push_back((tetraederFace1));
+
+		countingFurtherFaces++;
+		Face tetraederFace2 = Face(countingFurtherFaces, VOFPointer1, VOFPointer2, VOFPointer4);
+		meshAugmentFs.push_back((tetraederFace2));
+
+		countingFurtherFaces++;
+		Face tetraederFace3 = Face(countingFurtherFaces, VOFPointer2, VOFPointer3, VOFPointer4);
+		meshAugmentFs.push_back((tetraederFace3));
+
+		countingFurtherFaces++;
+		Face tetraederFace4 = Face(countingFurtherFaces, VOFPointer3, VOFPointer1, VOFPointer4);
+		meshAugmentFs.push_back((tetraederFace4));
+		*/
+
+
+/*
+		countingFurtherFaces++;
+		Face tetraederFace1(countingFurtherFaces, pointVOF1, pointVOF2, pointVOF3);
+		vectorOfFaces.push_back(tetraederFace1);
+		//facePointer[NewFace] = tetraederFace1;
+		Face * pointToFace1 = &vectorOfFaces[NewFace];
+		NewFace++;
+
+		countingFurtherFaces++;
+		Face tetraederFace2(countingFurtherFaces, pointVOF1, pointVOF2, pointVOF4);
+		vectorOfFaces.push_back(tetraederFace2);
+		//facePointer[NewFace] = tetraederFace1;
+		Face * pointToFace2 = &vectorOfFaces[NewFace];
+		NewFace++;
+
+		countingFurtherFaces++;
+		Face tetraederFace3(countingFurtherFaces, pointVOF2, pointVOF3, pointVOF4);
+		vectorOfFaces.push_back(tetraederFace3);
+		//facePointer[NewFace] = tetraederFace1;
+		Face * pointToFace3 = &vectorOfFaces[NewFace];
+		NewFace++;
+
+		countingFurtherFaces++;
+		Face tetraederFace4(countingFurtherFaces, pointVOF3, pointVOF1, pointVOF4);
+		vectorOfFaces.push_back(tetraederFace4);
+		//facePointer[NewFace] = tetraederFace1;
+		Face * pointToFace4 = &vectorOfFaces[NewFace];
+		NewFace++;
+
+		mFaces.push_back(pointToFace1);
+		mFaces.push_back(pointToFace2);
+		mFaces.push_back(pointToFace3);
+		mFaces.push_back(pointToFace4);
+
+
+
+		cout << "some Faces finished" << endl;
+
+	}
+
+	cout << "Mesh will be augmented" << endl;
+*/
+	//add vertices to mesh
+/*
+	for(int v=0; v<meshAugmentVOFs.size(); v++){
+
+		for(int j=0; j<4; j++){
+			VertexOfFace * currentVOFPointer = &meshAugmentVOFs[v][j];
+			mVertices.push_back(currentVOFPointer);
+		}
+
+	}
+*/
+	//add faces to mesh
+/*
+	for(int f=0; f<meshAugmentFs.size(); f++){
+
+		Face * currentFacePointer = & meshAugmentFs[f];
+		mFaces.push_back(currentFacePointer);
+
+	}
+*/
+
+	/*
 	// TESTING
 	//how to add vertex or face
 
-	//int countingFurther = mVertices.size();
+	int countingFurther = mVertices.size();
+	int countingFFurther = mFaces.size();
 
-	//VertexOfFace testVert1(countingFurther+1, 4.0, -1.0, 2.0);
-	//VertexOfFace testVert2(countingFurther+2, 8.0, 5.0, -2.0);
-	//VertexOfFace testVert3(countingFurther+3, -4.0, 1.0, 6.0);
+	VertexOfFace testVert1(countingFurther+1, -40.0, -20.0, 40.0);
+	testVert1.setRGB(0,255,0);
+	VertexOfFace testVert2(countingFurther+2, -10.0, -20.0, 40.0);
+	testVert2.setRGB(0,255,0);
+	VertexOfFace testVert3(countingFurther+3, -25.0, 20.0, 40.0);
+	testVert3.setRGB(0,255,0);
+
+	VertexOfFace testVert4(countingFurther+4, 10.0, -20.0, 40.0);
+	testVert4.setRGB(50,200,0);
+	VertexOfFace testVert5(countingFurther+5, 40.0, -20.0, 40.0);
+	testVert5.setRGB(50,200,0);
+	VertexOfFace testVert6(countingFurther+6, 25.0, 20.0, 40.0);
+	testVert6.setRGB(50,200,0);
+
+	VertexOfFace testVert7(countingFurther+7, -20.0, -40.0, 40.0);
+	testVert7.setRGB(150,100,0);
+	VertexOfFace testVert8(countingFurther+8, 20.0, -40.0, 40.0);
+	testVert8.setRGB(150,100,0);
+	VertexOfFace testVert9(countingFurther+9, 0.0, -20.0, 40.0);
+	testVert9.setRGB(150,100,0);
+
+	VertexOfFace * pointerToVOF = new VertexOfFace[9];
+
+	pointerToVOF[0] = testVert1;
+	pointerToVOF[1] = testVert2;
+	pointerToVOF[2] = testVert3;
+	pointerToVOF[3] = testVert4;
+	pointerToVOF[4] = testVert5;
+	pointerToVOF[5] = testVert6;
+	pointerToVOF[6] = testVert7;
+	pointerToVOF[7] = testVert8;
+	pointerToVOF[8] = testVert9;
+
+	VertexOfFace * pointy1 = &pointerToVOF[0];
+	VertexOfFace * pointy2 = &pointerToVOF[1];
+	VertexOfFace * pointy3 = &pointerToVOF[2];
+
+	VertexOfFace * pointy4 = &pointerToVOF[3];
+	VertexOfFace * pointy5 = &pointerToVOF[4];
+	VertexOfFace * pointy6 = &pointerToVOF[5];
+
+	VertexOfFace * pointy7 = &pointerToVOF[6];
+	VertexOfFace * pointy8 = &pointerToVOF[7];
+	VertexOfFace * pointy9 = &pointerToVOF[8];
+
+	//Face * pointerToFace = new Face(countingFFurther+1, pointerToVOF[0], pointerToVOF[1], pointerToVOF[2]);
+	Face * pointerToFace1 = new Face(countingFFurther+1, pointy1, pointy2, pointy3);
+	Face * pointerToFace2 = new Face(countingFFurther+2, pointy4, pointy5, pointy6);
+	Face * pointerToFace3 = new Face(countingFFurther+3, pointy7, pointy8, pointy9);
+
+	//mVertices.push_back(pointerToVOF[0]);
+	//mVertices.push_back(pointerToVOF[1]);
+	//mVertices.push_back(pointerToVOF[2]);
+
+	mVertices.push_back(pointy1);
+	mVertices.push_back(pointy2);
+	mVertices.push_back(pointy3);
+
+	mVertices.push_back(pointy4);
+	mVertices.push_back(pointy5);
+	mVertices.push_back(pointy6);
+
+	mVertices.push_back(pointy7);
+	mVertices.push_back(pointy8);
+	mVertices.push_back(pointy9);
+
+	mFaces.push_back(pointerToFace1);
+	mFaces.push_back(pointerToFace2);
+	mFaces.push_back(pointerToFace3);
+	*/
+
+
+	/*
 
 	//int countingFF = mFaces.size();
 
@@ -2204,8 +2701,8 @@ bool experimentalReorderFeatureVector(vector<Vertex*> &mVertices, vector<Face*> 
 	//VertexOfFace* pointy1 = &testVert1;
 	//VertexOfFace* pointy2 = &testVert2;
 	//VertexOfFace* pointy3 = &testVert3;
-/*
-	VertexOfFace testVert1(60, 4.0, -1.0, 2.0);
+
+VertexOfFace testVert1(60, 4.0, -1.0, 2.0);
 VertexOfFace testVert2(61, 8.0, 5.0, -2.0);
 VertexOfFace testVert3(62, -4.0, 1.0, 6.0);
 
@@ -2221,7 +2718,7 @@ Face customFace(50, pointy1, pointy2, pointy3);
 
 	Face* pointy4 = &customFace;
 	mFaces.push_back(pointy4);
-	*/
+*/
 
 	/*
 	//add new vertices to current Mesh
@@ -2239,7 +2736,7 @@ Face customFace(50, pointy1, pointy2, pointy3);
 	}
 */
 
-	cout << "unfinished" << endl;
+	cout << "Experimental Mesh augmentation ended." << endl;
 
 	return true;
 

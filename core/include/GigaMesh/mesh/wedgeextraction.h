@@ -50,13 +50,23 @@ void wEGetBorderGroupFromVertexByFeatureVector(Vertex* &finalLineVertex1, Vertex
 
 void wEComputeSquaredDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arbPoint, Vertex* &point1OnLine, Vertex* &point2OnLine, double &computedSquaredDistance);
 
-double wEComputeTetraederHeight(std::vector<Vertex*> foundTetraeder);
+double wEComputeTetraederHeight(std::vector<Vertex*> &foundTetraeder);
 
-bool wECheckTetraederHeight(std::vector<Vertex*> foundTetraeder, double &minimumHeight);
+bool wECheckTetraederHeight(std::vector<Vertex*> &foundTetraeder, double &minimumHeight);
 
-void wEWriteExtractedTetraedersIntoFile(std::vector<std::vector<Vertex*>> extractedTetraeders, std::string outputFileName);
+void wEWriteExtractedTetraedersIntoFile(std::vector<std::vector<Vertex*>> &extractedTetraeders, std::string outputFileName);
 
-void wETempNoteDownExtractedTetraeders(std::vector<std::vector<Vertex*>> &extractedTetraeders, int numberOfVertices, int numberOfFaces, std::vector<double> &RANSACQuality);
+void wEWriteExtractedTetraedersAndMeshIntoFile(	std::vector<std::vector<Vertex*>> &extractedTetraeders,
+												std::string outputFileName,
+												std::vector<Vertex*> &mVertices,
+												std::vector<Face*> &mFaces);
+
+void wEWriteExtractedTetraedersIntoMeshForCollection(	std::vector<std::vector<double>> &meshIntrinsicExtractedTetraeders,
+														std::vector<std::vector<Vertex*>> &extractedTetraeders,
+														std::vector<double> &RANSACQualities,
+														std::vector<double> &TetraederHeights);
+
+//void wETempNoteDownExtractedTetraeders(std::vector<std::vector<Vertex*>> &extractedTetraeders, int numberOfVertices, int numberOfFaces, std::vector<double> &RANSACQuality);
 
 //copied from mesh.cpp, will be legacy soon
 bool getSurroundingVerticesInOrder (std::list<Vertex*> &adjacentVertsInOrder, Vertex* &pi, bool printDebug);
@@ -74,6 +84,7 @@ bool experimentalComputeClustering(int numberOfIterations, std::vector<Vertex*> 
 
 bool experimentalComputeRANSAC(	int numberOfIterations,
 								std::string outputFileName,
+								std::vector<std::vector<double>> &meshIntrinsicExtractedTetraeders,
 								bool useNMSResultsForTetraederTop,
 								double minimumTetraederHeight,
 								bool extendMesh,
@@ -83,6 +94,11 @@ bool experimentalComputeRANSAC(	int numberOfIterations,
 								std::vector<Vertex*> &mVertices,
 								std::vector<Face*> &mFaces);
 
-bool experimentalReorderFeatureVector(std::vector<Vertex*> &mVertices, std::vector<Face*> &mFaces, double deletableInput);
+bool experimentalReorderFeatureVector(	//std::vector<std::vector<double>> &meshIntrinsicExtractedTetraeders,
+										//std::vector<std::vector<VertexOfFace>> &meshAugmentVOFs,
+										//std::vector<Face> &meshAugmentFs,
+										std::vector<Vertex*> &mVertices,
+										std::vector<Face*> &mFaces,
+										double deletableInput);
 
 #endif // WEDGEEXTRACTION_H

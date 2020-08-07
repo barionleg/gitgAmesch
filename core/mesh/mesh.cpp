@@ -16663,7 +16663,7 @@ bool Mesh::funcExpComputeClustering(int numberOfIterations){
 //! Stub method calling the real body in wedgeextraction.cpp
 bool Mesh::funcExpComputeRANSAC(int numberOfIterations){
 
-	return experimentalComputeRANSAC(numberOfIterations, "OutputFileNotNamed", false, -1.0, false, false, false, false, mVertices, mFaces);
+	return experimentalComputeRANSAC(numberOfIterations, "OutputFileNotNamed", meshIntrinsicExtractedTetraeders, false, -1.0, false, false, false, false, mVertices, mFaces);
 
 }
 
@@ -16675,6 +16675,7 @@ bool Mesh::funcExpComputeRANSAC(int numberOfIterations){
 //! This may change till final release
 bool Mesh::funcExpComputeRANSAC(	int numberOfIterations,
 									string outputFileName,
+									vector<vector<double>> &meshIntrinsicExtractedTetraeders,
 									bool useNMSResultsForTetraederTop,
 									double minimumTetraederHeight,
 									bool extendMesh,
@@ -16684,14 +16685,15 @@ bool Mesh::funcExpComputeRANSAC(	int numberOfIterations,
 
 	return experimentalComputeRANSAC(	numberOfIterations,
 										outputFileName,
+										meshIntrinsicExtractedTetraeders,				// mesh intrinsic
 										useNMSResultsForTetraederTop,
 										minimumTetraederHeight,
 										extendMesh,
 										addSeparationWall,
 										visualizeRANSACQuality,
 										visualizeTetraederHeight,
-										mVertices,
-										mFaces);
+										mVertices,						// mesh intrinsic
+										mFaces);						// mesh intrinsic
 
 }
 
@@ -16699,7 +16701,12 @@ bool Mesh::funcExpComputeRANSAC(	int numberOfIterations,
 //! Will not be present in final version
 bool Mesh::funcExpReorderFeatVec(double deletableInput){
 
-	return experimentalReorderFeatureVector(mVertices, mFaces, deletableInput);
+	return experimentalReorderFeatureVector(	//meshIntrinsicExtractedTetraeders,
+												//meshAugmentVOFs,
+												//meshAugmentFs,
+												mVertices,
+												mFaces,
+												deletableInput);
 
 }
 
