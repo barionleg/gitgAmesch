@@ -39,6 +39,7 @@ class ModelMetaData
 			META_MODEL_ID,             //!< Given Id. Typically an inventory number.
 			META_MODEL_MATERIAL,       //!< Material of the real world object. e.g. 'original, clay' for 3D-scans of cuneiform tablets.
 			META_REFERENCE_WEB,        //!< Http URL with name format style '[URL|Name]'.
+			META_MODEL_UNIT,           //!< As PLY and OBJ are unitless, the type of unit has to be kept in the meta-data.
 			META_MODEL_UUID,           //!< UUID of this model.
 			META_MODEL_UUID_PARENT,    //!< UUID of the parent model.
 			META_MODEL_UUID_PROCESS,   //!< UUID of the process creating this model.

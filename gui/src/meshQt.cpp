@@ -3902,6 +3902,8 @@ void MeshQt::visualizeDistanceToCone( bool rAbsDist ) {
 //! @returns false in case of an error or user cancel.
 bool MeshQt::editMetaData() {
 
+	//! \todo add META_MODEL_UNIT 
+	
 	//! .) Edit Model ID.
 	string modelID = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
 	if( modelID.empty() ) {
@@ -3932,6 +3934,26 @@ bool MeshQt::editMetaData() {
 	if( modelMaterial.empty() ) {
 		QGMDialogEnterText dlgEnterTxt;
 		dlgEnterTxt.setText( tr( "original, clay" ) );
+		dlgEnterTxt.setWindowTitle( tr("Model Material") );
+		if( dlgEnterTxt.exec() == QDialog::Rejected ) {
+			cout << "[MeshQt::" << __FUNCTION__ << "] CANCELED by USER!" << endl;
+			return( false );
+		}
+		QString newMaterial;
+		if( !dlgEnterTxt.getText( &newMaterial ) ) {
+			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: bad input (1)!" << endl;
+			return false;
+		}
+		getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_MATERIAL, newMaterial.toStdString() );
+	}
+
+	//! .) Edit Model Unit.
+	string modelUnit = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_UNIT );
+	string modelUnitLabel;
+	getModelMetaDataRef().getModelMetaStringLabel( ModelMetaData::META_MODEL_UNIT, modelUnitLabel );
+	if( modelUnit.empty() ) {
+		QGMDialogEnterText dlgEnterTxt;
+		dlgEnterTxt.setText( tr( "mm" ) );
 		dlgEnterTxt.setWindowTitle( tr("Model Material") );
 		if( dlgEnterTxt.exec() == QDialog::Rejected ) {
 			cout << "[MeshQt::" << __FUNCTION__ << "] CANCELED by USER!" << endl;

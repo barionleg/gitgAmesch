@@ -108,6 +108,7 @@ bool ModelMetaData::clearModelMetaStrings() {
 	mMetaDataStringNames[META_MODEL_MATERIAL]   = "ModelMaterial";
 	mMetaDataStringNames[META_FILENAME]         = "ModelFileName";
 	mMetaDataStringNames[META_REFERENCE_WEB]    = "ModelReferenceWeb";
+	mMetaDataStringNames[META_MODEL_UNIT]           = "ModelUnit";
 	mMetaDataStringNames[META_MODEL_UUID]           = "ModelUUID";
 	mMetaDataStringNames[META_MODEL_UUID_PARENT]    = "ModelUUIDParent";
 	mMetaDataStringNames[META_MODEL_UUID_PROCESS]   = "ModelUUIDProcess";
@@ -120,6 +121,7 @@ bool ModelMetaData::clearModelMetaStrings() {
 	mMetaDataStringLabels[META_MODEL_MATERIAL]       = "Material of the object";
 	mMetaDataStringLabels[META_FILENAME]             = "Filename";
 	mMetaDataStringLabels[META_REFERENCE_WEB]        = "Reference / URL";
+	mMetaDataStringLabels[META_MODEL_UNIT]           = "Unit";
 	mMetaDataStringLabels[META_MODEL_UUID]           = "UUID of the model";
 	mMetaDataStringLabels[META_MODEL_UUID_PARENT]    = "UUID of the model's parent";
 	mMetaDataStringLabels[META_MODEL_UUID_PROCESS]   = "UUID of the last applied function";
