@@ -197,10 +197,6 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionToolbar,       &QAction::toggled,     uiMainToolBar, &QToolBar::setVisible              );
 	QObject::connect( actionStatusbar,     &QAction::toggled,     statusbar,     &QStatusBar::setVisible            );
 
-	QObject::connect( actionViewMatrix,                  SIGNAL(triggered()),   this, SIGNAL(showViewMatrix())                   );
-	QObject::connect( actionViewMatrixSet,               SIGNAL(triggered()),   this, SIGNAL(setViewMatrix())                    );
-	QObject::connect( actionViewAxisUp,    &QAction::triggered,   this,          &QGMMainWindow::sSetViewAxisUp     );
-
 	QObject::connect( actionViewActivateInspectionOptions,      SIGNAL(triggered()), this, SLOT(activateInspectionOptions())     );
 
 	// ... Vertices 
@@ -1159,24 +1155,27 @@ void QGMMainWindow::initMeshSignals() {
 	actionEllipsenFit->setProperty(                               "gmMeshFunctionCall", MeshParams::ELLIPSENFIT_EXPERIMENTAL                     );
 	actionSelFaceSelfIntersecting->setProperty(                   "gmMeshFunctionCall", MeshParams::DRAW_SELF_INTERSECTIONS                      );
 	// =======================================================================================================================================================
-	//! \todo MeshWidget Function calls - here is a first try:
-	actionExportPlaneIntersectSVG->setProperty(                   "gmMeshWidgetFunctionCall", MeshWidgetParams::EXPORT_POLYLINES_INTERSECT_PLANE );
-	actionScreenshot->setProperty(                                "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_CURRENT_VIEW_SINGLE   );
+	//! \todo MeshWidget Function calls - more to be converted:
+	actionExportPlaneIntersectSVG->setProperty(                   "gmMeshWidgetFunctionCall", MeshWidgetParams::EXPORT_POLYLINES_INTERSECT_PLANE     );
+	actionScreenshot->setProperty(                                "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_CURRENT_VIEW_SINGLE       );
 	actionScreenshotPDF->setProperty(                             "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_CURRENT_VIEW_SINGLE_PDF   );
-	actionScreenshotViews->setProperty(                           "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_IMAGES          );
-	actionScreenshotViewsPDF->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_PDF             );
+	actionScreenshotViews->setProperty(                           "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_IMAGES              );
+	actionScreenshotViewsPDF->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_PDF                 );
 	actionScreenshotViewsDirectory->setProperty(                  "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_DIRECTORY           );
-	actionCurrentViewToDefault->setProperty(                      "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_CURRENT_VIEW_TO_DEFAULT      );
+	actionCurrentViewToDefault->setProperty(                      "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_CURRENT_VIEW_TO_DEFAULT          );
 	actionSetConeAxisCentralPixel->setProperty(                   "gmMeshWidgetFunctionCall", MeshWidgetParams::EDIT_SET_CONEAXIS_CENTRALPIXEL       );
-	actionOrthoSetDPI->setProperty(                               "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_ORTHO_DPI                    );
-	actionRenderDefault->setProperty(                             "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_RENDER_DEFAULT               );
-	actionRenderMatted->setProperty(                              "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_RENDER_MATTED                );
-	actionRenderMetallic->setProperty(                            "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_RENDER_METALLIC              );
-	actionRenderLightShading->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_RENDER_LIGHT_SHADING         );
-	actionRenderFlatAndEdges->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_RENDER_FLAT_AND_EDGES        );
-	actionBackGroundGridRaster->setProperty(                      "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_GRID_RASTER                  );
-	actionBackGroundGridPolar->setProperty(                       "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_GRID_POLAR                   );
-	actionBackGroundGridNone->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_GRID_NONE                    );
+	actionOrthoSetDPI->setProperty(                               "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_ORTHO_DPI                        );
+	actionRenderDefault->setProperty(                             "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_RENDER_DEFAULT                   );
+	actionRenderMatted->setProperty(                              "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_RENDER_MATTED                    );
+	actionRenderMetallic->setProperty(                            "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_RENDER_METALLIC                  );
+	actionRenderLightShading->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_RENDER_LIGHT_SHADING             );
+	actionRenderFlatAndEdges->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_RENDER_FLAT_AND_EDGES            );
+	actionBackGroundGridRaster->setProperty(                      "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_GRID_RASTER                      );
+	actionBackGroundGridPolar->setProperty(                       "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_GRID_POLAR                       );
+	actionBackGroundGridNone->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_GRID_NONE                        );
+	actionViewAxisUp->setProperty(                                "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_VIEW_AXIS_UP                     );
+	actionViewMatrixSet->setProperty(                             "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_VIEW_PARAMETERS                  );
+	actionViewMatrix->setProperty(                                "gmMeshWidgetFunctionCall", MeshWidgetParams::SHOW_VIEW_PARAMETERS                 );
 
 	mMeshFunctionCalls = new QActionGroup( this );
 	for(QAction*& currAction : allActions) {
@@ -2022,6 +2021,8 @@ void QGMMainWindow::updateWidgetShowFlag(MeshWidgetParams::eParamFlag rFlag, boo
 		break;
 	case MeshWidgetParams::SCREENSHOT_FILENAME_WITH_DPI:
 		break;
+	case MeshWidgetParams::SCREENSHOT_PNG_BACKGROUND_OPAQUE:
+		break;
 	case MeshWidgetParams::SHOW_MESH_REDUCED:
 		break;
 	case MeshWidgetParams::ENABLE_SHOW_MESH_REDUCED:
@@ -2029,7 +2030,7 @@ void QGMMainWindow::updateWidgetShowFlag(MeshWidgetParams::eParamFlag rFlag, boo
 	case MeshWidgetParams::PARAMS_FLAG_COUNT:
 		break;
 	default:
-		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: unsupported/unimplemented flag no: " << rFlag << "!" << endl;
+		std::cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: unsupported/unimplemented flag no: " << rFlag << "!" << std::endl;
 		break;
 	}
 }

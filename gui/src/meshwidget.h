@@ -216,16 +216,17 @@ private:
 	bool screenshotTIFF(const QString& rFileName , OffscreenBuffer *offscreenBuffer);
 	bool screenshotPNG(const QString& rFileName, double& rWidthReal, double& rHeigthReal , OffscreenBuffer *offscreenBuffer);
 
+	// View menu
+	bool getViewSettingsTxt( QString& rSettingsStr ) const;
+	bool showViewMatrix();
+	bool setViewMatrix();
+	bool setViewMatrix( std::vector<double> rMatrix );
+	bool setViewAxisUp();
 
 public slots:
 	void selectColorBackground();
 
 	// View menu
-	bool showViewMatrix();
-	bool setViewMatrix();
-	bool setViewMatrix( std::vector<double> rMatrix );
-	bool setViewAxisUp();
-	//.
 	bool orthoSetDPI();
 	bool orthoSetDPI( double rSetTo );
 	//.
