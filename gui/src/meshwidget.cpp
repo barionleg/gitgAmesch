@@ -213,7 +213,7 @@ MeshWidget::~MeshWidget() {
 bool MeshWidget::getViewPortResolution(
                 double& rRealWidth,
                 double& rRealHeight
-) {
+) const {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << __PRETTY_FUNCTION__ << endl;
 #endif
@@ -270,7 +270,7 @@ bool MeshWidget::getViewPortResolution(
 bool MeshWidget::getViewPortPixelWorldSize(
                 double& rPixelWidth,
                 double& rPixelHeight
-) {
+) const {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << __PRETTY_FUNCTION__ << endl;
 #endif
@@ -309,9 +309,10 @@ bool MeshWidget::getViewPortPixelWorldSize(
 }
 
 //! Returns the DPI of the viewport
+//! 
 //! @param rDPI return value of the DPI.
 //! @returns false in case of an error
-bool MeshWidget::getViewPortDPI(double& rDPI)
+bool MeshWidget::getViewPortDPI( double& rDPI ) const
 {
 	double pixelWidth;
 	double pixelHeight;
@@ -323,9 +324,10 @@ bool MeshWidget::getViewPortDPI(double& rDPI)
 }
 
 //! Returns the dots per meter of the viewport
+//! 
 //! @param rDPM return value of the DPM
 //! @returns false in case of an error
-bool MeshWidget::getViewPortDPM(double& rDPM)
+bool MeshWidget::getViewPortDPM( double& rDPM ) const
 {
 	double pixelWidth;
 	double pixelHeight;
@@ -3830,29 +3832,68 @@ void MeshWidget::selectColorBackground() {
 bool MeshWidget::getViewSettingsTxt( 
         QString& rSettingsStr
 ) const {
-	rSettingsStr += QString("%1 ").arg( mCenterView.getX() );    // LookAt point X
-	rSettingsStr += QString("%1 ").arg( mCenterView.getY() );    // LookAt point Y
-	rSettingsStr += QString("%1  ").arg( mCenterView.getZ() );   // LookAt point Z
-	rSettingsStr += QString("%1 ").arg( mCameraCenter.getX() );  // Camera center X
-	rSettingsStr += QString("%1 ").arg( mCameraCenter.getY() );  // Camera center Y
-	rSettingsStr += QString("%1  ").arg( mCameraCenter.getZ() ); // Camera center Z
-	rSettingsStr += QString("%1 ").arg( mCameraUp.getX() );      // Camera orientation / up vector X
-	rSettingsStr += QString("%1 ").arg( mCameraUp.getY() );      // Camera orientation / up vector Y
-	rSettingsStr += QString("%1  ").arg( mCameraUp.getZ() );     // Camera orientation / up vector Z
+	//! \todo Revise to more descriptive format below as perpared for meta-data export.
+	//-------------------------------------------------------------------------------------
+	// Old style view settings format as one line. 
+	//-------------------------------------------------------------------------------------
+	rSettingsStr += QString( "%1"   ).arg( mCenterView.getX() );    // LookAt point X
+	rSettingsStr += QString( " %1"  ).arg( mCenterView.getY() );    // LookAt point Y
+	rSettingsStr += QString( " %1"  ).arg( mCenterView.getZ() );    // LookAt point Z
+	rSettingsStr += QString( "  %1" ).arg( mCameraCenter.getX() );  // Camera center X
+	rSettingsStr += QString( " %1"  ).arg( mCameraCenter.getY() );  // Camera center Y
+	rSettingsStr += QString( " %1"  ).arg( mCameraCenter.getZ() );  // Camera center Z
+	rSettingsStr += QString( "  %1" ).arg( mCameraUp.getX() );      // Camera orientation / up vector X
+	rSettingsStr += QString( " %1"  ).arg( mCameraUp.getY() );      // Camera orientation / up vector Y
+	rSettingsStr += QString( " %1"  ).arg( mCameraUp.getZ() );      // Camera orientation / up vector Z
 
 	bool orthoMode;
 	getParamFlagMeshWidget( ORTHO_MODE, &orthoMode );
-	rSettingsStr += QString("%1  ").arg( orthoMode );            // Orthographic or perspective view
+	rSettingsStr += QString( "  %1").arg( orthoMode );            // Orthographic or perspective view
 
 	if( orthoMode ) {
 		double paramFloat;
 		getParamFloatMeshWidget( ORTHO_SHIFT_HORI, &paramFloat );
-		rSettingsStr += QString("%1  ").arg( paramFloat );       // Vertical offset in orthograpic projection
+		rSettingsStr += QString( "  %1" ).arg( paramFloat );       // Vertical offset in orthograpic projection
 		getParamFloatMeshWidget( ORTHO_SHIFT_VERT, &paramFloat );
-		rSettingsStr += QString("%1  ").arg( paramFloat );       // Horizontal offset in orthograpic projection
-		getParamFloatMeshWidget( ORTHO_ZOOM, &paramFloat );
-		rSettingsStr += QString("%1  ").arg( paramFloat );       // Zoom factor (relates to DPI)
+		rSettingsStr += QString( " %1" ).arg( paramFloat );       // Horizontal offset in orthograpic projection
+		getViewPortDPI( paramFloat );
+		rSettingsStr += QString( " %1" ).arg( paramFloat );       // Zoom factor (in DPI)
+		// ORTHO_ZOOM does not work as expected, when the viewport is different!
+		// getParamFloatMeshWidget( ORTHO_ZOOM, &paramFloat );
+		// rSettingsStr += QString( " %1" ).arg( paramFloat );       // Zoom factor (relates to DPI)
 	}
+	rSettingsStr += "\n\nAbove old style formating: LookAt(x,y,z) Camera center(x,y,z) and orientation (x,y,z) "
+	                "Orthographic projection(bool) ...shift (horizontal,vertical) ...zoom(float) in DPI\n";
+
+	//-------------------------------------------------------------------------------------
+	// Preparation for meta-data export
+	//-------------------------------------------------------------------------------------
+	// Additionally fetch the actual matrices:
+	rSettingsStr += QString( "\nProjection matrix:" );
+	const float* matProjection = mMatProjection.constData();
+	for( unsigned int i=0; i<16; i++ ) {
+		rSettingsStr += QString(" %1").arg( matProjection[i] );
+	}
+	rSettingsStr += QString( "\nModelview matrix:" );
+	const float* matModelView = mMatModelView.constData();
+	for( unsigned int i=0; i<16; i++ ) {
+		rSettingsStr += QString(" %1").arg( matModelView[i] );
+	}
+	// As well as further parameters (again):
+	double resolutionDPI = 0.0;
+	double bBoxRadius = mMeshVisual->getBoundingBoxRadius(); // used together with ORTHO_ZOOM for the scaling (multiplication)
+	double orthoZoom;
+	double shiftHori;
+	double shiftVert;
+	getParamFloatMeshWidget( ORTHO_ZOOM, &orthoZoom );
+	getParamFloatMeshWidget( ORTHO_SHIFT_HORI, &shiftHori );
+	getParamFloatMeshWidget( ORTHO_SHIFT_VERT, &shiftVert );
+	getViewPortDPI( resolutionDPI );
+	rSettingsStr += QString( "\nDPI: %1" ).arg( resolutionDPI );
+	rSettingsStr += QString( "\nShift, horizontally: %1" ).arg( shiftHori );
+	rSettingsStr += QString( "\nShift, vertically: %1" ).arg( shiftVert );
+	rSettingsStr += QString( "\nOrtho zoom: %1" ).arg( orthoZoom );
+	rSettingsStr += QString( "\nBounding box radius: %1" ).arg( bBoxRadius );
 
 	return( true );
 }
@@ -3884,15 +3925,18 @@ bool MeshWidget::showViewMatrix() {
 	viewMatrixInfo += QString("<td>&nbsp;%1</td>").arg( mCameraUp.getY() );
 	viewMatrixInfo += QString("<td>&nbsp;%1</td>").arg( mCameraUp.getZ() );
 	if( mParamFlag[ORTHO_MODE] ) {
+		double paramFloat;
+		getViewPortDPI( paramFloat );
 		viewMatrixInfo += "</tr><tr>";
 		viewMatrixInfo += QString( "<td>")+ tr("Shift&nbsp;Hori/Vert:") + QString("</td>" );
 		viewMatrixInfo += QString("<td>&nbsp;%1</td>").arg( mParamFlt[ORTHO_SHIFT_HORI] );
 		viewMatrixInfo += QString("<td>&nbsp;%1</td>").arg( mParamFlt[ORTHO_SHIFT_VERT] );
-		viewMatrixInfo += QString("<td></td>");
+		viewMatrixInfo += QString("<td>&nbsp;%1&nbsp;DPI</td>").arg( paramFloat );
 	}
-	viewMatrixInfo += "</tr></table>";
+	viewMatrixInfo += "</tr></table>\n"
+	                  "<br /><br />\n";
 
-	SHOW_MSGBOX_INFO( tr("View Matrix"), viewMatrixInfo + QString("\n") + tr("Already copied to clipboard!") );
+	SHOW_MSGBOX_INFO( tr("View Matrix"), viewMatrixInfo + tr("Already copied to clipboard!") );
 	return( true );
 }
 
@@ -3900,20 +3944,36 @@ bool MeshWidget::showViewMatrix() {
 //! 
 //! @returns false in case of an error or user cancel. True otherwise.
 bool MeshWidget::setViewMatrix() {
+	// Fetch clipboard
 	QClipboard *clipboard = QApplication::clipboard();
 	QString clipBoardStr = clipboard->text( QClipboard::Clipboard );
+	// Fetch first line only and therefore ignore any additional data
+	QTextStream tempStream( &clipBoardStr );
+	QString clipBoardFristLineOnly = tempStream.readLine();
 
+	// Setup dialog:
 	QGMDialogEnterText dlgEnterTxt;
 	dlgEnterTxt.setWindowTitle( tr( "Enter view parameters (9 to 13)" ) );
-	dlgEnterTxt.setText( clipBoardStr );
+	dlgEnterTxt.setText( clipBoardFristLineOnly );
 	if( dlgEnterTxt.exec() == QDialog::Rejected ) {
+		std::cout << "[MeshWidget::" << __FUNCTION__ << "] WARNING: User cancel!" << std::endl;
 		return( false );
 	}
+
+	// User interaction:
 	vector<double> camMatrix;
 	if( !dlgEnterTxt.getText( camMatrix ) ) {
+		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Wrong user input!" << std::endl;
 		return( false );
 	}
-	setViewMatrix( camMatrix );
+
+	// Finally set the view:
+	if( !setViewMatrix( camMatrix ) ) {
+		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: setViewMatrix failed!" << std::endl;
+		return( false );
+	}
+
+	// Done.
 	return( true );
 }
 
@@ -3934,6 +3994,7 @@ bool MeshWidget::setViewMatrix( vector<double> rMatrix ) {
 	if( rMatrix.size() > 9 ) {
 		bool orthoMode = rMatrix.at( 9 );
 		setParamFlagMeshWidget( ORTHO_MODE, orthoMode );
+		std::cout << "[MeshWidget::" << __FUNCTION__ << "] Ortho mode set." << std::endl;
 	}
 	if( rMatrix.size() == 13 ) {
 		double paramFloat = rMatrix.at( 10 );
@@ -3941,7 +4002,8 @@ bool MeshWidget::setViewMatrix( vector<double> rMatrix ) {
 		paramFloat = rMatrix.at( 11 );
 		setParamFloatMeshWidget( ORTHO_SHIFT_VERT, paramFloat );
 		paramFloat = rMatrix.at( 12 );
-		setParamFloatMeshWidget( ORTHO_ZOOM, paramFloat );
+		orthoSetDPI( paramFloat );
+		std::cout << "[MeshWidget::" << __FUNCTION__ << "] Ortho parameters set." << std::endl;
 	}
 	setView();
 	update();
