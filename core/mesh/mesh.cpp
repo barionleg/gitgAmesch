@@ -16649,7 +16649,7 @@ bool Mesh::funcExpSuppNonMax(double NMSDistance){
 //! Stub method calling the real body in wedgeextraction.cpp
 bool Mesh::funcExpComputeWatershed(double watershedLimit){
 
-	return experimentalComputeWatershed(watershedLimit, mVertices);
+	return experimentalComputeWatershed(watershedLimit, true, mVertices);
 
 }
 
@@ -16663,18 +16663,20 @@ bool Mesh::funcExpComputeClustering(int numberOfIterations){
 //! Stub method calling the real body in wedgeextraction.cpp
 bool Mesh::funcExpComputeRANSAC(int numberOfIterations){
 
-	return experimentalComputeRANSAC(numberOfIterations, "OutputFileNotNamed", meshIntrinsicExtractedTetraeders, false, -1.0, false, false, false, false, mVertices, mFaces);
+	string fileBaseName = this->getBaseName().string();
+
+	return experimentalComputeRANSAC(numberOfIterations, fileBaseName, meshIntrinsicExtractedTetraeders, true, -1.0, false, false, true, false, mVertices, mFaces);
 
 }
 
 //! Stub method calling the real body in wedgeextraction.cpp
-//! This Method expects a fileName for the extracted Wedges
+//! This Method currently takes the fileName for the extracted Wedges
 //! This Method expects a minimum tetraeder height to omit tetraeders that are deemed to flat.
 //! This Method should always be called with the parameter extendMesh false
 //! As of 2020.07.01 it is not callable in the GigaMesh GUI
 //! This may change till final release
 bool Mesh::funcExpComputeRANSAC(	int numberOfIterations,
-									string outputFileName,
+									string outputFileName, //currently not used. Instead the filename is used
 									vector<vector<double>> &meshIntrinsicExtractedTetraeders,
 									bool useNMSResultsForTetraederTop,
 									double minimumTetraederHeight,
@@ -16683,8 +16685,10 @@ bool Mesh::funcExpComputeRANSAC(	int numberOfIterations,
 									bool visualizeRANSACQuality,
 									bool visualizeTetraederHeight){
 
+	string fileBaseName = this->getBaseName().string();
+
 	return experimentalComputeRANSAC(	numberOfIterations,
-										outputFileName,
+										fileBaseName,
 										meshIntrinsicExtractedTetraeders,				// mesh intrinsic
 										useNMSResultsForTetraederTop,
 										minimumTetraederHeight,
@@ -16701,12 +16705,19 @@ bool Mesh::funcExpComputeRANSAC(	int numberOfIterations,
 //! Will not be present in final version
 bool Mesh::funcExpReorderFeatVec(double deletableInput){
 
+	//string fileBaseName = this->getBaseName().string();
+
+	//int numberOfIterations = (int)round(deletableInput);
+
+	//return experimentalComputeRANSAC(numberOfIterations, fileBaseName, meshIntrinsicExtractedTetraeders, false, -1.0, false, false, false, true, mVertices, mFaces);
+
 	return experimentalReorderFeatureVector(	//meshIntrinsicExtractedTetraeders,
 												//meshAugmentVOFs,
 												//meshAugmentFs,
 												mVertices,
 												mFaces,
 												deletableInput);
+
 
 }
 
