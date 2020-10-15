@@ -36,6 +36,7 @@
 #include "qgmdockview.h"
 #include "ExternalProgramsDialog.h"
 #include "dialogGridCenterSelect.h"
+#include "oauth/githubmodel.h"
 
 using namespace std;
 
@@ -355,7 +356,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	time( &timeNow );
 	QSettings settings;
 	timeLast = settings.value( "lastVersionCheck" ).toLongLong();
-	double daysSinceLastCheck = difftime( timeNow, timeLast ) / ( 24.0 * 3600.0 );
+        double daysSinceLastCheck = difftime( timeNow, timeLast ) / ( 24.0 * 3600.0 );
 	// daysSinceLastCheck = 356.0; // for testing (1/2)
 	cout << "[QGMMainWindow::" << __FUNCTION__ << "] Last check " << daysSinceLastCheck << " days ago." << endl;
 	if( daysSinceLastCheck > 3.0 ) {
@@ -367,6 +368,22 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 		mNetworkManager->get( request );
 	}
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
+
+        // --- Github userdata check --------------------------------------------------------------------------------------------------------------
+        bool ok;
+        cout << "[QGMMainWindow::" << __FUNCTION__ << "] Last user: " << settings.value( "lastUser" ).toString().toStdString() << endl;
+        QString clientId = QInputDialog::getText(this, tr("QInputDialog::getText()"), tr("User Id: "), QLineEdit::Normal, QDir::home().dirName(), &ok);
+        settings.setValue( "lastUser", clientId);
+        cout << "[QGMMainWindow::" << __FUNCTION__ << "] Current user: " << settings.value( "lastUser" ).toString().toStdString() << endl;
+
+        clientId = "f31165013adac0da36ed";
+        QListView view;
+        GithubModel model(clientId);
+        //model.update();
+        view.setModel(&model);
+        view.show();
+
+        // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
 	// --- Check external Tools i.e. Inkscape and convert/ImageMagick --------------------------------------------------------------------------------------
 	auto inkscapePath = settings.value("Inkscape_Path", "").toString();
@@ -1237,7 +1254,7 @@ bool QGMMainWindow::event( QEvent* rEvent ) {
 void QGMMainWindow::load() {
 	QSettings settings;
 	QString fileName = QFileDialog::getOpenFileName( this,
-													 tr( "Open 3D-Mesh or Point Cloud" ),
+                                                         tr( "Open 3D-Mesh or Point Cloud" ),
 	                                                 settings.value( "lastPath" ).toString(),
 													 tr( "3D mesh files (*.ply *.PLY *.obj *.OBJ);;Other 3D files (*.txt *.TXT *.xyz *.XYZ)" )
 	                                                );

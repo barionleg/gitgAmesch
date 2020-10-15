@@ -3,13 +3,11 @@ cmake_minimum_required(VERSION 3.10)
 set(OpenGL_GL_PREFERENCE GLVND)
 
 find_package(OpenGL REQUIRED)
-find_package(Qt5 COMPONENTS Core Widgets Gui OpenGL Network REQUIRED)
+find_package(Qt5 COMPONENTS Core Widgets Gui OpenGL Network NetworkAuth REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
-
-#add_subdirectory(python-interface)
 
 if(CMAKE_VERSION VERSION_LESS "3.7.0")
 	set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -57,9 +55,11 @@ set(GUI_SOURCES src/main.cpp
 				src/normalSphereSelection/NormalSphereSelectionDialog.cpp
 				src/normalSphereSelection/NormalSphereSelectionDialog.h
 				src/normalSphereSelection/NormalSphereSelectionRenderWidget.cpp
-				src/normalSphereSelection/NormalSphereSelectionRenderWidget.h
+				src/normalSphereSelection/NormalSphereSelectionRenderWidget.h		
+				src/oauth/githubmodel.cpp			src/oauth/githubmodel.h
+				src/oauth/githubwrapper.cpp			src/oauth/githubwrapper.h
+				src/oauth/oauthwrapper.cpp			src/oauth/oauthwrapper.h
 )
-
 
 #add ui files, so they appear it qtcreator projects view
 set(GUI_UI_FILES
@@ -131,6 +131,9 @@ target_include_directories(gigamesh PRIVATE ${Qt5OpenGL_INCLUDES})
 add_definitions(${Qt5Network_DEFINITIONS})
 target_include_directories(gigamesh PRIVATE ${Qt5Network_INCLUDES})
 
+add_definitions(${Qt5NetworkAuth_DEFINITIONS})
+target_include_directories(gigamesh PRIVATE ${Qt5NetworkAuth_INCLUDES})
+
 add_dependencies(gigamesh OpenGL::GL)
 
 #needed to find generated ui-header files
@@ -141,7 +144,7 @@ target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/python-interface)
 
-target_link_libraries(gigamesh PRIVATE ${Qt5Widgets_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Network_LIBRARIES} psalm OpenGL::GL gigameshCore triangle)
+target_link_libraries(gigamesh PRIVATE ${Qt5Widgets_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Network_LIBRARIES}  ${Qt5NetworkAuth_LIBRARIES} psalm OpenGL::GL gigameshCore triangle)
 
 #extras for static linking using the MXE mingw static build (set this via "export MINGW_CI_BUILD=True" on the command line)
 if(MINGW_CI_BUILD)
