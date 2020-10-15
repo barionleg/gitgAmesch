@@ -38,23 +38,9 @@ using namespace std;
 //helper methods exclusively called in the wedge extraction project
 //they all begin with wE
 
-double temporaryRANSACParameter = 0.1;
-
-//hacky solution for mesh extension testing
-//problem of putting it in the method body: the pointers will be invalid
-
-//vector<vector<VertexOfFace>> tempVOFCollection;
-
-//unsigned char as numbers gives the range 0 - 255
-//vector<unsigned char> RANSACQualityColourPerTetraeder;
-//vector<unsigned char> tetraederDepthColourPerTetraeder;
-
-//vector<vector<VertexOfFace*>> tempVOFPCollection;
-
-//vector<Face> tempFCollection;
-
-//vector<Face*> tempFPCollection;
-
+//double temporaryRANSACParameter = 0.1;
+double temporaryNMSParameter = 0.1;
+double temporaryWaterParameter = 0.1;
 
 //! Distance calculation for vertices omitting square root for speed up
 double wEComputeSquaredDistanceBetweenTwoVertices(Vertex* &vertexNo1, Vertex* &vertexNo2){
@@ -130,7 +116,7 @@ void wEFindMedianInListForGivenMean(list<Vertex*> &inputList, double &meanNormal
 }
 */
 
-//! Notes down to which mean a Normal is nearest in a euclidian sence. This means, normals are interpreted as points
+//! Notes down to which mean a Normal is nearest in a euclidian sense. This means, normals are interpreted as points
 void wEAssignNormalsToNearestMean(vector<int> &currentClustering, vector<Vertex*> &verticesWithCurrentLabel, vector<vector<double>> &normalMeanComponents){
 
 	for(int i=0; i<verticesWithCurrentLabel.size(); i++){
@@ -154,7 +140,7 @@ void wEAssignNormalsToNearestMean(vector<int> &currentClustering, vector<Vertex*
 
 }
 
-//! Notes down to which mean a Normal is nearest in an euclidian sence. This means, normals are interpreted as points
+//! Notes down to which mean a Normal is nearest in an euclidian sense. This means, normals are interpreted as points
 void wEAssignNormalsToNearestMean(vector<int> &currentClustering, vector<Vertex*> &verticesWithCurrentLabel, vector<Vertex*> &threeRandomlyChosenVertices){
 
 	for(int i=0; i<verticesWithCurrentLabel.size(); i++){
@@ -535,13 +521,99 @@ bool wECheckTetraederHeight(vector<Vertex*> &foundTetraeder, double &minimumHeig
 	}
 }
 
+//! sqrt in calculation can probably be omitted? NO, I need vectors of Length 1
+void checkTriangleFaceOrientation(vector<vector<Vertex*>> &extractedTetraeders, vector<bool> &faceVerdict){
+
+	for(int i=0; i<extractedTetraeders.size(); i++){
+		//calculate cross product
+		double vector1ComponentX = extractedTetraeders[i][2]->getX() - extractedTetraeders[i][1]->getX();
+		double vector1ComponentY = extractedTetraeders[i][2]->getY() - extractedTetraeders[i][1]->getY();
+		double vector1ComponentZ = extractedTetraeders[i][2]->getZ() - extractedTetraeders[i][1]->getZ();
+
+		double vector2ComponentX = extractedTetraeders[i][3]->getX() - extractedTetraeders[i][1]->getX();
+		double vector2ComponentY = extractedTetraeders[i][3]->getY() - extractedTetraeders[i][1]->getY();
+		double vector2ComponentZ = extractedTetraeders[i][3]->getZ() - extractedTetraeders[i][1]->getZ();
+
+		double crossProductComponentX = (vector1ComponentY*vector2ComponentZ) - (vector1ComponentZ*vector2ComponentY);
+		double crossProductComponentY = (vector1ComponentZ*vector2ComponentX) - (vector1ComponentX*vector2ComponentZ);
+		double crossProductComponentZ = (vector1ComponentX*vector2ComponentY) - (vector1ComponentY*vector2ComponentX);
+
+
+		//normalize cross product
+		double crossProductVectorLength = sqrt(pow(crossProductComponentX,2.0) + pow(crossProductComponentY,2.0) + pow(crossProductComponentZ,2.0));
+		crossProductComponentX = crossProductComponentX / crossProductVectorLength;
+		crossProductComponentY = crossProductComponentY / crossProductVectorLength;
+		crossProductComponentZ = crossProductComponentZ / crossProductVectorLength;
+
+		//calculate normal means
+
+		double normalSumComponentX =	extractedTetraeders[i][1]->getNormalX() +
+						extractedTetraeders[i][2]->getNormalX() +
+						extractedTetraeders[i][3]->getNormalX();
+		double normalSumComponentY =	extractedTetraeders[i][1]->getNormalY() +
+						extractedTetraeders[i][2]->getNormalY() +
+						extractedTetraeders[i][3]->getNormalY();
+		double normalSumComponentZ =	extractedTetraeders[i][1]->getNormalZ() +
+						extractedTetraeders[i][2]->getNormalZ() +
+						extractedTetraeders[i][3]->getNormalZ();
+
+		//normalize mean
+
+		double normalSumLength = sqrt(pow(normalSumComponentX,2.0) + pow(normalSumComponentY,2.0) + pow(normalSumComponentZ,2.0));
+		normalSumComponentX = normalSumComponentX/normalSumLength;
+		normalSumComponentY = normalSumComponentY/normalSumLength;
+		normalSumComponentZ = normalSumComponentZ/normalSumLength;
+
+		//note down true, if difference of cross product to mean is smaller than
+		//from -1 * cross product to mean
+		double invertedCrossProductComponentX = crossProductComponentX * (-1.0);
+		double invertedCrossProductComponentY = crossProductComponentY * (-1.0);
+		double invertedCrossProductComponentZ = crossProductComponentZ * (-1.0);
+
+		double distanceNormalToCrossProduct =	pow(normalSumComponentX-crossProductComponentX,2.0) +
+							pow(normalSumComponentY-crossProductComponentY,2.0) +
+							pow(normalSumComponentZ-crossProductComponentZ,2.0);
+		double distanceNormalToInvertedCrossProduct =	pow(normalSumComponentX-invertedCrossProductComponentX,2.0) +
+								pow(normalSumComponentY-invertedCrossProductComponentY,2.0) +
+								pow(normalSumComponentZ-invertedCrossProductComponentZ,2.0);
+		if(distanceNormalToCrossProduct < distanceNormalToInvertedCrossProduct){
+			faceVerdict.push_back(true);
+		} else{
+			faceVerdict.push_back(false);
+		}
+
+	}
+
+
+}
+
+
+void wENormalizeValues(vector<double> &vectorOfDoubles, vector<double> &vectorOfNormalizedDoubles){
+
+	//find minimum of the input values
+	double foundMinValue = *min_element(begin(vectorOfDoubles), end(vectorOfDoubles));
+
+	//find maximum of the input values
+	double foundMaxValue = *max_element(begin(vectorOfDoubles), end(vectorOfDoubles));
+
+	for(auto doubleValue: vectorOfDoubles){
+
+		double normalizedDoubleValue = (doubleValue - foundMinValue)/(foundMaxValue - foundMinValue);
+		vectorOfNormalizedDoubles.push_back(normalizedDoubleValue);
+	}
+
+}
+
 
 //! Writes extracted Tetraeders into a .obj-file
+//! .obj-file only holds vertex positions and face definitions
+//! .obj-file does not hold vertex color information
 void wEWriteExtractedTetraedersIntoFile(vector<vector<Vertex*>> &extractedTetraeders, string outputFileName){
 
 	string customPrefix = outputFileName;
+	string customRemark = "_extractedWedges";
 	string customSuffix = ".obj";
-	string tetraederOutputFile = customPrefix + customSuffix;
+	string tetraederOutputFile = customPrefix + customRemark + customSuffix;
 	ofstream OutFile(tetraederOutputFile);
 
 	double vertexCoordinateX;
@@ -597,15 +669,36 @@ void wEWriteExtractedTetraedersIntoFile(vector<vector<Vertex*>> &extractedTetrae
 	}
 }
 
+
+//! Writes extracted Tetraeders into a .ply-file
+//! .ply-file holds vertex positions, face definitions and vertex color information
 void wEWriteExtractedTetraedersAndMeshIntoFile(	vector<vector<Vertex*>> &extractedTetraeders,
 												string outputFileName,
+												vector<double> &vectorOfNormalizedDoubles,
+												int doubleInterpretation,
 												vector<Vertex*> &mVertices,
 												vector<Face*> &mFaces){
 
-	cout << "Ply Method starts" << endl;
+	//cout << "Ply Method starts" << endl;
+
+	//prepare face rotation
+	vector<bool> faceVerdict;
+	checkTriangleFaceOrientation(extractedTetraeders, faceVerdict);
 
 	string customPrefix = outputFileName;
-	string customRemark = "ContainsMesh";
+	string customRemark = "_extractedWedges";
+
+	if(doubleInterpretation == 0){
+		customRemark = "_extractedWedges";
+	} else if(doubleInterpretation == 1){
+		customRemark = "_extractedWedges_RANSACQualityVisualized";
+	} else if(doubleInterpretation == 2){
+		customRemark = "_extractedWedges_TetraederHeightVisualized";
+	}
+
+
+
+
 	string customSuffix = ".ply";
 	string tetraederOutputFile = customPrefix + customRemark + customSuffix;
 	ofstream OutFile(tetraederOutputFile);
@@ -657,7 +750,13 @@ void wEWriteExtractedTetraedersAndMeshIntoFile(	vector<vector<Vertex*>> &extract
 
 		int numberOfMeshFaces = mFaces.size();
 		int numberOfTetraederFaces = extractedTetraeders.size() * 4; //same number as vertices
+
+		//Experimental solution instead of face rotation.
+		//numberOfTetraederFaces = 2*numberOfTetraederFaces;
+
 		int numberOfAllFaces = numberOfMeshFaces + numberOfTetraederFaces;
+
+
 
 		OutFile << "element face " << numberOfAllFaces << endl;
 
@@ -668,7 +767,7 @@ void wEWriteExtractedTetraedersAndMeshIntoFile(	vector<vector<Vertex*>> &extract
 		//list every vertex
 		//example: 0 0 0 255 255 255
 
-		cout << "meshV" << endl;
+		//cout << "meshV" << endl;
 
 		//cout << mVertices.size() << endl;
 		//cout << mVertices.at(0) << endl; //exists, so indices start at 0
@@ -697,9 +796,9 @@ void wEWriteExtractedTetraedersAndMeshIntoFile(	vector<vector<Vertex*>> &extract
 
 		}
 
-		cout << "TetV" << endl;
+		//cout << "TetV" << endl;
 
-		//all additional
+		//all additional vertices, added by algorithms
 
 		//cout << extractedTetraeders.size() << endl;
 
@@ -715,18 +814,54 @@ void wEWriteExtractedTetraedersAndMeshIntoFile(	vector<vector<Vertex*>> &extract
 				vertexCoordinateY = extractedTetraeders[i][j]->getY();
 				vertexCoordinateZ = extractedTetraeders[i][j]->getZ();
 
-				intVertexColorR = 0;
-				intVertexColorG = 200;
-				intVertexColorB = 0;
+				//deciding the vertex color
 
-				//green is used
+				//in case no particular attribute was chosen
+				if(doubleInterpretation == 0){
+
+					cout << "No particular attribute was chosen to be visualized." << endl;
+
+					intVertexColorR = 0;
+					intVertexColorG = 200;
+					intVertexColorB = 0;
+
+				} else if(doubleInterpretation == 1){ // RANSAC Quality is to be visualized
+
+					if(vectorOfNormalizedDoubles[i] < 0.4){
+						intVertexColorR = (int)round( (0.4-vectorOfNormalizedDoubles[i])*200 );
+					} else {
+						intVertexColorR = 0;
+					}
+
+					//remember small values of the RANSACQuality are good, they represent small errors
+					intVertexColorG = 200 - (int)round(vectorOfNormalizedDoubles[i]*200);
+
+
+					intVertexColorB = 0;
+				} else if(doubleInterpretation == 2){ //Tetraeder Height is to be visualized
+					if(vectorOfNormalizedDoubles[i] < 0.4){
+						intVertexColorR = (int)round( (0.4-vectorOfNormalizedDoubles[i])*200 );
+					} else {
+						intVertexColorR = 0;
+					}
+
+					//remember small values of the RANSACQuality are good, they represent small errors
+					intVertexColorG = (int)round(vectorOfNormalizedDoubles[i]*200);
+
+
+					intVertexColorB = 0;
+				}
+
+
+
+				//green is used, what does this comment mean?
 				OutFile << vertexCoordinateX << " " << vertexCoordinateY << " " << vertexCoordinateZ << " " << intVertexColorR << " " << intVertexColorG << " " << intVertexColorB << endl;
 
 			}
 
 		}
 
-		cout << "meshFac" << endl;
+		//cout << "meshFac" << endl;
 
 
 		//list every face
@@ -749,7 +884,7 @@ void wEWriteExtractedTetraedersAndMeshIntoFile(	vector<vector<Vertex*>> &extract
 			OutFile << "3" << " " << vertexAInOr << " " << vertexBInOr << " " << vertexCInOr << endl;
 		}
 
-		cout << "additionalFac" << endl;
+		//cout << "additionalFac" << endl;
 
 
 
@@ -770,10 +905,54 @@ void wEWriteExtractedTetraedersAndMeshIntoFile(	vector<vector<Vertex*>> &extract
 			int vertexT3Index = offsetToOriginalMeshVertices + 2 + i*4;
 			int vertexT4Index = offsetToOriginalMeshVertices + 3 + i*4;
 
+
+			/*
+			//experimental: ignore winding order, create two faces glued to eachother
+			//nicht erfolgreich
+			OutFile << "3" << " " << vertexT2Index << " " << vertexT3Index << " " << vertexT4Index << endl;
+			OutFile << "3" << " " << vertexT3Index << " " << vertexT2Index << " " << vertexT1Index << endl;
+			OutFile << "3" << " " << vertexT4Index << " " << vertexT3Index << " " << vertexT1Index << endl;
+			OutFile << "3" << " " << vertexT2Index << " " << vertexT4Index << " " << vertexT1Index << endl;
+
+			OutFile << "3" << " " << vertexT3Index << " " << vertexT2Index << " " << vertexT4Index << endl;
+			OutFile << "3" << " " << vertexT2Index << " " << vertexT3Index << " " << vertexT1Index << endl;
+			OutFile << "3" << " " << vertexT3Index << " " << vertexT4Index << " " << vertexT1Index << endl;
+			OutFile << "3" << " " << vertexT4Index << " " << vertexT2Index << " " << vertexT1Index << endl;
+			*/
+
+
+			//check if face needs to be rotated
+
+			if(faceVerdict[i]){
+				//first: face not containing the tetraeder top
+				OutFile << "3" << " " << vertexT2Index << " " << vertexT3Index << " " << vertexT4Index << endl;
+				OutFile << "3" << " " << vertexT3Index << " " << vertexT2Index << " " << vertexT1Index << endl;
+				OutFile << "3" << " " << vertexT4Index << " " << vertexT3Index << " " << vertexT1Index << endl;
+				OutFile << "3" << " " << vertexT2Index << " " << vertexT4Index << " " << vertexT1Index << endl;
+			} else {
+				//first: face not containing the tetraeder top
+				OutFile << "3" << " " << vertexT3Index << " " << vertexT2Index << " " << vertexT4Index << endl;
+				OutFile << "3" << " " << vertexT2Index << " " << vertexT3Index << " " << vertexT1Index << endl;
+				OutFile << "3" << " " << vertexT3Index << " " << vertexT4Index << " " << vertexT1Index << endl;
+				OutFile << "3" << " " << vertexT4Index << " " << vertexT2Index << " " << vertexT1Index << endl;
+			}
+
+
+
+
+
+			//this face creation does not guarantee correct winding order
+			/*
 			OutFile << "3" << " " << vertexT1Index << " " << vertexT2Index << " " << vertexT3Index << endl;
 			OutFile << "3" << " " << vertexT1Index << " " << vertexT2Index << " " << vertexT4Index << endl;
 			OutFile << "3" << " " << vertexT1Index << " " << vertexT4Index << " " << vertexT3Index << endl;
 			OutFile << "3" << " " << vertexT2Index << " " << vertexT3Index << " " << vertexT4Index << endl;
+			*/
+
+			//Decision one:
+			//Concerning the face, that does not contain the tetraeder top
+			//It is made up from the Vertices corresponding to:
+			//vertexT2Index, vertexT3Index, vertexT4Index
 
 		}
 	}
@@ -782,11 +961,14 @@ void wEWriteExtractedTetraedersAndMeshIntoFile(	vector<vector<Vertex*>> &extract
 
 //! Method to write extracted tetraeders into mesh
 //! Per Tetraeder 14 doubles are collected
-//! Information: RANSACQuality, TetraederHeight, then for 4 Vertices X, Y, Z coordinate
+//! Information: RANSACQuality, TetraederHeight, then for 4 Vertices: X, Y, Z coordinate
 void wEWriteExtractedTetraedersIntoMeshForCollection(	vector<vector<double>> &meshIntrinsicExtractedTetraeders,
 														vector<vector<Vertex*>> &extractedTetraeders,
 														vector<double> &RANSACQualities,
 														vector<double> &TetraederHeights){
+
+	//clear the vector
+	meshIntrinsicExtractedTetraeders.clear();
 
 	if( (extractedTetraeders.size()==RANSACQualities.size()) && (extractedTetraeders.size()==TetraederHeights.size()) ){
 
@@ -814,7 +996,7 @@ void wEWriteExtractedTetraedersIntoMeshForCollection(	vector<vector<double>> &me
 
 	} else {
 
-		cout << "Extracted tetraeders were not collected in mesh. An internal error is the cause." << endl;
+		cout << "Extracted tetraeders were not collected in mesh. An implementation error is the cause." << endl;
 
 	}
 
@@ -1091,7 +1273,7 @@ bool experimentalSuppressNonMaxima(double &NMSDistance, vector<Vertex*> &mVertic
 	map<Vertex*,set<Vertex*>> vertexNeighbourLookUp;
 	wEBuildVertexNeighbourLookUpStructure(mVertices, vertexNeighbourLookUp);
 
-	//cout << "Lookup structure was established." << endl;
+	cout << "Lookup structure was established." << endl;
 
 
 	/*
@@ -1124,12 +1306,21 @@ bool experimentalSuppressNonMaxima(double &NMSDistance, vector<Vertex*> &mVertic
 		//if the feature vector has less than 18 elements, resize it to length 18
 		//the current concept is: use the feature vector and write computated values at position 17 and 18
 		//resizing pads with zeros
+		/*
 		if(18 > pVertex->getFeatureVectorLen()){
 			pVertex->resizeFeatureVector(18);
 		}
+		*/
+		//temp Idea
+
+		if(24 > pVertex->getFeatureVectorLen()){
+			pVertex->resizeFeatureVector(24);
+			pVertex->setFeatureElement(22, 0.0);
+			pVertex->setFeatureElement(23, 0.0);
+		}
 
 		//used for relative feature vector element access
-		unsigned int currentFeatureVectorLength = pVertex->getFeatureVectorLen();
+		//unsigned int currentFeatureVectorLength = pVertex->getFeatureVectorLen();
 
 		//clear data that might sit at these positions, written their by previous calculations with different distances
 		//Position 17 (index 16) shows if a vertex is a local maximum
@@ -1153,78 +1344,90 @@ bool experimentalSuppressNonMaxima(double &NMSDistance, vector<Vertex*> &mVertic
 		//pVertex->getFeatureElement( (currentFeatureVectorLength-3) , &MSIIcomponent16);
 
 		//legacy, position access deemed too absolute
-		//however I like i more
+		//however I like it more
 		pVertex->getFeatureElement(15, &MSIIcomponent16);
+		//double distanceModifier = 1.0 - MSIIcomponent16; //find out, if 1.0 or maybe 1.1 is better
 
-		//Vertices, which will be the input for every search
-		queue<Vertex*> marchingFrontier;
+		double neverWillBeMax;
+		pVertex->getFeatureElement(22, &neverWillBeMax);
 
-		marchingFrontier.push(pVertex);
+		if((MSIIcomponent16 > temporaryNMSParameter) && (neverWillBeMax < 0.5)){
+		//if(MSIIcomponent16 > temporaryNMSParameter){
 
-		//if the list marchingFrontier is empty, there are no vertices to be checked.
+			//Vertices, which will be the input for every search
+			queue<Vertex*> marchingFrontier;
 
-		//as long as there are eligible candidates, perform the algorithm
-		//only perform the algorithm when no bigger MSII value than the one from the current vertex (pVertex) has been found
-		while(!marchingFrontier.empty() && !biggerValueFound){
+			marchingFrontier.push(pVertex);
 
-			set<Vertex*> adjacentVertices = vertexNeighbourLookUp[marchingFrontier.front()];
-			//vector<Vertex*> adjacentVertices = vertexNeighbourLookUp[marchingFrontier.front()->getIndexOriginal()];
-			//getSurroundingVerticesInOrder(adjacentVertsInOrder, marchingFrontier.front(), false);
+			//if the list marchingFrontier is empty, there are no vertices to be checked.
 
-			//vertices are marked as visited, when they they are asked for their neighbours
-			checkVisited.insert(marchingFrontier.front());
+			//as long as there are eligible candidates, perform the algorithm
+			//only perform the algorithm when no bigger MSII value than the one from the current vertex (pVertex) has been found
+			while(!marchingFrontier.empty() && !biggerValueFound){
 
-			//after the front vertex of the queue was marked as visitied, it is popped
-			marchingFrontier.pop();
+				set<Vertex*> adjacentVertices = vertexNeighbourLookUp[marchingFrontier.front()];
+				//vector<Vertex*> adjacentVertices = vertexNeighbourLookUp[marchingFrontier.front()->getIndexOriginal()];
+				//getSurroundingVerticesInOrder(adjacentVertsInOrder, marchingFrontier.front(), false);
 
-			//loop over the new found neighbours
-			//for(auto adjacentVertex : adjacentVertsInOrder){
-			//set<Vertex*>::iterator it;
-			for(auto adjacentVertex : adjacentVertices){
+				//vertices are marked as visited, when they they are asked for their neighbours
+				checkVisited.insert(marchingFrontier.front());
 
-				//only perform the algorithm, if no bigger value was found AND the candidate has not been visited yet
-				if(!biggerValueFound && !(checkVisited.find(adjacentVertex) != checkVisited.end())  ){
+				//after the front vertex of the queue was marked as visitied, it is popped
+				marchingFrontier.pop();
 
-					bool stillInReach = false;
+				//loop over the new found neighbours
+				//for(auto adjacentVertex : adjacentVertsInOrder){
+				//set<Vertex*>::iterator it;
+				for(auto adjacentVertex : adjacentVertices){
 
-					//helper method for distance calculation is used
-					if( wEComputeSquaredDistanceBetweenTwoVertices(adjacentVertex, pVertex) <= squaredDistance){
+					//only perform the algorithm, if no bigger value was found AND the candidate has not been visited yet
+					if(!biggerValueFound && !(checkVisited.find(adjacentVertex) != checkVisited.end())  ){
 
-						stillInReach = true;
+						bool stillInReach = false;
 
-					}
 
-					//consider only vertices that are within the reach specified by the user
-					if(stillInReach){
+						//Highly experimental to quicken searches is used in the next expression
 
-						double adjacentVertexsMSIIcomponent16;
-						//adjacentVertex->getFeatureElement( (currentFeatureVectorLength-3) , &adjacentVertexsMSIIcomponent16);
+						//helper method for distance calculation is used
+						if( wEComputeSquaredDistanceBetweenTwoVertices(adjacentVertex, pVertex) <= (squaredDistance)){
 
-						//legacy, position access deemed too absolute
-						//however I like it more
-						adjacentVertex->getFeatureElement(15, &adjacentVertexsMSIIcomponent16);
+							stillInReach = true;
 
-						// if a bigger MSII value than the one of the current vertex (pVertex) was found, pVertex is not the (lokal) maximum
-						if(MSIIcomponent16 <= adjacentVertexsMSIIcomponent16){
+						}
 
-							biggerValueFound = true;
-							isMax = false; //not necessary
-							//cout << marchingFrontier.size() << endl;
+						//consider only vertices that are within the reach specified by the user
+						if(stillInReach){
 
-						}else{ //so it still seems to be the (local) maximum
+							double adjacentVertexsMSIIcomponent16;
+							//adjacentVertex->getFeatureElement( (currentFeatureVectorLength-3) , &adjacentVertexsMSIIcomponent16);
 
-							isMax = true; //the current Vertex temporarily seems to be a maximum
+							//legacy, position access deemed too absolute
+							//however I like it more
+							adjacentVertex->getFeatureElement(15, &adjacentVertexsMSIIcomponent16);
 
-							//the new found neighbour doesn't have a bigger MSII value, so it is added to the front (put at the end of the queue
-							//maybe his neighbours have a bigger MSII value
-							marchingFrontier.push(adjacentVertex);
+							// if a bigger MSII value than the one of the current vertex (pVertex) was found, pVertex is not the (lokal) maximum
+							if(MSIIcomponent16 <= adjacentVertexsMSIIcomponent16){
 
+								biggerValueFound = true;
+								isMax = false; //not necessary
+								pVertex->setFeatureElement(22, 1.0); //temporary
+								pVertex->setFeatureElement(23, NMSDistance); //temporary
+
+							}else{ //so it still seems to be the (local) maximum
+
+								isMax = true; //the current Vertex temporarily seems to be a maximum
+
+								//the new found neighbour doesn't have a bigger MSII value, so it is added to the front (put at the end of the queue
+								//maybe his neighbours have a bigger MSII value
+								marchingFrontier.push(adjacentVertex);
+
+							}
 						}
 					}
 				}
 			}
+			//if after the while loop the boolean isMax was set to true and remained true, the current vertex pVertex is a maximum
 		}
-		//if after the while loop the boolean isMax was set to true and remained true, the current vertex pVertex is a maximum
 
 		//if the current vertex is the maximum
 		//write at Feature Vector Position 17 a pseudo boolean state.
@@ -1276,284 +1479,13 @@ bool experimentalSuppressNonMaxima(double &NMSDistance, vector<Vertex*> &mVertic
 
 	return true;
 
-	/*
-	//loop over all vertices
-	for(auto pVertex : mVertices){
-
-		//initialize the checks for visited vertices with false
-		//maybe use methods that already exist in vertex.cpp
-		for (int i = 0; i < checkVisited.size() ; i++){
-			checkVisited[i] = false;
-			//maybe this works too: checkVisited.at(i) = false
-		}
-
-		//if the feature vector has less than 18 elements, resize it to length 18
-		//the current concept is: use the feature vector and write computated values at position 17 and 18
-		//resizing pads with zeros
-		if(18 > pVertex->getFeatureVectorLen()){
-			pVertex->resizeFeatureVector(18);
-		}
-
-		//used for relative feature vector element access
-		unsigned int currentFeatureVectorLength = pVertex->getFeatureVectorLen();
-
-		//clear data that might sit at these positions, written their by previous calculations with different distances
-		//Position 17 (index 16) shows if a vertex is a local maximum
-		//Position 18 (index 17) includes the vertex's MSII-value if it is a local maximum
-		//pVertex->setFeatureElement( (currentFeatureVectorLength-2) , 0.0);
-		//pVertex->setFeatureElement( (currentFeatureVectorLength-1) , 0.0);
-
-		//legacy, initialize with zero, position access deemed too absolute
-		//however I like it better at the moment
-		pVertex->setFeatureElement(16, 0.0);
-		pVertex->setFeatureElement(17, 0.0);
-
-
-		//per default, it is guessed not to be the (local) maximum
-		bool isMax = false;
-		//this boolean is used to abort loops quickly if neighbours with larger MSII values are found
-		bool biggerValueFound = false;
-
-		//acquire the MSII-value for this vertex
-		double MSIIcomponent16;
-		//pVertex->getFeatureElement( (currentFeatureVectorLength-3) , &MSIIcomponent16);
-
-		//legacy, position access deemed too absolute
-		//however I like i more
-		pVertex->getFeatureElement(15, &MSIIcomponent16);
-
-		//Vertices, which will be the input for every search
-		queue<Vertex*> marchingFrontier;
-
-		marchingFrontier.push(pVertex);
-
-		//if the list marchingFrontier is empty, there are no vertices to be checked.
-
-		//as long as there are eligible candidates, perform the algorithm
-		//only perform the algorithm when no bigger MSII value than the one from the current vertex (pVertex) has been found
-		while(!marchingFrontier.empty() && !biggerValueFound){
-
-			list<Vertex*> adjacentVertsInOrder;
-			getSurroundingVerticesInOrder(adjacentVertsInOrder, marchingFrontier.front(), false);
-
-			//vertices are marked as visited, when they they are asked for their neighbours
-			checkVisited[marchingFrontier.front()->getIndexOriginal()] = true;
-
-			//after the front vertex of the queue was marked as visitied, it is popped
-			marchingFrontier.pop();
-
-			//loop over the new found neighbours
-			for(auto& adjacentVertex : adjacentVertsInOrder){
-
-				//only perform the algorithm, if no bigger value was found AND the candidate has not been visited yet
-				if(!biggerValueFound && !(checkVisited[adjacentVertex->getIndexOriginal()])){
-
-					bool stillInReach = false;
-
-					//helper method for distance calculation is used
-					if( wEComputeSquaredDistanceBetweenTwoVertices(adjacentVertex, pVertex) <= squaredDistance){
-
-						stillInReach = true;
-
-					}
-
-					//consider only vertices that are within the reach specified by the user
-					if(stillInReach){
-
-						double adjacentVertexsMSIIcomponent16;
-						//adjacentVertex->getFeatureElement( (currentFeatureVectorLength-3) , &adjacentVertexsMSIIcomponent16);
-
-						//legacy, position access deemed too absolute
-						//however I like it more
-						adjacentVertex->getFeatureElement(15, &adjacentVertexsMSIIcomponent16);
-
-						// if a bigger MSII value than the one of the current vertex (pVertex) was found, pVertex is not the (lokal) maximum
-						if(MSIIcomponent16 <= adjacentVertexsMSIIcomponent16){
-
-							biggerValueFound = true;
-							isMax = false; //not necessary
-
-						}else{ //so it still seems to be the (local) maximum
-
-							isMax = true; //the current Vertex temporarily seems to be a maximum
-
-							//the new found neighbour doesn't have a bigger MSII value, so it is added to the front (put at the end of the queue
-							//maybe his neighbours have a bigger MSII value
-							marchingFrontier.push(adjacentVertex);
-
-						}
-					}
-				}
-			}
-		}
-		//if after the while loop the boolean isMax was set to true and remained true, the current vertex pVertex is a maximum
-*/
-
-/*
-
-	//loop over all vertices
-	for(auto pVertex : mVertices){
-
-		//if the feature vector has less than 18 elements, resize it to length 18
-		//the current concept is: use the feature vector and write computated values at position 17 and 18
-		//resizing pads with zeros
-		if(18 > pVertex->getFeatureVectorLen()){
-			pVertex->resizeFeatureVector(18);
-		}
-
-		//used for relative feature vector element access
-		unsigned int currentFeatureVectorLength = pVertex->getFeatureVectorLen();
-
-		//clear data that might sit at these positions, written their by previous calculations with different distances
-		//Position 17 (index 16) shows if a vertex is a local maximum
-		//Position 18 (index 17) includes the vertex's MSII-value if it is a local maximum
-		//pVertex->setFeatureElement( (currentFeatureVectorLength-2) , 0.0);
-		//pVertex->setFeatureElement( (currentFeatureVectorLength-1) , 0.0);
-
-		//legacy, initialize with zero, position access deemed too absolute
-		//however I like it better at the moment
-		pVertex->setFeatureElement(16, 0.0);
-		pVertex->setFeatureElement(17, 0.0);
-
-
-		//per default, it is guessed not to be the (local) maximum
-		bool isMax = false;
-		//this boolean is used to abort loops quickly if neighbours with larger MSII values are found
-		bool biggerValueFound = false;
-
-		//acquire the MSII-value for this vertex
-		double MSIIcomponent16;
-		//pVertex->getFeatureElement( (currentFeatureVectorLength-3) , &MSIIcomponent16);
-
-		//legacy, position access deemed too absolute
-		//however I like i more
-		pVertex->getFeatureElement(15, &MSIIcomponent16);
-
-		//Vertices, which will be the input for every search
-		queue<Vertex*> marchingFrontier;
-
-		marchingFrontier.push(pVertex);
-
-		//if the list marchingFrontier is empty, there are no vertices to be checked.
-
-		//as long as there are eligible candidates, perform the algorithm
-		//only perform the algorithm when no bigger MSII value than the one from the current vertex (pVertex) has been found
-		while(!marchingFrontier.empty() && !biggerValueFound){
-
-			list<Vertex*> adjacentVertsInOrder;
-			//vector<Vertex*> adjacentVertices = vertexNeighbourLookUp[marchingFrontier.front()->getIndexOriginal()];
-			getSurroundingVerticesInOrder(adjacentVertsInOrder, marchingFrontier.front(), false);
-
-			//vertices are marked as visited, when they they are asked for their neighbours
-			checkVisited.insert(marchingFrontier.front());
-
-			//after the front vertex of the queue was marked as visitied, it is popped
-			marchingFrontier.pop();
-
-			//loop over the new found neighbours
-			for(auto adjacentVertex : adjacentVertsInOrder){
-
-				//only perform the algorithm, if no bigger value was found AND the candidate has not been visited yet
-				if(!biggerValueFound && !(checkVisited.find(adjacentVertex) != checkVisited.end())  ){
-
-					bool stillInReach = false;
-
-					//helper method for distance calculation is used
-					if( wEComputeSquaredDistanceBetweenTwoVertices(adjacentVertex, pVertex) <= squaredDistance){
-
-						stillInReach = true;
-
-					}
-
-					//consider only vertices that are within the reach specified by the user
-					if(stillInReach){
-
-						double adjacentVertexsMSIIcomponent16;
-						//adjacentVertex->getFeatureElement( (currentFeatureVectorLength-3) , &adjacentVertexsMSIIcomponent16);
-
-						//legacy, position access deemed too absolute
-						//however I like it more
-						adjacentVertex->getFeatureElement(15, &adjacentVertexsMSIIcomponent16);
-
-						// if a bigger MSII value than the one of the current vertex (pVertex) was found, pVertex is not the (lokal) maximum
-						if(MSIIcomponent16 <= adjacentVertexsMSIIcomponent16){
-
-							biggerValueFound = true;
-							isMax = false; //not necessary
-							//cout << marchingFrontier.size() << endl;
-
-						}else{ //so it still seems to be the (local) maximum
-
-							isMax = true; //the current Vertex temporarily seems to be a maximum
-
-							//the new found neighbour doesn't have a bigger MSII value, so it is added to the front (put at the end of the queue
-							//maybe his neighbours have a bigger MSII value
-							marchingFrontier.push(adjacentVertex);
-
-						}
-					}
-				}
-			}
-		}
-		//if after the while loop the boolean isMax was set to true and remained true, the current vertex pVertex is a maximum
-
-		//if the current vertex is the maximum
-		//write at Feature Vector Position 17 a pseudo boolean state.
-		//write at Feature Vector Position 18 its MSII value.
-		if(isMax){
-
-			//pVertex->setFeatureElement( (currentFeatureVectorLength-2) , 1.0);
-			//pVertex->setFeatureElement( (currentFeatureVectorLength-1) , MSIIcomponent16);
-
-			//legacy, position access deemed to absolute
-			//however I like it better
-			pVertex->setFeatureElement(16, 1.0);
-			pVertex->setFeatureElement(17, MSIIcomponent16);
-
-
-			maximaCounter++;
-
-		}
-		//this else-block is important to update the values calculated by this method for example in case another distance is chosen.
-		//without this else-block outdated values may remain in the feature vector.
-		//alternatively the reset to zero could be implemented at the beginning of the method.
-		else {
-
-			//pVertex->setFeatureElement( (currentFeatureVectorLength-2) , 0.0);
-			//pVertex->setFeatureElement( (currentFeatureVectorLength-1) , 0.0);
-
-			//legacy, position access deemed to absolute
-			//however I like it more
-			pVertex->setFeatureElement(16, 0.0);
-			pVertex->setFeatureElement(17, 0.0);
-
-
-		}
-
-		processedVertexCounter++;
-
-		if((processedVertexCounter % 10000) == 0){
-
-			cout << processedVertexCounter << " of " << mVertices.size() << " vertices have been processed until now." << endl;
-
-		}
-
-		checkVisited.clear();
-
-	}// all vertices were looped over
-
-	cout << "Given the radius of: " << NMSDistance << " these many MSII values (local maxima) survived non maximum suppression: " << maximaCounter << endl;
-
-	return true;
-*/
-
 }
 
 
 //! An experimental Watershed method using values computed in the Non Maximum Suppression Method
 //! will enlarge the feature vectors of all vertices to size 20
 //! Data will be written at Feature Vector Position 19 (order of processing) and 20 (label)
-bool experimentalComputeWatershed(double &watershedLimit, vector<Vertex*> &mVertices){
+bool experimentalComputeWatershed(double &watershedLimit, bool useBasinMerging, vector<Vertex*> &mVertices){
 
 	double counterForFutureWork = 1.0;
 
@@ -1573,7 +1505,33 @@ bool experimentalComputeWatershed(double &watershedLimit, vector<Vertex*> &mVert
 	list<Vertex*> foundMaxima;
 
 	//labels start with 1 and go up to (the number of maxima)
-	double experimentalLabel = 1.0;
+	//double experimentalLabel = 1.0;
+
+	int totalMaxima = 0;
+	vector<double> labelsToBeGiven;
+
+	//Structure to look up the number of vertices per label
+	map<int, int> numberOfVerticesPerLabel;
+	//Structure to look up neighbouring labels per label
+	map<int, set<int>> neighbouringLabels;
+
+	//find the number of labels to later give them in a random order
+	for(auto pVertex: mVertices){
+		double isLocalMaximum;
+		pVertex->getFeatureElement(16, &isLocalMaximum);
+
+		if(isLocalMaximum > 0.0){
+
+			totalMaxima = totalMaxima + 1;
+			labelsToBeGiven.push_back( (double)totalMaxima );
+
+		}
+	}
+
+	// reorder the labels randomly
+	unsigned timeBasedSeed = chrono::system_clock::now().time_since_epoch().count();
+	shuffle(labelsToBeGiven.begin(), labelsToBeGiven.end(), default_random_engine(timeBasedSeed));
+
 
 	//prepare data
 	for(auto pVertex : mVertices){
@@ -1601,8 +1559,14 @@ bool experimentalComputeWatershed(double &watershedLimit, vector<Vertex*> &mVert
 
 			foundMaxima.push_back(pVertex);
 
+			double experimentalLabel = labelsToBeGiven[0];
+			labelsToBeGiven.erase(labelsToBeGiven.begin());
+
 			pVertex->setFeatureElement(18, counterForFutureWork);
 			pVertex->setFeatureElement(19, experimentalLabel);
+
+			//Update the number of vertices per label
+			numberOfVerticesPerLabel.insert(pair<int, int>((int)round(experimentalLabel), 1));
 
 			/*
 			int vertexIndex = pVertex->getIndexOriginal();
@@ -1611,12 +1575,14 @@ bool experimentalComputeWatershed(double &watershedLimit, vector<Vertex*> &mVert
 			checkVisited.insert(pVertex);
 
 			counterForFutureWork = counterForFutureWork + 1.0;
-			experimentalLabel = experimentalLabel + 1.0;
+			//experimentalLabel = experimentalLabel + 1.0;
 
 			//cout << counterForFutureWork << " vertices have been processed." << endl;
 
 		}
 	}
+
+
 
 	//after this step a list of maxima exists, they are labeled and marked as visited
 
@@ -1654,9 +1620,12 @@ bool experimentalComputeWatershed(double &watershedLimit, vector<Vertex*> &mVert
 
 				//label the vertex, if it has no label yet
 				//labels start at 1.0, a value below means no label was given yet
+				//should not occur here as local maxima would not initially not allow other maxima as neighbours. (Those maxima would have a label)
 				if(currentCandidateLabel < 1.0){
 
 					coastCandidate->setFeatureElement(19, maximumLabel);
+					//Update the number of vertices per label
+					numberOfVerticesPerLabel[(int)round(maximumLabel)] = numberOfVerticesPerLabel[(int)round(maximumLabel)] + 1;
 
 					counterForFutureWork = counterForFutureWork + 1.0;
 
@@ -1674,6 +1643,8 @@ bool experimentalComputeWatershed(double &watershedLimit, vector<Vertex*> &mVert
 					//A Vertex gets marked as visited ONLY, when its neighbours have been retrieved
 
 				}
+				//no else clause here to find the label of already labeled vertices.
+
 				/*
 				//add the vertex to the coast
 				//the coast is sorted by the MSII-Value
@@ -1730,6 +1701,12 @@ bool experimentalComputeWatershed(double &watershedLimit, vector<Vertex*> &mVert
 				if(currentCandidateLabel < 1.0){
 
 					newCoastCandidate->setFeatureElement(19, maximumLabel);
+					//Update the number of vertices per label
+					numberOfVerticesPerLabel[(int)round(maximumLabel)] = numberOfVerticesPerLabel[(int)round(maximumLabel)] + 1;
+
+				} else {
+					//in case the vertex already has a label, note it down in the neighbouring labels structure
+					neighbouringLabels[(int)round(maximumLabel)].insert((int)round(currentCandidateLabel));
 
 				}
 
@@ -1767,61 +1744,64 @@ bool experimentalComputeWatershed(double &watershedLimit, vector<Vertex*> &mVert
 		}
 	}
 
-	//postprocessing is neither necessary nor useful if a limit is used in watershed
+	cout << "The rest of the vertices were not eligible to be labeled, their MSII value was too low." << endl;
 	//the limit results in vertices being not labeled because their MSIIvalue was too low
 
-	/*
-	//consider implementation using multimap
-	//to avoid the following
+	cout << foundMaxima.size() << " maxima formed the base for the watershed algorithm." << endl;
 
-	//postprocessing the map solution
+	if(useBasinMerging){
+		cout << "Basin merging was chosen to be applied" << endl;
+		//postprocess in basin merging process
+		//int postprocessingCounter = 0;
 
+		//note that the neighbouring labels structure also holds the label x as neighbour of label x
+		map<int, set<int>>::iterator ppit;
 
-	//the following works as long as no unlabeled vertex is surrounded by unlabeled vertices
-
-	int notLabeledYet = 0;
-	int postProcessingCouldLabel = 0;
-
-	//find all vertices that don't have a label yet and give them a label of an arbitrary neighbour
-	for(auto pVertex : mVertices){
-
-		double checkLabel;
-		pVertex->getFeatureElement(19, &checkLabel);
-
-		//no label given
-		if(checkLabel < 1.0){
-
-			//note down that it happened
-			notLabeledYet++;
-			list<Vertex*> adjacentVertsInOrder;
-			getSurroundingVerticesInOrder(adjacentVertsInOrder, pVertex, false);
-
-			bool labelCouldBeAssigned = false;
-
-			//use neighbours to assign a label arbitrarily
-			for(auto& neighbourVertex : adjacentVertsInOrder){
-
-				if(!labelCouldBeAssigned){
-
-					double possibleLabel;
-					neighbourVertex->getFeatureElement(19, &possibleLabel);
-
-					//if the neighbouring vertex has a label, assign it to pVertex
-					if(possibleLabel > 0.0){
-
-						pVertex->setFeatureElement(19, possibleLabel);
-
-						postProcessingCouldLabel++;
-
-						labelCouldBeAssigned = true;
-
+		//a structure is built to note down which basins have to merged
+		map<int, int> mergeKeyIntoVal;
+		//for(ppit = neighbouringLabels.begin(); ppit != neighbouringLabels.end(); ppit++){
+		for(auto const& mapelement : neighbouringLabels){
+			if(!mapelement.second.empty()){
+				for(auto setelement : mapelement.second){
+					if(numberOfVerticesPerLabel[setelement] != 0){
+						double labelQuotient = 1.0 * numberOfVerticesPerLabel[mapelement.first] / numberOfVerticesPerLabel[setelement];
+						if(labelQuotient < temporaryWaterParameter){
+							//cout << numberOfVerticesPerLabel[mapelement.first] << " were deemed as too few." << endl;
+							//in case label mapelement first has too few elements, it is noted down to be merged with label setelement
+							mergeKeyIntoVal.insert(pair<int, int>(mapelement.first, setelement));
+							//postprocessingCounter += 1;
+						}
 					}
 				}
 			}
 		}
-	}*/
 
-	cout << foundMaxima.size() << " maxima formed the base for the watershed algorithm." << endl;
+
+
+		//perform the post processing step of changing labels
+		if(!mergeKeyIntoVal.empty()){
+			cout << mergeKeyIntoVal.size() << " Labels will be rewritten." << endl;
+			for(auto pVertex : mVertices){
+				double vertexLabel;
+				pVertex->getFeatureElement(19, &vertexLabel);
+				//if a vertex has a label that should be exchanged by another, do it
+				for(auto& mapelement : mergeKeyIntoVal){
+
+					if((int)round(vertexLabel) == mapelement.first){
+						double rewrittenLabel = 1.0 * mapelement.second;
+						pVertex->setFeatureElement(19, rewrittenLabel);
+					}
+				}
+
+			}
+		} else{
+			cout << "No labeled group was too small to be merged." << endl;
+		}
+	}else{
+		cout << "Basin merging was chosen not to be applied." << endl;
+	}
+
+
 
 	//cout << "The watershed algorithm did not reach " << notLabeledYet << " vertices." << endl;
 	//cout << "Postprocessing gave " << postProcessingCouldLabel << " of these vertices a label." << endl;
@@ -1877,7 +1857,7 @@ bool experimentalComputeClustering(int numberOfIterations, vector<Vertex*> &mVer
 		}
 	}
 
-	//number of clusters is now known
+	//number of labeled groups is now known
 	//it is noted down as int numberOfLabels
 
 	//loop over every cluster
@@ -1891,7 +1871,7 @@ bool experimentalComputeClustering(int numberOfIterations, vector<Vertex*> &mVer
 			double foundLabel;
 			investigatedVertex->getFeatureElement(19, &foundLabel);
 
-			if(labelIterator == round(foundLabel)){
+			if(labelIterator == (int)round(foundLabel)){
 
 				verticesWithCurrentLabel.push_back(investigatedVertex);
 
@@ -1901,7 +1881,7 @@ bool experimentalComputeClustering(int numberOfIterations, vector<Vertex*> &mVer
 		//there already is some randomness involved in creating this vector
 		//however another shuffling (resulting in a random selection of 3 future cluster means) is done
 
-		//clustering is only performed, if the verticesWithCurrentLabel are enough labels to begin with, which is 3 or more
+		//clustering is only performed, if the verticesWithCurrentLabel vector holds enough vertices to begin with, which is 3 or more
 		if(verticesWithCurrentLabel.size() >= 3){
 
 			vector<Vertex*> threeRandomlyChosenVertices;
@@ -1979,6 +1959,8 @@ bool experimentalComputeRANSAC(	int numberOfIterations,
 	vector<double> RANSACQualities;
 	vector<double> TetraederHeights;
 
+	map<int, Vertex*> localMaximaAccessedbyLabel;
+
 	//prepare data
 	//find the number of labels and the number of vertices, which were not labeled
 	for(auto pVertex : mVertices){
@@ -1993,11 +1975,16 @@ bool experimentalComputeRANSAC(	int numberOfIterations,
 		//clear data, that might sit in the feature vectors, remaining from previous runs of the RANSAC algorithm
 		pVertex->setFeatureElement(21, 0.0);
 
+		double isLocalMaximum;
+		pVertex->getFeatureElement(16, &isLocalMaximum);
+
 		double givenLabel;
 		pVertex->getFeatureElement(19, &givenLabel);
 
 		double assignedCluster;
 		pVertex->getFeatureElement(20, &assignedCluster);
+
+
 
 		//watershed labels start at 1
 		if(givenLabel < 0.5){
@@ -2007,9 +1994,17 @@ bool experimentalComputeRANSAC(	int numberOfIterations,
 
 		}else{ //find out how many labels are used
 
-			if(round(givenLabel) > numberOfLabels){
+			if((int)round(givenLabel) > numberOfLabels){
 
 				numberOfLabels = givenLabel;
+
+			}
+
+			//and note down if it is a local maximum
+
+			if(isLocalMaximum > 0.5){ //localMaxima are given a 1.0
+				int currentLabel = (int)round(givenLabel);
+				localMaximaAccessedbyLabel.insert( pair<int, Vertex*>(currentLabel,pVertex));
 
 			}
 		}
@@ -2044,7 +2039,7 @@ bool experimentalComputeRANSAC(	int numberOfIterations,
 			double foundLabel;
 			currentVertex->getFeatureElement(19, &foundLabel);
 
-			if(labelIterator == round(foundLabel)){
+			if(labelIterator == (int)round(foundLabel)){
 
 				//so a vertex was found to be part of the current label group
 
@@ -2073,7 +2068,7 @@ bool experimentalComputeRANSAC(	int numberOfIterations,
 						double adjacentVertexLabel;
 						adjacentVertex->getFeatureElement(19, &adjacentVertexLabel);
 
-						if(labelIterator == round(adjacentVertexLabel)){
+						if(labelIterator == (int)round(adjacentVertexLabel)){
 
 							//so the neighbour belongs to the same label group
 
@@ -2138,43 +2133,99 @@ bool experimentalComputeRANSAC(	int numberOfIterations,
 		Vertex* finalRayVertex2;
 		Vertex* finalRayVertex3;
 
+
+
+
 		//only work on a border group if it includes at least 4 vertices. This is a necessary requirement, as RANSAC needs 4 randomly chosen vertices to start
+		//If the variant of the algorithm is chosen, where 3 vertices are randomly chosen, still a fourth is needed to be potentially identified as tetraeder top
 		if(verticesBorderGroup.size()>=4){
 
-			//RANSAC begins
-			for(int iteration=0;iteration<numberOfIterations;iteration++){
+			if(useNMSResultsForTetraederTop){//so the local maximum should be used as the tetraeder Top
+				//using the local maximum as tetraeder top is NOT only possible if it is part of the vertices border group.
+				//But the three randomly chosen vertices should not contain the local maximum
+				Vertex* currentMaximum = localMaximaAccessedbyLabel[labelIterator];
 
-				double currentDistanceForThisChoice = 0.0;
 
-				//randomly choose four vertices for RANSAC
-				vector<Vertex*> fourRandomlyChosenBorderVertices;
-				wERandomlyChooseVerticesFromVector(verticesBorderGroup, fourRandomlyChosenBorderVertices, 4);
+				vector<Vertex*>::iterator it = find(verticesBorderGroup.begin(), verticesBorderGroup.end(), currentMaximum);
+				if(it != verticesBorderGroup.end()){
+					//so the local maximum is part of the border group
+					//erase it, so it is not randomly chosen
+					verticesBorderGroup.erase(it);
+				}
+				//having erased the tetraeder top from the border vertices should make no difference in distance calculation
+				//because the tetraedertop has all 3 rays go through it. Those distances should all be zero.
 
-				Vertex* randomlyChosenTetraederTop = fourRandomlyChosenBorderVertices[0];
-				Vertex* randomlyChosenTetraederVertex1 = fourRandomlyChosenBorderVertices[1];
-				Vertex* randomlyChosenTetraederVertex2 = fourRandomlyChosenBorderVertices[2];
-				Vertex* randomlyChosenTetraederVertex3 = fourRandomlyChosenBorderVertices[3];
+				//RANSAC begins
+				for(int iteration=0;iteration<numberOfIterations;iteration++){
 
-				for(auto borderVertex : verticesBorderGroup){
+					double currentDistanceForThisChoice = 0.0;
 
-					//find minimum distance to one of the rays
-					double minimumDistance = min(min(wEComputeShortestDistanceBetweenPointAndRay(borderVertex, randomlyChosenTetraederTop, randomlyChosenTetraederVertex1),
-												wEComputeShortestDistanceBetweenPointAndRay(borderVertex, randomlyChosenTetraederTop, randomlyChosenTetraederVertex2)),
-												wEComputeShortestDistanceBetweenPointAndRay(borderVertex, randomlyChosenTetraederTop, randomlyChosenTetraederVertex3));
-					currentDistanceForThisChoice += minimumDistance;
+					vector<Vertex*> threeRandomlyChosenBorderVertices;
+					wERandomlyChooseVerticesFromVector(verticesBorderGroup, threeRandomlyChosenBorderVertices, 3);
+
+					Vertex* chosenTetraederTop = currentMaximum; //this vertex will remain the same in all RANSAC runs
+					Vertex* randomlyChosenTetraederVertex1 = threeRandomlyChosenBorderVertices[0];
+					Vertex* randomlyChosenTetraederVertex2 = threeRandomlyChosenBorderVertices[1];
+					Vertex* randomlyChosenTetraederVertex3 = threeRandomlyChosenBorderVertices[2];
+
+					for(auto borderVertex : verticesBorderGroup){
+
+						//find minimum distance to one of the rays
+						double minimumDistance = min(min(wEComputeShortestDistanceBetweenPointAndRay(borderVertex, chosenTetraederTop, randomlyChosenTetraederVertex1),
+													wEComputeShortestDistanceBetweenPointAndRay(borderVertex, chosenTetraederTop, randomlyChosenTetraederVertex2)),
+													wEComputeShortestDistanceBetweenPointAndRay(borderVertex, chosenTetraederTop, randomlyChosenTetraederVertex3));
+						currentDistanceForThisChoice += minimumDistance;
+					}
+
+					if(currentDistanceForThisChoice < smallestSumOfDistances){
+
+						smallestSumOfDistances = currentDistanceForThisChoice;
+
+						finalTetraederTop = chosenTetraederTop;
+						finalRayVertex1 = randomlyChosenTetraederVertex1;
+						finalRayVertex2 = randomlyChosenTetraederVertex2;
+						finalRayVertex3 = randomlyChosenTetraederVertex3;
+					}
+
 				}
 
-				if(currentDistanceForThisChoice < smallestSumOfDistances){
+			} else { //4 vertices will be chosen randomly, the local maximum will not be automatically used as tetraeder top.
 
-					smallestSumOfDistances = currentDistanceForThisChoice;
+				//RANSAC begins
+				for(int iteration=0;iteration<numberOfIterations;iteration++){
 
-					finalTetraederTop = randomlyChosenTetraederTop;
-					finalRayVertex1 = randomlyChosenTetraederVertex1;
-					finalRayVertex2 = randomlyChosenTetraederVertex2;
-					finalRayVertex3 = randomlyChosenTetraederVertex3;
+					double currentDistanceForThisChoice = 0.0;
 
+					//randomly choose four vertices for RANSAC
+					//This includes possibly choosing the local maximum
+					vector<Vertex*> fourRandomlyChosenBorderVertices;
+					wERandomlyChooseVerticesFromVector(verticesBorderGroup, fourRandomlyChosenBorderVertices, 4);
+
+					Vertex* randomlyChosenTetraederTop = fourRandomlyChosenBorderVertices[0];
+					Vertex* randomlyChosenTetraederVertex1 = fourRandomlyChosenBorderVertices[1];
+					Vertex* randomlyChosenTetraederVertex2 = fourRandomlyChosenBorderVertices[2];
+					Vertex* randomlyChosenTetraederVertex3 = fourRandomlyChosenBorderVertices[3];
+
+					for(auto borderVertex : verticesBorderGroup){
+
+						//find minimum distance to one of the rays
+						double minimumDistance = min(min(wEComputeShortestDistanceBetweenPointAndRay(borderVertex, randomlyChosenTetraederTop, randomlyChosenTetraederVertex1),
+													wEComputeShortestDistanceBetweenPointAndRay(borderVertex, randomlyChosenTetraederTop, randomlyChosenTetraederVertex2)),
+													wEComputeShortestDistanceBetweenPointAndRay(borderVertex, randomlyChosenTetraederTop, randomlyChosenTetraederVertex3));
+						currentDistanceForThisChoice += minimumDistance;
+					}
+
+					if(currentDistanceForThisChoice < smallestSumOfDistances){
+
+						smallestSumOfDistances = currentDistanceForThisChoice;
+
+						finalTetraederTop = randomlyChosenTetraederTop;
+						finalRayVertex1 = randomlyChosenTetraederVertex1;
+						finalRayVertex2 = randomlyChosenTetraederVertex2;
+						finalRayVertex3 = randomlyChosenTetraederVertex3;
+
+					}
 				}
-
 			}
 			//RANSAC now has noted down the current best fit for rays.
 
@@ -2203,9 +2254,9 @@ bool experimentalComputeRANSAC(	int numberOfIterations,
 			}
 
 
-			double greatesDistanceRay1 = 0.0;
-			double greatesDistanceRay2 = 0.0;
-			double greatesDistanceRay3 = 0.0;
+			double greatestDistanceRay1 = 0.0;
+			double greatestDistanceRay2 = 0.0;
+			double greatestDistanceRay3 = 0.0;
 			double currentDistanceRay1;
 			double currentDistanceRay2;
 			double currentDistanceRay3;
@@ -2217,27 +2268,27 @@ bool experimentalComputeRANSAC(	int numberOfIterations,
 			for(auto vertexClosestToRay1 : closestToRay1){
 
 				wEComputeSquaredDistanceFromTetraederTopToProjectedPointOnLine(vertexClosestToRay1, finalTetraederTop, finalRayVertex1, currentDistanceRay1);
-				if(currentDistanceRay1 > greatesDistanceRay1){
+				if(currentDistanceRay1 > greatestDistanceRay1){
 					finalTetraederVertex1 = vertexClosestToRay1;
-					greatesDistanceRay1 = currentDistanceRay1;
+					greatestDistanceRay1 = currentDistanceRay1;
 				}
 			}
 
 			for(auto vertexClosestToRay2 : closestToRay2){
 
 				wEComputeSquaredDistanceFromTetraederTopToProjectedPointOnLine(vertexClosestToRay2, finalTetraederTop, finalRayVertex2, currentDistanceRay2);
-				if(currentDistanceRay2 > greatesDistanceRay2){
+				if(currentDistanceRay2 > greatestDistanceRay2){
 					finalTetraederVertex2 = vertexClosestToRay2;
-					greatesDistanceRay2 = currentDistanceRay2;
+					greatestDistanceRay2 = currentDistanceRay2;
 				}
 			}
 
 			for(auto vertexClosestToRay3 : closestToRay3){
 
 				wEComputeSquaredDistanceFromTetraederTopToProjectedPointOnLine(vertexClosestToRay3, finalTetraederTop, finalRayVertex3, currentDistanceRay3);
-				if(currentDistanceRay3 > greatesDistanceRay3){
+				if(currentDistanceRay3 > greatestDistanceRay3){
 					finalTetraederVertex3 = vertexClosestToRay3;
-					greatesDistanceRay3 = currentDistanceRay3;
+					greatestDistanceRay3 = currentDistanceRay3;
 				}
 			}
 			//the three vertices finalTetraederVertices now hold the tetraeder
@@ -2290,7 +2341,7 @@ bool experimentalComputeRANSAC(	int numberOfIterations,
 			for(auto borderVertex : verticesBorderGroup){
 
 				//int currentborderVertexGroup;
-				//wEGetBorderGroupFromVertexByFeatureVector(borderVertex, currentborderVertexGroup);
+				//wEGetBorderGroupFromVertexByFeatureVector(borderVertex, cuhttps://stackoverflow.com/questions/40454789/computing-face-normals-and-windingrrentborderVertexGroup);
 
 				double currentBorderVertexGroup;
 				borderVertex->getFeatureElement(21, &currentBorderVertexGroup);
@@ -2382,35 +2433,41 @@ bool experimentalComputeRANSAC(	int numberOfIterations,
 
 	}//all labeled groups have been worked upon
 
-	//Export found Wedges into file
+	//Export found Wedges into .obj-file
 	wEWriteExtractedTetraedersIntoFile(extractedTetraeders, outputFileName);
 
+	//Export found Wedges into the mesh class for extraction
+	//A python script can be used to write the wedge information into a csv-file
 	wEWriteExtractedTetraedersIntoMeshForCollection(meshIntrinsicExtractedTetraeders, extractedTetraeders, RANSACQualities, TetraederHeights);
 
-	cout << "ply building starts" << endl;
-	wEWriteExtractedTetraedersAndMeshIntoFile(extractedTetraeders, outputFileName, mVertices, mFaces);
 
+	//Export found Wedges into .ply-file TOGETHER with the original mesh
+	//mVertices and mFaces are used to extract the original mesh
 
+	//for visualization purposes, the RANSAC Quality and the Tetraeder Height are normalized
+	vector<double> normalizedRANSACQualities;
+	wENormalizeValues(RANSACQualities, normalizedRANSACQualities);
 
-	//The goal is to have Tetraeders show up in mesh
+	vector<double> normalizedTetraederHeights;
+	wENormalizeValues(TetraederHeights, normalizedTetraederHeights);
 
-	//The solution is far from perfect
-	//Write the objects into the global collectors.
-
-	//let Feature Vector Reorder add them to the mesh.
-	//this way, only Feature Vector Reorder corrupts the status quo
-
-	//int numberOfVertices = mVertices.size();
-	//int numberOfFaces = mFaces.size();
-
-
-	//needs to be reimplemented in a better form
-
-	//the bool extendMesh can be used
-	//cout << "Augmentation of mesh beginns" << endl;
-	//wETempNoteDownExtractedTetraeders(extractedTetraeders, numberOfVertices, numberOfFaces, RANSACQuality);
-
-
+	//Parameters: the 1 is the mode for RANSAC Quality visualization and 2 ist the mode for tetraeder height visualization.
+	wEWriteExtractedTetraedersAndMeshIntoFile(extractedTetraeders, outputFileName, normalizedRANSACQualities, 1, mVertices, mFaces);
+	wEWriteExtractedTetraedersAndMeshIntoFile(extractedTetraeders, outputFileName, normalizedTetraederHeights, 2, mVertices, mFaces);
+	/*
+	if(visualizeRANSACQuality){
+		vector<double> normalizedRANSACQualities;
+		wENormalizeValues(RANSACQualities, normalizedRANSACQualities);
+		wEWriteExtractedTetraedersAndMeshIntoFile(extractedTetraeders, outputFileName, normalizedRANSACQualities, mVertices, mFaces);
+	} else if(visualizeTetraederHeight) {
+		vector<double> normalizedTetraederHeights;
+		wENormalizeValues(TetraederHeights, normalizedTetraederHeights);
+		wEWriteExtractedTetraedersAndMeshIntoFile(extractedTetraeders, outputFileName, normalizedTetraederHeights, mVertices, mFaces);
+	} else {
+		//in case the user does not want a wedge property visualized, wedges are shown in the same tone of green
+		vector<double> emptyVector;
+		wEWriteExtractedTetraedersAndMeshIntoFile(extractedTetraeders, outputFileName, emptyVector, mVertices, mFaces);
+	}*/
 
 
 	cout << "RANSAC terminated successfully!" << endl;
@@ -2424,319 +2481,14 @@ bool experimentalComputeRANSAC(	int numberOfIterations,
 }
 
 
-bool experimentalReorderFeatureVector(	//vector<vector<double>> &meshIntrinsicExtractedTetraeders,
-										//vector<vector<VertexOfFace>> &meshAugmentVOFs,
-										//vector<Face> &meshAugmentFs,
-										vector<Vertex*> &mVertices,
+bool experimentalReorderFeatureVector(	vector<Vertex*> &mVertices,
 										vector<Face*> &mFaces,
 										double deletableInput){
 
-	//temporaryRANSACParameter = deletableInput;
+	temporaryNMSParameter = deletableInput;
+	temporaryWaterParameter = deletableInput;
 
-
-	//cout << "Mesh augmentation has started." << endl;
-/*
-	cout << meshIntrinsicExtractedTetraeders.size() << endl;
-
-	int totalNumberNewVertices = meshIntrinsicExtractedTetraeders.size() * 4;
-	VertexOfFace * pointerToVOF = new VertexOfFace[totalNumberNewVertices];
-	//Face * facePointer = new Face(0, nullptr, nullptr, nullptr)[totalNumberNewVertices]; //same number like vertex
-	vector<Face> vectorOfFaces;
-
-	//calculate Colors
-
-
-
-
-
-	int countingFurtherVertices = mVertices.size();
-	int countingFurtherFaces = mFaces.size();
-	int NewVOF = 0;
-	int NewFace = 0;
-
-	//loop over all tetraeders
-	for(int i=0; i<meshIntrinsicExtractedTetraeders.size(); i++){
-
-		cout << "run " << i << endl;
-
-		cout << meshIntrinsicExtractedTetraeders[i].size() << endl;
-
-		vector<VertexOfFace> VOFCollectionPerTetraeder;
-		//create VOFs
-
-		//VOF1
-		countingFurtherVertices++;
-		VertexOfFace augVOF1(	countingFurtherVertices,
-								meshIntrinsicExtractedTetraeders[i][2],
-								meshIntrinsicExtractedTetraeders[i][3],
-								meshIntrinsicExtractedTetraeders[i][4]);
-		augVOF1.setRGB(0,255,0);
-		//VOFCollectionPerTetraeder.push_back(augVOF1);
-		pointerToVOF[NewVOF] = augVOF1;
-		VertexOfFace * pointVOF1 = &pointerToVOF[NewVOF];
-		NewVOF++;
-
-		cout << "jeweils first" << endl;
-
-		//VOF2
-		countingFurtherVertices++;
-		VertexOfFace augVOF2(	countingFurtherVertices,
-								meshIntrinsicExtractedTetraeders[i][5],
-								meshIntrinsicExtractedTetraeders[i][6],
-								meshIntrinsicExtractedTetraeders[i][7]);
-		augVOF2.setRGB(0,255,0);
-		//VOFCollectionPerTetraeder.push_back(augVOF2);
-		pointerToVOF[NewVOF] = augVOF2;
-		VertexOfFace * pointVOF2 = &pointerToVOF[NewVOF];
-		NewVOF++;
-
-		//VOF3
-		countingFurtherVertices++;
-		VertexOfFace augVOF3(	countingFurtherVertices,
-								meshIntrinsicExtractedTetraeders[i][8],
-								meshIntrinsicExtractedTetraeders[i][9],
-								meshIntrinsicExtractedTetraeders[i][10]);
-		augVOF3.setRGB(0,255,0);
-		//VOFCollectionPerTetraeder.push_back(augVOF3);
-		pointerToVOF[NewVOF] = augVOF3;
-		VertexOfFace * pointVOF3 = &pointerToVOF[NewVOF];
-		NewVOF++;
-
-		//VOF4
-		countingFurtherVertices++;
-		VertexOfFace augVOF4(	countingFurtherVertices,
-								meshIntrinsicExtractedTetraeders[i][11],
-								meshIntrinsicExtractedTetraeders[i][12],
-								meshIntrinsicExtractedTetraeders[i][13]);
-		augVOF4.setRGB(0,255,0);
-		//VOFCollectionPerTetraeder.push_back(augVOF4);
-		pointerToVOF[NewVOF] = augVOF4;
-		VertexOfFace * pointVOF4 = &pointerToVOF[NewVOF];
-		NewVOF++;
-
-		mVertices.push_back(pointVOF1);
-		mVertices.push_back(pointVOF2);
-		mVertices.push_back(pointVOF3);
-		mVertices.push_back(pointVOF4);
-
-		//meshAugmentVOFs.push_back(VOFCollectionPerTetraeder);
-
-		cout << "some VOFs finished" << endl;
-*/
-
-		//create faces
-		//Order may need to be rethought
-
-		/*
-		VertexOfFace * VOFPointer1 = &meshAugmentVOFs[i][0];
-		VertexOfFace * VOFPointer2 = &meshAugmentVOFs[i][1];
-		VertexOfFace * VOFPointer3 = &meshAugmentVOFs[i][2];
-		VertexOfFace * VOFPointer4 = &meshAugmentVOFs[i][3];
-
-		countingFurtherFaces++;
-		Face tetraederFace1 = Face(countingFurtherFaces, VOFPointer1, VOFPointer2, VOFPointer3);
-		meshAugmentFs.push_back((tetraederFace1));
-
-		countingFurtherFaces++;
-		Face tetraederFace2 = Face(countingFurtherFaces, VOFPointer1, VOFPointer2, VOFPointer4);
-		meshAugmentFs.push_back((tetraederFace2));
-
-		countingFurtherFaces++;
-		Face tetraederFace3 = Face(countingFurtherFaces, VOFPointer2, VOFPointer3, VOFPointer4);
-		meshAugmentFs.push_back((tetraederFace3));
-
-		countingFurtherFaces++;
-		Face tetraederFace4 = Face(countingFurtherFaces, VOFPointer3, VOFPointer1, VOFPointer4);
-		meshAugmentFs.push_back((tetraederFace4));
-		*/
-
-
-/*
-		countingFurtherFaces++;
-		Face tetraederFace1(countingFurtherFaces, pointVOF1, pointVOF2, pointVOF3);
-		vectorOfFaces.push_back(tetraederFace1);
-		//facePointer[NewFace] = tetraederFace1;
-		Face * pointToFace1 = &vectorOfFaces[NewFace];
-		NewFace++;
-
-		countingFurtherFaces++;
-		Face tetraederFace2(countingFurtherFaces, pointVOF1, pointVOF2, pointVOF4);
-		vectorOfFaces.push_back(tetraederFace2);
-		//facePointer[NewFace] = tetraederFace1;
-		Face * pointToFace2 = &vectorOfFaces[NewFace];
-		NewFace++;
-
-		countingFurtherFaces++;
-		Face tetraederFace3(countingFurtherFaces, pointVOF2, pointVOF3, pointVOF4);
-		vectorOfFaces.push_back(tetraederFace3);
-		//facePointer[NewFace] = tetraederFace1;
-		Face * pointToFace3 = &vectorOfFaces[NewFace];
-		NewFace++;
-
-		countingFurtherFaces++;
-		Face tetraederFace4(countingFurtherFaces, pointVOF3, pointVOF1, pointVOF4);
-		vectorOfFaces.push_back(tetraederFace4);
-		//facePointer[NewFace] = tetraederFace1;
-		Face * pointToFace4 = &vectorOfFaces[NewFace];
-		NewFace++;
-
-		mFaces.push_back(pointToFace1);
-		mFaces.push_back(pointToFace2);
-		mFaces.push_back(pointToFace3);
-		mFaces.push_back(pointToFace4);
-
-
-
-		cout << "some Faces finished" << endl;
-
-	}
-
-	cout << "Mesh will be augmented" << endl;
-*/
-	//add vertices to mesh
-/*
-	for(int v=0; v<meshAugmentVOFs.size(); v++){
-
-		for(int j=0; j<4; j++){
-			VertexOfFace * currentVOFPointer = &meshAugmentVOFs[v][j];
-			mVertices.push_back(currentVOFPointer);
-		}
-
-	}
-*/
-	//add faces to mesh
-/*
-	for(int f=0; f<meshAugmentFs.size(); f++){
-
-		Face * currentFacePointer = & meshAugmentFs[f];
-		mFaces.push_back(currentFacePointer);
-
-	}
-*/
-
-	/*
-	// TESTING
-	//how to add vertex or face
-
-	int countingFurther = mVertices.size();
-	int countingFFurther = mFaces.size();
-
-	VertexOfFace testVert1(countingFurther+1, -40.0, -20.0, 40.0);
-	testVert1.setRGB(0,255,0);
-	VertexOfFace testVert2(countingFurther+2, -10.0, -20.0, 40.0);
-	testVert2.setRGB(0,255,0);
-	VertexOfFace testVert3(countingFurther+3, -25.0, 20.0, 40.0);
-	testVert3.setRGB(0,255,0);
-
-	VertexOfFace testVert4(countingFurther+4, 10.0, -20.0, 40.0);
-	testVert4.setRGB(50,200,0);
-	VertexOfFace testVert5(countingFurther+5, 40.0, -20.0, 40.0);
-	testVert5.setRGB(50,200,0);
-	VertexOfFace testVert6(countingFurther+6, 25.0, 20.0, 40.0);
-	testVert6.setRGB(50,200,0);
-
-	VertexOfFace testVert7(countingFurther+7, -20.0, -40.0, 40.0);
-	testVert7.setRGB(150,100,0);
-	VertexOfFace testVert8(countingFurther+8, 20.0, -40.0, 40.0);
-	testVert8.setRGB(150,100,0);
-	VertexOfFace testVert9(countingFurther+9, 0.0, -20.0, 40.0);
-	testVert9.setRGB(150,100,0);
-
-	VertexOfFace * pointerToVOF = new VertexOfFace[9];
-
-	pointerToVOF[0] = testVert1;
-	pointerToVOF[1] = testVert2;
-	pointerToVOF[2] = testVert3;
-	pointerToVOF[3] = testVert4;
-	pointerToVOF[4] = testVert5;
-	pointerToVOF[5] = testVert6;
-	pointerToVOF[6] = testVert7;
-	pointerToVOF[7] = testVert8;
-	pointerToVOF[8] = testVert9;
-
-	VertexOfFace * pointy1 = &pointerToVOF[0];
-	VertexOfFace * pointy2 = &pointerToVOF[1];
-	VertexOfFace * pointy3 = &pointerToVOF[2];
-
-	VertexOfFace * pointy4 = &pointerToVOF[3];
-	VertexOfFace * pointy5 = &pointerToVOF[4];
-	VertexOfFace * pointy6 = &pointerToVOF[5];
-
-	VertexOfFace * pointy7 = &pointerToVOF[6];
-	VertexOfFace * pointy8 = &pointerToVOF[7];
-	VertexOfFace * pointy9 = &pointerToVOF[8];
-
-	//Face * pointerToFace = new Face(countingFFurther+1, pointerToVOF[0], pointerToVOF[1], pointerToVOF[2]);
-	Face * pointerToFace1 = new Face(countingFFurther+1, pointy1, pointy2, pointy3);
-	Face * pointerToFace2 = new Face(countingFFurther+2, pointy4, pointy5, pointy6);
-	Face * pointerToFace3 = new Face(countingFFurther+3, pointy7, pointy8, pointy9);
-
-	//mVertices.push_back(pointerToVOF[0]);
-	//mVertices.push_back(pointerToVOF[1]);
-	//mVertices.push_back(pointerToVOF[2]);
-
-	mVertices.push_back(pointy1);
-	mVertices.push_back(pointy2);
-	mVertices.push_back(pointy3);
-
-	mVertices.push_back(pointy4);
-	mVertices.push_back(pointy5);
-	mVertices.push_back(pointy6);
-
-	mVertices.push_back(pointy7);
-	mVertices.push_back(pointy8);
-	mVertices.push_back(pointy9);
-
-	mFaces.push_back(pointerToFace1);
-	mFaces.push_back(pointerToFace2);
-	mFaces.push_back(pointerToFace3);
-	*/
-
-
-	/*
-
-	//int countingFF = mFaces.size();
-
-	//Face customFace(countingFF+1, testVert1, testVert2, testVert3)
-	//VertexOfFace* pointy1 = &testVert1;
-	//VertexOfFace* pointy2 = &testVert2;
-	//VertexOfFace* pointy3 = &testVert3;
-
-VertexOfFace testVert1(60, 4.0, -1.0, 2.0);
-VertexOfFace testVert2(61, 8.0, 5.0, -2.0);
-VertexOfFace testVert3(62, -4.0, 1.0, 6.0);
-
-VertexOfFace* pointy1 = &testVert1;
-VertexOfFace* pointy2 = &testVert2;
-VertexOfFace* pointy3 = &testVert3;
-
-Face customFace(50, pointy1, pointy2, pointy3);
-
-	mVertices.push_back(pointy1);
-	mVertices.push_back(pointy2);
-	mVertices.push_back(pointy3);
-
-	Face* pointy4 = &customFace;
-	mFaces.push_back(pointy4);
-*/
-
-	/*
-	//add new vertices to current Mesh
-	for(int i=0; i<tempVOFPCollection.size(); i++){
-		for(int j=0; j<4; j++){
-			VertexOfFace* tempVOFPointer = tempVOFPCollection[i][j];
-			mVertices.push_back(tempVOFPointer);
-		}
-	}
-
-	//add new faces to current Mesh
-	for(int i=0; i<tempFPCollection.size(); i++){
-		Face* tempFacePointer = tempFPCollection[i];
-		mFaces.push_back(tempFacePointer);
-	}
-*/
-
-	cout << "Experimental Mesh augmentation ended." << endl;
+	cout << deletableInput << " as Value was given" << endl;
 
 	return true;
 

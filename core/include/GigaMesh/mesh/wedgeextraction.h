@@ -54,10 +54,16 @@ double wEComputeTetraederHeight(std::vector<Vertex*> &foundTetraeder);
 
 bool wECheckTetraederHeight(std::vector<Vertex*> &foundTetraeder, double &minimumHeight);
 
+void checkTriangleFaceOrientation(std::vector<std::vector<Vertex*>> &extractedTetraeders, std::vector<bool> &faceVerdict);
+
+void wENormalizeValues(std::vector<double> &vectorOfDoubles, std::vector<double> &vectorOfNormalizedDoubles);
+
 void wEWriteExtractedTetraedersIntoFile(std::vector<std::vector<Vertex*>> &extractedTetraeders, std::string outputFileName);
 
 void wEWriteExtractedTetraedersAndMeshIntoFile(	std::vector<std::vector<Vertex*>> &extractedTetraeders,
 												std::string outputFileName,
+												std::vector<double> &vectorOfNormalizedDoubles,
+												int doubleInterpretation,
 												std::vector<Vertex*> &mVertices,
 												std::vector<Face*> &mFaces);
 
@@ -78,7 +84,7 @@ void wEBuildVertexNeighbourLookUpStructure(std::vector<Vertex*> &mVertices, std:
 
 bool experimentalSuppressNonMaxima(double &NMSDistance, std::vector<Vertex*> &mVertices);
 
-bool experimentalComputeWatershed(double &watershedLimit, std::vector<Vertex*> &mVertices);
+bool experimentalComputeWatershed(double &watershedLimit, bool useBasinMerging, std::vector<Vertex*> &mVertices);
 
 bool experimentalComputeClustering(int numberOfIterations, std::vector<Vertex*> &mVertices);
 
