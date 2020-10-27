@@ -38,7 +38,7 @@ for:
   after_build:
   - windeployqt install/bin/gigamesh.exe
   - mv install GigaMesh
-  - ps: cp C:\OpenSSL-v111-Win64\bin\*.dll install\bin
+  - ps: cp C:\OpenSSL-v111-Win64\bin\*.dll GigaMesh\bin
   - cd ..
   test_script:
   - .\build\tests\Release\gigameshCore_tests.exe -o test_reportWin.xml -r junit & exit 0
