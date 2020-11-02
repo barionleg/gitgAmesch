@@ -1244,7 +1244,71 @@ void wEBuildVertexNeighbourLookUpStructure(vector<Vertex*> &mVertices, map<Verte
 	}*/
 
 }
+/*
+bool temporaryTxTCreator(vector<Vertex*> &mVertices, map<Vertex*,set<Vertex*>> &vertexNeighbourLookUp){
 
+	string customPrefix = "experimental";
+	string customRemark = "_similarToPly";
+	string customSuffix = ".txt";
+	string tetraederOutputFile = customPrefix + customRemark + customSuffix;
+	ofstream OutFile(tetraederOutputFile);
+
+	int  vertexIdentifier;
+	double vertexCoordinateX;
+	double vertexCoordinateY;
+	double vertexCoordinateZ;
+
+	double MSIIvalue;
+
+	vector<Vertex*> VectorElements;
+
+
+	if(OutFile.fail()){
+
+		cout << "Unable to open file to write tetraeder data!";
+
+	}
+	else{
+
+		//OutFile << "# This file holds the extracted tetraeders." << endl;
+
+		//loop over tetraeder
+		for(auto currentVertex : mVertices){
+
+			vertexIdentifier = currentVertex->getIndexOriginal();
+
+			vertexCoordinateX = currentVertex->getX();
+			vertexCoordinateY = currentVertex->getY();
+			vertexCoordinateZ = currentVertex->getZ();
+
+			currentVertex->getFeatureElement(15, &MSIIvalue);
+
+			//possibly shorten the accuracy down
+
+			OutFile << "Vertex" << " " << vertexIdentifier << " "  << MSIIvalue << " " << vertexCoordinateX << " " << vertexCoordinateY << " " << vertexCoordinateZ << endl;
+
+		}
+
+		for(auto const& lookUpElement : vertexNeighbourLookUp){
+
+			OutFile << "Face" << " ";
+
+			vertexIdentifier = lookUpElement.first->getIndexOriginal();
+
+			OutFile << vertexIdentifier << " ";
+
+			//VectorElements = lookUpElement.second;
+
+			for(auto pVertex : lookUpElement.second){
+
+				OutFile << pVertex->getIndexOriginal() << " ";
+			}
+
+			OutFile << endl;
+		}
+	}
+}
+*/
 
 //methods called in mesh.cpp
 
@@ -1273,8 +1337,14 @@ bool experimentalSuppressNonMaxima(double &NMSDistance, vector<Vertex*> &mVertic
 	map<Vertex*,set<Vertex*>> vertexNeighbourLookUp;
 	wEBuildVertexNeighbourLookUpStructure(mVertices, vertexNeighbourLookUp);
 
+	//vertices that had a smaller MSII value than another vertex are collected here. They are no longer eligible to become local maxima themselves.
+	set<Vertex*> succumbed;
+
+
 	cout << "Lookup structure was established." << endl;
 
+
+	//temporaryTxTCreator(mVertices, vertexNeighbourLookUp);
 
 	/*
 	vector<vector<Vertex*>> vertexNeighbourLookUp(mVertices.size());
@@ -1306,18 +1376,19 @@ bool experimentalSuppressNonMaxima(double &NMSDistance, vector<Vertex*> &mVertic
 		//if the feature vector has less than 18 elements, resize it to length 18
 		//the current concept is: use the feature vector and write computated values at position 17 and 18
 		//resizing pads with zeros
-		/*
+
 		if(18 > pVertex->getFeatureVectorLen()){
 			pVertex->resizeFeatureVector(18);
 		}
-		*/
-		//temp Idea
 
+		//temp Idea
+		/*
 		if(24 > pVertex->getFeatureVectorLen()){
 			pVertex->resizeFeatureVector(24);
 			pVertex->setFeatureElement(22, 0.0);
 			pVertex->setFeatureElement(23, 0.0);
 		}
+		*/
 
 		//used for relative feature vector element access
 		//unsigned int currentFeatureVectorLength = pVertex->getFeatureVectorLen();
@@ -1348,10 +1419,12 @@ bool experimentalSuppressNonMaxima(double &NMSDistance, vector<Vertex*> &mVertic
 		pVertex->getFeatureElement(15, &MSIIcomponent16);
 		//double distanceModifier = 1.0 - MSIIcomponent16; //find out, if 1.0 or maybe 1.1 is better
 
+		/*
 		double neverWillBeMax;
 		pVertex->getFeatureElement(22, &neverWillBeMax);
+		*/
 
-		if((MSIIcomponent16 > temporaryNMSParameter) && (neverWillBeMax < 0.5)){
+		if((MSIIcomponent16 > temporaryNMSParameter) && !(succumbed.find(pVertex) != succumbed.end())/*&& (neverWillBeMax < 0.5)*/){
 		//if(MSIIcomponent16 > temporaryNMSParameter){
 
 			//Vertices, which will be the input for every search
@@ -1410,12 +1483,16 @@ bool experimentalSuppressNonMaxima(double &NMSDistance, vector<Vertex*> &mVertic
 
 								biggerValueFound = true;
 								isMax = false; //not necessary
-								pVertex->setFeatureElement(22, 1.0); //temporary
-								pVertex->setFeatureElement(23, NMSDistance); //temporary
+
+								//pVertex->setFeatureElement(22, 1.0); //temporary
+								//pVertex->setFeatureElement(23, NMSDistance); //temporary
 
 							}else{ //so it still seems to be the (local) maximum
 
 								isMax = true; //the current Vertex temporarily seems to be a maximum
+
+								//the vertex with the smaller MSII value is no longer eligible to become a local maximum
+								succumbed.insert(adjacentVertex);
 
 								//the new found neighbour doesn't have a bigger MSII value, so it is added to the front (put at the end of the queue
 								//maybe his neighbours have a bigger MSII value
