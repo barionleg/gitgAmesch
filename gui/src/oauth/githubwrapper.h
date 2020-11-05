@@ -13,10 +13,11 @@ class GithubWrapper : public OAuthWrapper
 public:
     GithubWrapper(QObject *parent = nullptr);
     GithubWrapper(const QString &clientIdentifier, QObject *parent = nullptr);
+	
 
 public slots:
     void getUserData();
-
+	void receiveReply();
 };
 
 

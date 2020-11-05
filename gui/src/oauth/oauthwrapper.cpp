@@ -6,7 +6,7 @@
 #include <QtCore>
 #include <QtNetworkAuth>
 
-const QUrl userdataUrl("https://api.github.com/users");//"https://gitlab.rlp.net/api/v4/user"); 
+const QUrl userdataUrl("https://api.github.com/user");//"https://gitlab.rlp.net/api/v4/user");
 
 OAuthWrapper::OAuthWrapper(QObject *parent,QJsonObject configuration) : QObject(parent)
 {
@@ -26,8 +26,8 @@ OAuthWrapper::OAuthWrapper(QObject *parent,QJsonObject configuration) : QObject(
         if (stage == QAbstractOAuth::Stage::RequestingAuthorization && isPermanent())
             parameters->insert("duration", "permanent");
     });
-    connect(&oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser,
-            &QDesktopServices::openUrl);
+    //connect(&oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser,
+    //        &QDesktopServices::openUrl);
 }
 
 OAuthWrapper::OAuthWrapper(const QString &clientIdentifier, QObject *parent) :
@@ -53,13 +53,13 @@ void OAuthWrapper::grant()
 
 QNetworkReply * OAuthWrapper::requestUserData()
 {
-    qDebug() << "Getting user data...";
+    qDebug() << "[OAuthWrapper:requestUserData]";
     return oauth2.get(QUrl(userdataUrl));
 }
 
 void OAuthWrapper::getUserData()
 {
-    qDebug() << "Susbscribing...";
+    qDebug() << "[OAuthWrapper:getUserData]";
     QNetworkReply *reply = oauth2.get(userdataUrl);
     connect(reply, &QNetworkReply::finished, [=]() {
         reply->deleteLater();

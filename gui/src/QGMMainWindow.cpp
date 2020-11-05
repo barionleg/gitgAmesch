@@ -310,6 +310,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	// --- ? -----------------------------------------------------------------------------------------------------------------------------------------------
 	// New Qt5 Signal-Slot concept:
 	QObject::connect( actionInfoKeyShortcuts,      &QAction::triggered, this, &QGMMainWindow::infoKeyShortcuts      );
+        //QObject::connect( actionUserInfo,              &QAction::triggered, this, &QGMMainWindow::authenticateUser      );
 	QObject::connect( actionVisitVideoTutorials,   &QAction::triggered, this, &QGMMainWindow::visitVideoTutorials   );
 	QObject::connect( actionVisitWebSite,          &QAction::triggered, this, &QGMMainWindow::visitWebSite          );
 	QObject::connect( actionAbout,                 &QAction::triggered, this, &QGMMainWindow::aboutBox              );
@@ -370,19 +371,46 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
 
         // --- Github userdata check --------------------------------------------------------------------------------------------------------------
+
+        //QSettings settings;
         bool ok;
         cout << "[QGMMainWindow::" << __FUNCTION__ << "] Last user: " << settings.value( "lastUser" ).toString().toStdString() << endl;
-        QString clientId = QInputDialog::getText(this, tr("QInputDialog::getText()"), tr("User Id: "), QLineEdit::Normal, QDir::home().dirName(), &ok);
-        settings.setValue( "lastUser", clientId);
-        cout << "[QGMMainWindow::" << __FUNCTION__ << "] Current user: " << settings.value( "lastUser" ).toString().toStdString() << endl;
+        //QString username = QInputDialog::getText(this, tr("Github Authentication"), tr("Username: "), QLineEdit::Normal, QDir::home().dirName(), &ok);
 
+        //emit authenticating(&username);
+
+        QObject::connect(this, &QGMMainWindow::authenticated, this, [=](QJsonObject data){
+            QSettings settings;
+            QJsonObject userData;
+            qDebug() << "[QGMMainWindow] Authentication successful.";
+
+            if(data.contains("id") && data.contains("name")){
+                userData.insert("userName", data.value("login"));
+                userData.insert("id", data.value("id"));
+                userData.insert("fullName", data.value("name"));
+                qDebug() << "[QGMMainWindow] User id: " << data.value("id").toInt();
+                qDebug() << "[QGMMainWindow] User name: " << data.value("name").toString();
+                QJsonDocument doc(userData);
+                QByteArray bytes = doc.toJson();
+                settings.setValue( "lastUser", bytes);
+                qDebug() << "[QGMMainWindow] Updated User Data." << bytes;
+            }
+
+            qDebug() << "[QGMMainWindow] Current user: " << settings.value( "lastUser" ).toString();
+
+        });
+
+        //QObject::connect(this, &QGMMainWindow::authentication, this, &QGMMainWindow::authenticate);
+
+        /*
         clientId = "f31165013adac0da36ed";
         QListView view;
         GithubModel model(clientId);
         //model.update();
+
         view.setModel(&model);
         view.show();
-
+        */
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
 	// --- Check external Tools i.e. Inkscape and convert/ImageMagick --------------------------------------------------------------------------------------
@@ -1222,6 +1250,37 @@ bool QGMMainWindow::setupMeshWidget( const QGLFormat& rGLFormat ) {
 
     cout << "[QGMMainWindow::" << __FUNCTION__ << "] ... End" << endl;
 	return true;
+}
+
+void QGMMainWindow::authenticate(){
+
+    QSettings settings;
+    bool ok;
+    cout << "[QGMMainWindow::" << __FUNCTION__ << "] Last user: " << settings.value( "lastUser" ).toString().toStdString() << endl;
+    QString username = QInputDialog::getText(this, tr("Github Authentication"), tr("Username: "), QLineEdit::Normal, QDir::home().dirName(), &ok);
+
+    emit authenticating(&username);
+
+    QObject::connect(this, &QGMMainWindow::authenticated, this, [=](QJsonObject data){
+        QSettings settings;
+        QJsonObject userData;
+        qDebug() << "[QGMMainWindow] Authentication successful.";
+
+        if(data.contains("id") && data.contains("name")){
+            userData.insert("userName", data.value("login"));
+            userData.insert("id", data.value("id"));
+            userData.insert("fullName", data.value("name"));
+            qDebug() << "[QGMMainWindow] User id: " << data.value("id").toInt();
+            qDebug() << "[QGMMainWindow] User name: " << data.value("name").toString();
+            QJsonDocument doc(userData);
+            QByteArray bytes = doc.toJson();
+            settings.setValue( "lastUser", bytes);
+            qDebug() << "[QGMMainWindow] Updated User Data." << bytes;
+        }
+
+        qDebug() << "[QGMMainWindow] Current user: " << settings.value( "lastUser" ).toString();
+
+    });
 }
 
 MeshWidget* QGMMainWindow::getWidget(){

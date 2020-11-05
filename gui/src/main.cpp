@@ -161,8 +161,8 @@ int main( int argc, char *argv[] ) {
 		mainWindow.resize( winSize );
 	}
 
-	TcpServer server;
-	server.setMainWindow(&mainWindow);
+        TcpServer server;
+        server.setMainWindow(&mainWindow);
 
 	// Pass arguments to the main window
 	if( targetFile.size() > 0 ) {

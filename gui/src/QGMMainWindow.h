@@ -45,6 +45,7 @@
 #include "meshGL/meshGL_params.h"
 #include "meshGL/meshglcolors.h"
 
+
 class MeshWidget;
 class QGMDockSideBar;
 class QGMDockInfo;
@@ -168,6 +169,9 @@ private:
 private slots:
 	void openExternalProgramsDialog();
 	void openGridPositionDialog();
+
+	void authenticate();	
+
 private:
 	// --- Extra Keys --------------------------------------------------------------------------------------------------------------------------------------
 	void keyPressEvent( QKeyEvent *rEvent );
@@ -342,7 +346,12 @@ signals:
 	//.
 	void sDatumAddSphere();                                  //!< Manually enter a datum sphere.
 
-	// --- Octree reöated ----------------------------------------------------------------------------------------------------------------------------------
+// --- User Authentication ----------------------------------------------------------------------------------------------------------------------------------
+	void authentication();		
+	void authenticating(QString *username); 
+	void authenticated(QJsonObject data); 
+
+	// --- Octree related ----------------------------------------------------------------------------------------------------------------------------------
 	void generateOctree();
 	void generateOctree(unsigned int);
 	void detectselfintersections();

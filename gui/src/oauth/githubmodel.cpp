@@ -6,7 +6,7 @@ GithubModel::GithubModel(const QString &clientId, QObject *parent) :
     QAbstractTableModel(parent),
     githubWrapper(clientId)
 {
-	qDebug() << "[GithubModel::githubmodel()]";
+    qDebug() << "[GithubModel::githubmodel()]";
     grant();
 }
 
@@ -40,13 +40,18 @@ QVariant GithubModel::data(const QModelIndex &index, int role) const
 
 void GithubModel::grant()
 {
+    qDebug() << "[GithubModel::grant()]";
     githubWrapper.grant();
     connect(&githubWrapper, &GithubWrapper::authenticated, this, &GithubModel::update);
+    emit update();
 }
 
 void GithubModel::update()
 {
+    qDebug() << "[GithubModel:update]";
+
     auto reply = githubWrapper.requestUserData();
+    githubWrapper.getUserData();
 
     connect(reply, &QNetworkReply::finished, [=]() {
         reply->deleteLater();
@@ -54,10 +59,18 @@ void GithubModel::update()
             emit error(reply->errorString());
             return;
         }
+        qDebug() << "[GithubModel:update] NetworkReply finished";
+
         const auto json = reply->readAll();
         const auto document = QJsonDocument::fromJson(json);
         Q_ASSERT(document.isObject());
         const auto rootObject = document.object();
+        if(!document.isEmpty()){
+            qDebug() << "[GithubModel:update] JsonDocument is empty.";
+        }
+        if(document.isArray()){
+            qDebug() << "[GithubModel:update] Json Document contains Array.";
+        }
         Q_ASSERT(rootObject.value("kind").toString() == "Listing");
         const auto dataValue = rootObject.value("data");
         Q_ASSERT(dataValue.isObject());
