@@ -28,15 +28,6 @@
 
 #include <GigaMesh/logging/Logging.h>
 
-//helper RAII class for the file-stream
-class FStreamGuard {
-	public:
-		FStreamGuard(std::ifstream& fstream) : mFStream(fstream) {}
-		~FStreamGuard() {mFStream.close();}
-	private:
-		std::ifstream& mFStream;
-};
-
 enum class MtlToken {
 	NEWMTL,
 	KA,
@@ -186,22 +177,19 @@ void parseTextureValue(std::stringstream& sStream, std::string& str)
 	std::string temp;
 
 	//skip the options, just get the texture-name, which is the last argument
+	//!Bug: This causes issues when parsing textures with White-Space!
 	while(sStream.good())
 	{
 		sStream >> temp;
 	}
 
-	if(std::filesystem::exists(temp))
-	{
-		str = temp;
-	}
+	str = temp;
 }
 
 
 bool MtlParser::parseFile(const std::filesystem::path& fileName)
 {
 	std::ifstream fStream;
-	FStreamGuard streamGuard(fStream);
 
 	fStream.imbue(std::locale("C"));
 	fStream.open(fileName);

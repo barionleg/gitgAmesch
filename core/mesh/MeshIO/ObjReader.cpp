@@ -538,6 +538,7 @@ bool ObjReader::readFile(const std::filesystem::path &rFilename, std::vector<sVe
 			objTexCoords.emplace_back(parseTextureCoordinate(tokens));
 		}
 		else if ( firstToken == "usemtl") {
+			//!Bug: this causes issues with mtl-files having a white-space
 			if(tokens.size() != 2)
 			{
 				continue;
