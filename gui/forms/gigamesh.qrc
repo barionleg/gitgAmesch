@@ -77,6 +77,11 @@
         <file>gigamesh_icon_screenshot.svg</file>
         <file>gigamesh_icon_screenshot_pdf.svg</file>
         <file>gigamesh_icon_screenshot_svg.svg</file>
+        <file>gigamesh_icon_export_metadata_xml.svg</file>
+        <file>gigamesh_icon_export_metadata_ttl.svg</file>
+        <file>gigamesh_icon_export_metadata_json.svg</file>
+        <file>gigamesh_icon_export_metadata_html.svg</file>
+        <file>gigamesh_icon_export_metadata_all.svg</file>
     </qresource>
     <qresource prefix="/GMToolTipImages">
         <file>tooltips/rendering_flat_smooth_egde_on.png</file>

@@ -63,16 +63,16 @@ bool infoGigaMeshData(
 		return( false );
 	}
 
+	// Fetch count of connected components via labeling
+	someMesh.labelVerticesAll();
+
 	// Count primitives and their properties
 	if( !someMesh.getMeshInfoData( rFileInfos, rAbsolutePath ) ) {
 		std::wcerr << "[GigaMesh] ERROR: Could not fetch mesh information about '" << rFileNameIn.wstring() << "'!" << std::endl;
 		return( false );
 	}
 
-	// Fetch count of connected components via labeling
-	someMesh.labelVerticesAll();
-	someMesh.labelCount( Primitive::IS_VERTEX, rFileInfos.mCountULong[MeshInfoData::CONNECTED_COMPONENTS] );
-
+	// Done
 	return( true );
 }
 

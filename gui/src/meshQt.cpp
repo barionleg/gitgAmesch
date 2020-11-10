@@ -942,7 +942,7 @@ bool MeshQt::removeUncleanSmallUser() {
 	bool applyErosion;
 	bool userCancel;
 	SHOW_QUESTION( tr("Apply border erosion"), tr("Do you want to remove dangling faces along the borders?") +
-										   QString("<br /><br />") + tr("Recommended: YES"), applyErosion, userCancel );
+	               QString("<br /><br />") + tr("Recommended: YES"), applyErosion, userCancel );
 	if( userCancel ) {
 		return( false );
 	}
@@ -956,14 +956,14 @@ bool MeshQt::removeUncleanSmallUser() {
 	QString fileName = "";
 	if( saveFile ) {
 		// Show file dialog
-        QString fileLocation = QString::fromStdWString( getFileLocation().wstring() );
+		QString fileLocation = QString::fromStdWString( getFileLocation().wstring() );
 		fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as" ), fileLocation, tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) );
 	}
 
 	// Store old mesh size to determine the number of changes
 	uint64_t oldVertexNr = getVertexNr();
 	uint64_t oldFaceNr   = getFaceNr();
-	bool retVal = MeshGL::removeUncleanSmall( percentArea, applyErosion, fileName.toStdString() );
+	bool retVal = removeUncleanSmall( fileName.toStdString(), percentArea, applyErosion );
 	SHOW_MSGBOX_INFO( tr("Primitives removed"), tr( "%1 Vertices\n%2 Faces" ).arg( oldVertexNr - getVertexNr() ).arg( oldFaceNr - getFaceNr() ) );
 	return retVal;
 }
@@ -1037,8 +1037,10 @@ bool MeshQt::completeRestore() {
 	}
 
 	// Iterative cleaning is done in the Mesh class.
-	string resultMsg;
-	MeshGL::completeRestore( fileName.toStdString(), percentArea, applyErosion, prevent, maxNrVertices, &resultMsg );
+	uint64_t iterationCount;
+	std::string resultMsg;
+	MeshGL::completeRestore( fileName.toStdString(), percentArea, applyErosion, prevent, maxNrVertices, 
+	                         &resultMsg, iterationCount );
 	SHOW_MSGBOX_INFO( tr("Complete Restore finished"), QString( resultMsg.c_str() ) );
 
 	return true;
@@ -3900,11 +3902,13 @@ void MeshQt::visualizeDistanceToCone( bool rAbsDist ) {
 //! @returns false in case of an error or user cancel.
 bool MeshQt::editMetaData() {
 
+	//! \todo add META_MODEL_UNIT 
+	
 	//! .) Edit Model ID.
 	string modelID = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
 	if( modelID.empty() ) {
 		// Prepare suggestion
-        QString suggestId( QString::fromStdWString(getBaseName().wstring()) );
+		QString suggestId( QString::fromStdWString(getBaseName().wstring()) );
 		cout << "[MeshQt::" << __FUNCTION__ << "] Basename: " << suggestId.toStdString().c_str() << endl;
 		suggestId.replace( "_", " " );
 		suggestId.replace( QRegularExpression( "GM[oOcCfFpPxX]*$" ), "" );
@@ -3930,6 +3934,26 @@ bool MeshQt::editMetaData() {
 	if( modelMaterial.empty() ) {
 		QGMDialogEnterText dlgEnterTxt;
 		dlgEnterTxt.setText( tr( "original, clay" ) );
+		dlgEnterTxt.setWindowTitle( tr("Model Material") );
+		if( dlgEnterTxt.exec() == QDialog::Rejected ) {
+			cout << "[MeshQt::" << __FUNCTION__ << "] CANCELED by USER!" << endl;
+			return( false );
+		}
+		QString newMaterial;
+		if( !dlgEnterTxt.getText( &newMaterial ) ) {
+			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: bad input (1)!" << endl;
+			return false;
+		}
+		getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_MATERIAL, newMaterial.toStdString() );
+	}
+
+	//! .) Edit Model Unit.
+	string modelUnit = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_UNIT );
+	string modelUnitLabel;
+	getModelMetaDataRef().getModelMetaStringLabel( ModelMetaData::META_MODEL_UNIT, modelUnitLabel );
+	if( modelUnit.empty() ) {
+		QGMDialogEnterText dlgEnterTxt;
+		dlgEnterTxt.setText( tr( "mm" ) );
 		dlgEnterTxt.setWindowTitle( tr("Model Material") );
 		if( dlgEnterTxt.exec() == QDialog::Rejected ) {
 			cout << "[MeshQt::" << __FUNCTION__ << "] CANCELED by USER!" << endl;

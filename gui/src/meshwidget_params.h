@@ -197,14 +197,17 @@ class MeshWidgetParams {
 			EDIT_SET_CONEAXIS_CENTRALPIXEL,     //!< Use the central pixel of the viewport to set the axis of the cone. See Mesh::setConeAxis
 			SET_CURRENT_VIEW_TO_DEFAULT,        //!< Use the current view (matrix) to set the default view of the object.
 			SET_ORTHO_DPI,                      //!< Set the screen resolution for the orthographic rendering.
-			SET_RENDER_DEFAULT,            //!< Use predefined default settings for objects i.e. high contrast for cuneiform tablets.
-			SET_RENDER_MATTED,             //!< Use predefined settings for objects made from wood or clay.
-			SET_RENDER_METALLIC,           //!< Use predefined settings for objects made metal or having a shiny surface.
-			SET_RENDER_LIGHT_SHADING,      //!< Use predefined settings for landscape or in combination with ambient occlusion.
-			SET_RENDER_FLAT_AND_EDGES,     //!< Use predefined settings for inspection of mesh details.
-			SET_GRID_NONE,                 //!< Turn off grid.
-			SET_GRID_RASTER,               //!< Switch to mm-grid - see SHOW_GRID_RECTANGULAR
-			SET_GRID_POLAR,                //!< Switch to polar grid - see SHOW_GRID_POLAR_LINES and SHOW_GRID_POLAR_CIRCLES
+			SET_RENDER_DEFAULT,                 //!< Use predefined default settings for objects i.e. high contrast for cuneiform tablets.
+			SET_RENDER_MATTED,                  //!< Use predefined settings for objects made from wood or clay.
+			SET_RENDER_METALLIC,                //!< Use predefined settings for objects made metal or having a shiny surface.
+			SET_RENDER_LIGHT_SHADING,           //!< Use predefined settings for landscape or in combination with ambient occlusion.
+			SET_RENDER_FLAT_AND_EDGES,          //!< Use predefined settings for inspection of mesh details.
+			SET_GRID_NONE,                      //!< Turn off grid.
+			SET_GRID_RASTER,                    //!< Switch to mm-grid - see SHOW_GRID_RECTANGULAR
+			SET_GRID_POLAR,                     //!< Switch to polar grid - see SHOW_GRID_POLAR_LINES and SHOW_GRID_POLAR_CIRCLES
+			SET_VIEW_AXIS_UP,                   //!< Set the view aligned to the mesh axis.
+			SET_VIEW_PARAMETERS,                //!< Set the view parameters.
+			SHOW_VIEW_PARAMETERS,               //!< Show the view parameters.
 		};
 
 		// ENumerator for user guidance in selection mode:

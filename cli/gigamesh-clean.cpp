@@ -137,17 +137,9 @@ bool cleanupGigaMeshData(
 	// + MAIN FUNCTIONS
 	// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-	// Measure comput time
-	//----------------------------------------------------------
-	std::chrono::system_clock::time_point tStart = std::chrono::system_clock::now();
-
 	// Initial numbers of primitives
 	auto oldVertexNr = someMesh.getVertexNr();
 	auto oldFaceNr = someMesh.getFaceNr();
-	// and count of connected components (labels)
-	uint64_t labelCountIn;
-	someMesh.labelVerticesAll();
-	someMesh.labelCount( Primitive::IS_VERTEX, labelCountIn );
 
 	// Keep ONLY the largest connected component.
 	//----------------------------------------------------------
@@ -172,9 +164,11 @@ bool cleanupGigaMeshData(
 
 	// MAIN cleaning procedure
 	//----------------------------------------------------------
+	uint64_t iterationCount = 0;
 	if( removeOnlyFlag ) {
 		// Single iteration of automatic mesh polishing, BECAUSE
-		someMesh.removeUncleanSmall( percentArea, applyBorderErosion, "" ); // use fileNameOut3D instead of "" for saving the intermediate mesh.
+		someMesh.removeUncleanSmall( fileNameOut, percentArea, applyBorderErosion ); // use fileNameOut3D instead of "" for saving the intermediate mesh.
+		iterationCount++;
 
 		std::cout << "[GigaMesh] REMOVE ONLY: " << oldVertexNr-someMesh.getVertexNr() << " Vertices and ";
 		std::cout << oldFaceNr-someMesh.getFaceNr() << " Faces removed." << std::endl;
@@ -182,7 +176,9 @@ bool cleanupGigaMeshData(
 		//! \bug Check why completeRestore is unstable without intermediate storage.
 		// BROKEN: Apply automatic mesh polishing using the corresponding method
 		// someMesh.completeRestore( "", percentArea, applyBorderErosion, skipLargestHole, maxNumberVertices, nullptr ); // use fileNameOut instead of "" for saving the intermediate mesh.
-		someMesh.completeRestore( fileNameOut, percentArea, applyBorderErosion, skipLargestHole, maxNumberVertices, nullptr ); // use fileNameOut instead of "" for saving the intermediate mesh.
+		someMesh.completeRestore( fileNameOut, percentArea, applyBorderErosion, 
+		                          skipLargestHole, maxNumberVertices, 
+		                          nullptr, iterationCount ); // use fileNameOut instead of "" for saving the intermediate mesh.
 
 		std::cout << "[GigaMesh] POLISH: Vertex count changed by " << static_cast<long>(someMesh.getVertexNr())-static_cast<long>(oldVertexNr) << std::endl;
 		std::cout << "[GigaMesh]         Face count changed by   " << static_cast<long>(someMesh.getFaceNr())-static_cast<long>(oldFaceNr) << std::endl;
@@ -193,60 +189,13 @@ bool cleanupGigaMeshData(
 		someMesh.labelSelectedVerticesBackGrd();
 	}
 
-	std::chrono::system_clock::time_point tEnd = std::chrono::system_clock::now();
-	//std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>( tEnd - tStart );
-	double time_elapsed = ( std::chrono::duration<double>( tEnd - tStart ) ).count();
-	time_t startTime = std::chrono::system_clock::to_time_t( tStart );
-	time_t endTime   = std::chrono::system_clock::to_time_t( tEnd );
-
 	// WRITE clean data
 	//----------------------------------------------------------
-	if( !someMesh.writeFile( fileNameOut ) ) {
-		std::cerr << "[GigaMesh] ERROR: writing file " << fileNameOut << "!" << std::endl;
-		return( false );
-	}
-
-	// Fetch new count of connected components (labels)
-	uint64_t labelCountOut;
-	someMesh.labelVerticesAll();
-	someMesh.labelCount( Primitive::IS_VERTEX, labelCountOut );
-
-	// WRITE meta information
-	//----------------------------------------------------------
-	// Count primitives and their properties for meta information
-	MeshInfoData rFileInfos;
-	someMesh.getMeshInfoData( rFileInfos, true );
-	// Set filename for meta-data
-	std::filesystem::path fileNameOutMeta = fileNameOut;
-	fileNameOutMeta.replace_extension( "info-clean.txt" );
-	//fileNameOutMeta += suffix + ".info-clean.txt";
-	// Open file for meta-data
-	std::fstream fileStrOutMeta;
-	fileStrOutMeta.open( fileNameOutMeta, std::fstream::out );
-#ifdef VERSION_PACKAGE
-	fileStrOutMeta << "GigaMesh CLEAN Version:     " << VERSION_PACKAGE << std::endl;
-#else
-	fileStrOutMeta << "GigaMesh CLEAN Version:     unknown" << std::endl;
-#endif
-	fileStrOutMeta << "Threads (dynamic):          " << std::thread::hardware_concurrency() - 1 << std::endl;
-	fileStrOutMeta << "File Input:                 " << fileNameInName << std::endl;
-	fileStrOutMeta << "File Output:                " << fileNameOutName << std::endl;
-	fileStrOutMeta << "Model Id:                   " << rFileInfos.mStrings[MeshInfoData::MODEL_ID] << std::endl;
-	fileStrOutMeta << "Model Material:             " << rFileInfos.mStrings[MeshInfoData::MODEL_MATERIAL] << std::endl;
-	fileStrOutMeta << "Web-Reference:              " << rFileInfos.mStrings[MeshInfoData::MODEL_WEBREFERENCE] << std::endl;
-	fileStrOutMeta << "Vertex count (in, out):     " << oldVertexNr << ", " << rFileInfos.mCountULong[MeshInfoData::VERTICES_TOTAL] << std::endl;
-	fileStrOutMeta << "Face count (in, out):       " << oldFaceNr   << ", " << rFileInfos.mCountULong[MeshInfoData::FACES_TOTAL]    << std::endl;
-	fileStrOutMeta << "Vertex count (diff):        " << ( static_cast<long>(rFileInfos.mCountULong[MeshInfoData::VERTICES_TOTAL]) - static_cast<long>(oldVertexNr) ) << std::endl;
-	fileStrOutMeta << "Face count (diff):          " << ( static_cast<long>(rFileInfos.mCountULong[MeshInfoData::FACES_TOTAL])    - static_cast<long>(oldFaceNr)   ) << std::endl;
-	fileStrOutMeta << "Connected components (in):  " << labelCountIn << std::endl;
-	fileStrOutMeta << "Connected components (out): " << labelCountOut << std::endl;
-	fileStrOutMeta << "Vertices at border (out):   " << rFileInfos.mCountULong[MeshInfoData::VERTICES_BORDER] << std::endl;
-	fileStrOutMeta << "Vertices synthetic (out):   " << rFileInfos.mCountULong[MeshInfoData::VERTICES_SYNTHETIC] << std::endl;
-	fileStrOutMeta << "Faces synthetic (out):      " << rFileInfos.mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES] << std::endl;
-	fileStrOutMeta << "Start time:                 " << std::ctime( &startTime );
-	fileStrOutMeta << "Finish time:                " << std::ctime( &endTime );
-	fileStrOutMeta << "Timespan (sec):             " << time_elapsed << std::endl;
-	fileStrOutMeta.close();
+	//! \todo supress writing in removeUncleanSmall and completeRestore OR check for file write success. For now the following code to save the file does not make any sense.
+//	if( !someMesh.writeFile( fileNameOut ) ) {
+//		std::cerr << "[GigaMesh] ERROR: writing file " << fileNameOut << "!" << std::endl;
+//		return( false );
+//	}
 
 	// Done.
 	//----------------------------------------------------------

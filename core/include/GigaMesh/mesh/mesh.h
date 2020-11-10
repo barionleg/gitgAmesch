@@ -116,8 +116,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool     getVertNormal( int rVertIdx, double* rNormal );
 
 		// Vertex navigation:
-				uint64_t     getVertexNr();
-				Vertex*      getVertexPos( uint64_t rPosIdx );
+				uint64_t     getVertexNr() const;
+				Vertex*      getVertexPos( uint64_t rPosIdx ) const;
 				bool         orderVertsByIndex();
 				bool         orderVertsByFuncVal();
 				bool         setVertexPosToIndex();
@@ -131,8 +131,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				const std::vector<Face*>*   getPrimitiveListFaces();
 
 		// Face navigation:
-		uint64_t     getFaceNr();
-		Face*        getFacePos( uint64_t posIdx );
+		uint64_t     getFaceNr() const;
+		Face*        getFacePos( uint64_t posIdx ) const;
 		bool         getFaceList( std::set<Face*>* rFaces );
 		bool         getFaceList( std::vector<Face*>* rFaces );
 
@@ -549,7 +549,11 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		// --- Mesh manipulation - REMOVAL -------------------------------------------------------------------------------------------------------------
 		virtual bool   removeVertices( std::set<Vertex*>* verticesToRemove );    // removal of a list of vertices
 		virtual bool   removeVerticesSelected();
-		virtual bool   removeUncleanSmall( double rPercentArea, bool rApplyErosion, const std::filesystem::path& rFileName );
+		        bool   removeUncleanSmall( const std::filesystem::path& rFileName, double rPercentArea, bool rApplyErosion );
+		private:
+		        bool   removeUncleanSmallCore( const std::filesystem::path& rFileName, double rPercentArea, bool rApplyErosion, 
+		                                       uint64_t& rIterationCount );
+		public:
 		virtual bool   removeSyntheticComponents( std::set<Vertex*>* rVerticesSeeds );
 		virtual bool   removeFacesSelected();
 				bool   removeFaces( std::set<Face*>* facesToRemove );            // removal of a list of faces
@@ -558,7 +562,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		// --- Mesh manipulation - MESH POLISHING ------------------------------------------------------------------------------------------------------
 		virtual bool   completeRestore(); // AKA Mesh polishing
 		virtual bool   completeRestore( const std::filesystem::path& rFilename, double rPercentArea, bool rApplyErosion,
-				                        bool rPrevent, uint64_t rMaxNumberVertices, std::string* rResultMsg );
+		                                bool rPrevent, uint64_t rMaxNumberVertices, std::string* rResultMsg, uint64_t& rIterationCount );
 		// --- Mesh manipulation - Manuall adding primitives -------------------------------------------------------------------------------------------
 		virtual bool   insertVerticesEnterManual();
 		virtual bool   insertVerticesCoordTriplets( std::vector<double>* rCoordTriplets );
@@ -582,7 +586,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				void     getCenterOfGravity( float* cog );
 				Vector3D getCenterOfGravity();
 				Vector3D getBoundingBoxCenter();
-				bool     getBoundingBoxSize( Vector3D& rBbSize );
+				bool     getBoundingBoxSize( Vector3D& rBbSize ) const;
 				double   getBoundingBoxRadius();
 				float    getPerimeterRadius();
 		// Bounding Box Corners:
@@ -720,7 +724,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool latexFetchFigureInfos( std::vector<std::pair<std::string, std::string>>* rStrings );
 		// Mesh information - Display for the console in plain text and html for the GUI
 				bool showInfoMeshHTML();
-				bool getMeshInfoData( MeshInfoData& rMeshInfos, bool rAbsolutePath );
+				bool getMeshInfoData( MeshInfoData& rMeshInfos, const bool rAbsolutePath );
 				void dumpMeshInfo( bool avoidSlow=true );
 		virtual bool showInfoSelectionHTML();
 		virtual bool showInfoFuncValHTML();

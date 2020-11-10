@@ -276,9 +276,6 @@ signals:
 	void selectPolyLabelNo();                                //!< select polylines by label IDs.
 
 	// --- View --------------------------------------------------------------------------------------------------------------------------------------------
-	void showViewMatrix();                                   //!< trigger infobox showing the view matrix.
-	void setViewMatrix();                                    //!< trigger dialog to enter the view matrix.
-	void sSetViewAxisUp();                                   //!< Request to set the view using the axis as up vector of the OpenGL camera.
 	// ... Vertices
 	void polylinesCurvScale();                               //!< trigger selection of scale for polyline normals.
 	//.

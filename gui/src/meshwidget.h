@@ -83,10 +83,10 @@ public:
 	MeshWidget( const QGLFormat& format, QWidget* parent );
 	~MeshWidget() override;
 
-	bool    getViewPortResolution( double& rRealWidth, double& rRealHeight );
-	bool    getViewPortPixelWorldSize( double& rPixelWidth, double& rPixelHeight );
-	bool    getViewPortDPI(double& rDPI);
-	bool    getViewPortDPM(double& rDPM);
+	bool    getViewPortResolution( double& rRealWidth, double& rRealHeight ) const;
+	bool    getViewPortPixelWorldSize( double& rPixelWidth, double& rPixelHeight ) const;
+	bool    getViewPortDPI( double& rDPI ) const;
+	bool    getViewPortDPM( double& rDPM ) const;
 
 public slots: // ... overloaded from MeshWidgetParams:
 	bool    setParamFlagMeshWidget(    MeshWidgetParams::eParamFlag rFlagNr,  bool   rState  ) override;
@@ -216,16 +216,17 @@ private:
 	bool screenshotTIFF(const QString& rFileName , OffscreenBuffer *offscreenBuffer);
 	bool screenshotPNG(const QString& rFileName, double& rWidthReal, double& rHeigthReal , OffscreenBuffer *offscreenBuffer);
 
+	// View menu
+	bool getViewSettingsTxt( QString& rSettingsStr ) const;
+	bool showViewMatrix();
+	bool setViewMatrix();
+	bool setViewMatrix( std::vector<double> rMatrix );
+	bool setViewAxisUp();
 
 public slots:
 	void selectColorBackground();
 
 	// View menu
-	bool showViewMatrix();
-	bool setViewMatrix();
-	bool setViewMatrix( std::vector<double> rMatrix );
-	bool setViewAxisUp();
-	//.
 	bool orthoSetDPI();
 	bool orthoSetDPI( double rSetTo );
 	//.
@@ -332,7 +333,9 @@ private:
 	Vector3D   mCenterView;            //!< the central point we(=camera/eye) are looking at.
 	Vector3D   mCameraCenter;          //!< center of the camera(=eye) (X-coordinate).
 	Vector3D   mCameraUp;              //!< camera orientation.
-	// Matrices for OpenGL:
+
+	// Matrices for OpenGL computed using the camera parameters (above):
+	//------------------------------------------------------------------------------------------------------------------------------------------------------
 	QMatrix4x4 mMatProjection;      //!< OpenGL projection matrix.
 	QMatrix4x4 mMatModelView;       //!< OpenGL modelview matrix.
 
