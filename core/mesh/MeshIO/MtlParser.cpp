@@ -169,21 +169,50 @@ void parseFloatValue(std::stringstream& sStream, float& val)
 }
 
 /*
- * Syntax is: -options args filename
+ * Syntax is: <-options args> filename
  */
 
 void parseTextureValue(std::stringstream& sStream, std::string& str)
 {
-	std::string temp;
-
 	//skip the options, just get the texture-name, which is the last argument
-	//!Bug: This causes issues when parsing textures with White-Space!
 	while(sStream.good())
 	{
+		std::string temp;
 		sStream >> temp;
-	}
+		if(temp == "-blendu" ||
+		   temp == "-blendv" ||
+		   temp == "-cc"     ||
+		   temp == "-clamp"  ||
+		   temp == "-texres")
+		{
+			sStream >> temp;
+		}
+		else if(temp == "-mm")
+		{
+			sStream >> temp;
+			sStream >> temp;
+		}
+		else if(temp == "-o" ||
+		        temp == "-s" ||
+		        temp == "-t")
+		{
+			sStream >> temp;
+			sStream >> temp;
+			sStream >> temp;
+		}
 
-	str = temp;
+		//handle fileName
+		else
+		{
+			str = temp;
+			//fileName may contain whitespaces
+			while(sStream.good())
+			{
+				sStream >> temp;
+				str += " " + temp;
+			}
+		}
+	}
 }
 
 

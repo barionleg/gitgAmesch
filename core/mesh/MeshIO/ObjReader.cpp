@@ -393,7 +393,11 @@ bool ObjReader::readFile(const std::filesystem::path &rFilename, std::vector<sVe
 		} else if( linePrefix == "mtllib") {      // mtl libs. Parse directy, to have all materials before using them guarenteed.
 			{
 				std::string fileName;
-				fp >> fileName;
+				std::getline(fp, fileName);
+
+				//trim leading whitespaces
+				if(auto firstCharPos = fileName.find_first_not_of(' '); firstCharPos != std::string::npos)
+					fileName = fileName.substr(firstCharPos);
 
 				std::filesystem::path filePath(fileName);
 
@@ -538,7 +542,6 @@ bool ObjReader::readFile(const std::filesystem::path &rFilename, std::vector<sVe
 			objTexCoords.emplace_back(parseTextureCoordinate(tokens));
 		}
 		else if ( firstToken == "usemtl") {
-			//!Bug: this causes issues with mtl-files having a white-space
 			if(tokens.size() != 2)
 			{
 				continue;
