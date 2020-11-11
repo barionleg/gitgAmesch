@@ -175,10 +175,8 @@ void parseFloatValue(std::stringstream& sStream, float& val)
 void parseTextureValue(std::stringstream& sStream, std::string& str)
 {
 	//skip the options, just get the texture-name, which is the last argument
-	while(sStream.good())
+	for(std::string temp; sStream >> temp;)
 	{
-		std::string temp;
-		sStream >> temp;
 		if(temp == "-blendu" ||
 		   temp == "-blendv" ||
 		   temp == "-cc"     ||
@@ -206,9 +204,8 @@ void parseTextureValue(std::stringstream& sStream, std::string& str)
 		{
 			str = temp;
 			//fileName may contain whitespaces
-			while(sStream.good())
+			while(sStream >> temp)
 			{
-				sStream >> temp;
 				str += " " + temp;
 			}
 		}

@@ -205,7 +205,6 @@ inline sVertexProperties genVertexProperty(const std::pair<ptrdiff_t, ptrdiff_t>
 	return vertProp;
 }
 
-//! TODO: use this
 inline void copyObjToMeshProperties(const std::vector<ObjVertexPosition>& objVertices,
                                     const std::vector<ObjNormal>& objNormals,
                                     const std::vector<ObjTexCoord>& objTexCoords,
@@ -307,8 +306,7 @@ bool ObjReader::readFile(const std::filesystem::path &rFilename, std::vector<sVe
 	std::filesystem::current_path(std::filesystem::absolute(rFilename).parent_path());
 
 	// determine the amount of data by parsing the data for a start:
-	while( fp.good() ) {
-		fp >> linePrefix;
+	while( fp >> linePrefix ) {
 		// Vertex Data -------------------------------------------------------------------------
 		if( linePrefix == "vt" ) {           // texture vertices
 			++obj_TexCoordsTotal;
@@ -399,6 +397,13 @@ bool ObjReader::readFile(const std::filesystem::path &rFilename, std::vector<sVe
 				if(auto firstCharPos = fileName.find_first_not_of(' '); firstCharPos != std::string::npos)
 					fileName = fileName.substr(firstCharPos);
 
+				//remove possible trailing \r
+				if(auto trailingRPos = fileName.find_last_of('\r'); trailingRPos != std::string::npos)
+				{
+					fileName = fileName.substr(0, trailingRPos);
+
+				}
+
 				std::filesystem::path filePath(fileName);
 
 				if(filePath.is_relative())
@@ -475,9 +480,7 @@ bool ObjReader::readFile(const std::filesystem::path &rFilename, std::vector<sVe
 	fp.clear();
 	fp.seekg( ios_base::beg );
 	uint64_t lineNr = 0;
-	while( fp.good() ) {
-		string someLine;
-		getline( fp, someLine );
+	for( std::string someLine; getline(fp,someLine); ) {
 		++lineNr;
 		if( someLine.length() == 0 ) {
 			continue; // because of empty line OR EndOfFile.
