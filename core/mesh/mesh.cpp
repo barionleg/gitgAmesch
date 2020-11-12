@@ -721,6 +721,12 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 				getModelMetaDataRef().setModelMetaString( ModelMetaData::META_REFERENCE_WEB, metaData );
 			}
 			} break;
+                case METADATA_EDIT_USER: {
+                        string metaData = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_USER_DATA );
+                        if( showEnterText( metaData, "Edit the current User" ) ) {
+                                getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_DATA, metaData );
+                        }
+                        } break;
 		case ELLIPSENFIT_EXPERIMENTAL:
 			//! \todo implement properly - fragments of code are currently in MeshGL.
 			break;

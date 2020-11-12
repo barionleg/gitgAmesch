@@ -267,7 +267,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	//.
 	QObject::connect( actionDatumAddSphere,          SIGNAL(triggered()), this, SIGNAL(sDatumAddSphere())   );
 
-	// --- Octree reöated ----------------------------------------------------------------------------------------------------------------------------------
+        // --- Octree related ----------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( actionGenerateOctree,          SIGNAL(triggered()), this, SIGNAL(generateOctree())            );
 	QObject::connect( actionRemove_Drawing_of_Octree,SIGNAL(triggered()), this, SIGNAL(removeOctreedraw())            );
 	QObject::connect( actionDraw_Octree,             SIGNAL(triggered()), this, SIGNAL(drawOctree())            );
@@ -372,10 +372,13 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 
         // --- Github userdata check --------------------------------------------------------------------------------------------------------------
 
+        QObject::connect(this, &QGMMainWindow::authentication, this, &QGMMainWindow::authenticate);
+
+        /*
         //QSettings settings;
         bool ok;
         cout << "[QGMMainWindow::" << __FUNCTION__ << "] Last user: " << settings.value( "lastUser" ).toString().toStdString() << endl;
-        //QString username = QInputDialog::getText(this, tr("Github Authentication"), tr("Username: "), QLineEdit::Normal, QDir::home().dirName(), &ok);
+        QString username = QInputDialog::getText(this, tr("Github Authentication"), tr("Username: "), QLineEdit::Normal, QDir::home().dirName(), &ok);
 
         //emit authenticating(&username);
 
@@ -400,9 +403,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 
         });
 
-        //QObject::connect(this, &QGMMainWindow::authentication, this, &QGMMainWindow::authenticate);
 
-        /*
         clientId = "f31165013adac0da36ed";
         QListView view;
         GithubModel model(clientId);
@@ -1185,7 +1186,9 @@ void QGMMainWindow::initMeshSignals() {
 	actionShowInfoAxis->setProperty(                              "gmMeshFunctionCall", MeshParams::SHOW_INFO_AXIS                               );
 	// ... Other .............................................................................................................................................
 	actionShowLaTeXInfo->setProperty(                             "gmMeshFunctionCall", MeshParams::LATEX_TEMPLATE                               );
-	actionMetaDataEditModelId->setProperty(                       "gmMeshFunctionCall", MeshParams::METADATA_EDIT_MODEL_ID                       );
+        actionMetaDataEditModelId->setProperty(                       "gmMeshFunctionCall", MeshParams::METADATA_EDIT_MODEL_ID                       );
+        //! \todo
+        actionMetaDataEditUser->setProperty(                          "gmMeshFunctionCall", MeshParams::METADATA_EDIT_USER                           );
 	actionMetaDataEditMaterial->setProperty(                      "gmMeshFunctionCall", MeshParams::METADATA_EDIT_MODEL_MATERIAL                 );
 	actionMetaDataEditWebReference->setProperty(                  "gmMeshFunctionCall", MeshParams::METADATA_EDIT_REFERENCE_WEB                  );
 	actionEllipsenFit->setProperty(                               "gmMeshFunctionCall", MeshParams::ELLIPSENFIT_EXPERIMENTAL                     );
@@ -1262,25 +1265,25 @@ void QGMMainWindow::authenticate(){
     emit authenticating(&username);
 
     QObject::connect(this, &QGMMainWindow::authenticated, this, [=](QJsonObject data){
-        QSettings settings;
-        QJsonObject userData;
+
         qDebug() << "[QGMMainWindow] Authentication successful.";
 
+        QSettings settings;
+        QJsonObject userData;
         if(data.contains("id") && data.contains("name")){
             userData.insert("userName", data.value("login"));
             userData.insert("id", data.value("id"));
             userData.insert("fullName", data.value("name"));
-            qDebug() << "[QGMMainWindow] User id: " << data.value("id").toInt();
-            qDebug() << "[QGMMainWindow] User name: " << data.value("name").toString();
             QJsonDocument doc(userData);
             QByteArray bytes = doc.toJson();
             settings.setValue( "lastUser", bytes);
-            qDebug() << "[QGMMainWindow] Updated User Data." << bytes;
+            qDebug() << "[QGMMainWindow] Updated User Data.";
         }
 
         qDebug() << "[QGMMainWindow] Current user: " << settings.value( "lastUser" ).toString();
 
     });
+
 }
 
 MeshWidget* QGMMainWindow::getWidget(){

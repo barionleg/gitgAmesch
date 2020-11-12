@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>24</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -820,6 +820,7 @@
     <addaction name="actionMetaDataEditModelId"/>
     <addaction name="actionMetaDataEditMaterial"/>
     <addaction name="actionMetaDataEditWebReference"/>
+    <addaction name="actionMetaDataEditUser"/>
     <addaction name="separator"/>
     <addaction name="actionShowLaTeXInfo"/>
     <addaction name="separator"/>
@@ -4365,6 +4366,11 @@ p, li { white-space: pre-wrap; }
   <action name="actionPlaneOrientTowardsAxis">
    <property name="text">
     <string>Plane - Set orientation using Axis</string>
+   </property>
+  </action>
+  <action name="actionMetaDataEditUser">
+   <property name="text">
+    <string>Meta-Data Edit: User</string>
    </property>
   </action>
  </widget>

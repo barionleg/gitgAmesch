@@ -67,13 +67,13 @@ bool ModelMetaData::getModelMetaStringName(
 }
 
 //! Fetch the Id of the Meta-Data strings using its name as string.
-//! @returns false in case of an error or no Id found. True otherwise.
+//! @returns false in case of an error or no Id found. True otherwise.META_STRINGS_COUNT
 bool ModelMetaData::getModelMetaStringId(
 				const std::string& rModelMetaStringName,   //!< Id of the meta-data string.
 				eMetaStrings& rMetaStrID                   //!< Name as string of the meta-data string.
 ) const 
 {
-	for( unsigned i=0; i<META_STRINGS_COUNT ; i++ ) {
+        for( unsigned i=0; i< META_STRINGS_COUNT; i++ ) {
 		if( rModelMetaStringName == mMetaDataStringNames[i]) {
 			rMetaStrID = static_cast<eMetaStrings>( i );
 			return( true );
@@ -87,7 +87,7 @@ bool ModelMetaData::getModelMetaStringId(
 //! @returns false in case of an error or no Id found. True otherwise.
 bool ModelMetaData::clearModelMetaStrings() {
 	// Initialize strings holding meta-data
-	for( unsigned i=0; i<META_STRINGS_COUNT ; i++ ) {
+        for( unsigned i=0; i< META_STRINGS_COUNT; i++ ) {
 		mMetaDataStrings[i].clear();
 		mMetaDataStringNames[i] = "ERROR: Not Set!";
 	}
@@ -98,6 +98,7 @@ bool ModelMetaData::clearModelMetaStrings() {
 	mMetaDataStringNames[META_FILENAME]         = "ModelFileName";
 	mMetaDataStringNames[META_REFERENCE_WEB]    = "ModelReferenceWeb";
 	mMetaDataStringNames[META_TEXTUREFILE]      = "TextureFile";
+        mMetaDataStringNames[META_USER_DATA]        = "User";
 
 	mFileName = "ModelFileName";
 	// Done.

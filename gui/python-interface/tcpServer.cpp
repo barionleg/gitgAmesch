@@ -75,7 +75,7 @@ TcpServer::TcpServer(QObject *parent) :
 	qDebug() << "[TcpServer::TcpServer] Server started.";
 
         //emit mainWin->authentication();
-        emit authenticateUser();
+        //emit authenticateUser();
     }
 }
 
@@ -197,14 +197,10 @@ void TcpServer::newConnection()
 }
 
 
-bool TcpServer::authenticateUser() //QString *username)
+bool TcpServer::authenticateUser(QString *username)
 {
-    //bool ok;
-    QString username = "feedelamort";
-    //= QInputDialog::getText(mainWin, tr("Github Authentication"), tr("Username: "), QLineEdit::Normal, QDir::home().dirName(), &ok);
-
     QSettings settings;
-    qDebug() << "[TcpServer::" << __FUNCTION__ << "] Authenticate user: " << username;
+    qDebug() << "[TcpServer::" << __FUNCTION__ << "] Authenticate user: " << &username;
 
     QString clientId = "f31165013adac0da36ed";
     QString clientSecret = "32d6f2a7939c1b40cae13c20a36d4cd32942e60d";

@@ -41,6 +41,7 @@ class ModelMetaData
 			META_REFERENCE_WEB,    //!< Http URL with name format style '[URL|Name}'.#
 			META_FILENAME,         //!< Filename, when loaded.
 			META_TEXTUREFILE,      //!< Meshlab texturefile stored in ply: e.g. "comment TextureFile texture.png"
+			META_USER_DATA,
 			META_STRINGS_COUNT    //!< Total number of strings for meta-data.
 		};
 
