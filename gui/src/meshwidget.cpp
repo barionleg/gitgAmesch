@@ -3898,6 +3898,202 @@ bool MeshWidget::getViewSettingsTxt(
 	return( true );
 }
 
+//! Get the current view settings including the view matrix as JSON.
+//! 
+//! @returns false in case of an error. True otherwise.
+bool MeshWidget::getViewSettingsJSON( 
+        QString& rSettingsStr
+) const {
+	//! \todo Revise to more descriptive format below as perpared for meta-data export.
+	//-------------------------------------------------------------------------------------
+	// Old style view settings format as one line. 
+	//-------------------------------------------------------------------------------------
+	rSettingsStr += QString( "%1"   ).arg( mCenterView.getX() );    // LookAt point X
+	rSettingsStr += QString( " %1"  ).arg( mCenterView.getY() );    // LookAt point Y
+	rSettingsStr += QString( " %1"  ).arg( mCenterView.getZ() );    // LookAt point Z
+	rSettingsStr += QString( "  %1" ).arg( mCameraCenter.getX() );  // Camera center X
+	rSettingsStr += QString( " %1"  ).arg( mCameraCenter.getY() );  // Camera center Y
+	rSettingsStr += QString( " %1"  ).arg( mCameraCenter.getZ() );  // Camera center Z
+	rSettingsStr += QString( "  %1" ).arg( mCameraUp.getX() );      // Camera orientation / up vector X
+	rSettingsStr += QString( " %1"  ).arg( mCameraUp.getY() );      // Camera orientation / up vector Y
+	rSettingsStr += QString( " %1"  ).arg( mCameraUp.getZ() );      // Camera orientation / up vector Z
+
+	bool orthoMode;
+	getParamFlagMeshWidget( ORTHO_MODE, &orthoMode );
+	rSettingsStr += QString( "  %1").arg( orthoMode );            // Orthographic or perspective view
+
+	if( orthoMode ) {
+		double paramFloat;
+		getParamFloatMeshWidget( ORTHO_SHIFT_HORI, &paramFloat );
+		rSettingsStr += QString( "  %1" ).arg( paramFloat );       // Vertical offset in orthograpic projection
+		getParamFloatMeshWidget( ORTHO_SHIFT_VERT, &paramFloat );
+		rSettingsStr += QString( " %1" ).arg( paramFloat );       // Horizontal offset in orthograpic projection
+		getViewPortDPI( paramFloat );
+		rSettingsStr += QString( " %1" ).arg( paramFloat );       // Zoom factor (in DPI)
+		// ORTHO_ZOOM does not work as expected, when the viewport is different!
+		// getParamFloatMeshWidget( ORTHO_ZOOM, &paramFloat );
+		// rSettingsStr += QString( " %1" ).arg( paramFloat );       // Zoom factor (relates to DPI)
+	}
+	rSettingsStr += "\n\nAbove old style formating: LookAt(x,y,z) Camera center(x,y,z) and orientation (x,y,z) "
+	                "Orthographic projection(bool) ...shift (horizontal,vertical) ...zoom(float) in DPI\n";
+
+	//-------------------------------------------------------------------------------------
+	// Preparation for meta-data export
+	//-------------------------------------------------------------------------------------
+	// Additionally fetch the actual matrices:
+	rSettingsStr += QString( "\nProjection matrix:" );
+	const float* matProjection = mMatProjection.constData();
+	for( unsigned int i=0; i<16; i++ ) {
+		rSettingsStr += QString(" %1").arg( matProjection[i] );
+	}
+	rSettingsStr += QString( "\nModelview matrix:" );
+	const float* matModelView = mMatModelView.constData();
+	for( unsigned int i=0; i<16; i++ ) {
+		rSettingsStr += QString(" %1").arg( matModelView[i] );
+	}
+	// As well as further parameters (again):
+	double resolutionDPI = 0.0;
+	double bBoxRadius = mMeshVisual->getBoundingBoxRadius(); // used together with ORTHO_ZOOM for the scaling (multiplication)
+	double orthoZoom;
+	double shiftHori;
+	double shiftVert;
+	getParamFloatMeshWidget( ORTHO_ZOOM, &orthoZoom );
+	getParamFloatMeshWidget( ORTHO_SHIFT_HORI, &shiftHori );
+	getParamFloatMeshWidget( ORTHO_SHIFT_VERT, &shiftVert );
+	getViewPortDPI( resolutionDPI );
+	rSettingsStr += QString( "\nDPI: %1" ).arg( resolutionDPI );
+	rSettingsStr += QString( "\nShift, horizontally: %1" ).arg( shiftHori );
+	rSettingsStr += QString( "\nShift, vertically: %1" ).arg( shiftVert );
+	rSettingsStr += QString( "\nOrtho zoom: %1" ).arg( orthoZoom );
+	rSettingsStr += QString( "\nBounding box radius: %1" ).arg( bBoxRadius );
+
+	return( true );
+}
+
+
+//! Get the current view settings including the view matrix as turtle.
+//! 
+//! @returns false in case of an error. True otherwise.
+bool MeshWidget::getViewSettingsTTL( 
+        QString& rSettingsStr
+) const {
+	//! \todo Revise to more descriptive format below as perpared for meta-data export.
+	//-------------------------------------------------------------------------------------
+	// Old style view settings format as one line. 
+	//-------------------------------------------------------------------------------------
+    QString uri=QString("giga:123"); //Where do we get the Mesh ID?
+    rSettingsStr += uri+" rdf:type giga:Mesh .\n";    
+    rSettingsStr += "giga:lookAtPointX rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:lookAtPointX rdfs:label \"LookAt point X\"@en\n";
+    rSettingsStr += uri+" giga:lookAtPointX \""+QString( "%1"   ).arg( mCenterView.getX() )+"\"^^xsd:double\n";    // LookAt point X
+    rSettingsStr += "giga:lookAtPointY rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:lookAtPointY rdfs:label \"LookAt point Y\"@en\n";
+    rSettingsStr += uri+" giga:lookAtPointY \""+QString( "%1"   ).arg( mCenterView.getY() )+"\"^^xsd:double\n";   
+    rSettingsStr += "giga:lookAtPointZ rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:lookAtPointZ rdfs:label \"LookAt point Z\"@en\n";
+    rSettingsStr += uri+" giga:lookAtPointZ \""+QString( "%1"   ).arg( mCenterView.getZ() )+"\"^^xsd:double\n";   
+    rSettingsStr += "giga:cameraCenterX rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:cameraCenterX rdfs:label \"Camera Center X\"@en\n";
+    rSettingsStr += uri+" giga:cameraCenterX \""+QString( "%1"   ).arg( mCameraCenter.getX() )+"\"^^xsd:double\n";   
+    rSettingsStr += "giga:cameraCenterY rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:cameraCenterY rdfs:label \"Camera Center Y\"@en\n";
+    rSettingsStr += uri+" giga:cameraCenterY \""+QString( "%1"   ).arg( mCameraCenter.getY() )+"\"^^xsd:double\n";   
+    rSettingsStr += "giga:cameraCenterZ rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:cameraCenterZ rdfs:label \"Camera Center Z\"@en\n";
+    rSettingsStr += uri+" giga:cameraCenterZ \""+QString( "%1"   ).arg( mCameraCenter.getZ() )+"\"^^xsd:double\n";   
+    rSettingsStr += "giga:cameraUpX rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:cameraUpX rdfs:label \"Camera orientation / up vector X\"@en\n";
+    rSettingsStr += uri+" giga:cameraUpX \""+QString( "%1"   ).arg( mCameraUp.getX() )+"\"^^xsd:double\n";   
+    rSettingsStr += "giga:cameraUpY rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:cameraUpY rdfs:label \"Camera orientation / up vector Y\"@en\n";
+    rSettingsStr += uri+" giga:cameraUpY \""+QString( "%1"   ).arg( mCameraUp.getY() )+"\"^^xsd:double\n";  
+    rSettingsStr += "giga:cameraUpZ rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:cameraUpZ rdfs:label \"Camera orientation / up vector Z\"@en\n";
+    rSettingsStr += uri+" giga:cameraUpZ \""+QString( "%1"   ).arg( mCameraUp.getZ() )+"\"^^xsd:double\n"; 
+    rSettingsStr += "giga:orthoMode rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:orthoMode rdfs:label \"Orthographic view\"@en\n";
+    rSettingsStr += "giga:perspectiveView rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:perspectiveView rdfs:label \"Perspective view\"@en\n";
+    bool orthoMode;
+	getParamFlagMeshWidget( ORTHO_MODE, &orthoMode );
+    if(orthoMode){
+        rSettingsStr += uri+" giga:orthoMode \"true\"^^xsd:boolean\n"; 
+        rSettingsStr += uri+" giga:perspectiveView \"false\"^^xsd:boolean\n";     
+    }else{
+        rSettingsStr += uri+" giga:orthoMode \"false\"^^xsd:boolean\n"; 
+        rSettingsStr += uri+" giga:perspectiveView \"true\"^^xsd:boolean\n";   
+    }
+
+	if( orthoMode ) {
+		double paramFloat;
+		getParamFloatMeshWidget( ORTHO_SHIFT_HORI, &paramFloat );
+        rSettingsStr += "giga:orthographicProjectionVerticalOffset rdf:type owl:DatatypeProperty .\n";
+        rSettingsStr += "giga:orthographicProjectionVerticalOffset rdfs:label \"Vertical offset in orthographic projection\"@en\n";
+        rSettingsStr += uri+" giga:orthographicProjectionVerticalOffset \""+QString( "  %1" ).arg( paramFloat )+"\"^^xsd:double\n"; 
+		getParamFloatMeshWidget( ORTHO_SHIFT_VERT, &paramFloat );
+        rSettingsStr += "giga:orthographicProjectionHorizontalOffset rdf:type owl:DatatypeProperty .\n";
+        rSettingsStr += "giga:orthographicProjectionHorizontalOffset rdfs:label \"Horizontal offset in orthographic projection\"@en\n";
+        rSettingsStr += uri+" giga:orthographicProjectionHorizontalOffset \""+QString( "  %1" ).arg( paramFloat )+"\"^^xsd:double\n"; 
+		getViewPortDPI( paramFloat );
+        rSettingsStr += "giga:zoomFactor rdf:type owl:DatatypeProperty .\n";
+        rSettingsStr += "giga:zoomFactor rdfs:label \"Zoom factor\"@en\n";
+        rSettingsStr += QString(uri+" giga:zoomFactor \""+QString( "  %1" ).arg( paramFloat )+"\"^^xsd:double\n"); 
+		// ORTHO_ZOOM does not work as expected, when the viewport is different!
+		// getParamFloatMeshWidget( ORTHO_ZOOM, &paramFloat );
+		// rSettingsStr += QString( " %1" ).arg( paramFloat );       // Zoom factor (relates to DPI)
+	}
+    //rSettingsStr += "\n\nAbove old style formating: LookAt(x,y,z) Camera center(x,y,z) and orientation (x,y,z) "
+	//                "Orthographic projection(bool) ...shift (horizontal,vertical) ...zoom(float) in DPI\n";
+
+	//-------------------------------------------------------------------------------------
+	// Preparation for meta-data export
+	//-------------------------------------------------------------------------------------
+	// Additionally fetch the actual matrices:
+	const float* matProjection = mMatProjection.constData();
+	rSettingsStr += "giga:projectionMatrix rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:projectionMatrix rdfs:label \"Projection Matrix\"@en\n";
+    rSettingsStr += QString(uri+" giga:projectionMatrix \"");
+    for( unsigned int i=0; i<16; i++ ) {
+		rSettingsStr += QString(" %1").arg( matProjection[i] );
+	}
+	rSettingsStr+="\"^^xsd:string\n"; 
+	rSettingsStr += "giga:modelViewMatrix rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:modelViewMatrix rdfs:label \"Modelview Matrix\"@en\n";
+    rSettingsStr += QString(uri+" giga:modelViewMatrix \"");
+	const float* matModelView = mMatModelView.constData();
+	for( unsigned int i=0; i<16; i++ ) {
+		rSettingsStr += QString(" %1").arg( matModelView[i] );
+	}
+	rSettingsStr+="\"^^xsd:string\n"; 
+	// As well as further parameters (again):
+	double resolutionDPI = 0.0;
+	double bBoxRadius = mMeshVisual->getBoundingBoxRadius(); // used together with ORTHO_ZOOM for the scaling (multiplication)
+	double orthoZoom;
+	double shiftHori;
+	double shiftVert;
+	getParamFloatMeshWidget( ORTHO_ZOOM, &orthoZoom );
+	getParamFloatMeshWidget( ORTHO_SHIFT_HORI, &shiftHori );
+	getParamFloatMeshWidget( ORTHO_SHIFT_VERT, &shiftVert );
+	getViewPortDPI( resolutionDPI );
+    rSettingsStr += "giga:resolutionDPI rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:resolutionDPI rdfs:label \"Resolution DPI\"@en\n";
+    rSettingsStr += uri+" giga:resolutionDPI \""+QString( "  %1" ).arg( resolutionDPI )+"\"^^xsd:double\n"; 
+    rSettingsStr += "giga:horizontalShift rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:horizontalShift rdfs:label \"Horizontal Shift\"@en\n";
+    rSettingsStr += uri+" giga:horizontalShift \""+QString( "  %1" ).arg( shiftHori )+"\"^^xsd:double\n"; 
+    rSettingsStr += "giga:verticalShift rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:verticalShift rdfs:label \"Vertical Shift\"@en\n";
+    rSettingsStr += uri+" giga:verticalShift \""+QString( "  %1" ).arg( shiftHori )+"\"^^xsd:double\n"; 
+    rSettingsStr += "giga:orthoZoom rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:orthoZoom rdfs:label \"Ortho Zoom\"@en\n";
+    rSettingsStr += uri+" giga:orthoZoom \""+QString( "  %1" ).arg( orthoZoom )+"\"^^xsd:double\n"; 
+    rSettingsStr += "giga:bboxRadius rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:bboxRadius rdfs:label \"Bounding Box Radius\"@en\n";
+    rSettingsStr += uri+" giga:bboxRadius \""+QString( "  %1" ).arg( bBoxRadius )+"\"^^xsd:double\n"; 
+	return( true );
+}
+
+
 //! Show view matrix and copy it to the clipboard.
 //! 
 //! @returns false in case of an error. True otherwise.
