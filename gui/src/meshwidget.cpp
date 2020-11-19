@@ -21,7 +21,6 @@
 //
 
 #include "meshwidget.h"
-#include "qexifimageheader.cpp"
 #include "meshGL/glmacros.h"
 
 // generic Qt includes:
@@ -5719,8 +5718,8 @@ bool MeshWidget::writePNG( const QString& rFileName,        //!< Filename for wr
     exifttl+=id+" exif:colorSpace \"\"^^xsd:string .\n";
     exifttl+=id+" exif:width \""+rImWidth+"\"^^xsd:integer .\n";
     exifttl+=id+" exif:height \""+rImHeight+"\"^^xsd:integer .\n";
-    //header.loadFromJpeg("C:/myfile.jpg");
-    QExifValue value_ImageWidth = header.value(QExifImageHeader::ImageWidth);
+    //This part may be reused if a library to write EXIF information which is GPL compatible is found
+    /*QExifValue value_ImageWidth = header.value(QExifImageHeader::ImageWidth);
     
     QExifValue value_GpsLatitude = header.value(QExifImageHeader::GpsLatitude);
     QExifValue value_Make = header.value(QExifImageHeader::Make);
@@ -5730,7 +5729,7 @@ bool MeshWidget::writePNG( const QString& rFileName,        //!< Filename for wr
     header.setValue(QExifImageHeader::ImageWidth, (int)rImHeight);
     header.setValue(QExifImageHeader::Make, value_Make);
     header.setValue(QExifImageHeader::Model, value_Model);
-    //header.saveToJpeg("C:/myfile.jpg");
+    header.saveToJpeg("C:/myfile.jpg");*/
 	// Set print resolution
 	imageToWrite.setDotsPerMeterX( rDotsPerMeterWidth  );
 	imageToWrite.setDotsPerMeterY( rDotsPerMeterHeight );
@@ -5754,6 +5753,12 @@ bool MeshWidget::writePNG( const QString& rFileName,        //!< Filename for wr
 		cout << "[MeshWidget::" << __FUNCTION__ << "] Print resolution: "
 		     << " NONE - typical for perspective renderings." << endl;
 	}
+	QFile file(rFileName+".ttl");
+    if(file.open(QIODevice::ReadWrite)){
+        QTextStream stream(&file);
+        stream << exifttl << endl;
+    }
+    file.close();
 	return( true );
 }
 
