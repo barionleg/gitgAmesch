@@ -4029,15 +4029,15 @@ bool MeshWidget::getViewSettingsTTL(
 		getParamFloatMeshWidget( ORTHO_SHIFT_HORI, &paramFloat );
         rSettingsStr += "giga:orthographicProjectionVerticalOffset rdf:type owl:DatatypeProperty .\n";
         rSettingsStr += "giga:orthographicProjectionVerticalOffset rdfs:label \"Vertical offset in orthographic projection\"@en\n";
-        rSettingsStr += uri+" giga:orthographicProjectionVerticalOffset \""+QString( "  %1" ).arg( paramFloat )+"\"^^xsd:double\n"; 
+        rSettingsStr += uri+" giga:orthographicProjectionVerticalOffset \""+QString( "%1" ).arg( paramFloat )+"\"^^xsd:double\n"; 
 		getParamFloatMeshWidget( ORTHO_SHIFT_VERT, &paramFloat );
         rSettingsStr += "giga:orthographicProjectionHorizontalOffset rdf:type owl:DatatypeProperty .\n";
         rSettingsStr += "giga:orthographicProjectionHorizontalOffset rdfs:label \"Horizontal offset in orthographic projection\"@en\n";
-        rSettingsStr += uri+" giga:orthographicProjectionHorizontalOffset \""+QString( "  %1" ).arg( paramFloat )+"\"^^xsd:double\n"; 
+        rSettingsStr += uri+" giga:orthographicProjectionHorizontalOffset \""+QString( "%1" ).arg( paramFloat )+"\"^^xsd:double\n"; 
 		getViewPortDPI( paramFloat );
         rSettingsStr += "giga:zoomFactor rdf:type owl:DatatypeProperty .\n";
         rSettingsStr += "giga:zoomFactor rdfs:label \"Zoom factor\"@en\n";
-        rSettingsStr += QString(uri+" giga:zoomFactor \""+QString( "  %1" ).arg( paramFloat )+"\"^^xsd:double\n"); 
+        rSettingsStr += QString(uri+" giga:zoomFactor \""+QString( "%1" ).arg( paramFloat )+"\"^^xsd:double\n"); 
 		// ORTHO_ZOOM does not work as expected, when the viewport is different!
 		// getParamFloatMeshWidget( ORTHO_ZOOM, &paramFloat );
 		// rSettingsStr += QString( " %1" ).arg( paramFloat );       // Zoom factor (relates to DPI)
@@ -4054,7 +4054,7 @@ bool MeshWidget::getViewSettingsTTL(
     rSettingsStr += "giga:projectionMatrix rdfs:label \"Projection Matrix\"@en\n";
     rSettingsStr += QString(uri+" giga:projectionMatrix \"");
     for( unsigned int i=0; i<16; i++ ) {
-		rSettingsStr += QString(" %1").arg( matProjection[i] );
+		rSettingsStr += QString("%1").arg( matProjection[i] );
 	}
 	rSettingsStr+="\"^^xsd:string\n"; 
 	rSettingsStr += "giga:modelViewMatrix rdf:type owl:DatatypeProperty .\n";
@@ -4062,7 +4062,7 @@ bool MeshWidget::getViewSettingsTTL(
     rSettingsStr += QString(uri+" giga:modelViewMatrix \"");
 	const float* matModelView = mMatModelView.constData();
 	for( unsigned int i=0; i<16; i++ ) {
-		rSettingsStr += QString(" %1").arg( matModelView[i] );
+		rSettingsStr += QString("%1").arg( matModelView[i] );
 	}
 	rSettingsStr+="\"^^xsd:string\n"; 
 	// As well as further parameters (again):
@@ -4077,19 +4077,19 @@ bool MeshWidget::getViewSettingsTTL(
 	getViewPortDPI( resolutionDPI );
     rSettingsStr += "giga:resolutionDPI rdf:type owl:DatatypeProperty .\n";
     rSettingsStr += "giga:resolutionDPI rdfs:label \"Resolution DPI\"@en\n";
-    rSettingsStr += uri+" giga:resolutionDPI \""+QString( "  %1" ).arg( resolutionDPI )+"\"^^xsd:double\n"; 
+    rSettingsStr += uri+" giga:resolutionDPI \""+QString( "%1" ).arg( resolutionDPI )+"\"^^xsd:double\n"; 
     rSettingsStr += "giga:horizontalShift rdf:type owl:DatatypeProperty .\n";
     rSettingsStr += "giga:horizontalShift rdfs:label \"Horizontal Shift\"@en\n";
-    rSettingsStr += uri+" giga:horizontalShift \""+QString( "  %1" ).arg( shiftHori )+"\"^^xsd:double\n"; 
+    rSettingsStr += uri+" giga:horizontalShift \""+QString( "%1" ).arg( shiftHori )+"\"^^xsd:double\n"; 
     rSettingsStr += "giga:verticalShift rdf:type owl:DatatypeProperty .\n";
     rSettingsStr += "giga:verticalShift rdfs:label \"Vertical Shift\"@en\n";
-    rSettingsStr += uri+" giga:verticalShift \""+QString( "  %1" ).arg( shiftHori )+"\"^^xsd:double\n"; 
+    rSettingsStr += uri+" giga:verticalShift \""+QString( "%1" ).arg( shiftHori )+"\"^^xsd:double\n"; 
     rSettingsStr += "giga:orthoZoom rdf:type owl:DatatypeProperty .\n";
     rSettingsStr += "giga:orthoZoom rdfs:label \"Ortho Zoom\"@en\n";
-    rSettingsStr += uri+" giga:orthoZoom \""+QString( "  %1" ).arg( orthoZoom )+"\"^^xsd:double\n"; 
+    rSettingsStr += uri+" giga:orthoZoom \""+QString( "%1" ).arg( orthoZoom )+"\"^^xsd:double\n"; 
     rSettingsStr += "giga:bboxRadius rdf:type owl:DatatypeProperty .\n";
     rSettingsStr += "giga:bboxRadius rdfs:label \"Bounding Box Radius\"@en\n";
-    rSettingsStr += uri+" giga:bboxRadius \""+QString( "  %1" ).arg( bBoxRadius )+"\"^^xsd:double\n"; 
+    rSettingsStr += uri+" giga:bboxRadius \""+QString( "%1" ).arg( bBoxRadius )+"\"^^xsd:double\n"; 
 	return( true );
 }
 
@@ -5702,21 +5702,34 @@ bool MeshWidget::writePNG( const QString& rFileName,        //!< Filename for wr
     QDateTime current=QDateTime::currentDateTime();
     //QExifImageHeader header;
     QString exifttl="@prefix exif:<https://www.w3.org/2003/12/exif/> .\n@prefix rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix foaf:<http://xmlns.com/foaf/0.1/> . \n@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n@prefix xsd:<http://www.w3.org/2001/XMLSchema#> .\n@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .\n@prefix owl:<http://www.w3.org/2002/07/owl#> .\n@prefix dcat:<http://www.w3.org/ns/dcat#> .\n@prefix prov:<http://www.w3.org/ns/prov#> .\n@prefix giga:<http://www.gigamesh.eu/ont#> .\n@prefix dc:<http://purl.org/dc/terms/> .\n@prefix ex:<http://purl.org/net/ns/ex#> .\n@prefix geo:<http://www.opengis.net/ont/geosparql#> .\n@prefix wdt:<http://www.wikidata.org/prop/direct/> .\n@prefix om:<http://www.ontology-of-units-of-measure.org/resource/om-2/>.\n";
-    QString id="giga:"+(rFileName);
+    QString id=(rFileName);
+    id = "giga:"+id.replace(0,rFileName.lastIndexOf("/")+1,"");
     getViewSettingsTTL(exifttl,id);
-    exifttl+="giga:"+(rFileName)+"rdf:type foaf:Image .\n";
+    exifttl+=id+" rdf:type foaf:Image .\n";
+    exifttl+= "exif:make rdf:type owl:DatatypeProperty .\n";
     exifttl+=id+" exif:make \"Gigamesh Software\"^^xsd:string .\n";
+    exifttl+= "exif:makerNote rdf:type owl:DatatypeProperty .\n";
     exifttl+=id+" exif:makerNote \"Generated by Gigamesh\"^^xsd:string .\n";
+    exifttl+= "exif:model rdf:type owl:DatatypeProperty .\n";
     exifttl+=id+" exif:model \"Gigamesh Software Current Version\"^^xsd:string .\n";
+    exifttl+= "exif:software rdf:type owl:DatatypeProperty .\n";
     exifttl+=id+" exif:software \"Gigamesh\"^^xsd:string .\n";
+    exifttl+= "exif:dateTime rdf:type owl:DatatypeProperty .\n";
     exifttl+=id+" exif:dateTime \""+current.toString(Qt::ISODate)+"\"^^xsd:dateTime .\n";
+    exifttl+= "exif:dateTimeOriginal rdf:type owl:DatatypeProperty .\n"; 
     exifttl+=id+" exif:dateTimeOriginal \""+current.toString(Qt::ISODate)+"\"^^xsd:dateTime .\n";
+    exifttl+= "exif:dateTimeDigitized rdf:type owl:DatatypeProperty .\n";
     exifttl+=id+" exif:dateTimeDigitized \""+current.toString(Qt::ISODate)+"\"^^xsd:dateTime .\n";
+    exifttl+= "exif:exifVersion rdf:type owl:DatatypeProperty .\n";
     exifttl+=id+" exif:exifVersion \"2.20\"^^xsd:string .\n";    
+    exifttl+= "exif:fileSource rdf:type owl:DatatypeProperty .\n";
     exifttl+=id+" exif:fileSource \""+(rFileName)+"\"^^xsd:string .\n";    
+    exifttl+= "exif:colorSpace rdf:type owl:DatatypeProperty .\n";
     exifttl+=id+" exif:colorSpace \"\"^^xsd:string .\n";
-    exifttl+=id+" exif:width \""+rImWidth+"\"^^xsd:integer .\n";
-    exifttl+=id+" exif:height \""+rImHeight+"\"^^xsd:integer .\n";
+    exifttl+= "exif:width rdf:type owl:DatatypeProperty .\n";
+    exifttl+=id+" exif:width \""+QString::number(rImWidth)+"\"^^xsd:integer .\n";
+    exifttl+= "exif:height rdf:type owl:DatatypeProperty .\n";
+    exifttl+=id+" exif:height \""+QString::number(rImHeight)+"\"^^xsd:integer .\n";
     //This part may be reused if a library to write EXIF information which is GPL compatible is found
     /*QExifValue value_ImageWidth = header.value(QExifImageHeader::ImageWidth);
     
@@ -5737,7 +5750,8 @@ bool MeshWidget::writePNG( const QString& rFileName,        //!< Filename for wr
 	imageWriter.setFileName( rFileName );
 	imageWriter.setFormat( "png" );
 	imageWriter.setText( "Description", "Generated by GigaMesh" );
-    exifttl+=id+" exif:compression \""+imageWriter.compression()+"\"^^xsd:integer .\n";
+    exifttl+= "exif:compression rdf:type owl:DatatypeProperty .\n";
+    exifttl+=id+" exif:compression \""+QString::number(imageWriter.compression())+"\"^^xsd:integer .\n";
     if( !imageWriter.write( imageToWrite ) ) {
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: QImageWriter failed!" << endl;
 		return( false );
