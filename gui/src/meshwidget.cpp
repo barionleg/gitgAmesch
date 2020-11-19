@@ -5730,6 +5730,12 @@ bool MeshWidget::writePNG( const QString& rFileName,        //!< Filename for wr
     exifttl+=id+" exif:width \""+QString::number(rImWidth)+"\"^^xsd:integer .\n";
     exifttl+= "exif:height rdf:type owl:DatatypeProperty .\n";
     exifttl+=id+" exif:height \""+QString::number(rImHeight)+"\"^^xsd:integer .\n";
+    exifttl+= "exif:resolutionUnit rdf:type owl:ObjectProperty .\n";
+    exifttl+=id+" exif:resolutionUnit om:millimeter .\n";
+    exifttl+= "exif:xResolution rdf:type owl:DatatypeProperty .\n";
+    exifttl+=id+" exif:xResolution \""+QString::number(rImWidth*1000/static_cast<uint64_t>(rDotsPerMeterWidth))+"\"^^xsd:integer .\n";    
+    exifttl+= "exif:yResolution rdf:type owl:DatatypeProperty .\n";
+    exifttl+=id+" exif:yResolution \""+QString::number(rImHeight*1000/static_cast<uint64_t>(rDotsPerMeterHeight))+"\"^^xsd:integer .\n";        
     //This part may be reused if a library to write EXIF information which is GPL compatible is found
     /*QExifValue value_ImageWidth = header.value(QExifImageHeader::ImageWidth);
     
