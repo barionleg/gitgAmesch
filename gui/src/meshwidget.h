@@ -218,7 +218,7 @@ private:
 
 	// View menu
 	bool getViewSettingsTxt( QString& rSettingsStr ) const;
-	bool getViewSettingsTTL( QString& rSettingsStr ) const;
+	bool getViewSettingsTTL( QString& rSettingsStr, QString& uri) const;
     bool getViewSettingsJSON( QString& rSettingsStr ) const;
     bool showViewMatrix();
 	bool setViewMatrix();
