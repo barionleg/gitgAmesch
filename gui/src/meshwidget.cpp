@@ -5700,7 +5700,7 @@ bool MeshWidget::writePNG( const QString& rFileName,        //!< Filename for wr
 	QImage imageToWrite( rImRGBA, static_cast<int>(rImWidth), static_cast<int>(rImHeight), QImage::Format_RGBA8888 );
     //QMetaData meta(rFileName);
     QDateTime current=QDateTime::currentDateTime();
-    QExifImageHeader header;
+    //QExifImageHeader header;
     QString exifttl="";
     //TODO Get user data from oauth here for EXIF exif:artist
     exifttl+="@prefix exif:<https://www.w3.org/2003/12/exif/>\n";
