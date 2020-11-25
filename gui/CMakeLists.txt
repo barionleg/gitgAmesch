@@ -59,6 +59,7 @@ set(GUI_SOURCES src/main.cpp
 				src/oauth/githubmodel.cpp			src/oauth/githubmodel.h
 				src/oauth/githubwrapper.cpp			src/oauth/githubwrapper.h
 				src/oauth/oauthwrapper.cpp			src/oauth/oauthwrapper.h
+				src/QGMDialogAuthorize.cpp			src/QGMDialogAuthorize.h
 )
 
 #add ui files, so they appear it qtcreator projects view

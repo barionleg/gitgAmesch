@@ -37,6 +37,7 @@
 #include "ExternalProgramsDialog.h"
 #include "dialogGridCenterSelect.h"
 #include "oauth/githubmodel.h"
+#include "QGMDialogAuthorize.h"
 
 using namespace std;
 
@@ -1187,8 +1188,7 @@ void QGMMainWindow::initMeshSignals() {
 	// ... Other .............................................................................................................................................
 	actionShowLaTeXInfo->setProperty(                             "gmMeshFunctionCall", MeshParams::LATEX_TEMPLATE                               );
         actionMetaDataEditModelId->setProperty(                       "gmMeshFunctionCall", MeshParams::METADATA_EDIT_MODEL_ID                       );
-        //! \todo
-        actionMetaDataEditUser->setProperty(                          "gmMeshFunctionCall", MeshParams::METADATA_EDIT_USER                           );
+        //! actionMetaDataEditUser->setProperty(                          "gmMeshFunctionCall", MeshParams::METADATA_EDIT_USER                           );
 	actionMetaDataEditMaterial->setProperty(                      "gmMeshFunctionCall", MeshParams::METADATA_EDIT_MODEL_MATERIAL                 );
 	actionMetaDataEditWebReference->setProperty(                  "gmMeshFunctionCall", MeshParams::METADATA_EDIT_REFERENCE_WEB                  );
 	actionEllipsenFit->setProperty(                               "gmMeshFunctionCall", MeshParams::ELLIPSENFIT_EXPERIMENTAL                     );
@@ -1213,6 +1213,10 @@ void QGMMainWindow::initMeshSignals() {
 	actionBackGroundGridRaster->setProperty(                      "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_GRID_RASTER                  );
 	actionBackGroundGridPolar->setProperty(                       "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_GRID_POLAR                   );
 	actionBackGroundGridNone->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_GRID_NONE                    );
+
+        //! \todo
+        QObject::connect( actionMetaDataEditUser, &QAction::triggered, this, &QGMMainWindow::saveUser);
+        QObject::connect( actionAuthorizeUser, &QAction::triggered, this, &QGMMainWindow::authenticate);
 
 	mMeshFunctionCalls = new QActionGroup( this );
 	for(QAction*& currAction : allActions) {
@@ -1262,7 +1266,15 @@ void QGMMainWindow::authenticate(){
     cout << "[QGMMainWindow::" << __FUNCTION__ << "] Last user: " << settings.value( "lastUser" ).toString().toStdString() << endl;
     QString username = QInputDialog::getText(this, tr("Github Authentication"), tr("Username: "), QLineEdit::Normal, QDir::home().dirName(), &ok);
 
-    emit authenticating(&username);
+    bool ok2;
+    QStringList list = InputDialog::getStrings(this, &ok2);
+    if (ok2) {
+        qDebug() << "List::::: " << list;
+    }
+
+    if(ok){
+        emit authenticating(&username);
+    }
 
     QObject::connect(this, &QGMMainWindow::authenticated, this, [=](QJsonObject data){
 
@@ -1274,15 +1286,22 @@ void QGMMainWindow::authenticate(){
             userData.insert("userName", data.value("login"));
             userData.insert("id", data.value("id"));
             userData.insert("fullName", data.value("name"));
+
             QJsonDocument doc(userData);
             QByteArray bytes = doc.toJson();
             settings.setValue( "lastUser", bytes);
-            qDebug() << "[QGMMainWindow] Updated User Data.";
         }
-
-        qDebug() << "[QGMMainWindow] Current user: " << settings.value( "lastUser" ).toString();
-
     });
+
+}
+
+void QGMMainWindow::saveUser(){
+    QSettings settings;
+    string metaData = settings.value( "lastUser" ).toString().toStdString();
+    this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_DATA, metaData );
+    qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Updated User Data.";
+
+    qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Current user: " << settings.value( "lastUser" ).toString();
 
 }
 

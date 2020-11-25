@@ -722,10 +722,8 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			}
 			} break;
                 case METADATA_EDIT_USER: {
-                        string metaData = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_USER_DATA );
-                        if( showEnterText( metaData, "Edit the current User" ) ) {
-                                getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_DATA, metaData );
-                        }
+                        string metaData = ""; //settings.value( "lastUser" ).toString().toStdString();
+                        getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_DATA, metaData );
                         } break;
 		case ELLIPSENFIT_EXPERIMENTAL:
 			//! \todo implement properly - fragments of code are currently in MeshGL.

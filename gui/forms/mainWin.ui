@@ -720,6 +720,7 @@
     <addaction name="actionExternal_Programs"/>
     <addaction name="separator"/>
     <addaction name="menuLanguages"/>
+    <addaction name="actionAuthorizeUser"/>
    </widget>
    <widget class="QMenu" name="menuColors">
     <property name="title">
@@ -4371,6 +4372,11 @@ p, li { white-space: pre-wrap; }
   <action name="actionMetaDataEditUser">
    <property name="text">
     <string>Meta-Data Edit: User</string>
+   </property>
+  </action>
+  <action name="actionAuthorizeUser">
+   <property name="text">
+    <string>Authorize User</string>
    </property>
   </action>
  </widget>

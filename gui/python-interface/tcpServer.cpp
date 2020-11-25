@@ -60,11 +60,7 @@ TcpServer::TcpServer(QObject *parent) :
     QObject::connect(this->socket, SIGNAL(connected()),
 	    this, SLOT(connected()));
 
-    //QObject::connect(mainWin, &QGMMainWindow::authenticating, this, &TcpServer::authenticateUser);
-
     in.setDevice(this->socket);
-
-    //connect(this->socket, &QIODevice::readyRead, this, &TcpServer::readReply);
 
     if(!server->listen(QHostAddress::Any, 8080))
     {
@@ -263,38 +259,6 @@ bool TcpServer::authenticateUser(QString *username)
         cout << "[TcpServer::authenticateUser] User Data Received" << endl;
         emit mainWin->authenticated(data);
     });
-
-    /*
-    this->socket->connectToHost(authorizationUrl, 8080);
-
-    qDebug() << "[TcpServer:authenticateUser] Opened Url: " << QDesktopServices::openUrl(QUrl(authorizationUrl,QUrl::TolerantMode));
-
-    qDebug() << socket->bytesAvailable();
-
-    QByteArray data;
-    while(socket->bytesAvailable()) {
-        data.append(socket->readAll());
-    }
-
-    qDebug() << QString(data);
-
-    //qDebug() << this->socket->errorString();
-
-    if(this->socket->isOpen()) {
-        qDebug() << "[TcpServer] Connection established.";
-    }
-
-
-    //connect(this->socket, &QIODevice::readyRead, this, &TcpServer::readReply);
-
-    //HTTP::Request r;
-    //emit reading(&r);
-
-    //QStringList requestData = parseCommand(r);
-    //emit sending(&requestData);
-
-    this->socket->close();
-    */
 
     return true;
 }

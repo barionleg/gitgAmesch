@@ -170,7 +170,8 @@ private slots:
 	void openExternalProgramsDialog();
 	void openGridPositionDialog();
 
-	void authenticate();	
+	void authenticate();
+	void saveUser();	
 
 private:
 	// --- Extra Keys --------------------------------------------------------------------------------------------------------------------------------------
