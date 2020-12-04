@@ -1,4 +1,4 @@
-//
+﻿//
 // GigaMesh - The GigaMesh Software Framework is a modular software for display,
 // editing and visualization of 3D-data typically acquired with structured light or
 // structure from motion.
@@ -709,6 +709,13 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
 	// the first two lines we expect: "ply" -- maybe add a check?
 	getline( filestr, lineToParse );
 	// then the header begins, which is typically ASCII:
+
+        bool userRelated = false;
+        bool userDataRead = false;
+        bool first = true;
+        int opened = 0;
+        std::string userData;
+
 	while( !filestr.eof() && !endOfHeader) {
 		getline( filestr, lineToParseOri );
 		lineToParse = lineToParseOri;
@@ -733,7 +740,8 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
 		}
 
 		// Meta-Data strings stored as comments -------------------------------------------------------
-		if( lineToParse.compare( 0, 7, "comment" ) == 0 ) {
+
+                if( lineToParse.compare( 0, 7, "comment" ) == 0 ) {
 			std::istringstream iss( lineToParseOri );
 			std::vector<std::string> lineParts{ std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{} };
 			if( lineParts.size() < 2 ) {
@@ -751,6 +759,11 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
 					MeshReader::getModelMetaDataRef().addTextureName(metaContent);
 				}
 
+                                if( foundMetaId == ModelMetaData::META_USER_DATA)
+                                {
+                                    userRelated = true;
+                                }
+
 				else
 				{
 					if( !MeshReader::getModelMetaDataRef().setModelMetaString( foundMetaId, metaContent ) ) {
@@ -758,8 +771,43 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
 					}
 				}
 			}
+
+                        if(userRelated){
+                            uint64_t preMetaLen;
+                            if(first){
+                                    preMetaLen = 13;
+                                    first = false;
+                            }else{
+                                    preMetaLen = 8;
+                            }
+                            std::string metaContent = lineToParseOri.substr( preMetaLen );
+                            std::cout << "--------> User Data Found: " << metaContent << std::endl;
+                            userData += metaContent + "\n";
+                            if(metaContent.find("{") != -1){
+                                opened++;
+                            }
+                            if(metaContent.find("}") != -1){
+                                opened--;
+                                if(opened == 0){
+                                    userDataRead = true;
+                                    userRelated = false;
+                                }
+                            }
+                            std::cout << opened << std::endl;
+                        }
+
+
+
 			continue;
 		}
+
+                if(userDataRead){
+                    if( !MeshReader::getModelMetaDataRef().setModelMetaString(  ModelMetaData::META_USER_DATA, userData ) ) {
+                            LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Meta-Data not set!" << "\n";
+                    }
+                    userRelated = false; // \todo right place?
+                }
+
 		// --------------------------------------------------------------------------------------------
 
 		if( lineToParse.substr( 0, 6 ) == "format" ) {

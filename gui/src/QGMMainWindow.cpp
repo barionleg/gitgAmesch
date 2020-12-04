@@ -310,8 +310,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 
 	// --- ? -----------------------------------------------------------------------------------------------------------------------------------------------
 	// New Qt5 Signal-Slot concept:
-	QObject::connect( actionInfoKeyShortcuts,      &QAction::triggered, this, &QGMMainWindow::infoKeyShortcuts      );
-        //QObject::connect( actionUserInfo,              &QAction::triggered, this, &QGMMainWindow::authenticateUser      );
+        QObject::connect( actionInfoKeyShortcuts,      &QAction::triggered, this, &QGMMainWindow::infoKeyShortcuts      );
 	QObject::connect( actionVisitVideoTutorials,   &QAction::triggered, this, &QGMMainWindow::visitVideoTutorials   );
 	QObject::connect( actionVisitWebSite,          &QAction::triggered, this, &QGMMainWindow::visitWebSite          );
 	QObject::connect( actionAbout,                 &QAction::triggered, this, &QGMMainWindow::aboutBox              );
@@ -375,44 +374,6 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 
         QObject::connect(this, &QGMMainWindow::authentication, this, &QGMMainWindow::authenticate);
 
-        /*
-        //QSettings settings;
-        bool ok;
-        cout << "[QGMMainWindow::" << __FUNCTION__ << "] Last user: " << settings.value( "lastUser" ).toString().toStdString() << endl;
-        QString username = QInputDialog::getText(this, tr("Github Authentication"), tr("Username: "), QLineEdit::Normal, QDir::home().dirName(), &ok);
-
-        //emit authenticating(&username);
-
-        QObject::connect(this, &QGMMainWindow::authenticated, this, [=](QJsonObject data){
-            QSettings settings;
-            QJsonObject userData;
-            qDebug() << "[QGMMainWindow] Authentication successful.";
-
-            if(data.contains("id") && data.contains("name")){
-                userData.insert("userName", data.value("login"));
-                userData.insert("id", data.value("id"));
-                userData.insert("fullName", data.value("name"));
-                qDebug() << "[QGMMainWindow] User id: " << data.value("id").toInt();
-                qDebug() << "[QGMMainWindow] User name: " << data.value("name").toString();
-                QJsonDocument doc(userData);
-                QByteArray bytes = doc.toJson();
-                settings.setValue( "lastUser", bytes);
-                qDebug() << "[QGMMainWindow] Updated User Data." << bytes;
-            }
-
-            qDebug() << "[QGMMainWindow] Current user: " << settings.value( "lastUser" ).toString();
-
-        });
-
-
-        clientId = "f31165013adac0da36ed";
-        QListView view;
-        GithubModel model(clientId);
-        //model.update();
-
-        view.setModel(&model);
-        view.show();
-        */
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
 	// --- Check external Tools i.e. Inkscape and convert/ImageMagick --------------------------------------------------------------------------------------
@@ -1264,16 +1225,17 @@ void QGMMainWindow::authenticate(){
     QSettings settings;
     bool ok;
     cout << "[QGMMainWindow::" << __FUNCTION__ << "] Last user: " << settings.value( "lastUser" ).toString().toStdString() << endl;
-    QString username = QInputDialog::getText(this, tr("Github Authentication"), tr("Username: "), QLineEdit::Normal, QDir::home().dirName(), &ok);
 
-    bool ok2;
-    QStringList list = InputDialog::getStrings(this, &ok2);
-    if (ok2) {
-        qDebug() << "List::::: " << list;
-    }
+    //QString username = QInputDialog::getText(this, tr("Github Authentication"), tr("Username: "), QLineEdit::Normal, QDir::home().dirName(), &ok);
 
+    int provider;
+
+    QStringList list = InputDialog::getStrings(this, &ok);
     if(ok){
-        emit authenticating(&username);
+        //qDebug() << "List: " << list;
+        QString username = list.at(0);
+        provider = list.at(1).toInt();
+        emit authenticating(&username, &provider);
     }
 
     QObject::connect(this, &QGMMainWindow::authenticated, this, [=](QJsonObject data){
@@ -1283,6 +1245,7 @@ void QGMMainWindow::authenticate(){
         QSettings settings;
         QJsonObject userData;
         if(data.contains("id") && data.contains("name")){
+            userData.insert("provider", provider);
             userData.insert("userName", data.value("login"));
             userData.insert("id", data.value("id"));
             userData.insert("fullName", data.value("name"));
@@ -1297,10 +1260,34 @@ void QGMMainWindow::authenticate(){
 
 void QGMMainWindow::saveUser(){
     QSettings settings;
-    string metaData = settings.value( "lastUser" ).toString().toStdString();
-    this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_DATA, metaData );
-    qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Updated User Data.";
 
+    QJsonValue val(settings.value( "lastUser" ).toString());
+    QJsonDocument document = QJsonDocument::fromJson(settings.value( "lastUser" ).toByteArray());
+    QJsonObject obj;
+    if(!document.isNull()){
+        if(document.isObject()){
+            obj = document.object();
+        }else{
+            qDebug() << "Document is not an object" << endl;
+        }
+    }else{
+        qDebug() << "Invalid JSON...\n" << endl;
+    }
+
+    // get current time
+    time_t _tm = time(NULL );
+    struct tm * currTime = localtime ( &_tm );
+
+    // save user data as key:value pair -> { date : { data }}
+    QJsonObject userData = QJsonDocument::fromJson(QByteArray::fromStdString(this->mMeshWidget->getMesh()->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_USER_DATA))).object();
+    userData.insert(asctime(currTime), obj);
+
+    // convert to byteArray and update meta data
+    QJsonDocument doc(userData);
+    QByteArray bytes = doc.toJson();
+    this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_DATA, bytes.toStdString() );
+
+    qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Updated User Data.";
     qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Current user: " << settings.value( "lastUser" ).toString();
 
 }

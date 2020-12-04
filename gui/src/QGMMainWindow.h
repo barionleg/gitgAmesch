@@ -349,7 +349,7 @@ signals:
 
 // --- User Authentication ----------------------------------------------------------------------------------------------------------------------------------
 	void authentication();		
-	void authenticating(QString *username); 
+	void authenticating(QString *username, int *provider); 
 	void authenticated(QJsonObject data); 
 
 	// --- Octree related ----------------------------------------------------------------------------------------------------------------------------------

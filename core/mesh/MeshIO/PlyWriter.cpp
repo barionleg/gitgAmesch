@@ -22,6 +22,8 @@
 
 #include "PlyWriter.h"
 #include <fstream>
+#include <iostream>     //! \todo remove
+#include <sstream>
 #include <chrono>
 #include <locale>
 #include <filesystem>
@@ -131,13 +133,26 @@ bool PlyWriter::writeFile(const std::filesystem::path& rFilename, const std::vec
 		string metaStr = MeshWriter::getModelMetaDataRef().getModelMetaString( metaId );
 		if( metaStr.empty()) { // Ignore empty strings!
 			continue;
-		}
+                }
+
 		string metaName;
 		if( MeshWriter::getModelMetaDataRef().getModelMetaStringName( metaId, metaName ) ) {
 			if(metaId == ModelMetaData::META_TEXTUREFILE)
 			{
 				continue;	//we use the textures stored in getTexturefilesRef instead
-			}
+                        }
+                        if( metaId == ModelMetaData::META_USER_DATA ) { // write user data to several lines
+
+                                std::string userMetaString;
+                                std::istringstream ss(metaStr);
+                                std::string line;
+                                while(std::getline(ss, line)){
+                                    userMetaString += line + "\ncomment ";
+                                }
+
+                                filestr << "comment " << metaName << " " << userMetaString << "\n";
+                                continue;
+                        }
 
 			filestr << "comment " << metaName << " " << metaStr << "\n";
 		}

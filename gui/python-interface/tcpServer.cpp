@@ -193,17 +193,73 @@ void TcpServer::newConnection()
 }
 
 
-bool TcpServer::authenticateUser(QString *username)
+bool TcpServer::authenticateUser(QString *username, int *provider)
 {
     QSettings settings;
-    qDebug() << "[TcpServer::" << __FUNCTION__ << "] Authenticate user: " << &username;
+    //qDebug() << "[TcpServer::" << __FUNCTION__ << "] Authenticate user: " << *username;
 
     QString clientId = "f31165013adac0da36ed";
     QString clientSecret = "32d6f2a7939c1b40cae13c20a36d4cd32942e60d";
-    QString authorizationUrlBase = "https://github.com/login/oauth/authorize";
-    QString authorizationUrl = authorizationUrlBase + "?response_type=code&client_id=" + clientId + "&scope=user&login=" + username;
-    QString accessTokenUrlBase = "https://github.com/login/oauth/access_token";
-    string userDataUrlBase = "https://api.github.com/user";
+    QString redirectURI = "http://localhost:8080/authorize";
+    QString state = "randomString";
+    QString authorizationUrlBase;
+    QString accessTokenUrlBase;
+    string userDataUrlBase;
+    QString prov;
+    QString scope;
+
+    switch(*provider)
+    {
+        case 0: // github
+            prov = "github";
+            authorizationUrlBase = "https://github.com/login/oauth/authorize";
+            accessTokenUrlBase = "https://github.com/login/oauth/access_token";
+            userDataUrlBase = "https://api.github.com/user";
+            clientId = "f31165013adac0da36ed";
+            clientSecret = "32d6f2a7939c1b40cae13c20a36d4cd32942e60d";
+            scope = "user";
+            break;
+        case 1: // gitlab
+            prov = "gitlab";
+            authorizationUrlBase = "https://gitlab.com/oauth/authorize";
+            accessTokenUrlBase = "https://gitlab.com/oauth/token";
+            userDataUrlBase = "https://gitlab.com/api/v4";
+            //userDataUrlBase = "https://gitlab.com/api/v4/users?username=" + username->toStdString();
+            clientId = "0838bf6d76153b656173";
+            clientSecret = "c29a631dbcec4349c38d";
+            scope = "public+write";
+            break;
+        case 2: // orcid
+            prov = "orcid";
+            authorizationUrlBase = "https://orcid.org/oauth/authorize";
+            accessTokenUrlBase = "https://orcid.org/oauth/token";
+            userDataUrlBase = "https://api.gitlab.com/user";
+            clientId = "APP-QTDRZ74P88AWIDF8";
+            clientSecret = "38c556d3-ec89-4666-aff0-30d2e44c1750";
+            scope = "/authenticate";
+            redirectURI = "https://localhost:8080/authorize"; // orcid requests http(s)!
+            break;
+        case 3: // reddit
+            prov = "reddit";
+            authorizationUrlBase = "https://www.reddit.com/api/v1/authorize";
+            accessTokenUrlBase = "https://www.reddit.com/api/v1/access_token";
+            userDataUrlBase = "https://api.gitlab.com/user";
+            clientId = "6QVMuM64f_ApLQ";
+            clientSecret = "BKHdqqbTEu1pkvbwSlx5_QIUKKwolA";
+            scope = "read edit";
+            break;
+        default:
+            prov = "default (github)";
+            authorizationUrlBase = "https://github.com/login/oauth/authorize";
+            accessTokenUrlBase = "https://github.com/login/oauth/access_token";
+            userDataUrlBase = "https://api.github.com/user";
+            clientId = "f31165013adac0da36ed";
+            clientSecret = "32d6f2a7939c1b40cae13c20a36d4cd32942e60d";
+            scope = "user";
+    }
+
+    QString authorizationUrl = authorizationUrlBase + "?response_type=code&client_id=" + clientId +
+            "&scope=" + scope + "&login=" + username + "&redirect_uri=" + redirectURI + "&state=" + state + "&duration=permanent";
 
     qDebug() << "[TcpServer::RequestAuthentication] Via: " << authorizationUrl;
 
@@ -230,8 +286,9 @@ bool TcpServer::authenticateUser(QString *username)
         params.addQueryItem("client_id", clientId);
         params.addQueryItem("client_secret", clientSecret);
         params.addQueryItem("code", QString::fromStdString(s));
-        //params.addQueryItem("scope", "user");
+        params.addQueryItem("redirect_uri", redirectURI);
 
+        //! \todo update to new signal/slot
         QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(readToken(QNetworkReply*)));
 
         manager->post(request, params.query().toUtf8());
@@ -276,21 +333,7 @@ void TcpServer::readToken(QNetworkReply *reply)
 
         QString token = str.mid(start+14, end-start-14);
         emit tokenReceived(token.toStdString());
-    }else{
-        //qDebug() << "[TcpServer:readReply] Missing Token.";
     }
-
-    /*
-    in.startTransaction();
-
-    QString reply;
-    in >> reply;
-
-    if (!in.commitTransaction())
-        return;
-
-    qDebug() << "[TcpServer:readReply] Received Reply: ] " << reply;
-    */
 }
 
 
@@ -580,6 +623,15 @@ QStringList TcpServer::parseCommand(Request req){
                         emit codeReceived(code);
                 }else{
                         cout << "[QGMMainWindow::parseCommand] Missing Code." << endl;
+                }
+                string returnedState;
+                if(pars.find("state") != pars.end()){
+                        returnedState = pars["state"];
+                        if(returnedState != "randomString"){
+                            cout << "[QGMMainWindow::parseCommand] State differs!" << endl;
+                        }
+                }else{
+                        cout << "[QGMMainWindow::parseCommand] Missing State." << endl;
                 }
                 /*
                 string token;

@@ -18,7 +18,8 @@ InputDialog::InputDialog(QWidget *parent) : QDialog(parent)
     this->comboBox = comboBox;
     comboBox->addItem("Github"); // index 0
     comboBox->addItem("Gitlab"); // index 1
-    comboBox->addItem("Reddit"); // index 2
+    comboBox->addItem("Orcid"); // index 2
+    comboBox->addItem("Reddit"); // index 3
     lytMain->addWidget(comboBox);
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox
@@ -49,7 +50,7 @@ QStringList InputDialog::getStrings(QWidget *parent, bool *ok)
     if (ret) {
         foreach (auto field, dialog->fields) {
             list << field->text();
-            list << dialog->comboBox->currentText();
+            list << QString::number(dialog->comboBox->currentIndex()); //currentText();
         }
     }
 
