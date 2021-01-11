@@ -97,6 +97,20 @@ QGMDockInfo::~QGMDockInfo() {
 	delete ui;
 }
 
+
+
+//! Handles incoming informations of TcpServer.
+void QGMDockInfo::viewUserInfo( const MeshWidgetParams::eViewUserInfo rInfoID, const QString& rInfoString ) {
+        switch( rInfoID ) {
+                case MeshWidgetParams::USER_INFO_USER_NAME:
+                        ui->labelUserNameValue->setText( rInfoString );
+                        break;
+                case MeshWidgetParams::USER_INFO_STATUS:
+                        ui->labelUserStatusValue->setText( rInfoString );
+                        break;
+        }
+}
+
 // --- Mouse Mode ----------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Select the next mouse-mode from the combobox -- typically connected to pressing the spacebar.

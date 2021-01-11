@@ -184,6 +184,13 @@ class MeshWidgetParams {
 			VPINFO_LABEL_ID        //!< Label ID of the selected primiitve (SelPrim).
 		};
 
+		enum eViewUserInfo {
+			USER_INFO_FULL_NAME,
+			USER_INFO_USER_NAME,
+			USER_INFO_PROVIDER,
+			USER_INFO_STATUS		
+		};
+
 		// ENumerator for methods/functions to be called from else-where.
 		enum eFunctionCall {
 			EXPORT_POLYLINES_INTERSECT_PLANE,   //!< Export the polylines computed using an intersecting plane.

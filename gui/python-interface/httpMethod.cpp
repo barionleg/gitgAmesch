@@ -53,7 +53,9 @@ namespace HTTP
 			return "CONNECT";
 		    case Method::PATCH:
 			return "PATCH";
-		}
+                    default:
+                        return "GET";
+                }
 	}
 
 	inline Method method_from_string (const std::string& method) noexcept
@@ -94,6 +96,10 @@ namespace HTTP
 		{
 		    return Method::PATCH;
 		}
+                else
+                {
+                    return Method::GET;
+                }
 	}
 
 }

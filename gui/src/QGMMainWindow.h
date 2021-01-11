@@ -81,6 +81,7 @@ private:
 public:
 	bool setupMeshWidget( const QGLFormat& rGLFormat );
 	MeshWidget* getWidget();
+	enum Provider {GITHUB, GITLAB, ORCID, REDDIT, MATTERMOST};
 
 protected:
 	virtual void closeEvent( QCloseEvent* rEvent );
@@ -101,6 +102,7 @@ public slots:
 	void menuImportTexMap();
 	void menuImportFeatureVectors();
 	void menuImportNormalVectors();
+	void updateUser(QJsonObject data);
 
 	// --- MENU - MeshWidget --------------------------------------------------------------------------------------------------------------------------------
 	bool setMeshWidgetFlag( QAction* rAction );
@@ -349,8 +351,8 @@ signals:
 
 // --- User Authentication ----------------------------------------------------------------------------------------------------------------------------------
 	void authentication();		
-	void authenticating(QString *username, int *provider); 
-	void authenticated(QJsonObject data); 
+	void authenticating(QString *username, Provider *provider); 
+	void authenticated(QJsonObject data);
 
 	// --- Octree related ----------------------------------------------------------------------------------------------------------------------------------
 	void generateOctree();
@@ -434,6 +436,7 @@ signals:
 	// DockView:
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
 	void sViewPortInfo(MeshWidgetParams::eViewPortInfo,QString);     //!< Infos emitted by the viewport (MeshWidget) e.g. for display purposes.
+	void sViewUserInfo(MeshWidgetParams::eViewUserInfo,QString); 	//!< Infos about User emitted by (TcpServer) 
 	void sInfoMesh(MeshGLParams::eInfoMesh,QString);                 //!< Infos emotted by the mesh (MeshQt) e.g. for display purposes.
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -498,5 +501,7 @@ private:
 	protected:
 	virtual void changeEvent(QEvent* event) override;
 };
+
+std::ostream& operator<<(std::ostream& out, QGMMainWindow::Provider p);
 
 #endif

@@ -54,11 +54,8 @@ TcpServer::TcpServer(QObject *parent) :
     this->socket = new QTcpSocket();
 
     // whenever a user connects, it will emit signal
-    QObject::connect(server, SIGNAL(newConnection()),
-	    this, SLOT(newConnection()));
-
-    QObject::connect(this->socket, SIGNAL(connected()),
-	    this, SLOT(connected()));
+    QObject::connect(server, &QTcpServer::newConnection, this, &TcpServer::newConnection);
+    QObject::connect(this->socket, &QTcpSocket::connected, this, &TcpServer::connected);
 
     in.setDevice(this->socket);
 
@@ -70,8 +67,11 @@ TcpServer::TcpServer(QObject *parent) :
     {
 	qDebug() << "[TcpServer::TcpServer] Server started.";
 
-        //emit mainWin->authentication();
-        //emit authenticateUser();
+        QSettings settings;
+        QString user = settings.value("userName").toString();
+        QGMMainWindow::Provider prov = static_cast<QGMMainWindow::Provider>( settings.value("provider").toInt() );
+        refreshing = true;
+        emit authenticateUser(&user, &prov);
     }
 }
 
@@ -80,13 +80,13 @@ string TcpServer::statusCodeAsString(httpStatusCode c)
 {
 	switch (c)
 	{
-	case c200: return "200 OK\r\n";
-	case c202: return "202 Accepted\r\n";
-	case c404: return "424 Unknown command\r\n";
-	case c424: return "424 No mesh loaded\r\n";
-	case c500: return "500 \r\n";
-	case c503: return "503 Service Unavailable\r\n";
-	//default: throw Exception("Bad httpStatusCode");
+            case c200: return "200 OK\r\n";
+            case c202: return "202 Accepted\r\n";
+            case c404: return "424 Unknown command\r\n";
+            case c424: return "424 No mesh loaded\r\n";
+            case c500: return "500 \r\n";
+            case c503: return "503 Service Unavailable\r\n";
+            //default: throw Exception("Bad httpStatusCode");
 	}
     return "500 \r\n";
 }
@@ -193,11 +193,9 @@ void TcpServer::newConnection()
 }
 
 
-bool TcpServer::authenticateUser(QString *username, int *provider)
+bool TcpServer::authenticateUser(QString *username, QGMMainWindow::Provider *provider)
 {
     QSettings settings;
-    //qDebug() << "[TcpServer::" << __FUNCTION__ << "] Authenticate user: " << *username;
-
     QString clientId = "f31165013adac0da36ed";
     QString clientSecret = "32d6f2a7939c1b40cae13c20a36d4cd32942e60d";
     QString redirectURI = "http://localhost:8080/authorize";
@@ -205,13 +203,11 @@ bool TcpServer::authenticateUser(QString *username, int *provider)
     QString authorizationUrlBase;
     QString accessTokenUrlBase;
     string userDataUrlBase;
-    QString prov;
     QString scope;
 
     switch(*provider)
     {
-        case 0: // github
-            prov = "github";
+        case QGMMainWindow::GITHUB:
             authorizationUrlBase = "https://github.com/login/oauth/authorize";
             accessTokenUrlBase = "https://github.com/login/oauth/access_token";
             userDataUrlBase = "https://api.github.com/user";
@@ -219,8 +215,7 @@ bool TcpServer::authenticateUser(QString *username, int *provider)
             clientSecret = "32d6f2a7939c1b40cae13c20a36d4cd32942e60d";
             scope = "user";
             break;
-        case 1: // gitlab
-            prov = "gitlab";
+        case QGMMainWindow::GITLAB:
             authorizationUrlBase = "https://gitlab.com/oauth/authorize";
             accessTokenUrlBase = "https://gitlab.com/oauth/token";
             userDataUrlBase = "https://gitlab.com/api/v4";
@@ -229,8 +224,7 @@ bool TcpServer::authenticateUser(QString *username, int *provider)
             clientSecret = "c29a631dbcec4349c38d";
             scope = "public+write";
             break;
-        case 2: // orcid
-            prov = "orcid";
+        case QGMMainWindow::ORCID:
             authorizationUrlBase = "https://orcid.org/oauth/authorize";
             accessTokenUrlBase = "https://orcid.org/oauth/token";
             userDataUrlBase = "https://api.gitlab.com/user";
@@ -239,8 +233,7 @@ bool TcpServer::authenticateUser(QString *username, int *provider)
             scope = "/authenticate";
             redirectURI = "https://localhost:8080/authorize"; // orcid requests http(s)!
             break;
-        case 3: // reddit
-            prov = "reddit";
+        case QGMMainWindow::REDDIT:
             authorizationUrlBase = "https://www.reddit.com/api/v1/authorize";
             accessTokenUrlBase = "https://www.reddit.com/api/v1/access_token";
             userDataUrlBase = "https://api.gitlab.com/user";
@@ -248,8 +241,15 @@ bool TcpServer::authenticateUser(QString *username, int *provider)
             clientSecret = "BKHdqqbTEu1pkvbwSlx5_QIUKKwolA";
             scope = "read edit";
             break;
+        case QGMMainWindow::MATTERMOST:
+            authorizationUrlBase = "http://localhost:8080/api/v4/users/login";
+            accessTokenUrlBase = "";
+            userDataUrlBase = "";
+            clientId = "";
+            clientSecret = "";
+            scope = "";
+            break;
         default:
-            prov = "default (github)";
             authorizationUrlBase = "https://github.com/login/oauth/authorize";
             accessTokenUrlBase = "https://github.com/login/oauth/access_token";
             userDataUrlBase = "https://api.github.com/user";
@@ -258,64 +258,74 @@ bool TcpServer::authenticateUser(QString *username, int *provider)
             scope = "user";
     }
 
-    QString authorizationUrl = authorizationUrlBase + "?response_type=code&client_id=" + clientId +
-            "&scope=" + scope + "&login=" + username + "&redirect_uri=" + redirectURI + "&state=" + state + "&duration=permanent";
+    if(!refreshing)
+    {
+        QString authorizationUrl = authorizationUrlBase + "?response_type=code&client_id=" + clientId +
+                "&scope=" + scope + "&login=" + username + "&redirect_uri=" + redirectURI + "&state=" + state + "&duration=permanent";
 
-    qDebug() << "[TcpServer::RequestAuthentication] Via: " << authorizationUrl;
+        qDebug() << "[TcpServer::RequestAuthentication] Via: " << authorizationUrl;
 
-    QDesktopServices::openUrl(QUrl(authorizationUrl));
+        QDesktopServices::openUrl(QUrl(authorizationUrl));
 
-    string code;
-    QObject::connect(this, &TcpServer::codeReceived, this, [=](string code){
-        QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+        string code;
+        QObject::connect(this, &TcpServer::codeReceived, this, [=](string code){
+            QNetworkAccessManager *manager = new QNetworkAccessManager(this);
 
-        string s;
-        s += code;
-        cout << "[TcpServer:authenticateUser] Code Received: " << s << endl;
+            string s;
+            s += code;
+            cout << "[TcpServer:authenticateUser] Code Received: " << s << endl;
 
-        QString pars = "?clientId=" + clientId + "&clientSecret=" + clientSecret + "&code=" + QString::fromStdString(s);
+            QString pars = "?clientId=" + clientId + "&clientSecret=" + clientSecret + "&code=" + QString::fromStdString(s);
 
-        QString accessTokenUrl = accessTokenUrlBase + pars;
-        qDebug() << "[TcpServer:RequestAccessToken] Via: " << accessTokenUrl;
+            QString accessTokenUrl = accessTokenUrlBase + pars;
+            qDebug() << "[TcpServer:RequestAccessToken] Via: " << accessTokenUrl;
 
-        QNetworkRequest request(accessTokenUrlBase);
+            QNetworkRequest request(accessTokenUrlBase);
 
-        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+            request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
 
-        QUrlQuery params;
-        params.addQueryItem("client_id", clientId);
-        params.addQueryItem("client_secret", clientSecret);
-        params.addQueryItem("code", QString::fromStdString(s));
-        params.addQueryItem("redirect_uri", redirectURI);
+            QUrlQuery params;
+            params.addQueryItem("client_id", clientId);
+            params.addQueryItem("client_secret", clientSecret);
+            params.addQueryItem("code", QString::fromStdString(s));
+            params.addQueryItem("redirect_uri", redirectURI);
 
-        //! \todo update to new signal/slot
-        QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(readToken(QNetworkReply*)));
+            QObject::connect(manager, &QNetworkAccessManager::finished, this, &TcpServer::readToken);
 
-        manager->post(request, params.query().toUtf8());
-    });
+            manager->post(request, params.query().toUtf8());
+        });
+    }
 
     QObject::connect(this, &TcpServer::tokenReceived, this, [=](string token){
         QNetworkAccessManager *manager = new QNetworkAccessManager(this);
 
-        string s;
-        s += token;
-        cout << "[TcpServer:authenticateUser] Token Received: " << s << endl;
+        cout << "[TcpServer:authenticateUser] Token Received: " << token << endl;
+        QSettings settings;
+        settings.setValue( "token", QString::fromStdString(token));
 
-        QString userDataUrl = QString::fromStdString(userDataUrlBase + "?token=" + s);
+        QString userDataUrl = QString::fromStdString(userDataUrlBase + "?token=" + token);
         QNetworkRequest request(userDataUrl);
         qDebug() << "TcpServer::authorizeUser] Requesting User Data via: " << userDataUrl;
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-        request.setRawHeader(QByteArray("Authorization"),  QByteArray::fromStdString("token " + s));
+        request.setRawHeader(QByteArray("Authorization"),  QByteArray::fromStdString("token " + token));
 
-        QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(readUserData(QNetworkReply*)));
+        QObject::connect(manager, &QNetworkAccessManager::finished, this, &TcpServer::readUserData);
 
         manager->get(request);
     });
+
+    if(refreshing){
+        cout << "[TcpServer:authenticateUser] Refreshing Authentication" << endl;
+        QSettings settings;
+        emit tokenReceived(settings.value("token").toString().toStdString());
+    }
 
     QObject::connect(this, &TcpServer::userDataReceived, this, [=](QJsonObject data){
         cout << "[TcpServer::authenticateUser] User Data Received" << endl;
         emit mainWin->authenticated(data);
     });
+
+    this->refreshing = false;
 
     return true;
 }

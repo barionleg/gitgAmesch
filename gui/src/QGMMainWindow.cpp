@@ -339,14 +339,15 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( this,      &QGMMainWindow::sShowProgressStart,                                mDockInfo, &QGMDockInfo::showProgressStart                                  );
 	QObject::connect( this,      &QGMMainWindow::sShowProgress,                                     mDockInfo, &QGMDockInfo::showProgress                                       );
 	QObject::connect( this,      &QGMMainWindow::sShowProgressStop,                                 mDockInfo, &QGMDockInfo::showProgressStop                                   );
-	// -----------------------------------------------------------------------------------------------------------------------------------------------------
+        QObject::connect( this,      &QGMMainWindow::sViewUserInfo,                                     mDockInfo, &QGMDockInfo::viewUserInfo                                       );
+        // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
 	// --- DOCK Widgets: Viewport --------------------------------------------------------------------------------------------------------------------------
 	mDockView = new QGMDockView( this );
 	addDockWidget( Qt::LeftDockWidgetArea, mDockView );
 	QObject::connect( this, SIGNAL(sViewPortInfo(MeshWidgetParams::eViewPortInfo,QString)), mDockView, SLOT(viewPortInfo(MeshWidgetParams::eViewPortInfo,QString)) );
 	QObject::connect( this, SIGNAL(sInfoMesh(MeshGLParams::eInfoMesh,QString)),             mDockView, SLOT(infoMesh(MeshGLParams::eInfoMesh,QString))             );
-	// -----------------------------------------------------------------------------------------------------------------------------------------------------
+        // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
 	QObject::connect( actionExternal_Programs, SIGNAL(triggered()), this, SLOT(openExternalProgramsDialog()));
 	QObject::connect( actionGridCenter, SIGNAL(triggered()), this, SLOT(openGridPositionDialog()));
@@ -369,10 +370,6 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 		mNetworkManager->get( request );
 	}
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
-
-        // --- Github userdata check --------------------------------------------------------------------------------------------------------------
-
-        QObject::connect(this, &QGMMainWindow::authentication, this, &QGMMainWindow::authenticate);
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1175,9 +1172,12 @@ void QGMMainWindow::initMeshSignals() {
 	actionBackGroundGridPolar->setProperty(                       "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_GRID_POLAR                   );
 	actionBackGroundGridNone->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_GRID_NONE                    );
 
-        //! \todo
+        // --- Github userdata check --------------------------------------------------------------------------------------------------------------
+
         QObject::connect( actionMetaDataEditUser, &QAction::triggered, this, &QGMMainWindow::saveUser);
         QObject::connect( actionAuthorizeUser, &QAction::triggered, this, &QGMMainWindow::authenticate);
+        QObject::connect(this, &QGMMainWindow::authentication, this, &QGMMainWindow::authenticate);
+        QObject::connect(this, &QGMMainWindow::authenticated, this, &QGMMainWindow::updateUser);
 
 	mMeshFunctionCalls = new QActionGroup( this );
 	for(QAction*& currAction : allActions) {
@@ -1220,67 +1220,75 @@ bool QGMMainWindow::setupMeshWidget( const QGLFormat& rGLFormat ) {
 	return true;
 }
 
+std::ostream& operator<<(std::ostream out, QGMMainWindow::Provider p){
+
+    switch(p){
+        case QGMMainWindow::GITHUB: out << "GITHUB"; break;
+        case QGMMainWindow::GITLAB: out << "GITLAB"; break;
+        case QGMMainWindow::ORCID: out << "ORCID"; break;
+        case QGMMainWindow::REDDIT: out << "REDDIT"; break;
+        case QGMMainWindow::MATTERMOST: out << "MATTERMOST"; break;
+        default: out << int(p); break;
+    }
+
+    return out;
+}
+
 void QGMMainWindow::authenticate(){
 
     QSettings settings;
     bool ok;
-    cout << "[QGMMainWindow::" << __FUNCTION__ << "] Last user: " << settings.value( "lastUser" ).toString().toStdString() << endl;
+    cout << "[QGMMainWindow::" << __FUNCTION__ << "] Last user: " << settings.value( "userName" ).toString().toStdString() << endl;
 
     //QString username = QInputDialog::getText(this, tr("Github Authentication"), tr("Username: "), QLineEdit::Normal, QDir::home().dirName(), &ok);
 
-    int provider;
+    Provider provider;
 
     QStringList list = InputDialog::getStrings(this, &ok);
     if(ok){
-        //qDebug() << "List: " << list;
         QString username = list.at(0);
-        provider = list.at(1).toInt();
+        provider = static_cast<Provider>(list.at(1).toInt());
         emit authenticating(&username, &provider);
     }
 
-    QObject::connect(this, &QGMMainWindow::authenticated, this, [=](QJsonObject data){
+    settings.setValue( "provider", int(provider));
+}
 
-        qDebug() << "[QGMMainWindow] Authentication successful.";
+void QGMMainWindow::updateUser(QJsonObject data){
+    qDebug() << "[QGMMainWindow] Authentication successful.";
 
-        QSettings settings;
-        QJsonObject userData;
-        if(data.contains("id") && data.contains("name")){
-            userData.insert("provider", provider);
-            userData.insert("userName", data.value("login"));
-            userData.insert("id", data.value("id"));
-            userData.insert("fullName", data.value("name"));
+    emit sViewUserInfo(MeshWidgetParams::USER_INFO_STATUS, QString( "authenticated" ));
 
-            QJsonDocument doc(userData);
-            QByteArray bytes = doc.toJson();
-            settings.setValue( "lastUser", bytes);
-        }
-    });
+    QSettings settings;
+    QJsonObject userData;
+    if(data.contains("id") && data.contains("name")){
+        //userData.insert("provider", provider);
+        //userData.insert("userName", data.value("login"));
+        //userData.insert("id", data.value("id"));
+        //userData.insert("fullName", data.value("name"));
 
+        //QJsonDocument doc(userData);
+        //QByteArray bytes = doc.toJson();
+        settings.setValue( "userName", data.value("login").toString());
+        settings.setValue( "id", data.value("id").toString());
+        settings.setValue( "fullName", data.value("name").toString());
+        emit sViewUserInfo(MeshWidgetParams::USER_INFO_USER_NAME, settings.value("userName").toString());
+    }
 }
 
 void QGMMainWindow::saveUser(){
     QSettings settings;
 
-    QJsonValue val(settings.value( "lastUser" ).toString());
     QJsonDocument document = QJsonDocument::fromJson(settings.value( "lastUser" ).toByteArray());
-    QJsonObject obj;
-    if(!document.isNull()){
-        if(document.isObject()){
-            obj = document.object();
-        }else{
-            qDebug() << "Document is not an object" << endl;
-        }
-    }else{
-        qDebug() << "Invalid JSON...\n" << endl;
-    }
+
 
     // get current time
-    time_t _tm = time(NULL );
-    struct tm * currTime = localtime ( &_tm );
+    //time_t _tm = time(NULL );
+    //struct tm * currTime = localtime ( &_tm );
 
     // save user data as key:value pair -> { date : { data }}
     QJsonObject userData = QJsonDocument::fromJson(QByteArray::fromStdString(this->mMeshWidget->getMesh()->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_USER_DATA))).object();
-    userData.insert(asctime(currTime), obj);
+    //userData.insert(asctime(currTime), obj);
 
     // convert to byteArray and update meta data
     QJsonDocument doc(userData);

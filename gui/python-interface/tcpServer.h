@@ -9,6 +9,7 @@
 #include <QtNetwork>
 #include <QGMMainWindow.h>
 #include "meshwidget.h"
+#include "meshwidget_params.h"
 #include "httpParser.h"
 #include <json.hpp>
 #include <string>
@@ -32,6 +33,7 @@ signals:
 	void codeReceived(std::string code);
 	void tokenReceived(std::string token);
 	void userDataReceived(QJsonObject data);
+	void sViewUserInfo(MeshWidgetParams::eViewUserInfo,QString);
 
 public slots:
     void newConnection();
@@ -39,7 +41,7 @@ public slots:
     void reading(HTTP::Request *request);
     void sending(QStringList *response);
     std::string statusCodeAsString(httpStatusCode c);
-	bool authenticateUser(QString *username, int *provider);
+	bool authenticateUser(QString *username, QGMMainWindow::Provider *provider);
 	void readToken(QNetworkReply *reply);
 	void readUserData(QNetworkReply *reply);
 
@@ -50,7 +52,7 @@ private:
     QTcpSocket *socket;
     QStringList parseCommand(HTTP::Request r);
 	QDataStream in;
-    
+    bool refreshing = false;
 };
 
 
