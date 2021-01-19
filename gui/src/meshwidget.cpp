@@ -5774,11 +5774,13 @@ bool MeshWidget::writePNG( const QString& rFileName,        //!< Filename for wr
 		     << " NONE - typical for perspective renderings." << endl;
 	}
 	QFile file(rFileName+".ttl");
-    if(file.open(QIODevice::ReadWrite)){
-        QTextStream stream(&file);
-        stream << exifttl << endl;
-    }
-    file.close();
+
+	if( file.open( QIODevice::ReadWrite ) ){
+		QTextStream stream( &file );
+		stream << exifttl << Qt::endl;
+	}
+	file.close();
+
 	return( true );
 }
 

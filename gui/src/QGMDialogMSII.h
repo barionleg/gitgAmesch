@@ -75,7 +75,7 @@ class QGMDialogMSII : public QDialog, private Ui::dialogMSII {
 
 public:
 	// Constructor and Destructor:
-	QGMDialogMSII( QWidget *parent = nullptr, Qt::WindowFlags flags = nullptr );
+    QGMDialogMSII( QWidget *parent = nullptr, Qt::WindowFlags flags = {} );
 
 	// Set values:
 	void setVertex( int vertexID );

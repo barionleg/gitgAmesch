@@ -67,7 +67,7 @@ bool QGMDialogMSII::getMultiScaleRadii( double** multiscaleRadii, int* multiscal
 	}
 
 	// Check if all values, sperarated by spaces convert to double and are between 0.0 and 1.0
-	QStringList strListRadii = lineEditRadiiRel->text().split( " ", QString::SkipEmptyParts );
+	QStringList strListRadii = lineEditRadiiRel->text().split( " ", Qt::SkipEmptyParts );
 	int  radiiCount = strListRadii.size();
 	bool nonDoubleRadii = false;
 	for( int i=0; i<radiiCount; i++ ) {

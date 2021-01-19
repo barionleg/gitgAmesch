@@ -71,7 +71,7 @@ class QGMMainWindow : public QMainWindow, public Ui::MainWindow {
 
 public:
 	// Constructor and Destructor:
-	QGMMainWindow( QWidget *parent = 0, Qt::WindowFlags flags = 0 );
+    QGMMainWindow( QWidget *parent = nullptr, Qt::WindowFlags flags = {} );
 	~QGMMainWindow();
 private:
 	void initMeshWidgetSignals(); // to be called ONLY from the constructor.

@@ -138,7 +138,7 @@ void QGMDialogMatrix::fetchClipboard()
 {
 	QString clipBoardStr = QApplication::clipboard()->text( QClipboard::Clipboard );
 
-	const QStringList values = clipBoardStr.simplified().split( " ", QString::SkipEmptyParts);
+	const QStringList values = clipBoardStr.simplified().split( " ", Qt::SkipEmptyParts );
 
 	if(values.size() != 16)
 	{

@@ -50,7 +50,7 @@ class QGMDialogComboBox : public QDialog, private Ui::QGMDialogComboBox {
     Q_OBJECT
 
 public:
-	explicit QGMDialogComboBox( QWidget *parent = nullptr, Qt::WindowFlags flags = nullptr  );
+    explicit QGMDialogComboBox( QWidget *parent = nullptr, Qt::WindowFlags flags = {} );
 	// Setup -----------------------------------------------------------------------------------------------------------------------------------------------
 	void setTextLabel( const QString & rLabelText );
 	void addItem( const QString & text, const QVariant & userData = QVariant() );

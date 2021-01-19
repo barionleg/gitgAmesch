@@ -54,7 +54,7 @@ class QGMDialogEnterText : public QDialog, private Ui::QGMDialogEnterText {
 
 public:
 	// Constructor and Destructor:
-	QGMDialogEnterText( QWidget *parent = nullptr, Qt::WindowFlags flags = nullptr );
+    QGMDialogEnterText( QWidget *parent = nullptr, Qt::WindowFlags flags = {} );
 
 	enum eStringCheck {
 		CHECK_DOUBLE_MULTIPLE,
