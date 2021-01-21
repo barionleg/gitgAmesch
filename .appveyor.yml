@@ -14,7 +14,7 @@ for:
     only:
       - image: Ubuntu
   install:
-  - export Qt5_DIR="$HOME/Qt/latest"
+  - export Qt5_DIR="$HOME/Qt/latest/gcc_64"
   - export PATH="$Qt5_DIR/bin:$PATH"
   - export QT_SELECT=qt5
   - sudo apt-get update -qq
