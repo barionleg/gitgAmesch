@@ -132,6 +132,7 @@ class MeshWidgetParams {
 		                RULER_UNIT,                 //!< Ruler unit in world units (typically: mm or meter).
 		                RULER_UNIT_TICKS,           //!< Ruler unit tickmarks in world units (typically: mm or meter).
 		                SVG_SCALE,                  //!< DPI assumed for SVG file. e.g. Inkscape expects 72 DPI as default.
+		                HIGHDPI_ZOOM_FACTOR,        //!< For HighDPI displays with magnification enabled. (Linux only?)
 		                PARAMS_FLT_COUNT            //!< Number of float paramters.
 		};
 

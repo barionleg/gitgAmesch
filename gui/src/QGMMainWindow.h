@@ -79,13 +79,14 @@ private:
 
 public:
 	bool setupMeshWidget( const QGLFormat& rGLFormat );
+	bool setupHighDPI20();
 
 protected:
-	virtual void closeEvent( QCloseEvent* rEvent );
-	virtual bool event( QEvent* rEvent );
+	virtual void closeEvent( QCloseEvent* rEvent ) override;
+	virtual bool event( QEvent* rEvent ) override;
 
-    virtual void dragEnterEvent(QDragEnterEvent *e);
-    virtual void dropEvent(QDropEvent *e);
+	virtual void dragEnterEvent( QDragEnterEvent *e ) override;
+	virtual void dropEvent( QDropEvent *e ) override;
 
 	//  === SLOTS === The main windows slots should be kept as simple as possible. =========================================================================
 public slots:
@@ -169,8 +170,8 @@ private slots:
 	void openGridPositionDialog();
 private:
 	// --- Extra Keys --------------------------------------------------------------------------------------------------------------------------------------
-	void keyPressEvent( QKeyEvent *rEvent );
-	void keyReleaseEvent( QKeyEvent *rEvent );
+	void keyPressEvent( QKeyEvent *rEvent ) override;
+	void keyReleaseEvent( QKeyEvent *rEvent ) override;
 
 signals:
 	// --- File --------------------------------------------------------------------------------------------------------------------------------------------

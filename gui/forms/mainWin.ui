@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>45</height>
+     <height>33</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -733,6 +733,8 @@
     <addaction name="actionExternal_Programs"/>
     <addaction name="separator"/>
     <addaction name="menuLanguages"/>
+    <addaction name="separator"/>
+    <addaction name="actionHighDPIZoomFactor"/>
    </widget>
    <widget class="QMenu" name="menuColors">
     <property name="title">
@@ -4490,6 +4492,11 @@ The latter will be shown, when the processing has finished.</string>
    </property>
    <property name="text">
     <string>All above (HTML, TTL, JSON and XML)</string>
+   </property>
+  </action>
+  <action name="actionHighDPIZoomFactor">
+   <property name="text">
+    <string>HighDPI Zoom Factor</string>
    </property>
   </action>
  </widget>

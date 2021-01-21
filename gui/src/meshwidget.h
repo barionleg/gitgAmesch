@@ -329,6 +329,8 @@ private:
 	void setViewInitialZoom();
 	void setView( GLdouble* rOrthoViewPort=nullptr );
 	void setViewModelMat();
+	int height() const;
+	int width() const;
 
 	// Camera parameters (OpenGL)
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -344,7 +346,6 @@ private:
 	// Mouse and keyboard interaction
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
 	QPoint  mLastPos;                 //!< Stores the last cursor position. Used to determine movement of the mouse for interaction.
-	QPoint  mLastPosRelease;          //!< Stores the last cursor position when mouse is clicked, for selection if we know position where mouse is released
 	std::vector<QPoint> mSelectionPoly;    //!< Screen coordinates of the selection poylgon.
 
 	// performance evaluation (frames per second):
@@ -388,7 +389,7 @@ private:
 	void initializeShader(const QString& rFileName, QOpenGLShaderProgram** rShaderProgram );
 	bool paintBackgroundShader( QOpenGLShaderProgram** rShaderProgram );
 	bool paintRasterImage( eTextureMaps rTexMap, int rPixelX, int rPixelY, int rPixelWidth, int rPixelHeight );
-    //------------------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	//! Checkes if mesh might cause problems. E.g. too small or georeferenced (far away from origin)
 	void checkMeshSanity();

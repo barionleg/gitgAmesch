@@ -470,7 +470,7 @@ bool MeshWidget::setParamFloatMeshWidget( MeshWidgetParams::eParamFlt rParamID, 
 bool MeshWidget::setParamFloatMeshWidget( MeshWidgetParams::eParamFlt rParamID ) {
 	double currValue;
 	if( !getParamFloatMeshWidget( rParamID, &currValue ) ) {
-		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Could not get the current value for '" << rParamID << "'!" << endl;
+		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Could not get the current value for '" << rParamID << "'!" << std::endl;
 		return false;
 	}
 	// Handle exception i.e. log
@@ -488,7 +488,7 @@ bool MeshWidget::setParamFloatMeshWidget( MeshWidgetParams::eParamFlt rParamID )
 	}
 	double newValue;
 	if( !dlgEnterText.getText( &newValue ) ) {
-		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Could not get the new value for '" << rParamID << "'!" << endl;
+		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Could not get the new value for '" << rParamID << "'!" << std::endl;
 		return false;
 	}
 	bool retVal = setParamFloatMeshWidget( rParamID, newValue );
@@ -6760,7 +6760,11 @@ void MeshWidget::mousePressEvent( QMouseEvent *rEvent ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
-	mLastPos = rEvent->pos();
+	// HighDPI Support
+	double scaleFactor = 1.0;
+	getParamFloatMeshWidget( HIGHDPI_ZOOM_FACTOR, &scaleFactor );
+
+	mLastPos = rEvent->pos() * scaleFactor;
 
 	Qt::MouseButtons mouseButtonsPressed = rEvent->buttons();
 
@@ -6772,20 +6776,20 @@ void MeshWidget::mousePressEvent( QMouseEvent *rEvent ) {
 
 	//! Selection of a point of a polyline (left click):
 	if( ( mouseButtonsPressed == Qt::LeftButton ) &&
-		( currMouseMode == MOUSE_MODE_SELECT ) &&
+	    ( currMouseMode == MOUSE_MODE_SELECT ) &&
 	    ( currSelectionMode == MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO )
 	  ) {
-		mSelectionPoly.push_back( rEvent->pos() );
+		mSelectionPoly.push_back( mLastPos );
 		if( mSelectionPoly.size() == 1 ) {
-			mSelectionPoly.push_back( rEvent->pos() );
+			mSelectionPoly.push_back( mLastPos );
 		}
 		return;
 	}
 
 	//! Close the selection of a polyline by right-click:
 	if( ( mouseButtonsPressed == Qt::RightButton ) &&
-		( currMouseMode == MOUSE_MODE_SELECT ) &&
-		( currSelectionMode == MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO ) &&
+	    ( currMouseMode == MOUSE_MODE_SELECT ) &&
+	    ( currSelectionMode == MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO ) &&
 	    ( mSelectionPoly.size() > 1 )
 	  ) {
 		// Check if the last two points are the same, as this can cause a segmentation fault.
@@ -6808,27 +6812,36 @@ void MeshWidget::mousePressEvent( QMouseEvent *rEvent ) {
 	    ( currMouseMode == MOUSE_MODE_SELECT )
 	  ) {
 		if( currSelectionMode == MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO ) {
-			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Wrong selection mode (SELECTION_MODE_POLYLINE)!" << endl;
+			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Wrong selection mode (SELECTION_MODE_POLYLINE)!" << std::endl;
 			return;
 		}
-		userSelectByMouseClick( rEvent->pos(), mouseButtonsPressed );
+		userSelectByMouseClick( mLastPos, mouseButtonsPressed );
 		return;
 	}
 }
 
-void MeshWidget::mouseDoubleClickEvent( QMouseEvent* rEvent)
+//! Double click event of the mouse, which will set the point of rotation
+//! (lookAt) for the virtual camera.
+void MeshWidget::mouseDoubleClickEvent( QMouseEvent* rEvent )
 {
-	if(rEvent->button() == Qt::LeftButton)
-	{
+	// Sanity check
+	if( mMeshVisual == nullptr ) {
+		return;
+	}
+
+	// HighDPI Support
+	double scaleFactor = 1.0;
+	getParamFloatMeshWidget( HIGHDPI_ZOOM_FACTOR, &scaleFactor );
+
+	if( rEvent->button() == Qt::LeftButton ) {
 		// Correct for OpenGL:
 		GLint viewport[4];
 		glGetIntegerv( GL_VIEWPORT, viewport );
-		const int yPixel = viewport[3] - rEvent->pos().y();
-		const int xPixel = rEvent->pos().x();
+		const int yPixel = viewport[3] - rEvent->pos().y()*scaleFactor;
+		const int xPixel = rEvent->pos().x()*scaleFactor;
 		Vector3D clickPos;
 
-		if(mMeshVisual->getWorldPointOnMesh(xPixel, yPixel, &clickPos))
-		{
+		if( mMeshVisual->getWorldPointOnMesh( xPixel, yPixel, &clickPos ) ) {
 			const Vector3D transVec = clickPos - mCenterView;
 			mCenterView = clickPos;
 			mCameraCenter += transVec;
@@ -6841,13 +6854,13 @@ void MeshWidget::mouseDoubleClickEvent( QMouseEvent* rEvent)
 //! Handles the event when the mouse button is released again
 void MeshWidget::mouseReleaseEvent(QMouseEvent *rEvent)
 {
-
 	auto mouseButtonsPressed = rEvent->buttons();
-	if(mouseButtonsPressed & ( Qt::LeftButton | Qt::MiddleButton | Qt::RightButton ))
+	if( mouseButtonsPressed &
+	    ( Qt::LeftButton | Qt::MiddleButton | Qt::RightButton ) ) {
 		return;
+	}
 
 	setParamFlagMeshWidget(MeshWidgetParams::SHOW_MESH_REDUCED, false);
-
 }
 
 //! Handles the event when the mouse is moved.
@@ -6857,9 +6870,14 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
-	GLfloat dx = GLfloat( rEvent->x() - mLastPos.x() ) / 2.0;
-	GLfloat dy = GLfloat( rEvent->y() - mLastPos.y() ) / 2.0;
-	mLastPos = rEvent->pos();
+	// HighDPI Support
+	double scaleFactor = 1.0;
+	getParamFloatMeshWidget( HIGHDPI_ZOOM_FACTOR, &scaleFactor );
+
+	GLfloat dx = GLfloat( rEvent->x()*scaleFactor - mLastPos.x() ) / 2.0;
+	GLfloat dy = GLfloat( rEvent->y()*scaleFactor - mLastPos.y() ) / 2.0;
+
+	mLastPos = rEvent->pos() * scaleFactor;
 
 	eMouseModes currMouseMode;
 	getParamIntegerMeshWidget( MOUSE_MODE, reinterpret_cast<int*>(&currMouseMode) );
@@ -6869,12 +6887,12 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 
 	//! Display the selection of a polyline:
 	if( ( rEvent->buttons() == Qt::NoButton ) &&
-		( currMouseMode == MOUSE_MODE_SELECT ) &&
+	    ( currMouseMode == MOUSE_MODE_SELECT ) &&
 	    ( currSelectionMode == MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO )
 	  ) {
 		if( mSelectionPoly.size()>0 ) {
 			mSelectionPoly.pop_back();
-			mSelectionPoly.push_back( rEvent->pos() );
+			mSelectionPoly.push_back( mLastPos );
 			update();
 			return;
 		}
@@ -6929,7 +6947,7 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 	//! Move lightFixedWorld, when the Left Mouse Button is pressed and the lights are on.
 	if( ( rEvent->buttons() == Qt::LeftButton ) &&
 	    ( currMouseMode == MOUSE_MODE_MOVE_LIGHT_FIXED_OBJECT ) &&
-		( lightEnabled ) &&
+	    ( lightEnabled ) &&
 	    ( lightFixedWorld )
 	  ) {
 		double lightAnglePhi;
@@ -6969,7 +6987,7 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 
 	//! Move/Rotate the plane, when the Left Mouse Button is pressed.
 	if( ( rEvent->buttons() == Qt::LeftButton ) &&
-		( currMouseMode == MOUSE_MODE_MOVE_PLANE ) &&
+	    ( currMouseMode == MOUSE_MODE_MOVE_PLANE ) &&
 	    ( planeShown )
 	  ) {
 		double moveAngleLeftRight =  dx * M_PI / ( 180.0 * 2.0 );
@@ -7083,14 +7101,6 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 		planeZPoint = rotMat * planeZPoint;
 
 		mMeshVisual->setPlaneAxisPos(axisTop, axisBottom, planeZPoint);
-
-		/*
-		 //Alternative: use old plane-Axis for Rotations:
-		 Vector3D planeXPoint(&planePositions[0], 1.0);
-		 Vector3D planeYPoint(&planePositions[3], 1.0);
-
-		 mMeshVisual->setPlaneAxisPos(planeXPoint, planeYPoint, planeZPoint);
-		*/
 
 		setView();
 		update();
@@ -7685,6 +7695,8 @@ void MeshWidget::resizeEvent( [[maybe_unused]] QResizeEvent * event  ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "] " << event->size().width() << " x " << event->size().height() << endl;
 #endif
+	std::cout << "[MeshWidget::" << __FUNCTION__ << "] " << event->size().width()
+	          << " x " << event->size().height() << std::endl;
 	//QGLWidget::resizeEvent( event );
 	if( mMeshVisual == nullptr ) {
 		// No mesh present -> nothing to do.
@@ -7773,6 +7785,7 @@ void MeshWidget::setView( GLdouble* rOrthoViewPort //!< position and dimension o
 //	PRINT_OPENGL_ERROR( "glMatrixMode( GL_PROJECTION )" );
 //	glLoadIdentity();
 //	PRINT_OPENGL_ERROR( "glLoadIdentity()" );
+
 
 	//! Setup Viewport
 	GLfloat windowRatio = static_cast<GLfloat>(width())/static_cast<GLfloat>(height());
@@ -7883,6 +7896,24 @@ void MeshWidget::setViewModelMat() {
 	QVector3D vecUp(     mCameraUp.getX(),     mCameraUp.getY(),     mCameraUp.getZ() );
 	mMatModelView.setToIdentity();
 	mMatModelView.lookAt( vecEye, vecCenter, vecUp );
+}
+
+//! Overwritten method using a manual set zoom factor.
+//! Sort of a fix for HighDPI displays with scaling.
+//! Windows does not seem to be affected.
+int MeshWidget::height() const {
+	double scaleFactor = 1.0;
+	getParamFloatMeshWidget( HIGHDPI_ZOOM_FACTOR, &scaleFactor );
+	return QGLWidget::height()*scaleFactor;
+}
+
+//! Overwritten method using a manual set zoom factor.
+//! Sort of a fix for HighDPI displays with scaling.
+//! Windows does not seem to be affected.
+int MeshWidget::width() const {
+	double scaleFactor = 1.0;
+	getParamFloatMeshWidget( HIGHDPI_ZOOM_FACTOR, &scaleFactor );
+	return QGLWidget::width()*scaleFactor;
 }
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------

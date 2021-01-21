@@ -646,9 +646,10 @@ void QGMMainWindow::initMeshWidgetSignals() {
 	actionFogLinearDistMax->setProperty( "gmMeshWidgetParamFloat", MeshWidgetParams::FOG_LINEAR_END );
 
 	actionSaveStillImages360DurationSlow->setProperty( "gmMeshWidgetParamFloat", MeshWidgetParams::VIDEO_SLOW_STARTSTOP );
+	actionHighDPIZoomFactor->setProperty( "gmMeshWidgetParamFloat", MeshWidgetParams::HIGHDPI_ZOOM_FACTOR );
 
 	mMeshWidgetFloat = new QActionGroup( this );
-	for(QAction*& currAction : allActions) {
+	for( QAction*& currAction : allActions ) {
 		    QVariant someFlag = currAction->property( "gmMeshWidgetParamFloat" );
 		if( !someFlag.isValid() ) {
 			continue;
@@ -1218,6 +1219,15 @@ bool QGMMainWindow::setupMeshWidget( const QGLFormat& rGLFormat ) {
 	return true;
 }
 
+//! HighDPI Support for 2x scaled windows - fix for Linux.
+//! @returns false in case of an error. True otherwise.
+bool QGMMainWindow::setupHighDPI20() {
+	// HighDPI Support
+	this->resize( this->size() * 1.1 );
+	bool retVal = mMeshWidget->setParamFloatMeshWidget( MeshWidgetParams::HIGHDPI_ZOOM_FACTOR, 2.0 );
+	return( retVal );
+}
+
 //! Overloaded from QGMMainWindow
 void QGMMainWindow::closeEvent( QCloseEvent* rEvent ) {
 	emit unloadMesh();
@@ -1436,7 +1446,7 @@ bool QGMMainWindow::setMeshWidgetParamInt( QAction* rAction ) {
 //! Set view parameters (float) of the mMeshWidget.
 bool QGMMainWindow::setMeshWidgetParamFloat( QAction* rAction ) {
 	if( rAction == nullptr ) {
-		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: NULL pointer given!" << endl;
+		std::cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: NULL pointer given!" << std::endl;
 		return false;
 	}
 
@@ -1445,7 +1455,7 @@ bool QGMMainWindow::setMeshWidgetParamFloat( QAction* rAction ) {
 	double paramValueMax;
 	bool   noMinMaxPresent = false;
 	if ( !getParamID( rAction, "gmMeshWidgetParamFloat", &paramID ) ) {
-		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: fetching paramID failed!" << endl;
+		std::cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: fetching paramID failed!" << std::endl;
 		return false;
 	}
 	if ( !getParamValue( rAction, "gmMeshWidgetParamValueMin", &paramValueMin ) ) {
@@ -1459,11 +1469,11 @@ bool QGMMainWindow::setMeshWidgetParamFloat( QAction* rAction ) {
 
 	// Sanity checks
 	if( paramID <= MeshWidget::PARAMS_FLT_UNDEFINED ) {
-		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Parameter ID out of range (low)!" << endl;
+		std::cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Parameter ID out of range (low)!" << std::endl;
 		return false;
 	}
 	if( paramID >= MeshWidget::PARAMS_FLT_COUNT ) {
-		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Parameter ID out of range (high)!" << endl;
+		std::cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Parameter ID out of range (high)!" << std::endl;
 		return false;
 	}
 

@@ -6,6 +6,7 @@ Current Version
 +) Improved: Rendering performance.
 +) Bugfix: fixed Screenshot Views (PDF with PNG+TEX), when exporting views with a vertical axis.
 +) Bugfix: fixed potential crash when exporting tif screenshots without libtiff.
++) Bugfix: '--hidpi20' sets the viewport properly for 2x magnification on Linux HiDPI displays. Arbritary zoom factors can be set in the 'Setting' menu.
 
 Version 200529
 +) New: MSII filtering can be applied using the GUI with default settings. See 'Analyze -> MSII Feature Vectors and Function Value (Quick)'.
