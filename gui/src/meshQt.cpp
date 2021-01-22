@@ -2309,6 +2309,7 @@ bool MeshQt::setConeAxis( const Vector3D& rUpper, const Vector3D& rLower ) {
 	if( !MeshGL::setConeAxis( rUpper, rLower ) ) {
 		return( false );
 	}
+	setParamFlagMeshGL( MeshGLParams::SHOW_MESH_AXIS, true );
 	emit updateGL();
 
 	// Ask what to do next: Selection of a cone for rollouts OR postions for profile lines.

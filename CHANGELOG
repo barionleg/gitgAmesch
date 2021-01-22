@@ -6,6 +6,7 @@ Current Version
 +) Improved: Rendering performance.
 +) Bugfix: fixed Screenshot Views (PDF with PNG+TEX), when exporting views with a vertical axis.
 +) Bugfix: fixed potential crash when exporting tif screenshots without libtiff.
++) Bugfix: Compute axis from circle centers did not work for smaller fragments (pottery sherds).
 +) Bugfix: '--hidpi20' sets the viewport properly for 2x magnification on Linux HiDPI displays. Arbritary zoom factors can be set in the 'Setting' menu.
 
 Version 200529

@@ -7348,7 +7348,6 @@ bool MeshWidget::userSetConeAxisCentralPixel() {
 	rayTop.normalizeW();
 	rayBot.normalizeW();
 
-	mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_MESH_AXIS, true );
 	return mMeshVisual->setConeAxis( &rayTop, &rayBot );
 }
 
@@ -7693,10 +7692,9 @@ void MeshWidget::wheelEventZoom(
 //! Takes care to properly resize this OpenGL widget.
 void MeshWidget::resizeEvent( [[maybe_unused]] QResizeEvent * event  ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshWidget::" << __FUNCTION__ << "] " << event->size().width() << " x " << event->size().height() << endl;
-#endif
 	std::cout << "[MeshWidget::" << __FUNCTION__ << "] " << event->size().width()
 	          << " x " << event->size().height() << std::endl;
+#endif
 	//QGLWidget::resizeEvent( event );
 	if( mMeshVisual == nullptr ) {
 		// No mesh present -> nothing to do.

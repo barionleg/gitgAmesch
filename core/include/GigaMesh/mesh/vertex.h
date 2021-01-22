@@ -222,7 +222,7 @@ virtual bool     setAlpha(unsigned char alpha);
 			double   estDistanceToLine( const Vertex* rPosTip, const Vertex* rPosBottom );
 		        double   estDistanceToLineDir( const Vector3D* rPos, const Vector3D* rDir );
 		        double   estDistanceToPlane( double* planeHNF, bool absDist );
-				double   estDistanceToPlane( Vector3D* planeHNF, bool absDist = false );
+				double   estDistanceToPlane( const Vector3D& rPlaneHNF, bool rAbsDist = false ) const;
 		        double   estDistanceToCone(Vector3D* axisTop,
 		                                   Vector3D* axisBot,
 		                                   Vector3D* coneTip,

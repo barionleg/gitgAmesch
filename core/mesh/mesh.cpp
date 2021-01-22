@@ -706,12 +706,12 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 		case AXIS_FROM_CIRCLE_CENTERS: {
 			Vector3D topPoint;
 			Vector3D bottomPoint;
-			retVal  = getAxisFromCircleCenters( &topPoint, &bottomPoint );
+			retVal  = getAxisFromCircleCenters( topPoint, bottomPoint );
 			retVal &= setConeAxis( &topPoint, &bottomPoint );
-		    } break;
+			} break;
 		case AXIS_ENTER_PRIMEMERIDIAN_ROTATION: {
 			// IMPLEMENTED on GUI level due to user interaction.
-		    } break;
+			} break;
 		case AXIS_SET_PRIMEMERIDIAN_SELPRIM:
 			if( mPrimSelected != nullptr ) {
 				Vector3D posSel = mPrimSelected->getCenterOfGravity();
@@ -4295,20 +4295,11 @@ bool Mesh::setConeCoverMesh() {
 	coneAxis.normalize3();
 
 	Plane coneTipPlane( coneTip, coneAxis );
-	Vector3D coneTipPlaneHNF;
-	coneTipPlane.getPlaneHNF( &coneTipPlaneHNF );
 
-	Vertex* currVertex;
 	double minDist = +INFINITY;
 	double maxDist = -INFINITY;
 	bool   absDist = true; // Works with the order of points ensured (setConeConsistentPointOrder).
-	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
-		currVertex = getVertexPos( vertIdx );
-		double dist = currVertex->estDistanceToPlane( &coneTipPlaneHNF, absDist );
-		minDist = min( dist, minDist );
-		maxDist = max( dist, maxDist );
-	}
-	cout << "[Mesh::" << __FUNCTION__ << "] dist: " << minDist << " " << maxDist << endl;
+	getDistanceToPlaneMinMax( coneTipPlane, minDist, maxDist, absDist );
 
 	double angleCone;
 	this->calcConeAngle( &angleCone );
@@ -10572,6 +10563,33 @@ float Mesh::getPerimeterRadius() {
 	}
 	return perimeterRadiusMax;
 }
+
+bool Mesh::getDistanceToPlaneMinMax(
+		const Plane& rPlane,
+		double&   rMinDist,
+		double&   rMaxDist,
+		bool      rAbsDist
+) {
+	double minDist = +INFINITY;
+	double maxDist = -INFINITY;
+
+	Vector3D planeHNF = rPlane.getHNF();
+
+	Vertex* currVertex;
+	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
+		currVertex = getVertexPos( vertIdx );
+		double dist = currVertex->estDistanceToPlane( planeHNF, rAbsDist );
+		minDist = min( dist, minDist );
+		maxDist = max( dist, maxDist );
+	}
+
+	rMinDist = minDist;
+	rMaxDist = maxDist;
+
+	std::cout << "[Mesh::" << __FUNCTION__ << "] dist: " << minDist << " " << maxDist << std::endl;
+	return( true );
+}
+
 
 // Bounding Box Corners --------------------------------------------------------
 
@@ -17050,21 +17068,19 @@ bool Mesh::getAxisFromCircleCenters() {
 
 //! Use vertices tagged as circle centers to estimate an axis.
 //! @returns false in case of an error. True otherwise.
-bool Mesh::getAxisFromCircleCenters( Vector3D* rTop, Vector3D* rBottom ) {
-	// Sanity check.
-	if( ( rTop == nullptr ) || ( rBottom == nullptr ) ) {
-		return false;
-	}
-
+bool Mesh::getAxisFromCircleCenters(
+		Vector3D& rTop,
+		Vector3D& rBottom
+) {
 	// Fetch circle centers
 	set<Vertex*> verticesCircleCenters;
 	if( !getVertWithFlag( &verticesCircleCenters, FLAG_CIRCLE_CENTER ) ) {
-		return false;
+		return( false );
 	}
 	// Stop if there is nothing to do.
-    if( verticesCircleCenters.empty()) {
-		cout << "[Mesh::" << __FUNCTION__ << "] No circle centers present - DONE." << endl;
-		return true;
+	if( verticesCircleCenters.empty()) {
+		std::cout << "[Mesh::" << __FUNCTION__ << "] No circle centers present - DONE." << std::endl;
+		return( true );
 	}
 
 	// Compute average orientation using the (weighted) normals.
@@ -17075,7 +17091,7 @@ bool Mesh::getAxisFromCircleCenters( Vector3D* rTop, Vector3D* rBottom ) {
 		avgOrientation += currOrient;
 	}
 	avgOrientation.normalize3();
-	cout << "[Mesh::" << __FUNCTION__ << "] Average orientation: " << avgOrientation << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Average orientation: " << avgOrientation << std::endl;
 
 	// Compute average position.
 	Vector3D originPos( 0.0, 0.0, 0.0, 1.0 );
@@ -17092,28 +17108,41 @@ bool Mesh::getAxisFromCircleCenters( Vector3D* rTop, Vector3D* rBottom ) {
 		posInAxisOrient.setZ( 0.0 );
 		avgPosition += ( weight * posInAxisOrient );
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] Average position in Axis: " << avgPosition << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Average position in Axis: " << avgPosition << std::endl;
 	avgPosition.normalizeW();
-	cout << "[Mesh::" << __FUNCTION__ << "] Average position in Axis normalized: " << avgPosition << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Average position in Axis normalized: " << avgPosition << std::endl;
 	// Transform from axis coordinates to world coordinates.
 	baseChange.invert();
 	avgPosition *= baseChange;
-	cout << "[Mesh::" << __FUNCTION__ << "] Average position: " << avgPosition << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Average position: " << avgPosition << std::endl;
 
-	// Compute top and bottom points by intersecting the axis with the bounding sphere.
-	Vector3D bbCenter = getBoundingBoxCenter();
-	double   bbRadius = getBoundingBoxRadius();
-	// Line-Sphere intersection -- see also: https://en.wikipedia.org/wiki/Line%E2%80%93sphere_intersection
-	double b = 2.0*( avgOrientation * ( avgPosition - bbCenter ) );
-	double c = ( avgPosition - bbCenter ) * ( avgPosition - bbCenter ) - pow( bbRadius, 2.0 );
-	double d1 = -b + sqrt( pow( b, 2.0 ) - c );
-	double d2 = -b - sqrt( pow( b, 2.0 ) - c );
+//	This was a bad idea, because the axis can be very well outside the bounding sphere:
+//	However, the code might be usefull for other tasks.
+//------------------------------------------------------------------------------
+//	// Compute top and bottom points by intersecting the axis with the bounding sphere.
+//	Vector3D bbCenter = getBoundingBoxCenter();
+//	double   bbRadius = getBoundingBoxRadius();
+//	// Line-Sphere intersection -- see also: https://en.wikipedia.org/wiki/Line%E2%80%93sphere_intersection
+//	double b = 2.0*( avgOrientation * ( avgPosition - bbCenter ) );
+//	double c = ( avgPosition - bbCenter ) * ( avgPosition - bbCenter ) - pow( bbRadius, 2.0 );
+//	double d1 = -b + sqrt( pow( b, 2.0 ) - c );
+//	double d2 = -b - sqrt( pow( b, 2.0 ) - c );
 
-	(*rTop)    = avgPosition + d1 * avgOrientation;
-	(*rBottom) = avgPosition + d2 * avgOrientation;
+	Plane planeOrthoToAxis( avgPosition, avgOrientation );
+	double distMin, distMax;
+	getDistanceToPlaneMinMax( planeOrthoToAxis, distMin, distMax, false );
 
-	cout << "[Mesh::" << __FUNCTION__ << "] DONE." << endl;
-	return true;
+	// Distance may be flipped!
+	if( abs(distMin) > abs(distMax) ) {
+		rTop    = avgPosition - distMax * avgOrientation;
+		rBottom = avgPosition - distMin * avgOrientation;
+	} else {
+		rTop    = avgPosition + distMax * avgOrientation;
+		rBottom = avgPosition + distMin * avgOrientation;
+	}
+
+	std::cout << "[Mesh::" << __FUNCTION__ << "] DONE." << std::endl;
+	return( true );
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------

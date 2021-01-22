@@ -589,6 +589,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool     getBoundingBoxSize( Vector3D& rBbSize ) const;
 				double   getBoundingBoxRadius();
 				float    getPerimeterRadius();
+		// Additional geometric helper functions
+				bool     getDistanceToPlaneMinMax( const Plane &rPlane, double& rMinDist, double& rMaxDist, bool rAbsDist );
 		// Bounding Box Corners:
 				Vector3D getBoundingBoxA();
 				Vector3D getBoundingBoxB();
@@ -763,7 +765,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		        bool getSelectedPositionDistancesHTML( std::string& rDistanceText );
 		        bool getSelectedPositionCircleCenters( std::vector<Vertex*>* rCenterVertices );
 		virtual bool getAxisFromCircleCenters();
-		virtual bool getAxisFromCircleCenters( Vector3D* rTop, Vector3D* rBottom );
+		virtual bool getAxisFromCircleCenters( Vector3D &rTop, Vector3D &rBottom );
 
 		// Binary Space Partitioning -- Octree
 	protected:

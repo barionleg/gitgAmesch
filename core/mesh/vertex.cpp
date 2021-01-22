@@ -1254,19 +1254,18 @@ double Vertex::estDistanceToPlane( double* planeHNF, bool absDist ) {
 
 //! Estimates distance of vertex to a plane given in Hessian normal form (the last component
 //! of the HNF is contained within the homogenous coordinate of the vector).
-double Vertex::estDistanceToPlane(Vector3D* planeHNF, bool absDist) {
-	if(!planeHNF) {
-		return(0);
-	}
+double Vertex::estDistanceToPlane(
+		const Vector3D& rPlaneHNF,
+		bool            rAbsDist
+) const {
+	double dist = dot3( rPlaneHNF, this->getPositionVector() )
+	              + rPlaneHNF.getH();
 
-	double dist = dot3(planeHNF, this->getPositionVector()) + planeHNF->getH();
-
-	if(absDist) {
-		return(abs(dist));
+	if( rAbsDist ) {
+		return( abs( dist ) );
 	}
-	else {
-		return(dist);
-	}
+	// Otherwise:
+	return( dist );
 }
 
 //! Estimates distance to a cone given by an axis and two radii -- an upper radius
