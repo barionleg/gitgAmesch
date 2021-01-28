@@ -288,7 +288,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	// #####################################################################################################################################################
 	// # FUNCTION VALUE
 	// #####################################################################################################################################################
-	// # Feature Vector reöated
+	// # Feature Vector related
 	QObject::connect( mMainWindow, SIGNAL(sFuncVertFeatLengthEuc()),              this, SLOT(visualizeFeatLengthEuc())               );
 	QObject::connect( mMainWindow, SIGNAL(sFuncVertFeatLengthMan()),              this, SLOT(visualizeFeatLengthMan())               );
 	QObject::connect( mMainWindow, SIGNAL(sFuncVertFeatBVFunc()),                 this, SLOT(visualizeFeatBVFunc())                  );
@@ -312,12 +312,12 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	QObject::connect( mMainWindow, SIGNAL(visualizeVertexFaceSphereAngleMax()),   this, SLOT(visualizeVertexFaceSphereAngleMax())    );
 	QObject::connect( mMainWindow, SIGNAL(visualizeVertFaceSphereMeanAngleMax()), this, SLOT(visualizeVertFaceSphereMeanAngleMax())  );
 
-		//MSEx
-	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalSuppressNonMaxima()),    this, SLOT(funcExperimentalSuppressNonMaxima())     );
-	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalComputeWatershed()),      this, SLOT(funcExperimentalComputeWatershed())      );
-	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalComputeClustering()),     this, SLOT(funcExperimentalComputeClustering())     );
-	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalComputeRANSAC()),         this, SLOT(funcExperimentalComputeRANSAC())         );
-	QObject::connect( mMainWindow, SIGNAL(sFuncExperimentalReorderFeatureVector()),  this, SLOT(funcExperimentalReorderFeatureVector())  );
+		//Wedge extraction
+	QObject::connect( mMainWindow, SIGNAL(sFuncWedgeExtrSuppressNonMaxima()),     this, SLOT(funcWedgeExtrSuppressNonMaxima())     );
+	QObject::connect( mMainWindow, SIGNAL(sFuncWedgeExtrComputeWatershed()),      this, SLOT(funcWedgeExtrComputeWatershed())      );
+	QObject::connect( mMainWindow, SIGNAL(sFuncWedgeExtrComputeClustering()),     this, SLOT(funcWedgeExtrComputeClustering())     );
+	QObject::connect( mMainWindow, SIGNAL(sFuncWedgeExtrComputeRANSAC()),         this, SLOT(funcWedgeExtrComputeRANSAC())         );
+	QObject::connect( mMainWindow, SIGNAL(sFuncWedgeExtrAdditionalInput()),       this, SLOT(funcWedgeExtrAdditionalInput())  );
 	// #####################################################################################################################################################
 
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1164,61 +1164,61 @@ bool MeshQt::funcValsToFeatureVector()
 	return dlgEnterTextVal.exec() == QDialog::Accepted;
 }
 
-//MSExp
+//Wedge extraction
 
-bool MeshQt::funcExperimentalSuppressNonMaxima()
+bool MeshQt::funcWedgeExtrSuppressNonMaxima()
 {
     QGMDialogEnterText dlgEnterTextVal;
-	dlgEnterTextVal.setDouble(5.0); //5 mm is standard for non maximum suppression distance
-	dlgEnterTextVal.setWindowTitle( tr("Give radius in non maximum suppression!") ); //a text much longer than this gets cropped
+	dlgEnterTextVal.setDouble(1.0); //3 mm is standard for non maximum suppression distance
+	dlgEnterTextVal.setWindowTitle( tr("Give radius for non maximum suppression!") ); //a text much longer than this gets cropped
 
-	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double NMSDistance) {this->funcExpSuppNonMax(NMSDistance);});
+	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double NMSDistance) {this->funcWeExSuppNonMax(NMSDistance);});
 
 	//I am not sure, if this does anything else than return true, if all went well
 	return dlgEnterTextVal.exec() == QDialog::Accepted;
 	//return true;
 }
 
-bool MeshQt::funcExperimentalComputeWatershed()
+bool MeshQt::funcWedgeExtrComputeWatershed()
 {
     QGMDialogEnterText dlgEnterTextVal;
-	dlgEnterTextVal.setDouble(0.01);
+	dlgEnterTextVal.setDouble(0.0);
 	dlgEnterTextVal.setWindowTitle( tr("Give value when to stop watershed!") );
 
-	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double watershedLimit) {this->funcExpComputeWatershed(watershedLimit);});
+	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double watershedLimit) {this->funcWeExComputeWatershed(watershedLimit);});
 
 	return dlgEnterTextVal.exec() == QDialog::Accepted;
 }
 
-bool MeshQt::funcExperimentalComputeClustering()
+bool MeshQt::funcWedgeExtrComputeClustering()
 {
     QGMDialogEnterText dlgEnterTextVal;
 	dlgEnterTextVal.setInt(100);
 	dlgEnterTextVal.setWindowTitle( tr("Give number of iterations for clustering!") );
 
-	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int numberOfIterations) {this->funcExpComputeClustering(numberOfIterations);});
+	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int numberOfIterations) {this->funcWeExComputeClustering(numberOfIterations);});
 
 	return dlgEnterTextVal.exec() == QDialog::Accepted;
 }
 
-bool MeshQt::funcExperimentalComputeRANSAC()
+bool MeshQt::funcWedgeExtrComputeRANSAC()
 {
     QGMDialogEnterText dlgEnterTextVal;
-	dlgEnterTextVal.setInt(100);
+	dlgEnterTextVal.setInt(1000);
 	dlgEnterTextVal.setWindowTitle( tr("Give number of iterations for RANSAC!") );
 
-	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int numberOfIterations) {this->funcExpComputeRANSAC(numberOfIterations);});
+	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int numberOfIterations) {this->funcWeExComputeRANSAC(numberOfIterations);});
 
 	return dlgEnterTextVal.exec() == QDialog::Accepted;
 }
 
-bool MeshQt::funcExperimentalReorderFeatureVector()
+bool MeshQt::funcWedgeExtrAdditionalInput()
 {
     QGMDialogEnterText dlgEnterTextVal;
-	dlgEnterTextVal.setDouble(1.0);
-	dlgEnterTextVal.setWindowTitle( tr("Input not needed right now!") );
+	dlgEnterTextVal.setDouble(0.1);
+	dlgEnterTextVal.setWindowTitle( tr("Give additional Input for NMS or watershed") );
 
-	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double deletableInput) {this->funcExpReorderFeatVec(deletableInput);});
+	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double additionalInput) {this->funcWeExAdditionalInput(additionalInput);});
 
 	return dlgEnterTextVal.exec() == QDialog::Accepted;
 }

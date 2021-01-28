@@ -204,11 +204,11 @@
      <addaction name="separator"/>
      <addaction name="actionFuncValToFeatureVector"/>
      <addaction name="separator"/>
-     <addaction name="actionExperimentalSuppressNonMaxima"/>
-     <addaction name="actionExperimentalComputeWatershed"/>
-     <addaction name="actionExperimentalComputeClustering"/>
-     <addaction name="actionExperimentalComputeRANSAC"/>
-     <addaction name="actionExperimentalReorderFeatureVector"/>
+     <addaction name="actionWedgeExtrSuppressNonMaxima"/>
+     <addaction name="actionWedgeExtrComputeWatershed"/>
+     <addaction name="actionWedgeExtrComputeClustering"/>
+     <addaction name="actionWedgeExtrComputeRANSAC"/>
+     <addaction name="actionWedgeExtrAdditionalInput"/>
     </widget>
     <widget class="QMenu" name="menuColorPerVertexToFunctionValue">
      <property name="title">
@@ -4384,19 +4384,19 @@ p, li { white-space: pre-wrap; }
     <string>Experimental Non Maximum Suppression</string>
    </property>
   </action>
-  <action name="actionExperimentalSuppressNonMaxima">
+  <action name="actionWedgeExtrSuppressNonMaxima">
    <property name="text">
-    <string>Experimental Non Maximum Suppression</string>
+    <string>Non Maximum Suppression</string>
    </property>
   </action>
-  <action name="actionExperimentalComputeWatershed">
+  <action name="actionWedgeExtrComputeWatershed">
    <property name="text">
-    <string>Experimental Watershed</string>
+    <string>Watershed</string>
    </property>
   </action>
-  <action name="actionExperimentalComputeClustering">
+  <action name="actionWedgeExtrComputeClustering">
    <property name="text">
-    <string>Experimental Clustering</string>
+    <string>Clustering</string>
    </property>
   </action>
   <action name="actionElement">
@@ -4404,14 +4404,14 @@ p, li { white-space: pre-wrap; }
     <string>Element</string>
    </property>
   </action>
-  <action name="actionExperimentalReorderFeatureVector">
+  <action name="actionWedgeExtrAdditionalInput">
    <property name="text">
-    <string>Experimental Feature Vector Reordering</string>
+    <string>NMS and Watershed additional Input</string>
    </property>
   </action>
-  <action name="actionExperimentalComputeRANSAC">
+  <action name="actionWedgeExtrComputeRANSAC">
    <property name="text">
-    <string>Experimental Wedge Fitting with RANSAC</string>
+    <string>RANSAC</string>
    </property>
   </action>
  </widget>
