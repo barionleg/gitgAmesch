@@ -117,8 +117,8 @@ bool MeshGL::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOpti
 //!
 //! @returns false in case of an error. True otherwise.
 bool MeshGL::callFunction( MeshGLParams::eFunctionCall rFunctionID, bool rFlagOptional ) {
-	cout << "[MeshGL::" << __FUNCTION__ << "] with MeshGLParam: "   << rFunctionID   << endl;
-	cout << "[MeshGL::" << __FUNCTION__ << "] with optional flag: " << rFlagOptional << endl;
+	std::cout << "[MeshGL::" << __FUNCTION__ << "] with MeshGLParam: "   << rFunctionID   << std::endl;
+	std::cout << "[MeshGL::" << __FUNCTION__ << "] with optional flag: " << rFlagOptional << std::endl;
 	bool retVal = false;
 	switch( rFunctionID ) {
 		case TEXMAP_FIXED_SET_NORMALIZED:
@@ -199,7 +199,7 @@ bool MeshGL::callFunction( MeshGLParams::eFunctionCall rFunctionID, bool rFlagOp
 			}
 			break;
 		default:
-			cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: Unknown rFunctionID "<< rFunctionID << " !" << endl;
+			std::cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: Unknown rFunctionID "<< rFunctionID << " !" << std::endl;
 			return( false );
 	}
 	// Done:

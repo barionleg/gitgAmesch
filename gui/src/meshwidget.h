@@ -146,6 +146,7 @@ private:
 	bool screenshotViewsDirectoryFiles( QString& rPathChoosen, QStringList& rCurrFiles ); // Internal use only
 public:
 	bool screenshotViewsDirectory();
+	bool directoryFuncValToRGB();
 	bool screenshotViewsPDFUser();
 	bool screenshotViewsPDF( const QString& rFileName );
 private:

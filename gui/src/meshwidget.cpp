@@ -607,6 +607,9 @@ bool MeshWidget::callFunctionMeshWidget( MeshWidgetParams::eFunctionCall rFuncti
 		case SCREENSHOT_VIEWS_DIRECTORY:
 			retVal &= screenshotViewsDirectory();
 			break;
+		case DIRECTORY_FUNCVAL_TO_RGB:
+			retVal &= directoryFuncValToRGB();
+			break;
 		case EDIT_SET_CONEAXIS_CENTRALPIXEL:
 			retVal &= userSetConeAxisCentralPixel();
 			break;
@@ -2496,7 +2499,7 @@ bool MeshWidget::screenshotViewsDirectory() {
 		return( false );
 	}
 
-	// Enter a suffox
+	// Enter a suffix
 	QString fileNameSuffix( "_Uniform");
 	QGMDialogEnterText dlgEnterTxt;
 	dlgEnterTxt.setWindowTitle( "Filename Suffix" );
@@ -2510,16 +2513,16 @@ bool MeshWidget::screenshotViewsDirectory() {
 
 	bool retVal = true;
 	for( int i=0; i<currFiles.size(); ++i ) {
-		// mMainWindow->load( pathChoosen+'/'+currFiles.at(i) );
-		if( !fileOpen( pathChoosen+'/'+currFiles.at(i) ) ) {
+		QString currentFile = pathChoosen + '/' + currFiles.at(i);
+		if( !fileOpen( currentFile ) ) {
 			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: File open failed for '"
-			          << (pathChoosen+'/'+currFiles.at(i)).toStdString() << "'!" << std::endl;
+			          << currentFile.toStdString() << "'!" << std::endl;
 			retVal = false;
 			continue;
 		}
 		if( mMeshVisual == nullptr ) {
 			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: No mesh loaded for '"
-			          << (pathChoosen+'/'+currFiles.at(i)).toStdString() << "'!" << std::endl;
+			          << currentFile.toStdString() << "'!" << std::endl;
 			retVal = false;
 			continue;
 		}
@@ -2563,58 +2566,7 @@ bool MeshWidget::screenshotViewsDirectory() {
 				retVal |= screenshotViewsPDF( pathChoosen+'/'+prefixStem+fileNameSuffix+".pdf" ); // TILES always ON
 			}
 		}
-
-		//! \todo clean-up.
-//		//===============================================================================================================
-//		// Set properties - HEURISTIC for cuneiform tablets
-//		//===============================================================================================================
-//		// Set ligth and fixed resolution
-//		setParamFlagMeshWidget( EXPORT_SIDE_VIEWS_SIX, false );
-//		setParamFlagMeshWidget( LIGHT_ENABLED, true );
-//		mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_MONO );
-//		// Turn of vertex sprite rendering -- COPY+PASTE from BELOW!
-//		mMeshVisual->callFunctionMeshGL( MeshGLParams::SET_SHOW_VERTICES_NONE, false ); // False has NO influence.
-//		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_SELECTION, false );
-//		.......
-//		//===============================================================================================================
-//		// Set properties - HEURISTIC for cuneiform tablets
-//		//===============================================================================================================
-//		// Set ligth and fixed resolution
-//		setParamFlagMeshWidget( EXPORT_SIDE_VIEWS_SIX, true );
-//		setParamFlagMeshWidget( LIGHT_ENABLED, false );
-//		orthoSetDPI( printResDPI );
-//		// Compute function value and choose grayscale
-//		//double minFuncValue = -0.12910306806; // Values used for HeiCuBeDa 1%
-//		//double maxFuncValue = +0.48764927169; // Values used for HeiCuBeDa 99%
-//		double minFuncValue = -0.061743971965; // Values used for ErKon3D Springer LNCS 5%
-//		double maxFuncValue = 0.205966176870; // Values used for ErKon3D Springer LNCS 98%
-//		//double maxFuncValue = +0.554183392987; // Values used for ErKon3D Springer LNCS
-//		mMeshVisual->callFunctionMesh( MeshParams::FUNCVAL_FEATUREVECTOR_MAX_ELEMENT, false ); // False has NO influence.
-//		mMeshVisual->setParamIntMeshGL( MeshGLParams::GLSL_COLMAP_CHOICE, MeshGLParams::GLSL_COLMAP_GRAYSCALE );
-//		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_COLMAP_INVERT, true );
-//		// Set fixed range for the function value for all renderings to achieve uniform coloring
-//		mMeshVisual->setParamIntMeshGL( MeshGLParams::FUNCVAL_CUTOFF_CHOICE, MeshGLParams::FUNCVAL_CUTOFF_MINMAX_USER );
-//		mMeshVisual->setParamFloatMeshGL( MeshGLParams::TEXMAP_FIXED_MIN, minFuncValue );
-//		mMeshVisual->setParamFloatMeshGL( MeshGLParams::TEXMAP_FIXED_MAX, maxFuncValue );
-//		// Turn of vertex sprite rendering
-//		mMeshVisual->callFunctionMeshGL( MeshGLParams::SET_SHOW_VERTICES_NONE, false ); // False has NO influence.
-//		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_SELECTION, false );
-//		//===============================================================================================================
-
-//		// Create PNGs
-//		// SIDE Views
-//		//screenshotViews( fileNamePattern, ( pathChoosen+"/"+prefixStem ).toStdString(),
-//		//                 useTiled, imageFiles, imageSizes );
-//		// FRONT View
-//		screenshotSingle( ( pathChoosen+"/"+prefixStem+".png" ),
-//		                  useTiled, widthReal, heigthReal );
-
-//		// THIS is really QUICK and DIRTY
-//		// Save file with function value and the created color.
-//		// stops because of confirmation: mMeshVisual->callFunctionMeshGL( MeshGLParams::TRANSFORM_FUNCTION_VALUES_TO_RGB, false );
-//		mMeshVisual->runFunctionValueToRGBTransformation();
-//		mMeshVisual->writeFile( pathChoosen+"/"+prefixStem+"_FtElMax-as_VertexColor.ply" );
-	}
+	} // for all files
 
 	if( retVal ) {
 		SHOW_MSGBOX_INFO( tr( "Directory Schreenshots" ),
@@ -2623,6 +2575,83 @@ bool MeshWidget::screenshotViewsDirectory() {
 	} else {
 		SHOW_MSGBOX_WARN( tr( "ERROR - Directory Schreenshots" ),
 		                  tr( "Errors occured creating screenshots for:<br /><br />" ) +
+		                  pathChoosen );
+	}
+
+	return( retVal );
+}
+
+//! Render front-views or side-views as
+//! PNGs or PDFs having PNGs embeded created using a LaTeX template.
+//!
+//! User interaction: select a path to load the meshes consecutively
+//! and generate views for each 3D-file found.
+//!
+//! @returns false in case of an error or user cancel. True otherwise.
+bool MeshWidget::directoryFuncValToRGB() {
+	// Store settings from current Mesh and MeshWidget
+	MeshGLParams storeMeshGLParams( (MeshGLParams)mMeshVisual );
+	MeshWidgetParams storeMeshWidgetParams( (MeshWidgetParams)this );
+
+	// Let the user choose a path
+	QString     pathChoosen;
+	QStringList currFiles;
+	if( !screenshotViewsDirectoryFiles( pathChoosen, currFiles ) ) {
+		return( false );
+	}
+
+	// Enter a suffix
+	QString fileNameSuffix( "_FuncValColor");
+	QGMDialogEnterText dlgEnterTxt;
+	dlgEnterTxt.setWindowTitle( "Filename Suffix" );
+	dlgEnterTxt.setText( fileNameSuffix );
+	if( dlgEnterTxt.exec() == QDialog::Rejected ) {
+		return( false );
+	}
+	if( !dlgEnterTxt.getText( &fileNameSuffix ) ) {
+		return( false );
+	}
+
+	bool retVal = true;
+	for( int i=0; i<currFiles.size(); ++i ) {
+		QString currentFile = pathChoosen + '/' + currFiles.at(i);
+		if( !fileOpen( currentFile ) ) {
+			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: File open failed for '"
+			          << currentFile.toStdString() << "'!" << std::endl;
+			retVal = false;
+			continue;
+		}
+		if( mMeshVisual == nullptr ) {
+			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: No mesh loaded for '"
+			          << currentFile.toStdString() << "'!" << std::endl;
+			retVal = false;
+			continue;
+		}
+
+		//double minFuncValue = -0.12910306806; // Values used for HeiCuBeDa 1%
+		//double maxFuncValue = +0.48764927169; // Values used for HeiCuBeDa 99%
+		//double minFuncValue = -0.061743971965; // Values used for ErKon3D Springer LNCS 5%
+		//double maxFuncValue = 0.205966176870; // Values used for ErKon3D Springer LNCS 98%
+		//double maxFuncValue = +0.554183392987; // Values used for ErKon3D Springer LNCS
+
+		// Setup Mesh
+		this->setParamAllMeshWidget( storeMeshWidgetParams );
+		mMeshVisual->setParamAllMeshWidget( storeMeshGLParams );
+		mMeshVisual->runFunctionValueToRGBTransformation();
+
+		// Write with suffix inserted
+		int lastDot = currentFile.lastIndexOf( '.' );
+		currentFile.insert( lastDot, fileNameSuffix );
+		mMeshVisual->writeFile( currentFile );
+	}
+
+	if( retVal ) {
+		SHOW_MSGBOX_INFO( tr( "3D files in directory" ),
+		                  tr( "All files have been recolored:<br /><br />" ) +
+		                  pathChoosen );
+	} else {
+		SHOW_MSGBOX_WARN( tr( "3D files in directory" ),
+		                  tr( "Errors occured during recoloring for:<br /><br />" ) +
 		                  pathChoosen );
 	}
 

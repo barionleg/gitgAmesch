@@ -3,6 +3,7 @@ Current Version
 +) New: Meta-data export CLI options for 'gigamesh-info'. See options '-j -x -t -l -a' as well as '--help'.
 +) New: Meta-data export GUI menus. See 'File -> Export Meta-Data'.
 +) New: Option to export backgrounds with PNGs: See 'File -> Export Screenshots -> PNG - Keep Background'.
++) New: Transfer of function values to RGB for all files within a directory. See 'File -> Directory: FuncVal to RGB'.
 +) Improved: Rendering performance.
 +) Bugfix: fixed Screenshot Views (PDF with PNG+TEX), when exporting views with a vertical axis.
 +) Bugfix: fixed potential crash when exporting tif screenshots without libtiff.

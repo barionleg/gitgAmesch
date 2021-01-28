@@ -3919,13 +3919,13 @@ bool MeshQt::editMetaData() {
 		dlgEnterTxt.setText( suggestId );
 		dlgEnterTxt.setWindowTitle( tr("Model ID") );
 		if( dlgEnterTxt.exec() == QDialog::Rejected ) {
-			cout << "[MeshQt::" << __FUNCTION__ << "] CANCELED by USER!" << endl;
+			std::cout << "[MeshQt::" << __FUNCTION__ << "] CANCELED by USER!" << std::endl;
 			return( false );
 		}
 		QString newModelId;
 		if( !dlgEnterTxt.getText( &newModelId ) ) {
-			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: bad input (1)!" << endl;
-			return false;
+			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: bad input (1)!" << std::endl;
+			return( false );
 		}
 		getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_ID, newModelId.toStdString() );
 	}
@@ -3937,13 +3937,13 @@ bool MeshQt::editMetaData() {
 		dlgEnterTxt.setText( tr( "original, clay" ) );
 		dlgEnterTxt.setWindowTitle( tr("Model Material") );
 		if( dlgEnterTxt.exec() == QDialog::Rejected ) {
-			cout << "[MeshQt::" << __FUNCTION__ << "] CANCELED by USER!" << endl;
+			std::cout << "[MeshQt::" << __FUNCTION__ << "] CANCELED by USER!" << std::endl;
 			return( false );
 		}
 		QString newMaterial;
 		if( !dlgEnterTxt.getText( &newMaterial ) ) {
-			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: bad input (1)!" << endl;
-			return false;
+			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: bad input (1)!" << std::endl;
+			return( false );
 		}
 		getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_MATERIAL, newMaterial.toStdString() );
 	}
@@ -3955,17 +3955,17 @@ bool MeshQt::editMetaData() {
 	if( modelUnit.empty() ) {
 		QGMDialogEnterText dlgEnterTxt;
 		dlgEnterTxt.setText( tr( "mm" ) );
-		dlgEnterTxt.setWindowTitle( tr("Model Material") );
+		dlgEnterTxt.setWindowTitle( tr("Model Unit") );
 		if( dlgEnterTxt.exec() == QDialog::Rejected ) {
-			cout << "[MeshQt::" << __FUNCTION__ << "] CANCELED by USER!" << endl;
+			std::cout << "[MeshQt::" << __FUNCTION__ << "] CANCELED by USER!" << std::endl;
 			return( false );
 		}
-		QString newMaterial;
-		if( !dlgEnterTxt.getText( &newMaterial ) ) {
-			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: bad input (1)!" << endl;
-			return false;
+		QString newUnit;
+		if( !dlgEnterTxt.getText( &newUnit ) ) {
+			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: bad input (1)!" << std::endl;
+			return( false );
 		}
-		getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_MATERIAL, newMaterial.toStdString() );
+		getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_UNIT, newUnit.toStdString() );
 	}
 
 	return( true );
@@ -4519,13 +4519,14 @@ bool MeshQt::writeFile( const QString& rFileName ) {
 	emit statusMessage( "Saving 3D-data to " + rFileName );
 	if( !writeFile( rFileName.toStdString() ) ) {
 		emit statusMessage( "ERROR - File " + rFileName + " NOT saved." );
-		return false;
+		return( false );
 	}
+
 	QSettings settings;
 	settings.setValue( "lastPath", rFileName );
-    emit sFileChanged( QString::fromStdWString( getFullName().wstring() ), QString::fromStdWString( getBaseName().wstring() ) );
+	emit sFileChanged( QString::fromStdWString( getFullName().wstring() ), QString::fromStdWString( getBaseName().wstring() ) );
 	emit statusMessage( "3D-data saved to " + rFileName );
-	return true;
+	return( true );
 }
 
 //! Write 3D-data to file
@@ -4535,12 +4536,12 @@ bool MeshQt::writeFile( const filesystem::path& rFileName ) {
 		return( false );
 	}
 
-	cout << "[MeshQt::" << __FUNCTION__ << "] to: " << rFileName << endl;
+	std::cout << "[MeshQt::" << __FUNCTION__ << "] to: " << rFileName << std::endl;
 	if( !MeshGL::writeFile( rFileName ) ) {
-		cerr << "[MeshQt::" << __FUNCTION__ << "] could not write to file '" << rFileName << "'! " << endl;
-		return false;
+		std::cerr << "[MeshQt::" << __FUNCTION__ << "] could not write to file '" << rFileName << "'! " << std::endl;
+		return( false );
 	}
-	return true;
+	return( true );
 }
 
 // Set Flags ---------------------------------------------------------------------------------------------------------------------------------------------------

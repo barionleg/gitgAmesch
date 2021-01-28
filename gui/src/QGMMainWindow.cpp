@@ -1163,6 +1163,7 @@ void QGMMainWindow::initMeshSignals() {
 	actionScreenshotViews->setProperty(                           "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_IMAGES              );
 	actionScreenshotViewsPDF->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_PDF                 );
 	actionScreenshotViewsDirectory->setProperty(                  "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_DIRECTORY           );
+	actionDirectoryFuncValToRGB->setProperty(                     "gmMeshWidgetFunctionCall", MeshWidgetParams::DIRECTORY_FUNCVAL_TO_RGB             );
 	actionCurrentViewToDefault->setProperty(                      "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_CURRENT_VIEW_TO_DEFAULT          );
 	actionSetConeAxisCentralPixel->setProperty(                   "gmMeshWidgetFunctionCall", MeshWidgetParams::EDIT_SET_CONEAXIS_CENTRALPIXEL       );
 	actionOrthoSetDPI->setProperty(                               "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_ORTHO_DPI                        );

@@ -154,6 +154,7 @@
     <addaction name="menuExportImageStack"/>
     <addaction name="separator"/>
     <addaction name="actionScreenshotViewsDirectory"/>
+    <addaction name="actionDirectoryFuncValToRGB"/>
     <addaction name="separator"/>
     <addaction name="menuExport_Meta_Data"/>
     <addaction name="separator"/>
@@ -4197,7 +4198,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionScreenshotViewsDirectory">
    <property name="text">
-    <string>Screenshot Directory</string>
+    <string>Directory: Screenshot for all files</string>
    </property>
   </action>
   <action name="actionScreenshotPDF">
@@ -4497,6 +4498,11 @@ The latter will be shown, when the processing has finished.</string>
   <action name="actionHighDPIZoomFactor">
    <property name="text">
     <string>HighDPI Zoom Factor</string>
+   </property>
+  </action>
+  <action name="actionDirectoryFuncValToRGB">
+   <property name="text">
+    <string>Directory: FuncVal to RGB</string>
    </property>
   </action>
  </widget>
