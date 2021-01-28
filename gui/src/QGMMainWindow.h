@@ -366,12 +366,12 @@ signals:
 	void sFuncVertFeatAutoCorrVert();                        //!< Visualize Auto Correlation of Vertices features using OpenGL.
 	void sFuncVertFeatAutoCorrSelVert();                     //!< Visualize Auto-Correlation and Correlation to a selected Vertex using OpenGL.
 	void sFuncValToFeatureVector();                          //!< Assign function value to Nth feature vector component
-	//MSExp
-	void sFuncExperimentalSuppressNonMaxima();               //!< Experimental Non Maximum Suppression
-	void sFuncExperimentalComputeWatershed();                //!< Experimental Watershed
-	void sFuncExperimentalComputeClustering();               //!< Experimental Clustering
-	void sFuncExperimentalComputeRANSAC();                   //!< Experimental Wedge Extraction using RANSAC
-	void sFuncExperimentalReorderFeatureVector();            //!< Experimental Reordering of Feature Vectors
+	// Wedge extraction
+	void sFuncWedgeExtrSuppressNonMaxima();                  //!< Non Maximum Suppression
+	void sFuncWedgeExtrComputeWatershed();                   //!< Watershed
+	void sFuncWedgeExtrComputeClustering();                  //!< Clustering
+	void sFuncWedgeExtrComputeRANSAC();                      //!< Wedge Extraction using RANSAC
+	void sFuncWedgeExtrAdditionalInput();                    //!< Additional Input for Non Maximum Suppression and Watershed
 	// # Distance to plane, line, selected primitive and cone
 	void visualizeDistanceToPlane();                         //!< triggers the plane distance estimation.
 	void visualizeDistanceToCone();                          //!< triggers distance to cone estimation (if cone has been selected)

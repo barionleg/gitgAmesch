@@ -28,7 +28,6 @@ set(SOURCES_CORE mesh/geodentry.cpp
 	mesh/meshinfodata.cpp
 	mesh/mesh.cpp
 	mesh/ellipsedisc.cpp
-	mesh/wedgeextraction.cpp
 	mesh/MeshIO/MeshReader.cpp
 	mesh/MeshIO/MeshWriter.cpp
 	mesh/MeshIO/ModelMetaData.cpp
@@ -67,7 +66,6 @@ set(PUBLIC_HEADERS_CORE ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/printbuildi
 						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/logging/Logging.h
 						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/logging/Logger.h
 						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/mesh.h
-						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/wedgeextraction.h
 						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/geodentry.h
 						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/bitflagarray.h
 						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/primitive.h

@@ -291,12 +291,12 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionFeatAutoSelectedVertCorr,       SIGNAL(triggered()),   this,       SIGNAL(sFuncVertFeatAutoCorrSelVert())         ); // <- NEW naming convention based on new menu structure!
 	QObject::connect( actionFuncValToFeatureVector,         SIGNAL(triggered()),   this,       SIGNAL(sFuncValToFeatureVector())              );
 
-	// MSExp
-	QObject::connect( actionExperimentalSuppressNonMaxima,    SIGNAL(triggered()), this,       SIGNAL(sFuncExperimentalSuppressNonMaxima())   );
-	QObject::connect( actionExperimentalComputeWatershed,     SIGNAL(triggered()), this,       SIGNAL(sFuncExperimentalComputeWatershed())     );
-	QObject::connect( actionExperimentalComputeClustering,    SIGNAL(triggered()), this,       SIGNAL(sFuncExperimentalComputeClustering())    );
-	QObject::connect( actionExperimentalComputeRANSAC,        SIGNAL(triggered()), this,       SIGNAL(sFuncExperimentalComputeRANSAC())        );
-	QObject::connect( actionExperimentalReorderFeatureVector, SIGNAL(triggered()), this,       SIGNAL(sFuncExperimentalReorderFeatureVector()) );
+	// Wedge extraction
+	QObject::connect( actionWedgeExtrSuppressNonMaxima,    SIGNAL(triggered()), this,       SIGNAL(sFuncWedgeExtrSuppressNonMaxima())         );
+	QObject::connect( actionWedgeExtrComputeWatershed,     SIGNAL(triggered()), this,       SIGNAL(sFuncWedgeExtrComputeWatershed())          );
+	QObject::connect( actionWedgeExtrComputeClustering,    SIGNAL(triggered()), this,       SIGNAL(sFuncWedgeExtrComputeClustering())         );
+	QObject::connect( actionWedgeExtrComputeRANSAC,        SIGNAL(triggered()), this,       SIGNAL(sFuncWedgeExtrComputeRANSAC())             );
+	QObject::connect( actionWedgeExtrAdditionalInput,      SIGNAL(triggered()), this,       SIGNAL(sFuncWedgeExtrAdditionalInput())           );
 
 
 	//! \todo Rename regarding new menu structure.
