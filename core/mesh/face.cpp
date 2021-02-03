@@ -576,25 +576,33 @@ double Face::getAngleAtVertex( const Vertex* vertABC ) const {
 	return( 0.0 );
 }
 
-bool Face::requiresVertex( Vertex* vertexRequired ) const {
-	//! Returns true if vertexRequired matches A, B or C.
+//! Determine if the given vertex is part of this face.
+//!
+//! @returns true if vertexRequired matches A, B or C.
+bool Face::requiresVertex(
+		const Vertex *vertexRequired
+) const {
 	return vertA == vertexRequired ||
-		vertB == vertexRequired ||
-		vertC == vertexRequired;
+	       vertB == vertexRequired ||
+	       vertC == vertexRequired;
 }
 
-//! Returns true if A,B or C is within the list (set).
-bool Face::requiresOneOrMoreVerticesOf( set<Vertex*>* vertexList ) {
-	if( vertexList->find( vertA ) != vertexList->end() ) {
-		return true;
+//! Determine if one or more of the given vertices is part of this face.
+//!
+//! @returns true if A, B or C is within the list (set).
+bool Face::requiresOneOrMoreVerticesOf(
+		const std::set<Vertex*>& rVertexList
+) const {
+	if( rVertexList.find( vertA ) != rVertexList.end() ) {
+		return( true );
 	}
-	if( vertexList->find( vertB ) != vertexList->end() ) {
-		return true;
+	if( rVertexList.find( vertB ) != rVertexList.end() ) {
+		return( true );
 	}
-	if( vertexList->find( vertC ) != vertexList->end() ) {
-		return true;
+	if( rVertexList.find( vertC ) != rVertexList.end() ) {
+		return( true );
 	}
-	return false;
+	return( false );
 }
 
 //! Minimum Distance of the Distances of A, B and C to a given position.
@@ -1792,32 +1800,34 @@ bool Face::getLabelLines( set<labelLine*>* labelLineCollection ) {
 
 // Labeling using Vertex labels - specific for Faces! -----------------------------------------------------
 
+//! Returns true, when all vertices of the face belong to the same label.
+//! In this case the label id will be written to getLabelNr.
+//! Returns false otherwise - also when all vertices are tagged as "no labled".
+//! To use this method to detect label bordes, you will have to use vertLabelNoLabel().
+//!
+//! @returns true, when all vertices of the face belong to the same label.
 bool Face::vertLabelGet( uint64_t& rGetLabelNr ) const {
-	//! Returns true, when all vertices of the face belong to the same label.
-	//! In this case the label id will be written to getLabelNr.
-	//! Returns false otherwise - also when all vertices are tagged as "no labled".
-	//! To use this method to detect label bordes, you will have to use vertLabelNoLabel().
 	uint64_t labelA;
 	uint64_t labelB;
 	uint64_t labelC;
 	if( !vertA->getLabel( labelA ) ) {
 		// no label =>
-		return false;
+		return( false );
 	}
 	if( !vertB->getLabel( labelB ) ) {
 		// no label =>
-		return false;
+		return( false );
 	}
 	if( !vertC->getLabel( labelC ) ) {
 		// no label =>
-		return false;
+		return( false );
 	}
 	if( ( labelA != labelB ) || ( labelB != labelC ) || ( labelC != labelA ) ) {
 		// mixed labels =>
-		return false;
+		return( false );
 	}
 	rGetLabelNr = labelA;
-	return true;
+	return( true );
 }
 
 bool Face::vertLabelBackGround() {

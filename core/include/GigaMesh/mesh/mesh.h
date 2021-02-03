@@ -106,6 +106,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 
 		// IO Operations - overloaded from MeshIO and MeshSeedExt
 		virtual bool     writeFile( const std::filesystem::path& rFileName );
+		        bool     writeFilesForConnectedComponents();
 		virtual bool     importFeatureVectorsFromFile( const std::filesystem::path& rFileName );
 		virtual bool     exportFeatureVectors( const std::filesystem::path& rFileName );
 	private:
@@ -399,7 +400,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool         getVertBorder( std::set<Vertex*>* rSomeVerts );
 				bool         getVertFaceMinAngleLT( double rMaxAngle, std::set<Vertex*>* rSomeVerts );
 				bool         getVertFaceMaxAngleGT( double rMinAngle, std::set<Vertex*>* rSomeVerts );
-				bool         getVertLabelNo( std::set<long>& rLabelNrs, std::set<Vertex*>* rSomeVerts );
+				bool         getVertLabelNoSingle( long rLabelNr, std::set<Vertex*>& rSomeVerts );
+				bool         getVertLabelNoMulti( const std::set<long>& rLabelNrs, std::set<Vertex*>& rSomeVerts );
 				bool         getVertLabelBackGrd( std::set<Vertex*>& rSomeVerts );
 				bool         getVertLabeledNot( std::set<Vertex*>* rSomeVerts );
 				bool         getVertWithFlag( std::set<Vertex*>* rSomeVerts, ePrimitiveFlags rFlag );
@@ -413,6 +415,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool         getFaceBorderVertsEdges( std::set<Face*>& rSomeFaces, unsigned int rHasBorderVertices, unsigned int rHasBorderEdges );
 				bool         getFaceLabeledVerticesCorner( std::set<Face*>& rSomeFaces );
 				bool         getFaceZeroArea( std::set<Face*>* rSomeFaces );
+				bool         getFaceContainsVert( const std::set<Vertex*>& rSomeVerts, std::set<Face*>& rSomeFaces );
+				bool         getFaceHasVertLabelNo( const std::set<uint64_t>& rLabelNrs, std::set<Face*>& rSomeFaces );
 		//.
 				bool         getPolyNoLabel( std::set<PolyLine*>* rSomePolyLines );
 				bool         getPolyRunLenGT( std::set<PolyLine*>* rSomePolyLines, double rValue );

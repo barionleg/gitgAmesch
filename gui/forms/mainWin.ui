@@ -141,6 +141,7 @@
     <addaction name="menuFileRecent"/>
     <addaction name="actionFileReload"/>
     <addaction name="actionFileSaveAs"/>
+    <addaction name="actionSaveLabelsSeparated"/>
     <addaction name="actionSaveFlagBinary"/>
     <addaction name="actionSaveFlagGMExtras"/>
     <addaction name="actionSaveFlagTextureExport"/>
@@ -4503,6 +4504,11 @@ The latter will be shown, when the processing has finished.</string>
   <action name="actionDirectoryFuncValToRGB">
    <property name="text">
     <string>Directory: FuncVal to RGB</string>
+   </property>
+  </action>
+  <action name="actionSaveLabelsSeparated">
+   <property name="text">
+    <string>Save Labels separated</string>
    </property>
   </action>
  </widget>

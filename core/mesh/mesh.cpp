@@ -311,6 +311,9 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 		case FILE_SAVE_AS:
 			retVal = writeFileUserInteract();
 			break;
+		case EXPORT_CONNECTED_COMPONENTS:
+			retVal = writeFilesForConnectedComponents();
+			break;
 		case EXPORT_METADATA_HTML: {
 				MeshInfoData metaInfo;
 				getMeshInfoData( metaInfo, true );
@@ -1267,6 +1270,25 @@ bool Mesh::writeFile(
 	//! 4. Remove arrays.
 	MeshSeedExt::clear();
 	return retVal;
+}
+
+//! Write connected components into one file per component.
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::writeFilesForConnectedComponents() {
+	std::set<uint64_t> labelNrs = { 1 };
+	std::set<Face*> facesWithLabel;
+	bool retVal = getFaceHasVertLabelNo( labelNrs, facesWithLabel );
+	if( retVal ) {
+		Mesh meshToWrite( &facesWithLabel );
+		if( meshToWrite.writeFile( "test.ply" ) ) {
+			std::cout << "[Mesh::" << __FUNCTION__ << "] Connected component written to file." << std::endl;
+		} else {
+			std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Connected component NOT written to file!" << std::endl;
+		}
+	}
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Done." << std::endl;
+	return( false );
 }
 
 //! Import AND assign feature vectors - overloaded from MeshSeedExt.
@@ -2433,7 +2455,7 @@ bool Mesh::selectVertLabelBackGrd() {
 bool Mesh::selectVertLabelNo(
                 set<long>& rLabelNrs
 ) {
-	bool retVal = getVertLabelNo( rLabelNrs, &mSelectedMVerts );
+	bool retVal = getVertLabelNoMulti( rLabelNrs, mSelectedMVerts );
 	selectedMVertsChanged();
 	return retVal;
 }
@@ -10955,14 +10977,40 @@ bool Mesh::getVertFaceMaxAngleGT( double rMinAngle, set<Vertex*>* rSomeVerts ) {
 	return true;
 }
 
+//! Adds all vertices with a given label number to the given set.
+//! Accepts a negative index for inverted selection.
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::getVertLabelNoSingle(
+		long rLabelNr,
+		std::set<Vertex*>& rSomeVerts
+) {
+	// Step thru the vertices:
+	Vertex* currVertex;
+	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
+		currVertex = getVertexPos( vertIdx );
+		uint64_t labelNr;
+		if( currVertex->getLabel( labelNr ) ) {
+			if( ( rLabelNr < 0 ) && ( labelNr != static_cast<uint64_t>(-rLabelNr) ) ) {
+				rSomeVerts.insert( currVertex );
+			}
+			if( ( rLabelNr >= 0 ) && ( labelNr == static_cast<uint64_t>(rLabelNr) ) ) {
+				rSomeVerts.insert( currVertex );
+			}
+		}
+	}
+	return( true );
+}
+
 //! Adds all vertices with the given label numbers to the given set.
 //! Accepts negative indices for inverted selection.
 //! Attention: all numbers have to be either positive or negative!
 //! A mixture of positive and negative values will result in an error.
+//!
 //! @returns false in case of an error. True otherwise.
-bool Mesh::getVertLabelNo(
-                set<long>& rLabelNrs,
-                set<Vertex*>* rSomeVerts
+bool Mesh::getVertLabelNoMulti(
+		const std::set<long> &rLabelNrs,
+		set<Vertex*>& rSomeVerts
 ) {
 	// Convert vector to set, which will provide the find method.
 	set<long> labelsToSelect;
@@ -10979,8 +11027,8 @@ bool Mesh::getVertLabelNo(
 		}
 	}
 	if( labelNrsPositive && labelNrsNegative ) {
-		cout << "[Mesh::" << __FUNCTION__ << "] ERROR: Mixture of Negative and positive values is not applicable and therefore not allowed." << endl;
-		return false;
+		std::cout << "[Mesh::" << __FUNCTION__ << "] ERROR: Mixture of Negative and positive values is not applicable and therefore not allowed." << std::endl;
+		return( false );
 	}
 	// Step thru the vertices:
 	Vertex* currVertex;
@@ -10989,14 +11037,14 @@ bool Mesh::getVertLabelNo(
 		uint64_t labelNr;
 		if( currVertex->getLabel( labelNr ) ) {
 			if( labelNrsPositive && ( labelsToSelect.find( labelNr ) != labelsToSelect.end() ) ) {
-				rSomeVerts->insert( currVertex );
+				rSomeVerts.insert( currVertex );
 			}
 			if( labelNrsNegative && ( labelsToSelect.find( -static_cast<int64_t>(labelNr) ) == labelsToSelect.end() ) ) {
-				rSomeVerts->insert( currVertex );
+				rSomeVerts.insert( currVertex );
 			}
 		}
 	}
-	return true;
+	return( true );
 }
 
 //! Adds vertices, which are labeled background, to a given set.
@@ -11170,7 +11218,7 @@ bool Mesh::getFaceLabeledVerticesCorner(
 			rSomeFaces.insert( currFace );
 		}
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] in set:    " << rSomeFaces.size() << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] in set:    " << rSomeFaces.size() << std::endl;
 	return( true );
 }
 
@@ -11180,6 +11228,53 @@ bool Mesh::getFaceLabeledVerticesCorner(
 //! @returns false in case of an error. True otherwise.
 bool Mesh::getFaceZeroArea( set<Face*>* rSomeFaces ) {
 	return getFaceFlag( rSomeFaces, FLAG_FACE_ZERO_AREA );
+}
+
+//! Adds all faces containing the at least one of the vertices
+//! within the given set.
+//!
+//! Attention: this might become slow, when the vertex set is large!
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::getFaceContainsVert(
+		const std::set<Vertex*>& rSomeVerts,
+		std::set<Face*>& rSomeFaces
+) {
+	for( uint64_t faceIdx = 0; faceIdx < getFaceNr(); faceIdx++ ) {
+		Face* currFace = getFacePos( faceIdx );
+		if( currFace->requiresOneOrMoreVerticesOf( rSomeVerts ) ) {
+			rSomeFaces.insert( currFace );
+		}
+	}
+	std::cout << "[Mesh::" << __FUNCTION__ << "] in set:    " << rSomeFaces.size() << std::endl;
+	return( true );
+}
+
+//! Adds all faces containing vertices with the given label numbers
+//! to the given set.
+//!
+//! Note: only face with all vertices having the same label number will be added.
+//! Due to the use of Face::getLabel
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::getFaceHasVertLabelNo(
+		const std::set<uint64_t>& rLabelNrs,
+		std::set<Face*>& rSomeFaces
+) {
+	for( uint64_t faceIdx = 0; faceIdx < getFaceNr(); faceIdx++ ) {
+		Face* currFace = getFacePos( faceIdx );
+		uint64_t currLabel;
+		if( currFace->getLabel( currLabel ) ) {
+			// search for the iterator of given numbers in set
+			std::set<uint64_t>::iterator it = rLabelNrs.find( currLabel );
+			// Check if iterator it is valid
+			if( it != rLabelNrs.end() ) {
+				rSomeFaces.insert( currFace );
+			}
+		}
+	}
+	std::cout << "[Mesh::" << __FUNCTION__ << "] in set:    " << rSomeFaces.size() << std::endl;
+	return( true );
 }
 
 // --- Polylines -----------------------------------------------------------------------------------------------------------------------------------------------

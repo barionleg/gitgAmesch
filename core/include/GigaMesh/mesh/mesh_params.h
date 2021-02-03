@@ -79,6 +79,7 @@ class MeshParams {
 		// ENumerator for methods/functions to be called from else-where.
 		enum eFunctionCall {
 			FILE_SAVE_AS,                                 //!< Call writeFile related methods.
+			EXPORT_CONNECTED_COMPONENTS,                  //!< Export the labels i.e. connected components as file per component.
 			EXPORT_COORDINATES_OF_VERTICES,               //!< Export coordinates of all vertices
 			EXPORT_COORDINATES_OF_SELECTED_VERTICES,      //!< Export coordinates of selected vertices
 			EXPORT_SELPRIMS_POSITIONS,                    //!< Export positions of selected primitives
