@@ -91,13 +91,14 @@ MeshGL::~MeshGL() {
 //! Passing thru function calls from/to Mesh.
 //! Typically related GUI interaction.
 bool MeshGL::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOptional ) {
+	// Ellipsenfit
 	if( rFunctionID == MeshParams::ELLIPSENFIT_EXPERIMENTAL ) {
 		vector<pair<double,double> > ellipseCandidatePoints;
 		for( auto const& selVertex : mSelectedMVerts ) {
 			double xPos = selVertex->getPositionVector().getX();
 			double yPos = selVertex->getPositionVector().getY();
 			ellipseCandidatePoints.emplace_back( std::make_pair(xPos,yPos) );
-			cout << "[MeshGL::" << __FUNCTION__ << "] EPC: " << xPos << " " << yPos << endl;
+			std::cout << "[MeshGL::" << __FUNCTION__ << "] EPC: " << xPos << " " << yPos << std::endl;
 		}
 
 		EllipseDisc bar;
@@ -108,6 +109,13 @@ bool MeshGL::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOpti
 		bar.findEllipseParams( EllipseDisc::BOOKSTEIN, ellipseCandidatePoints );
 		bar.dumpInfo();
 	}
+
+	// Show labels after they have been determined.
+	if( rFunctionID == LABELING_LABEL_ALL ) {
+		setParamIntMeshGL( MeshGLParams::SHADER_CHOICE, MeshGLParams::SHADER_MONOLITHIC );
+		setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_LABELS );
+	}
+
 	return Mesh::callFunction( rFunctionID, rFlagOptional );
 }
 
