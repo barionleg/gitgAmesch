@@ -727,9 +727,9 @@ unsigned int Vertex::getOctreeIndex( Vector3D rCubeTopLeft, double rEdgeLen, uns
 		return 0;
 	}
 	Vector3D distToCenter = ( getPositionVector() - rCubeTopLeft ) / rEdgeLen;
-	unsigned int octInd1D = static_cast<unsigned int>(ceil( distToCenter.getX() ) +
-	                                                  ceil( distToCenter.getY() ) * rXyzCubes +
-	                                                  ceil( distToCenter.getZ() ) * rXyzCubes * rXyzCubes );
+	unsigned int octInd1D = static_cast<unsigned int>( ceil( distToCenter.getX() ) +
+	                                                   ceil( distToCenter.getY() ) * rXyzCubes +
+	                                                   ceil( distToCenter.getZ() ) * rXyzCubes * rXyzCubes );
 	return octInd1D;
 }
 
