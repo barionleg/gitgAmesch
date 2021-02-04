@@ -593,7 +593,7 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			retVal = completeRestore();
 			break;
 		case EDIT_REMOVE_SEEDED_SYNTHETIC_COMPONENTS:
-			retVal = removeSyntheticComponents( &mSelectedMVerts );
+			retVal = removeSyntheticComponents( mSelectedMVerts );
 			break;
 		case EDIT_VERTICES_RECOMPUTE_NORMALS: {
 			double radiusNormals{0.0};
@@ -1276,19 +1276,70 @@ bool Mesh::writeFile(
 //!
 //! @returns false in case of an error. True otherwise.
 bool Mesh::writeFilesForConnectedComponents() {
-	std::set<uint64_t> labelNrs = { 1 };
-	std::set<Face*> facesWithLabel;
-	bool retVal = getFaceHasVertLabelNo( labelNrs, facesWithLabel );
-	if( retVal ) {
-		Mesh meshToWrite( &facesWithLabel );
-		if( meshToWrite.writeFile( "test.ply" ) ) {
-			std::cout << "[Mesh::" << __FUNCTION__ << "] Connected component written to file." << std::endl;
-		} else {
-			std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Connected component NOT written to file!" << std::endl;
+	// Check if vertices have been selected
+	if( mSelectedMVerts.size() == 0 ) {
+		showWarning( "No selection", "No selection of multiple vertices (SelMVerts) present!" );
+		return( false );
+	}
+
+	bool userChoice;
+	if( !showQuestion( &userChoice,
+	                   "Apply labeling",
+	                   "Do you want to compute the connected components (lables)?<br /><br />Recommended: YES" ) ) {
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: User cancel!" << std::endl;
+		return( false );
+	}
+	if( userChoice ) {
+		if( !labelVerticesAll() ) {
+			std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: labeling failed!" << std::endl;
+			return( false );
 		}
 	}
+
+	std::set<uint64_t> labelNrs;
+	if( !getVertLabelIdFrom( mSelectedMVerts, labelNrs ) ) {
+		std::cout << "[Mesh::" << __FUNCTION__ << "] ERROR: getVertLabelIdFrom failed!" << std::endl;
+		return( false );
+	}
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Amount of labels: " << labelNrs.size() << std::endl;
+
+	// Inform the user if there are no connected components defined
+	if( labelNrs.size() == 0 ) {
+		showWarning( "Lables missing", "No connected components (labels) defined!" );
+		return( false );
+	}
+
+	uint fileError = 0;
+	uint fileOkay = 0;
+	for( auto const& labelNr: labelNrs ) {
+		std::set<Face*> facesWithLabel;
+		bool retVal = getFaceHasVertLabelNo( labelNr, facesWithLabel );
+		if( retVal ) {
+			filesystem::path fileName = getFullName();
+			std::stringstream suffixExtension;
+			suffixExtension << "comp." << labelNr << fileName.extension().c_str();
+			fileName.replace_extension( filesystem::path( suffixExtension.str() ) );
+			Mesh meshToWrite( &facesWithLabel );
+			if( meshToWrite.writeFile( fileName ) ) {
+				std::cout << "[Mesh::" << __FUNCTION__ << "] Connected component written to file: " << fileName.string() << std::endl;
+				fileOkay++;
+			} else {
+				std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Connected component NOT written to file " << fileName.string() << "!" << std::endl;
+				fileError++;
+			}
+		}
+	}
+
+	// Notify the user about errors.
+	if( fileError > 0 ) {
+		showWarning( "File write error(s)", "Error writing files occured!" );
+		return( false );
+	}
+
+	// Notify user about success.
+	showInformation( "Files written", "Selected connected components written to separate files." );
 	std::cout << "[Mesh::" << __FUNCTION__ << "] Done." << std::endl;
-	return( false );
+	return( true );
 }
 
 //! Import AND assign feature vectors - overloaded from MeshSeedExt.
@@ -2451,13 +2502,26 @@ bool Mesh::selectVertLabelBackGrd() {
 }
 
 //! Adds all vertices with the given label numbers to the selection - see getVertLabelNo().
+//! Allows negative indicies for inverted selection.
+//!
 //! @returns true, when vertices were added.
 bool Mesh::selectVertLabelNo(
-                set<long>& rLabelNrs
+		std::set<int64_t>& rLabelNrs
 ) {
 	bool retVal = getVertLabelNoMulti( rLabelNrs, mSelectedMVerts );
 	selectedMVertsChanged();
-	return retVal;
+	return( retVal );
+}
+
+//! Adds all vertices with the given label numbers to the selection - see getVertLabelNo().
+//!
+//! @returns true, when vertices were added.
+bool Mesh::selectVertLabelNo(
+		std::set<uint64_t>& rLabelNrs
+) {
+	bool retVal = getVertLabelNoMulti( rLabelNrs, mSelectedMVerts );
+	selectedMVertsChanged();
+	return( retVal );
 }
 
 //! Add vertices having no label no. set, which are also not background!.
@@ -10138,52 +10202,42 @@ bool Mesh::removeUncleanSmallCore(
 //! Removes synthetic connected components using given seed vertices typicall SelMVerts.
 //! This function helps to remove falsely filled holes after automatic mesh polishing.
 //! @returns false in case of an error or warning. True otherwise.
-bool Mesh::removeSyntheticComponents( set<Vertex*>* rVerticesSeeds ) {
-	// Sanity check
-	if( rVerticesSeeds == nullptr ) {
-		return false;
-	}
-	cout << "[Mesh::" << __FUNCTION__ << "] Seeds: " << rVerticesSeeds->size() << endl;
+bool Mesh::removeSyntheticComponents(
+		const std::set<Vertex *> &rVerticesSeeds
+) {
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Seeds: " << rVerticesSeeds.size() << std::endl;
 
 	//! 1.) Select all synthetic vertices and label them.
 	set<Vertex*> verticesSynthetic;
 	getVertWithFlag( &verticesSynthetic, FLAG_SYNTHETIC );
 	if( verticesSynthetic.size() <= 0 ) {
-		cout << "[Mesh::" << __FUNCTION__ << "] WARNING: No synthetic vertices detected." << endl;
-		return false;
+		std::cout << "[Mesh::" << __FUNCTION__ << "] WARNING: No synthetic vertices detected." << std::endl;
+		return( false );
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] Synthetic: " << verticesSynthetic.size() << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Synthetic: " << verticesSynthetic.size() << std::endl;
 	if( !labelSelectedVertices( verticesSynthetic, true ) ) {
-		cout << "[Mesh::" << __FUNCTION__ << "] ERROR: Labeling failed." << endl;
-		return false;
+		std::cout << "[Mesh::" << __FUNCTION__ << "] ERROR: Labeling failed." << std::endl;
+		return( false );
 	}
 
 	//! 2.) Fetch all label ids of SelMVerts.
 	//!     Ignore SelMVerts not being part of a label, because these might be wrong choices
 	//!     and would remove most of the mesh.
-	set<long> selectedLabelIds;
-	for( auto const& currVertex: mVertices ) {
-		if( rVerticesSeeds->count( currVertex ) > 0 ) {
-			uint64_t currLabelId = _NOT_A_NUMBER_UINT_;
-			if( currVertex->getLabel( currLabelId ) ) {
-				selectedLabelIds.insert( currLabelId );
-				cout << "[Mesh::" << __FUNCTION__ << "] Number of synthetic components for selection: " << currLabelId << endl;
-			}
-		}
-	}
-	cout << "[Mesh::" << __FUNCTION__ << "] Number of synthetic components selected: " << selectedLabelIds.size() << endl;
+	std::set<uint64_t> selectedLabelIds;
+	getVertLabelIdFrom( rVerticesSeeds, selectedLabelIds );
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Number of synthetic components selected: " << selectedLabelIds.size() << std::endl;
 
 	//! 3.) Select all connected components with the label ids determined in the previous step.
 	if( !selectVertLabelNo( selectedLabelIds ) ) {
-		return false;
+		return( false );
 	}
 
 	//! 4.) Remove the selection.
 	if( !removeVerticesSelected() ) {
-		return false;
+		return( false );
 	}
 
-	return true;
+	return( true );
 }
 
 //! Removes selected faces.
@@ -11009,12 +11063,12 @@ bool Mesh::getVertLabelNoSingle(
 //!
 //! @returns false in case of an error. True otherwise.
 bool Mesh::getVertLabelNoMulti(
-		const std::set<long> &rLabelNrs,
-		set<Vertex*>& rSomeVerts
+		const std::set<int64_t>& rLabelNrs,
+		std::set<Vertex*>& rSomeVerts
 ) {
 	// Convert vector to set, which will provide the find method.
-	set<long> labelsToSelect;
-	set<long>::iterator itLabelNo;
+	set<int64_t> labelsToSelect;
+	set<int64_t>::iterator itLabelNo;
 	bool labelNrsNegative = false;
 	bool labelNrsPositive = false;
 	for( itLabelNo=rLabelNrs.begin(); itLabelNo!=rLabelNrs.end(); itLabelNo++ ) {
@@ -11031,15 +11085,35 @@ bool Mesh::getVertLabelNoMulti(
 		return( false );
 	}
 	// Step thru the vertices:
-	Vertex* currVertex;
 	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
-		currVertex = getVertexPos( vertIdx );
+		Vertex* currVertex = getVertexPos( vertIdx );
 		uint64_t labelNr;
 		if( currVertex->getLabel( labelNr ) ) {
 			if( labelNrsPositive && ( labelsToSelect.find( labelNr ) != labelsToSelect.end() ) ) {
 				rSomeVerts.insert( currVertex );
 			}
 			if( labelNrsNegative && ( labelsToSelect.find( -static_cast<int64_t>(labelNr) ) == labelsToSelect.end() ) ) {
+				rSomeVerts.insert( currVertex );
+			}
+		}
+	}
+	return( true );
+}
+
+//! Adds all vertices with the given label numbers to the given set.
+//! Does NOT accept negative indices for inverted selection.
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::getVertLabelNoMulti(
+		const std::set<uint64_t>& rLabelNrs,
+		std::set<Vertex*>& rSomeVerts
+) {
+	// Step thru the vertices:
+	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
+		Vertex* currVertex = getVertexPos( vertIdx );
+		uint64_t labelNr;
+		if( currVertex->getLabel( labelNr ) ) {
+			if( rLabelNrs.find( labelNr ) != rLabelNrs.end() ) {
 				rSomeVerts.insert( currVertex );
 			}
 		}
@@ -11069,6 +11143,24 @@ bool Mesh::getVertLabeledNot( set<Vertex*>* rSomeVerts ) {
 		}
 	}
 	return true;
+}
+
+//! Fetch the label ids from a given set of vertices.
+//! @returns false in case of an error. True otherwise.
+bool Mesh::getVertLabelIdFrom(
+		const std::set<Vertex*>& rSomeVerts,
+		std::set<uint64_t>& rLabelNrs
+) {
+	for( auto const& currVertex: mVertices ) {
+		if( rSomeVerts.count( currVertex ) > 0 ) {
+			uint64_t currLabelId = _NOT_A_NUMBER_UINT_;
+			if( currVertex->getLabel( currLabelId ) ) {
+				rLabelNrs.insert( currLabelId );
+				std::cout << "[Mesh::" << __FUNCTION__ << "] Component Id for selection: " << currLabelId << std::endl;
+			}
+		}
+	}
+	return( true );
 }
 
 //! Adds vertices, which have one or more flags set.
@@ -11250,6 +11342,30 @@ bool Mesh::getFaceContainsVert(
 	return( true );
 }
 
+//! Adds all faces containing vertices with a given label number
+//! to the given set.
+//!
+//! Note: only face with all vertices having the same label number will be added.
+//! Due to the use of Face::getLabel
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::getFaceHasVertLabelNo(
+		const uint64_t rLabelNr,
+		std::set<Face*>& rSomeFaces
+) {
+	for( uint64_t faceIdx = 0; faceIdx < getFaceNr(); faceIdx++ ) {
+		Face* currFace = getFacePos( faceIdx );
+		uint64_t currLabel;
+		if( currFace->getLabel( currLabel ) ) {
+			if( rLabelNr == currLabel ) {
+				rSomeFaces.insert( currFace );
+			}
+		}
+	}
+	std::cout << "[Mesh::" << __FUNCTION__ << "] in set: " << rSomeFaces.size() << std::endl;
+	return( true );
+}
+
 //! Adds all faces containing vertices with the given label numbers
 //! to the given set.
 //!
@@ -11273,7 +11389,7 @@ bool Mesh::getFaceHasVertLabelNo(
 			}
 		}
 	}
-	std::cout << "[Mesh::" << __FUNCTION__ << "] in set:    " << rSomeFaces.size() << std::endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] in set: " << rSomeFaces.size() << std::endl;
 	return( true );
 }
 

@@ -229,7 +229,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool   selectVertFaceMaxAngleGT( double rMinAngle );
 		virtual bool   selectVertLabelNo();
 		        bool   selectVertLabelBackGrd();
-		virtual bool   selectVertLabelNo( std::set<long>& rLabelNrs );
+		virtual bool   selectVertLabelNo( std::set<int64_t> &rLabelNrs );
+		virtual bool   selectVertLabelNo( std::set<uint64_t> &rLabelNrs );
 		virtual bool   selVertLabeledNot();
 		virtual bool   selVertByFlag( ePrimitiveFlags rFlag );
 		virtual bool   selectVertInvert();
@@ -401,9 +402,11 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool         getVertFaceMinAngleLT( double rMaxAngle, std::set<Vertex*>* rSomeVerts );
 				bool         getVertFaceMaxAngleGT( double rMinAngle, std::set<Vertex*>* rSomeVerts );
 				bool         getVertLabelNoSingle( long rLabelNr, std::set<Vertex*>& rSomeVerts );
-				bool         getVertLabelNoMulti( const std::set<long>& rLabelNrs, std::set<Vertex*>& rSomeVerts );
+				bool         getVertLabelNoMulti( const std::set<int64_t> &rLabelNrs, std::set<Vertex*>& rSomeVerts );
+				bool         getVertLabelNoMulti( const std::set<uint64_t> &rLabelNrs, std::set<Vertex*>& rSomeVerts );
 				bool         getVertLabelBackGrd( std::set<Vertex*>& rSomeVerts );
 				bool         getVertLabeledNot( std::set<Vertex*>* rSomeVerts );
+				bool         getVertLabelIdFrom( const std::set<Vertex*>& rSomeVerts, std::set<uint64_t>& rLabelNrs );
 				bool         getVertWithFlag( std::set<Vertex*>* rSomeVerts, ePrimitiveFlags rFlag );
 				bool         getVertInverted( std::set<Vertex*>& rSomeVerts );
 		//.
@@ -416,6 +419,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool         getFaceLabeledVerticesCorner( std::set<Face*>& rSomeFaces );
 				bool         getFaceZeroArea( std::set<Face*>* rSomeFaces );
 				bool         getFaceContainsVert( const std::set<Vertex*>& rSomeVerts, std::set<Face*>& rSomeFaces );
+				bool         getFaceHasVertLabelNo( const uint64_t rLabelNr, std::set<Face*>& rSomeFaces );
 				bool         getFaceHasVertLabelNo( const std::set<uint64_t>& rLabelNrs, std::set<Face*>& rSomeFaces );
 		//.
 				bool         getPolyNoLabel( std::set<PolyLine*>* rSomePolyLines );
@@ -558,7 +562,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		        bool   removeUncleanSmallCore( const std::filesystem::path& rFileName, double rPercentArea, bool rApplyErosion, 
 		                                       uint64_t& rIterationCount );
 		public:
-		virtual bool   removeSyntheticComponents( std::set<Vertex*>* rVerticesSeeds );
+		virtual bool   removeSyntheticComponents( const std::set<Vertex *> &rVerticesSeeds );
 		virtual bool   removeFacesSelected();
 				bool   removeFaces( std::set<Face*>* facesToRemove );            // removal of a list of faces
 		virtual bool   removeFacesZeroArea();
