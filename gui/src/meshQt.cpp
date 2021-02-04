@@ -536,8 +536,8 @@ bool MeshQt::showEnterText(
 //! Let the user enter integer values.
 //! @returns false in case of a bad value or user cancel.
 bool MeshQt::showEnterText(
-                set<long>& rIntegers,       //!< Pointer to a set for passing values.
-                const char* rTitle          //!< Title to be shown for the dialog.
+		std::set<int64_t> &rIntegers,   //!< Pointer to a set for passing values.
+		const char* rTitle              //!< Title to be shown for the dialog.
 ) {
 	QGMDialogEnterText dlgEnterTxt;
 	if( rTitle == nullptr ) {
@@ -551,12 +551,12 @@ bool MeshQt::showEnterText(
 		dlgEnterTxt.fetchClipboard( QGMDialogEnterText::CHECK_INTEGER_MULTIPLE );
 	}
 	if( dlgEnterTxt.exec() == QDialog::Rejected ) {
-		return false;
+		return( false );
 	}
 	if( !dlgEnterTxt.getText( rIntegers ) ) {
-		return false;
+		return( false );
 	}
-	return true;
+	return( true );
 }
 
 //! Let the user enter integer values.

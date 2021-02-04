@@ -69,32 +69,32 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 
 		~MeshQt();
 
-		virtual bool readIsRegularGrid( bool* rIsGrid ); // overloaded from MeshIO
+		virtual bool readIsRegularGrid( bool* rIsGrid ) override; // overloaded from MeshIO
 
-		virtual void   polyLinesChanged();
+		virtual void polyLinesChanged() override;
 
-		virtual void   changedFaceFuncVal();
-		virtual void   changedVertFuncVal();
+		virtual void changedFaceFuncVal() override;
+		virtual void changedVertFuncVal() override;
 
 		// Progress bar - overloaded from Primitive:
-		virtual void showProgressStart( const std::string& rMsg );
-		virtual bool showProgress( double rVal, const std::string& rMsg );
-		virtual void showProgressStop( const std::string& rMsg );
+		virtual void showProgressStart( const std::string& rMsg ) override;
+		virtual bool showProgress( double rVal, const std::string& rMsg ) override;
+		virtual void showProgressStop( const std::string& rMsg ) override;
 
 		// Warnings and info from base classes:
 		virtual void showInformation( const std::string& rHead, const std::string& rMsg,
-		                              const std::string& rToClipboard="" );
-		virtual void showWarning( const std::string& rHead, const std::string& rMsg );
+		                              const std::string& rToClipboard="" ) override;
+		virtual void showWarning( const std::string& rHead, const std::string& rMsg ) override;
 		// Entering values:
-		virtual bool showEnterText( std::string&    rSomeStrg,  const char* rTitle );
-		virtual bool showEnterText( uint64_t&  rULongInt,  const char* rTitle );
-		virtual bool showEnterText( double&         rDoubleVal, const char* rTitle );
-		virtual bool showEnterText( std::set<long>&      rIntegers,  const char* rTitle );
-		virtual bool showEnterText( std::vector<long>&   rIntegers,  const char* rTitle );
-		virtual bool showEnterText( std::vector<double>& rDoubles,   const char* rTitle );
-		virtual bool showEnterText( Matrix4D* rMatrix4x4, bool selectedVerticesOnly = false );
-		virtual bool showSlider( double* rValueToChange, double rMin, double rMax, const char* rTitle );
-		virtual bool showQuestion( bool* rUserChoice, const std::string& rHead, const std::string& rMsg );
+		virtual bool showEnterText( std::string&    rSomeStrg,  const char* rTitle ) override;
+		virtual bool showEnterText( uint64_t&  rULongInt,  const char* rTitle ) override;
+		virtual bool showEnterText( double&         rDoubleVal, const char* rTitle ) override;
+		virtual bool showEnterText( std::set<int64_t>&   rIntegers,  const char* rTitle ) override;
+		virtual bool showEnterText( std::vector<long>&   rIntegers,  const char* rTitle ) override;
+		virtual bool showEnterText( std::vector<double>& rDoubles,   const char* rTitle ) override;
+		virtual bool showEnterText( Matrix4D* rMatrix4x4, bool selectedVerticesOnly = false ) override;
+		virtual bool showSlider( double* rValueToChange, double rMin, double rMax, const char* rTitle ) override;
+		virtual bool showQuestion( bool* rUserChoice, const std::string& rHead, const std::string& rMsg ) override;
 
 	public slots:
 		// Paramters:
