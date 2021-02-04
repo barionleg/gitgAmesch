@@ -720,8 +720,8 @@ double Vertex::get1RingSumAngles() {
 	return 0.0f;
 }
 
+//! Compute (one-dimensional) index of this vertex within the smallest cube of an octree.
 unsigned int Vertex::getOctreeIndex( Vector3D rCubeTopLeft, double rEdgeLen, unsigned int rXyzCubes ) {
-	//! Compute (one-dimensional) index of this vertex within the smallest cube of an octree.
 	if( rXyzCubes & 0x1 ) {
 		LOG::debug() << "[Vertex::" << __FUNCTION__ << "] ERROR: expects an even number!\n";
 		return 0;
@@ -729,7 +729,7 @@ unsigned int Vertex::getOctreeIndex( Vector3D rCubeTopLeft, double rEdgeLen, uns
 	Vector3D distToCenter = ( getPositionVector() - rCubeTopLeft ) / rEdgeLen;
 	unsigned int octInd1D = static_cast<unsigned int>(ceil( distToCenter.getX() ) +
 	                                                  ceil( distToCenter.getY() ) * rXyzCubes +
-	                                                  ceil( distToCenter.getZ() )) * rXyzCubes * rXyzCubes;
+	                                                  ceil( distToCenter.getZ() ) * rXyzCubes * rXyzCubes );
 	return octInd1D;
 }
 

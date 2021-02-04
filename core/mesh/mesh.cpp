@@ -8321,11 +8321,14 @@ bool Mesh::setVertFuncVal1RSumAngles() {
 	return( true );
 }
 
+//! Use the function value to store a sequential index for binary space
+//! partitioning (BSP) the 3D-model by an edge length of rEdgeLen.
+//!
+//! @returns false in case of an error. True otherwise.
 bool Mesh::setVertFuncValOctreeIdx( double rEdgeLen ) {
-	//! Use the function value to store a sequential index for an octree dividing the 3D-model by an edge length of rEdgeLen.
 	if( rEdgeLen <= 0.0 ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: zero and negative value not allowed!" << endl;
-		return false;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: zero and negative value not allowed!" << std::endl;
+		return( false );
 	}
 
 	unsigned int xCubes = ceil( ( mMaxX - mMinX ) / rEdgeLen );
@@ -8336,7 +8339,7 @@ bool Mesh::setVertFuncValOctreeIdx( double rEdgeLen ) {
 		// odd number => round to even
 		xyzCubes++;
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] Cubes: " << xyzCubes << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Cubes: " << xyzCubes << std::endl;
 	Vector3D cubeTopLeft = getBoundingBoxCenter() - Vector3D( xyzCubes*rEdgeLen, xyzCubes*rEdgeLen, xyzCubes*rEdgeLen, 0.0 );
 	Vertex* currVertex;
 	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
@@ -8346,7 +8349,7 @@ bool Mesh::setVertFuncValOctreeIdx( double rEdgeLen ) {
 	}
 
 	changedVertFuncVal();
-	return true;
+	return( true );
 }
 
 bool Mesh::setVertFuncValFaceSphereAngleMax( double rRadius ) {
