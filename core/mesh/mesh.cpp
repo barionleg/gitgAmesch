@@ -2475,15 +2475,15 @@ bool Mesh::selectVertFaceMaxAngleGT( double rMinAngle ) {
 //! Adds all vertices with the given label numbers to the selection - see getVertLabelNo().
 //! @returns true, when vertices were added.
 bool Mesh::selectVertLabelNo() {
-	set<long> selectedLabelIds;
+	std::set<int64_t> selectedLabelIds;
 	for( auto const& currVertex: mSelectedMVerts ) {
 		uint64_t currLabelId = _NOT_A_NUMBER_INT_;
 		if( currVertex->getLabel( currLabelId ) ) {
 			selectedLabelIds.insert( currLabelId );
-			// cout << "[Mesh::" << __FUNCTION__ << "] Label for selection: " << currLabelId << endl;
+			// std::cout << "[Mesh::" << __FUNCTION__ << "] Label for selection: " << currLabelId << std::endl;
 		}
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] Number labels selected: " << selectedLabelIds.size() << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Number labels selected: " << selectedLabelIds.size() << std::endl;
 
 	if( !showEnterText( selectedLabelIds, "Enter label numbers - negative for inverting" ) ) {
 		return( false );
