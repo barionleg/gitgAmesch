@@ -50,10 +50,10 @@ void QGMDialogEnterText::setText( const QString& rText ) {
 
 //! Sets the text field with a given set of integer values.
 void QGMDialogEnterText::setText(
-                const set<long>& rValues
+		const std::set<int64_t> &rValues
 ) {
 	QString valuesAsText;
-	for( const long& currValue: rValues ) {
+	for( auto const& currValue: rValues ) {
 		valuesAsText += QString( "%1 " ).arg( currValue );
 	}
 	someText->setText( valuesAsText );
@@ -191,7 +191,7 @@ bool QGMDialogEnterText::getText( double* rValue ) {
 //!
 //! @returns false when invalid values were entered. True otherwise.
 bool QGMDialogEnterText::getText(
-                set<long>& rSet   //!< Set to retreive the user supplied values. Will be cleared!
+		std::set<int64_t> &rSet   //!< Set to retreive the user supplied values. Will be cleared!
 ) {
 	vector<double> fetchAsDouble;
 	if( !getText( fetchAsDouble ) ) {
@@ -199,7 +199,7 @@ bool QGMDialogEnterText::getText(
 	}
 	rSet.clear();
 	for( auto const& currValueDbl: fetchAsDouble ) {
-		long currValueInt = lround( currValueDbl );
+		int64_t currValueInt = lround( currValueDbl );
 		rSet.insert( currValueInt );
 	}
 	return( true );

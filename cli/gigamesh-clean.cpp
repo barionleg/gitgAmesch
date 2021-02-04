@@ -145,7 +145,7 @@ bool cleanupGigaMeshData(
 	//----------------------------------------------------------
 	if( !keepLargestComponent ) {
 		uint64_t largestLabelId;
-		std::set<long> labelNrs;
+		std::set<int64_t> labelNrs;
 
 		// Determine connected components and select the largest
 		//----------------------------------------------------------
@@ -155,7 +155,7 @@ bool cleanupGigaMeshData(
 		// Select and remove everything except the largest component
 		//----------------------------------------------------------
 		std::cout << "[GigaMesh] Label kept: " << largestLabelId << std::endl;
-		labelNrs.insert( -static_cast<long>(largestLabelId) );
+		labelNrs.insert( -static_cast<int64_t>(largestLabelId) );
 
 		someMesh.deSelMVertsAll();
 		someMesh.selectVertLabelNo( labelNrs );
