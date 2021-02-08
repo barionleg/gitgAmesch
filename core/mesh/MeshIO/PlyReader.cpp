@@ -775,10 +775,10 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
                         if(userRelated){
                             uint64_t preMetaLen;
                             if(first){
-                                    preMetaLen = 13;
+                                    preMetaLen = 18; //13;
                                     first = false;
                             }else{
-                                    preMetaLen = 8;
+                                    preMetaLen = 13; //8;
                             }
                             std::string metaContent = lineToParseOri.substr( preMetaLen );
                             std::cout << "--------> User Data Found: " << metaContent << std::endl;

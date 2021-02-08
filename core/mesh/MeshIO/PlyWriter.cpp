@@ -147,10 +147,10 @@ bool PlyWriter::writeFile(const std::filesystem::path& rFilename, const std::vec
                                 std::istringstream ss(metaStr);
                                 std::string line;
                                 while(std::getline(ss, line)){
-                                    userMetaString += line + "\ncomment ";
+                                    userMetaString += line + "\ncomment json ";
                                 }
 
-                                filestr << "comment " << metaName << " " << userMetaString << "\n";
+                                filestr << "comment " << metaName << " json " << userMetaString << "\n";
                                 continue;
                         }
 

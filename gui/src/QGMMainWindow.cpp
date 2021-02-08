@@ -1260,15 +1260,7 @@ void QGMMainWindow::updateUser(QJsonObject data){
     emit sViewUserInfo(MeshWidgetParams::USER_INFO_STATUS, QString( "authenticated" ));
 
     QSettings settings;
-    QJsonObject userData;
     if(data.contains("id") && data.contains("name")){
-        //userData.insert("provider", provider);
-        //userData.insert("userName", data.value("login"));
-        //userData.insert("id", data.value("id"));
-        //userData.insert("fullName", data.value("name"));
-
-        //QJsonDocument doc(userData);
-        //QByteArray bytes = doc.toJson();
         settings.setValue( "userName", data.value("login").toString());
         settings.setValue( "id", data.value("id").toString());
         settings.setValue( "fullName", data.value("name").toString());
@@ -1276,27 +1268,33 @@ void QGMMainWindow::updateUser(QJsonObject data){
     }
 }
 
+
 void QGMMainWindow::saveUser(){
+
+    // create jsonObj for user data
     QSettings settings;
-
-    QJsonDocument document = QJsonDocument::fromJson(settings.value( "lastUser" ).toByteArray());
-
+    QJsonObject newUser;
+    newUser.insert("provider", settings.value("provider").toString() );
+    newUser.insert("userName", settings.value("userName").toString() );
+    newUser.insert("id", settings.value("id").toString() );
+    newUser.insert("fullName", settings.value("fullName").toString() );
 
     // get current time
-    //time_t _tm = time(NULL );
-    //struct tm * currTime = localtime ( &_tm );
+    time_t _tm = time(NULL );
+    struct tm * currTime = localtime ( &_tm );
 
-    // save user data as key:value pair -> { date : { data }}
+    // save user data as key:value pair -> User { date : { userdata } }
     QJsonObject userData = QJsonDocument::fromJson(QByteArray::fromStdString(this->mMeshWidget->getMesh()->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_USER_DATA))).object();
-    //userData.insert(asctime(currTime), obj);
+    std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] Old Meta Data: " << this->mMeshWidget->getMesh()->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_USER_DATA) << std::endl;
+    userData.insert(asctime(currTime), newUser);
 
+    //! \todo error message when no mesh loaded
     // convert to byteArray and update meta data
     QJsonDocument doc(userData);
     QByteArray bytes = doc.toJson();
     this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_DATA, bytes.toStdString() );
-
     qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Updated User Data.";
-    qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Current user: " << settings.value( "lastUser" ).toString();
+    qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Current user: " << settings.value( "userName" ).toString();
 
 }
 

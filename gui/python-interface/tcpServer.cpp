@@ -114,39 +114,34 @@ void TcpServer::connected()
 
 void TcpServer::reading(HTTP::Request *request)
 {
-	cout << endl << "[TcpServer::reading] Reading data..." << endl;
+        cout << "[TcpServer::reading] Reading data..." << endl;
 
-	bool headerEnd = false;
-	int maxSize = 1000000;
-	int bodySize = maxSize;
-	int receivedBytes = 0;
+        if(!this->socket->canReadLine()){
+            return ;
+        }
 
-	QByteArray reqHead;
+        QByteArray reqHead;
 	// wait for message body
-	while(!headerEnd){
+        while(this->socket->canReadLine()){
 		QByteArray buffer;
-		buffer = this->socket->readLine(maxSize);
+                buffer = this->socket->readLine();
 		reqHead += buffer;
 		string mess = buffer.toStdString();
 
-		// search for content length info
-		if(mess.find("Content-Length: ")!= -1){
-			bodySize = std::stoi(mess.substr(mess.find("Content-Length: ")+16,std::string::npos));
-		}
 		// search for end of message header
 		if(reqHead.toStdString().find("\r\n\r\n")!= -1){
-			headerEnd = true;
+                        break;
 		}
 	}
 
-	cout << endl << "[TcpServer::reading] Received request: " << endl;
-	qDebug() << "Header: " << reqHead;
+        cout << "[TcpServer::reading] Received Request: " << endl;
+        qDebug() << "Header: " << reqHead << "\n";
 	request->httpParser(QString(reqHead).toStdString());
 
 	QByteArray reqBody;
-	while(receivedBytes < bodySize && HTTP::method_to_string(request->getMeth()) == "POST"){
-		reqBody += this->socket->readLine(maxSize);
-		receivedBytes = reqBody.size();
+        while(this->socket->canReadLine()){
+                reqBody += this->socket->readLine();
+
 	}
 	qDebug() << "Body: " << reqBody << "\n";
 	request->setBody(reqBody.toStdString());
@@ -162,9 +157,6 @@ void TcpServer::sending(QStringList *response)
 	QByteArray mess;
 	mess += "HTTP/1.0 ";
 	mess += response->at(0).toLocal8Bit(); 
-	int numbOfBytes = response->at(1).toLocal8Bit().size()+1;
-	//mess += "Content-Length: " + QVariant(numbOfBytes).toString() + "\r\n";
-	//mess += "Content-Type: json\r\n" ;
 	mess += "\r\n\r\n" ;
 	mess += response->at(1).toLocal8Bit();
 	mess += "\r\n\r\n" ;
@@ -225,13 +217,14 @@ bool TcpServer::authenticateUser(QString *username, QGMMainWindow::Provider *pro
             scope = "public+write";
             break;
         case QGMMainWindow::ORCID:
-            authorizationUrlBase = "https://orcid.org/oauth/authorize";
+            // orcid id: 0000-0002-3045-7920
+            authorizationUrlBase = "https://sandbox.orcid.org/oauth/authorize";
             accessTokenUrlBase = "https://orcid.org/oauth/token";
             userDataUrlBase = "https://api.gitlab.com/user";
             clientId = "APP-QTDRZ74P88AWIDF8";
             clientSecret = "38c556d3-ec89-4666-aff0-30d2e44c1750";
-            scope = "/authenticate";
-            redirectURI = "https://localhost:8080/authorize"; // orcid requests http(s)!
+            scope = "/read-limited";
+            //redirectURI = "https://localhost:8080/authorize"; // orcid requests http(s)!
             break;
         case QGMMainWindow::REDDIT:
             authorizationUrlBase = "https://www.reddit.com/api/v1/authorize";
@@ -267,27 +260,25 @@ bool TcpServer::authenticateUser(QString *username, QGMMainWindow::Provider *pro
 
         QDesktopServices::openUrl(QUrl(authorizationUrl));
 
-        string code;
         QObject::connect(this, &TcpServer::codeReceived, this, [=](string code){
+
+            QSettings settings;
+            settings.setValue("code", QString::fromStdString(code));
             QNetworkAccessManager *manager = new QNetworkAccessManager(this);
 
-            string s;
-            s += code;
-            cout << "[TcpServer:authenticateUser] Code Received: " << s << endl;
+            cout << "[TcpServer:authenticateUser] Code Received: " << code << endl;
 
-            QString pars = "?clientId=" + clientId + "&clientSecret=" + clientSecret + "&code=" + QString::fromStdString(s);
-
+            QString pars = "?clientId=" + clientId + "&clientSecret=" + clientSecret + "&code=" + QString::fromStdString(code);
             QString accessTokenUrl = accessTokenUrlBase + pars;
             qDebug() << "[TcpServer:RequestAccessToken] Via: " << accessTokenUrl;
 
             QNetworkRequest request(accessTokenUrlBase);
-
             request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
 
             QUrlQuery params;
             params.addQueryItem("client_id", clientId);
             params.addQueryItem("client_secret", clientSecret);
-            params.addQueryItem("code", QString::fromStdString(s));
+            params.addQueryItem("code", QString::fromStdString(code));
             params.addQueryItem("redirect_uri", redirectURI);
 
             QObject::connect(manager, &QNetworkAccessManager::finished, this, &TcpServer::readToken);
@@ -305,13 +296,24 @@ bool TcpServer::authenticateUser(QString *username, QGMMainWindow::Provider *pro
 
         QString userDataUrl = QString::fromStdString(userDataUrlBase + "?token=" + token);
         QNetworkRequest request(userDataUrl);
-        qDebug() << "TcpServer::authorizeUser] Requesting User Data via: " << userDataUrl;
+        qDebug() << "[TcpServer::authorizeUser] Requesting User Data via: " << userDataUrl;
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
         request.setRawHeader(QByteArray("Authorization"),  QByteArray::fromStdString("token " + token));
 
         QObject::connect(manager, &QNetworkAccessManager::finished, this, &TcpServer::readUserData);
 
-        manager->get(request);
+        QFile file("../../gui/python-interface/website.html");
+        QString dataToSend;
+        if(!file.open(QIODevice::ReadOnly)){
+            qDebug() << "Current path:" << QDir::currentPath();
+            QMessageBox::information(0, "error", file.errorString());
+        }else{
+            QTextStream in(&file);
+            dataToSend = in.readAll();
+            qDebug() << "[TcpServer::authorizeUser] Opened File: " << dataToSend;
+        }
+
+        manager->get(request); // , dataToSend.toUtf8());
     });
 
     if(refreshing){
