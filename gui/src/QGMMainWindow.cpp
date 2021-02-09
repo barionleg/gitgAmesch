@@ -338,13 +338,13 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( this,      &QGMMainWindow::sGuideIDSelection,                                 mDockInfo, &QGMDockInfo::setGuideIDSelection                                );
 	QObject::connect( this,      &QGMMainWindow::sShowProgressStart,                                mDockInfo, &QGMDockInfo::showProgressStart                                  );
 	QObject::connect( this,      &QGMMainWindow::sShowProgress,                                     mDockInfo, &QGMDockInfo::showProgress                                       );
-	QObject::connect( this,      &QGMMainWindow::sShowProgressStop,                                 mDockInfo, &QGMDockInfo::showProgressStop                                   );
-        QObject::connect( this,      &QGMMainWindow::sViewUserInfo,                                     mDockInfo, &QGMDockInfo::viewUserInfo                                       );
+        QObject::connect( this,      &QGMMainWindow::sShowProgressStop,                                 mDockInfo, &QGMDockInfo::showProgressStop                                   );
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
 	// --- DOCK Widgets: Viewport --------------------------------------------------------------------------------------------------------------------------
 	mDockView = new QGMDockView( this );
 	addDockWidget( Qt::LeftDockWidgetArea, mDockView );
+        QObject::connect( this,      &QGMMainWindow::sViewUserInfo,                             mDockView, &QGMDockView::viewUserInfo                                  );
 	QObject::connect( this, SIGNAL(sViewPortInfo(MeshWidgetParams::eViewPortInfo,QString)), mDockView, SLOT(viewPortInfo(MeshWidgetParams::eViewPortInfo,QString)) );
 	QObject::connect( this, SIGNAL(sInfoMesh(MeshGLParams::eInfoMesh,QString)),             mDockView, SLOT(infoMesh(MeshGLParams::eInfoMesh,QString))             );
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1220,18 +1220,31 @@ bool QGMMainWindow::setupMeshWidget( const QGLFormat& rGLFormat ) {
 	return true;
 }
 
-std::ostream& operator<<(std::ostream out, QGMMainWindow::Provider p){
+std::ostream& operator<<(std::ostream out, Provider p){
 
     switch(p){
-        case QGMMainWindow::GITHUB: out << "GITHUB"; break;
-        case QGMMainWindow::GITLAB: out << "GITLAB"; break;
-        case QGMMainWindow::ORCID: out << "ORCID"; break;
-        case QGMMainWindow::REDDIT: out << "REDDIT"; break;
-        case QGMMainWindow::MATTERMOST: out << "MATTERMOST"; break;
+        case GITHUB: out << "GITHUB"; break;
+        case GITLAB: out << "GITLAB"; break;
+        case ORCID: out << "ORCID"; break;
+        case REDDIT: out << "REDDIT"; break;
+        case MATTERMOST: out << "MATTERMOST"; break;
         default: out << int(p); break;
     }
 
     return out;
+}
+
+std::string providerAsString(Provider p){
+
+    switch(p){
+        case GITHUB: return "GITHUB";
+        case GITLAB: return "GITLAB";
+        case ORCID: return "ORCID";
+        case REDDIT: return "REDDIT";
+        case MATTERMOST: return "MATTERMOST";
+        default: return "NA";
+    }
+
 }
 
 void QGMMainWindow::authenticate(){
@@ -1239,8 +1252,6 @@ void QGMMainWindow::authenticate(){
     QSettings settings;
     bool ok;
     cout << "[QGMMainWindow::" << __FUNCTION__ << "] Last user: " << settings.value( "userName" ).toString().toStdString() << endl;
-
-    //QString username = QInputDialog::getText(this, tr("Github Authentication"), tr("Username: "), QLineEdit::Normal, QDir::home().dirName(), &ok);
 
     Provider provider;
 
@@ -1257,14 +1268,14 @@ void QGMMainWindow::authenticate(){
 void QGMMainWindow::updateUser(QJsonObject data){
     qDebug() << "[QGMMainWindow] Authentication successful.";
 
-    emit sViewUserInfo(MeshWidgetParams::USER_INFO_STATUS, QString( "authenticated" ));
-
     QSettings settings;
     if(data.contains("id") && data.contains("name")){
         settings.setValue( "userName", data.value("login").toString());
         settings.setValue( "id", data.value("id").toString());
         settings.setValue( "fullName", data.value("name").toString());
-        emit sViewUserInfo(MeshWidgetParams::USER_INFO_USER_NAME, settings.value("userName").toString());
+        std::string s(providerAsString(static_cast<Provider>(settings.value("provider").toInt())));
+        QString userInfo = settings.value("userName").toString() + QString("@") + QString::fromStdString(s) ;
+        emit sViewUserInfo(MeshWidgetParams::USER_INFO_USER_NAME, userInfo);
     }
 }
 

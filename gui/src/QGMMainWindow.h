@@ -67,6 +67,15 @@ class QNetworkReply;
 //! Layer 3
 //!
 
+
+enum Provider {GITHUB, GITLAB, ORCID, REDDIT, MATTERMOST};
+
+std::string providerAsString(Provider p);
+
+std::ostream& operator<<(std::ostream& out, Provider p);
+
+
+
 class QGMMainWindow : public QMainWindow, public Ui::MainWindow {
     Q_OBJECT
 
@@ -81,7 +90,6 @@ private:
 public:
 	bool setupMeshWidget( const QGLFormat& rGLFormat );
 	MeshWidget* getWidget();
-	enum Provider {GITHUB, GITLAB, ORCID, REDDIT, MATTERMOST};
 
 protected:
 	virtual void closeEvent( QCloseEvent* rEvent );
@@ -501,7 +509,5 @@ private:
 	protected:
 	virtual void changeEvent(QEvent* event) override;
 };
-
-std::ostream& operator<<(std::ostream& out, QGMMainWindow::Provider p);
 
 #endif

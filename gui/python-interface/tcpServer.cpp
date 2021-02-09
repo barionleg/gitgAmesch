@@ -69,7 +69,7 @@ TcpServer::TcpServer(QObject *parent) :
 
         QSettings settings;
         QString user = settings.value("userName").toString();
-        QGMMainWindow::Provider prov = static_cast<QGMMainWindow::Provider>( settings.value("provider").toInt() );
+        Provider prov = static_cast<Provider>( settings.value("provider").toInt() );
         refreshing = true;
         emit authenticateUser(&user, &prov);
     }
@@ -185,7 +185,7 @@ void TcpServer::newConnection()
 }
 
 
-bool TcpServer::authenticateUser(QString *username, QGMMainWindow::Provider *provider)
+bool TcpServer::authenticateUser(QString *username, Provider *provider)
 {
     QSettings settings;
     QString clientId = "f31165013adac0da36ed";
@@ -199,7 +199,7 @@ bool TcpServer::authenticateUser(QString *username, QGMMainWindow::Provider *pro
 
     switch(*provider)
     {
-        case QGMMainWindow::GITHUB:
+        case GITHUB:
             authorizationUrlBase = "https://github.com/login/oauth/authorize";
             accessTokenUrlBase = "https://github.com/login/oauth/access_token";
             userDataUrlBase = "https://api.github.com/user";
@@ -207,7 +207,7 @@ bool TcpServer::authenticateUser(QString *username, QGMMainWindow::Provider *pro
             clientSecret = "32d6f2a7939c1b40cae13c20a36d4cd32942e60d";
             scope = "user";
             break;
-        case QGMMainWindow::GITLAB:
+        case GITLAB:
             authorizationUrlBase = "https://gitlab.com/oauth/authorize";
             accessTokenUrlBase = "https://gitlab.com/oauth/token";
             userDataUrlBase = "https://gitlab.com/api/v4";
@@ -216,7 +216,7 @@ bool TcpServer::authenticateUser(QString *username, QGMMainWindow::Provider *pro
             clientSecret = "c29a631dbcec4349c38d";
             scope = "public+write";
             break;
-        case QGMMainWindow::ORCID:
+        case ORCID:
             // orcid id: 0000-0002-3045-7920
             authorizationUrlBase = "https://sandbox.orcid.org/oauth/authorize";
             accessTokenUrlBase = "https://orcid.org/oauth/token";
@@ -226,7 +226,7 @@ bool TcpServer::authenticateUser(QString *username, QGMMainWindow::Provider *pro
             scope = "/read-limited";
             //redirectURI = "https://localhost:8080/authorize"; // orcid requests http(s)!
             break;
-        case QGMMainWindow::REDDIT:
+        case REDDIT:
             authorizationUrlBase = "https://www.reddit.com/api/v1/authorize";
             accessTokenUrlBase = "https://www.reddit.com/api/v1/access_token";
             userDataUrlBase = "https://api.gitlab.com/user";
@@ -234,7 +234,7 @@ bool TcpServer::authenticateUser(QString *username, QGMMainWindow::Provider *pro
             clientSecret = "BKHdqqbTEu1pkvbwSlx5_QIUKKwolA";
             scope = "read edit";
             break;
-        case QGMMainWindow::MATTERMOST:
+        case MATTERMOST:
             authorizationUrlBase = "http://localhost:8080/api/v4/users/login";
             accessTokenUrlBase = "";
             userDataUrlBase = "";

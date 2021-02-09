@@ -41,7 +41,7 @@ public slots:
     void reading(HTTP::Request *request);
     void sending(QStringList *response);
     std::string statusCodeAsString(httpStatusCode c);
-	bool authenticateUser(QString *username, QGMMainWindow::Provider *provider);
+	bool authenticateUser(QString *username, Provider *provider);
 	void readToken(QNetworkReply *reply);
 	void readUserData(QNetworkReply *reply);
 

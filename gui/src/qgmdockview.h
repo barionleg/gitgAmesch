@@ -40,6 +40,7 @@ public:
 	~QGMDockView();
 
 public slots:
+	void viewUserInfo(const MeshWidgetParams::eViewUserInfo rInfoID, const QString& rInfoString );
 	void viewPortInfo(const MeshWidgetParams::eViewPortInfo rInfoID, const QString& rInfoString );
 	void infoMesh(const MeshGLParams::eInfoMesh rInfoID, const QString& rInfoString );
 

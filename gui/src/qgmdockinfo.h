@@ -41,7 +41,6 @@ public:
 	~QGMDockInfo();
 
 public slots:
-	void viewUserInfo(const MeshWidgetParams::eViewUserInfo rInfoID, const QString& rInfoString );
 	// ---- Mouse Mode ------------------------------------------------------------------------
 	void selectMouseModeDefault();
 	void selectMouseModeExtra( bool rActive, MeshWidgetParams::eMouseModes rMode );
