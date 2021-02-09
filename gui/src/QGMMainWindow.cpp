@@ -1256,6 +1256,7 @@ void QGMMainWindow::logInOut(){
         settings.setValue( "id", "-");
         settings.setValue( "fullName", "-");
         settings.setValue( "provider", "-");
+        settings.setValue( "token", "-");
         emit sViewUserInfo(MeshWidgetParams::USER_INFO, "-");
         emit sViewUserInfo(MeshWidgetParams::USER_LOGIN, "Log in");
     }else{
