@@ -185,10 +185,8 @@ class MeshWidgetParams {
 		};
 
 		enum eViewUserInfo {
-			USER_INFO_FULL_NAME,
-			USER_INFO_USER_NAME,
-			USER_INFO_PROVIDER,
-			USER_INFO_STATUS		
+			USER_INFO,
+			USER_LOGIN	
 		};
 
 		// ENumerator for methods/functions to be called from else-where.

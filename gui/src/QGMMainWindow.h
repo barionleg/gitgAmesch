@@ -111,6 +111,7 @@ public slots:
 	void menuImportFeatureVectors();
 	void menuImportNormalVectors();
 	void updateUser(QJsonObject data);
+	void logInOut();
 
 	// --- MENU - MeshWidget --------------------------------------------------------------------------------------------------------------------------------
 	bool setMeshWidgetFlag( QAction* rAction );
@@ -504,6 +505,7 @@ private:
 
 	// Network access e.g. for checking the version number.
 	QNetworkAccessManager* mNetworkManager;          //! manages simple http-request (cf. version number)
+	bool loggedIn = false;
 
 	// QWidget interface
 	protected:

@@ -345,7 +345,9 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	mDockView = new QGMDockView( this );
 	addDockWidget( Qt::LeftDockWidgetArea, mDockView );
         QObject::connect( this,      &QGMMainWindow::sViewUserInfo,                             mDockView, &QGMDockView::viewUserInfo                                  );
-	QObject::connect( this, SIGNAL(sViewPortInfo(MeshWidgetParams::eViewPortInfo,QString)), mDockView, SLOT(viewPortInfo(MeshWidgetParams::eViewPortInfo,QString)) );
+        //! todo: connect login button
+        QObject::connect( mDockView, &QGMDockView::sLogInOut,                                   this, &QGMMainWindow::logInOut                                         );
+        QObject::connect( this, SIGNAL(sViewPortInfo(MeshWidgetParams::eViewPortInfo,QString)), mDockView, SLOT(viewPortInfo(MeshWidgetParams::eViewPortInfo,QString)) );
 	QObject::connect( this, SIGNAL(sInfoMesh(MeshGLParams::eInfoMesh,QString)),             mDockView, SLOT(infoMesh(MeshGLParams::eInfoMesh,QString))             );
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1173,7 +1175,6 @@ void QGMMainWindow::initMeshSignals() {
 	actionBackGroundGridNone->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_GRID_NONE                    );
 
         // --- Github userdata check --------------------------------------------------------------------------------------------------------------
-
         QObject::connect( actionMetaDataEditUser, &QAction::triggered, this, &QGMMainWindow::saveUser);
         QObject::connect( actionAuthorizeUser, &QAction::triggered, this, &QGMMainWindow::authenticate);
         QObject::connect(this, &QGMMainWindow::authentication, this, &QGMMainWindow::authenticate);
@@ -1247,6 +1248,21 @@ std::string providerAsString(Provider p){
 
 }
 
+void QGMMainWindow::logInOut(){
+    QSettings settings;
+    if(loggedIn){
+        loggedIn = false;
+        settings.setValue( "userName", "-");
+        settings.setValue( "id", "-");
+        settings.setValue( "fullName", "-");
+        settings.setValue( "provider", "-");
+        emit sViewUserInfo(MeshWidgetParams::USER_INFO, "-");
+        emit sViewUserInfo(MeshWidgetParams::USER_LOGIN, "Log in");
+    }else{
+        emit authenticate();
+    }
+}
+
 void QGMMainWindow::authenticate(){
 
     QSettings settings;
@@ -1275,7 +1291,9 @@ void QGMMainWindow::updateUser(QJsonObject data){
         settings.setValue( "fullName", data.value("name").toString());
         std::string s(providerAsString(static_cast<Provider>(settings.value("provider").toInt())));
         QString userInfo = settings.value("userName").toString() + QString("@") + QString::fromStdString(s) ;
-        emit sViewUserInfo(MeshWidgetParams::USER_INFO_USER_NAME, userInfo);
+        loggedIn = true;
+        emit sViewUserInfo(MeshWidgetParams::USER_INFO, userInfo);
+        emit sViewUserInfo(MeshWidgetParams::USER_LOGIN, "Log out");
     }
 }
 

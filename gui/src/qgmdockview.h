@@ -39,6 +39,9 @@ public:
 	explicit QGMDockView(QWidget *parent = 0);
 	~QGMDockView();
 
+signals:
+	void sLogInOut();
+
 public slots:
 	void viewUserInfo(const MeshWidgetParams::eViewUserInfo rInfoID, const QString& rInfoString );
 	void viewPortInfo(const MeshWidgetParams::eViewPortInfo rInfoID, const QString& rInfoString );
