@@ -10,12 +10,10 @@ license=('unknown')
 groups=()
 depends=(
  'libtiff'
- 'cairo'
  'qt5-base'
 )
 makedepends=(
  'cmake'
- 'boost'
 )
 checkdepends=()
 optdepends=(

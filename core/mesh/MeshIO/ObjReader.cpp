@@ -29,10 +29,43 @@
 #include <clocale>
 #include <list>
 #include <filesystem>
+#include <map>
 
 #include "MtlParser.h"
 #include <GigaMesh/logging/Logging.h>
 using namespace std;
+
+struct ObjVertexPosition {
+		double x = _NOT_A_NUMBER_DBL_;
+		double y = _NOT_A_NUMBER_DBL_;
+		double z = _NOT_A_NUMBER_DBL_;
+		double funcVal = 0.0;
+		unsigned char r = 187;
+		unsigned char g = 187;
+		unsigned char b = 187;
+};
+
+struct ObjNormal {
+		double x = _NOT_A_NUMBER_DBL_;
+		double y = _NOT_A_NUMBER_DBL_;
+		double z = _NOT_A_NUMBER_DBL_;
+};
+
+struct ObjTexCoord {
+	float s = _NOT_A_NUMBER_;
+	float t = _NOT_A_NUMBER_;
+};
+
+struct ObjFaceVertex {
+		ptrdiff_t v  = -1;
+		ptrdiff_t vn = -1;
+		ptrdiff_t vt = -1;
+};
+
+struct ObjFace {
+		std::list<ObjFaceVertex> vertices;
+		unsigned char textureId = 0;
+};
 
 //tokens 0 : "f" tag for face, 1 ... n-1: obj face triple v1/vt1/vn1 ...
 //----------------------------
@@ -42,91 +75,194 @@ using namespace std;
 // f v1/vt1 v2/vt2 v3/vt3 ...
 // f v1//vn1 v2//vn2 v3//vn3 ...
 // f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3 ....
-bool parseFaceProperty(const std::vector<std::string>& tokens, size_t faceIdx, std::vector<sFaceProperties>& rFaceProps, const std::vector<float>& textureCoordinates, MtlMaterial* material, std::unordered_map<std::string, unsigned char>& textureToIdMap)
+inline ObjFace parseFaceProperty(const std::vector<std::string>& tokens, MtlMaterial* material, std::unordered_map<std::string, unsigned char>& textureToIdMap)
 {
-	std::list<int> vertIndices;
-	std::list<int> texCoordIndices;
-	std::list<int> normalIndices;
-
-	unsigned char textureId = 0;
+	ObjFace face;
 
 	if(material != nullptr)
 	{
 		if(!material->map_Kd.empty())
 		{
-			textureId = textureToIdMap[material->map_Kd];
+			face.textureId = textureToIdMap[material->map_Kd];
 		}
 	}
 
-	for( size_t i = 1; i<tokens.size(); ++i)
+	for(size_t i = 1; i<tokens.size(); ++i)
 	{
 		std::stringstream tokenStream(tokens[i]);
-		int index;
+
+		const auto tokenToValue = [&](ptrdiff_t& val) {
+			tokenStream >> val >> std::ws;
+			val -= 1;
+		};
+
 		while(!tokenStream.eof())
 		{
-			tokenStream >> index >> std::ws;
-			vertIndices.push_back(index - 1);
-			if(tokenStream.peek() == '/')	//check for first '/' => there are textureCoordinates/normals
+			ObjFaceVertex faceVert;
+			tokenToValue(faceVert.v);
+
+			if(tokenStream.peek() == '/') //check for first '/' => there are textureCoordinates/normals
 			{
 				tokenStream.get();
 				if(tokenStream.peek() == '/') //check if immediate '/' => no texturecoordinates
 				{
-					texCoordIndices.push_back(-1);
 					tokenStream.get();
-					tokenStream >> index >> std::ws;
-					normalIndices.push_back(index - 1);
+					tokenToValue(faceVert.vn);
 				}
-				else	//we have texturecoordinates
+				else //we have texturecoordinates
 				{
-					tokenStream >> index >> std::ws;
-					texCoordIndices.push_back(index - 1);
-
-					if(tokenStream.peek() == '/') //we have normals
+					tokenToValue(faceVert.vt);
+					if(tokenStream.peek() == '/') //and we have normals
 					{
 						tokenStream.get();
-						tokenStream >> index >> std::ws;
-						normalIndices.push_back(index - 1);
-					}
-					else
-					{
-						normalIndices.push_back(-1);
+						tokenToValue(faceVert.vn);
 					}
 				}
 			}
-			else //no texture-coordinates or normals
-			{
-				texCoordIndices.push_back(-1);
-				normalIndices.push_back(-1);
-			}
+
+
+			face.vertices.emplace_back(faceVert);
 		}
+
 	}
 
-	if(vertIndices.size() < 3)
-		return false;
+	return face;
+}
 
-	rFaceProps[faceIdx].vertexIndices.reserve(vertIndices.size());
-	std::copy(vertIndices.begin(), vertIndices.end(), std::back_inserter(rFaceProps[faceIdx].vertexIndices));
-
-	if(!textureCoordinates.empty())
+inline ObjVertexPosition parseVertexProperty(const std::vector<std::string>& tokens)
+{
+	ObjVertexPosition vertex;
+	if(tokens.size() >= 4)
 	{
-		rFaceProps[faceIdx].textureCoordinates.reserve(texCoordIndices.size() * 2);
+		vertex.x = std::stod(tokens[1]);
+		vertex.y = std::stod(tokens[2]);
+		vertex.z = std::stod(tokens[3]);
+	}
+	if(tokens.size() > 6)
+	{
+		vertex.r = std::stoi(tokens[4]);
+		vertex.g = std::stoi(tokens[5]);
+		vertex.b = std::stoi(tokens[6]);
+	}
 
-		for(auto texIndex : texCoordIndices)
+	if( ( tokens.size() == 5 ) || ( tokens.size() == 8 ) ) { // There is function value at the end of the line
+		vertex.funcVal = std::stod(tokens.back());
+	}
+
+	return vertex;
+}
+
+inline ObjNormal parseNormalProperty(const std::vector<std::string>& tokens)
+{
+	ObjNormal normal;
+	if(tokens.size() >= 4)
+	{
+		normal.x = std::stod(tokens[1]);
+		normal.y = std::stod(tokens[2]);
+		normal.z = std::stod(tokens[3]);
+	}
+
+	return normal;
+}
+
+inline ObjTexCoord parseTextureCoordinate(const std::vector<std::string>& tokens)
+{
+	ObjTexCoord texCoord;
+	if(tokens.size() >= 3)
+	{
+		texCoord.s = std::stof(tokens[1]);
+		texCoord.t = std::stof(tokens[2]);
+	}
+
+	return texCoord;
+}
+
+inline sVertexProperties genVertexProperty(const std::pair<ptrdiff_t, ptrdiff_t>& posNormalID,
+                                           const std::vector<ObjVertexPosition>& objVertices,
+                                           const std::vector<ObjNormal>& objNormals)
+{
+	sVertexProperties vertProp;
+	const auto& vertex = objVertices[posNormalID.first];
+	vertProp.mCoordX = vertex.x;
+	vertProp.mCoordY = vertex.y;
+	vertProp.mCoordZ = vertex.z;
+
+	vertProp.mColorRed = vertex.r;
+	vertProp.mColorGrn = vertex.g;
+	vertProp.mColorBle = vertex.b;
+	vertProp.mColorAlp = 255;
+
+	vertProp.mFuncVal = vertex.funcVal;
+
+	if(posNormalID.second >= 0)
+	{
+		const auto& normal = objVertices[posNormalID.second];
+		vertProp.mNormalX = normal.x;
+		vertProp.mNormalY = normal.y;
+		vertProp.mNormalZ = normal.z;
+	}
+
+	return vertProp;
+}
+
+//! TODO: use this
+inline void copyObjToMeshProperties(const std::vector<ObjVertexPosition>& objVertices,
+                                    const std::vector<ObjNormal>& objNormals,
+                                    const std::vector<ObjTexCoord>& objTexCoords,
+                                    const std::vector<ObjFace>& objFaces,
+                                    std::vector<sVertexProperties>& vertexProperties,
+                                    std::vector<sFaceProperties>& faceProperties)
+{
+	size_t vertexIdx = 0;
+	std::map<std::pair<ptrdiff_t,ptrdiff_t>, size_t> posNormalPairToIdMap;
+
+	vertexProperties.reserve(objVertices.size() * 2);
+	faceProperties.  reserve(   objFaces.size()    );
+
+	for(const auto& objFace : objFaces)
+	{
+		sFaceProperties faceProp;
+		faceProp.textureId = objFace.textureId;
+		faceProp.vertexIndices.reserve(objFace.vertices.size());
+
+		const bool hasTexture = objFace.vertices.begin()->vt >= 0;
+
+		if(hasTexture)
 		{
-			float uvX = 0.0F;
-			float uvY = 0.0F;
+			faceProp.textureCoordinates.reserve(objFace.vertices.size() * 2);
+		}
 
-			if(texIndex >= 0)
+		for(const auto& faceVertex : objFace.vertices)
+		{
+			std::pair<ptrdiff_t, ptrdiff_t> posNormalId = std::make_pair(faceVertex.v, faceVertex.vn);
+
+			auto it = posNormalPairToIdMap.find(posNormalId);
+
+			if(it != posNormalPairToIdMap.end())
 			{
-				uvX = textureCoordinates[texIndex * 2    ];
-				uvY = textureCoordinates[texIndex * 2 + 1];
+				faceProp.vertexIndices.push_back(it->second);
+			}
+			else
+			{
+				posNormalPairToIdMap[posNormalId] = vertexIdx;
+				faceProp.vertexIndices.push_back(vertexIdx);
+				++vertexIdx;
+
+				vertexProperties.emplace_back(genVertexProperty(posNormalId,objVertices,objNormals));
 			}
 
-			rFaceProps[faceIdx].textureCoordinates.push_back(uvX);
-			rFaceProps[faceIdx].textureCoordinates.push_back(uvY);
+			if(hasTexture)
+			{
+				faceProp.textureCoordinates.push_back(objTexCoords[faceVertex.vt].s);
+				faceProp.textureCoordinates.push_back(objTexCoords[faceVertex.vt].t);
+			}
 		}
+
+		faceProperties.emplace_back(faceProp);
 	}
-	return true;
+
+	vertexProperties.shrink_to_fit();
+	faceProperties.shrink_to_fit();
 }
 
 //! Reads an plain-text Alias Wavefront OBJ file.
@@ -147,14 +283,14 @@ bool ObjReader::readFile(const std::filesystem::path &rFilename, std::vector<sVe
 	std::unordered_map<std::string, MtlMaterial> materials;
 
 	// Counters for .OBJ elements and lines:
-	unsigned int  obj_linesTotal            = 0;
-	unsigned int  obj_linesIgnoredTotal     = 0;
-	unsigned int  obj_linesUnsupportedTotal = 0;
-	uint64_t  obj_verticesTotal         = 0;
-	unsigned int  objVerticesNormalsTotal   = 0;
-	unsigned int  objTexCoordsTotal = 0;
-	size_t  objFacesTotal             = 0;
-	unsigned int  obj_commentsTotal         = 0;
+	size_t  obj_linesTotal            = 0;
+	size_t  obj_linesIgnoredTotal     = 0;
+	size_t  obj_linesUnsupportedTotal = 0;
+	size_t  obj_verticesTotal         = 0;
+	size_t  obj_VerticesNormalsTotal  = 0;
+	size_t  obj_TexCoordsTotal        = 0;
+	size_t  obj_FacesTotal            = 0;
+	size_t  obj_commentsTotal         = 0;
 
 	// functionality:
 	ifstream fp( rFilename );
@@ -175,9 +311,9 @@ bool ObjReader::readFile(const std::filesystem::path &rFilename, std::vector<sVe
 		fp >> linePrefix;
 		// Vertex Data -------------------------------------------------------------------------
 		if( linePrefix == "vt" ) {           // texture vertices
-			++objTexCoordsTotal;
+			++obj_TexCoordsTotal;
 		} else if( linePrefix == "vn" ) {     // vertex normals
-			++objVerticesNormalsTotal;
+			++obj_VerticesNormalsTotal;
 		} else if( linePrefix == "vp" ) {     // paramter space vertics
 			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "v" ) {      // vertices
@@ -197,7 +333,7 @@ bool ObjReader::readFile(const std::filesystem::path &rFilename, std::vector<sVe
 		} else if( linePrefix == "l"  ) {      // line
 			// ++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "f" ) {       // Faces (triangles or ngons!)
-			++objFacesTotal;
+			++obj_FacesTotal;
 		} else if( linePrefix == "curv" ) {   // curve
 			++obj_linesUnsupportedTotal;
 		} else if( linePrefix == "curv2" ) {  // 2d-curve
@@ -290,23 +426,17 @@ bool ObjReader::readFile(const std::filesystem::path &rFilename, std::vector<sVe
 	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] " << obj_linesTotal            << " lines read.\n";
 	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] =========================================================\n";
 	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] " << obj_verticesTotal         << " vertices found.\n";
-	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] " << objVerticesNormalsTotal   << " vertex normals found.\n";
-	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] " << objTexCoordsTotal         << " texture coordinates found.\n";
-	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] " << objFacesTotal             << " faces found.\n";
+	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] " << obj_VerticesNormalsTotal   << " vertex normals found.\n";
+	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] " << obj_TexCoordsTotal         << " texture coordinates found.\n";
+	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] " << obj_FacesTotal             << " faces found.\n";
 	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] =========================================================\n";
 	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] " << obj_commentsTotal         << " lines of comments.\n";
 	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] " << obj_linesUnsupportedTotal << " lines not supported.\n";
 	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] " << obj_linesIgnoredTotal     << " lines ignored.\n";
 	LOG::info() << "[ObjReader::" << __FUNCTION__ << "] =========================================================\n";
 
-	// allocate memory:
-	rVertexProps.resize( obj_verticesTotal );
-	rFaceProps.resize( objFacesTotal );
 
-	std::vector<float> textureCoordinates(objTexCoordsTotal * 2);	//temporary buffer for s t coordinates
-	size_t texCoordIndex = 0;
-
-	MeshReader::getModelMetaDataRef().setHasTextureCoordinates(objTexCoordsTotal > 0);
+	MeshReader::getModelMetaDataRef().setHasTextureCoordinates(obj_TexCoordsTotal > 0);
 
 	std::unordered_map<std::string, TextureHandle> textureToIdMap;
 	for(const auto & material : materials)
@@ -322,23 +452,18 @@ bool ObjReader::readFile(const std::filesystem::path &rFilename, std::vector<sVe
 
 	MtlMaterial* currentMaterial = nullptr;
 
-	// init vertex coordinates and function value
-	for( size_t i=0; i<obj_verticesTotal; i++ ) {
-		rVertexProps.at( i ).mCoordX  = _NOT_A_NUMBER_DBL_;
-		rVertexProps.at( i ).mCoordY  = _NOT_A_NUMBER_DBL_;
-		rVertexProps.at( i ).mCoordZ  = _NOT_A_NUMBER_DBL_;
-		// init function value with zero as NaN results in performance issues by repeatingly checking min/max values in MeshGL::getFuncValMinMaxUser.
-		rVertexProps.at( i ).mFuncVal = 0.0;
-		// init colors
-		rVertexProps.at( i ).mColorRed = 187;
-		rVertexProps.at( i ).mColorGrn = 187;
-		rVertexProps.at( i ).mColorBle = 187;
-		rVertexProps.at( i ).mColorAlp = 255;
-	}
+	std::vector<ObjFace> objFaces;
+	objFaces.reserve(obj_FacesTotal);
 
-	// fetching the data by parsing the data the 2nd time
-	int vertexIdx       = 0;
-	int faceIdx         = 0;
+	std::vector<ObjVertexPosition> objVertices;
+	objVertices.reserve(obj_verticesTotal);
+
+	std::vector<ObjNormal> objNormals;
+	objNormals.reserve(obj_VerticesNormalsTotal);
+
+	std::vector<ObjTexCoord> objTexCoords;
+	objTexCoords.reserve(obj_TexCoordsTotal);
+
 
 	// rewind file and fetch data:
 	const auto timeStart = clock();
@@ -349,7 +474,7 @@ bool ObjReader::readFile(const std::filesystem::path &rFilename, std::vector<sVe
 	while( fp.good() ) {
 		string someLine;
 		getline( fp, someLine );
-		lineNr++;
+		++lineNr;
 		if( someLine.length() == 0 ) {
 			continue; // because of empty line OR EndOfFile.
 		}
@@ -376,68 +501,50 @@ bool ObjReader::readFile(const std::filesystem::path &rFilename, std::vector<sVe
 			}
 			continue; // because of line with comment.
 			// --------------------------------------------------------------------------------------------
-		} else if( firstToken == "v" ) { // Vertex
-			auto valueCount = tokens.size()-1;
+		}
+		else if( firstToken == "v" ) { // Vertex
+			const auto valueCount = tokens.size()-1;
 			if( ( valueCount < 3 ) || ( valueCount == 5 ) || ( valueCount > 7 ) ) {
 				LOG::warn() << "[ObjReader::" << __FUNCTION__ << "] Wrong token count: " << tokens.size()-1 << "!"  << "\n";
 				LOG::warn() << "[ObjReader::" << __FUNCTION__ << "] " << someLine << "\n";
 				continue;
 			}
-
-			rVertexProps.at( vertexIdx ).mCoordX = stod( tokens.at( 1 ) );
-			rVertexProps.at( vertexIdx ).mCoordY = stod( tokens.at( 2 ) );
-			rVertexProps.at( vertexIdx ).mCoordZ = stod( tokens.at( 3 ) );
-			if( ( valueCount == 4 ) || ( valueCount == 7 ) ) { // There is function value at the end of the line
-				rVertexProps.at( vertexIdx ).mFuncVal = stod( tokens.at( valueCount ) );
-			}
-			if( valueCount >= 6 ) { // Strict: if( ( valueCount == 6 ) || ( valueCount == 7 ) ) {
-				rVertexProps.at( vertexIdx ).mColorRed = stoi( tokens.at( 4 ) );
-				rVertexProps.at( vertexIdx ).mColorGrn = stoi( tokens.at( 5 ) );
-				rVertexProps.at( vertexIdx ).mColorBle = stoi( tokens.at( 6 ) );
-			}
-			++vertexIdx;
-		} else if( firstToken == "f" ) { // faces i.e. triangles, quadtriangles and trianglestrips
-			if(!parseFaceProperty(tokens, faceIdx, rFaceProps, textureCoordinates, currentMaterial, textureToIdMap))
-			{
-				LOG::warn() << "[ObjReader::" << __FUNCTION__ << "Error parsing face property nr. " << faceIdx << '\n';
-			}
-			++faceIdx;
-
-		} else if( firstToken == "vn" ) { // Vertex normals
+			objVertices.emplace_back(parseVertexProperty(tokens));
+		}
+		else if( firstToken == "f" ) { // faces i.e. triangles, quadtriangles and trianglestrips
+			objFaces.emplace_back(parseFaceProperty(tokens,currentMaterial, textureToIdMap));
+		}
+		else if( firstToken == "vn" ) { // Vertex normals
 			if( tokens.size() != 4 ) {
 				LOG::warn() << "[ObjReader::" << __FUNCTION__ << "] Wrong token count: " << tokens.size() << "!"  << "\n";
 				LOG::warn() << "[ObjReader::" << __FUNCTION__ << "] " << someLine << "\n";
 				continue;
 			}
-
-			// addNormal( stod( tokens.at( 1 ) ), stod( tokens.at( 2 ) ), stod( tokens.at( 3 ) ) );
-		} else if( firstToken == "l" ) { // Polygonal lines
+			objNormals.emplace_back(parseNormalProperty(tokens));
+		}
+		else if( firstToken == "l" ) { // Polygonal lines
 			auto somePolyLinesIndices = new vector<int>;
 			for( size_t i=1; i<tokens.size(); i++ ) { //! \todo test the import of polylines from OBJs.
 				int vertIndex = stoi( tokens.at( i ) )-1; // OBJs start with ONE, while GigaMesh's indices start wit ZERO
 				somePolyLinesIndices->push_back( vertIndex );
 			}
 			rMeshSeed.getPolyLineVertIndicesRef().push_back( somePolyLinesIndices );			
-		} else if ( firstToken == "vt" ) { //texture Coordinats
+		}
+		else if ( firstToken == "vt" ) { //texture Coordinats
 			if(tokens.size() != 3)
 			{
 				continue;
 			}
-			if(texCoordIndex < textureCoordinates.size() - 1)
-			{
-				textureCoordinates[texCoordIndex++] = stof( tokens.at(1));
-				textureCoordinates[texCoordIndex++] = stof( tokens.at(2));
-			}
-		} else if ( firstToken == "usemtl")
-		{
+			objTexCoords.emplace_back(parseTextureCoordinate(tokens));
+		}
+		else if ( firstToken == "usemtl") {
 			if(tokens.size() != 2)
 			{
 				continue;
 			}
 			currentMaterial = &materials[tokens[1]];
 		}
-		else if (firstToken == "mtllib")
-		{
+		else if (firstToken == "mtllib") {
 			//ignore, mtllib is handled in first parsing run
 		}
 		else {
@@ -446,6 +553,8 @@ bool ObjReader::readFile(const std::filesystem::path &rFilename, std::vector<sVe
 	}
 
 	fp.close();
+
+	copyObjToMeshProperties(objVertices,objNormals,objTexCoords, objFaces, rVertexProps, rFaceProps);
 
 	const auto timeStop  = clock();
 	LOG::debug() << "[ObjReader::" << __FUNCTION__ << "] fetch data from file:       " << static_cast<float>( timeStop - timeStart ) / CLOCKS_PER_SEC << " seconds."  << "\n";

@@ -288,6 +288,40 @@ bool MeshGL::fillPolyLines(
 		return true;
 }
 
+bool MeshGL::applyTransformationToWholeMesh(Matrix4D rTrans, bool rResetNormals)
+{
+	bool retVal = Mesh::applyTransformationToWholeMesh(rTrans, rResetNormals);
+
+	if(retVal)
+	{
+		double minScalePins = 1.0; //smallest downscale value
+		double scalePins = 1.0; //highest upscale value
+		for(uint8_t i = 0; i<3; ++i)
+		{
+			const Vector3D columnVec(rTrans.get(0,i), rTrans.get(1,i), rTrans.get(2,i));
+			const auto length = columnVec.getLength3();
+
+			minScalePins = std::min(length, minScalePins);
+			scalePins    = std::max(length, scalePins);
+		}
+
+		if(1.0 / minScalePins > scalePins)
+		{
+			scalePins = minScalePins;
+		}
+
+		if(scalePins != 1.0 && scalePins > 0.0)
+		{
+			double pinSize = 0.0;
+			getParamFloatMeshGL(MeshGLParams::PIN_SIZE, &pinSize);
+			pinSize *= scalePins;
+			setParamFloatMeshGL(MeshGLParams::PIN_SIZE, pinSize);
+		}
+	}
+
+	return retVal;
+}
+
 //! Takes care about OpenGL stuff, when the Mesh is transformed.
 bool MeshGL::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool rResetNormals ) {
 		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
@@ -313,17 +347,14 @@ bool MeshGL::applyMeltingSphere( double rRadius, double rRel ) {
 		return true;
 }
 
-//! Reset and recomputed vertex normals.
-bool MeshGL::resetVertexNormals() {
-		bool retVal = Mesh::resetVertexNormals();
-		vboRemoveBuffer( VBUFF_VERTICES_STRIPED,         __FUNCTION__ );
-		if(mMeshTextured != nullptr)
-		{
-			delete mMeshTextured;
-			mMeshTextured = nullptr;
-		}
-
-		return( retVal );
+//! Refresh recomputed vertex normals.
+bool MeshGL::normalsVerticesChanged() {
+	vboRemoveBuffer( VBUFF_VERTICES_STRIPED, __FUNCTION__ );
+	if( mMeshTextured != nullptr ) {
+		delete mMeshTextured;
+		mMeshTextured = nullptr;
+	}
+	return( true );
 }
 
 //! Takes care about related VBOs, when the face's function values were changed.
@@ -365,7 +396,9 @@ bool MeshGL::assignImportedTexture( int              rLineCount,
 }
 
 //! Handles changes of normals per vertex, when new ones were imported.
-bool MeshGL::assignImportedNormalsToVertices( vector<MeshIO::grVector3ID>* rNormals ) {
+bool MeshGL::assignImportedNormalsToVertices(
+                const vector<MeshIO::grVector3ID>& rNormals
+) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
@@ -404,6 +437,11 @@ bool MeshGL::multiplyColorWithFuncVal( const double rMin, double rMax ) {
 		return retVal;
 }
 
+bool MeshGL::assignAlphaToSelectedVertices(unsigned char alpha) {
+	bool retVal = Mesh::assignAlphaToSelectedVertices(alpha);
+	vboRemoveBuffer( VBUFF_VERTICES_STRIPED, __FUNCTION__);
+	return retVal;
+}
 
 //! Select a point of the plane by pixel coordinates in screen space.
 //!
@@ -1628,7 +1666,7 @@ bool MeshGL::getRayWorld( int xPixel, int yPixel, Vector3D* rayTop, Vector3D* ra
 		return true;
 }
 
-//! Converts projected screencordiantes plus z-buffer depth value into world coordinates.
+//! Converts projected screencoordiantes plus z-buffer depth value into world coordinates.
 bool MeshGL::getWorldPoint( int rPixelX,       //!< Horizontal screencoordinate.
 							int rPixelY,       //!< Vertical screencoordinate.
 							float rDepth,      //!< Depth value of the z-buffer (retrieved by glReadPixels( x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth );
@@ -1663,6 +1701,12 @@ bool MeshGL::getWorldPoint( int rPixelX,       //!< Horizontal screencoordinate.
 		rPosVec->normalizeW();
 
 		return true;
+}
+
+//! Get a point on the mesh from screencoordinates
+bool MeshGL::getWorldPointOnMesh(int rPixelX, int rPixelY, Vector3D* rPosVec)
+{
+	return getFaceAt(rPixelX, rPixelY, rPosVec) != nullptr;
 }
 
 bool MeshGL::setVertexFuncValues( Vertex** vertices, double* values, int verticesNr, const string& setName ) {

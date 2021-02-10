@@ -65,5 +65,8 @@
         <file>normalSphere/IcosphereShader.frag</file>
         <file>textureMesh/texturemesh.vert</file>
         <file>textureMesh/texturemesh.frag</file>
+        <file>funcval/vertexColor.frag</file>
+        <file>funcval/funcVal.frag</file>
+        <file>funcval/label.frag</file>
     </qresource>
 </RCC>

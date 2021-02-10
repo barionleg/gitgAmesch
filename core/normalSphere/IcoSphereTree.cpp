@@ -289,6 +289,9 @@ double pointRayDistanceSquared(const Vector3D& origin, const Vector3D& direction
 
 size_t getClosestFaceVertexIndexToRay(const Vector3D& rayOrigin, const Vector3D& rayDirection, const IcoSphereTreeFaceNode* face, const std::vector<Vector3D>& vertices)
 {
+	if(face == nullptr)
+		return 0;
+
 	//find closest vertex of the face to the intersection-point
 	int retIndex = face->vertexIndices[0];
 	double minDistance = pointRayDistanceSquared(rayOrigin, rayDirection, vertices[face->vertexIndices[0]]);
@@ -322,7 +325,7 @@ size_t getVertexIndexClosestToRay(const IcoSphereTreeFaceNode* faceToRefine, con
 
 
 	//descent until we have the triangle on the lowest level
-	while(!vertexFace->childNodes.empty())
+	while(vertexFace != nullptr && !vertexFace->childNodes.empty())
 	{
 		bool found = false;
 		//select triangle that intersects

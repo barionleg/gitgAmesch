@@ -84,14 +84,11 @@ bool mesh::load(const std::string& filename, file_type type)
 	std::ifstream in;
 	if(filename.length() > 0)
 	{
-		errno = 0;
 		in.open(filename.c_str());
-		if(errno)
-		{
-			std::string error = strerror(errno);
+		if(!in.is_open())
+		{		
 			std::cerr	<< "psalm: Could not load input file \""
-					<< filename << "\": "
-					<< error << "\n";
+			        << filename << "\n";
 
 			return(false);
 		}
@@ -200,14 +197,11 @@ bool mesh::save(const std::string& filename, file_type type)
 	std::ofstream out;
 	if(filename.length() > 0)
 	{
-		errno = 0;
 		out.open(filename.c_str());
-		if(errno)
+		if(!out.is_open())
 		{
-			std::string error = strerror(errno);
 			std::cerr	<< "psalm: Could not save to file \""
-					<< filename << "\": "
-					<< error << "\n";
+			        << filename << "\n";
 
 			return(false);
 		}
@@ -1653,7 +1647,7 @@ bool mesh::load_raw_data(int num_vertices, long* vertex_IDs, double* coordinates
 *	@returns true if data could be saved, else false.
 */
 
-bool mesh::save_raw_data(int* num_new_vertices, double** new_coordinates, int* num_faces, long** vertex_IDs)
+bool mesh::save_raw_data(size_t* num_new_vertices, double** new_coordinates, int* num_faces, long** vertex_IDs)
 {
 	size_t num_boundary_vertices = 0;		// count boundary vertices to obtain correct IDs
 	std::vector<const vertex*> new_vertices;	// stores new vertices

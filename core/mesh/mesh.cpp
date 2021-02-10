@@ -20,16 +20,18 @@
 // along with GigaMesh.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include<iostream>
-#include<ostream>
-#include<vector>
-#include<set>
-#include<iterator>
-#include<string>
-#include<algorithm>
+#include <iostream>
+#include <ostream>
+#include <vector>
+#include <set>
+#include <iterator>
+#include <string>
+#include <algorithm>
 #include <tuple>
 #include <random>
 #include <algorithm> // std::find_if
+#include <iomanip>
+#include <regex>
 
 #include <cstdlib>
 
@@ -52,6 +54,9 @@
 #include <GigaMesh/mesh/mesh.h>
 #include <GigaMesh/mesh/vertex.h>
 #include <GigaMesh/mesh/marchingfront.h>
+
+#include <GigaMesh/mesh/compfeaturevecs.h>
+
 
 #include <GigaMesh/logging/Logging.h>
 
@@ -306,6 +311,67 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 		case FILE_SAVE_AS:
 			retVal = writeFileUserInteract();
 			break;
+		case EXPORT_METADATA_HTML: {
+				MeshInfoData metaInfo;
+				getMeshInfoData( metaInfo, true );
+				std::filesystem::path htmlFileName = getFullName().replace_extension( ".html" );
+				if( metaInfo.writeMeshInfo( htmlFileName ) ) {
+					showInformation( "Meta-Data HTML page", std::string("Sidecar file saved as:<br />")+htmlFileName.string() );
+				}
+			} break;
+		case EXPORT_METADATA_JSON: {
+				MeshInfoData metaInfo;
+				getMeshInfoData( metaInfo, true );
+				std::filesystem::path jsonFileName = getFullName().replace_extension( ".json" );
+				if( metaInfo.writeMeshInfo( jsonFileName ) ) {
+					showInformation( "Meta-Data JSON", std::string("Sidecar file saved as:<br />")+jsonFileName.string() );
+				}
+			} break;
+		case EXPORT_METADATA_TTL: {
+				MeshInfoData metaInfo;
+				getMeshInfoData( metaInfo, true );
+				std::filesystem::path ttlFileName = getFullName().replace_extension( ".ttl" );
+				if( metaInfo.writeMeshInfo( ttlFileName ) ) {
+					showInformation( "Meta-Data TTL (Turtle, RDF)", std::string("Sidecar file saved as:<br />")+ttlFileName.string() );
+				}
+			} break;
+		case EXPORT_METADATA_XML: {
+				MeshInfoData metaInfo;
+				getMeshInfoData( metaInfo, true );
+				std::filesystem::path xmlFileName = getFullName().replace_extension( ".xml" );
+				if( metaInfo.writeMeshInfo( xmlFileName ) ) {
+					showInformation( "Meta-Data XML", std::string("Sidecar file saved as:<br />")+xmlFileName.string() );
+				}
+			} break;
+		case EXPORT_METADATA_ALL: {
+				MeshInfoData metaInfo;
+				getMeshInfoData( metaInfo, true );
+				std::filesystem::path htmlFileName = getFullName().replace_extension( ".html" );
+				std::filesystem::path jsonFileName = getFullName().replace_extension( ".json" );
+				std::filesystem::path ttlFileName = getFullName().replace_extension( ".ttl" );
+				std::filesystem::path xmlFileName = getFullName().replace_extension( ".xml" );
+				if( !metaInfo.writeMeshInfo( htmlFileName ) ) {
+					showWarning( "Meta-Data HTML page", std::string("Could NOT be saved!") );
+					break;
+				}
+				if( !metaInfo.writeMeshInfo( jsonFileName ) ) {
+					showWarning( "Meta-Data JSON", std::string("Could NOT be saved!") );
+					break;
+				}
+				if( !metaInfo.writeMeshInfo( ttlFileName ) ) {
+					showWarning( "Meta-Data TTL (Turtle, RDF)", std::string("Could NOT be saved!") );
+					break;
+				}
+				if( !metaInfo.writeMeshInfo( xmlFileName ) ) {
+					showWarning( "Meta-Data XML", std::string("Could NOT be saved!") );
+					break;
+				}
+				showInformation( "Meta-Data", std::string("Sidecar files saved as:<br />") +
+				                              htmlFileName.string() + "<br />" +
+				                              jsonFileName.string() + "<br />" +
+				                              ttlFileName.string() + "<br />" +
+				                              xmlFileName.string() + "<br />" );
+			} break;
 		case PLANE_FLIP:
 			retVal = flipPlane();
 			break;
@@ -377,7 +443,7 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 				retVal = selectPolyVertexCount( valMin, valMax );
 			}
 			retVal = true;
-		    } break;
+			} break;
 		case SELECT_MESH_PLANE_AXIS_SELPRIM:
 			retVal = setPlaneHNFbyAxisSelPrim();
 			break;
@@ -526,10 +592,18 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 		case EDIT_REMOVE_SEEDED_SYNTHETIC_COMPONENTS:
 			retVal = removeSyntheticComponents( &mSelectedMVerts );
 			break;
-		case EDIT_VERTICES_RECOMPUTE_NORMALS:
+		case EDIT_VERTICES_RECOMPUTE_NORMALS: {
+			double radiusNormals{0.0};
+			if( !showEnterText( radiusNormals, "Enter a radius to compute the normals" ) ) {
+				break;
+			}
 			retVal &= resetFaceNormals();
-			retVal &= resetVertexNormals();
-			break;
+			if( radiusNormals <= 0.0 ) {
+				retVal &= resetVertexNormals();
+			} else {
+				retVal &= normalsVerticesComputeSphere( radiusNormals );
+			}
+			} break;
 		case EDIT_VERTICES_ADD:
 			retVal = insertVerticesEnterManual();
 			break;
@@ -566,8 +640,18 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			retVal = false;
 		    } break;
 		case APPLY_TRANSMAT_SELMVERT: {
+			if(hasDatumObjects())
+			{
+				bool proceed = true;
+				if(!showQuestion(&proceed, "Warning", "Warning: There are datum-objects in the scene that will be deleted by this operation.\nDo you want to continue?"))
+					break;
+
+				if(!proceed)
+					break;
+			}
+
 			Matrix4D valuesMatrix4x4;
-			if( !showEnterText( &valuesMatrix4x4 ) ) {
+			if( !showEnterText( &valuesMatrix4x4, true ) ) {
 				break;
 			}
 			retVal = applyTransformation( valuesMatrix4x4, &mSelectedMVerts );
@@ -577,31 +661,11 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			selectedMPositionsChanged();
 			retVal = true;
 			break;
-		case SELMPRIMS_POS_DISTANCES:
-			if( mSelectedPositions.size() == 0 ) {
-				showInformation( "Positions - Distances", "None Selected." );
-			} else {
-				string distanceInfoStr = "Line: ";
-				Vector3D lastPos( _NOT_A_NUMBER_DBL_ ); //= get<0>(mSelectedPositions.front());
-				double sumDist = 0.0;
-				for( auto const& currPos : mSelectedPositions ) {
-					double dist = ( get<0>(currPos) - lastPos ).getLength3();
-					if( isnormal( dist ) ) {
-						distanceInfoStr += to_string( dist ) + " ";
-						sumDist += dist;
-					}
-					lastPos = get<0>(currPos);
-					bool endOfLine = get<2>(currPos);
-					if( endOfLine ) {
-						distanceInfoStr += "\nLine: ";
-						sumDist = 0.0;
-						lastPos = Vector3D( _NOT_A_NUMBER_DBL_ );
-					}
-				}
-				showInformation( "Positions - Distances", distanceInfoStr );
-				retVal = true;
-			}
-			break;
+		case SELMPRIMS_POS_DISTANCES: {
+			std::string msgInfo;
+			retVal = getSelectedPositionDistancesHTML( msgInfo );
+			showInformation( "Selected Positions (SelPos) - Distances", msgInfo );
+			} break;
 		case SELMPRIMS_POS_CIRCLE_CENTERS:
 			if( mSelectedPositions.size() < 3 ) {
 				showInformation( "Positions - Compute Circle Centers", "Too few Selected." );
@@ -614,6 +678,9 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 					retVal &= callFunction( AXIS_FROM_CIRCLE_CENTERS );
 				}
 			}
+			break;
+		case COMPUTE_FEATUREVECTORS_QUICK:
+			retVal = computeMSIIQuickGUI();
 			break;
 		case GEODESIC_DISTANCE_TO_SELPRIM:
 			retVal = estGeodesicPatchSelPrim();
@@ -660,10 +727,32 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			}
 			break;
 		case UNROLL_AROUND_CONE:
+			if(hasDatumObjects())
+			{
+				bool proceed = true;
+				if(!showQuestion(&proceed, "Warning", "Warning: There are datum-objects in the scene that will be deleted by this operation.\nDo you want to continue?"))
+					break;
+
+				if(!proceed)
+					break;
+			}
+
+			removeAllDatumObjects();
 			bool isCylinderCase;
 			retVal = unrollAroundCone( &isCylinderCase );
 			break;
 		case UNROLL_AROUNG_CYLINDER:
+			if(hasDatumObjects())
+			{
+				bool proceed = true;
+				if(!showQuestion(&proceed, "Warning", "Warning: There are datum-objects in the scene that will be deleted by this operation.\nDo you want to continue?"))
+					break;
+
+				if(!proceed)
+					break;
+			}
+
+			removeAllDatumObjects();
 			retVal = unrollAroundCylinderRadius();
 			break;
 		case CONE_COVER_MESH:
@@ -675,7 +764,7 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 		case LABELING_LABEL_ALL: {
 			labelVerticesNone();
 			retVal = Mesh::labelVertices( mVertices, mLabelSeedVerts );
-		    } break;
+			} break;
 		case LABELING_LABEL_SELMVERTS:
 			retVal = Mesh::labelSelectedVerticesUser();
 			break;
@@ -730,6 +819,16 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			break;
 		case DRAW_SELF_INTERSECTIONS:
 			selectFaceSelfIntersecting();
+			break;
+		case SELMVERTS_SET_ALPHA:
+		{
+			uint64_t alphaVal = 255;
+			if(!showEnterText(alphaVal, "Enter Value [0-255]"))
+			{
+				return false;
+			}
+			assignAlphaToSelectedVertices(static_cast<unsigned char>(alphaVal));
+		}
 			break;
 		default:
 			LOG::error() << "[Mesh::" << __FUNCTION__ << "] ERROR: Unknown rFunctionID "<< rFunctionID << " !\n";
@@ -979,20 +1078,20 @@ void Mesh::establishStructure(
 	//pthread_mutex_init( &mutexVertexPtr, NULL );
 
 	std::vector<faceDataStruct> setFaceData(NUM_THREADS);
-	for( long t=0; t<NUM_THREADS; ++t ) {
+	for( unsigned int t=0; t<NUM_THREADS; ++t ) {
 		//cout << "[Mesh::" << __FUNCTION__ << "] Preparing data for thread " << t << endl;
 		setFaceData[t].mThreadID               = t;
 		setFaceData[t].mMesh                   = this;
 		setFaceData[t].mAreaProc               = 0.0;
 	}
 
-	for( long t=0; t<NUM_THREADS; t++ ) {
+	for( unsigned int t=0; t<NUM_THREADS; t++ ) {
 		threads[t] = std::thread(estMultiFaceConnection, &setFaceData[t]);
 	}
 
 	/* wait for the other threads */
 	double areaTotal = 0.0;
-	for( long t=0; t<NUM_THREADS; t++ ) {
+	for( unsigned int t=0; t<NUM_THREADS; t++ ) {
 		threads[t].join();
 		//cout << "[Mesh::" << __FUNCTION__ << "] Thread " << t << " processed faces with an area of: " << setMeshData[t].mAreaProc << " mm² (unit assumed)." << endl;
 		areaTotal += setFaceData[t].mAreaProc;
@@ -1131,9 +1230,6 @@ double Mesh::getZ() const {
 bool Mesh::writeFile(
                 const filesystem::path& rFileName
 ) {
-	cout << "[Mesh::" << __FUNCTION__ << "]" << endl;
-	//! \todo Add normals, facetex to MeshIO.
-
 	//! 1. Clear anr Re-Create arrays
 	MeshSeedExt::clear();
 
@@ -1143,13 +1239,7 @@ bool Mesh::writeFile(
 	std::vector<sFaceProperties> faceProps;
 	faceProps.resize( getFaceNr() );
 
-	// Polygonal lines:
-	//polyLinesNr;           //!< Number of polygonal lines
-	//polyLineLabel;         //!< Label of each polygonal line - the array is of length polyLinesNr.
-	//polyLinesLength;       //!< Length of each polygonal line - the array is of length polyLinesNr.
-	//polyLineVertices;      //!< References to the vertices of the polygonal lines.
-
-	//! 1. Fill arrays - some will stay empty! \todo try to store as much data as possible.
+	//! 2. Fill arrays - some will stay empty! \todo try to store as much data as possible.
 	uint64_t vertCount = getVertexNr();
 	uint64_t featVecLenMax = getFeatureVecLenMax( Primitive::IS_VERTEX );
 	mFeatureVecVertices.clear();
@@ -1176,9 +1266,9 @@ bool Mesh::writeFile(
 		currFace = getFacePos( faceIdx );
 		currFace->copyFacePropsTo( faceProps[faceIdx] );
 	}
-	//! 2. Write arrays to file.
+	//! 3. Write arrays to file.
 	bool retVal = MeshIO::writeFile( rFileName, vertexProps, faceProps );
-	//! 3. Remove arrays.
+	//! 4. Remove arrays.
 	MeshSeedExt::clear();
 	return retVal;
 }
@@ -1246,20 +1336,26 @@ bool Mesh::exportFeatureVectors(const filesystem::path& rFileName)
 	std::string timeInfoStr( asctime( timeinfo ) );
 	timeInfoStr = timeInfoStr.substr( 0, timeInfoStr.length()-1 );
 
-	filestr << "# +-------------------------------------------------------------------------------+" << endl;
-	filestr << "# | Feature vectors of vertices generated by GigaMesh - an application of the     |" << endl;
-	filestr << "# | IWR - University of Heidelberg, Germany                                       |" << endl;
-	filestr << "# +-------------------------------------------------------------------------------+" << endl;
-	filestr << "# | Contact: Hubert MARA <hubert.mara@iwr.uni-heidelberg.de>                      |" << endl;
-	filestr << "# +-------------------------------------------------------------------------------+" << endl;
-	filestr << "# | Mesh:       " << getBaseName() << endl;
-	filestr << "# | - Vertices: " << getVertexNr() << endl;
-	filestr << "# | - Faces:    " << getFaceNr() << endl;
-	filestr << "# | Timestamp:  " << timeInfoStr << endl;
-	filestr << "# +-------------------------------------------------------------------------------+" << endl;
+	std::stringstream strHeader;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | MAT file with feature vectors computed by the GigaMesh Software Framework     |" << std::endl;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | WebSite: https://gigamesh.eu                                                  |" << std::endl;
+	strHeader << "# | EMail:   info@gigamesh.eu                                                     |" << std::endl;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | Contact: Hubert MARA <hubert.mara@iwr.uni-heidelberg.de>                      |" << std::endl;
+	strHeader << "# |          FCGL - Forensic Computational Geometry Laboratory                    |" << std::endl;
+	strHeader << "# |          IWR - Heidelberg University, Germany                                 |" << std::endl;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | Mesh:       " << getBaseName() << std::endl;
+	strHeader << "# | - Vertices: " << getVertexNr() << std::endl;
+	strHeader << "# | - Faces:    " << getFaceNr() << std::endl;
+	strHeader << "# | Timestamp:  " << timeInfoStr << std::endl;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	filestr << strHeader.str();
 
 	uint64_t currIndex = 0;
-	for(const auto currVert : mVertices)
+	for(const auto& currVert : mVertices)
 	{
 		auto vecSize = currVert->getFeatureVectorLen();
 		if(hasVertexIndex)
@@ -1267,7 +1363,7 @@ bool Mesh::exportFeatureVectors(const filesystem::path& rFileName)
 			filestr << (currIndex++) << " ";
 		}
 
-		for(int i = 0; i<vecSize; ++i)
+		for(unsigned int i = 0; i<vecSize; ++i)
 		{
 			double elem;
 			currVert->getFeatureElement(i, &elem);
@@ -1331,15 +1427,15 @@ bool Mesh::getVertNormal( int rVertIdx, double* rNormal ) {
 
 //! Returns the actual number of vertices, excluding vertices marked for removal, including new vertices.
 //! See also Mesh::getVertexPos
-uint64_t Mesh::getVertexNr() {
+uint64_t Mesh::getVertexNr() const {
 	return mVertices.size();
 }
 
 //! Retrieves the n-th Vertex, excluding vertices marked for removal, including new vertices.
 //! @returns the nullptr in case of an error.
-Vertex* Mesh::getVertexPos( uint64_t rPosIdx ) {
+Vertex* Mesh::getVertexPos( uint64_t rPosIdx ) const {
 	if( rPosIdx >= getVertexNr() ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] Index too large!" << endl;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] Index too large!" << std::endl;
 		return( nullptr );
 	}
 	return( mVertices.at( rPosIdx ) );
@@ -1492,16 +1588,16 @@ const vector<Face*>* Mesh::getPrimitiveListFaces() {
 //! See also Mesh::getFacePos
 //!
 //! @returns the actual number of faces.
-uint64_t Mesh::getFaceNr() {
+uint64_t Mesh::getFaceNr() const {
 	return mFaces.size();
 }
 
 //! Retrieves the n-th Face, excluding faces marked for removal, including new faces.
 //!
 //! @returns NULL in case of an error.
-Face* Mesh::getFacePos( uint64_t posIdx ) {
+Face* Mesh::getFacePos( uint64_t posIdx ) const {
 	if( posIdx >= getFaceNr() ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] Index (" << posIdx << ") too large - Max: " << getFaceNr() << "!" << endl;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] Index (" << posIdx << ") too large - Max: " << getFaceNr() << "!" << std::endl;
 		return nullptr;
 	}
 	return mFaces.at( posIdx );
@@ -2389,7 +2485,7 @@ bool Mesh::selectVertInvert() {
 			mSelectedMVerts.insert( currVertex );
 		}
 	}
-	retVal |= selectedMVertsChanged();
+	retVal |= selectedMVertsChanged() != 0;
 	return retVal;
 }
 
@@ -2403,7 +2499,7 @@ bool Mesh::selectVertFromFaces() {
 			currFace->getVertABC( &mSelectedMVerts );
 		}
 	}
-	retVal |= selectedMVertsChanged();
+	retVal |= selectedMVertsChanged() != 0;
 	return retVal;
 }
 
@@ -2415,7 +2511,7 @@ bool Mesh::selectVertFromFacesRidges() {
 	for( auto const& currFace: mFaces ) {
 		currFace->getFuncValVertRidge( &mSelectedMVerts );
 	}
-	retVal |= selectedMVertsChanged();
+	retVal |= selectedMVertsChanged() != 0;
 	return retVal;
 }
 
@@ -4968,20 +5064,38 @@ bool Mesh::assignImportedTexture( int rLineCount, uint64_t* rRefToPrimitves, uns
 //! Assigns normal vectors (typically generated by external tools, e.g. Matlab) to vertices.
 //!
 //! Returns true when the texture map was assigned and stored.
-bool Mesh::assignImportedNormalsToVertices( vector<grVector3ID>* rNormals ) {
-	unsigned int assignedNotOk = 0;
-	vector<grVector3ID>::iterator itVector3ID;
-	for( itVector3ID=rNormals->begin(); itVector3ID!=rNormals->end(); itVector3ID++ ) {
+bool Mesh::assignImportedNormalsToVertices(
+                const std::vector<grVector3ID>& rNormals
+) {
+	bool retVal = true;
+	unsigned long assignedNotOk = 0;
+	unsigned long badVertexIdx = 0;
+	std::vector<grVector3ID>::const_iterator itVector3ID;
+	for( itVector3ID = rNormals.begin(); itVector3ID != rNormals.end(); ++itVector3ID ) {
 		Vertex* currVert = getVertexByIdxOriginal( (*itVector3ID).mId );
+		if( currVert == nullptr ) {
+			badVertexIdx++;
+			continue;
+		}
 		if( !currVert->setNormal( (*itVector3ID).mX, (*itVector3ID).mY, (*itVector3ID).mZ ) ) {
 			assignedNotOk++;
+			std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Normal ( "
+			          << (*itVector3ID).mX << ", " << (*itVector3ID).mY << ", " << (*itVector3ID).mZ
+			          << " )' not assigned for vertex "
+			          << currVert->getIndex() << " could not be assigned!" << std::endl;
 		}
 	}
-	if( assignedNotOk > 0 ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: " << assignedNotOk << " of " << rNormals->size() << " could not be assigned!" << endl;
-		return false;
+	if( badVertexIdx > 0 ) {
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: " << badVertexIdx
+		          << " bad vertex indices!" << std::endl;
+		retVal = false;
 	}
-	return true;
+	if( assignedNotOk > 0 ) {
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: " << assignedNotOk << " of "
+		          << rNormals.size() << " could not be assigned!" << std::endl;
+		retVal = false;
+	}
+	return( retVal );
 }
 
 //! For each vertex with valid (i.e. not nan) function value: multiplies red, green and blue component with the current vertex's function value
@@ -5054,6 +5168,31 @@ bool Mesh::multiplyColorWithFuncVal( const double rMin, const double rMax ) {
 	return true;
 }
 
+
+//! Sets alpha values to selected vertices. If none is selected, set alpha to all vertices
+bool Mesh::assignAlphaToSelectedVertices(unsigned char alpha)
+{
+	const unsigned char maxAlpha = 255;
+	alpha = std::min(alpha, maxAlpha);
+
+	if(mSelectedMVerts.empty())
+	{
+		for(auto& vertex : mVertices)
+		{
+			vertex->setAlpha(alpha);
+		}
+	}
+
+	else
+	{
+		for(auto& vertex : mSelectedMVerts)
+		{
+			vertex->setAlpha(alpha);
+		}
+	}
+	return true;
+}
+
 // Feature vectors ---------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Removes feature vectors from the memory and Vertex objects.
@@ -5071,6 +5210,148 @@ int Mesh::removeFeatureVectors() {
 		}
 	}
 	return vertNotAssigned;
+}
+
+// --- Feature vectors -----------------------------------------------------------------------------------------------------------------------------
+
+//! Apply MSII filtering using default parameters.
+//! Only the radius i.e. largest feature size is required.
+//! Calls Mesh::funcVertFeatureVecMax which will show the user
+//! directly a result.
+//!
+//! Used for simple user interaction by toolbar button.
+//!
+//! \todo Implement a full version similar to the command line tool.
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::computeMSIIQuick(
+                const double       rRadius,       //!< Radius of the largest feature to detect
+                const unsigned int rRadiiCount,   //!< Number of radii
+                const unsigned int rxyzDim        //!< Raster size
+) {
+	// Sanity check
+	if( !isnormal( rRadius ) || ( rRadius <= 0.0 ) ) {
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Invalid radius of " << rRadius << "given!" << std::endl;
+		return( false );
+	}
+
+	bool retVal(true);
+	showProgressStart( "MSII filtering (Quick)" );
+
+	// Pre-compute relative radii:
+	uint64_t multiscaleRadiiSize = std::pow( 2.0, static_cast<double>(rRadiiCount) );
+	double*       multiscaleRadii     = new double[multiscaleRadiiSize];
+	for( uint i=0; i<multiscaleRadiiSize; i++ ) {
+		multiscaleRadii[i] = 1.0 - static_cast<double>(i) /
+		                           static_cast<double>(multiscaleRadiiSize);
+	}
+
+	// Pre-compute sparse filte:
+	voxelFilter2DElements* sparseFilters;
+	generateVoxelFilters2D( multiscaleRadiiSize, multiscaleRadii, rxyzDim, &sparseFilters );
+
+	// Prepare array for (1st) volume integral invariant filter responses
+	double* descriptVolume = new double[this->getVertexNr()*multiscaleRadiiSize];
+
+	// Determine number of threads using CPU cores minus one.
+	const unsigned int availableConcurrentThreads =  std::thread::hardware_concurrency() - 1;
+	std::cout << "[GigaMesh::" << __FUNCTION__ << "] Computing vertex normals using "
+	          << availableConcurrentThreads << " threads" << std::endl;
+
+	sMeshDataStruct* setMeshData = new sMeshDataStruct[availableConcurrentThreads];
+	for( size_t t = 0; t < availableConcurrentThreads; t++ )
+	{
+		setMeshData[t].threadID               = t;
+		setMeshData[t].meshToAnalyze          = this;
+		setMeshData[t].radius                 = rRadius;
+		setMeshData[t].xyzDim                 = rxyzDim;
+		setMeshData[t].multiscaleRadiiSize    = multiscaleRadiiSize;
+		setMeshData[t].multiscaleRadii        = multiscaleRadii;
+		setMeshData[t].sparseFilters          = &sparseFilters;
+		setMeshData[t].mPatchNormal           = nullptr;
+		setMeshData[t].descriptVolume         = descriptVolume;
+		setMeshData[t].descriptSurface        = nullptr;
+	}
+
+	// Use MSII function for parallel processing and normal estimation
+	compFeatureVectorsMain( setMeshData, availableConcurrentThreads );
+
+	// Assing computed feature vectors to vertices
+	for( uint64_t i=0; i<this->getVertexNr(); i++ ) {
+		Vertex* currVert = this->getVertexPos( i );
+		if( !currVert->assignFeatureVec( &descriptVolume[i*multiscaleRadiiSize],
+		                                 multiscaleRadiiSize ) ) {
+			std::cerr << "[GigaMesh] ERROR: Assignment of volume based feature vectors"
+			          << "to vertices failed for Vertex No. " << i << "!" << std::endl;
+			retVal |= false;
+		}
+	}
+
+	// Compute a function value per vertex using the feature vectors
+	retVal |= funcVertFeatureVecMax();
+
+	// Cleanup
+	delete[] descriptVolume;
+	delete[] setMeshData;
+	showProgressStop( "MSII filtering (Quick)" );
+
+	return( retVal );
+}
+
+//! GUI variant for Mesh::computeMSIIQuick
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::computeMSIIQuickGUI() {
+	// Default
+	double radius{1.0};
+	// Use SelPrims to suggest the largest line segment as radius.
+	double maxDist{0.0};
+	std::vector<double> distancesSelPrim;
+	getSelectedPositionDistancesAll( distancesSelPrim );
+	for( auto const& currDist: distancesSelPrim ) {
+		if( currDist > maxDist ) {
+			maxDist = currDist;
+		}
+	}
+	if( maxDist > 0.0 ) {
+		radius = maxDist;
+	}
+	// Ask the user to check the suggested value
+	if( !showEnterText( radius, "Enter radius (largest feature size)" ) ) {
+		return( false );
+	}
+	// Ask to save the file
+	bool saveFile( true );
+	if( !showQuestion( &saveFile, "Save file",
+	                   "<b>Computing MSII feature vectors will take time!</b><br /><br />"
+	                   "Do you want to store the file?<br /><br />Recommended: YES" ) ) {
+		return( false );
+	}
+
+	// Compute
+	unsigned int radiiCount{4}; // Default
+	unsigned int xyzDim{256};   // Default
+	if( !computeMSIIQuick( radius, radiiCount, xyzDim ) ) {
+		return( false );
+	}
+
+	// Save, if requested
+	if( saveFile ) {
+		std::wstringstream extension;
+		extension.imbue(std::locale("C"));
+		extension << L"_r" << std::fixed << std::setprecision(2) << radius << L"_n" << radiiCount << L"_v" << xyzDim << ".volume.ply";
+
+		std::filesystem::path outFile = getFullName().replace_extension( "" );
+		outFile += extension.str();
+		if( !writeFile( outFile ) ) {
+			return( false );
+		}
+		std::string msgFileSaved = "File was saved as:<br /><br />\n" + outFile.string();
+		showInformation( "File saved", msgFileSaved );
+	}
+
+	// Done.
+	return( true );
 }
 
 // --- Feature vectors - import/export -------------------------------------------------------------------------------------------------------------
@@ -6072,87 +6353,6 @@ set<Vertex*> Mesh::intersectSphere( Vertex* someVert, float radius ) {
 	return intersectionVertices;
 }
 
-//-----------------------------------------------------------------------------------------------
-
-void Mesh::estimateEdges() {
-	//! After creating a list of objects for Faces and Vertices we can build an Edge
-	//! list, which is generated in the first part of this method.
-	//!
-	//! Call this function when Faces and/or Vertices have been manipulated to
-	//! get an updated Edge list - if you reall need it ...
-	//!
-	//! The following documentation is partially outdated, but kept for demonstration - for the moment:
-	//!
-	//! The second part concerns the pre-calculation of the edges properties -
-	//! namely the length and the center of gravity (COG).
-	//!
-	//! Currently this method is a bit of a mess as it lacks a proper compile
-	//! switch to produce a non-CUDA version. Additionally the overhead of
-	//! preparing the data consumes most of the processing time, which means
-	//! that there is no performance gain.
-	//!
-	//! Future enhancments at this point might be to add a normal vector to an
-	//! Edge, which can be estimated e.g. by normal vector voting of the
-	//! adjacent faces (as a mathematician will notice that an edge/line has no
-	//! normal vector ;))
-
-	//! \todo reimplement this.
-	cerr << "[Mesh::estimateEdges] NOT IMPLEMENTED!" << endl;
-
-	float timeStart = clock();
-	// clear first ...
-	//set<Edge*>::iterator itEdge;
-	//for ( itEdge=edgeList.begin(); itEdge!=edgeList.end(); itEdge++ ) {
-	//	delete (*itEdge);
-	//}
-	//edgeList.clear();
-	// ... than rebuild
-	//Edge* newEdge;
-	//set<Face*>::iterator itFace;
-	//for ( itFace=faceList.begin(); itFace!=faceList.end(); itFace++ ) {
-	//	newEdge = new Edge( (*itFace)->getVertA(), (*itFace)->getVertB() );
-	//	edgeList.insert( newEdge );
-	//	newEdge = new Edge( (*itFace)->getVertB(), (*itFace)->getVertC() );
-	//	edgeList.insert( newEdge );
-	//	newEdge = new Edge( (*itFace)->getVertC(), (*itFace)->getVertA() );
-	//	edgeList.insert( newEdge );
-	//}
-	//timeStop = clock();
-	cout << "[Mesh] estimate edgeList time: " << ( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
-
-#ifdef USE_CUDA
-{
-	// this source snipset is getting quite old - so it will not work, but
-	// still serves well as CUDA integration example.
-	timeStart = clock();
-	// an array of the edges vertices coordinates to be processed sequentially:
-	float* edgeCoordArr = (float*) calloc( sizeof(int), edgeArrNr*6 );
-	setEdgeIdx = 0;
-	set<Edge*>::iterator itEdge;
-	for( itEdge=edgeList.begin(); itEdge!=edgeList.end(); itEdge++ ) {
-		(*itEdge)->setIndex( setEdgeIdx );
-		(*itEdge)->getVertCoordinates( &edgeCoordArr[setEdgeIdx*6] );
-		(*itEdge)->setLengthOCL( &edgeLenArr[setEdgeIdx] );
-		(*itEdge)->setCenterOfGravityOCL( &edgeCOGArr[setEdgeIdx] );
-		setEdgeIdx++;
-	}
-	cudaEstimateEdgeProperties( edgeCoordArr, edgeLenArr, edgeCOGArr, edgeArrNr );
-	timeStop = clock();
-	cout << "[Mesh] estimateEdges time (CUDA): " << (float)( timeStop - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
-
-	// dumps length and COG for debuging:
-	//for( itEdge=edgeList.begin(); itEdge!=edgeList.end(); itEdge++ ) {
-	//	cout << "[Mesh] Edge " << (*itEdge)->getIndex() << " len " << (*itEdge)->getLength() << " - " << (*itEdge)->estimateLength() <<  endl;
-	//	float *cog = (float*) calloc( sizeof( float ), 3 );
-	//	(*itEdge)->getCenterOfGravity( cog );
-	//	cout << "[Mesh] Edge COG " << (*itEdge)->getIndex() << " " << cog[0] << " / " << cog[1] << " / " << cog[2] <<  endl;
-	//}
-
-	// free/destroy temporary arrays/objects
-	free( edgeCoordArr );
-}
-#endif
-}
 
 // labeling ----------------------------------------------------------------------------------------
 
@@ -6164,7 +6364,7 @@ bool Mesh::labelsChanged() {
 
 //! Returns the number of labels set.
 bool Mesh::labelCount(
-                int rPrimitiveType,          //!<
+                int rPrimitiveType,     //!< Type of labled primitive.
                 uint64_t& rLabelMaxNr   //!< (return value)
 ) {
 	bool labelFound      = false;
@@ -6413,7 +6613,7 @@ int Mesh::labelFaces( int facesNrToRemove ) {
 bool Mesh::labelVerticesAll() {
 	set<Vertex*> allVerticesToLabel;
 	if( !getVertexList( &allVerticesToLabel ) ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] getVertexList failed!" << endl;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: getVertexList failed!" << std::endl;
 		return( false );
 	}
 	labelVerticesNone();
@@ -6892,23 +7092,14 @@ bool Mesh::isolineToPolyline(
 	vector<Vector3D> labelCenters;
 	vector<Vector3D> labelNormals;
 	estLabelNormalSizeCenterVert( &labelCenters, &labelNormals );
-	vector<Vector3D>::iterator itLabelCenters;
+
 	for( auto& labelCenter : labelCenters) {
-		//LOG::debug() << "[Mesh::" << __FUNCTION__ << "] vertex count: " << labelCenter.getH() << "\n";
-		//labelCenter.dumpInfo();
 		labelCenter /= labelCenter.getH();
 	}
 
-	/*
-	for( const auto& labelNormal : labelNormals) {
-		cout << "[Mesh::" << __FUNCTION__ << "] label area: " << labelNormal.getLength3() << endl;
-		//labelNormal.normalize3();
-	}
-	*/
-
 	// Bit array:
-	uint64_t* facesVisitedBitArray;
-	uint64_t  faceBlocksNr = getBitArrayFaces( &facesVisitedBitArray );
+	      uint64_t* facesVisitedBitArray;
+	const uint64_t  faceBlocksNr = getBitArrayFaces( &facesVisitedBitArray );
 
 	auto setFaceVisited = [&facesVisitedBitArray] (Face* face) {
 		uint64_t  bOffset;
@@ -6917,13 +7108,71 @@ bool Mesh::isolineToPolyline(
 		facesVisitedBitArray[bOffset] |= static_cast<uint64_t>(1) << bNr;
 	};
 
-	for( uint64_t i=0; i<faceBlocksNr; i++ ) {
+	auto traceIsoLine = [&setFaceVisited, &facesVisitedBitArray] (Face* startFace, bool forward, double rIsoValue, PolyLine* isoLine)
+	{
+		Vector3D  isoPoint;
+		Face*     nextFace = nullptr;
+		Face*     excludeFace = nullptr;
+		uint64_t  bitOffset;
+		uint64_t  bitNr;
+
+		// Trace in forward direction:
+		//----------------------------
+		if(!startFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, forward, &excludeFace ))
+		{
+			return; //skip face, because it only touches the isoLine on its vertices
+		}
+		if(excludeFace != nullptr)
+		{
+			setFaceVisited(excludeFace);
+		}
+		// ... add to polyline with normal ....
+		Vector3D normalPos = startFace->getNormal( true );
+
+		forward ? isoLine->addFront( isoPoint, normalPos, startFace )
+		        : isoLine->addBack ( isoPoint, normalPos, startFace );
+
+		Face* checkFace = nextFace;
+		while( checkFace != nullptr ) {
+			checkFace->getIndexOffsetBit( &bitOffset, &bitNr );
+
+			// check if we have been there to prevent infinite loops:
+			if( facesVisitedBitArray[bitOffset] & static_cast<uint64_t>(1)<<bitNr ) {
+				break;
+			}
+			// set visited
+			facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
+
+			// get the point ...
+			if(!checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, forward, &excludeFace ))
+			{
+				nextFace = nullptr;
+				continue;
+			}
+			if(excludeFace != nullptr)
+			{
+				setFaceVisited(excludeFace);
+			}
+			// ... add to polyline with normal ...
+			normalPos = checkFace->getNormal( true );
+
+			forward ? isoLine->addFront( isoPoint, normalPos, checkFace )
+			        : isoLine->addBack ( isoPoint, normalPos, checkFace );
+
+			// .... move on:
+			checkFace = nextFace;
+		}
+	};
+
+	const uint64_t numBits = sizeof(uint64_t) * 8;
+
+	for( uint64_t i=0; i<faceBlocksNr; ++i ) {
 		if( facesVisitedBitArray[i] == 0xFFFFFFFFFFFFFFFF ) {
 			// whole block visited.
 			continue;
 		}
-		for( uint64_t j=0; j<64; j++ ) {
-			const uint64_t currFaceIndex = i*64+j;
+		for( uint64_t j=0; j<numBits; ++j ) {
+			const uint64_t currFaceIndex = i*numBits+j;
 
 			// skip unused bits within the last block:
 			if( ( i==faceBlocksNr-1 ) && ( currFaceIndex >= getFaceNr() ) ) {
@@ -6958,7 +7207,6 @@ bool Mesh::isolineToPolyline(
 				LOG::debug() << "[Mesh::" << __FUNCTION__ << "] is NOT on a label related border.\n";
 			}
 
-			//cout << "[Mesh::" << __FUNCTION__ << "] Trace Face in Block No. " << i << " Bit No. " << j << endl;
 			PolyLine* isoLine;
 			if( isLabelBorder && !isLabelLabelBorder ) {
 				// Remeber: Labels start at index 1!
@@ -6972,110 +7220,14 @@ bool Mesh::isolineToPolyline(
 					isoLine = new PolyLine();
 				}
 			}
-			Vector3D  isoPoint;
-			Face*     nextFace = nullptr;
-			Face*     excludeFace = nullptr;
-			uint64_t  bitOffset;
-			uint64_t  bitNr;
 
-			// Trace in forward direction:
+			setFaceVisited(checkFaceFirst);
+
+			// Trace in forward and backward direction:
 			//----------------------------
-			// Fetch first point ...
-			// ... set visited ...
-			checkFaceFirst->getIndexOffsetBit( &bitOffset, &bitNr );
-			facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
-			if(!checkFaceFirst->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, true, &excludeFace ))
-			{
-				continue; //skip face, because it only touches the isoLine on its vertices
-			}
-			if(excludeFace != nullptr)
-			{
-				setFaceVisited(excludeFace);
-			}
-			// ... add to polyline with normal ....
-			Vector3D normalPos = checkFaceFirst->getNormal( true );
-			isoLine->addFront( isoPoint, normalPos, checkFaceFirst );
+			traceIsoLine(checkFaceFirst, true , rIsoValue, isoLine);
+			traceIsoLine(checkFaceFirst, false, rIsoValue, isoLine);
 
-			checkFace = nextFace;
-			while( checkFace != nullptr ) {
-				checkFace->getIndexOffsetBit( &bitOffset, &bitNr );
-				//cout << "[Mesh::" << __FUNCTION__ << "] Face in Block No. " << bitOffset << " Bit No. " << bitNr << endl;
-				// check if we have been there to prevent infinite loops:
-				if( facesVisitedBitArray[bitOffset] & static_cast<uint64_t>(1)<<bitNr ) {
-					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] closed polyline (forward).\n";
-					break;
-				}
-				// set visited
-				facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
-				// get the point ...
-				if(!checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, true, &excludeFace ))
-				{
-					nextFace = nullptr;
-					continue;
-				}
-				if(excludeFace != nullptr)
-				{
-					setFaceVisited(excludeFace);
-				}
-				// ... add to polyline with normal ...
-				normalPos = checkFace->getNormal( true );
-				isoLine->addFront( isoPoint, normalPos, checkFace );
-
-				// .... move on:
-				checkFace = nextFace;
-				// for debuging:
-				if( nextFace == nullptr ) {
-					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] open polyline (forward).\n";
-				}
-			}
-
-			// Trace in backward direction:
-			//------------------------------
-			if(!checkFaceFirst->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, false, &excludeFace ))
-			{
-				continue;
-			}
-			if(excludeFace != nullptr)
-			{
-				setFaceVisited(excludeFace);
-			}
-			// ... add to polyline with normal ....
-			normalPos = checkFaceFirst->getNormal( true );
-			isoLine->addBack( isoPoint, normalPos, checkFaceFirst );
-
-			// Trace in opposite direction
-			checkFace = nextFace;
-			while( checkFace != nullptr ) {
-				checkFace->getIndexOffsetBit( &bitOffset, &bitNr );
-
-				// ... and set visited ...
-				facesVisitedBitArray[bitOffset] |= static_cast<uint64_t>(1)<<bitNr;
-
-				//cout << "[Mesh::" << __FUNCTION__ << "] Face in Block No. " << bitOffset << " Bit No. " << bitNr << endl;
-				// check if we have been there to prevent infinite loops:
-				if( facesVisitedBitArray[bitOffset] & static_cast<uint64_t>(1)<<bitNr ) {
-					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] closed polyline (backward).\n";
-					break;
-				}
-				// get the point ...
-				if( !checkFace->getFuncValIsoPoint( rIsoValue, &isoPoint, &nextFace, false, &excludeFace ) ) {
-					nextFace = nullptr;
-					continue;
-				}
-				if(excludeFace != nullptr)
-				{
-					setFaceVisited(excludeFace);
-				}
-				// ... add to polyline with normal ...
-				normalPos = checkFace->getNormal( true );
-				isoLine->addBack( isoPoint, normalPos, checkFace );
-				// .... move on:
-				checkFace = nextFace;
-				// for debuging:
-				if( nextFace == nullptr ) {
-					LOG::debug() << "[Mesh::" << __FUNCTION__ << "] open polyline (backward).\n";
-				}
-			}
 			// Add vertices of the polyline:
 			isoLine->addVerticesTo( &mVertices );
 			// Add polyline:
@@ -7090,12 +7242,21 @@ bool Mesh::isolineToPolyline(
 //! Use the rotational axis to extrude the poylines.
 //! @returns false in case of an error. True otherwise.
 bool Mesh::extrudePolylines() {
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Extruding polylines ..." << std::endl;
+
 	// Fetch axis, if present
 	Vector3D axisTop;
 	Vector3D axisBottom;
 	if( !getConeAxis( &axisTop, &axisBottom ) ) {
-		return false;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: No axis defined!" << std::endl;
+		return( false );
 	}
+
+	if( getPolyLineNr() <= 0 ) {
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: No polylines defined!" << std::endl;
+		return( false );
+	}
+
 	// Apply to all polylines
 	bool retVal = true;
 	PolyLine* currPoly;
@@ -7108,13 +7269,18 @@ bool Mesh::extrudePolylines() {
 			retVal = false;
 		}
 	}
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Polylines processed." << std::endl;
 
 	// Insert Faces
 	for( auto const& currFace: facesToAppend ) {
 		currFace->reconnectToFaces();
 		mFaces.push_back( currFace );
 	}
-	insertVertices( &verticesToAppend );
+	// and vertices
+	if( !insertVertices( &verticesToAppend ) ) {
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: insertVertices failed!" << std::endl;
+		return( false );
+	}
 
 	return retVal;
 }
@@ -7272,8 +7438,8 @@ void Mesh::convertLabelBordersToPolylines() {
 	}
 
 	// Sort labelines by label nr
-	uint64_t currentLabel;
-	Face* currFace;
+	uint64_t currentLabel = 0;
+	Face* currFace = nullptr;
 	for( uint64_t faceIdx=0; faceIdx<getFaceNr(); faceIdx++ ) {
 		currFace = getFacePos( faceIdx );
 		if( !currFace->getLabel( currentLabel ) ) {
@@ -9841,16 +10007,66 @@ bool Mesh::removeVerticesSelected() {
 //! Select and remove solo, non-manifold, double-cones and small area vertices.
 //! Optional: save result to rFileName.
 //! This method has to follow a strict order to achieve a clean Mesh.
+//! 
+//! Public version writing meta-data.
 //!
 //! \returns false in case of an error. True otherwise.
 bool Mesh::removeUncleanSmall(
-                double          rPercentArea,   //!< Area relative to the whole mesh.
-                bool            rApplyErosion,  //!< Add extra border cleaning.
-                const filesystem::path&   rFileName       //!< Filename to store intermediate results and the final mesh.
+        const filesystem::path&   rFileName,      //!< Filename to store intermediate results and the final mesh.
+        double                    rPercentArea,   //!< Area relative to the whole mesh.
+        bool                      rApplyErosion   //!< Add extra border cleaning.
 ) {
+	bool retVal = false;
 
+	// Track changes for meta-data
+	//----------------------------------------------------------
+	MeshInfoData rFileInfosPrevious;
+	this->getMeshInfoData( rFileInfosPrevious, true );
+	uint64_t iterationCount = 0;
+
+	// Measure compute time
+	//----------------------------------------------------------
+	std::chrono::system_clock::time_point tStart = std::chrono::system_clock::now();
+
+	// CLEAN the mesh
+	//----------------------------------------------------------
+	retVal = removeUncleanSmallCore( rFileName, rPercentArea, rApplyErosion, iterationCount );
+
+	// Measure compute time
+	//----------------------------------------------------------
+	std::chrono::system_clock::time_point tStop = std::chrono::system_clock::now();
+
+	// Dump Meta-Data about the cleaning process.
+	//----------------------------------------------------------
+	MeshInfoData rFileInfos;
+	this->getMeshInfoData( rFileInfos, true );
+	if( !rFileInfos.writeMeshInfoProcess( rFileInfosPrevious, rFileName, "mesh_clean", iterationCount,
+	                                 tStart, tStop ) ) {
+		LOG::error() << "[Mesh::" << __FUNCTION__ << "] Writing meta-data failed!\n";
+		return( false );
+	}
+
+	return( retVal );
+
+}
+
+//! Select and remove solo, non-manifold, double-cones and small area vertices.
+//! Optional: save result to rFileName.
+//! This method has to follow a strict order to achieve a clean Mesh.
+//! 
+//! Core version without writing meta-data.
+//!
+//! \returns false in case of an error. True otherwise.
+bool Mesh::removeUncleanSmallCore(
+        const filesystem::path&   rFileName,      //!< Filename to store intermediate results and the final mesh.
+        double                    rPercentArea,   //!< Area relative to the whole mesh.
+        bool                      rApplyErosion,  //!< Add extra border cleaning.
+        uint64_t&                 rIteration      //!< Returns the number of iterations in step #7.
+) {
 	uint64_t vertNoPrev = getVertexNr();
 	uint64_t faceNoPrev = getFaceNr();
+	// Reset counter
+	rIteration = 0;
 
 	set<Vertex*> verticesToRemove;
 	set<Face*> facesToRemove;
@@ -9862,56 +10078,58 @@ bool Mesh::removeUncleanSmall(
 
 	//! 1a.) Select and remove vertices with not-a-number coordinates and ...
 	//!     These vertices have to be removed before Non-Manifold and Double-Cones (Singularities) as they may introduce these other types.
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Not-A-Number Vertices -----------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Not-A-Number Vertices -----------------------" << std::endl;
 	getVertNotANumber( &verticesToRemove );
 	Mesh::removeVertices( &verticesToRemove );
 	//! 1b.) Select and remove vertices of faces having an areo of zero.
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Zero area faces -----------------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Zero area faces -----------------------------" << std::endl;
 	getVertPartOfZeroFace( &verticesToRemove );
 	Mesh::removeVertices( &verticesToRemove );
 	//! 2.) Select and remove sticky faces.
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Sticky --------------------------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Sticky --------------------------------------" << std::endl;
 	getFaceSticky( &facesToRemove );
 	removeFaces( &facesToRemove );
 	//! 3.) Select and remove non-manifold faces.
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Non-Manifold --------------------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Non-Manifold --------------------------------" << std::endl;
 	getFaceNonManifold( &facesToRemove );
 	removeFaces( &facesToRemove );
 	// more agressive removal: getVertNonManifoldFaces( &verticesToRemove );
 	//! 4.) Select and remove vertices on edges connecting faces with inverted orientation.
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Inverted ------------------------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Inverted ------------------------------------" << std::endl;
 	getVertInverted( verticesToRemove );
 	Mesh::removeVertices( &verticesToRemove );
 	//! 5.) OPTIONAL apply erosion to remove 'dangling' faces.
 	if( rApplyErosion ) {
-		cout << "[Mesh::" << __FUNCTION__ << "] --- Border Erosion ------------------------------" << endl;
+		std::cout << "[Mesh::" << __FUNCTION__ << "] --- Border Erosion ------------------------------" << std::endl;
 		if( !removeFacesBorderErosion() ) {
-			cout << "[Mesh::" << __FUNCTION__ << "] ERROR: removeFacesBorderErosion failed!" << endl;
+			std::cout << "[Mesh::" << __FUNCTION__ << "] ERROR: removeFacesBorderErosion failed!" << std::endl;
 		}
 	}
 	//! 6.) Select double cones.
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Double Cones --------------------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Double Cones --------------------------------" << std::endl;
 	getDoubleCones( &verticesToRemove );
 	//! 7.) Remove and select double-cones until there are no more showing up.
 	do {
 		Mesh::removeVertices( &verticesToRemove ); // "Mesh::" avoids the unnecessary regeneration of OpenGL VBOs within the GUI version - will be taken care of in step 7.
 		getDoubleCones( &verticesToRemove );
+		rIteration++;
 	} while( verticesToRemove.size() > 0 );
 	//!     In very rare cases there may be new 'dangling' faces at this point, but no further optional
 	//!     erosion will be applied as it requires another slow loop over 4., 5. and 6.
 	//! 8.) ... solo vertices and ...
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Solo Vertices -------------------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Solo Vertices -------------------------------" << std::endl;
 	getVertSolo( &verticesToRemove );
 	Mesh::removeVertices( &verticesToRemove );
 	//! 9.) ... label and select small areas.
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Small Areas ---------------------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Small Areas ---------------------------------" << std::endl;
 	// first we reset the label and set all NOT to be labled.
 	labelVerticesAll();
 	getVertLabelAreaRelativeLT( rPercentArea, &verticesToRemove );
 	//! 10.) Final remove (including reloading OpenGL buffers and lists.
 	removeVertices( &verticesToRemove );
 
-	cout << "[Mesh::" << __FUNCTION__ << "] removed " << vertNoPrev - getVertexNr() << " vertices and " << faceNoPrev - getFaceNr() << " faces." << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] removed " << vertNoPrev - getVertexNr() << " vertices and " 
+	          << faceNoPrev - getFaceNr() << " faces." << std::endl;
 	if( rFileName.empty() ) {
 		return( true );
 	}
@@ -10102,21 +10320,33 @@ bool Mesh::completeRestore() {
 //!
 //! @returns false in case of an error. True otherwise.
 bool Mesh::completeRestore(
-                const filesystem::path& rFilename,            //!< Optional filname for storing the mesh after each operation. An empty string will prevent saving the mesh.
-                double        rPercentArea,         //!< Connected components with an area smaller are removed. See Mesh::removeUncleanSmall
-                bool          rApplyErosion,        //!< Optional border erosion.
-                bool          rPrevent,             //!< Prevent longest polyline from filling.
-                uint64_t rMaxNumberVertices,   //!< Maximum number of vertices/edges used for filling holes as libpsalm has troubles with larger/complex holes.
-                string*       rResultMsg            //!< String to be passed up for displayed as messagebox.
+        const filesystem::path& rFilename,            //!< Optional filname for storing the mesh after each operation. An empty string will prevent saving the mesh.
+        double                  rPercentArea,         //!< Connected components with an area smaller are removed. See Mesh::removeUncleanSmall
+        bool                    rApplyErosion,        //!< Optional border erosion.
+        bool                    rPrevent,             //!< Prevent longest polyline from filling.
+        uint64_t                rMaxNumberVertices,   //!< Maximum number of vertices/edges used for filling holes as libpsalm has troubles with larger/complex holes.
+        string*                 rResultMsg,           //!< Returns string for display in e.g. a messagebox.
+        uint64_t&               rIterationCount       //!< Returns number of iterations.
 ) {
+	// Measure compute time
+	//----------------------------------------------------------
+	std::chrono::system_clock::time_point tStart = std::chrono::system_clock::now();
+
+	bool retVal = true;
 	// Store old mesh size to determine the number of changes
-	uint64_t polishIterations = 0;
-	uint64_t holesFilled = 0;
-	uint64_t holesFail = 0;
-	uint64_t holesSkipped = 0;
 	uint64_t oldVertexNr;
 	uint64_t oldFaceNr;
-	bool retVal = true;
+
+	// Track changes for meta-data
+	MeshInfoData rFileInfosPrevious;
+	this->getMeshInfoData( rFileInfosPrevious, true );
+
+	// Track iterations and changes to so-called holes
+	rIterationCount = 0;
+	uint64_t totalHolesFilled = 0;
+	uint64_t totalHolesFail = 0;
+	uint64_t totalHolesSkipped = 0;
+	bool someHolesFilled = true; // Exit condition for the following do-while loop
 
 	do {
 		// Track changes to the number of vertices and faces.
@@ -10124,7 +10354,8 @@ bool Mesh::completeRestore(
 
 		oldVertexNr = getVertexNr();
 		oldFaceNr = getFaceNr();
-		removeUncleanSmall( rPercentArea, rApplyErosion, rFilename );
+		uint64_t subIterationCount = 0;
+		removeUncleanSmallCore( rFilename, rPercentArea, rApplyErosion, subIterationCount );
 		convertBordersToPolylines();
 
 		if( rPrevent ) {
@@ -10132,41 +10363,48 @@ bool Mesh::completeRestore(
 			removePolylinesSelected();
 		}
 
+		uint64_t holesFilled  = 0;
+		uint64_t holesFail    = 0;
+		uint64_t holesSkipped = 0;
 		fillPolyLines( rMaxNumberVertices, holesFilled, holesFail, holesSkipped );
-//		holesFailTotal += holesFail;
+		totalHolesFilled  += holesFilled;
+		totalHolesFail    += holesFail;
+		totalHolesSkipped += holesSkipped;
+		someHolesFilled = ( holesFilled != 0 );
+
 		removePolylinesAll();
 
-		polishIterations++;
+		rIterationCount++;
 
 	} while( ( oldVertexNr - getVertexNr() ) != 0 ||
-		 ( oldFaceNr - getFaceNr() ) !=0      ||
-		 ( holesFilled != 0 ) );
+	         ( oldFaceNr - getFaceNr() ) !=0      ||
+	         ( someHolesFilled ) );
 
 	string tempstr;
-	if( ( holesFail == 0 ) && ( holesSkipped == 0 ) ) {
+	if( ( totalHolesFail == 0 ) && ( totalHolesSkipped == 0 ) ) {
 		tempstr = "All holes were filled.";
 	}
-	if( holesFail>1 ) {
-		tempstr = to_string( holesFail ) + " holes were NOT filled.";
+	if( totalHolesFail>1 ) {
+		tempstr = to_string( totalHolesFail ) + " holes were NOT filled.";
 		retVal = false;
 	}
-	if( holesFail==1 ) {
-		tempstr = to_string( holesFail ) + " holes were NOT filled.";
+	if( totalHolesFail==1 ) {
+		tempstr = to_string( totalHolesFail ) + " holes were NOT filled.";
 		retVal = false;
 	}
-	if( holesSkipped>1 ) {
-		tempstr = to_string( holesSkipped ) + " holes were SKIPPED filled.";
+	if( totalHolesSkipped>1 ) {
+		tempstr = to_string( totalHolesSkipped ) + " holes were SKIPPED filled.";
 		retVal = false;
 	}
-	if( holesSkipped==1 ) {
-		tempstr = to_string( holesSkipped ) + " holes were SKIPPED filled.";
+	if( totalHolesSkipped==1 ) {
+		tempstr = to_string( totalHolesSkipped ) + " holes were SKIPPED filled.";
 		retVal = false;
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] " << tempstr << endl;
-	cout << "[Mesh::" << __FUNCTION__ << "] " << to_string( polishIterations ) << " iterations." << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] " << tempstr << std::endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] " << std::to_string( rIterationCount ) << " iterations." << std::endl;
 
 	if( rResultMsg != nullptr ) {
-		(*rResultMsg) = tempstr + "\n\n" + to_string( polishIterations ) + " iterations.";
+		(*rResultMsg) = tempstr + "\n\n" + std::to_string( rIterationCount ) + " iterations.";
 	}
 
 	// Adjust/refresh selected vertices:
@@ -10187,6 +10425,22 @@ bool Mesh::completeRestore(
 	}
 	selectedMFacesChanged();
 
+	// Measure compute time
+	//----------------------------------------------------------
+	std::chrono::system_clock::time_point tStop = std::chrono::system_clock::now();
+
+	// Dump Meta-Data about the cleaning process.
+	//----------------------------------------------------------
+	MeshInfoData rFileInfos;
+	this->getMeshInfoData( rFileInfos, true );
+	if( !rFileInfos.writeMeshInfoProcess( rFileInfosPrevious, rFilename, "mesh_polish", rIterationCount,
+	                                 tStart, tStop ) ) {
+		LOG::error() << "[Mesh::" << __FUNCTION__ << "] Writing meta-data failed!\n";
+		return( false );
+	}
+
+	// Done
+	//----------------------------------------------------------
 	return( retVal );
 }
 
@@ -10298,7 +10552,7 @@ Vector3D Mesh::getBoundingBoxCenter() {
 }
 
 //! Compute and returns the size of the bounding box.
-bool Mesh::getBoundingBoxSize( Vector3D& rBbSize ) {
+bool Mesh::getBoundingBoxSize( Vector3D& rBbSize ) const {
 	rBbSize.setX( mMaxX - mMinX );
 	rBbSize.setY( mMaxY - mMinY );
 	rBbSize.setZ( mMaxZ - mMinZ );
@@ -10735,7 +10989,7 @@ bool Mesh::getVertLabelNo(
 			if( labelNrsPositive && ( labelsToSelect.find( labelNr ) != labelsToSelect.end() ) ) {
 				rSomeVerts->insert( currVertex );
 			}
-			if( labelNrsNegative && ( labelsToSelect.find( -labelNr ) == labelsToSelect.end() ) ) {
+			if( labelNrsNegative && ( labelsToSelect.find( -static_cast<int64_t>(labelNr) ) == labelsToSelect.end() ) ) {
 				rSomeVerts->insert( currVertex );
 			}
 		}
@@ -11893,7 +12147,7 @@ bool Mesh::estGeodesicPatch( map<Vertex*,GeodEntry*>* geoDistList,              
 		double vCB = ( vertBPos - vertCPos ).getLength3();
 		double vBA = ( vertAPos - vertBPos ).getLength3();
 		// Add optional weight
-		Vertex* vertA = edgeToProc->getVertA();
+		// Vertex* vertA = edgeToProc->getVertA(); // <- unused
 		// Vertex* vertB = edgeToProc->getVertB(); // <- unused
 		if( weightFuncVal ) {
 		//if( ( weightFuncVal ) && (!badAngle) ) {
@@ -12559,7 +12813,7 @@ double Mesh::fetchSphereCubeVolume25D( Vertex*     seedVertex,            //!< e
 	// 8. Raster the vertices
 	//cout << "[Mesh::fetchSphereCubeVolume25D] (8) " << endl;
 	rasterViewFromZ( vertexArray, vertexSize, rasterArray, cubeEdgeLengthInVoxels, cubeEdgeLengthInVoxels );
-	free( vertexArray );
+	delete[] vertexArray;
 //	for( int i=0; i<cubeEdgeLengthInVoxels; i++ ) {
 //		for( int j=0; j<cubeEdgeLengthInVoxels; j++ ) {
 //			cout << rasterArray[i*cubeEdgeLengthInVoxels+j] << " ";
@@ -12908,6 +13162,29 @@ bool Mesh::datumAddSphere( Vector3D rPos, double rRadius, unsigned char rRed, un
 	return true;
 }
 
+//! Removes everything from the scene, except the mesh
+void Mesh::removeAllDatumObjects()
+{
+	for(auto& sphere : mDatumSpheres)
+	{
+		delete sphere;
+	}
+	mDatumSpheres.clear();
+
+	for(auto& box : mDatumBoxes)
+	{
+		delete box;
+	}
+	mDatumBoxes.clear();
+
+	mSelectedPositions.clear();
+}
+
+bool Mesh::hasDatumObjects()
+{
+	return !(mDatumSpheres.empty() && mDatumBoxes.empty() && mSelectedPositions.empty());
+}
+
 //! Apply a given transformation matrix Matrix4D to all Vertices (Mesh::mVertices).
 //!
 //! As this function uses the coordinate-vertex-array instead the Vertex
@@ -12933,13 +13210,39 @@ bool Mesh::applyTransformationToWholeMesh( Matrix4D rTrans, bool rResetNormals )
 		allVertices.insert( currVertex );
 	}
 
-	// Apply to (cone/cylinder) axis
-	mConeAxisPoints[0] *= rTrans;
-	mConeAxisPoints[1] *= rTrans;
-
 	//!\todo Apply to all cone paramters, the sphere and the mesh plane.
+	if(applyTransformation(rTrans, &allVertices, rResetNormals))
+	{
+		//! .) Apply to (cone/cylinder) axis
+		mConeAxisPoints[0] *= rTrans;
+		mConeAxisPoints[1] *= rTrans;
 
-	return applyTransformation( rTrans, &allVertices, rResetNormals );
+		//! .) Apply transformation to the mesh-plane
+		applyTransfromToPlane(rTrans);
+
+		//! .) Apply to selectedPositions
+		for(auto& position : mSelectedPositions)
+		{
+			std::cout << std::get<0>(position) << std::endl;
+			std::get<0>(position) *= rTrans;
+			std::cout << std::get<0>(position) << std::endl;
+		}
+
+		//! .) Apply to spheres
+		for(auto& sphere : mDatumSpheres)
+		{
+			sphere->applyTransfrom(&rTrans);
+		}
+
+		//! .) Apply to boxes
+		for(auto& box : mDatumBoxes)
+		{
+			box->applyTransfrom(&rTrans);
+		}
+
+		return true;
+	}
+	return false;
 }
 
 //! Translate the mesh to a specified position.
@@ -13124,9 +13427,6 @@ bool Mesh::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool 
 	//! .) Can also affect the polylines - reset them too:
 	polyLinesChanged();
 
-	//! .) Apply transformation to the mesh-plane
-	applyTransfromToPlane(rTrans);
-
 	//! .) Write the transformation to the side-car file, because HiWis tend to forget this.
 	std::filesystem::path transMatFName = getFileLocation().wstring() + getBaseName().wstring() + L"_transmat.txt";
 	ofstream transMatFile;
@@ -13224,8 +13524,18 @@ bool Mesh::applyInvertOrientationFaces( std::vector<Face*> rFacesToInvert ) {
 	return( retVal );
 }
 
+//! To be called when the normals of the vertices changed
+//! e.g. to refresh the Open GL rendering
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::normalsVerticesChanged() {
+	// Do nothing - stub for higher level methods i.e. OpenGL.
+	return( true );
+}
+
 //! Resets all face normals and calculates them based on the current positions
 //! of the face vertices.
+//!
 //! @returns false in case of an error. True otherwise.
 bool Mesh::resetFaceNormals(
     double* rAreaTotal   //!< Optional pointer to double to retrieve the total area of the mesh.
@@ -13245,24 +13555,92 @@ bool Mesh::resetFaceNormals(
 	return( retVal );
 }
 
-//! Resets vertex normals.
+//! Resets vertex normals using the faces of the 1-ring.
+//! See VertexOfFace::estNormalAvgAdjacentFaces
 //!
 //! @returns true, when all normals were (re)set. False otherwise.
 bool Mesh::resetVertexNormals() {
+	bool retVal(true);
+	showProgressStart( __FUNCTION__ );
 	uint64_t errorCtr = 0;
-	for( uint64_t vertexIdx = 0; vertexIdx < getVertexNr(); vertexIdx++ ) {
+	uint64_t nrOfVertices = getVertexNr();
+	for( uint64_t vertexIdx = 0; vertexIdx < nrOfVertices; vertexIdx++ ) {
 		Vertex* currVertex = getVertexPos( vertexIdx );
 		if( !currVertex->estNormalAvgAdjacentFaces() ) {
 			errorCtr++;
 		}
+		showProgress( static_cast<double>(vertexIdx+1)/static_cast<double>(nrOfVertices), __FUNCTION__ );
 	}
+	showProgressStop( __FUNCTION__ );
+
 	if( errorCtr > 0 ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: estNormalAvgAdjacentFaces failed " << errorCtr << " times!" << endl;
-		cerr << "[Mesh::" << __FUNCTION__ << "]        Faces having a zero area are a possible reason!" << endl;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: estNormalAvgAdjacentFaces failed " << errorCtr << " times!" << std::endl;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "]        Faces having a zero area are a possible reason!" << std::endl;
 		return( false );
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] done." << endl;
-	return( true );
+	retVal |= normalsVerticesChanged();
+	std::cout << "[Mesh::" << __FUNCTION__ << "] done." << std::endl;
+	return( retVal );
+}
+
+//! Compute vertex normals using the normals of faces within a given sphere radius.
+//!
+//! @returns true, when all normals were (re)set. False otherwise.
+bool Mesh::normalsVerticesComputeSphere(
+                double rRadius   //!< Radius of the sphere used to add face normals.
+) {
+	// Sanity check
+	if( !isnormal( rRadius ) || ( rRadius <= 0.0 ) ) {
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Invalid radius of " << rRadius << "given!" << std::endl;
+		return( false );
+	}
+
+	bool retVal(true);
+	showProgressStart( __FUNCTION__ );
+
+	// Prepare normals
+	std::vector<MeshIO::grVector3ID> patchNormalsToAssign;
+	patchNormalsToAssign.resize( this->getVertexNr() );
+
+	// Determine number of threads using CPU cores minus one.
+	const unsigned int availableConcurrentThreads =  std::thread::hardware_concurrency() - 1;
+	std::cout << "[GigaMesh::" << __FUNCTION__ << "] Computing vertex normals using "
+	          << availableConcurrentThreads << " threads" << std::endl;
+
+	sMeshDataStruct* setMeshData = new sMeshDataStruct[availableConcurrentThreads];
+	for( size_t t = 0; t < availableConcurrentThreads; t++ )
+	{
+		setMeshData[t].threadID               = t;
+		setMeshData[t].meshToAnalyze          = this;
+		setMeshData[t].radius                 = rRadius;
+		setMeshData[t].xyzDim                 = 0;
+		setMeshData[t].multiscaleRadiiSize    = 0;
+		setMeshData[t].multiscaleRadii        = nullptr;
+		setMeshData[t].sparseFilters          = nullptr;
+		setMeshData[t].mPatchNormal           = &patchNormalsToAssign;
+		setMeshData[t].descriptVolume         = nullptr;
+		setMeshData[t].descriptSurface        = nullptr;
+	}
+
+	// Use MSII function for parallel processing and normal estimation
+	compFeatureVectorsMain( setMeshData, availableConcurrentThreads );
+
+	// Assigning normals
+	if( !this->assignImportedNormalsToVertices( patchNormalsToAssign ) ) {
+		showWarning( "Faulty normals",
+		             "Not all normals could be computed and assigned.<br /><br />"
+		             "A possible reason is the existance of very small faces." );
+		retVal = false;
+	}
+
+	// Update OpenGL conect in GUI
+	retVal |= normalsVerticesChanged();
+
+	// Cleanup
+	delete[] setMeshData;
+	showProgressStop( __FUNCTION__ );
+
+	return( retVal );
 }
 
 // --- SHELLING ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -15086,19 +15464,21 @@ uint8_t* Mesh::rasterToVolume( const float* rasterArray, const int xDim, const i
 // --- IMPORT / EXPORT -----------------------------------------------------------------------------------
 
 //! Uses PSALM as library to fill (closed!) polygonal lines e.g from holes.
+//! 
+//! In case the polygonal lines are non-manifold the results will be unexpected.
 //!
 //! @returns false in case of an error. True otherwise.
 bool Mesh::fillPolyLines(
-                const uint64_t& rMaxNrVertices,	//!< Maximum numbers of vertices within a border for processing. 0 means no limit.
-                uint64_t& rFilled,										//!< Number of holes filled.
-                uint64_t& rFail,										//!< Number of holes failed to fill by libpsalm.
-                uint64_t& rSkipped				//!< Number of holes skipped.
+        const uint64_t&   rMaxNrVertices,   //!< Maximum numbers of vertices within a border for processing. 0 means no limit.
+        uint64_t&         rFilled,          //!< Returns number of holes filled.
+        uint64_t&         rFail,            //!< Returns number of holes failed to fill by libpsalm.
+        uint64_t&         rSkipped          //!< Returns number of holes skipped.
 ) {
 #ifndef LIBPSALM
 	rFilled = 0;
 	rFail   = mPolyLines.size();
-	cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: libpsalm missing!" << endl;
-	cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: All " << rFail << " holes ignored!" << endl;
+	std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: libpsalm missing!" << std::endl;
+	std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: All " << rFail << " holes ignored!" << std::endl;
 	return( false );
 #else
 	// (Re)Set counters:
@@ -15120,9 +15500,9 @@ bool Mesh::fillPolyLines(
 		currFace = getFacePos( faceIdx );
 		currFace->setIndex( faceIdx );
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] set indices took " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds. " << endl;
-	cout << "[Mesh::" << __FUNCTION__ << "] Total number of polylines/holes: " << mPolyLines.size() << endl;
-	cout << "[Mesh::" << __FUNCTION__ << "] Maximum number of vertices/edges: " << rMaxNrVertices << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] set indices took " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds. " << std::endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Total number of polylines/holes: " << mPolyLines.size() << std::endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Maximum number of vertices/edges: " << rMaxNrVertices << std::endl;
 
 	Vertex* vertexRef;
 	float holeCtr = 0.0;
@@ -15137,12 +15517,12 @@ bool Mesh::fillPolyLines(
 		uint64_t numVertices   = ((*itPoly)->length())-1;
 		// Take care about smallest holes
 		if( numVertices < 3 ) {
-			cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Hole has to have more than three vertices. It has only " << numVertices << "!" << endl;
+			std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Hole has to have more than three vertices. It has only " << numVertices << "!" << std::endl;
 			continue;
 		}
 		// Skip holes larger than ... given by user.
 		if( ( rMaxNrVertices > 0 ) && ( rMaxNrVertices < numVertices ) ) {
-			cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " SKIPPED: to many vertices; " << numVertices << endl;
+			std::cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " SKIPPED: to many vertices; " << numVertices << std::endl;
 			rSkipped++;
 			continue;
 		}
@@ -15160,7 +15540,7 @@ bool Mesh::fillPolyLines(
 			mFaces.push_back( newFace );
 			borderAndNewFaces.insert( newFace );
 			rFilled++;
-			cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " ADD vertices: none faces: 1" << endl;
+			std::cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " ADD vertices: none faces: 1" << std::endl;
 		} else if( numVertices == 4 ) { // Quadtriangular hole. Attention: concave quadtriangles!
 			VertexOfFace* vertA = static_cast<VertexOfFace*>((*itPoly)->getVertexRef( 0 ));
 			VertexOfFace* vertB = static_cast<VertexOfFace*>((*itPoly)->getVertexRef( 1 ));
@@ -15196,7 +15576,7 @@ bool Mesh::fillPolyLines(
 			borderAndNewFaces.insert( newFaceA );
 			borderAndNewFaces.insert( newFaceB );
 			rFilled += 2;
-			cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " ADD vertices: none faces: 2" << endl;
+			std::cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " ADD vertices: none faces: 2" << std::endl;
 		} else {
 			// Apply libpsalm:
 			vector<long>   vertexIDs;
@@ -15249,10 +15629,11 @@ bool Mesh::fillPolyLines(
 			// Estimate average density:
 			borderDensity = numVertices / borderDensity;
 			// Alternative:
-			cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " BORDER vertices: " << numVertices << " density: " << borderDensity << " faces: " << borderAndNewFaces.size() << endl;
+			std::cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " BORDER vertices: " << numVertices << " density: " 
+			          << borderDensity << " faces: " << borderAndNewFaces.size() << std::endl;
 			//--------------------------------------------------------------------------------------------------------------------------------------
 			// Variable for the return values of fillhole:
-			int        numNewVertices = 0;
+			size_t        numNewVertices = 0;
 			double*    newCoordinates = nullptr;
 			int        numNewFaces    = 0;
 			long*      newVertexIDs   = nullptr;
@@ -15260,15 +15641,16 @@ bool Mesh::fillPolyLines(
 			if( !fill_hole( numVertices, vertexIDs.data(), coordinates.data(),
 			                nullptr, nullptr, // was normals along the border (optional)
 			                &numNewVertices, &newCoordinates, &numNewFaces, &newVertexIDs ) ) {
-				cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Hole No. " << holeCtr << " having " << numVertices << "vertices FAILED!" << endl;
+				std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Hole No. " << holeCtr << " having " 
+				          << numVertices << "vertices FAILED!" << std::endl;
 				rFail++;
 				continue;
 			}
 			// Add the new vertices and faces
-			cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " ADD vertices: " << numNewVertices << " faces: " << numNewFaces << endl;
+			std::cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " ADD vertices: " << numNewVertices << " faces: " << numNewFaces << std::endl;
 			vector<VertexOfFace*> tmpRefNewVertices; // We need this temporarly for connecting the faces.
 			tmpRefNewVertices.resize( numNewVertices, nullptr );
-			for( int i=0; i<numNewVertices; i++ ) {
+			for( size_t i=0; i<numNewVertices; ++i ) {
 				tmpRefNewVertices.at( i ) = new VertexOfFace( Vector3D( newCoordinates[i*3], newCoordinates[i*3+1], newCoordinates[i*3+2] ) );
 				tmpRefNewVertices.at( i )->setFlag( FLAG_SYNTHETIC );
 				tmpRefNewVertices.at( i )->setRGB( 255, 0, 0 );
@@ -15279,7 +15661,7 @@ bool Mesh::fillPolyLines(
 				mVertices.push_back( tmpRefNewVertices.at( i ) );
 			}
 			int faceIdMax = getFaceNr();
-			for( int i=0; i<numNewFaces; i++ ) {
+			for( int i=0; i<numNewFaces; ++i ) {
 				// Face( int setIdx, Vertex* setA, Vertex* setB, Vertex* setC, unsigned char* setTexRGB=NULL );
 				VertexOfFace* newVertA = nullptr;
 				VertexOfFace* newVertB = nullptr;
@@ -15319,7 +15701,7 @@ bool Mesh::fillPolyLines(
 				// Tag as synthetic:
 				newFace->setFlag( FLAG_SYNTHETIC );
 			}
-			cout << "[Mesh::" << __FUNCTION__ << "] New density: " << (numNewVertices+numVertices)/newArea << endl;
+			std::cout << "[Mesh::" << __FUNCTION__ << "] New density: " << (numNewVertices+numVertices)/newArea << std::endl;
 			delete[] newCoordinates; // created in libpsalm
 			delete[] newVertexIDs;   // created in libpsalm
 			rFilled++;
@@ -15337,7 +15719,7 @@ bool Mesh::fillPolyLines(
 	    //(*itFace)->connectToFaces();
 	//}
 	showProgressStop( "Fill holes" );
-	cout << "[Mesh::" << __FUNCTION__ << "] took " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds. " << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] took " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds. " << std::endl;
 	return( true );
 #endif
 }
@@ -15376,17 +15758,23 @@ bool Mesh::exportPolyLinesCoords( filesystem::path rFileName, bool rWithNormals,
 	string timeInfoStr( asctime( timeinfo ) );
 	timeInfoStr = timeInfoStr.substr( 0, timeInfoStr.length()-1 );
 
-	filestr << "# +-------------------------------------------------------------------------------+" << endl;
-	filestr << "# | Polyline file generated by GigaMesh - an application of the                   |" << endl;
-	filestr << "# | IWR - Heidelberg University, Germany                                          |" << endl;
-	filestr << "# +-------------------------------------------------------------------------------+" << endl;
-	filestr << "# | Contact: Hubert MARA <hubert.mara@iwr.uni-heidelberg.de>                      |" << endl;
-	filestr << "# +-------------------------------------------------------------------------------+" << endl;
-	filestr << "# | Mesh:       " << getBaseName() << endl;
-	filestr << "# | - Vertices: " << getVertexNr() << endl; // <- this will be used by fill holes tools from Bastian Rieck
-	filestr << "# | - Faces:    " << getFaceNr() << endl;
-	filestr << "# | Polylines:  " << mPolyLines.size() << endl;
-	filestr << "# | Timestamp:  " << timeInfoStr << endl;
+	std::stringstream strHeader;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | PLINE file with polylines computed by the GigaMesh Software Framework         |" << std::endl;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | WebSite: https://gigamesh.eu                                                  |" << std::endl;
+	strHeader << "# | EMail:   info@gigamesh.eu                                                     |" << std::endl;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | Contact: Hubert MARA <hubert.mara@iwr.uni-heidelberg.de>                      |" << std::endl;
+	strHeader << "# |          FCGL - Forensic Computational Geometry Laboratory                    |" << std::endl;
+	strHeader << "# |          IWR - Heidelberg University, Germany                                 |" << std::endl;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | Mesh:       " << getBaseName() << std::endl;
+	strHeader << "# | - Vertices: " << getVertexNr() << std::endl; // <- this will be used by fill holes tools from Bastian Rieck
+	strHeader << "# | - Faces:    " << getFaceNr() << std::endl;
+	strHeader << "# | Polylines:  " << mPolyLines.size() << std::endl;
+	strHeader << "# | Timestamp:  " << timeInfoStr << std::endl;
+	filestr << strHeader.str();
 	//! \todo fix file header - vertices indices!
 	if( rWithNormals ) {
 		filestr << "# +------------------------------------------------------------------------------------------------------------" << endl;
@@ -15484,17 +15872,23 @@ bool Mesh::exportPolyLinesCoordsProjected( filesystem::path rFileName, bool rWit
 	string timeInfoStr( asctime( timeinfo ) );
 	timeInfoStr = timeInfoStr.substr( 0, timeInfoStr.length()-1 );
 
-	filestr << "# +-------------------------------------------------------------------------------+" << endl;
-	filestr << "# | Polyline file generated by GigaMesh - an application of the                   |" << endl;
-	filestr << "# | IWR - University of Heidelberg, Germany                                       |" << endl;
-	filestr << "# +-------------------------------------------------------------------------------+" << endl;
-	filestr << "# | Contact: Hubert MARA <hubert.mara@iwr.uni-heidelberg.de>                      |" << endl;
-	filestr << "# +-------------------------------------------------------------------------------+" << endl;
-	filestr << "# | Mesh:       " << getBaseName() << endl;
-	filestr << "# | - Vertices: " << getVertexNr() << endl; // <- this is used by fill holes tools from libpsalm by Bastian Rieck
-	filestr << "# | - Faces:    " << getFaceNr() << endl;
-	filestr << "# | Polylines:  " << mPolyLines.size() << endl;
-	filestr << "# | Timestamp:  " << timeInfoStr << endl;
+	std::stringstream strHeader;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | PLINE file with polylines computed by the GigaMesh Software Framework         |" << std::endl;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | WebSite: https://gigamesh.eu                                                  |" << std::endl;
+	strHeader << "# | EMail:   info@gigamesh.eu                                                     |" << std::endl;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | Contact: Hubert MARA <hubert.mara@iwr.uni-heidelberg.de>                      |" << std::endl;
+	strHeader << "# |          FCGL - Forensic Computational Geometry Laboratory                    |" << std::endl;
+	strHeader << "# |          IWR - Heidelberg University, Germany                                 |" << std::endl;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | Mesh:       " << getBaseName() << std::endl;
+	strHeader << "# | - Vertices: " << getVertexNr() << std::endl; // <- this will be used by fill holes tools from Bastian Rieck
+	strHeader << "# | - Faces:    " << getFaceNr() << std::endl;
+	strHeader << "# | Polylines:  " << mPolyLines.size() << std::endl;
+	strHeader << "# | Timestamp:  " << timeInfoStr << std::endl;
+	filestr << strHeader.str();
 	if( rWithVertIdx ) {
 		filestr << "# +------------------------------------------------------------------------------------" << endl;
 		filestr << "# | Format: Label No. | Number of Vertices | id1 x1 y1 z1 id2 x2 y2 z2 ... idN xN yN zN" << endl;
@@ -15581,14 +15975,23 @@ bool Mesh::exportPolyLinesFuncVals( filesystem::path rFileName ) {
 	string timeInfoStr( asctime( timeinfo ) );
 	timeInfoStr = timeInfoStr.substr( 0, timeInfoStr.length()-1 );
 
-	filestr << "# +-------------------------------------------------------------------------------+" << endl;
-	filestr << "# | Polyline file generated by GigaMesh - an application of the                   |" << endl;
-	filestr << "# | IWR - Heidelberg University, Germany                                          |" << endl;
-	filestr << "# +-------------------------------------------------------------------------------+" << endl;
-	filestr << "# | Contact: Hubert MARA <hubert.mara@iwr.uni-heidelberg.de>                      |" << endl;
-	filestr << "# +-------------------------------------------------------------------------------+" << endl;
-	filestr << "# | Polylines:  " << mPolyLines.size() << endl;
-	filestr << "# | Timestamp:  " << timeInfoStr << endl;
+	std::stringstream strHeader;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | PLINE file with polylines computed by the GigaMesh Software Framework         |" << std::endl;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | WebSite: https://gigamesh.eu                                                  |" << std::endl;
+	strHeader << "# | EMail:   info@gigamesh.eu                                                     |" << std::endl;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | Contact: Hubert MARA <hubert.mara@iwr.uni-heidelberg.de>                      |" << std::endl;
+	strHeader << "# |          FCGL - Forensic Computational Geometry Laboratory                    |" << std::endl;
+	strHeader << "# |          IWR - Heidelberg University, Germany                                 |" << std::endl;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | Mesh:       " << getBaseName() << std::endl;
+	strHeader << "# | - Vertices: " << getVertexNr() << std::endl; // <- this will be used by fill holes tools from Bastian Rieck
+	strHeader << "# | - Faces:    " << getFaceNr() << std::endl;
+	strHeader << "# | Polylines:  " << mPolyLines.size() << std::endl;
+	strHeader << "# | Timestamp:  " << timeInfoStr << std::endl;
+	filestr << strHeader.str();
 	filestr << "# +-------------------------------------------------------------------------------------------------" << endl;
 	filestr << "# | Format: Label No. | Number of Vertices (N) | closed | rl1 rl2 rl3 ... rlN | fv1 fv2 fv3 ... fvN " << endl;
 	filestr << "# +-------------------------------------------------------------------------------------------------" << endl;
@@ -15658,17 +16061,23 @@ bool Mesh::exportFuncVals( filesystem::path rFileName, bool rWithVertIdx ) {
 	string timeInfoStr( asctime( timeinfo ) );
 	timeInfoStr = timeInfoStr.substr( 0, timeInfoStr.length()-1 );
 
-	filestr << "# +-------------------------------------------------------------------------------+" << endl;
-	filestr << "# | Function values of vertices generated by GigaMesh - an application of the     |" << endl;
-	filestr << "# | IWR - University of Heidelberg, Germany                                       |" << endl;
-	filestr << "# +-------------------------------------------------------------------------------+" << endl;
-	filestr << "# | Contact: Hubert MARA <hubert.mara@iwr.uni-heidelberg.de>                      |" << endl;
-	filestr << "# +-------------------------------------------------------------------------------+" << endl;
-	filestr << "# | Mesh:       " << getBaseName() << endl;
-	filestr << "# | - Vertices: " << getVertexNr() << endl;
-	filestr << "# | - Faces:    " << getFaceNr() << endl;
-	filestr << "# | Timestamp:  " << timeInfoStr << endl;
-	filestr << "# +-------------------------------------------------------------------------------+" << endl;
+	std::stringstream strHeader;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | PLINE file with polylines computed by the GigaMesh Software Framework         |" << std::endl;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | WebSite: https://gigamesh.eu                                                  |" << std::endl;
+	strHeader << "# | EMail:   info@gigamesh.eu                                                     |" << std::endl;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | Contact: Hubert MARA <hubert.mara@iwr.uni-heidelberg.de>                      |" << std::endl;
+	strHeader << "# |          FCGL - Forensic Computational Geometry Laboratory                    |" << std::endl;
+	strHeader << "# |          IWR - Heidelberg University, Germany                                 |" << std::endl;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	strHeader << "# | Mesh:       " << getBaseName() << std::endl;
+	strHeader << "# | - Vertices: " << getVertexNr() << std::endl;
+	strHeader << "# | - Faces:    " << getFaceNr() << std::endl;
+	strHeader << "# | Timestamp:  " << timeInfoStr << std::endl;
+	strHeader << "# +-------------------------------------------------------------------------------+" << std::endl;
+	filestr << strHeader.str();
 
 	// Step thru the list of vertices:
 	Vertex* currVert;
@@ -15709,7 +16118,7 @@ bool Mesh::importFuncValsFromFile(const filesystem::path& rFileName, bool withVe
 
 	auto numVerts = getVertexNr();
 	std::string line;
-	double funcVal;
+	double funcVal = 0.0;
 
 	//importing with index
 	if(withVertIdx)
@@ -15946,6 +16355,12 @@ bool Mesh::latexFetchFigureInfos( vector<pair<string,string>>* rStrings ) {
 	}
 	WSACleanup();
 #else
+    #ifndef HOST_NAME_MAX
+	    const size_t HOST_NAME_MAX = 256;
+    #endif
+    #ifndef LOGIN_NAME_MAX
+		const size_t LOGIN_NAME_MAX = 256;
+    #endif
 	char hostname[HOST_NAME_MAX] = {0};
 	char username[LOGIN_NAME_MAX] = {0};
 	gethostname( hostname, HOST_NAME_MAX );
@@ -15976,8 +16391,15 @@ bool Mesh::latexFetchFigureInfos( vector<pair<string,string>>* rStrings ) {
 	rStrings->push_back( pair<string,string>( string( "__FACE_COUNT__"  ),  to_string( getFaceNr()   ) ) ); //! __FACE_COUNT__
 
 	//! Meta-data:
-	rStrings->push_back( pair<string,string>( string( "__OBJECT_ID__" ),       getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID ) )       ); //! __OBJECT_ID__
-	rStrings->push_back( pair<string,string>( string( "__OBJECT_MATERIAL__" ), getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL ) ) ); //! __OBJECT_MATERIAL__
+	std::string metaObjectId       = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
+	std::string metaObjectMaterial = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
+	std::string metaObjectIdLaTeX;
+	std::string metaObjectMaterialLaTeX;
+	std::regex e( "_" );
+	std::regex_replace( std::back_inserter(metaObjectIdLaTeX), metaObjectId.begin(), metaObjectId.end(), e, "\\_" );
+	std::regex_replace( std::back_inserter(metaObjectMaterialLaTeX), metaObjectMaterial.begin(), metaObjectMaterial.end(), e, "\\_" );
+	rStrings->push_back( pair<string,string>( string( "__OBJECT_ID__" ), metaObjectIdLaTeX             ) ); //! __OBJECT_ID__
+	rStrings->push_back( pair<string,string>( string( "__OBJECT_MATERIAL__" ), metaObjectMaterialLaTeX ) ); //! __OBJECT_MATERIAL__
 	// Adapt web-reference
 	//! \todo extend for multiple links.
 	std::string strWebRef = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_REFERENCE_WEB );
@@ -16094,8 +16516,8 @@ bool Mesh::showInfoMeshHTML() {
 //!
 //! @returns false in case of an error. True otherwise.
 bool Mesh::getMeshInfoData(
-                MeshInfoData& rMeshInfos,
-                bool          rAbsolutePath
+        MeshInfoData& rMeshInfos,
+        const bool    rAbsolutePath
 ) {
 	// Initialize
 	rMeshInfos.reset();
@@ -16162,6 +16584,9 @@ bool Mesh::getMeshInfoData(
 		}
 		if( currVertex->isNonManifold() ) {
 			rMeshInfos.mCountULong[MeshInfoData::VERTICES_NONMANIFOLD]++;
+		}
+		if( currVertex->isDoubleCone() ) {
+			rMeshInfos.mCountULong[MeshInfoData::VERTICES_SINGULAR]++;
 		}
 		if( currVertex->isPartOfZeroFace() ) {
 			rMeshInfos.mCountULong[MeshInfoData::VERTICES_PART_OF_ZERO_FACE]++;
@@ -16250,6 +16675,9 @@ bool Mesh::getMeshInfoData(
 		}
 		showProgress( static_cast<double>( faceIdx+getVertexNr() )/progressSteps, "Mesh information" );
 	}
+
+	// Labeled connected components
+	labelCount( Primitive::IS_VERTEX, rMeshInfos.mCountULong[MeshInfoData::CONNECTED_COMPONENTS] );
 
 	// Done.
 	showProgressStop( "Mesh information" );
@@ -16388,7 +16816,7 @@ bool Mesh::showInfoLabelPropsHTML() {
 		return( false );
 	}
 
-	vector<double> labelArea;
+	std::vector<double> labelArea;
 	labelArea.resize( nrOfLabels+1, 0.0 );
 
 	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
@@ -16404,31 +16832,40 @@ bool Mesh::showInfoLabelPropsHTML() {
 	// more complex: count number of border polylines -> topology!
 	// PCA would be great as well
 
-	string strCSV = "Label No.;Area;\n";
+	std::string strCSV = "Label No.;Area;\n";
 	for( uint64_t i=0; i<nrOfLabels; i++ ) {
 		strCSV += to_string( i ) + ";";
 		strCSV += to_string( labelArea.at( i ) );
 		strCSV += "\n";
 	}
 
-	sort( labelArea.begin(), labelArea.end() );
+	std::sort( labelArea.begin(), labelArea.end() );
 	double labelAreaMin = labelArea.at( 0 );
 	double labelAreaMax = labelArea.at( nrOfLabels );
 	double labelAreaMedian = labelArea.at( nrOfLabels / 2 );
 	double labelAreaPerc25 = labelArea.at( nrOfLabels / 4 );
 	double labelAreaPerc75 = labelArea.at( nrOfLabels*3 / 4 );
 
-	string strHTML;
-	strHTML += "Labels: " + to_string( nrOfLabels ) + "<br /><br />";
+	std::stringstream strHTML;
+	strHTML << "<body>" << std::endl;
+	strHTML << "Number of labels: " << to_string( nrOfLabels ) << "<br />" << std::endl;
+	// Table
+	strHTML << "<table border=\"0\">" << std::endl;
+	strHTML << "<tr>" << std::endl <<
+	           "<td>Area min:</td><td align=\"right\">"          + to_string( labelAreaMin )    + "</td>" << std::endl <<
+	           "</tr><tr>" << std::endl <<
+	           "<td>Area 25 percentil:</td><td align=\"right\">" + to_string( labelAreaPerc25 ) + "</td>" << std::endl <<
+	           "</tr><tr>" << std::endl <<
+	           "<td>Area median:</td><td align=\"right\">"       + to_string( labelAreaMedian ) + "</td>" << std::endl <<
+	           "</tr><tr>" << std::endl <<
+	           "<td>Area 75 percentil:</td><td align=\"right\">" + to_string( labelAreaPerc75 ) + "</td>" << std::endl <<
+	           "</tr><tr>" << std::endl <<
+	           "<td>Area max:</td><td align=\"right\">"          + to_string( labelAreaMax )    + "</td>" << std::endl <<
+	           "</tr>" << std::endl <<
+	           "</table>" << std::endl;
+	strHTML << "</body>" << std::endl;
 
-	//! \todo format as table
-	strHTML += "Area min: " + to_string( labelAreaMin ) + "<br />";
-	strHTML += "Area 25 percentil: " + to_string( labelAreaPerc25 ) + "<br />";
-	strHTML += "Area median: " + to_string( labelAreaMedian ) + "<br />";
-	strHTML += "Area 75 percentil: " + to_string( labelAreaPerc75 ) + "<br />";
-	strHTML += "Area max: " + to_string( labelAreaMax ) + "<br />";
-
-	showInformation( "Label properties", strHTML, strCSV );
+	showInformation( "Label properties", strHTML.str(), strCSV );
 	return( true );
 }
 
@@ -16476,6 +16913,63 @@ bool Mesh::getSelectedPositionLines(std::vector<std::tuple<Vector3D, Primitive *
 		}
 	}
 	return true;
+}
+
+//! Computes all distances between SelPrims and returns them
+//! as one vector.
+//!
+//! Note: all distances of all selected segments are concatenated.
+//!
+//! @returns false in case of an error.
+bool Mesh::getSelectedPositionDistancesAll( std::vector<double>& rAllDistances ) {
+	bool retVal{true};
+	Vector3D lastPos( _NOT_A_NUMBER_DBL_ ); //= get<0>(mSelectedPositions.front());
+	for( auto const& currPos : mSelectedPositions ) {
+		double dist = ( get<0>(currPos) - lastPos ).getLength3();
+		if( isnormal( dist ) ) {
+			rAllDistances.push_back( dist );
+		}
+		lastPos = get<0>(currPos);
+		// Do not compute distances between line segments
+		bool endOfLine = get<2>(currPos);
+		if( endOfLine ) {
+			lastPos = Vector3D( _NOT_A_NUMBER_DBL_ );
+		}
+	}
+	return( retVal );
+}
+
+//! Computes all distances between SelPrims and returns them
+//! as HTML text.
+//!
+//! @returns false in case of an error.
+bool Mesh::getSelectedPositionDistancesHTML( std::string &rDistanceText ) {
+	if( mSelectedPositions.size() == 0 ) {
+		rDistanceText = "No positions (SelPos) were selected.";
+		return( true );
+	}
+	std::string distanceInfoStr = "<ol><li>";
+	Vector3D lastPos( _NOT_A_NUMBER_DBL_ );
+	bool endOfLine{false};
+	double sumDist = 0.0;
+	for( auto const& currPos : mSelectedPositions ) {
+		if( endOfLine ) {
+			distanceInfoStr += "&Sigma;&nbsp;<b>" + to_string( sumDist ) + "</li>\n<li>";
+			sumDist = 0.0;
+			lastPos = Vector3D( _NOT_A_NUMBER_DBL_ );
+		}
+		double dist = ( get<0>(currPos) - lastPos ).getLength3();
+		if( isnormal( dist ) ) {
+			distanceInfoStr += to_string( dist ) + "&nbsp;";
+			sumDist += dist;
+		}
+		lastPos = get<0>(currPos);
+		endOfLine = get<2>(currPos);
+	}
+	distanceInfoStr += "&Sigma;&nbsp;<b>" + to_string( sumDist ) + "</li>\n</ol>";
+	rDistanceText.clear();
+	rDistanceText = distanceInfoStr;
+	return( true );
 }
 
 //! Adds vertices to the given vector using triplets of positions to compute circumscribed circles.

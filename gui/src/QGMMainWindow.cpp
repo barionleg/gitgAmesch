@@ -212,10 +212,10 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionScreenshotSVG,           SIGNAL(triggered()),   this,       SIGNAL(screenshotSVG())        );
 	QObject::connect( actionScreenshotRuler,         SIGNAL(triggered()),   this,       SIGNAL(screenshotRuler())      );
 
-    QObject::connect( actionScreenshotDirectory,     SIGNAL(triggered()),   this,       SIGNAL(screenshotDirectory()) );
-
+	// === LEGACY to be removed! ===========================================================================================================================
     QObject::connect( actionGenerateLatexFile,       SIGNAL(triggered()),   this,       SIGNAL(generateLatexFile()) );
     QObject::connect( actionGenerateLatexCatalog,    SIGNAL(triggered()),   this,       SIGNAL(generateLatexCatalog()) );
+	// =====================================================================================================================================================
 
 	//.
 	QObject::connect( actionViewDefaultViewLight,     SIGNAL(triggered()),  this,       SIGNAL(sDefaultViewLight())     );
@@ -472,6 +472,7 @@ void QGMMainWindow::initMeshWidgetSignals() {
 	actionExportScreenShotsViewsSix->setProperty( "gmMeshWidgetFlag",       MeshWidgetParams::EXPORT_SIDE_VIEWS_SIX );
 	actionExportSVGDashedAxis->setProperty(       "gmMeshWidgetFlag",       MeshWidgetParams::EXPORT_SVG_AXIS_DASHED );
 	actionScreenshotDPISuffix->setProperty(       "gmMeshWidgetFlag",       MeshWidgetParams::SCREENSHOT_FILENAME_WITH_DPI );
+	actionReplaceTransparencyBgColor->setProperty("gmMeshWidgetFlag",       MeshWidgetParams::SCREENSHOT_PNG_BACKGROUND_OPAQUE);
 	actionDisplay_as_pointcloud_when_moving->setProperty( "gmMeshWidgetFlag", MeshWidgetParams::ENABLE_SHOW_MESH_REDUCED);
 
 	mMeshWidgetFlag = new QActionGroup( this );
@@ -973,19 +974,24 @@ void QGMMainWindow::initMeshSignals() {
     actionBad_Lit_Areas_Upper_Threshold->setProperty( "gmParamValueMax",  1.00f );
 
 	actionPin_Size->setProperty( "gmMeshGLParamFloat", MeshGLParams::PIN_SIZE);
-	actionPin_Size->setProperty( "gmMeshGLParamValue", 1.0f);
-	actionPin_Size->setProperty( "gmParamValueMin",  0.01f );
-	actionPin_Size->setProperty( "gmParamValueMax",  100.00f );
+	actionPin_Size->setProperty( "gmMeshGLParamValue",   1.00f );
+	actionPin_Size->setProperty( "gmParamValueMin"   ,   0.01f );
+	actionPin_Size->setProperty( "gmParamValueMax"   , 100.00f );
 
 	actionPin_Line_Height->setProperty( "gmMeshGLParamFloat", MeshGLParams::PIN_LINE_HEIGHT);
 	actionPin_Line_Height->setProperty( "gmMeshGLParamValue", 0.5f);
-	actionPin_Line_Height->setProperty( "gmParamValueMin",  0.0f );
-	actionPin_Line_Height->setProperty( "gmParamValueMax",  1.0f );
+	actionPin_Line_Height->setProperty( "gmParamValueMin"   , 0.0f );
+	actionPin_Line_Height->setProperty( "gmParamValueMax"   , 1.0f );
 	
 	actionPointcloud_pointsize->setProperty( "gmMeshGLParamFloat", MeshGLParams::POINTCLOUD_POINTSIZE);
-	actionPointcloud_pointsize->setProperty( " gmMeshGLParamValue", 3.0f);
-	actionPointcloud_pointsize->setProperty( "gmParamValueMin", 1.0f);
-	actionPointcloud_pointsize->setProperty( "gmParamValueMax", 50.0f);
+	actionPointcloud_pointsize->setProperty( "gmMeshGLParamValue", 3.0f);
+	actionPointcloud_pointsize->setProperty( "gmParamValueMin"   , 1.0f);
+	actionPointcloud_pointsize->setProperty( "gmParamValueMax"   , 50.0f);
+
+	actionLightVectorLength->setProperty( "gmMeshGLParamFloat", MeshGLParams::LIGHTVECTOR_LENGTH);
+	actionLightVectorLength->setProperty( "gmMeshGLParamValue",  20.0f);
+	actionLightVectorLength->setProperty( "gmParamValueMin"   ,   0.1f);
+	actionLightVectorLength->setProperty( "gmParamValueMax"   , 100.0f);
 
 	// DOUBLE: Setup parameter group of menu items
 	mMeshGLParDbl = new QActionGroup( this );
@@ -1028,6 +1034,11 @@ void QGMMainWindow::initMeshSignals() {
 	// === MeshGL/MeshQt - Function/Method CALL ============================================================================================================
 	// ... File load, save, import, export  ................................................................................................................
 	actionFileSaveAs->setProperty(                                "gmMeshFunctionCall", MeshParams::FILE_SAVE_AS                                 );
+	actionExportMetaDataHTML->setProperty(                        "gmMeshFunctionCall", MeshParams::EXPORT_METADATA_HTML                         );
+	actionExportMetaDataJSON->setProperty(                        "gmMeshFunctionCall", MeshParams::EXPORT_METADATA_JSON                         );
+	actionExportMetaDataTTL->setProperty(                         "gmMeshFunctionCall", MeshParams::EXPORT_METADATA_TTL                          );
+	actionExportMetaDataXML->setProperty(                         "gmMeshFunctionCall", MeshParams::EXPORT_METADATA_XML                          );
+	actionExportMetaDataAll->setProperty(                         "gmMeshFunctionCall", MeshParams::EXPORT_METADATA_ALL                          );
 	actionImportVertexCoordinatesFromCSV->setProperty(            "gmMeshGLFunctionCall", MeshGLParams::IMPORT_COORDINATES_OF_VERTICES           );
 	actionExportCoordinatesOfAllVerticesAsCSV->setProperty(       "gmMeshFunctionCall", MeshParams::EXPORT_COORDINATES_OF_VERTICES               );
 	actionExportCoordinatesOfSelectedVerticesAsCSV->setProperty(  "gmMeshFunctionCall", MeshParams::EXPORT_COORDINATES_OF_SELECTED_VERTICES      );
@@ -1102,6 +1113,7 @@ void QGMMainWindow::initMeshSignals() {
 	actionEditMeshPolish->setProperty(                            "gmMeshFunctionCall", MeshParams::EDIT_AUTOMATIC_POLISHING                     );
 	actionEditRemoveSeededSynthComp->setProperty(                 "gmMeshFunctionCall", MeshParams::EDIT_REMOVE_SEEDED_SYNTHETIC_COMPONENTS      );
 	actionEditRecomputeVertexNormals->setProperty(                "gmMeshFunctionCall", MeshParams::EDIT_VERTICES_RECOMPUTE_NORMALS              );
+	actionSet_Vertex_Alpha->setProperty(                          "gmMeshFunctionCall", MeshParams::SELMVERTS_SET_ALPHA                          );
 	actionEditVerticesAdd->setProperty(                           "gmMeshFunctionCall", MeshParams::EDIT_VERTICES_ADD                            );
 	actionSplitByPlane->setProperty(                              "gmMeshFunctionCall", MeshParams::EDIT_SPLIT_BY_PLANE                          );
 	actionFacesInvertOrientation->setProperty(                    "gmMeshFunctionCall", MeshParams::EDIT_FACES_INVERT_ORIENTATION                );
@@ -1131,6 +1143,7 @@ void QGMMainWindow::initMeshSignals() {
 	actionApplyTpsRpmTransformation->setProperty(                 "gmMeshGLFunctionCall", MeshGLParams::RUN_TPS_RPM_TRANSFORMATION               );
 	actionPositionsEuclideanDistances->setProperty(               "gmMeshFunctionCall", MeshParams::SELMPRIMS_POS_DISTANCES                      );
 	actionPositionsComputeCircleCenters->setProperty(             "gmMeshFunctionCall", MeshParams::SELMPRIMS_POS_CIRCLE_CENTERS                 );
+	actionMSIIFilterApplyQuick->setProperty(                      "gmMeshFunctionCall", MeshParams::COMPUTE_FEATUREVECTORS_QUICK                 );
 	actionGeodesicPatchSelPrim->setProperty(                      "gmMeshFunctionCall", MeshParams::GEODESIC_DISTANCE_TO_SELPRIM                 );
 	actionPolylinesFromMultipleFuncVals->setProperty(             "gmMeshFunctionCall", MeshParams::POLYLINES_FROM_MULTIPLE_FUNCTION_VALUES      );
 	actionPolylinesFromFuncVal->setProperty(                      "gmMeshFunctionCall", MeshParams::POLYLINES_FROM_FUNCTION_VALUE                );
@@ -1159,8 +1172,7 @@ void QGMMainWindow::initMeshSignals() {
 	actionScreenshotPDF->setProperty(                             "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_CURRENT_VIEW_SINGLE_PDF   );
 	actionScreenshotViews->setProperty(                           "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_IMAGES          );
 	actionScreenshotViewsPDF->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_PDF             );
-	actionScreenshotViewsPDFDirectory->setProperty(               "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_PDF_DIRECTORY   );
-	actionScreenshotViewsPNGDirectory->setProperty(               "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_PNG_DIRECTORY   );
+	actionScreenshotViewsDirectory->setProperty(                  "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_DIRECTORY           );
 	actionCurrentViewToDefault->setProperty(                      "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_CURRENT_VIEW_TO_DEFAULT      );
 	actionSetConeAxisCentralPixel->setProperty(                   "gmMeshWidgetFunctionCall", MeshWidgetParams::EDIT_SET_CONEAXIS_CENTRALPIXEL       );
 	actionOrthoSetDPI->setProperty(                               "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_ORTHO_DPI                    );
@@ -2499,11 +2511,11 @@ void QGMMainWindow::keyPressEvent( QKeyEvent *rEvent ) {
 	if( rEvent->key() == Qt::Key_Shift ) {
 		emit sSelectMouseModeExtra(true,MeshWidgetParams::MOUSE_MODE_MOVE_PLANE);
 	}
-	if( rEvent->key() == Qt::Key_Alt ) {
+	if( rEvent->key() == Qt::Key_3 && !rEvent->isAutoRepeat() ) {
 		emit sSelectMouseModeExtra(true,MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_CAM);
 	}
-	if( rEvent->key() == Qt::Key_AltGr ) {
-		emit sSelectMouseModeExtra(true,MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_WORLD);
+	if( rEvent->key() == Qt::Key_4 && !rEvent->isAutoRepeat() ) {
+		emit sSelectMouseModeExtra(true,MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_OBJECT);
 	}
 	//cout << "[QGMMainWindow::" << __FUNCTION__ << "] Key: " << rEvent->key() << " ignored." << endl;
 	QMainWindow::keyPressEvent( rEvent );
@@ -2517,10 +2529,10 @@ void QGMMainWindow::keyReleaseEvent( QKeyEvent *rEvent ) {
 	if( rEvent->key() == Qt::Key_Shift ) {
 		emit sSelectMouseModeExtra(false,MeshWidgetParams::MOUSE_MODE_COUNT);
 	}
-	//if( rEvent->key() == Qt::Key_Alt ) {
-	//	emit sSelectMouseModeExtra(false,MeshWidgetParams::MOUSE_MODE_COUNT);
-	//}
-	if( rEvent->key() == Qt::Key_AltGr ) {
+	if( rEvent->key() == Qt::Key_3 && !rEvent->isAutoRepeat() ) {
+		emit sSelectMouseModeExtra(false,MeshWidgetParams::MOUSE_MODE_COUNT);
+	}
+	if( rEvent->key() == Qt::Key_4 && !rEvent->isAutoRepeat() ) {
 		emit sSelectMouseModeExtra(false,MeshWidgetParams::MOUSE_MODE_COUNT);
 	}
 	QMainWindow::keyReleaseEvent( rEvent );

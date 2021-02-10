@@ -34,6 +34,8 @@
 #include "glmacros.h"
 #include "../QGMMacros.h"
 
+#include "ShaderManager.h"
+
 using namespace std;
 
 // Vertex Array Object related -- see initializeGL()
@@ -49,43 +51,12 @@ using PglBlendFunci = void (*)(GLuint, GLenum, GLenum);
 using PglFramebufferTexture2D = void (*)(GLenum, GLenum, GLenum, GLuint, GLint);
 using PglActiveTexture = void (*)(GLenum);
 
-// Initial values of this class:
-// ----------------------------------------------------
-#define MESHGLSHADERINITDEFAULTS                    \
-	mShaderBoundingBox( nullptr ),                  \
-	mShaderVertexSprites( nullptr ),                \
-	mShaderVertexNormals( nullptr ),                \
-	mShaderVertexFuncValProgram( nullptr ),         \
-	mShaderWireframe( nullptr ),                    \
-    mShaderPolyLines( nullptr ),                    \
-    mShaderNPR_BuildFBO( nullptr ),                 \
-    mShaderNPR_BuildSobel( nullptr ),               \
-    mShaderNPR_gaussianBlur( nullptr ),             \
-    mShaderNPR_hatching( nullptr),                  \
-    mShaderNPR_toonify( nullptr ),                  \
-    mShaderNPR_composit( nullptr ),                 \
-    mShaderTransparencyABClear( nullptr),           \
-    mShaderTransparencyABFill( nullptr),            \
-    mShaderTransparencyABRender( nullptr),          \
-    mShaderTransparencyCountFrags( nullptr),        \
-    mShaderTransparencyALClear( nullptr),           \
-    mShaderTransparencyALFill( nullptr),            \
-    mShaderTransparencyALRender( nullptr),          \
-    mShaderTransparencyALDepthCollect( nullptr),    \
-    mShaderTransparencyGeomWOIT(nullptr),           \
-    mShaderTransparencyBlendWOIT(nullptr),          \
-    mShaderLightToFBO(nullptr),                     \
-    mShaderPaintLightningOverlay(nullptr),          \
-	mShaderDepth( nullptr ),                        \
-	mShaderFrontalLightPerVertex( nullptr ),        \
-	mShaderPointcloud( nullptr )
-
 //! Constructor
 MeshGLShader::MeshGLShader(
                 QGLContext* rGLContext,
                 const filesystem::path& rFileName,
                 bool& rReadSuccess
-) : MeshGL( rGLContext, rFileName, rReadSuccess ), MESHGLSHADERINITDEFAULTS {
+) : MeshGL( rGLContext, rFileName, rReadSuccess ) {
 	// Show limits for emitting elements using the geometry shader:
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
 	GLint maxComp;
@@ -106,17 +77,6 @@ MeshGLShader::MeshGLShader(
 	} else {
 		cout << "[MeshGLShader::" << __FUNCTION__ << "] Texture map for function values loaded." << endl;
 	}
-
-	//Load NPR Hatching-Texture
-/*
-	  if( !mImageHatchlinesNPR[0].load(":/GMShaders/Noise-Lab-Fabric-seamless_DC01.jpg")) {
-			cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: Could not load texture map for hatchlines!" << endl;
-		} else {
-			cout << "[MeshGLShader::" << __FUNCTION__ << "] Texture map for hatchlines loaded." << endl;
-		}
-
-*/
-
 
 	if( !mImageHatchlinesNPR[0].load(":/GMShaders/NPR/hatch_0-2.png")) {
             cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: Could not load texture map for hatchlines!" << endl;
@@ -177,19 +137,7 @@ MeshGLShader::MeshGLShader(
 		mTextureHatchlinesNPR[i]->setMagnificationFilter(QOpenGLTexture::Linear);
 	}
 
-	//======================================================================================================================================================
-	// CREATE shader for the bounding box
-	//------------------------------------------------------------------------------------------------------------------------------------------------------
-	if( !shaderLink( &mShaderBoundingBox, ":/GMShaders/boundingbox.vert", "", ":/GMShaders/boundingbox.frag", "BB" ) ) {
-		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-	}
-
-	//======================================================================================================================================================
-	// CREATE shader vertex sprites
-	//------------------------------------------------------------------------------------------------------------------------------------------------------
-	if( !shaderLink( &mShaderVertexSprites, ":/GMShaders/vertex_sprite.vert", "", ":/GMShaders/vertex_sprite.frag", "VS" ) ) { //! \todo remove vertex_sprite.geom
-		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-	}
+	mShaderManager = new ShaderManager;
 
 	glEnable( GL_VERTEX_PROGRAM_POINT_SIZE );
 	PRINT_OPENGL_ERROR( "glEnable( GL_VERTEX_PROGRAM_POINT_SIZE );" );
@@ -204,187 +152,6 @@ MeshGLShader::MeshGLShader(
 	//PRINT_OPENGL_ERROR( "glPointSize( 6.0 );" ); // <- deprecated with OpenGL 3.x
 	//glVertexPointer( 3, GL_FLOAT, sizeof(grVertexStripeElment), NULL );  // <- deprecated with OpenGL 3.x
 	//PRINT_OPENGL_ERROR( "glVertexPointer( 3, GL_FLOAT, sizeof(grVertexStripeElment), NULL );" ); // <- deprecated with OpenGL 3.x
-
-	//======================================================================================================================================================
-	// CREATE shader vertex normals
-	//------------------------------------------------------------------------------------------------------------------------------------------------------
-	if( !shaderLink( &mShaderVertexNormals, ":/GMShaders/vertex_sprite.vert", ":/GMShaders/vertex_sprite.geom", ":/GMShaders/funcval.frag", "VN" ) ) {
-		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-	}
-
-	//======================================================================================================================================================
-	// CREATE new shader for rendering a mesh with color mapped to the function values of the vertices.
-	//------------------------------------------------------------------------------------------------------------------------------------------------------
-	if( !shaderLink( &mShaderVertexFuncValProgram, ":/GMShaders/funcval.vert", ":/GMShaders/funcval.geom", ":/GMShaders/funcval.frag", "FF" ) ) {
-		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-	}
-
-	//======================================================================================================================================================
-	// CREATE new shader for rendering a mesh as wireframe.
-	//------------------------------------------------------------------------------------------------------------------------------------------------------
-	if( !shaderLink( &mShaderWireframe, ":/GMShaders/wireframe/wireframe.vert", ":/GMShaders/wireframe/wireframe.geom", ":/GMShaders/wireframe/wireframe.frag", "WF" ) ) {
-		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-	}
-
-	//======================================================================================================================================================
-	// CREATE new shader for rendering polyognal lines using GL_LINES
-	//------------------------------------------------------------------------------------------------------------------------------------------------------
-	if( !shaderLink( &mShaderPolyLines, ":/GMShaders/funcval.vert", ":/GMShaders/polyline.geom", ":/GMShaders/funcval.frag", "PL" ) ) {
-		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-	}
-
-
-    //======================================================================================================================================================
-    // CREATE new shader to build FBO for NPR-sketch shading
-    //------------------------------------------------------------------------------------------------------------------------------------------------------
-	if( !shaderLink( &mShaderNPR_BuildFBO, ":/GMShaders/NPR/NPR_buildFBO.vert", "", ":/GMShaders/NPR/NPR_buildFBO.frag", "BFBO")) {
-        cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-    }
-
-    //======================================================================================================================================================
-    // CREATE new shader to build Sobel-Image for NPR-sketch shading
-    //------------------------------------------------------------------------------------------------------------------------------------------------------
-	if( !shaderLink( &mShaderNPR_BuildSobel, ":/GMShaders/fullscreenQuad_passthrough.vert", "", ":/GMShaders/NPR/NPR_ApplySobel.frag", "SOBELFBO")) {
-        cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-    }
-
-    //======================================================================================================================================================
-    // CREATE new shader to smooth an image for NPR-sketch shading
-    //------------------------------------------------------------------------------------------------------------------------------------------------------
-	if( !shaderLink( &mShaderNPR_gaussianBlur, ":/GMShaders/fullscreenQuad_passthrough.vert", "", ":/GMShaders/NPR/NPR_gaussianblur.frag", "NPR_GAUSSIAN")) {
-        cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-    }
-
-    //======================================================================================================================================================
-    // CREATE new shader to generate hatches for NPR-sketch shading
-    //------------------------------------------------------------------------------------------------------------------------------------------------------
-	if( !shaderLink( &mShaderNPR_hatching, ":/GMShaders/fullscreenQuad_passthrough.vert", "", ":/GMShaders/NPR/NPR_hatches.frag", "NPR_HATCHES")) {
-        cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-    }
-
-    //======================================================================================================================================================
-    // CREATE new shader to generate a toon image for NPR-sketch shading
-    //------------------------------------------------------------------------------------------------------------------------------------------------------
-	if( !shaderLink( &mShaderNPR_toonify, ":/GMShaders/fullscreenQuad_passthrough.vert", "", ":/GMShaders/NPR/NPR_toonify.frag", "NPR_TOONIFY")) {
-        cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-    }
-
-    //======================================================================================================================================================
-    // CREATE new shader to composite multipe NPR images to final result
-    //------------------------------------------------------------------------------------------------------------------------------------------------------
-	if( !shaderLink( &mShaderNPR_composit, ":/GMShaders/fullscreenQuad_passthrough.vert", "", ":/GMShaders/NPR/NPR_composit.frag", "NPR_COMPOSIT")) {
-        cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-    }
-
-
-    //======================================================================================================================================================
-    // CREATE new shader for geometry-pass for the overlay lighting display
-    //------------------------------------------------------------------------------------------------------------------------------------------------------
-	if( !shaderLink( &mShaderLightToFBO, ":/GMShaders/lightingOverlay/overlayLighting_geometrypass.vert", "", ":/GMShaders/lightingOverlay/overlayLighting_geometrypass.frag", "OVBFBO")) {
-        cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-    }
-
-    //======================================================================================================================================================
-    // CREATE new shader for the ovelay lighting display rendering
-    //------------------------------------------------------------------------------------------------------------------------------------------------------
-	if( !shaderLink( &mShaderPaintLightningOverlay, ":/GMShaders/fullscreenQuad_passthrough.vert", "", ":/GMShaders/lightingOverlay/overlayLighting_fbopass.frag", "OVDFBO")) {
-        cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-    }
-
-	//======================================================================================================================================================
-	// CREATE new shader for just filling the depth buffer
-	//------------------------------------------------------------------------------------------------------------------------------------------------------
-	if( !shaderLink( &mShaderDepth, ":/GMShaders/depth.vert", "", ":/GMShaders/depth.frag", "DEPTH")) {
-		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-	}
-
-	//======================================================================================================================================================
-	// CREATE new shader for painting per vertex light intensities (obtained by simulating frontal lighting) to individual pixels
-	//------------------------------------------------------------------------------------------------------------------------------------------------------
-	if( !shaderLink( &mShaderFrontalLightPerVertex, ":/GMShaders/frontal_light_per_vertex.vert", "", ":/GMShaders/frontal_light_per_vertex.frag", "FRONTAL_PER_VERTEX")) {
-		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-	}
-
-    //These shaders will only work with OpenGL Version 4.3
-    if((mOpenGLContext->format().majorVersion() >= 4) || (mOpenGLContext->format().majorVersion() == 4 && mOpenGLContext->format().minorVersion() < 3))
-    {
-        //======================================================================================================================================================
-        // CREATE new shader for clearing Transparency-Buffers (ABUFFER variant)
-        //------------------------------------------------------------------------------------------------------------------------------------------------------
-		if( !shaderLink( &mShaderTransparencyABClear, ":/GMShaders/fullscreenQuad_passthrough.vert", "", ":/GMShaders/transparency/ABuffer/transparency_clearABuffers.frag", "TCLAB")) {
-            cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-        }
-
-        //======================================================================================================================================================
-        // CREATE new shader to fill Transparency-Buffers (ABUFFER variant)
-        //------------------------------------------------------------------------------------------------------------------------------------------------------
-		if( !shaderLink( &mShaderTransparencyABFill, ":/GMShaders/funcval.vert", ":/GMShaders/funcval.geom", ":/GMShaders/transparency/ABuffer/transparency_createABuffers.frag", "TFILLAB")) {
-            cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-        }
-
-        //======================================================================================================================================================
-        // CREATE new shader to render Transparency-Buffers (ABUFFER variant)
-        //------------------------------------------------------------------------------------------------------------------------------------------------------
-		if( !shaderLink( &mShaderTransparencyABRender, ":/GMShaders/fullscreenQuad_passthrough.vert", "", ":/GMShaders/transparency/ABuffer/transparency_renderABuffers.frag", "TRENDAB")) {
-            cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-        }
-
-        //======================================================================================================================================================
-        // CREATE new shader for render minimal Geomtetry-Pass (ABUFFER variant)
-        //------------------------------------------------------------------------------------------------------------------------------------------------------
-		if( !shaderLink( &mShaderTransparencyCountFrags, ":/GMShaders/transparency/ABuffer/transparency_minGeom.vert", "", ":/GMShaders/transparency/ABuffer/transparency_minGeom.frag", "TMINGEOMAB")) {
-            cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-        }
-
-        //======================================================================================================================================================
-        // CREATE new shader for clearing Transparency-Buffers (Atomic Loop variant)
-        //------------------------------------------------------------------------------------------------------------------------------------------------------
-		if( !shaderLink( &mShaderTransparencyALClear, ":/GMShaders/fullscreenQuad_passthrough.vert", "", ":/GMShaders/transparency/atomicLoop/transparency_clearALBuffers.frag", "TCLAL")) {
-            cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-        }
-
-        //======================================================================================================================================================
-        // CREATE new shader to fill Transparency-Buffers (Atomic Loop variant)
-        //------------------------------------------------------------------------------------------------------------------------------------------------------
-		if( !shaderLink( &mShaderTransparencyALFill, ":/GMShaders/funcval.vert", ":/GMShaders/funcval.geom", ":/GMShaders/transparency/atomicLoop/transparency_createALBuffers.frag", "TFILLAL")) {
-            cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-        }
-
-        //======================================================================================================================================================
-        // CREATE new shader to render Transparency-Buffers (Atomic Loop variant)
-        //------------------------------------------------------------------------------------------------------------------------------------------------------
-		if( !shaderLink( &mShaderTransparencyALRender, ":/GMShaders/fullscreenQuad_passthrough.vert", "", ":/GMShaders/transparency/atomicLoop/transparency_renderALBuffers.frag", "TRENDAL")) {
-            cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-        }
-
-        //======================================================================================================================================================
-        // CREATE new shader for dept-value collection Geomtetry-Pass (Atomic Loop variant)
-        //------------------------------------------------------------------------------------------------------------------------------------------------------
-		if( !shaderLink( &mShaderTransparencyALDepthCollect, ":/GMShaders/transparency/ABuffer/transparency_minGeom.vert", "", ":/GMShaders/transparency/atomicLoop/transparency_ALcollectDepth.frag", "TDCAL")) {
-            cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-        }
-    }
-
-    //======================================================================================================================================================
-    // CREATE new shader for Weighted Blend OIT (geometry pass)
-    //------------------------------------------------------------------------------------------------------------------------------------------------------
-	if( !shaderLink( &mShaderTransparencyGeomWOIT, ":/GMShaders/funcval.vert", ":/GMShaders/funcval.geom", ":/GMShaders/transparency/WeightedOIT/transparency_geomWOIT.frag", "TGEOMWOIT")) {
-        cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-    }
-
-    //======================================================================================================================================================
-    // CREATE new shader for Weighted Blend OIT (blending pass)
-    //------------------------------------------------------------------------------------------------------------------------------------------------------
-	if( !shaderLink( &mShaderTransparencyBlendWOIT, ":/GMShaders/fullscreenQuad_passthrough.vert", "", ":/GMShaders/transparency/WeightedOIT/transparency_blendWOIT.frag", "TBLENDWOIT")) {
-        cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-    }
-
-	//======================================================================================================================================================
-	// CREATE new shader for pointcloud rendering
-	//------------------------------------------------------------------------------------------------------------------------------------------------------
-	if( !shaderLink( &mShaderPointcloud, ":/GMShaders/funcval.vert", ":/GMShaders/pointcloud/pointcloud.geom", ":/GMShaders/pointcloud/pointcloud.frag", "POINTCLOUD")) {
-		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: broken shader!" << endl;
-	}
 
     //Variables for NPR Shading
     //mFboNPR = nullptr;
@@ -401,46 +168,7 @@ MeshGLShader::MeshGLShader(
 
 //! Destructor -- deletes mShader***Programs
 MeshGLShader::~MeshGLShader() {
-	delete mShaderBoundingBox;
-	mShaderBoundingBox = nullptr;
-	delete mShaderVertexSprites;
-	mShaderVertexSprites = nullptr;
-	delete mShaderVertexNormals;
-	mShaderVertexNormals = nullptr;
-	delete mShaderVertexFuncValProgram;
-	mShaderVertexFuncValProgram = nullptr;
-	delete mShaderWireframe;
-	mShaderWireframe = nullptr;
-	delete mShaderPolyLines;
-	mShaderPolyLines = nullptr;
-
-	delete mShaderNPR_BuildFBO;
-	mShaderNPR_BuildFBO = nullptr;
-
-	delete mShaderNPR_BuildSobel;
-	mShaderNPR_BuildSobel = nullptr;
-
-	delete mShaderNPR_gaussianBlur;
-	mShaderNPR_gaussianBlur = nullptr;
-
-	delete mShaderNPR_hatching;
-	mShaderNPR_hatching = nullptr;
-
-	delete mShaderNPR_toonify;
-	mShaderNPR_toonify = nullptr;
-
-	delete mShaderNPR_composit;
-	mShaderNPR_composit = nullptr;
-
-	//if(mFboNPR != nullptr)
-	//    delete mFboNPR;
-
-	//mFboNPR = nullptr;
-
-	//if(mSobelNPR != nullptr)
-	//    delete mSobelNPR;
-
-	//mSobelNPR = nullptr;
+	delete mShaderManager;
 
 	for(QOpenGLTexture*& textureHatchlineNPR : mTextureHatchlinesNPR)
 	{
@@ -451,41 +179,6 @@ MeshGLShader::~MeshGLShader() {
 		}
 	}
 
-	//These shaders will only work with OpenGL Version 4.3
-	if((mOpenGLContext->format().majorVersion() >= 4) || (mOpenGLContext->format().majorVersion() == 4 && mOpenGLContext->format().minorVersion() < 3))
-	{
-		delete mShaderTransparencyABClear;
-		mShaderTransparencyABClear = nullptr;
-
-		delete mShaderTransparencyABFill;
-		mShaderTransparencyABFill = nullptr;
-
-		delete mShaderTransparencyABRender;
-		mShaderTransparencyABRender = nullptr;
-
-		delete mShaderTransparencyCountFrags;
-		mShaderTransparencyCountFrags = nullptr;
-
-		delete mShaderTransparencyALDepthCollect;
-		mShaderTransparencyALDepthCollect = nullptr;
-
-		delete mShaderTransparencyALClear;
-		mShaderTransparencyABClear = nullptr;
-
-		delete mShaderTransparencyALFill;
-		mShaderTransparencyABFill = nullptr;
-
-		delete mShaderTransparencyALRender;
-		mShaderTransparencyABRender = nullptr;
-
-	}
-
-	delete mShaderTransparencyBlendWOIT;
-	mShaderTransparencyBlendWOIT = nullptr;
-
-	delete mShaderTransparencyGeomWOIT;
-	mShaderTransparencyGeomWOIT = nullptr;
-
 	mIsFboInitialized = false;
 
 	if(mTransIsInitialized && (
@@ -493,7 +186,7 @@ MeshGLShader::~MeshGLShader() {
 			(mOpenGLContext->format().majorVersion() == 4 && mOpenGLContext->format().minorVersion() >= 3)))
 	{
 
-		mGL4_3Functions.glDeleteBuffers(mSSBOs.size(),mSSBOs.data());
+		mGL4_3Functions.glDeleteBuffers(static_cast<GLsizei>(mSSBOs.size()),mSSBOs.data());
 		if(mTransIsInitialized == 2)
 			mGL4_3Functions.glDeleteQueries(1,&mTransFragmentQuery);
 		else if(mTransIsInitialized == 1 || mTransIsInitialized == 3)
@@ -510,21 +203,6 @@ MeshGLShader::~MeshGLShader() {
 
 	if(mFboOverlay)
 		delete mFboOverlay;
-
-	delete mShaderLightToFBO;
-	mShaderLightToFBO = nullptr;
-
-	delete mShaderPaintLightningOverlay;
-	mShaderPaintLightningOverlay = nullptr;
-
-	delete mShaderDepth;
-	mShaderDepth = nullptr;
-
-	delete mShaderFrontalLightPerVertex;
-	mShaderFrontalLightPerVertex = nullptr;
-	
-	delete mShaderPointcloud;
-	mShaderPointcloud = nullptr;
 
 	delete mTextureMaps[0];
 
@@ -594,11 +272,12 @@ void MeshGLShader::glPaint() {
 			eTexMapType texMapChoice;
 			getParamIntMeshGL( TEXMAP_CHOICE_FACES, reinterpret_cast<int*>(&texMapChoice) );
 			vboPaintPointcloud(texMapChoice, showMeshReduced);
+			break;
 		}
 		case SHADER_MONOLITHIC:
 			//! ----------------------------------------------------------------------------------------
 			//! *) Monolithic shader with all the functionality
-			vboPaintFaces();
+			vboPaintFuncVal();
 			break;
 		case SHADER_TRANSPARENCY:
 			// Do nothing here, as the corresponding function will be called later
@@ -627,6 +306,10 @@ void MeshGLShader::glPaint() {
 			cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: Unknown shader choice " << shaderChoice << "!" << endl;
 			break;
 	}
+
+	//! ----------------------------------------------------------------------------------------
+	//! *) Faces of datum objects
+	vboPaintFaces();
 
 	//! ----------------------------------------------------------------------------------------
 	//! *) Vertices.
@@ -716,7 +399,7 @@ void MeshGLShader::glPaintTransparent()
 
 			if(mTransIsInitialized != (bufferMethod + 1) && mTransIsInitialized != 0)
 			{
-				mGL4_3Functions.glDeleteBuffers(mSSBOs.size(),mSSBOs.data());
+				mGL4_3Functions.glDeleteBuffers(static_cast<GLsizei>(mSSBOs.size()),mSSBOs.data());
 
 
 				if(mTransIsInitialized == 2)
@@ -749,7 +432,7 @@ void MeshGLShader::glPaintTransparent()
 			//free transparency buffers, if no longer needed
 			if(mTransIsInitialized)
 			{
-				mGL4_3Functions.glDeleteBuffers(mSSBOs.size(),mSSBOs.data());
+				mGL4_3Functions.glDeleteBuffers(static_cast<GLsizei>(mSSBOs.size()),mSSBOs.data());
 
 				if(mTransIsInitialized == 2)
 					mGL4_3Functions.glDeleteQueries(1,&mTransFragmentQuery);
@@ -798,6 +481,11 @@ void MeshGLShader::glPaintDepth( const QMatrix4x4 &rTransformMat ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshGLShader::" << __FUNCTION__ << "]" << endl;
 #endif
+	const auto mShaderDepth = mShaderManager->getShader(ShaderManager::ShaderName::DEPTH);
+
+	if(mShaderDepth == nullptr)
+		return;
+
 	MeshGL::glPaintDepth( rTransformMat );
 
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -835,6 +523,12 @@ void MeshGLShader::glPaintFrontalLightPerVertex( const QMatrix4x4 &rTransformMat
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
+
+	const auto mShaderFrontalLightPerVertex = mShaderManager->getShader(ShaderManager::ShaderName::FRONTAL_LIGHT_PER_VERTEX);
+	if(mShaderFrontalLightPerVertex == nullptr)
+		return;
+
+
 	MeshGL::glPaintFrontalLightPerVertex( rTransformMat, rXResolution, rYResolution, rDepthTexture, rZTolerance, rFirstVertIdx );
 
 	if( !mShaderFrontalLightPerVertex->bind() ) {
@@ -855,78 +549,14 @@ void MeshGLShader::glPaintFrontalLightPerVertex( const QMatrix4x4 &rTransformMat
 		shaderSetLocationBasicAttribs(mShaderFrontalLightPerVertex, VBUFF_VERTICES_STRIPED, static_cast<unsigned>(sizeof(grVertexStripeElment)));
 
 		mVertBufObjs[VBUFF_VERTICES_STRIPED]->bind();
-		glDrawArrays( GL_POINTS, rFirstVertIdx, std::min(static_cast<size_t>(rXResolution) * rYResolution, mVertBufObjs[VBUFF_VERTICES_STRIPED]->size() / sizeof(grVertexStripeElment) - rFirstVertIdx) );
+		glDrawArrays( GL_POINTS, rFirstVertIdx, std::min(static_cast<GLsizei>(rXResolution * rYResolution),
+		                                                 static_cast<GLsizei>(mVertBufObjs[VBUFF_VERTICES_STRIPED]->size() / sizeof(grVertexStripeElment) - rFirstVertIdx)) );
 		PRINT_OPENGL_ERROR( "glDrawArrays( GL_POINTS, rFirstVertex, min((long unsigned int) rXResolution * rYResolution, mVertBufObjs[VBUFF_VERTICES_STRIPED]->size() / sizeof(grVertexStripeElment) - rFirstVertIdx) );" );
 		mVertBufObjs[VBUFF_VERTICES_STRIPED]->release();
 	}
 }
 
 //==============================================================================================================================================================
-
-//! Adds shaders from source and links them.
-//! In case of an error a message is shown and
-//! @returns false in case of an error. true otherwise.
-bool MeshGLShader::shaderLink( QOpenGLShaderProgram** rShaderProgram, //!< Pointer to the shader program.
-							   const QString& rVertSrc,                      //!< Name of the source file for the vertex shader.
-							   const QString& rGeomSrc,                      //!< Name of the source file for the vertex shader. Optional - for none use "".
-							   const QString& rFragSrc,                      //!< Name of the source file for the vertex shader.
-							   const QString& rName                          //!< Name of the shader for error messages and warnings.
-							  ) {
-
-        //! \todo uncomment error messages
-
-	if( (*rShaderProgram) != nullptr ) {
-                //SHOW_MSGBOX_CRIT( QString( "GLSL Error (" + rName + ")" ), "Shader program (" + rName + ") already exists!" );
-		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: shader program (" << rName.toStdString() << ") already exists!" << endl;
-		return false;
-	}
-
-	(*rShaderProgram) = new QOpenGLShaderProgram();
-	// Vertex shader:
-	if( !(*rShaderProgram)->addShaderFromSourceFile( QOpenGLShader::Vertex, rVertSrc ) ) {
-		QString linkMsgs = (*rShaderProgram)->log();
-		linkMsgs = linkMsgs.left( linkMsgs.indexOf( "***" ) );
-		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: compiling shader program (" << rName.toStdString() << "/vert): " << linkMsgs.toStdString() << endl;
-                //SHOW_MSGBOX_CRIT( QString( "GLSL Error (" + rName + "/vert)" ), linkMsgs );
-		return false;
-	}
-	// Geometry shader is optional:
-	if( rGeomSrc.length() > 0 ) {
-		if( !(*rShaderProgram)->addShaderFromSourceFile( QOpenGLShader::Geometry, rGeomSrc ) ) {
-			QString linkMsgs = (*rShaderProgram)->log();
-			linkMsgs = linkMsgs.left( linkMsgs.indexOf( "***" ) );
-			cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: compiling shader program (" << rName.toStdString() << "/geom): " << linkMsgs.toStdString() << endl;
-			SHOW_MSGBOX_CRIT( QString( "GLSL Error (" + rName + "/geom)" ), linkMsgs );
-			return false;
-		}
-	}
-	// Fragment shader:
-	if( !(*rShaderProgram)->addShaderFromSourceFile( QOpenGLShader::Fragment, rFragSrc ) ) {
-		QString linkMsgs = (*rShaderProgram)->log();
-		linkMsgs = linkMsgs.left( linkMsgs.indexOf( "***" ) );
-		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: compiling shader program (" << rName.toStdString() << "/frag): " << linkMsgs.toStdString() << endl;
-                //SHOW_MSGBOX_CRIT( QString( "GLSL Error (" + rName + "/frag)" ), linkMsgs );
-		return false;
-	}
-
-	// LINK Shader
-	//-------------------------
-	if( !(*rShaderProgram)->link() ) {
-		QString linkMsgs = (*rShaderProgram)->log();
-		linkMsgs = linkMsgs.left( linkMsgs.indexOf( "***" ) );
-		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: linking shader program (" << rName.toStdString() << "): " << linkMsgs.toStdString() << endl;
-                //SHOW_MSGBOX_CRIT( QString( "GLSL Error" ), linkMsgs );
-		return false;
-	} else {
-		cout << "[MeshGLShader::" << __FUNCTION__ << "] Linking shader program (" << rName.toStdString() << ") successfull." << endl;
-	}
-
-
-	return true;
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 //! Set a shader's basic uniforms: the modelview and the projection matrix.
 void MeshGLShader::shaderSetLocationBasicMatrices( QOpenGLShaderProgram* rShaderProgram ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
@@ -1024,6 +654,7 @@ void MeshGLShader::shaderSetLocationBasicLight( QOpenGLShaderProgram* rShaderPro
 	mWidgetParams->getParamFlagMeshWidget( MeshWidgetParams::LIGHT_ENABLED, &lightingSet );
 	rShaderProgram->setUniformValue( "uLightEnabled", static_cast<GLboolean>(lightingSet) );
 	if( !lightingSet ) {
+		rShaderProgram->setUniformValue( "uLightVectors", 0 );
 		return;
 	}
 
@@ -1107,9 +738,17 @@ void MeshGLShader::shaderSetLocationBasicLight( QOpenGLShaderProgram* rShaderPro
 	// Light - show directions
 	MeshWidgetParams::eMouseModes currMouseMode;
 	mWidgetParams->getParamIntegerMeshWidget( MeshWidgetParams::MOUSE_MODE, reinterpret_cast<int*>(&currMouseMode) );
-	bool lightVectors = ( currMouseMode == MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_CAM ) || \
-						( currMouseMode == MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_WORLD );
+
+	int lightVectors = currMouseMode == MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_CAM    ? 1 :
+	                   currMouseMode == MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_OBJECT ? 2 :
+	                   0;
+
 	rShaderProgram->setUniformValue( "uLightVectors", lightVectors );
+
+	double lightVectorLength = 0.0;
+	getParamFloatMeshGL( MeshGLParams::LIGHTVECTOR_LENGTH, &lightVectorLength);
+	rShaderProgram->setUniformValue("uLightVeclLength", static_cast<GLfloat>(lightVectorLength));
+
 	// Limit number of directional vectors shown.
 	int maxLightVecs; // 5000 seems to be a good choice.
 	mWidgetParams->getParamIntegerMeshWidget( MeshWidgetParams::LIGHT_VECTORS_SHOWN_MAX, &maxLightVecs );
@@ -1247,7 +886,7 @@ void MeshGLShader::shaderSetLocationVertexSprites( QOpenGLShaderProgram* rShader
 	rShaderProgram->enableAttributeArray( "vLabelID" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 	size_t offSetFlags = offSetLabelID + sizeof(GLfloat);
-	rShaderProgram->setAttributeBuffer( "vFlags", GL_FLOAT, offSetFlags, 1, sizeof(grVertexStripeElment) );
+	rShaderProgram->setAttributeBuffer( "vFlags", GL_FLOAT, static_cast<int>(offSetFlags), 1, static_cast<int>(sizeof(grVertexStripeElment)) );
 	rShaderProgram->enableAttributeArray( "vFlags" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 }
@@ -1265,7 +904,7 @@ void MeshGLShader::shaderSetMeshBasicFuncVals(QOpenGLShaderProgram *rShaderProgr
 	rShaderProgram->enableAttributeArray( "vLabelID" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 	size_t offSetFlags = offSetLabelID + sizeof(GLfloat);
-	rShaderProgram->setAttributeBuffer( "vFlags", GL_FLOAT, offSetFlags, 1, sizeof(grVertexStripeElment) );
+	rShaderProgram->setAttributeBuffer( "vFlags", GL_FLOAT, static_cast<int>(offSetFlags), 1, static_cast<int>(sizeof(grVertexStripeElment)) );
 	rShaderProgram->enableAttributeArray( "vFlags" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 
@@ -1379,6 +1018,8 @@ bool MeshGLShader::changedBoundingBox() {
 
 //! Draw the bounding box of the mesh, when the related flag is set.
 void MeshGLShader::vboPaintBoundingBox() {
+
+
 	bool drawBoundingBox;
 	getParamFlagMeshGL( SHOW_BOUNDING_BOX, &drawBoundingBox );
 	bool drawBoundingBoxEnclosed;
@@ -1386,6 +1027,11 @@ void MeshGLShader::vboPaintBoundingBox() {
 	if( !( drawBoundingBox || drawBoundingBoxEnclosed ) ) {
 		return;
 	}
+
+	const auto mShaderBoundingBox = mShaderManager->getShader(ShaderManager::ShaderName::BOUNDING_BOX);
+	if(mShaderBoundingBox == nullptr)
+		return;
+
 	PRINT_OPENGL_ERROR( "OLD ERROR" );
 
 	if( !mVertBufObjs[VBUFF_CUBE]->isCreated() ) {
@@ -1512,11 +1158,10 @@ void MeshGLShader::vboPaintVertices() {
 								 // the behaviour of the plane selection feature)
 
 		double spherePointNormals[12]{0.0};	//the normals of the shere selection points
-		bool showMeshSpherePos = true;
+
 		//! \todo SHOW_MESH_SPHERE_POSITIONS remove or implement.
-		//getParamFlagMeshGL( SHOW_MESH_SPHERE_POSITIONS, &showMeshSpherePos );	//this flag is never set... TODO: set it, so the pins are not constantly rendererd
-		if( /*showMeshSpherePos && */getSphereData(spherePoints, spherePointNormals) ) {
-			//grVertexStripeElment somePoint;
+
+		if( getSphereData(spherePoints, spherePointNormals) ) {
 			PinRenderer::PinVertex somePoint;
 			somePoint.color[0] = 255;
 			somePoint.color[1] =   0;
@@ -1605,51 +1250,59 @@ void MeshGLShader::vboPaintVertices() {
 	PRINT_OPENGL_ERROR( "glBindVertexArray( mVAO )" );
 
 	if( drawVerticesNormals ) {
-		// Lets be shady :)
-		if( !mShaderVertexNormals->bind() ) {
-			cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: binding shader program!" << endl;
+		const auto mShaderVertexNormals = mShaderManager->getShader(ShaderManager::ShaderName::VERTEX_NORMALS);
+		if(mShaderVertexNormals != nullptr)
+		{
+			// Lets be shady :)
+			if( !mShaderVertexNormals->bind() ) {
+				cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: binding shader program!" << endl;
+			}
+			// Set the basics:
+			shaderSetLocationBasicMatrices( mShaderVertexNormals );
+			shaderSetLocationBasicAttribs( mShaderVertexNormals, VBUFF_VERTICES_STRIPED, static_cast<int>(sizeof(grVertexStripeElment)) );
+			// Set the basic lighting:
+			// We let the ligths turned off os that the color per vertex, function values or labels are shown without shading effects.
+			// The default ambient light (100%) is defined within the shader.
+			// shaderSetLocationBasicLight( mShaderVertexNormals );
+			// Set the basic fog:
+			shaderSetLocationBasicFog( mShaderVertexNormals );
+			// Set up common uniforms and attributes vertex sprites and normals:
+			shaderSetLocationVertexSprites( mShaderVertexNormals );
+
+			// Geometry shader setting:
+			//----------------------------------
+			double normalsLength;
+			getParamFloatMeshGL( MeshGLParams::NORMALS_LENGTH, &normalsLength );
+			mShaderVertexNormals->setUniformValue( "uNormalLength", static_cast<GLfloat>(normalsLength) );
+			double normalsWdith;
+			getParamFloatMeshGL( MeshGLParams::NORMALS_WIDTH, &normalsWdith );
+			mShaderVertexNormals->setUniformValue( "uNormalWidth", static_cast<GLfloat>(normalsWdith) );
+			PRINT_OPENGL_ERROR( "Shader setUniformValue" );
+
+			// Switch rendering mode solid/color_per_vertex/function_value/labels:
+			int renderColor;
+			getParamIntMeshGL( TEXMAP_CHOICE_VERETX_SPRITES, &renderColor );
+			mShaderVertexNormals->setUniformValue( "uRenderColor", renderColor );
+			PRINT_OPENGL_ERROR( "Shader setUniformValue" );
+
+			// Material - solid color:
+			GLfloat colorTmpStored[4];
+			mRenderColors->getColorSettings( MeshGLColors::COLOR_VERTEX_MONO, colorTmpStored );
+			mShaderVertexNormals->setUniformValue( "colorSolid", colorTmpStored[0], colorTmpStored[1], colorTmpStored[2], colorTmpStored[3] );
+			PRINT_OPENGL_ERROR( "Shader setUniformValue" );
+			// Map and draw elements
+			glDrawArrays( GL_POINTS, 0, mVertBufObjs[VBUFF_VERTICES_STRIPED]->size() );
+			PRINT_OPENGL_ERROR( "glDrawArrays( GL_POINTS, 0, mVBOSizes[VBUFF_VERTICES_STRIPED] );" );
+
+			// DONE WITH NORMALS
+			mShaderVertexNormals->release();
+			//cout << "[MeshGLShader::" << __FUNCTION__ << "] Vertex Normals!" << endl;
 		}
-		// Set the basics:
-		shaderSetLocationBasicMatrices( mShaderVertexNormals );
-		shaderSetLocationBasicAttribs( mShaderVertexNormals, VBUFF_VERTICES_STRIPED, static_cast<int>(sizeof(grVertexStripeElment)) );
-		// Set the basic lighting:
-		// We let the ligths turned off os that the color per vertex, function values or labels are shown without shading effects.
-		// The default ambient light (100%) is defined within the shader.
-		// shaderSetLocationBasicLight( mShaderVertexNormals );
-		// Set the basic fog:
-		shaderSetLocationBasicFog( mShaderVertexNormals );
-		// Set up common uniforms and attributes vertex sprites and normals:
-		shaderSetLocationVertexSprites( mShaderVertexNormals );
-
-		// Geometry shader setting:
-		//----------------------------------
-		double normalsLength;
-		getParamFloatMeshGL( MeshGLParams::NORMALS_LENGTH, &normalsLength );
-		mShaderVertexNormals->setUniformValue( "uNormalLength", static_cast<GLfloat>(normalsLength) );
-		double normalsWdith;
-		getParamFloatMeshGL( MeshGLParams::NORMALS_WIDTH, &normalsWdith );
-		mShaderVertexNormals->setUniformValue( "uNormalWidth", static_cast<GLfloat>(normalsWdith) );
-		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-
-		// Switch rendering mode solid/color_per_vertex/function_value/labels:
-		int renderColor;
-		getParamIntMeshGL( TEXMAP_CHOICE_VERETX_SPRITES, &renderColor );
-		mShaderVertexNormals->setUniformValue( "uRenderColor", renderColor );
-		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-
-		// Material - solid color:
-		GLfloat colorTmpStored[4];
-		mRenderColors->getColorSettings( MeshGLColors::COLOR_VERTEX_MONO, colorTmpStored );
-		mShaderVertexNormals->setUniformValue( "colorSolid", colorTmpStored[0], colorTmpStored[1], colorTmpStored[2], colorTmpStored[3] );
-		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		// Map and draw elements
-		glDrawArrays( GL_POINTS, 0, mVertBufObjs[VBUFF_VERTICES_STRIPED]->size() );
-		PRINT_OPENGL_ERROR( "glDrawArrays( GL_POINTS, 0, mVBOSizes[VBUFF_VERTICES_STRIPED] );" );
-
-		// DONE WITH NORMALS
-		mShaderVertexNormals->release();
-		//cout << "[MeshGLShader::" << __FUNCTION__ << "] Vertex Normals!" << endl;
 	}
+
+	const auto mShaderVertexSprites = mShaderManager->getShader(ShaderManager::ShaderName::VERTEX_SPRITES);
+	if(mShaderVertexSprites == nullptr)
+		return;
 
 	// Lets be shady :)
 	if( !mShaderVertexSprites->bind() ) {
@@ -1692,7 +1345,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 		// Material - solid color:
 		GLfloat colorTmpStored[4];
 		mRenderColors->getColorSettings( MeshGLColors::COLOR_VERTEX_MONO, colorTmpStored );
@@ -1715,7 +1368,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 		// Material - solid color:
 		QColor colorSolid( 0, 128, 128, 255 );
 		mShaderVertexSprites->setUniformValue( "colorSolid", colorSolid );
@@ -1735,7 +1388,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 		// Material - solid color:
 		QColor colorSolid( 255, 0, 0, 255 );
 		mShaderVertexSprites->setUniformValue( "colorSolid", colorSolid );
@@ -1755,7 +1408,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 		// Material - solid color:
 		QColor colorSolid( 0, 0, 255, 255 );
 		mShaderVertexSprites->setUniformValue( "colorSolid", colorSolid );
@@ -1777,7 +1430,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 		// Material - solid color:
 		QColor colorSolid( 128, 0, 128, 255 );
 		mShaderVertexSprites->setUniformValue( "colorSolid", colorSolid );
@@ -1799,7 +1452,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 		// Material - solid color:
 		GLfloat colorTmpStored[4];
 		mRenderColors->getColorSettings( MeshGLColors::COLOR_VERTEX_LOCAL_MIN, colorTmpStored );
@@ -1821,7 +1474,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 		// Material - solid color:
 		GLfloat colorTmpStored[4];
 		mRenderColors->getColorSettings( MeshGLColors::COLOR_VERTEX_LOCAL_MAX, colorTmpStored );
@@ -1844,7 +1497,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 		// Material - solid color:
 		GLfloat colorTmpStored[4];
 		mRenderColors->getColorSettings( MeshGLColors::COLOR_VERTEX_LOCAL_MAX, colorTmpStored );
@@ -1867,7 +1520,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 		// Material - solid color:
 		QColor colorSolid( 64, 192, 192, 255 );
 		mShaderVertexSprites->setUniformValue( "colorSolid", colorSolid );
@@ -1887,7 +1540,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 		// Material - solid color:
 		QColor colorSolid( 255, 128, 0, 255 );
 		mShaderVertexSprites->setUniformValue( "colorSolid", colorSolid );
@@ -1907,7 +1560,7 @@ void MeshGLShader::vboPaintVertices() {
 		// Z-order
 		mShaderVertexSprites->setUniformValue( "uPointShiftViewZ", spriteShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		spriteShiftZ += 0.00001;
+		spriteShiftZ += 0.00001F;
 
 		// Disc shape (only)
 		mShaderVertexSprites->setUniformValue( "uSpriteShape", SPRITE_SHAPE_DISC );
@@ -1918,7 +1571,7 @@ void MeshGLShader::vboPaintVertices() {
 		someBuffer.create();
 		someBuffer.setUsagePattern( QOpenGLBuffer::StaticDraw );
 		someBuffer.bind();
-		someBuffer.allocate( singlePoints.data(), sizeof(grVertexStripeElment)*singlePoints.size() );
+		someBuffer.allocate( singlePoints.data(), static_cast<int>(sizeof(grVertexStripeElment)*singlePoints.size()) );
 
 		// Strided data -- first there floats are the position vectors.
 		mShaderVertexSprites->setAttributeBuffer( "position", GL_FLOAT, 0, 3, sizeof(grVertexStripeElment) ); // rShaderLocationBasic->mVertexPos
@@ -1930,7 +1583,7 @@ void MeshGLShader::vboPaintVertices() {
 		PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 
 		// Draw
-		glDrawArrays( GL_POINTS, 0, singlePoints.size() );
+		glDrawArrays( GL_POINTS, 0, static_cast<GLsizei>(singlePoints.size()) );
 		PRINT_OPENGL_ERROR( "glDrawArrays( ... )" );
 
 		someBuffer.release();
@@ -1950,30 +1603,12 @@ void MeshGLShader::vboPaintVertices() {
 
 //! Paints faces.
 void MeshGLShader::vboPaintFaces() {
-#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshGLShader::" << __FUNCTION__ << "]" << endl;
-#endif
-	eTexMapType texMapChoice;
-	getParamIntMeshGL( TEXMAP_CHOICE_FACES, reinterpret_cast<int*>(&texMapChoice) );
-	switch( texMapChoice ) {
-		case TEXMAP_VERT_MONO:
-			//! *) Solid color (per Vertex).
-		case TEXMAP_VERT_RGB:
-			//! *) Faces with color per Vertex
-		case TEXMAP_VERT_FUNCVAL:
-			//! *) Faces with color per Vertex from Function
-		case TEXMAP_VERT_LABELS:
-			//! *) Faces with color per Vertex Label.
-		break;
-		default:
-			cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: unknown choice for texture mapping: " << texMapChoice << "!" << endl;
-	}
-	vboPaintFacesIndexed( texMapChoice );
+	vboPaintFacesIndexed( );
 }
 //==============================================================================================================================================================
 
 //! Paint the mesh faces using a shader with color per vertex using the (generic) function value.
-void MeshGLShader::vboPaintFacesIndexed( eTexMapType rRenderColor ) {
+void MeshGLShader::vboPaintFacesIndexed() {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshGLShader::" << __FUNCTION__ << "]" << endl;
 #endif
@@ -2094,16 +1729,17 @@ void MeshGLShader::vboPaintFacesIndexed( eTexMapType rRenderColor ) {
 	}
 	bool drawSomeTriangles = (someTriangles.size()>0);
 
-	bool drawFaces;
-	getParamFlagMeshGL( SHOW_FACES, &drawFaces );
 	bool drawFacesSelected;
 	getParamFlagMeshGL( SHOW_FACES_SELECTION, &drawFacesSelected );
 	bool drawPrimFaceSel;
 	getParamFlagMeshGL( MeshGLParams::SHOW_SELECTION_SINGLE, &drawPrimFaceSel );
 	drawPrimFaceSel &= ( mPrimSelected != nullptr ) && ( mPrimSelected->getType() == Primitive::IS_FACE );
-	if( !( drawFaces | drawFacesSelected | drawPrimFaceSel | drawSpheres | drawSomeTriangles ) ) {
+	if( !( drawFacesSelected | drawPrimFaceSel | drawSpheres | drawSomeTriangles ) ) {
 		return;
 	}
+
+	const auto mShaderDatumObjects = mShaderManager->getShader(ShaderManager::ShaderName::FUNC_VAL_COLOR);
+	if(mShaderDatumObjects != nullptr)
 
 	// prepare, when needed
 	vboPrepareVerticesStriped();
@@ -2119,49 +1755,49 @@ void MeshGLShader::vboPaintFacesIndexed( eTexMapType rRenderColor ) {
 	PRINT_OPENGL_ERROR( "glBindVertexArray( mVAO )" );
 
 	// Lets be shady :)
-	if( !mShaderVertexFuncValProgram->bind() ) {
+	if( !mShaderDatumObjects->bind() ) {
 		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: binding shader program!" << endl;
 	}
 
 	// Set the basics - including strided data:
 	//----------------------------------
-	shaderSetLocationBasicMatrices( mShaderVertexFuncValProgram );
-	shaderSetLocationBasicAttribs( mShaderVertexFuncValProgram, VBUFF_VERTICES_STRIPED, static_cast<int>(sizeof(grVertexStripeElment)) );
+	shaderSetLocationBasicMatrices( mShaderDatumObjects );
+	shaderSetLocationBasicAttribs( mShaderDatumObjects, VBUFF_VERTICES_STRIPED, static_cast<int>(sizeof(grVertexStripeElment)) );
 
 	// More Strided Data -- map buffer
 	//----------------------------------
 	size_t offSetLabelID = sizeof(GLfloat)*6 + sizeof(GLubyte)*4 + sizeof(GLfloat);
-	mShaderVertexFuncValProgram->setAttributeBuffer( "vLabelID", GL_FLOAT, static_cast<int>(offSetLabelID), 1, static_cast<int>(sizeof(grVertexStripeElment)) );
-	mShaderVertexFuncValProgram->enableAttributeArray( "vLabelID" );
+	mShaderDatumObjects->setAttributeBuffer( "vLabelID", GL_FLOAT, static_cast<int>(offSetLabelID), 1, static_cast<int>(sizeof(grVertexStripeElment)) );
+	mShaderDatumObjects->enableAttributeArray( "vLabelID" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 	size_t offSetFlags = offSetLabelID + sizeof(GLfloat);
-	mShaderVertexFuncValProgram->setAttributeBuffer( "vFlags", GL_FLOAT, offSetFlags, 1, sizeof(grVertexStripeElment) );
-	mShaderVertexFuncValProgram->enableAttributeArray( "vFlags" );
+	mShaderDatumObjects->setAttributeBuffer( "vFlags", GL_FLOAT, static_cast<int>(offSetFlags), 1, static_cast<int>(sizeof(grVertexStripeElment)) );
+	mShaderDatumObjects->enableAttributeArray( "vFlags" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 
 	// Set the basics for faces (culling/smooth)
-	shaderSetLocationBasicFaces( mShaderVertexFuncValProgram );
+	shaderSetLocationBasicFaces( mShaderDatumObjects );
 
 	// Set the basic lighting:
-	shaderSetLocationBasicLight( mShaderVertexFuncValProgram );
+	shaderSetLocationBasicLight( mShaderDatumObjects );
 
 	// Set the basic fog:
-	shaderSetLocationBasicFog( mShaderVertexFuncValProgram );
+	shaderSetLocationBasicFog( mShaderDatumObjects );
 
 	// Set the mesh plane as clipping plane:
 	double clipPlane[4];
 	getPlaneHNF( clipPlane );
-	mShaderVertexFuncValProgram->setUniformValue( "uClipPlane0", clipPlane[0], clipPlane[1], clipPlane[2], clipPlane[3] );
+	mShaderDatumObjects->setUniformValue( "uClipPlane0", clipPlane[0], clipPlane[1], clipPlane[2], clipPlane[3] );
 	// Set the COG of the selected primitve as clip plane (implictly using the camera's view direction):
 	if( mPrimSelected != nullptr ) {
 		Vector3D selPrimCog = mPrimSelected->getCenterOfGravity();
-		mShaderVertexFuncValProgram->setUniformValue( "uClipBefore", selPrimCog.getX(), selPrimCog.getY(), selPrimCog.getZ() );
+		mShaderDatumObjects->setUniformValue( "uClipBefore", selPrimCog.getX(), selPrimCog.getY(), selPrimCog.getZ() );
 	}
 
 	// Material - solid color:
 	GLfloat colorTmpStored[4];
 	mRenderColors->getColorSettings( MeshGLColors::COLOR_MESH_SOLID, colorTmpStored );
-	mShaderVertexFuncValProgram->setUniformValue( "colorSolid", colorTmpStored[0], colorTmpStored[1], colorTmpStored[2], colorTmpStored[3] );
+	mShaderDatumObjects->setUniformValue( "colorSolid", colorTmpStored[0], colorTmpStored[1], colorTmpStored[2], colorTmpStored[3] );
 	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
 
 	// Bind the 2D texture used for colorramps and labels!
@@ -2174,83 +1810,84 @@ void MeshGLShader::vboPaintFacesIndexed( eTexMapType rRenderColor ) {
     PRINT_OPENGL_ERROR( "binding mTextureMaps[0]" );
 	//cout << "[MeshGLShader::" << __FUNCTION__ << "] texId: " << texId << endl;
 	// Set the ID of the texture map:
-	mShaderVertexFuncValProgram->setUniformValue( "uLabelTexMap", texId );
+	mShaderDatumObjects->setUniformValue( "uLabelTexMap", texId );
     PRINT_OPENGL_ERROR( "Shader setAttributeValue" );
-	mShaderVertexFuncValProgram->setUniformValue( "uFuncValTexMap", texId );
+	mShaderDatumObjects->setUniformValue( "uFuncValTexMap", texId );
 	PRINT_OPENGL_ERROR( "Shader setAttributeValue" );
 
 	// Set values for rendering of the labels:
 	int labelShift;
 	getParamIntMeshGL( MeshGLParams::COLMAP_LABEL_OFFSET, &labelShift );
-	mShaderVertexFuncValProgram->setUniformValue( "uLabelCountOffset", static_cast<GLfloat>(labelShift) );
+	mShaderDatumObjects->setUniformValue( "uLabelCountOffset", static_cast<GLfloat>(labelShift) );
 	bool showLabelsMonoColor;
 	getParamFlagMeshGL( MeshGLParams::SHOW_LABELS_MONO_COLOR, &showLabelsMonoColor );
-	mShaderVertexFuncValProgram->setUniformValue( "uLabelSameColor", showLabelsMonoColor );
+	mShaderDatumObjects->setUniformValue( "uLabelSameColor", showLabelsMonoColor );
 	GLfloat somemColorSetting[4];
 	mRenderColors->getColorSettings( MeshGLColors::COLOR_LABEL_SOLID, somemColorSetting );
-	mShaderVertexFuncValProgram->setUniformValue( "uLabelSingleColor", somemColorSetting[0], somemColorSetting[1], somemColorSetting[2], somemColorSetting[3] );
+	mShaderDatumObjects->setUniformValue( "uLabelSingleColor", somemColorSetting[0], somemColorSetting[1], somemColorSetting[2], somemColorSetting[3] );
 	mRenderColors->getColorSettings( MeshGLColors::COLOR_LABEL_BORDER, somemColorSetting );
-	mShaderVertexFuncValProgram->setUniformValue( "uLabelBorderColor", somemColorSetting[0], somemColorSetting[1], somemColorSetting[2], somemColorSetting[3] );
+	mShaderDatumObjects->setUniformValue( "uLabelBorderColor", somemColorSetting[0], somemColorSetting[1], somemColorSetting[2], somemColorSetting[3] );
 	mRenderColors->getColorSettings( MeshGLColors::COLOR_LABEL_NOT_ASSIGNED, somemColorSetting );
-	mShaderVertexFuncValProgram->setUniformValue( "uLabelNoColor", somemColorSetting[0], somemColorSetting[1], somemColorSetting[2], somemColorSetting[3] );
+	mShaderDatumObjects->setUniformValue( "uLabelNoColor", somemColorSetting[0], somemColorSetting[1], somemColorSetting[2], somemColorSetting[3] );
 	mRenderColors->getColorSettings( MeshGLColors::COLOR_LABEL_BACKGROUND, somemColorSetting );
-	mShaderVertexFuncValProgram->setUniformValue( "uLabelBackgroundColor", somemColorSetting[0], somemColorSetting[1], somemColorSetting[2], somemColorSetting[3] );
+	mShaderDatumObjects->setUniformValue( "uLabelBackgroundColor", somemColorSetting[0], somemColorSetting[1], somemColorSetting[2], somemColorSetting[3] );
 	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
 
 	// Set parameters of the color mapping.
 	int colMapID = GLSL_COLMAP_GRAYSCALE;
 	getParamIntMeshGL( MeshGLParams::GLSL_COLMAP_CHOICE, &colMapID );
-	mShaderVertexFuncValProgram->setUniformValue( "uFuncValColorMap", static_cast<GLfloat>(colMapID) );
+	mShaderDatumObjects->setUniformValue( "uFuncValColorMap", static_cast<GLfloat>(colMapID) );
 	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
 	// Set the colored range.
 	double funcValMin;
 	double funcValMax;
 	getFuncValMinMaxUser( &funcValMin, &funcValMax );
-	mShaderVertexFuncValProgram->setUniformValue( "uFuncValMin",  static_cast<GLfloat>(funcValMin) );
-	mShaderVertexFuncValProgram->setUniformValue( "uFuncValMax",  static_cast<GLfloat>(funcValMax) );
+	mShaderDatumObjects->setUniformValue( "uFuncValMin",  static_cast<GLfloat>(funcValMin) );
+	mShaderDatumObjects->setUniformValue( "uFuncValMax",  static_cast<GLfloat>(funcValMax) );
 	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
 	//cout << "[MeshGLShader::" << __FUNCTION__ << "] funcValMin: " << funcValMin << "  funcValMax: " << funcValMax << endl;
 	// Inversion of the colormap
 	bool funcValInvertMap = false;
 	getParamFlagMeshGL( MeshGLParams::SHOW_COLMAP_INVERT, &funcValInvertMap );
-	mShaderVertexFuncValProgram->setUniformValue( "uFuncValInvert", static_cast<GLboolean>(funcValInvertMap) );
+	mShaderDatumObjects->setUniformValue( "uFuncValInvert", static_cast<GLboolean>(funcValInvertMap) );
 	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
 	// Repeat colormap
 	bool funcValRepeat = false;
 	getParamFlagMeshGL( MeshGLParams::SHOW_REPEAT_COLMAP_FUNCVAL, &funcValRepeat );
-	mShaderVertexFuncValProgram->setUniformValue( "uFuncValRepeat", static_cast<GLboolean>(funcValRepeat) );
+	mShaderDatumObjects->setUniformValue( "uFuncValRepeat", static_cast<GLboolean>(funcValRepeat) );
 	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
 	double funcValRepeatIntervall;
 	getParamFloatMeshGL( MeshGLParams::WAVES_COLMAP_LEN, &funcValRepeatIntervall );
-	mShaderVertexFuncValProgram->setUniformValue( "uFuncValIntervall", static_cast<GLfloat>(funcValRepeatIntervall) );
+	mShaderDatumObjects->setUniformValue( "uFuncValIntervall", static_cast<GLfloat>(funcValRepeatIntervall) );
 	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
 	// Logarithmic color ramp
 	double funcValLogGamma;
 	getParamFloatMeshGL( MeshGLParams::FUNC_VALUE_LOG_GAMMA, &funcValLogGamma );
-	mShaderVertexFuncValProgram->setUniformValue( "uFuncValLogGamma", static_cast<GLfloat>(funcValLogGamma) );
+	mShaderDatumObjects->setUniformValue( "uFuncValLogGamma", static_cast<GLfloat>(funcValLogGamma) );
 	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
 
 	// Isoline extension:
 	//----------------------------------
 	bool showIsolines;
 	getParamFlagMeshGL( MeshGLParams::SHOW_FUNC_VALUES_ISOLINES, &showIsolines );
-	mShaderVertexFuncValProgram->setUniformValue( "funcValIsoLineParams.mIsoLinesShow", static_cast<GLboolean>(showIsolines) );
+	//disable isoline for datum Objects
+	mShaderDatumObjects->setUniformValue( "funcValIsoLineParams.mIsoLinesShow", static_cast<GLboolean>(false) );
 	if( showIsolines ) {
 		bool showIsolinesOnly;
 		getParamFlagMeshGL( MeshGLParams::SHOW_FUNC_VALUES_ISOLINES_ONLY, &showIsolinesOnly );
-		mShaderVertexFuncValProgram->setUniformValue( "funcValIsoLineParams.mIsoLinesOnly", static_cast<GLboolean>(showIsolinesOnly) );
+		mShaderDatumObjects->setUniformValue( "funcValIsoLineParams.mIsoLinesOnly", static_cast<GLboolean>(showIsolinesOnly) );
 		double isoDistance;
 		double isoOffset;
 		double isoPixelWidth;
 		getParamFloatMeshGL( MeshGLParams::ISOLINES_DISTANCE, &isoDistance );
 		getParamFloatMeshGL( MeshGLParams::ISOLINES_OFFSET, &isoOffset );
 		getParamFloatMeshGL( MeshGLParams::ISOLINES_PIXEL_WIDTH, &isoPixelWidth );
-		mShaderVertexFuncValProgram->setUniformValue( "funcValIsoLineParams.mIsoDist",       static_cast<GLfloat>(isoDistance)   );
-		mShaderVertexFuncValProgram->setUniformValue( "funcValIsoLineParams.mIsoOffset",     static_cast<GLfloat>(isoOffset)     );
-		mShaderVertexFuncValProgram->setUniformValue( "funcValIsoLineParams.mIsoPixelWidth", static_cast<GLfloat>(isoPixelWidth) );
+		mShaderDatumObjects->setUniformValue( "funcValIsoLineParams.mIsoDist",       static_cast<GLfloat>(isoDistance)   );
+		mShaderDatumObjects->setUniformValue( "funcValIsoLineParams.mIsoOffset",     static_cast<GLfloat>(isoOffset)     );
+		mShaderDatumObjects->setUniformValue( "funcValIsoLineParams.mIsoPixelWidth", static_cast<GLfloat>(isoPixelWidth) );
 		bool showIsolinesSolid;
 		getParamFlagMeshGL( MeshGLParams::SHOW_FUNC_VALUES_ISOLINES_SOLID, &showIsolinesSolid );
-		mShaderVertexFuncValProgram->setUniformValue( "uIsoSolidFlag", static_cast<GLboolean>(showIsolinesSolid) );
+		mShaderDatumObjects->setUniformValue( "uIsoSolidFlag", static_cast<GLboolean>(showIsolinesSolid) );
 	}
 	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
 
@@ -2258,13 +1895,13 @@ void MeshGLShader::vboPaintFacesIndexed( eTexMapType rRenderColor ) {
 	//----------------------------------
 	bool showFaceNormals;
 	getParamFlagMeshGL( MeshGLParams::SHOW_NORMALS_FACE, &showFaceNormals );
-	mShaderVertexFuncValProgram->setUniformValue( "uFaceNormals", static_cast<GLboolean>(showFaceNormals) );
+	mShaderDatumObjects->setUniformValue( "uFaceNormals", static_cast<GLboolean>(showFaceNormals) );
 	double normalsLength;
 	getParamFloatMeshGL( MeshGLParams::NORMALS_LENGTH, &normalsLength );
-	mShaderVertexFuncValProgram->setUniformValue( "uNormalLength", static_cast<GLfloat>(normalsLength) );
+	mShaderDatumObjects->setUniformValue( "uNormalLength", static_cast<GLfloat>(normalsLength) );
 	double normalsWdith;
 	getParamFloatMeshGL( MeshGLParams::NORMALS_WIDTH, &normalsWdith );
-	mShaderVertexFuncValProgram->setUniformValue( "uNormalWidth", static_cast<GLfloat>(normalsWdith) );
+	mShaderDatumObjects->setUniformValue( "uNormalWidth", static_cast<GLfloat>(normalsWdith) );
 	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
 
 	// Edge rendering
@@ -2273,56 +1910,29 @@ void MeshGLShader::vboPaintFacesIndexed( eTexMapType rRenderColor ) {
 	glGetIntegerv(GL_VIEWPORT, viewPort);
 	bool showEdge;
 	getParamFlagMeshGL( MeshGLParams::SHOW_FACES_EDGES, &showEdge );
-	mShaderVertexFuncValProgram->setUniformValue( "uEdgeShown", static_cast<GLboolean>(showEdge) );
+	mShaderDatumObjects->setUniformValue( "uEdgeShown", static_cast<GLboolean>(showEdge) );
 	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-	mShaderVertexFuncValProgram->setUniformValue( "uViewPortSize", viewPort[2], viewPort[3] );
+	mShaderDatumObjects->setUniformValue( "uViewPortSize", viewPort[2], viewPort[3] );
 	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
 
 	// Index data map buffer and draw
 	//----------------------------------
 	GLfloat faceShiftZ = 0.0;
-
-
-	int shaderChoice;
-	getParamIntMeshGL( MeshGLParams::SHADER_CHOICE, &shaderChoice );
-	bool drawMeshReduced = false;
-	mWidgetParams->getParamFlagMeshWidget(MeshWidgetParams::SHOW_MESH_REDUCED, &drawMeshReduced);
-
-
-	if( drawFaces && shaderChoice != MeshGLParams::SHADER_POINTCLOUD && !drawMeshReduced) {
-
-		// Switch rendering mode solid/color_per_vertex/function_value/labels:
-		mShaderVertexFuncValProgram->setUniformValue( "uRenderColor", rRenderColor );
-		// Material - solid color:
-		GLfloat colorTmpStored[4];
-		mRenderColors->getColorSettings( MeshGLColors::COLOR_MESH_SOLID, colorTmpStored );
-		mShaderVertexFuncValProgram->setUniformValue( "colorSolid", colorTmpStored[0], colorTmpStored[1], colorTmpStored[2], colorTmpStored[3] );
-		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		// Z-shift
-		mShaderVertexFuncValProgram->setUniformValue( "uFaceShiftViewZ", faceShiftZ );
-		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		faceShiftZ -= 0.0001;
-		// Draw
-		mVertBufObjs[VBUFF_FACES]->bind();
-		glDrawElements( GL_TRIANGLES, mVertBufObjs[VBUFF_FACES]->size()/sizeof(GLuint), GL_UNSIGNED_INT, nullptr );
-		PRINT_OPENGL_ERROR( "glDrawElements( GL_TRIANGLES, mVBOSizes[VBUFF_FACES], GL_UNSIGNED_INT, NULL );" );
-		//cout << "[MeshGLShader::" << __FUNCTION__ << "] Faces drawn: " << mVertBufObjs[VBUFF_FACES]->size()/sizeof(GLuint) << endl;
-		mVertBufObjs[VBUFF_FACES]->release();
-	}
+	faceShiftZ -= 0.0001F;
 
 	if( drawFacesSelected ) {
 		// Prepare, when required
 		vboPrepareFacesWithFlag( FLAG_SELECTED, VBUFF_FACES_FLAG_SELECTED );
 		// Switch rendering mode solid/color_per_vertex/function_value/labels:
-		mShaderVertexFuncValProgram->setUniformValue( "uRenderColor", TEXMAP_VERT_MONO );
+		mShaderDatumObjects->setUniformValue( "uRenderColor", TEXMAP_VERT_MONO );
 		// Material - solid color:
 		QColor colorSolid( 255, 128, 0, 255 );
-		mShaderVertexFuncValProgram->setUniformValue( "colorSolid", colorSolid );
+		mShaderDatumObjects->setUniformValue( "colorSolid", colorSolid );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
 		// Z-shift
-		mShaderVertexFuncValProgram->setUniformValue( "uFaceShiftViewZ", faceShiftZ );
+		mShaderDatumObjects->setUniformValue( "uFaceShiftViewZ", faceShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		faceShiftZ -= 0.0001;
+		faceShiftZ -= 0.0001F;
 		// Draw
 		mVertBufObjs[VBUFF_FACES_FLAG_SELECTED]->bind();
 		glDrawElements( GL_TRIANGLES, mVertBufObjs[VBUFF_FACES_FLAG_SELECTED]->size()/sizeof(GLuint), GL_UNSIGNED_INT, nullptr );
@@ -2332,15 +1942,15 @@ void MeshGLShader::vboPaintFacesIndexed( eTexMapType rRenderColor ) {
 
 	if( drawPrimFaceSel ) {
 		// Switch rendering mode solid/color_per_vertex/function_value/labels:
-		mShaderVertexFuncValProgram->setUniformValue( "uRenderColor", TEXMAP_VERT_MONO );
+		mShaderDatumObjects->setUniformValue( "uRenderColor", TEXMAP_VERT_MONO );
 		// Material - solid color:
 		QColor colorSolid( 0, 128, 255, 255 );
-		mShaderVertexFuncValProgram->setUniformValue( "colorSolid", colorSolid );
+		mShaderDatumObjects->setUniformValue( "colorSolid", colorSolid );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
 		// Z-shift
-		mShaderVertexFuncValProgram->setUniformValue( "uFaceShiftViewZ", faceShiftZ );
+		mShaderDatumObjects->setUniformValue( "uFaceShiftViewZ", faceShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		faceShiftZ -= 0.0001;
+		faceShiftZ -= 0.0001F;
 		// Map and draw elements
 		GLuint primSelID[3];
 		Face*  selFace = static_cast<Face*>(mPrimSelected);
@@ -2357,36 +1967,36 @@ void MeshGLShader::vboPaintFacesIndexed( eTexMapType rRenderColor ) {
 
 	if( drawSomeTriangles ) {
 		// Switch rendering mode solid/color_per_vertex/function_value/labels:
-		mShaderVertexFuncValProgram->setUniformValue( "uRenderColor", TEXMAP_VERT_RGB );
+		mShaderDatumObjects->setUniformValue( "uRenderColor", TEXMAP_VERT_RGB );
 		// Z-shift - None!
-		mShaderVertexFuncValProgram->setUniformValue( "uFaceShiftViewZ", static_cast<GLfloat>(0.0f) );
+		mShaderDatumObjects->setUniformValue( "uFaceShiftViewZ", static_cast<GLfloat>(0.0f) );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
 
-		mShaderVertexFuncValProgram->setUniformValue( "backCulling", false );
+		mShaderDatumObjects->setUniformValue( "backCulling", false );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
 
 		QOpenGLBuffer someBuffer( QOpenGLBuffer::VertexBuffer );
 		someBuffer.create();
 		someBuffer.setUsagePattern( QOpenGLBuffer::StaticDraw );
 		someBuffer.bind();
-		someBuffer.allocate( someTriangles.data(), sizeof(grVertexElmentBasic)*someTriangles.size() );
+		someBuffer.allocate( someTriangles.data(), static_cast<int>(sizeof(grVertexElmentBasic)*someTriangles.size()) );
 
 		// Strided data -- first there floats are the position vectors.
-		mShaderVertexFuncValProgram->setAttributeBuffer( "position", GL_FLOAT, 0, 3, sizeof(grVertexElmentBasic) ); // rShaderLocationBasic->mVertexPos
-		mShaderVertexFuncValProgram->enableAttributeArray( "position" ); // rShaderLocationBasic->mVertexPos
+		mShaderDatumObjects->setAttributeBuffer( "position", GL_FLOAT, 0, 3, sizeof(grVertexElmentBasic) ); // rShaderLocationBasic->mVertexPos
+		mShaderDatumObjects->enableAttributeArray( "position" ); // rShaderLocationBasic->mVertexPos
 		PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 		// Strided data -- second set of there floats are the normal vectors.
 		size_t offSetNormals = sizeof(GLfloat)*3;
-		mShaderVertexFuncValProgram->setAttributeBuffer( "vNormal", GL_FLOAT, static_cast<int>(offSetNormals), 3, sizeof(grVertexElmentBasic) ); // rShaderLocationBasic->mVertexNormal
-		mShaderVertexFuncValProgram->enableAttributeArray( "vNormal" ); // rShaderLocationBasic->mVertexNormal
+		mShaderDatumObjects->setAttributeBuffer( "vNormal", GL_FLOAT, static_cast<int>(offSetNormals), 3, sizeof(grVertexElmentBasic) ); // rShaderLocationBasic->mVertexNormal
+		mShaderDatumObjects->enableAttributeArray( "vNormal" ); // rShaderLocationBasic->mVertexNormal
 		PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 		size_t offSetColors = offSetNormals + sizeof(GLfloat)*3;
-		mShaderVertexFuncValProgram->setAttributeBuffer( "vColor", GL_UNSIGNED_BYTE, static_cast<int>(offSetColors), 4, static_cast<int>(sizeof(grVertexElmentBasic)) );
-		mShaderVertexFuncValProgram->enableAttributeArray( "vColor" );
+		mShaderDatumObjects->setAttributeBuffer( "vColor", GL_UNSIGNED_BYTE, static_cast<int>(offSetColors), 4, static_cast<int>(sizeof(grVertexElmentBasic)) );
+		mShaderDatumObjects->enableAttributeArray( "vColor" );
 		PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 
 		// Draw
-		glDrawArrays( GL_TRIANGLES, 0, someTriangles.size() );
+		glDrawArrays( GL_TRIANGLES, 0, static_cast<GLsizei>(someTriangles.size()) );
 		PRINT_OPENGL_ERROR( "glDrawArrays( ... )" );
 
 		someBuffer.release();
@@ -2396,24 +2006,24 @@ void MeshGLShader::vboPaintFacesIndexed( eTexMapType rRenderColor ) {
 	// +++ SPHEREs +++
 	if( drawSpheres ) {
 		// Vertex buffer
-		shaderSetLocationBasicAttribs( mShaderVertexFuncValProgram, VBUFF_SPHERE_VERTS, static_cast<int>(sizeof(grVertexElmentBasic)) );
+		shaderSetLocationBasicAttribs( mShaderDatumObjects, VBUFF_SPHERE_VERTS, static_cast<int>(sizeof(grVertexElmentBasic)) );
 
 		// No shift
-		mShaderVertexFuncValProgram->setUniformValue( "uFaceShiftViewZ", static_cast<GLfloat>(0.0) );
+		mShaderDatumObjects->setUniformValue( "uFaceShiftViewZ", static_cast<GLfloat>(0.0) );
 		// Set the colored range.
-		mShaderVertexFuncValProgram->setUniformValue( "uFuncValMin",  static_cast<GLfloat>(-1.0) );
-		mShaderVertexFuncValProgram->setUniformValue( "uFuncValMax",  static_cast<GLfloat>(+1.0) );
+		mShaderDatumObjects->setUniformValue( "uFuncValMin",  static_cast<GLfloat>(-1.0) );
+		mShaderDatumObjects->setUniformValue( "uFuncValMax",  static_cast<GLfloat>(+1.0) );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
 		// IsoLines
-		mShaderVertexFuncValProgram->setUniformValue( "funcValIsoLineParams.mIsoLinesOnly",  static_cast<GLboolean>(false) );
-		mShaderVertexFuncValProgram->setUniformValue( "funcValIsoLineParams.mIsoDist",       static_cast<GLfloat>(0.1)     );
-		mShaderVertexFuncValProgram->setUniformValue( "funcValIsoLineParams.mIsoOffset",     static_cast<GLfloat>(0.0)     );
-		mShaderVertexFuncValProgram->setUniformValue( "funcValIsoLineParams.mIsoPixelWidth", static_cast<GLfloat>(1.0)     );
-		mShaderVertexFuncValProgram->setUniformValue( "uIsoSolidFlag",                       static_cast<GLboolean>(true)  );
+		mShaderDatumObjects->setUniformValue( "funcValIsoLineParams.mIsoLinesOnly",  static_cast<GLboolean>(false) );
+		mShaderDatumObjects->setUniformValue( "funcValIsoLineParams.mIsoDist",       static_cast<GLfloat>(0.1)     );
+		mShaderDatumObjects->setUniformValue( "funcValIsoLineParams.mIsoOffset",     static_cast<GLfloat>(0.0)     );
+		mShaderDatumObjects->setUniformValue( "funcValIsoLineParams.mIsoPixelWidth", static_cast<GLfloat>(1.0)     );
+		mShaderDatumObjects->setUniformValue( "uIsoSolidFlag",                       static_cast<GLboolean>(true)  );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
 		// Switch rendering mode solid/color_per_vertex/function_value/labels:
-		mShaderVertexFuncValProgram->setUniformValue( "uRenderColor", TEXMAP_VERT_MONO );
-		mShaderVertexFuncValProgram->setUniformValue( "backCulling", false );
+		mShaderDatumObjects->setUniformValue( "uRenderColor", TEXMAP_VERT_MONO );
+		mShaderDatumObjects->setUniformValue( "backCulling", false );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
 
 		mVertBufObjs[VBUFF_SPHERE_FACES]->bind();
@@ -2431,18 +2041,18 @@ void MeshGLShader::vboPaintFacesIndexed( eTexMapType rRenderColor ) {
 			QMatrix4x4 transRotMat = transMat * rotMat;
 
 			// IsoLines
-			mShaderVertexFuncValProgram->setUniformValue( "funcValIsoLineParams.mIsoLinesShow",  static_cast<GLboolean>(currSphere.mIsoLines)  );
+			mShaderDatumObjects->setUniformValue( "funcValIsoLineParams.mIsoLinesShow",  static_cast<GLboolean>(currSphere.mIsoLines)  );
 			// Material - solid color:
-			mShaderVertexFuncValProgram->setUniformValue( "colorSolid", currSphere.mColor );
+			mShaderDatumObjects->setUniformValue( "colorSolid", currSphere.mColor );
 			PRINT_OPENGL_ERROR( "Shader setUniformValue" );
 
 			// Scale - SET
-			mShaderVertexFuncValProgram->setUniformValue( "uScaleHeight",       static_cast<GLfloat>(currSphere.mRadius*2.0) );
-			mShaderVertexFuncValProgram->setUniformValue( "uScaleRadialBottom", static_cast<GLfloat>(currSphere.mRadius*2.0) );
-			mShaderVertexFuncValProgram->setUniformValue( "uScaleRadialTop",    static_cast<GLfloat>(currSphere.mRadius*2.0) );
+			mShaderDatumObjects->setUniformValue( "uScaleHeight",       static_cast<GLfloat>(currSphere.mRadius*2.0) );
+			mShaderDatumObjects->setUniformValue( "uScaleRadialBottom", static_cast<GLfloat>(currSphere.mRadius*2.0) );
+			mShaderDatumObjects->setUniformValue( "uScaleRadialTop",    static_cast<GLfloat>(currSphere.mRadius*2.0) );
 			PRINT_OPENGL_ERROR( "SHADER operations!" );
 			// Translation and Rotation - SET
-			mShaderVertexFuncValProgram->setUniformValue( "uModelViewExtra", transRotMat );
+			mShaderDatumObjects->setUniformValue( "uModelViewExtra", transRotMat );
 			PRINT_OPENGL_ERROR( "SHADER operations!" );
 
 			glDrawElements( GL_TRIANGLES, mVertBufObjs[VBUFF_SPHERE_FACES]->size()/sizeof(GLuint), GL_UNSIGNED_INT, nullptr );
@@ -2453,21 +2063,256 @@ void MeshGLShader::vboPaintFacesIndexed( eTexMapType rRenderColor ) {
 		PRINT_OPENGL_ERROR( "mVertBufObjs[VBUFF_SPHERE_FACES]->release()" );
 
 		// Scale - set BACK TO DEFAULTS
-		mShaderVertexFuncValProgram->setUniformValue( "uScaleHeight",       static_cast<GLfloat>(1.0f) );
-		mShaderVertexFuncValProgram->setUniformValue( "uScaleRadialBottom", static_cast<GLfloat>(1.0f) );
-		mShaderVertexFuncValProgram->setUniformValue( "uScaleRadialTop",    static_cast<GLfloat>(1.0f) );
+		mShaderDatumObjects->setUniformValue( "uScaleHeight",       static_cast<GLfloat>(1.0f) );
+		mShaderDatumObjects->setUniformValue( "uScaleRadialBottom", static_cast<GLfloat>(1.0f) );
+		mShaderDatumObjects->setUniformValue( "uScaleRadialTop",    static_cast<GLfloat>(1.0f) );
 		PRINT_OPENGL_ERROR( "SHADER operations!" );
 		QMatrix4x4 identMat;
 		identMat.setToIdentity();
 		// Translation and Rotation - set to DEFAULTS
-		mShaderVertexFuncValProgram->setUniformValue( "uModelViewExtra", identMat );
+		mShaderDatumObjects->setUniformValue( "uModelViewExtra", identMat );
 		PRINT_OPENGL_ERROR( "SHADER operations!" );
 	}
 	// --- SPHEREs ---
 
 	// End of being shady
-	mShaderVertexFuncValProgram->release();
-	PRINT_OPENGL_ERROR( "mShaderVertexFuncValProgram->release()" );
+	mShaderDatumObjects->release();
+	PRINT_OPENGL_ERROR( "mShaderDatumObjects->release()" );
+
+	glBindVertexArray( 0 );
+	PRINT_OPENGL_ERROR( "glBindVertexArray( 0 )" );
+
+	// Restore culling, when necessary.
+	if( cullFace ) {
+		glEnable( GL_CULL_FACE );
+		PRINT_OPENGL_ERROR( "glEnable( GL_CULL_FACE )" );
+	}
+}
+
+void MeshGLShader::vboPaintFuncVal()
+{
+	bool drawFaces = false;
+	getParamFlagMeshGL( SHOW_FACES, &drawFaces );
+
+	if(!drawFaces)
+		return;
+
+	QOpenGLShaderProgram* meshShader = nullptr;
+	eTexMapType texMapChoice;
+	getParamIntMeshGL( TEXMAP_CHOICE_FACES, reinterpret_cast<int*>(&texMapChoice) );
+	switch( texMapChoice ) {
+		case TEXMAP_VERT_MONO:
+		case TEXMAP_VERT_RGB:
+			meshShader = mShaderManager->getShader(ShaderManager::ShaderName::FUNC_VAL_COLOR);
+			break;
+		case TEXMAP_VERT_FUNCVAL:
+			meshShader = mShaderManager->getShader(ShaderManager::ShaderName::FUNC_VAL_FUNC_VAL);
+			break;
+		case TEXMAP_VERT_LABELS:
+			meshShader = mShaderManager->getShader(ShaderManager::ShaderName::FUNC_VAL_LABEL);
+			break;
+		break;
+		default:
+			cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: unknown choice for texture mapping: " << texMapChoice << "!" << endl;
+	}
+
+	if(meshShader == nullptr)
+		return;
+
+	// prepare, when needed
+	vboPrepareVerticesStriped();
+
+	// Turn off culling as it is done by the shader, but store the flag for later.
+	GLboolean cullFace;
+	glGetBooleanv( GL_CULL_FACE, &cullFace );
+	glDisable( GL_CULL_FACE );
+	PRINT_OPENGL_ERROR( "glDisable( GL_CULL_FACE )" );
+
+	PglBindVertexArray glBindVertexArray = reinterpret_cast<PglBindVertexArray>(mOpenGLContext->getProcAddress( "glBindVertexArray" ));
+	glBindVertexArray( mVAO );
+	PRINT_OPENGL_ERROR( "glBindVertexArray( mVAO )" );
+
+	// Lets be shady :)
+	if( !meshShader->bind() ) {
+		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: binding shader program!" << endl;
+	}
+
+	// Set the basics - including strided data:
+	//----------------------------------
+	shaderSetLocationBasicMatrices( meshShader );
+	shaderSetLocationBasicAttribs( meshShader, VBUFF_VERTICES_STRIPED, static_cast<int>(sizeof(grVertexStripeElment)) );
+
+	// More Strided Data -- map buffer
+	//----------------------------------
+	size_t offSetLabelID = sizeof(GLfloat)*6 + sizeof(GLubyte)*4 + sizeof(GLfloat);
+	meshShader->setAttributeBuffer( "vLabelID", GL_FLOAT, static_cast<int>(offSetLabelID), 1, static_cast<int>(sizeof(grVertexStripeElment)) );
+	meshShader->enableAttributeArray( "vLabelID" );
+	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
+	size_t offSetFlags = offSetLabelID + sizeof(GLfloat);
+	meshShader->setAttributeBuffer( "vFlags", GL_FLOAT, static_cast<int>(offSetFlags), 1, static_cast<int>(sizeof(grVertexStripeElment)) );
+	meshShader->enableAttributeArray( "vFlags" );
+	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
+
+	// Set the basics for faces (culling/smooth)
+	shaderSetLocationBasicFaces( meshShader );
+
+	// Set the basic lighting:
+	shaderSetLocationBasicLight( meshShader );
+
+	// Set the basic fog:
+	shaderSetLocationBasicFog( meshShader );
+
+	// Set the mesh plane as clipping plane:
+	double clipPlane[4];
+	getPlaneHNF( clipPlane );
+	meshShader->setUniformValue( "uClipPlane0", clipPlane[0], clipPlane[1], clipPlane[2], clipPlane[3] );
+	// Set the COG of the selected primitve as clip plane (implictly using the camera's view direction):
+	if( mPrimSelected != nullptr ) {
+		Vector3D selPrimCog = mPrimSelected->getCenterOfGravity();
+		meshShader->setUniformValue( "uClipBefore", selPrimCog.getX(), selPrimCog.getY(), selPrimCog.getZ() );
+	}
+
+	// Material - solid color:
+	GLfloat colorTmpStored[4];
+	mRenderColors->getColorSettings( MeshGLColors::COLOR_MESH_SOLID, colorTmpStored );
+	meshShader->setUniformValue( "colorSolid", colorTmpStored[0], colorTmpStored[1], colorTmpStored[2], colorTmpStored[3] );
+	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
+
+	// Bind the 2D texture used for colorramps and labels!
+	//glBindTexture( GL_TEXTURE_2D, mTextureMaps[0] );
+	//PRINT_OPENGL_ERROR( "glBindTexture( GL_TEXTURE_2D, mTextureMaps[0] )" );
+	mTextureMaps[0]->bind();
+	GLint texId;
+	glGetIntegerv(GL_ACTIVE_TEXTURE, &texId);
+	texId -= GL_TEXTURE0;
+	PRINT_OPENGL_ERROR( "binding mTextureMaps[0]" );
+	//cout << "[MeshGLShader::" << __FUNCTION__ << "] texId: " << texId << endl;
+	// Set the ID of the texture map:
+	meshShader->setUniformValue( "uLabelTexMap", texId );
+	PRINT_OPENGL_ERROR( "Shader setAttributeValue" );
+	meshShader->setUniformValue( "uFuncValTexMap", texId );
+	PRINT_OPENGL_ERROR( "Shader setAttributeValue" );
+
+	// Set values for rendering of the labels:
+	int labelShift;
+	getParamIntMeshGL( MeshGLParams::COLMAP_LABEL_OFFSET, &labelShift );
+	meshShader->setUniformValue( "uLabelCountOffset", static_cast<GLfloat>(labelShift) );
+	bool showLabelsMonoColor;
+	getParamFlagMeshGL( MeshGLParams::SHOW_LABELS_MONO_COLOR, &showLabelsMonoColor );
+	meshShader->setUniformValue( "uLabelSameColor", showLabelsMonoColor );
+	GLfloat somemColorSetting[4];
+	mRenderColors->getColorSettings( MeshGLColors::COLOR_LABEL_SOLID, somemColorSetting );
+	meshShader->setUniformValue( "uLabelSingleColor", somemColorSetting[0], somemColorSetting[1], somemColorSetting[2], somemColorSetting[3] );
+	mRenderColors->getColorSettings( MeshGLColors::COLOR_LABEL_BORDER, somemColorSetting );
+	meshShader->setUniformValue( "uLabelBorderColor", somemColorSetting[0], somemColorSetting[1], somemColorSetting[2], somemColorSetting[3] );
+	mRenderColors->getColorSettings( MeshGLColors::COLOR_LABEL_NOT_ASSIGNED, somemColorSetting );
+	meshShader->setUniformValue( "uLabelNoColor", somemColorSetting[0], somemColorSetting[1], somemColorSetting[2], somemColorSetting[3] );
+	mRenderColors->getColorSettings( MeshGLColors::COLOR_LABEL_BACKGROUND, somemColorSetting );
+	meshShader->setUniformValue( "uLabelBackgroundColor", somemColorSetting[0], somemColorSetting[1], somemColorSetting[2], somemColorSetting[3] );
+	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
+
+	// Set parameters of the color mapping.
+	int colMapID = GLSL_COLMAP_GRAYSCALE;
+	getParamIntMeshGL( MeshGLParams::GLSL_COLMAP_CHOICE, &colMapID );
+	meshShader->setUniformValue( "uFuncValColorMap", static_cast<GLfloat>(colMapID) );
+	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
+	// Set the colored range.
+	double funcValMin;
+	double funcValMax;
+	getFuncValMinMaxUser( &funcValMin, &funcValMax );
+	meshShader->setUniformValue( "uFuncValMin",  static_cast<GLfloat>(funcValMin) );
+	meshShader->setUniformValue( "uFuncValMax",  static_cast<GLfloat>(funcValMax) );
+	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
+	//cout << "[MeshGLShader::" << __FUNCTION__ << "] funcValMin: " << funcValMin << "  funcValMax: " << funcValMax << endl;
+	// Inversion of the colormap
+	bool funcValInvertMap = false;
+	getParamFlagMeshGL( MeshGLParams::SHOW_COLMAP_INVERT, &funcValInvertMap );
+	meshShader->setUniformValue( "uFuncValInvert", static_cast<GLboolean>(funcValInvertMap) );
+	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
+	// Repeat colormap
+	bool funcValRepeat = false;
+	getParamFlagMeshGL( MeshGLParams::SHOW_REPEAT_COLMAP_FUNCVAL, &funcValRepeat );
+	meshShader->setUniformValue( "uFuncValRepeat", static_cast<GLboolean>(funcValRepeat) );
+	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
+	double funcValRepeatIntervall;
+	getParamFloatMeshGL( MeshGLParams::WAVES_COLMAP_LEN, &funcValRepeatIntervall );
+	meshShader->setUniformValue( "uFuncValIntervall", static_cast<GLfloat>(funcValRepeatIntervall) );
+	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
+	// Logarithmic color ramp
+	double funcValLogGamma;
+	getParamFloatMeshGL( MeshGLParams::FUNC_VALUE_LOG_GAMMA, &funcValLogGamma );
+	meshShader->setUniformValue( "uFuncValLogGamma", static_cast<GLfloat>(funcValLogGamma) );
+	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
+
+	// Isoline extension:
+	//----------------------------------
+	bool showIsolines;
+	getParamFlagMeshGL( MeshGLParams::SHOW_FUNC_VALUES_ISOLINES, &showIsolines );
+	meshShader->setUniformValue( "funcValIsoLineParams.mIsoLinesShow", static_cast<GLboolean>(showIsolines) );
+	if( showIsolines ) {
+		bool showIsolinesOnly;
+		getParamFlagMeshGL( MeshGLParams::SHOW_FUNC_VALUES_ISOLINES_ONLY, &showIsolinesOnly );
+		meshShader->setUniformValue( "funcValIsoLineParams.mIsoLinesOnly", static_cast<GLboolean>(showIsolinesOnly) );
+		double isoDistance;
+		double isoOffset;
+		double isoPixelWidth;
+		getParamFloatMeshGL( MeshGLParams::ISOLINES_DISTANCE, &isoDistance );
+		getParamFloatMeshGL( MeshGLParams::ISOLINES_OFFSET, &isoOffset );
+		getParamFloatMeshGL( MeshGLParams::ISOLINES_PIXEL_WIDTH, &isoPixelWidth );
+		meshShader->setUniformValue( "funcValIsoLineParams.mIsoDist",       static_cast<GLfloat>(isoDistance)   );
+		meshShader->setUniformValue( "funcValIsoLineParams.mIsoOffset",     static_cast<GLfloat>(isoOffset)     );
+		meshShader->setUniformValue( "funcValIsoLineParams.mIsoPixelWidth", static_cast<GLfloat>(isoPixelWidth) );
+		bool showIsolinesSolid;
+		getParamFlagMeshGL( MeshGLParams::SHOW_FUNC_VALUES_ISOLINES_SOLID, &showIsolinesSolid );
+		meshShader->setUniformValue( "uIsoSolidFlag", static_cast<GLboolean>(showIsolinesSolid) );
+	}
+	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
+
+	// Geometry shader setting:
+	//----------------------------------
+	bool showFaceNormals;
+	getParamFlagMeshGL( MeshGLParams::SHOW_NORMALS_FACE, &showFaceNormals );
+	meshShader->setUniformValue( "uFaceNormals", static_cast<GLboolean>(showFaceNormals) );
+	double normalsLength;
+	getParamFloatMeshGL( MeshGLParams::NORMALS_LENGTH, &normalsLength );
+	meshShader->setUniformValue( "uNormalLength", static_cast<GLfloat>(normalsLength) );
+	double normalsWdith;
+	getParamFloatMeshGL( MeshGLParams::NORMALS_WIDTH, &normalsWdith );
+	meshShader->setUniformValue( "uNormalWidth", static_cast<GLfloat>(normalsWdith) );
+	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
+
+	// Edge rendering
+	//----------------------------------
+	GLint viewPort[4];
+	glGetIntegerv(GL_VIEWPORT, viewPort);
+	bool showEdge;
+	getParamFlagMeshGL( MeshGLParams::SHOW_FACES_EDGES, &showEdge );
+	meshShader->setUniformValue( "uEdgeShown", static_cast<GLboolean>(showEdge) );
+	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
+	meshShader->setUniformValue( "uViewPortSize", viewPort[2], viewPort[3] );
+	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
+
+
+	// Switch rendering mode solid/color_per_vertex/function_value/labels:
+	meshShader->setUniformValue( "uRenderColor", (texMapChoice == TEXMAP_VERT_MONO ? 0 : 1) );
+	// Material - solid color:
+
+	mRenderColors->getColorSettings( MeshGLColors::COLOR_MESH_SOLID, colorTmpStored );
+	meshShader->setUniformValue( "colorSolid", colorTmpStored[0], colorTmpStored[1], colorTmpStored[2], colorTmpStored[3] );
+	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
+	// Z-shift
+	meshShader->setUniformValue( "uFaceShiftViewZ", 0.0F );
+	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
+	// Draw
+	mVertBufObjs[VBUFF_FACES]->bind();
+	glDrawElements( GL_TRIANGLES, mVertBufObjs[VBUFF_FACES]->size()/sizeof(GLuint), GL_UNSIGNED_INT, nullptr );
+	PRINT_OPENGL_ERROR( "glDrawElements( GL_TRIANGLES, mVBOSizes[VBUFF_FACES], GL_UNSIGNED_INT, NULL );" );
+	//cout << "[MeshGLShader::" << __FUNCTION__ << "] Faces drawn: " << mVertBufObjs[VBUFF_FACES]->size()/sizeof(GLuint) << endl;
+	mVertBufObjs[VBUFF_FACES]->release();
+
+	// End of being shady
+	meshShader->release();
+	PRINT_OPENGL_ERROR( "meshShader->release()" );
 
 	glBindVertexArray( 0 );
 	PRINT_OPENGL_ERROR( "glBindVertexArray( 0 )" );
@@ -2492,6 +2337,10 @@ void MeshGLShader::vboPaintWireframe() {
 	if( !( drawFacesSelected | drawPrimFaceSel ) ) {
 		return;
 	}
+
+	const auto mShaderWireframe = mShaderManager->getShader(ShaderManager::ShaderName::WIREFRAME);
+	if(mShaderWireframe == nullptr)
+		return;
 
 	// prepare, when needed
 	vboPrepareVerticesStriped();
@@ -2523,7 +2372,7 @@ void MeshGLShader::vboPaintWireframe() {
 	mShaderWireframe->enableAttributeArray( "vLabelID" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 	size_t offSetFlags = offSetLabelID + sizeof(GLfloat);
-	mShaderWireframe->setAttributeBuffer( "vFlags", GL_FLOAT, offSetFlags, 1, sizeof(grVertexStripeElment) );
+	mShaderWireframe->setAttributeBuffer( "vFlags", GL_FLOAT, static_cast<int>(offSetFlags), 1, static_cast<int>(sizeof(grVertexStripeElment)) );
 	mShaderWireframe->enableAttributeArray( "vFlags" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 
@@ -2613,7 +2462,7 @@ void MeshGLShader::vboPaintWireframe() {
 	GLfloat faceShiftZ = 0.0;
 	mShaderWireframe->setUniformValue( "uFaceShiftViewZ", faceShiftZ );
 	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-	faceShiftZ -= 0.0001;
+	faceShiftZ -= 0.0001F;
 	// Draw
 	mVertBufObjs[VBUFF_FACES]->bind();
 	glDrawElements( GL_TRIANGLES, mVertBufObjs[VBUFF_FACES]->size()/sizeof(GLuint), GL_UNSIGNED_INT, nullptr );
@@ -2633,7 +2482,7 @@ void MeshGLShader::vboPaintWireframe() {
 		// Z-shift
 		mShaderWireframe->setUniformValue( "uFaceShiftViewZ", faceShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		faceShiftZ -= 0.0001;
+		faceShiftZ -= 0.0001F;
 		// Draw
 		mVertBufObjs[VBUFF_FACES_FLAG_SELECTED]->bind();
 		glDrawElements( GL_TRIANGLES, mVertBufObjs[VBUFF_FACES_FLAG_SELECTED]->size()/sizeof(GLuint), GL_UNSIGNED_INT, nullptr );
@@ -2649,7 +2498,7 @@ void MeshGLShader::vboPaintWireframe() {
 		// Z-shift
 		mShaderWireframe->setUniformValue( "uFaceShiftViewZ", faceShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		faceShiftZ -= 0.0001;
+		faceShiftZ -= 0.0001F;
 		// Map and draw elements
 		GLuint primSelID[3];
 		Face*  selFace = static_cast<Face*>(mPrimSelected);
@@ -2984,6 +2833,10 @@ void MeshGLShader::vboPaintPolylines() {
 	glBindVertexArray( mVAO );
 	PRINT_OPENGL_ERROR( "glBindVertexArray( mVAO )" );
 
+	const auto mShaderPolyLines = mShaderManager->getShader(ShaderManager::ShaderName::POLYLINES);
+	if(mShaderPolyLines == nullptr)
+		return;
+
 	// Lets be shady :)
 	if( !mShaderPolyLines->bind() ) {
 		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: binding shader program!" << endl;
@@ -3142,7 +2995,7 @@ void MeshGLShader::vboPaintPolylines() {
 		mShaderPolyLines->enableAttributeArray( "vLabelID" );
 		PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 		size_t offSetFlags = offSetLabelID + sizeof(GLfloat);
-		mShaderPolyLines->setAttributeBuffer( "vFlags", GL_FLOAT, offSetFlags, 1, sizeof(grVertexStripeElment) );
+		mShaderPolyLines->setAttributeBuffer( "vFlags", GL_FLOAT, static_cast<int>(offSetFlags), 1, static_cast<int>(sizeof(grVertexStripeElment)) );
 		mShaderPolyLines->enableAttributeArray( "vFlags" );
 		PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 
@@ -3156,7 +3009,7 @@ void MeshGLShader::vboPaintPolylines() {
 		// Z-shift
 		mShaderPolyLines->setUniformValue( "uFaceShiftViewZ", faceShiftZ );
 		PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-		faceShiftZ -= 0.0001;
+		faceShiftZ -= 0.0001F;
 		// Draw
 		mVertBufObjs[VBUFF_POLYLINES]->bind();
 		glDrawElements( GL_LINES, mVertBufObjs[VBUFF_POLYLINES]->size()/sizeof(GLuint), GL_UNSIGNED_INT, nullptr );
@@ -3175,7 +3028,7 @@ void MeshGLShader::vboPaintPolylines() {
 		someBuffer.create();
 		someBuffer.bind();
 		someBuffer.setUsagePattern( QOpenGLBuffer::StaticDraw );
-		someBuffer.allocate( lineSegments.data(), sizeof(grVertexStripeElment)*lineSegments.size() );
+		someBuffer.allocate( lineSegments.data(), static_cast<int>(sizeof(grVertexStripeElment)*lineSegments.size()) );
 
 		// Strided data -- first there floats are the position vectors.
 		mShaderPolyLines->setAttributeBuffer( "position", GL_FLOAT, 0, 3, sizeof(grVertexStripeElment) ); // rShaderLocationBasic->mVertexPos
@@ -3205,7 +3058,7 @@ void MeshGLShader::vboPaintPolylines() {
 		mShaderPolyLines->enableAttributeArray( "vFlags" );
 		PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 		// Draw
-		glDrawArrays( GL_LINES, 0, lineSegments.size() );
+		glDrawArrays( GL_LINES, 0, static_cast<GLsizei>(lineSegments.size()) );
 		PRINT_OPENGL_ERROR( "glDrawArrays( ... )" );
 
 		someBuffer.release();
@@ -3425,7 +3278,8 @@ void MeshGLShader::vboPaintNPR() {
 
 	int enableFlags = 0;
 	getParamFlagMeshGL( SHOW_NPR_OUTLINES, &boolParam);
-	enableFlags |= boolParam ;
+	if(boolParam)
+		enableFlags |= 1 ;
 
 	getParamFlagMeshGL( SHOW_NPR_HATCHLINES, &boolParam);
 	enableFlags |= boolParam << 1;
@@ -3465,6 +3319,20 @@ void MeshGLShader::vboPaintNPR() {
 	PglBindVertexArray glBindVertexArray = reinterpret_cast<PglBindVertexArray>(mOpenGLContext->getProcAddress( "glBindVertexArray" ));
 	glBindVertexArray( mVAO );
 	PRINT_OPENGL_ERROR( "glBindVertexArray( mVAO )" );
+
+	const auto mShaderNPR_BuildFBO = mShaderManager->getShader(ShaderManager::ShaderName::NPR_BUILD_FBO);
+	const auto mShaderNPR_BuildSobel = mShaderManager->getShader(ShaderManager::ShaderName::NPR_BUILD_SOBEL);
+	const auto mShaderNPR_toonify = mShaderManager->getShader(ShaderManager::ShaderName::NPR_TOONIFY);
+	const auto mShaderNPR_hatching = mShaderManager->getShader(ShaderManager::ShaderName::NPR_HATCHING);
+	const auto mShaderNPR_composit = mShaderManager->getShader(ShaderManager::ShaderName::NPR_COMPOSIT);
+
+	if(mShaderNPR_BuildFBO   == nullptr ||
+	   mShaderNPR_BuildSobel == nullptr ||
+	   mShaderNPR_toonify    == nullptr ||
+	   mShaderNPR_hatching   == nullptr ||
+	   mShaderNPR_composit   == nullptr)
+		return;
+
 
 
 	// Build initial geometry buffers
@@ -3920,12 +3788,33 @@ void MeshGLShader::vboPaintTextured()
 	}
 	// ----------------------------------------------------
 	PRINT_OPENGL_ERROR("unknown error");
+
+	// Set the mesh plane as clipping plane:
+	double clipPlane[4];
+	getPlaneHNF( clipPlane );
+	lightInfo.clipPlane = QVector4D(clipPlane[0], clipPlane[1], clipPlane[2], clipPlane[3]);
+	// Set the COG of the selected primitve as clip plane (implictly using the camera's view direction):
+	if( mPrimSelected != nullptr ) {
+		Vector3D selPrimCog = mPrimSelected->getCenterOfGravity();
+		lightInfo.clipVertexPos = QVector3D( selPrimCog.getX(), selPrimCog.getY(), selPrimCog.getZ() );
+	}
+	else
+	{
+		lightInfo.clipVertexPos = QVector3D(0.0,0.0,0.0);
+	}
+
 	mTexturedMeshRenderer.render(ppvMatrix, pmvMatrix, *mMeshTextured, lightInfo);
 
 }
 
 void MeshGLShader::vboPaintLightingOverlay()
 {
+	const auto mShaderLightToFBO            = mShaderManager->getShader(ShaderManager::ShaderName::LIGHTING_LIGHT_TO_FBO);
+	const auto mShaderPaintLightningOverlay = mShaderManager->getShader(ShaderManager::ShaderName::LIGHTING_PAINT_OVERLAY);
+
+	if(mShaderLightToFBO == nullptr || mShaderPaintLightningOverlay)
+		return;
+
 	GLint viewPort[4];
 	glGetIntegerv(GL_VIEWPORT, viewPort);
 
@@ -4063,6 +3952,7 @@ void MeshGLShader::vboPaintPins(std::vector<PinRenderer::PinVertex> &singlePoint
 
 void MeshGLShader::vboPaintTransparencyABuffer()
 {
+#ifdef GL_SHADER_STORAGE_BUFFER
 	int drawTransparency;
 	getParamIntMeshGL(MeshGLParams::SHADER_CHOICE, &drawTransparency);
 	static int lastWidth = 0;
@@ -4077,6 +3967,16 @@ void MeshGLShader::vboPaintTransparencyABuffer()
 		 cerr << "[MeshGLShader::" << __FUNCTION__ << "] Error: Opengl 4.3 or higher required for tranparency rendering: need ssbo support" << std::endl;
 		 return;
 	 }
+
+	 const auto mShaderTransparencyABFill = mShaderManager->getShader(ShaderManager::ShaderName::TRANSPARENCY_AB_FILL);
+	 const auto mShaderTransparencyABClear = mShaderManager->getShader(ShaderManager::ShaderName::TRANSPARENCY_AB_CLEAR);
+	 const auto mShaderTransparencyABRender = mShaderManager->getShader(ShaderManager::ShaderName::TRANSPARENCY_AB_RENDER);
+	 const auto mShaderTransparencyCountFrags = mShaderManager->getShader(ShaderManager::ShaderName::TRANSPARENCY_AB_FRAGCOUNT);
+	 if( mShaderTransparencyABFill     == nullptr ||
+	     mShaderTransparencyABClear    == nullptr ||
+	     mShaderTransparencyABRender   == nullptr ||
+	     mShaderTransparencyCountFrags == nullptr)
+		return;
 
 	 //Disable multisampling, as it creates multiple fragments at triangle seams, currently not handled correctly on shader
 	 glDisable(GL_MULTISAMPLE);
@@ -4097,14 +3997,6 @@ void MeshGLShader::vboPaintTransparencyABuffer()
 
 			 mGL4_3Functions.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 			 PRINT_OPENGL_ERROR( "Problem initializing FragCounts" );
-/*
-			 mGL4_3Functions.glGenBuffers(1,&mSSBOFragBuffer);
-			 PRINT_OPENGL_ERROR( "Problem initializing FragBuffer" );
-
-			 //FragLocks is used for the list-heads
-			 mGL4_3Functions.glGenBuffers(1, &mSSBOFragLocks);
-			 PRINT_OPENGL_ERROR( "Problem initializing locks" );*/
-
 	 }
 
 	 /*
@@ -4364,10 +4256,12 @@ void MeshGLShader::vboPaintTransparencyABuffer()
 
 	 glEnable(GL_MULTISAMPLE);
 	 glDepthFunc(GL_LESS);
+#endif
 }
 
 void MeshGLShader::vboPaintTransparencyALBuffer()
 {
+#ifdef GL_SHADER_STORAGE_BUFFER
 	int drawTransparency;
 	getParamIntMeshGL(MeshGLParams::SHADER_CHOICE, &drawTransparency);
 
@@ -4391,6 +4285,16 @@ void MeshGLShader::vboPaintTransparencyALBuffer()
 		cerr << "[MeshGLShader::" << __FUNCTION__ << "] Error: Opengl 4.3 or higher required for tranparency rendering: need ssbo support" << std::endl;
 		return;
 	}
+
+	const auto mShaderTransparencyALFill = mShaderManager->getShader(ShaderManager::ShaderName::TRANSPARENCY_AL_FILL);
+	const auto mShaderTransparencyALClear = mShaderManager->getShader(ShaderManager::ShaderName::TRANSPARENCY_AL_CLEAR);
+	const auto mShaderTransparencyALRender = mShaderManager->getShader(ShaderManager::ShaderName::TRANSPARENCY_AL_RENDER);
+	const auto mShaderTransparencyALDepthCollect = mShaderManager->getShader(ShaderManager::ShaderName::TRANSPARENCY_AL_DEPTH_COLLECT);
+	if( mShaderTransparencyALFill         == nullptr ||
+	    mShaderTransparencyALClear        == nullptr ||
+	    mShaderTransparencyALRender       == nullptr ||
+	    mShaderTransparencyALDepthCollect == nullptr)
+	   return;
 
 	//Disable multisampling, as it creates multiple fragments at triangle seams, currently not handled correctly on shader
 	glDisable(GL_MULTISAMPLE);
@@ -4668,7 +4572,7 @@ void MeshGLShader::vboPaintTransparencyALBuffer()
 
 	mGL4_3Functions.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mSSBOs[0] );
 	mGL4_3Functions.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mSSBOs[1] );
-	mShaderTransparencyABRender->setAttributeBuffer("vertPosition", GL_FLOAT, 0, 2, 0);
+	mShaderTransparencyALRender->setAttributeBuffer("vertPosition", GL_FLOAT, 0, 2, 0);
 	PRINT_OPENGL_ERROR( "setAttributeBuffer" );
 	mShaderTransparencyALRender->enableAttributeArray( "vertPosition");
 	PRINT_OPENGL_ERROR( "enableAttributeArray" );
@@ -4713,10 +4617,19 @@ void MeshGLShader::vboPaintTransparencyALBuffer()
 	mGL4_3Functions.glBindTexture(GL_TEXTURE_2D, 0);
 	mGL4_3Functions.glActiveTexture(GL_TEXTURE0);
 	mGL4_3Functions.glBindTexture(GL_TEXTURE_2D, 0);
+#endif
 }
 
 void MeshGLShader::vboPaintTransparencyWAVG()
 {
+
+	const auto mShaderTransparencyGeomWOIT  = mShaderManager->getShader(ShaderManager::ShaderName::TRANSPARENCY_WOIT_GEOM);
+	const auto mShaderTransparencyBlendWOIT = mShaderManager->getShader(ShaderManager::ShaderName::TRANSPARENCY_WOIT_BLEND);
+
+	if( mShaderTransparencyGeomWOIT  == nullptr ||
+	    mShaderTransparencyBlendWOIT == nullptr )
+	   return;
+
 	static int lastWidth = 0;
 	static int lastHeight = 0;
 
@@ -4958,6 +4871,11 @@ void MeshGLShader::transparencyDeleteFBO()
 
 void MeshGLShader::vboPaintPointcloud(eTexMapType rRenderColor, bool limitPoints)
 {
+	const auto mShaderPointcloud  = mShaderManager->getShader(ShaderManager::ShaderName::POINT_CLOUD);
+
+	if( mShaderPointcloud  == nullptr )
+	   return;
+
 	mShaderPointcloud->bind();
 
 	PglBindVertexArray glBindVertexArray = reinterpret_cast<PglBindVertexArray>(mOpenGLContext->getProcAddress( "glBindVertexArray" ));
@@ -5000,7 +4918,6 @@ void MeshGLShader::vboPaintPointcloud(eTexMapType rRenderColor, bool limitPoints
 	//glBindTexture( GL_TEXTURE_2D, mTextureMaps[0] );
 	//PRINT_OPENGL_ERROR( "glBindTexture( GL_TEXTURE_2D, mTextureMaps[0] )" );
 	mTextureMaps[0]->bind();
-	GLuint texId = mTextureMaps[0]->boundTextureId( QOpenGLTexture::BindingTarget2D );
 	PRINT_OPENGL_ERROR( "binding mTextureMaps[0]" );
 	//cout << "[MeshGLShader::" << __FUNCTION__ << "] texId: " << texId << endl;
 	// Set the ID of the texture map:
@@ -5102,7 +5019,7 @@ void MeshGLShader::vboPaintPointcloud(eTexMapType rRenderColor, bool limitPoints
 	mShaderPointcloud->enableAttributeArray( "vLabelID" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 	size_t offSetFlags = offSetLabelID + sizeof(GLfloat);
-	mShaderPointcloud->setAttributeBuffer( "vFlags", GL_FLOAT, offSetFlags, 1, sizeof(grVertexStripeElment) );
+	mShaderPointcloud->setAttributeBuffer( "vFlags", GL_FLOAT, static_cast<int>(offSetFlags), 1, static_cast<int>(sizeof(grVertexStripeElment)) );
 	mShaderPointcloud->enableAttributeArray( "vFlags" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 
@@ -5134,6 +5051,11 @@ void MeshGLShader::drawTruncatedCone( Vector3D rAxisTop, Vector3D rAxisBottom, d
 	glDisable( GL_CLIP_PLANE2 );
 	PRINT_OPENGL_ERROR( "glDisable( GL_CLIP_PLANE... )" );
 
+	const auto mShaderDatumObjects  = mShaderManager->getShader(ShaderManager::ShaderName::FUNC_VAL_COLOR);
+
+	if( mShaderDatumObjects  == nullptr )
+	   return;
+
 	double coneHeight = ( rAxisTop - rAxisBottom ).getLength3();
 	Vector3D coneAxis( 0.0, 0.0, coneHeight );                      // positive z-axis by default
 	Vector3D userAxis       = rAxisTop - rAxisBottom;                 // desired rotaion axis
@@ -5151,52 +5073,52 @@ void MeshGLShader::drawTruncatedCone( Vector3D rAxisTop, Vector3D rAxisBottom, d
 	PRINT_OPENGL_ERROR( "glBindVertexArray( mVAO )" );
 
 	// Lets be shady :)
-	if( !mShaderVertexFuncValProgram->bind() ) {
+	if( !mShaderDatumObjects->bind() ) {
 		cerr << "[MeshGLShader::" << __FUNCTION__ << "] ERROR: binding shader program!" << endl;
 	}
 
 	// Would be nice to have: http://en.wikipedia.org/wiki/Order-independent_transparency#cite_note-lfb-6
 	//-----------------------------------------------------------------------------------------------------------------------------------------------------
 	// CONE/CYLINDER Set the basics:
-	shaderSetLocationBasicMatrices( mShaderVertexFuncValProgram );
-	shaderSetLocationBasicAttribs( mShaderVertexFuncValProgram, VBUFF_CYLINDER, static_cast<int>(sizeof(grVertexElmentBasic)) );
+	shaderSetLocationBasicMatrices( mShaderDatumObjects );
+	shaderSetLocationBasicAttribs( mShaderDatumObjects, VBUFF_CYLINDER, static_cast<int>(sizeof(grVertexElmentBasic)) );
 
-	mShaderVertexFuncValProgram->setUniformValue( "backCulling", false );
-	//mShaderVertexFuncValProgram->setUniformValue( "colorSolidBack", QColor( 255, 0, 0, 64 ) );
+	mShaderDatumObjects->setUniformValue( "backCulling", false );
+	//mShaderDatumObjects->setUniformValue( "colorSolidBack", QColor( 255, 0, 0, 64 ) );
 	// Switch rendering mode solid/color_per_vertex/function_value/labels:
-	mShaderVertexFuncValProgram->setUniformValue( "uRenderColor", TEXMAP_VERT_RGB );
+	mShaderDatumObjects->setUniformValue( "uRenderColor", TEXMAP_VERT_RGB );
 
-	mShaderVertexFuncValProgram->setUniformValue( "uFuncValMin",  static_cast<GLfloat>(-0.5) );
-	mShaderVertexFuncValProgram->setUniformValue( "uFuncValMax",  static_cast<GLfloat>(+0.5) );
+	mShaderDatumObjects->setUniformValue( "uFuncValMin",  static_cast<GLfloat>(-0.5) );
+	mShaderDatumObjects->setUniformValue( "uFuncValMax",  static_cast<GLfloat>(+0.5) );
 	PRINT_OPENGL_ERROR( "Shader setUniformValue" );
-	mShaderVertexFuncValProgram->setUniformValue( "funcValIsoLineParams.mIsoLinesShow",  static_cast<GLboolean>(true)           );
-	mShaderVertexFuncValProgram->setUniformValue( "funcValIsoLineParams.mIsoDist",       static_cast<GLfloat>(2.0/coneHeight) );
-	mShaderVertexFuncValProgram->setUniformValue( "funcValIsoLineParams.mIsoOffset",     static_cast<GLfloat>(0.0f)             );
-	mShaderVertexFuncValProgram->setUniformValue( "funcValIsoLineParams.mIsoPixelWidth", static_cast<GLfloat>(1.0f)             );
-	mShaderVertexFuncValProgram->setUniformValue( "uIsoSolidFlag",                       static_cast<GLboolean>(true)           );
+	mShaderDatumObjects->setUniformValue( "funcValIsoLineParams.mIsoLinesShow",  static_cast<GLboolean>(true)           );
+	mShaderDatumObjects->setUniformValue( "funcValIsoLineParams.mIsoDist",       static_cast<GLfloat>(2.0/coneHeight) );
+	mShaderDatumObjects->setUniformValue( "funcValIsoLineParams.mIsoOffset",     static_cast<GLfloat>(0.0f)             );
+	mShaderDatumObjects->setUniformValue( "funcValIsoLineParams.mIsoPixelWidth", static_cast<GLfloat>(1.0f)             );
+	mShaderDatumObjects->setUniformValue( "uIsoSolidFlag",                       static_cast<GLboolean>(true)           );
 	PRINT_OPENGL_ERROR( "SHADER operations!" );
 
 	// Scale - SET
-	mShaderVertexFuncValProgram->setUniformValue( "uScaleHeight",       static_cast<GLfloat>(coneHeight)        );
-	mShaderVertexFuncValProgram->setUniformValue( "uScaleRadialBottom", static_cast<GLfloat>(rLowerRadius*2.0) );
-	mShaderVertexFuncValProgram->setUniformValue( "uScaleRadialTop",    static_cast<GLfloat>(rUpperRadius*2.0) );
+	mShaderDatumObjects->setUniformValue( "uScaleHeight",       static_cast<GLfloat>(coneHeight)        );
+	mShaderDatumObjects->setUniformValue( "uScaleRadialBottom", static_cast<GLfloat>(rLowerRadius*2.0) );
+	mShaderDatumObjects->setUniformValue( "uScaleRadialTop",    static_cast<GLfloat>(rUpperRadius*2.0) );
 	PRINT_OPENGL_ERROR( "SHADER operations!" );
 	// Translation and Rotation - SET
-	mShaderVertexFuncValProgram->setUniformValue( "uModelViewExtra", transRotMat );
+	mShaderDatumObjects->setUniformValue( "uModelViewExtra", transRotMat );
 	PRINT_OPENGL_ERROR( "SHADER operations!" );
 
 	GLsizei triangleCount = mVertBufObjs[VBUFF_CYLINDER]->size()/sizeof(grVertexElmentBasic);
-	shaderSetLocationBasicMatrices( mShaderVertexFuncValProgram );
-	shaderSetLocationBasicAttribs( mShaderVertexFuncValProgram, VBUFF_CYLINDER, static_cast<int>(sizeof(grVertexElmentBasic)) );
+	shaderSetLocationBasicMatrices( mShaderDatumObjects );
+	shaderSetLocationBasicAttribs( mShaderDatumObjects, VBUFF_CYLINDER, static_cast<int>(sizeof(grVertexElmentBasic)) );
 
 	//set Label and Flag attributes
 	size_t offSetLabelID = sizeof(GLfloat)*6 + sizeof(GLubyte)*4 + sizeof(GLfloat);
-	mShaderVertexFuncValProgram->setAttributeBuffer( "vLabelID", GL_FLOAT, static_cast<int>(offSetLabelID), 1, static_cast<int>(sizeof(grVertexStripeElment)) );
-	mShaderVertexFuncValProgram->enableAttributeArray( "vLabelID" );
+	mShaderDatumObjects->setAttributeBuffer( "vLabelID", GL_FLOAT, static_cast<int>(offSetLabelID), 1, static_cast<int>(sizeof(grVertexStripeElment)) );
+	mShaderDatumObjects->enableAttributeArray( "vLabelID" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 	size_t offSetFlags = offSetLabelID + sizeof(GLfloat);
-	mShaderVertexFuncValProgram->setAttributeBuffer( "vFlags", GL_FLOAT, offSetFlags, 1, sizeof(grVertexStripeElment) );
-	mShaderVertexFuncValProgram->enableAttributeArray( "vFlags" );
+	mShaderDatumObjects->setAttributeBuffer( "vFlags", GL_FLOAT, static_cast<int>(offSetFlags), 1, static_cast<int>(sizeof(grVertexStripeElment)) );
+	mShaderDatumObjects->enableAttributeArray( "vFlags" );
 	PRINT_OPENGL_ERROR( "Shader enableAttributeArray" );
 
 	glDrawArrays( GL_TRIANGLES, 0, triangleCount );
@@ -5204,18 +5126,18 @@ void MeshGLShader::drawTruncatedCone( Vector3D rAxisTop, Vector3D rAxisBottom, d
 
 
 	// Scale - set BACK TO DEFAULTS
-	mShaderVertexFuncValProgram->setUniformValue( "uScaleHeight",       static_cast<GLfloat>(1.0f) );
-	mShaderVertexFuncValProgram->setUniformValue( "uScaleRadialBottom", static_cast<GLfloat>(1.0f) );
-	mShaderVertexFuncValProgram->setUniformValue( "uScaleRadialTop",    static_cast<GLfloat>(1.0f) );
+	mShaderDatumObjects->setUniformValue( "uScaleHeight",       static_cast<GLfloat>(1.0f) );
+	mShaderDatumObjects->setUniformValue( "uScaleRadialBottom", static_cast<GLfloat>(1.0f) );
+	mShaderDatumObjects->setUniformValue( "uScaleRadialTop",    static_cast<GLfloat>(1.0f) );
 	PRINT_OPENGL_ERROR( "SHADER operations!" );
 	transRotMat.setToIdentity();
 	// Translation and Rotation - set to DEFAULTS
-	mShaderVertexFuncValProgram->setUniformValue( "uModelViewExtra", transRotMat );
+	mShaderDatumObjects->setUniformValue( "uModelViewExtra", transRotMat );
 	PRINT_OPENGL_ERROR( "SHADER operations!" );
 
 
 	// End of being shady
-	mShaderVertexFuncValProgram->release();
+	mShaderDatumObjects->release();
 	PRINT_OPENGL_ERROR( "mShaderPolyLines->release()" );
 
 	glBindVertexArray( 0 );

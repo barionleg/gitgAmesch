@@ -29,6 +29,7 @@ set(GUI_SOURCES src/main.cpp
 				src/QGMDialogSliderHD.cpp             src/QGMDialogSliderHD.h
 				src/QGMDialogConeParam.cpp            src/QGMDialogConeParam.h
 				src/QGMDialogEnterText.cpp            src/QGMDialogEnterText.h
+                                src/QGMDialogMatrix.cpp               src/QGMDialogMatrix.h
 				src/QGMDialogPlaneParam.cpp           src/QGMDialogPlaneParam.h
 				src/QGMDialogNprSettings.cpp          src/QGMDialogNprSettings.h
 				src/MeshQtCSVImportExport.cpp         src/MeshQtCSVImportExport.h
@@ -44,6 +45,7 @@ set(GUI_SOURCES src/main.cpp
 				src/meshGL/PinRenderer.cpp            src/meshGL/PinRenderer.h
 				src/meshGL/TexturedMesh.cpp           src/meshGL/TexturedMesh.h
 				src/meshGL/TexturedMeshRenderer.cpp   src/meshGL/TexturedMeshRenderer.h
+                                src/meshGL/ShaderManager.cpp          src/meshGL/ShaderManager.h
 				src/svg/SvgWriter.cpp                 src/svg/SvgWriter.h
 				src/svg/SvgCircle.cpp                 src/svg/SvgCircle.h
 				src/svg/SvgImage.cpp                  src/svg/SvgImage.h
@@ -84,6 +86,7 @@ set(GUI_UI_FILES
 	forms/qgmdocksidebar.ui
 	forms/dialogCutOffValues.ui
 	forms/DialogFindTextures.ui
+        forms/QGMDialogMatrix.ui
 )
 
 set(PY_INTER_SOURCES
@@ -122,6 +125,11 @@ set(CMAKE_AUTOUIC_SEARCH_PATHS
 qt5_wrap_cpp(PY_INTER_MOC ${PY_INTER_SOURCES})
 
 add_executable(gigamesh ${GUI_SOURCES} ${GUI_RESOURCES} ${GUI_UI_FILES} ${PY_INTER_SOURCES} ${PY_INTER_MOC})# ${PY_INTER_HEADERS})
+
+if(APPLE)
+    set_target_properties(gigamesh PROPERTIES
+        MACOSX_BUNDLE ON)
+endif()
 
 add_definitions(${Qt5Widgets_DEFINITIONS})
 target_include_directories(gigamesh PRIVATE ${Qt5Widgets_INCLUDES})

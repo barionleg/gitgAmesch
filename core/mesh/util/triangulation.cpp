@@ -75,7 +75,7 @@ std::vector<size_t> GigaMesh::Util::triangulateNgon(const std::vector<Vector3D>&
 		coordinates.push_back(vertex.getZ());
 	}
 
-	int numNewVertices = 0;
+	size_t numNewVertices = 0;
 	int numNewFaces = 0;
 	double* newCoordinates = nullptr;
 	long* newCoordinatesIndices = nullptr;

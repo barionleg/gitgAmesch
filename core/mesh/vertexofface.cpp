@@ -96,7 +96,7 @@ bool VertexOfFace::estNormalAvgAdjacentFaces() {
 		double angleAtThisVertex = mAdjacentFaces[i]->getAngleAtVertex( this );
 		faceNormal += adjacentFaceNormal * angleAtThisVertex;
 	}
-	// Invalid noraml
+	// Invalid normal
 	if( !isnormal( faceNormal.getLength3() ) ) {
 		// This error will be shown often for defective meshs - to be treated by calling method:
 		// cerr << "[VertexOfFace::" << __FUNCTION__ << "] ERROR: no valid normal set for Vertex " << this->getIndex() << " !" << endl;

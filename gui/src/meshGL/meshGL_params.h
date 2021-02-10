@@ -25,6 +25,8 @@
 class MeshGLParams {
 	public:
 		MeshGLParams();
+		MeshGLParams( const MeshGLParams * const rParams );
+		~MeshGLParams() = default;
 
 		// Switches controlling display of Primitives and other elements:
 		enum eParamFlag{
@@ -89,19 +91,19 @@ class MeshGLParams {
 			COLMAP_LABEL_OFFSET,           //!< Offset used to shift the repeating label colors.
 			VERTEX_SPRITE_SHAPE,           //!< Shape of the sprites used for rendering vertices. e.g. Star, Cirlce and Box. see MeshGLParams::eSpriteShapes
 			NPR_HATCH_STYLE,               //!< Indicaties which texture to choose for hatching, e.g. Lines or Dots
-            NPR_OUTLINE_SOURCE,            //!< Input source for the NPR outlines : 0 = geometry, 1 = FuncVals
-            NPR_HATCH_SOURCE,              //!< Input source for the NPR hatches  : 0 = geometry, 1 = FuncVals
-            NPR_TOON_SOURCE,               //!< Input source for the NPR toon     : 0 = geometry, 1 = FuncVals
-            NPR_TOON_TYPE,                 //!< Rendering type of NPR toon shading: 0 = old, color per lightvalue; 1 = new, discreticise light and hsv-color values
-            NPR_TOON_LIGHTING_STEPS,       //!< Number of discrete lighting values for alternative toon-shading
-            NPR_TOON_HUE_STEPS,            //!< Number of discrete hue color values for alternative toon-shading
-            NPR_TOON_SAT_STEPS,            //!< Number of saturation color values for alternative toon-shading
-            NPR_TOON_VAL_STEPS,            //!< Number of value-color values for alternative toon-shading
-            TRANSPARENCY_NUM_LAYERS,       //!< How many layers should be used for transparency rendering
-            TRANSPARENCY_TRANS_FUNCTION,   //!< What should be used as alpha: 0 = uniform, 1 = vertex color, 2 = funcval, 3 = normal, 4 = label
-            TRANSPARENCY_SEL_LABEL,        //!< Which label is rendered opaque if label is used for transparency rendering
-            TRANSPARENCY_OVERFLOW_HANDLING,//!< How should a overflow in a k+-buffer be handled: 0 = discard, 1 = multiplicative blend
-            TRANSPARENCY_BUFFER_METHOD,    //!< How fragments should be buffered: 0 = K+ Buffer, 1 = A-Buffer
+			NPR_OUTLINE_SOURCE,            //!< Input source for the NPR outlines : 0 = geometry, 1 = FuncVals
+			NPR_HATCH_SOURCE,              //!< Input source for the NPR hatches  : 0 = geometry, 1 = FuncVals
+			NPR_TOON_SOURCE,               //!< Input source for the NPR toon     : 0 = geometry, 1 = FuncVals
+			NPR_TOON_TYPE,                 //!< Rendering type of NPR toon shading: 0 = old, color per lightvalue; 1 = new, discreticise light and hsv-color values
+			NPR_TOON_LIGHTING_STEPS,       //!< Number of discrete lighting values for alternative toon-shading
+			NPR_TOON_HUE_STEPS,            //!< Number of discrete hue color values for alternative toon-shading
+			NPR_TOON_SAT_STEPS,            //!< Number of saturation color values for alternative toon-shading
+			NPR_TOON_VAL_STEPS,            //!< Number of value-color values for alternative toon-shading
+			TRANSPARENCY_NUM_LAYERS,       //!< How many layers should be used for transparency rendering
+			TRANSPARENCY_TRANS_FUNCTION,   //!< What should be used as alpha: 0 = uniform, 1 = vertex color, 2 = funcval, 3 = normal, 4 = label
+			TRANSPARENCY_SEL_LABEL,        //!< Which label is rendered opaque if label is used for transparency rendering
+			TRANSPARENCY_OVERFLOW_HANDLING,//!< How should a overflow in a k+-buffer be handled: 0 = discard, 1 = multiplicative blend
+			TRANSPARENCY_BUFFER_METHOD,    //!< How fragments should be buffered: 0 = K+ Buffer, 1 = A-Buffer
 			DEFAULT_FRAMEBUFFER_ID,        //!< The default framebuffer for rendering
 			PARAMS_INT_COUNT               //!< Number of integer paramters.
 		};
@@ -140,6 +142,7 @@ class MeshGLParams {
 			PIN_SIZE,                    //!< Size of the renderer pins
 			PIN_LINE_HEIGHT,             //!< Relative height of the lines connecting the pins
 			POINTCLOUD_POINTSIZE,        //!< Pointsize for the pointcloud rendering
+			LIGHTVECTOR_LENGTH,          //!< Length of the light-vectors
 			PARAMS_FLT_COUNT             //!< Number of double paramters.
 		};
 
@@ -226,16 +229,19 @@ class MeshGLParams {
 		};
 
 		// Parameters -- Boolean / Flags
-		virtual bool       getParamFlagMeshGL( MeshGLParams::eParamFlag rParamID, bool* rValue );
+		virtual bool       getParamFlagMeshGL( MeshGLParams::eParamFlag rParamID, bool* rValue ) const;
 		virtual bool       setParamFlagMeshGL( MeshGLParams::eParamFlag rParamID, bool rState );
 
 		// Parameters -- Integer / Discrete
-		virtual bool       getParamIntMeshGL( MeshGLParams::eParamInt rParamID, int* rValue );
+		virtual bool       getParamIntMeshGL( MeshGLParams::eParamInt rParamID, int* rValue ) const;
 		virtual bool       setParamIntMeshGL( MeshGLParams::eParamInt rParamID, int rValue );
 
 		// Parameters -- Floating point
-		virtual bool       getParamFloatMeshGL( MeshGLParams::eParamFlt rParamID, double* rValue );
+		virtual bool       getParamFloatMeshGL( MeshGLParams::eParamFlt rParamID, double* rValue ) const;
 		virtual bool       setParamFloatMeshGL( MeshGLParams::eParamFlt rParamID, double rValue );
+
+		// Parameters -- ALL
+		        bool       setParamAllMeshWidget( const MeshGLParams& rParams );
 
 	private:
 		// Switches and parameters controlling display of Primitives and other elements:

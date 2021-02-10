@@ -137,9 +137,9 @@ bool cleanupGigaMeshData(
 	// + MAIN FUNCTIONS
 	// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-	// Measure comput time
-	//----------------------------------------------------------
-	std::chrono::system_clock::time_point tStart = std::chrono::system_clock::now();
+	// Initial numbers of primitives
+	auto oldVertexNr = someMesh.getVertexNr();
+	auto oldFaceNr = someMesh.getFaceNr();
 
 	// Keep ONLY the largest connected component.
 	//----------------------------------------------------------
@@ -162,15 +162,13 @@ bool cleanupGigaMeshData(
 		someMesh.removeVerticesSelected();
 	}
 
-	// Initial numbers of primitives
-	auto oldVertexNr = someMesh.getVertexNr();
-	auto oldFaceNr = someMesh.getFaceNr();
-
 	// MAIN cleaning procedure
 	//----------------------------------------------------------
+	uint64_t iterationCount = 0;
 	if( removeOnlyFlag ) {
 		// Single iteration of automatic mesh polishing, BECAUSE
-		someMesh.removeUncleanSmall( percentArea, applyBorderErosion, "" ); // use fileNameOut3D instead of "" for saving the intermediate mesh.
+		someMesh.removeUncleanSmall( fileNameOut, percentArea, applyBorderErosion ); // use fileNameOut3D instead of "" for saving the intermediate mesh.
+		iterationCount++;
 
 		std::cout << "[GigaMesh] REMOVE ONLY: " << oldVertexNr-someMesh.getVertexNr() << " Vertices and ";
 		std::cout << oldFaceNr-someMesh.getFaceNr() << " Faces removed." << std::endl;
@@ -178,7 +176,9 @@ bool cleanupGigaMeshData(
 		//! \bug Check why completeRestore is unstable without intermediate storage.
 		// BROKEN: Apply automatic mesh polishing using the corresponding method
 		// someMesh.completeRestore( "", percentArea, applyBorderErosion, skipLargestHole, maxNumberVertices, nullptr ); // use fileNameOut instead of "" for saving the intermediate mesh.
-		someMesh.completeRestore( fileNameOut, percentArea, applyBorderErosion, skipLargestHole, maxNumberVertices, nullptr ); // use fileNameOut instead of "" for saving the intermediate mesh.
+		someMesh.completeRestore( fileNameOut, percentArea, applyBorderErosion, 
+		                          skipLargestHole, maxNumberVertices, 
+		                          nullptr, iterationCount ); // use fileNameOut instead of "" for saving the intermediate mesh.
 
 		std::cout << "[GigaMesh] POLISH: Vertex count changed by " << static_cast<long>(someMesh.getVertexNr())-static_cast<long>(oldVertexNr) << std::endl;
 		std::cout << "[GigaMesh]         Face count changed by   " << static_cast<long>(someMesh.getFaceNr())-static_cast<long>(oldFaceNr) << std::endl;
@@ -189,62 +189,29 @@ bool cleanupGigaMeshData(
 		someMesh.labelSelectedVerticesBackGrd();
 	}
 
-	std::chrono::system_clock::time_point tEnd = std::chrono::system_clock::now();
-	//std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>( tEnd - tStart );
-	double time_elapsed = ( std::chrono::duration<double>( tEnd - tStart ) ).count();
-	time_t startTime = std::chrono::system_clock::to_time_t( tStart );
-	time_t endTime   = std::chrono::system_clock::to_time_t( tEnd );
-
 	// WRITE clean data
 	//----------------------------------------------------------
-	if( !someMesh.writeFile( fileNameOut ) ) {
-		std::cerr << "[GigaMesh] ERROR: writing file " << fileNameOut << "!" << std::endl;
-		return( false );
-	}
-
-	// WRITE meta information
-	//----------------------------------------------------------
-	// Count primitives and their properties for meta information
-	MeshInfoData rFileInfos;
-	someMesh.getMeshInfoData( rFileInfos, true );
-	// Set filename for meta-data
-    std::filesystem::path fileNameOutMeta = fileNameOut;
-    fileNameOutMeta.replace_extension("info-clean.txt" );
-	//fileNameOutMeta += suffix + ".info-clean.txt";
-	// Open file for meta-data
-	std::fstream fileStrOutMeta;
-    fileStrOutMeta.open( fileNameOutMeta, std::fstream::out );
-#ifdef VERSION_PACKAGE
-	fileStrOutMeta << "[GigaMesh] CLEAN v." << VERSION_PACKAGE << std::endl;
-#else
-	fileStrOutMeta << "[GigaMesh] CLEAN unknown version" << std::endl;
-#endif
-#ifdef THREADS
-	fileStrOutMeta << "Threads (fixed):            " << std::thread::hardware_concurrency() * 2 << std::endl;
-#else
-	fileStrOutMeta << "Threads (fixed):            single" << std::endl;
-#endif
-	fileStrOutMeta << "Threads (dynamic):          " << std::thread::hardware_concurrency() - 1 << std::endl;
-	fileStrOutMeta << "File Input:                 " << fileNameInName << std::endl;
-	fileStrOutMeta << "File Output:                " << fileNameOutName << std::endl;
-	fileStrOutMeta << "Model Id:                   " << rFileInfos.mStrings[MeshInfoData::MODEL_ID] << std::endl;
-	fileStrOutMeta << "Model Material:             " << rFileInfos.mStrings[MeshInfoData::MODEL_MATERIAL] << std::endl;
-	fileStrOutMeta << "Web-Reference:              " << rFileInfos.mStrings[MeshInfoData::MODEL_WEBREFERENCE] << std::endl;
-	fileStrOutMeta << "Vertex count (in, out):     " << oldVertexNr << ", " << rFileInfos.mCountULong[MeshInfoData::VERTICES_TOTAL] << std::endl;
-	fileStrOutMeta << "Face count (in, out):       " << oldFaceNr   << ", " << rFileInfos.mCountULong[MeshInfoData::FACES_TOTAL]    << std::endl;
-	fileStrOutMeta << "Vertex count (diff):        " << ( static_cast<long>(rFileInfos.mCountULong[MeshInfoData::VERTICES_TOTAL]) - static_cast<long>(oldVertexNr) ) << std::endl;
-	fileStrOutMeta << "Face count (diff):          " << ( static_cast<long>(rFileInfos.mCountULong[MeshInfoData::FACES_TOTAL])    - static_cast<long>(oldFaceNr)   ) << std::endl;
-	fileStrOutMeta << "Vertices at border (out):   " << rFileInfos.mCountULong[MeshInfoData::VERTICES_BORDER] << std::endl;
-	fileStrOutMeta << "Vertices synthetic (out):   " << rFileInfos.mCountULong[MeshInfoData::VERTICES_SYNTHETIC] << std::endl;
-	fileStrOutMeta << "Faces synthetic (out):      " << rFileInfos.mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES] << std::endl;
-	fileStrOutMeta << "Start time:                 " << std::ctime( &startTime );
-	fileStrOutMeta << "Finish time:                " << std::ctime( &endTime );
-	fileStrOutMeta << "Timespan (sec):             " << time_elapsed << std::endl;
-	fileStrOutMeta.close();
+	//! \todo supress writing in removeUncleanSmall and completeRestore OR check for file write success. For now the following code to save the file does not make any sense.
+//	if( !someMesh.writeFile( fileNameOut ) ) {
+//		std::cerr << "[GigaMesh] ERROR: writing file " << fileNameOut << "!" << std::endl;
+//		return( false );
+//	}
 
 	// Done.
 	//----------------------------------------------------------
 	return( true );
+}
+
+
+//! Show software version.
+void printVersion() {
+	std::cout << "GigaMesh Software Framework CLEAN 3D-data " << VERSION_PACKAGE << std::endl;
+	std::cout << "Multi-threading with " << std::thread::hardware_concurrency() - 1 << " (dynamic) threads." << std::endl;
+#ifdef LIBPSALM
+	std::cout << "Hole filling enabled. POLISH possible." << std::endl;
+#else
+	std::cout << "Hole filling disabled. CLEAN only." << std::endl;
+#endif
 }
 
 //! Help i.e. usage of paramters.
@@ -285,11 +252,14 @@ void printHelp( const char* rExecName ) {
 	std::cout << "  -j, --set-id-remove-trailing-chars SIZE Remove SIZE trailing characters from the filename stem for the id."<< std::endl;
 	std::cout << "                                          Will be ignored if -i is not used." << std::endl;
 	std::cout << "  -o, --set-material-id-forced            Enforce id and material, even when NOT empty." << std::endl;
+	std::cout << std::endl;
+	std::cout << "Options for testing and debugging:" << std::endl;
 	std::cout << "    , --log-level [0-4]                   Sets the log level of this application.\n"
-				 "                                          Higher numbers increases verbosity.\n"
-				 "                                          (Default: 1)" << std::endl;
+	             "                                          Higher numbers increases verbosity.\n"
+	             "                                          (Default: 1)" << std::endl;
 	//std::cout << "" << std::endl;
 }
+
 
 
 //! Main routine for loading a (binary) PLY and store it after cleaning the mesh.
@@ -415,18 +385,7 @@ int main( int argc, char* argv[] ) {
 				break;
 
 			case 'v':
-				std::cout << "GigaMesh Software Framework CLEAN 3D-data " << VERSION_PACKAGE << std::endl;
-#ifdef THREADS
-				std::cout << "Multi-threading with " << std::thread::hardware_concurrency() * 2 << " (fixed) threads." << std::endl;
-#else
-				std::cout << "Single-threading. " << std::endl;
-#endif
-				std::cout << "Multi-threading with " << std::thread::hardware_concurrency() - 1 << " (dynamic) threads." << std::endl;
-#ifdef LIBPSALM
-				std::cout << "Hole filling enabled. POLISH possible." << std::endl;
-#else
-				std::cout << "Hole filling disabled. CLEAN only." << std::endl;
-#endif
+				printVersion();
 				std::exit( EXIT_SUCCESS );
 				break;
 

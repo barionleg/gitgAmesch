@@ -160,9 +160,11 @@ void printHelp( const char* rExecName ) {
 	std::cout << "  -k, --overwrite-existing                Overwrite exisitng files, which is" << std::endl;
 	std::cout << "                                          not done by default to prevent" << std::endl;
 	std::cout << "                                          accidental data loss." << std::endl;
+	std::cout << std::endl;
+	std::cout << "Options for testing and debugging:" << std::endl;
 	std::cout << "    , --log-level [0-4]                   Sets the log level of this application.\n"
-				 "                                          Higher numbers increases verbosity.\n"
-				 "                                          (Default: 1)" << std::endl;
+	             "                                          Higher numbers increases verbosity.\n"
+	             "                                          (Default: 1)" << std::endl;
 	//std::cout << "" << endl;
 }
 
@@ -231,14 +233,8 @@ int main( int argc, char *argv[] ) {
 				break;
 
 			case 'v':
-#ifdef VERSION_PACKAGE
 				std::cout << "GigaMesh Software Framework export borders of 3D Data " << VERSION_PACKAGE << endl;
-#endif
-#ifdef THREADS
-				std::cout << "Multi-threading with " << std::thread::hardware_concurrency() * 2 << " threads." << endl;
-#else
-				std::cout << "Single-threading. " << endl;
-#endif
+				std::cout << "Multi-threading with " << std::thread::hardware_concurrency() - 1 << " threads." << endl;
 				std::exit( EXIT_SUCCESS );
 				break;
 
