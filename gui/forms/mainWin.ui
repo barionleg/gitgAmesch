@@ -821,7 +821,6 @@
     <addaction name="actionMetaDataEditModelId"/>
     <addaction name="actionMetaDataEditMaterial"/>
     <addaction name="actionMetaDataEditWebReference"/>
-    <addaction name="actionMetaDataEditUser"/>
     <addaction name="separator"/>
     <addaction name="actionShowLaTeXInfo"/>
     <addaction name="separator"/>

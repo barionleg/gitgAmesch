@@ -1148,8 +1148,7 @@ void QGMMainWindow::initMeshSignals() {
 	// ... Other .............................................................................................................................................
 	actionShowLaTeXInfo->setProperty(                             "gmMeshFunctionCall", MeshParams::LATEX_TEMPLATE                               );
         actionMetaDataEditModelId->setProperty(                       "gmMeshFunctionCall", MeshParams::METADATA_EDIT_MODEL_ID                       );
-        //! actionMetaDataEditUser->setProperty(                          "gmMeshFunctionCall", MeshParams::METADATA_EDIT_USER                           );
-	actionMetaDataEditMaterial->setProperty(                      "gmMeshFunctionCall", MeshParams::METADATA_EDIT_MODEL_MATERIAL                 );
+        actionMetaDataEditMaterial->setProperty(                      "gmMeshFunctionCall", MeshParams::METADATA_EDIT_MODEL_MATERIAL                 );
 	actionMetaDataEditWebReference->setProperty(                  "gmMeshFunctionCall", MeshParams::METADATA_EDIT_REFERENCE_WEB                  );
 	actionEllipsenFit->setProperty(                               "gmMeshFunctionCall", MeshParams::ELLIPSENFIT_EXPERIMENTAL                     );
 	actionSelFaceSelfIntersecting->setProperty(                   "gmMeshFunctionCall", MeshParams::DRAW_SELF_INTERSECTIONS                      );
@@ -1175,7 +1174,7 @@ void QGMMainWindow::initMeshSignals() {
 	actionBackGroundGridNone->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_GRID_NONE                    );
 
         // --- Github userdata check --------------------------------------------------------------------------------------------------------------
-        QObject::connect( actionMetaDataEditUser, &QAction::triggered, this, &QGMMainWindow::saveUser);
+        QObject::connect( actionFileSaveAs, &QAction::triggered, this, &QGMMainWindow::saveUser);
         QObject::connect( actionAuthorizeUser, &QAction::triggered, this, &QGMMainWindow::authenticate);
         QObject::connect(this, &QGMMainWindow::authentication, this, &QGMMainWindow::authenticate);
         QObject::connect(this, &QGMMainWindow::authenticated, this, &QGMMainWindow::updateUser);
@@ -1295,6 +1294,8 @@ void QGMMainWindow::updateUser(QJsonObject data){
         loggedIn = true;
         emit sViewUserInfo(MeshWidgetParams::USER_INFO, userInfo);
         emit sViewUserInfo(MeshWidgetParams::USER_LOGIN, "Log out");
+        //! todo update metadata
+        //emit saveUser();
     }
 }
 
