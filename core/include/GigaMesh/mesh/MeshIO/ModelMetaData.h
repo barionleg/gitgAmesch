@@ -45,8 +45,11 @@ class ModelMetaData
 			META_MODEL_CREATORS,       //!< Linked Data: Creators.
 			META_MODEL_CONTRIBUTORS,   //!< Linked Data: Contributors.
 			META_FILENAME,             //!< Filename, when loaded.
-			META_TEXTUREFILE,          //!< Meshlab texturefile stored in ply: e.g. "comment TextureFile texture.png"		
-			META_USER_DATA,
+			META_TEXTUREFILE,          //!< Meshlab texturefile stored in ply: e.g. "comment TextureFile texture.png"	
+			META_USER_USERNAME,
+			META_USER_PROVIDER,
+			META_USER_ID,
+			META_USER_FULLNAME,
 			META_STRINGS_COUNT         //!< Total number of strings for meta-data.
 		};
 

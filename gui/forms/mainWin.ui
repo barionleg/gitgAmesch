@@ -38,11 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-<<<<<<< HEAD
      <height>21</height>
-=======
-     <height>45</height>
->>>>>>> develop
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -145,6 +141,7 @@
     <addaction name="menuFileRecent"/>
     <addaction name="actionFileReload"/>
     <addaction name="actionFileSaveAs"/>
+    <addaction name="actionSaveLabelsSeparated"/>
     <addaction name="actionSaveFlagBinary"/>
     <addaction name="actionSaveFlagGMExtras"/>
     <addaction name="actionSaveFlagTextureExport"/>
@@ -158,6 +155,7 @@
     <addaction name="menuExportImageStack"/>
     <addaction name="separator"/>
     <addaction name="actionScreenshotViewsDirectory"/>
+    <addaction name="actionDirectoryFuncValToRGB"/>
     <addaction name="separator"/>
     <addaction name="menuExport_Meta_Data"/>
     <addaction name="separator"/>
@@ -737,7 +735,10 @@
     <addaction name="actionExternal_Programs"/>
     <addaction name="separator"/>
     <addaction name="menuLanguages"/>
+    <addaction name="separator"/>
     <addaction name="actionAuthorizeUser"/>
+    <addaction name="separator"/>
+    <addaction name="actionHighDPIZoomFactor"/>
    </widget>
    <widget class="QMenu" name="menuColors">
     <property name="title">
@@ -4200,7 +4201,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionScreenshotViewsDirectory">
    <property name="text">
-    <string>Screenshot Directory</string>
+    <string>Directory: Screenshot for all files</string>
    </property>
   </action>
   <action name="actionScreenshotPDF">
@@ -4411,16 +4412,6 @@ p, li { white-space: pre-wrap; }
     <string>Plane - Set orientation using Axis</string>
    </property>
   </action>
-<<<<<<< HEAD
-  <action name="actionMetaDataEditUser">
-   <property name="text">
-    <string>Meta-Data Edit: User</string>
-   </property>
-  </action>
-  <action name="actionAuthorizeUser">
-   <property name="text">
-    <string>Authorize User</string>
-=======
   <action name="actionMSIIFilterApplyQuick">
    <property name="icon">
     <iconset resource="gigamesh.qrc">
@@ -4505,7 +4496,26 @@ The latter will be shown, when the processing has finished.</string>
    </property>
    <property name="text">
     <string>All above (HTML, TTL, JSON and XML)</string>
->>>>>>> develop
+   </property>
+  </action>
+  <action name="actionHighDPIZoomFactor">
+   <property name="text">
+    <string>HighDPI Zoom Factor</string>
+   </property>
+  </action>
+  <action name="actionDirectoryFuncValToRGB">
+   <property name="text">
+    <string>Directory: FuncVal to RGB</string>
+   </property>
+  </action>
+  <action name="actionSaveLabelsSeparated">
+   <property name="text">
+    <string>Save Labels separated</string>
+   </property>
+  </action>
+  <action name="actionAuthorizeUser">
+   <property name="text">
+    <string>AuthorizeUser</string>
    </property>
   </action>
  </widget>

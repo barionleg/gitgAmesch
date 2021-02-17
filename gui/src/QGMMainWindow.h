@@ -182,6 +182,8 @@ private slots:
 	void openGridPositionDialog();
 
 	void authenticate();
+
+public slots:
 	void saveUser();	
 
 private:

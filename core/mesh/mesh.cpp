@@ -810,10 +810,6 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 				getModelMetaDataRef().setModelMetaString( ModelMetaData::META_REFERENCE_WEB, metaData );
 			}
 			} break;
-                case METADATA_EDIT_USER: {
-                        string metaData = ""; //settings.value( "lastUser" ).toString().toStdString();
-                        getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_DATA, metaData );
-                        } break;
 		case ELLIPSENFIT_EXPERIMENTAL:
 			//! \todo implement properly - fragments of code are currently in MeshGL.
 			break;
@@ -16528,9 +16524,13 @@ bool Mesh::getMeshInfoData(
 	} else {
 		rMeshInfos.mStrings[MeshInfoData::FILENAME]       = this->getBaseName().string();
 	}
-	rMeshInfos.mStrings[MeshInfoData::MODEL_ID]           = this->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
-	rMeshInfos.mStrings[MeshInfoData::MODEL_MATERIAL]     = this->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
-	rMeshInfos.mStrings[MeshInfoData::MODEL_WEBREFERENCE] = this->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_REFERENCE_WEB );
+        rMeshInfos.mStrings[MeshInfoData::MODEL_ID]             = this->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
+        rMeshInfos.mStrings[MeshInfoData::MODEL_MATERIAL]       = this->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
+        rMeshInfos.mStrings[MeshInfoData::MODEL_WEBREFERENCE]   = this->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_REFERENCE_WEB );
+        rMeshInfos.mStrings[MeshInfoData::MODEL_USER_USERNAME]  = this->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_USER_USERNAME );
+        rMeshInfos.mStrings[MeshInfoData::MODEL_USER_ID]        = this->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_USER_ID );
+        rMeshInfos.mStrings[MeshInfoData::MODEL_USER_FULLNAME]  = this->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_USER_FULLNAME );
+        rMeshInfos.mStrings[MeshInfoData::MODEL_USER_PROVIDER]  = this->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_USER_PROVIDER );
 
 	// Primitive count
 	rMeshInfos.mCountULong[MeshInfoData::VERTICES_TOTAL] = this->getVertexNr();

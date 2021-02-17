@@ -22,7 +22,7 @@
 
 #include "PlyWriter.h"
 #include <fstream>
-#include <iostream>     //! \todo remove
+#include <iostream>
 #include <sstream>
 #include <chrono>
 #include <locale>
@@ -141,7 +141,7 @@ bool PlyWriter::writeFile(const std::filesystem::path& rFilename, const std::vec
 			{
 				continue;	//we use the textures stored in getTexturefilesRef instead
                         }
-                        if( metaId == ModelMetaData::META_USER_DATA ) { // write user data to several lines
+                        if( metaId == ModelMetaData::META_USER_USERNAME ) { // write user data to several lines
 
                                 std::string userMetaString;
                                 std::istringstream ss(metaStr);

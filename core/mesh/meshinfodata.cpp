@@ -45,6 +45,10 @@ MeshInfoData::MeshInfoData() {
 	mStringName[MODEL_ID]             = "Model Id";
 	mStringName[MODEL_MATERIAL]       = "Model Material";
 	mStringName[MODEL_WEBREFERENCE]   = "Web-Reference";
+        mStringName[MODEL_USER_FULLNAME]   = "User-Fullname";
+        mStringName[MODEL_USER_USERNAME]   = "Username";
+        mStringName[MODEL_USER_PROVIDER]   = "User-Provider";
+        mStringName[MODEL_USER_ID]   = "User-ID";
 
 	// Unsigned long names
 	mCountULongName[VERTICES_TOTAL] = "Total number of vertices";
@@ -748,6 +752,10 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     std::size_t pos = indidnotencoded.find_last_of("/");
     std::string indname = indidnotencoded.substr(pos+1,indidnotencoded.size());
     std::string infoStr = "@prefix rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix foaf:<http://xmlns.com/foaf/0.1/> . \n@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n@prefix xsd:<http://www.w3.org/2001/XMLSchema#> .\n@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .\n@prefix owl:<http://www.w3.org/2002/07/owl#> .\n@prefix dcat:<http://www.w3.org/ns/dcat#> .\n@prefix prov:<http://www.w3.org/ns/prov#> .\n@prefix giga:<http://www.gigamesh.eu/ont#> .\n@prefix dc:<http://purl.org/dc/terms/> .\n@prefix ex:<http://purl.org/net/ns/ex#> .\n@prefix geo:<http://www.opengis.net/ont/geosparql#> .\n@prefix wdt:<http://www.wikidata.org/prop/direct/> .\n@prefix om:<http://www.ontology-of-units-of-measure.org/resource/om-2/>.\n";
+    infoStr+="username:" + mStrings[MeshInfoData::MODEL_USER_USERNAME] + "\n";
+    infoStr+="userid:" + mStrings[MeshInfoData::MODEL_USER_ID] + "\n";
+    infoStr+="fullname:" + mStrings[MeshInfoData::MODEL_USER_FULLNAME] + "\n";
+    infoStr+="provider:" + mStrings[MeshInfoData::MODEL_USER_PROVIDER] + "\n";
     infoStr+="giga:GigameshInfo rdf:type owl:Class .\n";
     infoStr+="giga:GigameshInfo rdfs:label \"Gigamesh Info\"@en .\n";
     infoStr+="prov:Entity rdf:type owl:Class .\n";
@@ -1450,3 +1458,4 @@ bool MeshInfoData::getMeshInfoPropertyName(
 	rPropName = mmCountDoubleName[rPropId];
 	return( true );
 }
+

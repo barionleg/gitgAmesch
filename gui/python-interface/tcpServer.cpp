@@ -302,17 +302,6 @@ bool TcpServer::authenticateUser(QString *username, Provider *provider)
 
         QObject::connect(manager, &QNetworkAccessManager::finished, this, &TcpServer::readUserData);
 
-        QFile file("../../gui/python-interface/website.html");
-        QString dataToSend;
-        if(!file.open(QIODevice::ReadOnly)){
-            qDebug() << "Current path:" << QDir::currentPath();
-            QMessageBox::information(0, "error", file.errorString());
-        }else{
-            QTextStream in(&file);
-            dataToSend = in.readAll();
-            qDebug() << "[TcpServer::authorizeUser] Opened File: " << dataToSend;
-        }
-
         manager->get(request); // , dataToSend.toUtf8());
     });
 
@@ -633,8 +622,31 @@ QStringList TcpServer::parseCommand(Request req){
                         code = pars["code"];
                         //cout << "[QGMMainWindow::parseCommand] Received Code '" << code << "'" << endl;
                         emit codeReceived(code);
+
+                        QFile file("../../gui/python-interface/websiteSuccess.html");
+                        QString dataToSend;
+                        if(!file.open(QIODevice::ReadOnly)){
+                            qDebug() << "Current path:" << QDir::currentPath();
+                            QMessageBox::information(0, "error", file.errorString());
+                        }else{
+                            QTextStream in(&file);
+                            dataToSend = in.readAll();
+                            qDebug() << "[TcpServer::authorizeUser] Opened File: " << dataToSend;
+                        }
+                        data_str += dataToSend;
                 }else{
                         cout << "[QGMMainWindow::parseCommand] Missing Code." << endl;
+                        QFile file("../../gui/python-interface/websiteFail.html");
+                        QString dataToSend;
+                        if(!file.open(QIODevice::ReadOnly)){
+                            qDebug() << "Current path:" << QDir::currentPath();
+                            QMessageBox::information(0, "error", file.errorString());
+                        }else{
+                            QTextStream in(&file);
+                            dataToSend = in.readAll();
+                            qDebug() << "[TcpServer::authorizeUser] Opened File: " << dataToSend;
+                        }
+                        data_str += dataToSend;
                 }
                 string returnedState;
                 if(pars.find("state") != pars.end()){
@@ -645,16 +657,6 @@ QStringList TcpServer::parseCommand(Request req){
                 }else{
                         cout << "[QGMMainWindow::parseCommand] Missing State." << endl;
                 }
-                /*
-                string token;
-                if(pars.find("access_token") != pars.end()){
-                        token = pars["code"];
-                        cout << "[QGMMainWindow::parseCommand] Received Token. '" << token << "'" << endl;
-                        emit tokenReceived(token);
-                }else{
-                        cout << "[QGMMainWindow::parseCommand] Missing Token." << endl;
-                }
-                */
             }
 	else{
 		std::cout << "[QGMMainWindow::parseCommand] Error: Unknown command!" << std::endl;
@@ -662,7 +664,7 @@ QStringList TcpServer::parseCommand(Request req){
 	}
 
 	QStringList response;
-    response << QString::fromStdString(TcpServer::statusCodeAsString(statusCode));
+        response << QString::fromStdString(TcpServer::statusCodeAsString(statusCode));
 	if(return_type == "json"){
 		response << QString::fromStdString(data.dump());
 	}else{

@@ -36,13 +36,18 @@ class MeshInfoData {
 			MODEL_ID,                      //!< Meta-data: Id of the object e.g. inventory number.
 			MODEL_MATERIAL,                //!< Meta-data: Material(s) of the acquired object e.g. clay, original or gypsum, cast copy.
 			MODEL_WEBREFERENCE,            //!< Meta-data: Web-Reference e.g. CDLI url for a cuneiform tablet.
+			MODEL_USER_FULLNAME,
+			MODEL_USER_USERNAME,
+			MODEL_USER_PROVIDER,
+			MODEL_USER_ID,
 			STRING_COUNT                   //!< Number of elements.
 		};
+
 	public:
 		std::string mStrings[STRING_COUNT];
+
 	private:
 		std::string mStringName[STRING_COUNT];
-
 	public:
 		enum eMeshPropertyULongCount {
 			VERTICES_TOTAL,                //!< Number of vertices.

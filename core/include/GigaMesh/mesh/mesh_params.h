@@ -189,7 +189,6 @@ class MeshParams {
 			LATEX_TEMPLATE,              //!< Call menu for LaTeX template.
 			METADATA_EDIT_MODEL_ID,                    //!< Edit meta-data: model id.
 			METADATA_EDIT_MODEL_MATERIAL,              //!< Edit meta-data: object material.
-			METADATA_EDIT_USER,						   //!< Edit meta-data: user data.
 			METADATA_EDIT_REFERENCE_WEB,               //!< Edit meta-data: web reference.
 			ELLIPSENFIT_EXPERIMENTAL,
 			DRAW_SELF_INTERSECTIONS      //!< Select faces of the mesh that intersect with other faces

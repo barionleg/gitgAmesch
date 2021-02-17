@@ -345,7 +345,6 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	mDockView = new QGMDockView( this );
 	addDockWidget( Qt::LeftDockWidgetArea, mDockView );
         QObject::connect( this,      &QGMMainWindow::sViewUserInfo,                             mDockView, &QGMDockView::viewUserInfo                                  );
-        //! todo: connect login button
         QObject::connect( mDockView, &QGMDockView::sLogInOut,                                   this, &QGMMainWindow::logInOut                                         );
         QObject::connect( this, SIGNAL(sViewPortInfo(MeshWidgetParams::eViewPortInfo,QString)), mDockView, SLOT(viewPortInfo(MeshWidgetParams::eViewPortInfo,QString)) );
 	QObject::connect( this, SIGNAL(sInfoMesh(MeshGLParams::eInfoMesh,QString)),             mDockView, SLOT(infoMesh(MeshGLParams::eInfoMesh,QString))             );
@@ -1263,13 +1262,14 @@ void QGMMainWindow::logInOut(){
     QSettings settings;
     if(loggedIn){
         loggedIn = false;
-        settings.setValue( "userName", "-");
-        settings.setValue( "id", "-");
-        settings.setValue( "fullName", "-");
-        settings.setValue( "provider", "-");
-        settings.setValue( "token", "-");
+        settings.setValue( "userName", "");
+        settings.setValue( "id", "");
+        settings.setValue( "fullName", "");
+        settings.setValue( "provider", "");
+        settings.setValue( "token", "");
         emit sViewUserInfo(MeshWidgetParams::USER_INFO, "-");
         emit sViewUserInfo(MeshWidgetParams::USER_LOGIN, "Log in");
+        emit saveUser();
     }else{
         emit authenticate();
     }
@@ -1294,50 +1294,51 @@ void QGMMainWindow::authenticate(){
 }
 
 void QGMMainWindow::updateUser(QJsonObject data){
-    qDebug() << "[QGMMainWindow] Authentication successful.";
 
-    QSettings settings;
-    if(data.contains("id") && data.contains("name")){
-        settings.setValue( "userName", data.value("login").toString());
-        settings.setValue( "id", data.value("id").toString());
-        settings.setValue( "fullName", data.value("name").toString());
-        std::string s(providerAsString(static_cast<Provider>(settings.value("provider").toInt())));
-        QString userInfo = settings.value("userName").toString() + QString("@") + QString::fromStdString(s) ;
-        loggedIn = true;
-        emit sViewUserInfo(MeshWidgetParams::USER_INFO, userInfo);
-        emit sViewUserInfo(MeshWidgetParams::USER_LOGIN, "Log out");
-        //! todo update metadata
-        //emit saveUser();
+    if(data.empty()){
+        qDebug() << "[QGMMainWindow] Authentication failed.";
+    }else{
+        qDebug() << "[QGMMainWindow] Authentication successful.";
+
+        QSettings settings;
+        if(data.contains("id") && data.contains("name")){
+            settings.setValue( "userName", data.value("login").toString());
+            settings.setValue( "id", data.value("id").toInt());
+            settings.setValue( "fullName", data.value("name").toString());
+
+            qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Current user: " << settings.value( "userName" ).toString() << " with id " << settings.value("id").toInt() ;
+
+            std::string s(providerAsString(static_cast<Provider>(settings.value("provider").toInt())));
+            QString userInfo = settings.value("userName").toString() + QString("@") + QString::fromStdString(s) ;
+            loggedIn = true;
+            emit sViewUserInfo(MeshWidgetParams::USER_INFO, userInfo);
+            emit sViewUserInfo(MeshWidgetParams::USER_LOGIN, "Log out");
+        }
     }
+    emit saveUser();
 }
 
 
 void QGMMainWindow::saveUser(){
 
-    // create jsonObj for user data
     QSettings settings;
-    QJsonObject newUser;
-    newUser.insert("provider", settings.value("provider").toString() );
-    newUser.insert("userName", settings.value("userName").toString() );
-    newUser.insert("id", settings.value("id").toString() );
-    newUser.insert("fullName", settings.value("fullName").toString() );
-
-    // get current time
-    time_t _tm = time(NULL );
-    struct tm * currTime = localtime ( &_tm );
-
-    // save user data as key:value pair -> User { date : { userdata } }
-    QJsonObject userData = QJsonDocument::fromJson(QByteArray::fromStdString(this->mMeshWidget->getMesh()->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_USER_DATA))).object();
-    std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] Old Meta Data: " << this->mMeshWidget->getMesh()->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_USER_DATA) << std::endl;
-    userData.insert(asctime(currTime), newUser);
-
-    //! \todo error message when no mesh loaded
-    // convert to byteArray and update meta data
-    QJsonDocument doc(userData);
-    QByteArray bytes = doc.toJson();
-    this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_DATA, bytes.toStdString() );
-    qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Updated User Data.";
-    qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Current user: " << settings.value( "userName" ).toString();
+    // update meta data, if mesh loaded
+    if(this->mMeshWidget->getMesh() != nullptr){
+        if(loggedIn){
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_USERNAME, settings.value("userName").toString().toStdString() );
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_FULLNAME, settings.value("fullName").toString().toStdString() );
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_ID, std::to_string(settings.value("id").toInt()) );
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_PROVIDER, providerAsString(static_cast<Provider>(settings.value("provider").toInt())));
+        }else{
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_USERNAME, "" );
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_FULLNAME, "");
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_ID, "");
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_PROVIDER, "");
+        }
+        qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Updated User Data.";
+    }else{
+        std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] No mesh loaded!" << std::endl;
+    }
 
 }
 

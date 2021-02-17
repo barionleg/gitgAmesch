@@ -756,10 +756,12 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
 					MeshReader::getModelMetaDataRef().addTextureName(metaContent);
 				}
 
+                                /*
                                 if( foundMetaId == ModelMetaData::META_USER_DATA)
                                 {
                                     userRelated = true;
                                 }
+                                */
 
 				else
 				{
@@ -799,7 +801,7 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
 		}
 
                 if(userDataRead){
-                    if( !MeshReader::getModelMetaDataRef().setModelMetaString(  ModelMetaData::META_USER_DATA, userData ) ) {
+                    if( !MeshReader::getModelMetaDataRef().setModelMetaString(  ModelMetaData::META_USER_USERNAME, userData ) ) {
                             LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Meta-Data not set!" << "\n";
                     }
                     userRelated = false; // \todo right place?

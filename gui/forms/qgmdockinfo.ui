@@ -7,11 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>313</width>
-<<<<<<< HEAD
-    <height>428</height>
-=======
     <height>379</height>
->>>>>>> develop
    </rect>
   </property>
   <property name="sizePolicy">
@@ -23,11 +19,7 @@
   <property name="minimumSize">
    <size>
     <width>313</width>
-<<<<<<< HEAD
-    <height>428</height>
-=======
     <height>379</height>
->>>>>>> develop
    </size>
   </property>
   <property name="maximumSize">

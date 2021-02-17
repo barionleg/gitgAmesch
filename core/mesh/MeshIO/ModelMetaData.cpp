@@ -114,7 +114,10 @@ bool ModelMetaData::clearModelMetaStrings() {
 	mMetaDataStringNames[META_MODEL_CREATORS]       = "ModelCreators";
 	mMetaDataStringNames[META_MODEL_CONTRIBUTORS]   = "ModelContributors";
 	mMetaDataStringNames[META_TEXTUREFILE]      = "TextureFile";
-        mMetaDataStringNames[META_USER_DATA]        = "User";
+        mMetaDataStringNames[META_USER_USERNAME]        = "UserName";
+        mMetaDataStringNames[META_USER_FULLNAME]        = "UserFullname";
+        mMetaDataStringNames[META_USER_ID]              = "UserID";
+        mMetaDataStringNames[META_USER_PROVIDER]        = "UserProvider";
 
 	// Initialze labels for the names of the strings holding meta-data
 	mMetaDataStringLabels[META_MODEL_ID]             = "ID of the model";
