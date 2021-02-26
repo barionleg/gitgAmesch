@@ -1179,6 +1179,7 @@ void QGMMainWindow::initMeshSignals() {
 	actionViewAxisUp->setProperty(                                "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_VIEW_AXIS_UP                     );
 	actionViewMatrixSet->setProperty(                             "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_VIEW_PARAMETERS                  );
 	actionViewMatrix->setProperty(                                "gmMeshWidgetFunctionCall", MeshWidgetParams::SHOW_VIEW_PARAMETERS                 );
+	actionViewShow2DBoundingBox->setProperty(                     "gmMeshWidgetFunctionCall", MeshWidgetParams::SHOW_VIEW_2D_BOUNDING_BOX            );
 
 	mMeshFunctionCalls = new QActionGroup( this );
 	for(QAction*& currAction : allActions) {

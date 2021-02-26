@@ -943,9 +943,11 @@ bool Vertex::sortByIndex( Vertex* vert1, Vertex* vert2 ) {
 
 // --- Transformation --------------------------------------------------------
 
+//! Applies (multiplies) a given homogenous transformation matrix.
+//! Returns false, when the application fails.
+//!
+//! @returns false in case of an error. True otherwise.
 bool Vertex::applyTransfrom( Matrix4D* transMat ) {
-	//! Applies (multiplies) a given homogenous transformation matrix.
-	//! Returns false, when the application fails.
 	Vector3D posVecNew = getPositionVector() * (*transMat);
 	POS_X = posVecNew.getX();
 	POS_Y = posVecNew.getY();
@@ -954,7 +956,7 @@ bool Vertex::applyTransfrom( Matrix4D* transMat ) {
 	NORMAL_X = normalNew.getX();
 	NORMAL_Y = normalNew.getY();
 	NORMAL_Z = normalNew.getZ();
-	return true;
+	return( true );
 }
 
 bool Vertex::applyMeltingSphere( double rRadius, double rRel ) {

@@ -464,6 +464,7 @@
     <addaction name="separator"/>
     <addaction name="actionViewActivateInspectionOptions"/>
     <addaction name="separator"/>
+    <addaction name="actionViewShow2DBoundingBox"/>
     <addaction name="actionViewMatrix"/>
     <addaction name="actionViewMatrixSet"/>
     <addaction name="separator"/>
@@ -4509,6 +4510,11 @@ The latter will be shown, when the processing has finished.</string>
   <action name="actionSaveLabelsSeparated">
    <property name="text">
     <string>Save Labels separated</string>
+   </property>
+  </action>
+  <action name="actionViewShow2DBoundingBox">
+   <property name="text">
+    <string>Bounding Box Size in Camera Coordinates</string>
    </property>
   </action>
  </widget>

@@ -210,6 +210,7 @@ class MeshWidgetParams {
 			SET_VIEW_AXIS_UP,                   //!< Set the view aligned to the mesh axis.
 			SET_VIEW_PARAMETERS,                //!< Set the view parameters.
 			SHOW_VIEW_PARAMETERS,               //!< Show the view parameters.
+			SHOW_VIEW_2D_BOUNDING_BOX,          //!< Show the 2D bounding box of the (projected) mesh. Not to be confused with the mesh's bounding box in 3D!
 		};
 
 		// ENumerator for user guidance in selection mode:

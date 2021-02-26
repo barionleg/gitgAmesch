@@ -144,9 +144,9 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual uint64_t getPolyLineLabel( unsigned int rPolyIdx );
 		virtual PrimitiveInfo getPolyLinePrimInfo( unsigned int rPolyIdx );
 		        PolyLine*     getPolyLinePos( unsigned int rPosIdx );
-				bool          getPolyLineBoundingBoxFromAll( double* rMinX, double* rMinY, double* rMinZ, \
-				                                             double* rMaxX, double* rMaxY, double* rMaxZ, \
-				                                             bool rProjectToPlane );
+		        bool          getPolyLineBoundingBoxFromAll( double* rMinX, double* rMinY, double* rMinZ, \
+		                                                     double* rMaxX, double* rMaxY, double* rMaxZ, \
+		                                                     bool rProjectToPlane );
 
 		// Data retrival:
 				Vertex* getVertexByIdxOriginal( int findIdx ); // overloaded from Primitive
@@ -608,6 +608,10 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				Vector3D getBoundingBoxF();
 				Vector3D getBoundingBoxG();
 				Vector3D getBoundingBoxH();
+		        bool     getBoundingBoxProjected( const Matrix4D& rTransMat,
+		                                          double& rMinX, double& rMaxX,
+		                                          double& rMinY, double& rMaxY,
+		                                          double& rMinZ, double& rMaxZ ) const;
 
 		// Bit arrays for labeling, fetch in sphere, etc.
 		enum eBitArrayFlags{

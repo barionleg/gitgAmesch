@@ -10712,6 +10712,40 @@ Vector3D Mesh::getBoundingBoxH() {
 	return Vector3D( mMaxX, mMinY, mMaxZ, 1.0 );
 }
 
+//! Get the Bounding Box of a projection.
+//! Typically used to determine the size in camera coordinates.
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::getBoundingBoxProjected(
+		const Matrix4D& rTransMat,
+		double& rMinX, double& rMaxX,
+		double& rMinY, double& rMaxY,
+		double& rMinZ, double& rMaxZ
+) const {
+	bool retVal = true;
+	rMinX = std::numeric_limits<double>::max();
+	rMaxX = std::numeric_limits<double>::min();
+	rMinY = std::numeric_limits<double>::max();
+	rMaxY = std::numeric_limits<double>::min();
+	rMinZ = std::numeric_limits<double>::max();
+	rMaxZ = std::numeric_limits<double>::min();
+	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
+		Vertex* curVertex = getVertexPos( vertIdx );
+		Vector3D curPosProjected;
+		if( curVertex->getTransformedCenterOfGravity( rTransMat, curPosProjected ) ) {
+			rMinX = min( rMinX, curPosProjected.getX() );
+			rMaxX = max( rMaxX, curPosProjected.getX() );
+			rMinY = min( rMinY, curPosProjected.getY() );
+			rMaxY = max( rMaxY, curPosProjected.getY() );
+			rMinZ = min( rMinZ, curPosProjected.getZ() );
+			rMaxZ = max( rMaxZ, curPosProjected.getZ() );
+		} else {
+			retVal = false;
+		}
+	}
+	return( retVal );
+}
+
 // mesh information ----------------------------------------------------------------------------
 
 //! Add vertices not-a-number coordinates to a givens set.

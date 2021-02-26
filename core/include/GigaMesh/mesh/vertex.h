@@ -181,7 +181,7 @@ virtual bool     setAlpha(unsigned char alpha);
 		
 		// Transformation:
 		        bool     applyTransfrom( Matrix4D* transMat ) override;
-				bool     applyMeltingSphere( double rRadius, double rRel=1.0 ) override;
+		        bool     applyMeltingSphere( double rRadius, double rRel=1.0 ) override;
         virtual Vertex*  applyNormalShift(float offsetDistance,int index);
 
 		// Labeling:

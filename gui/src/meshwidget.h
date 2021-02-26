@@ -220,8 +220,9 @@ private:
 	// View menu
 	bool getViewSettingsTxt( QString& rSettingsStr ) const;
 	bool getViewSettingsTTL( QString& rSettingsStr, QString& uri) const;
-    bool getViewSettingsJSON( QString& rSettingsStr ) const;
-    bool showViewMatrix();
+	bool getViewSettingsJSON( QString& rSettingsStr ) const;
+	bool showView2DBoundingBox();
+	bool showViewMatrix();
 	bool setViewMatrix();
 	bool setViewMatrix( std::vector<double> rMatrix );
 	bool setViewAxisUp();

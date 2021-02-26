@@ -581,10 +581,11 @@ bool MeshWidget::setParamFloatMeshWidgetSlider( int rParamID, double rValue ) {
 
 
 //! New style function call by signal.
+//!
 //! @returns false in case of an error. True otherwise.
 bool MeshWidget::callFunctionMeshWidget( MeshWidgetParams::eFunctionCall rFunctionID, bool rFlagOptional ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshWidget::" << __FUNCTION__ << "] ID: " << rFunctionID << endl;
+	std::cout << "[MeshWidget::" << __FUNCTION__ << "] ID: " << rFunctionID << std::endl;
 #endif
 	bool retVal = true;
 
@@ -691,12 +692,15 @@ bool MeshWidget::callFunctionMeshWidget( MeshWidgetParams::eFunctionCall rFuncti
 		case SHOW_VIEW_PARAMETERS:
 			retVal &= showViewMatrix();
 			break;
+		case SHOW_VIEW_2D_BOUNDING_BOX:
+			retVal &= showView2DBoundingBox();
+			break;
 		default:
 			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] Function Call Id: " << rFunctionID << std::endl;
 			retVal = false;
 	}
 
-	return retVal;
+	return( retVal );
 }
 
 
@@ -4119,6 +4123,33 @@ bool MeshWidget::getViewSettingsTTL(
     rSettingsStr += "giga:bboxRadius rdf:type owl:DatatypeProperty .\n";
     rSettingsStr += "giga:bboxRadius rdfs:label \"Bounding Box Radius\"@en .\n";
     rSettingsStr += uri+" giga:bboxRadius \""+QString( "%1" ).arg( bBoxRadius )+"\"^^xsd:double .\n"; 
+	return( true );
+}
+
+
+//! Show the 2D bounding box of the projected mesh.
+//!
+//! @returns false in case of an error. True otherwise.
+bool MeshWidget::showView2DBoundingBox() {
+	// Sanity check
+	if( mMeshVisual == nullptr ) {
+		return( false );
+	}
+
+	// Fetch 2D bounding box
+	double minX, maxX, minY, maxY, minZ, maxZ;
+	// Matrix4D matView( ( mMatProjection * mMatModelView ).constData() );
+	Matrix4D matView( ( mMatModelView ).constData() );
+	if( !mMeshVisual->getBoundingBoxProjected( matView, minX, maxX, minY, maxY, minZ, maxZ ) ) {
+		return( false );
+	}
+
+	SHOW_MSGBOX_INFO( tr( "Bounding Box of the projection" ),
+	                  tr( "%1 %2<br />" ).arg( minX ).arg( maxX ) +
+	                  tr( "%1 %2<br />" ).arg( minY ).arg( maxY ) +
+	                  tr( "%1 %2<br />" ).arg( minZ ).arg( maxZ )
+	                );
+
 	return( true );
 }
 

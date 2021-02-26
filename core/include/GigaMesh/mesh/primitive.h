@@ -130,6 +130,7 @@ class Primitive : public BitFlagArray  {
 		virtual double   getNormalY();
 		virtual double   getNormalZ();
 		        Vector3D getCenterOfGravity();
+		        bool     getTransformedCenterOfGravity( const Matrix4D& rTransMat, Vector3D& rCoGTrans );
 		        Vector3D getNormal( bool normalized=true );
 		        bool     getPlaneHNF( Vector3D* rPlaneHNF );
 		        bool     getPlaneHNF( double* rPlaneHNF );

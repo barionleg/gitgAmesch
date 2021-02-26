@@ -73,7 +73,7 @@ else
 	echo \'makepg\' missing - seems this is not a Manjaro system.
 fi
 
-# Step out of the subdirectory
-echo "Copying gigamesh-${CURRENT_VERSION}-*.pkg.tar.xz to $STARTDIR"
-mv gigamesh-${CURRENT_VERSION}-*.pkg.tar.xz $STARTDIR
+# Step out of the subdirectory (extension in older version was .xz, now: .zst)
+echo "Copying gigamesh-${CURRENT_VERSION}-*.pkg.tar.zst to $STARTDIR"
+mv gigamesh-${CURRENT_VERSION}-*.pkg.tar.zst $STARTDIR
 cd ..
