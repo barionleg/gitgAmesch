@@ -1316,9 +1316,13 @@ bool Mesh::writeFilesForConnectedComponents() {
 		bool retVal = getFaceHasVertLabelNo( labelNr, facesWithLabel );
 		if( retVal ) {
 			filesystem::path fileName = getFullName();
+
+			// The following looks wired due to Windows build
+			std::string oriExtension = fileName.extension().c_str();
 			std::string suffixExtension = "comp.";
-			suffixExtension += std::to_string( labelNr ); // Windows build does not allow for concatination with '+'.
-			suffixExtension += fileName.extension().c_str();
+			suffixExtension += std::to_string( labelNr );
+			suffixExtension += oriExtension;
+
 			fileName.replace_extension( filesystem::path( suffixExtension ) );
 			Mesh meshToWrite( &facesWithLabel );
 			if( meshToWrite.writeFile( fileName ) ) {
