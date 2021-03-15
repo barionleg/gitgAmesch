@@ -27,6 +27,8 @@ cd $NAME
 #uncomment to specifiy commit to build
 #git reset 937b4ca963ade717e1 --hard
 
+git checkout develop
+
 # Get NUM_PROCESSORS and CURRENT_VERSION
 NUM_PROCESSORS=$(nproc)
 if [ $# -eq 1 ]; then

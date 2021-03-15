@@ -1316,9 +1316,9 @@ bool Mesh::writeFilesForConnectedComponents() {
 		bool retVal = getFaceHasVertLabelNo( labelNr, facesWithLabel );
 		if( retVal ) {
 			filesystem::path fileName = getFullName();
-			std::stringstream suffixExtension;
-			suffixExtension << "comp." << labelNr << fileName.extension().c_str();
-			fileName.replace_extension( filesystem::path( suffixExtension.str() ) );
+			std::string suffixExtension = "comp.";
+			suffixExtension += std::to_string( labelNr ) + fileName.extension().c_str();
+			fileName.replace_extension( filesystem::path( suffixExtension ) );
 			Mesh meshToWrite( &facesWithLabel );
 			if( meshToWrite.writeFile( fileName ) ) {
 				std::cout << "[Mesh::" << __FUNCTION__ << "] Connected component written to file: " << fileName.string() << std::endl;
