@@ -1317,7 +1317,8 @@ bool Mesh::writeFilesForConnectedComponents() {
 		if( retVal ) {
 			filesystem::path fileName = getFullName();
 			std::string suffixExtension = "comp.";
-			suffixExtension += std::to_string( labelNr ) + fileName.extension().c_str();
+			suffixExtension += std::to_string( labelNr ); // Windows build does not allow for concatination with '+'.
+			suffixExtension += fileName.extension().c_str();
 			fileName.replace_extension( filesystem::path( suffixExtension ) );
 			Mesh meshToWrite( &facesWithLabel );
 			if( meshToWrite.writeFile( fileName ) ) {
