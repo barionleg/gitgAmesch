@@ -278,7 +278,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	QObject::connect( mMainWindow, SIGNAL(estimateVolume()),                             this, SLOT(estimateVolume())                    );
 	QObject::connect( mMainWindow, SIGNAL(compVolumePlane()),                            this, SLOT(compVolumePlane())                   );
 
-	// --- Octree reöated ----------------------------------------------------------------------------------------------------------------------------------
+	// --- Octree related ----------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( mMainWindow, SIGNAL(generateOctree()),                     this, SLOT(generateOctree())                    );
 	QObject::connect( mMainWindow, SIGNAL(detectselfintersections()),            this, SLOT(detectselfintersections())           );
 	QObject::connect( mMainWindow, SIGNAL(drawOctree()),                         this, SLOT(drawOctree())                        );
@@ -1304,7 +1304,7 @@ bool MeshQt::unrollAroundCone( bool* rIsCylinderCase ) {
 			cout << "[Mesh::" << __FUNCTION__ << "] Angle candidate: " << angleCandidate << " in degree: " << angleCandidate*180.0/M_PI << endl;
 			bool userChoice;
 			if( showQuestion( &userChoice, tr("Set cutting plane").toStdString(),
-							  (tr( "A primitive was selected, which can be used to define the prime meridian as well as the cutting plane (meridian 180°). Press<br /><br />" ) +
+							  (tr( "A primitive was selected, which can be used to define the prime meridian as well as the cutting plane (meridian 180Â°). Press<br /><br />" ) +
 							  tr( "YES to use the selection for the prime meridian.<br /><br />" ) +
 							  tr( "NO to use the selection for the cutting plane.<br /><br />" ) +
 							  tr( "CANCEL to ignore the selection." )).toStdString()
@@ -1313,7 +1313,7 @@ bool MeshQt::unrollAroundCone( bool* rIsCylinderCase ) {
 					// YES for the prime meridian:
 					setParamFloatMesh( AXIS_PRIMEMERIDIAN, angleCandidate + M_PI );
 				} else {
-					// NO for the 180° meridian i.e. cutting plane:
+					// NO for the 180Â° meridian i.e. cutting plane:
 					setParamFloatMesh( AXIS_PRIMEMERIDIAN, angleCandidate );
 				}	// CANCEL to ignore.
 			}
@@ -1359,13 +1359,13 @@ bool MeshQt::unrollAroundCone( bool* rIsCylinderCase ) {
 
 	bool userChoice;
 	if( showQuestion( &userChoice, tr("Flip rollout").toStdString(), \
-					  tr("Do you want to flip the rollout i.e. rotate the mesh by 180°").toStdString() ) ) {
+					  tr("Do you want to flip the rollout i.e. rotate the mesh by 180Â°").toStdString() ) ) {
 		if( userChoice ) {
 			vector<double> rotAngle { M_PI };
 			Matrix4D rotFlip( Matrix4D::INIT_ROTATE_ABOUT_Z, &rotAngle );
 			applyTransformationToWholeMesh( rotFlip, true );
 			emit sDefaultViewLightZoom();
-			emit statusMessage( "Rollout rotated by 180° about the z-axis." );
+			emit statusMessage( "Rollout rotated by 180Â° about the z-axis." );
 		}
 	} else {
 		// User cancel.
@@ -1490,13 +1490,13 @@ bool MeshQt::unrollAroundSphere() {
 	// Ask user to change the orientation in case the rollout is upside-down
 	bool userChoice;
 	if( showQuestion( &userChoice, tr("Flip rollout").toStdString(),
-					  tr("Do you want to flip the rollout i.e. rotate the mesh by 180°").toStdString() ) ) {
+					  tr("Do you want to flip the rollout i.e. rotate the mesh by 180Â°").toStdString() ) ) {
 		if( userChoice ) {
 			vector<double> rotAngle { M_PI };
 			Matrix4D rotFlip( Matrix4D::INIT_ROTATE_ABOUT_Z, &rotAngle );
 			applyTransformationToWholeMesh( rotFlip, true );
 			emit sDefaultViewLightZoom();
-			emit statusMessage( "Rollout rotated by 180° about the z-axis." );
+			emit statusMessage( "Rollout rotated by 180Â° about the z-axis." );
 		}
 	} else {
 		// User cancel.
@@ -2745,7 +2745,7 @@ void MeshQt::estimateMSIIFeat( ParamsMSII params ) {
 	cout << "[MeshQt::" << __FUNCTION__ << "] after free" << endl;
 
 	// set up visualization
-	//! \bug will eventuallsý crash here with stack smashing - reason currently unknown :( Looks like there is an infite loop.
+	//! \bug will eventuallsÃ½ crash here with stack smashing - reason currently unknown :( Looks like there is an infite loop.
 	setParamFlagMeshGL( MeshGLParams::SHOW_DATUM_SPHERES, true );
 	cout << "[MeshQt::" << __FUNCTION__ << "] after flags1" << endl;
 	setParamFlagMeshGL( MeshGLParams::SHOW_DATUM_BOXES, true );
