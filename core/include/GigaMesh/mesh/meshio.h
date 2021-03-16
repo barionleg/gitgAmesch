@@ -73,10 +73,13 @@ class MeshIO : public MeshSeedExt {
 		// Write:
 		virtual bool setFlagExport( eExportFlags rFlag, bool rSetTo  );
 		virtual bool writeFileUserInteract();
-		virtual bool writeFile( const std::filesystem::path& rFileName,
-			                std::vector<sVertexProperties>& rVertexProps,
-		                    std::vector<sFaceProperties>& rFaceProps );
 
+	public: //! \todo this should be at least 'protected'.
+		        bool writeFilePrimProps( const std::filesystem::path& rFileName,
+		                                 std::vector<sVertexProperties>& rVertexProps,
+		                                 std::vector<sFaceProperties>& rFaceProps );
+
+	public:
 		ModelMetaData& getModelMetaDataRef();
 
 		// Provide Information:

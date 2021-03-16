@@ -307,7 +307,7 @@ bool Mesh::setParamFloatMesh( MeshParams::eParamFlt rParam, double rValue ) {
 //! See MeshParams::eFunctionCall
 bool Mesh::callFunction(
 		MeshParams::eFunctionCall rFunctionID,
-		[[maybe_unused]] bool rFlagOptional
+		bool rFlagOptional // [[maybe_unused]] should be here, but causes troubles with qt creator finding references
 ) {
 	bool retVal = false;
 	switch( rFunctionID ) {
@@ -1269,7 +1269,7 @@ bool Mesh::writeFile(
 		currFace->copyFacePropsTo( faceProps[faceIdx] );
 	}
 	//! 3. Write arrays to file.
-	bool retVal = MeshIO::writeFile( rFileName, vertexProps, faceProps );
+	bool retVal = MeshIO::writeFilePrimProps( rFileName, vertexProps, faceProps );
 	//! 4. Remove arrays.
 	MeshSeedExt::clear();
 	return retVal;
@@ -1328,6 +1328,7 @@ bool Mesh::writeFilesForConnectedComponents() {
 
 			fileName.replace_extension( filesystem::path( suffixExtension ) );
 			Mesh meshToWrite( &facesWithLabel );
+			meshToWrite.getModelMetaDataRef().setModelMeta( getModelMetaDataRef() );
 			if( meshToWrite.writeFile( fileName ) ) {
 				std::cout << "[Mesh::" << __FUNCTION__ << "] Connected component written to file: " << fileName.string() << std::endl;
 				fileOkay++;

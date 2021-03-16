@@ -401,7 +401,7 @@ bool MeshIO::writeFileUserInteract() {
 
 //! Write a Mesh to a file. The file type is automatically determined by the file
 //! extension. See methods like: MeshIO::writeOBJ, MeshIO::writePLY and MeshIO::writeVRML
-bool MeshIO::writeFile(
+bool MeshIO::writeFilePrimProps(
                 const filesystem::path& rFileName,
                 std::vector<sVertexProperties>& rVertexProps,
                 std::vector<sFaceProperties>& rFaceProps
@@ -504,7 +504,7 @@ bool MeshIO::writeFile(
 	return true;
 }
 
-ModelMetaData& MeshIO::getModelMetaDataRef()
+ModelMetaData &MeshIO::getModelMetaDataRef()
 {
 	return mModelMetaData;
 }

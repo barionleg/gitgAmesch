@@ -50,6 +50,7 @@ class ModelMetaData
 			META_STRINGS_COUNT         //!< Total number of strings for meta-data.
 		};
 
+		bool         setModelMeta( const ModelMetaData& rOtherModelMeta );
 		bool         setModelMetaString( eMetaStrings rMetaStrID, const std::string& rModelMeta );
 		std::string  getModelMetaString( eMetaStrings rMetaStrID ) const;
 		bool         getModelMetaStringName( eMetaStrings rMetaStrID, std::string& rModelMetaStringName ) const;
@@ -65,19 +66,14 @@ class ModelMetaData
 		[[nodiscard]] std::filesystem::path getTextureName(TextureHandle id) const;
 		[[nodiscard]] bool hasTextureFiles() const;
 		std::vector<std::filesystem::path>& getTexturefilesRef();
+		const std::vector<std::filesystem::path>& getTexturefilesRefSafe() const;
 
-		// Naming of the file
-		//! \todo Check relevance as it seem to be not used anymore.
-		std::filesystem::path getFileName() const;
-		void setFileName(const std::filesystem::path& fileName);
-
-	private:
+private:
 		std::array<std::string, META_STRINGS_COUNT> mMetaDataStrings;         //!< Meta-Data contents
 		std::array<std::string, META_STRINGS_COUNT> mMetaDataStringNames;     //!< Meta-Data names used e.g. in the PLY header.
 		std::array<std::string, META_STRINGS_COUNT> mMetaDataStringLabels;    //!< Meta-Data labels i.e. more human appealing than the names.
 
 		std::vector<std::filesystem::path> mTextureFiles;                     //!< Stores referenced texture-files
-		std::filesystem::path mFileName;
 		bool mHasTextureCoordinates = false;                                  //!< Stores if the mesh has texture-coordinates
 };
 

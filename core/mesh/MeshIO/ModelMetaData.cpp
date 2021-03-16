@@ -30,6 +30,31 @@ ModelMetaData::ModelMetaData()
 	clearModelMetaStrings();
 }
 
+//! Copies the metadata from a given reference.
+//!
+//! Copies strings and texture information.
+//!
+//! @returns false in case of an error. True otherwise.
+bool ModelMetaData::setModelMeta( const ModelMetaData& rOtherModelMeta ) {
+	// Strings
+	for( unsigned i=0; i<META_STRINGS_COUNT ; i++ ) {
+		eMetaStrings currId = static_cast<eMetaStrings>( i );
+		std::string currString = rOtherModelMeta.getModelMetaString( currId );
+		setModelMetaString( currId, currString );
+	}
+
+	// Texture information:
+	mHasTextureCoordinates = rOtherModelMeta.hasTextureCoordinates();
+	const std::vector<std::filesystem::path> textureFiles = rOtherModelMeta.getTexturefilesRefSafe();
+	std::copy( textureFiles.begin(), textureFiles.end(), std::back_inserter( mTextureFiles ) );
+
+	// Done.
+	return( true );
+}
+
+//! Set the given metadata (string).
+//!
+//! @returns false in case of an error. True otherwise.
 bool ModelMetaData::setModelMetaString(
         eMetaStrings       rMetaStrID,        //!< Id of the meta-data string.
         const std::string& rModelMeta         //!< Meta-data content as string.
@@ -65,6 +90,7 @@ bool ModelMetaData::getModelMetaStringName(
 }
 
 //! Fetch the label for the name of a Meta-Data strings using an Id.
+//!
 //! @returns false in case of an error. True otherwise.
 bool ModelMetaData::getModelMetaStringLabel(
         eMetaStrings rMetaStrID,                   //!< Id of the meta-data string.
@@ -168,17 +194,12 @@ bool ModelMetaData::hasTextureFiles() const
 	return !mTextureFiles.empty();
 }
 
-std::vector<std::filesystem::path>& ModelMetaData::getTexturefilesRef()
+std::vector<std::filesystem::__cxx11::path> &ModelMetaData::getTexturefilesRef()
 {
 	return mTextureFiles;
 }
 
-std::filesystem::path ModelMetaData::getFileName() const
+const std::vector<std::filesystem::__cxx11::path> &ModelMetaData::getTexturefilesRefSafe() const
 {
-	return mFileName;
-}
-
-void ModelMetaData::setFileName(const std::filesystem::path& fileName)
-{
-	mFileName = fileName;
+	return mTextureFiles;
 }

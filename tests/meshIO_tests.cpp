@@ -101,7 +101,7 @@ TEST_CASE("MeshIO Write Tests", "[meshio]")
 			std::filesystem::remove(outFile);
 		}
 
-		meshIO.writeFile(outFile,vertexProperties,faceProperties);
+		meshIO.writeFilePrimProps( outFile, vertexProperties, faceProperties );
 
 		REQUIRE(std::filesystem::exists(outFile) == true);
 
@@ -116,7 +116,7 @@ TEST_CASE("MeshIO Write Tests", "[meshio]")
 			std::filesystem::remove(outFile);
 		}
 
-		meshIO.writeFile(outFile,vertexProperties,faceProperties);
+		meshIO.writeFilePrimProps( outFile, vertexProperties, faceProperties );
 
 		REQUIRE(std::filesystem::exists(outFile) == true);
 
