@@ -305,7 +305,10 @@ bool Mesh::setParamFloatMesh( MeshParams::eParamFlt rParam, double rValue ) {
 
 //! Call requested method/function.
 //! See MeshParams::eFunctionCall
-bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOptional  ) {
+bool Mesh::callFunction(
+		MeshParams::eFunctionCall rFunctionID,
+		[[maybe_unused]] bool rFlagOptional
+) {
 	bool retVal = false;
 	switch( rFunctionID ) {
 		case FILE_SAVE_AS:
@@ -14762,6 +14765,7 @@ void Mesh::recalculateTriangleOrientation(){
 	cout << "LÄUFT1" << endl;
 }
 
+//! \todo Move the following sets and numbers to appropriate places. It seems that at least some don't need to be global.
 set <Face*> originalFaces;
 set <Vertex*> originalVertices;
 vector <PolyLine*> originalBorderLine;
@@ -14888,7 +14892,7 @@ bool Mesh::applyNormalShift(
 
 	//local Variable for the modified normals
 	std::vector<Vector3D> normal(numVertices);
-	for(size_t vertexCount = 0; vertexCount < numVertices; vertexCount++) {
+	for( size_t vertexCount = 0; vertexCount < static_cast<size_t>(numVertices); vertexCount++ ) {
 		normal.at(vertexCount) = mVertices[vertexCount]->getNormal();
 	}
 
