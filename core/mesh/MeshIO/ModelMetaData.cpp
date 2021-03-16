@@ -195,12 +195,12 @@ bool ModelMetaData::hasTextureFiles() const
 	return !mTextureFiles.empty();
 }
 
-std::vector<std::filesystem::__cxx11::path> &ModelMetaData::getTexturefilesRef()
+std::vector<std::filesystem::path>& ModelMetaData::getTexturefilesRef()
 {
 	return mTextureFiles;
 }
 
-//const std::vector<std::filesystem::__cxx11::path> &ModelMetaData::getTexturefilesRefSafe() const
+//const std::vector<std::filesystem::path> &ModelMetaData::getTexturefilesRefSafe() const
 //{
 //	return mTextureFiles;
 //}
