@@ -1002,12 +1002,12 @@ void Mesh::establishStructure(
 	double areaTotal = 0.0;
 	for( long t=0; t<NUM_THREADS; t++ ) {
 		threads[t].join();
-		//cout << "[Mesh::" << __FUNCTION__ << "] Thread " << t << " processed faces with an area of: " << setMeshData[t].mAreaProc << " mm² (unit assumed)." << endl;
+		//cout << "[Mesh::" << __FUNCTION__ << "] Thread " << t << " processed faces with an area of: " << setMeshData[t].mAreaProc << " mmÂ² (unit assumed)." << endl;
 		areaTotal += setFaceData[t].mAreaProc;
 	}
 	//pthread_mutex_destroy( &mutexVertexPtr );
-	LOG::info() << "[Mesh::" << __FUNCTION__ << "] Total surface area: " << areaTotal << " mm² (unit assumed).\n";
-	LOG::info() << "[Mesh::" << __FUNCTION__ << "]                     " << getVertexNr()/areaTotal << " dots/mm² (unit assumed).\n";
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "] Total surface area: " << areaTotal << " mmÂ² (unit assumed).\n";
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "]                     " << getVertexNr()/areaTotal << " dots/mmÂ² (unit assumed).\n";
 	LOG::info() << "[Mesh::" << __FUNCTION__ << "]                     " << 25.4*sqrt(getVertexNr()/areaTotal) << " DPI (unit assumed).\n";
 	LOG::info() << "[Mesh::" << __FUNCTION__ << "] PARALLEL: Face neighbourhood and normal estimation time: " << static_cast<int>( time( nullptr ) - timeStampParallel )  << " seconds.\n";
 #else
@@ -1018,8 +1018,8 @@ void Mesh::establishStructure(
 		currFace = getFacePos( faceIdx );
 		areaTotal += currFace->getAreaNormal();
 	}
-	LOG::info() << "[Mesh::" << __FUNCTION__ << "] Total surface area: " << areaTotal << " mm² (unit assumed).\n";
-	LOG::info() << "[Mesh::" << __FUNCTION__ << "]                     " << getVertexNr()/areaTotal << " dots/mm² (unit assumed).\n";
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "] Total surface area: " << areaTotal << " mmÂ² (unit assumed).\n";
+	LOG::info() << "[Mesh::" << __FUNCTION__ << "]                     " << getVertexNr()/areaTotal << " dots/mmÂ² (unit assumed).\n";
 	LOG::info() << "[Mesh::" << __FUNCTION__ << "]                     " << 25.4*sqrt(getVertexNr()/areaTotal) << " DPI (unit assumed).\n";
 	LOG::info() << "[Mesh::" << __FUNCTION__ << "] SERIAL: Face normal estimation time:        " << (int) ( time( NULL ) - timeStampSerial ) << " seconds.\n";
     #ifdef SHOW_MALLOC_STATS
@@ -2773,7 +2773,7 @@ bool Mesh::findVerticesOnSecondaryDirection(Vertex* &curVertex, Vector3D princip
 }
 
 //non-maximum selection main function
-//based on AAPR16 Paper "Schönpflug, Mara: Ridge Point Extraction with Non-Maximum Suppression on Irregular Grids"
+//based on AAPR16 Paper "SchÃ¶npflug, Mara: Ridge Point Extraction with Non-Maximum Suppression on Irregular Grids"
 //http://archiv.ub.uni-heidelberg.de/volltextserver/20734/1/aapr16_richard_schonpflug_hubert_mara_FINAL_20160430.pdf
 bool Mesh::selectVertNonMaximum(double eps) {
 
@@ -3690,7 +3690,7 @@ bool Mesh::getMeshPlaneFan( Vector3D*         rCentralPoint, //!< Central and fi
 	Vector3D planeHNF;
 	getPlaneHNF( &planeHNF );
 	// Now we sort things to vertices in order:
-	// Define planeIntersections[0] - centralPointPlane as 0°
+	// Define planeIntersections[0] - centralPointPlane as 0Â°
 	Vector3D refDirection = planeIntersections[0] - centralPointPlane;
 
 	// LEGACY code - working.
@@ -4377,7 +4377,7 @@ bool Mesh::getConeAxisDefined() {
 }
 
 //! Returns the two points defining the cone' axis's zero meridian.
-//! When rOppsoite is true, than cone' axis's 180° meridian is returned.
+//! When rOppsoite is true, than cone' axis's 180Â° meridian is returned.
 //!
 //! @returns true only, when both points were assigned.
 bool Mesh::getConeMeridianZero( Vector3D* rMeridianTop, Vector3D* rMeridianBottom, bool rOppsoite ) {
@@ -4400,7 +4400,7 @@ bool Mesh::getConeMeridianZero( Vector3D* rMeridianTop, Vector3D* rMeridianBotto
 	// Fetch rotation
 	double primeMeridian;
 	getParamFloatMesh( AXIS_PRIMEMERIDIAN, &primeMeridian );
-	// Opposite i.e. 180° meridian:
+	// Opposite i.e. 180Â° meridian:
 	if( rOppsoite ) {
 		primeMeridian += M_PI;
 	}
@@ -6392,7 +6392,7 @@ int Mesh::labelFaces( int facesNrToRemove ) {
 				}
 				cout << "[Mesh::" << __FUNCTION__ << "] Labeling set Label |Faces| < 500 to background." << endl;
 			} else {
-				cout << "[Mesh::" << __FUNCTION__ << "] Label No: " << setLabel << " containes " << facesVisited.size() << " Faces and has " << areaCurrentLabel << " mm² (unit assumed)." << endl;
+				cout << "[Mesh::" << __FUNCTION__ << "] Label No: " << setLabel << " containes " << facesVisited.size() << " Faces and has " << areaCurrentLabel << " mmÂ² (unit assumed)." << endl;
 				setLabel++;
 			}
 			areaCurrentLabel = 0;
@@ -11961,13 +11961,13 @@ bool Mesh::estGeodesicPatch( map<Vertex*,GeodEntry*>* geoDistList,              
 		if( alpha0 > 1.0 ) {
 			//cout << "Bad Angle: " << alpha0-1.0 << endl;
 			// alternative:
-			alpha0 = 0.0 + 4.0 * DBL_EPSILON; // 0° + 4x Epsilon
+			alpha0 = 0.0 + 4.0 * DBL_EPSILON; // 0Â° + 4x Epsilon
 			//badAngle = true;
 			badAngles[0]++;
 		} else if( alpha0 < -1.0 ) {
 			//cout << "Bad Angle: " << alpha0+1.0 << endl;
 			// alternative:
-			alpha0 = M_PI - 4.0 * DBL_EPSILON; // 180° - 4x Epsilon
+			alpha0 = M_PI - 4.0 * DBL_EPSILON; // 180Â° - 4x Epsilon
 			// badAngle = true;
 			badAngles[1]++;
 		} else {
@@ -11976,13 +11976,13 @@ bool Mesh::estGeodesicPatch( map<Vertex*,GeodEntry*>* geoDistList,              
 		if( beta0 > 1.0 ) {
 			//cout << "Bad Angle: " << beta0-1.0 << endl;
 			// alternative:
-			beta0 = 0.0 + 4.0 * DBL_EPSILON; // 0° + 4x Epsilon
+			beta0 = 0.0 + 4.0 * DBL_EPSILON; // 0Â° + 4x Epsilon
 			//badAngle = true;
 			badAngles[2]++;
 		} else if( beta0 < -1.0 ) {
 			//mSelectedMVerts.insert( edgeToProc->getVertB() ); // for debuging
 			// alternative:
-			beta0 = M_PI - 4.0 * DBL_EPSILON; // 180° - 4x Epsilon
+			beta0 = M_PI - 4.0 * DBL_EPSILON; // 180Â° - 4x Epsilon
 			// badAngle = true;
 			badAngles[3]++;
 		} else {
@@ -12892,7 +12892,7 @@ Matrix4D Mesh::rotateToZ( Vector3D directionVec ) {
 	float rotateAngleZ = directionVec.getAngleToZ();
 	//if( debug ) {
 	//	directionVec.dumpInfo();
-	//	cout << "[Mesh] rotateToZ: rotateAngleInXY = " << 180.0*rotateAngleInXY/M_PI << "° rotateAngleZ = " << 180.0*rotateAngleZ/M_PI << "°" << endl;
+	//	cout << "[Mesh] rotateToZ: rotateAngleInXY = " << 180.0*rotateAngleInXY/M_PI << "Â° rotateAngleZ = " << 180.0*rotateAngleZ/M_PI << "Â°" << endl;
 	//}
 
 	if( isnan( rotateAngleInXY ) ) {
@@ -13126,7 +13126,7 @@ bool Mesh::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool 
 	if( rResetNormals ) {
 		double meshArea;
 		resetFaceNormals( &meshArea );
-		cout << "[Mesh::" << __FUNCTION__ << "] Area of the mesh is now: " << meshArea << " mm² (unit assumed)." << endl;
+		cout << "[Mesh::" << __FUNCTION__ << "] Area of the mesh is now: " << meshArea << " mmÂ² (unit assumed)." << endl;
 	}
 
 	//! .) Can also affect the polylines - reset them too:
@@ -13698,7 +13698,7 @@ void Mesh::fixTriangleIntersection(){
 				}
 
 				if(useRayTriangleIntersectionMode){
-					// see Möller and Trumbore (1997) http://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
+					// see MÃ¶ller and Trumbore (1997) http://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
 					// MathLab-Code: http://www.mathworks.com/matlabcentral/fileexchange/25058-raytriangle-intersection/content/rayTriangleIntersection/rayTriangleIntersection.m
 
 					//get Ray from all edges
@@ -14134,7 +14134,7 @@ void Mesh::recalculateTriangleOrientation(){
 	}
 	cout << "[Mesh::" << __FUNCTION__ << "] time: " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
 	showProgressStop(__FUNCTION__);
-	cout << "LÄUFT1" << endl;
+	cout << "LÃ„UFT1" << endl;
 }
 
 set <Face*> originalFaces;
