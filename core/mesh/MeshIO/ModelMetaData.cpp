@@ -35,7 +35,7 @@ ModelMetaData::ModelMetaData()
 //! Copies strings and texture information.
 //!
 //! @returns false in case of an error. True otherwise.
-bool ModelMetaData::setModelMeta( const ModelMetaData& rOtherModelMeta ) {
+bool ModelMetaData::setModelMeta( /*const*/ ModelMetaData& rOtherModelMeta ) {
 	// Strings
 	for( unsigned i=0; i<META_STRINGS_COUNT ; i++ ) {
 		eMetaStrings currId = static_cast<eMetaStrings>( i );
@@ -45,7 +45,8 @@ bool ModelMetaData::setModelMeta( const ModelMetaData& rOtherModelMeta ) {
 
 	// Texture information:
 	mHasTextureCoordinates = rOtherModelMeta.hasTextureCoordinates();
-	const std::vector<std::filesystem::path> textureFiles = rOtherModelMeta.getTexturefilesRefSafe();
+//	const std::vector<std::filesystem::path> textureFiles = rOtherModelMeta.getTexturefilesRefSafe();
+	const std::vector<std::filesystem::path> textureFiles = rOtherModelMeta.getTexturefilesRef();
 	std::copy( textureFiles.begin(), textureFiles.end(), std::back_inserter( mTextureFiles ) );
 
 	// Done.
@@ -199,7 +200,7 @@ std::vector<std::filesystem::__cxx11::path> &ModelMetaData::getTexturefilesRef()
 	return mTextureFiles;
 }
 
-const std::vector<std::filesystem::__cxx11::path> &ModelMetaData::getTexturefilesRefSafe() const
-{
-	return mTextureFiles;
-}
+//const std::vector<std::filesystem::__cxx11::path> &ModelMetaData::getTexturefilesRefSafe() const
+//{
+//	return mTextureFiles;
+//}

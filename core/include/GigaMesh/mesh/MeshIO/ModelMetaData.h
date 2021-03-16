@@ -50,7 +50,7 @@ class ModelMetaData
 			META_STRINGS_COUNT         //!< Total number of strings for meta-data.
 		};
 
-		bool         setModelMeta( const ModelMetaData& rOtherModelMeta );
+		bool         setModelMeta( /*const*/ ModelMetaData& rOtherModelMeta );
 		bool         setModelMetaString( eMetaStrings rMetaStrID, const std::string& rModelMeta );
 		std::string  getModelMetaString( eMetaStrings rMetaStrID ) const;
 		bool         getModelMetaStringName( eMetaStrings rMetaStrID, std::string& rModelMetaStringName ) const;
@@ -66,7 +66,7 @@ class ModelMetaData
 		[[nodiscard]] std::filesystem::path getTextureName(TextureHandle id) const;
 		[[nodiscard]] bool hasTextureFiles() const;
 		std::vector<std::filesystem::path>& getTexturefilesRef();
-		const std::vector<std::filesystem::path>& getTexturefilesRefSafe() const;
+//		const std::vector<std::filesystem::path>& getTexturefilesRefSafe() const;
 
 private:
 		std::array<std::string, META_STRINGS_COUNT> mMetaDataStrings;         //!< Meta-Data contents
