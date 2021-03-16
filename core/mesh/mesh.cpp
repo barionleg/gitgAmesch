@@ -1318,7 +1318,7 @@ bool Mesh::writeFilesForConnectedComponents() {
 			filesystem::path fileName = getFullName();
 
 			// The following looks wired due to Windows build
-			std::string oriExtension = fileName.extension().c_str();
+			std::string oriExtension = fileName.extension();
 			std::string suffixExtension = "comp.";
 			suffixExtension += std::to_string( labelNr );
 			suffixExtension += oriExtension;
