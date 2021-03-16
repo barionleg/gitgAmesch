@@ -266,7 +266,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	//.
 	QObject::connect( actionDatumAddSphere,          SIGNAL(triggered()), this, SIGNAL(sDatumAddSphere())   );
 
-	// --- Octree reöated ----------------------------------------------------------------------------------------------------------------------------------
+	// --- Octree related ----------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( actionGenerateOctree,          SIGNAL(triggered()), this, SIGNAL(generateOctree())            );
 	QObject::connect( actionRemove_Drawing_of_Octree,SIGNAL(triggered()), this, SIGNAL(removeOctreedraw())            );
 	QObject::connect( actionDraw_Octree,             SIGNAL(triggered()), this, SIGNAL(drawOctree())            );
