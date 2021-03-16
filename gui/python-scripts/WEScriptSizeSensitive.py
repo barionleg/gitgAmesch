@@ -18,10 +18,10 @@ import glob
 
 
 def main():
-	
+
 	maxSizeAllowed = 50000000
-	
-	
+
+
 	print("Script was started")
 	# specify filename
 	#filename = "../../testdata/cube.obj"
@@ -49,7 +49,7 @@ def main():
 	readingDirectory_in_str = '/export/data/vNGG/tmp/Hilprecht_Sammlung/08_FINAL/HeiDATA/3DData_with_MSII_as_Function_Value/**/*'
 	writingDirectory_in_str = '/export/home/mseiler/Desktop/CSVCollection/'
 	#directory = os.fsencode(readingDirectory_in_str)
-	
+
 	tabletsTried = 0
 	tabletsComputed = 0
 	tabletCSVsFound = 0
@@ -71,21 +71,21 @@ def main():
 			#possibleCSVName.replace(".ply", ".csv")
 			#print(possibleCSVName)
 			#only continue if a csv file does not exist yet
-			
+
 			tabletsTried += 1
 
 			fileSize = os.path.getsize(name)
 			#print(fileSize)
 			if fileSize < maxSizeAllowed:
 				if (not os.path.isfile(possibleCSVFilePath)):
-					
-					
+
+
 					print('tablet ', tabletsTried)
-					
+
 					#print(filename)
-					
+
 					# load mesh
-					r = requests.post(url+addstring+name) 
+					r = requests.post(url+addstring+name)
 					if(r):
 						print(str(r.status_code) + " - Mesh loaded successfully.")
 					else:
@@ -97,21 +97,21 @@ def main():
 						print(str(r.status_code) + " - NMS completed.")
 					else:
 						print(str(r.status_code) + " - Error while NMS!")
-					
+
 					# request watershed
 					r = requests.post(url+'/watershed?deletable_input=0.0')
 					if(r):
 						print(str(r.status_code) + " - Watershed completed.")
 					else:
 						print(str(r.status_code) + " - Error while watershed!")
-					
+
 					# request clustering
 					r = requests.post(url+'/clustering?number_iterations=100')
 					if(r):
 						print(str(r.status_code) + " - Clustering completed.")
 					else:
 						print(str(r.status_code) + " - Error while clustering!")
-						
+
 					# request ransac
 					r = requests.post(url+'/ransac?number_iterations=1000')
 					if(r):
@@ -123,7 +123,7 @@ def main():
 						newCSVFile.close()
 					else:
 						print(str(r.status_code) + " - Error while ransac!")
-						
+
 					# request visualization of feature vector
 					#r = requests.post(url+'/featureElementsByIndex?element_nr=21')
 					#if(r):
@@ -131,9 +131,9 @@ def main():
 					#else:
 					#	print(str(r.status_code) + " - Error while feature Elements By Index!")
 					tabletsComputed += 1
-				
+
 				else:
-					print('tablet ', tabletsTried) 
+					print('tablet ', tabletsTried)
 					print(possibleCSVFileName + " was already computed, proceeding to next file.")
 					tabletCSVsFound += 1
 			else:
@@ -142,7 +142,7 @@ def main():
 				tabletsDeemedTooLarge += 1
 
 	print("script has ended")
-	print('   ', tabletsTried, ' tablets were looked at,\n   ', tabletsComputed, ' tablets completed computation,\n   ', tabletCSVsFound, ' CSVs corresponding to a tablet already existed and\n   ', tabletsDeemedTooLarge, ' tablets were deemed too large for this computation round') 
+	print('   ', tabletsTried, ' tablets were looked at,\n   ', tabletsComputed, ' tablets completed computation,\n   ', tabletCSVsFound, ' CSVs corresponding to a tablet already existed and\n   ', tabletsDeemedTooLarge, ' tablets were deemed too large for this computation round')
 	return 0
 
 
