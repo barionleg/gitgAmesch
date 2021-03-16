@@ -194,10 +194,10 @@ signals:
 	void exportFaceNormalAngles();                           //!< triggers the export of the faces normals as sphereical angles
 	void exportNormalSphereData();                           //!< triggers the export of the normal sphere data
 	//.
-	void saveStillImages360HLR();                            //!< triggers the generation of still images for a horizontal 360° rotation (left->right).
-	void saveStillImages360VUp();                            //!< triggers the generation of still images for a vertical 360° rotation (upwards).
-	void saveStillImages360PrimN();                          //!< triggers the generation of still images for a 360° rotation about the selected primitves normal.
-	void saveStillImages360PlaneN();                         //!< triggers the generation of still images for a 360° rotation about the mesh plane.
+	void saveStillImages360HLR();                            //!< triggers the generation of still images for a horizontal 360Â° rotation (left->right).
+	void saveStillImages360VUp();                            //!< triggers the generation of still images for a vertical 360Â° rotation (upwards).
+	void saveStillImages360PrimN();                          //!< triggers the generation of still images for a 360Â° rotation about the selected primitves normal.
+	void saveStillImages360PlaneN();                         //!< triggers the generation of still images for a 360Â° rotation about the mesh plane.
 	//.
 	void sphericalImagesLight();                             //!< triggers the generation of still images with the light source in the spherical orbit.
 	void sphericalImages();                                  //!< triggers the generation of still images in a spherical orbit.
@@ -342,7 +342,7 @@ signals:
 	//.
 	void sDatumAddSphere();                                  //!< Manually enter a datum sphere.
 
-	// --- Octree reöated ----------------------------------------------------------------------------------------------------------------------------------
+	// --- Octree related ----------------------------------------------------------------------------------------------------------------------------------
 	void generateOctree();
 	void generateOctree(unsigned int);
 	void detectselfintersections();
