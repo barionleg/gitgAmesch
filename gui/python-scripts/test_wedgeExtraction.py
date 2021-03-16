@@ -4,18 +4,18 @@ import csv
 import numpy as np
 
 # example script for accessing the python interface
-# loads a mesh and requests the vertices 
+# loads a mesh and requests the vertices
 
 
 # convert list to string in csv format
 def lst2csv(data_lst):
 	data_csv=""
 	for i in range(0,len(data_lst)):
-		for j in range(0,len(data_lst[i])):	
+		for j in range(0,len(data_lst[i])):
 			data_csv+= str(data_lst[i][j]) + ","
 		data_csv=data_csv[0:-1]
 		data_csv+="\n"
-		
+
 	return data_csv
 
 
@@ -47,7 +47,7 @@ def concatCSV(csv1,csv2):
 		else:
 			concat_csv+= i + "," + j + "\n"
 		first = 0
-		
+
 	return concat_csv
 
 
@@ -78,7 +78,7 @@ def main():
 	return_type = 'csv' # 'json'
 
 	# load mesh
-	r = requests.post(url+'/load?filename=/home/maike/Dokumente/gigamesh/testMesh.ply') 
+	r = requests.post(url+'/load?filename=/home/maike/Dokumente/gigamesh/testMesh.ply')
 	if(r):
 		print(str(r.status_code) + " - Mesh loaded successfully.")
 	else:
