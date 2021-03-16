@@ -44,8 +44,8 @@ QGMDockInfo::QGMDockInfo( QWidget *parent ) :
 	ui->comboBoxMouseMode->addItem( tr("Move Plane")              , QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_PLANE             ) );
 	ui->comboBoxMouseMode->addItem( tr("Move Plane along Axis")   , QVariant(MeshWidgetParams::MOUSE_MODE_MOVE_PLANE_AXIS         ) );
 	ui->comboBoxMouseMode->addItem( tr("Rotate Plane around Axis"), QVariant(MeshWidgetParams::MOUSE_MODE_ROTATE_PLANE_AXIS       ) );
-	ui->comboBoxMouseMode->addItem( tr("Move Light 1 FixWorld")   , QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_WORLD ) );
-	ui->comboBoxMouseMode->addItem( tr("Move Light 2 FixCam")     , QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_CAM   ) );
+	ui->comboBoxMouseMode->addItem( tr("Move Light 1 FixCamera")  , QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_CAM   ) );
+	ui->comboBoxMouseMode->addItem( tr("Move Light 2 FixObject")  , QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_LIGHT_FIXED_OBJECT) );
 	ui->comboBoxMouseMode->addItem( tr("Selection")               , QVariant( MeshWidgetParams::MOUSE_MODE_SELECT                 ) );
 
 	int selIndex = ui->comboBoxMouseMode->findData( QVariant( MeshWidgetParams::MOUSE_MODE_MOVE_CAMERA ) );
@@ -108,14 +108,13 @@ void QGMDockInfo::selectMouseModeDefault() {
 
 //! Select the alternate mouse-mode -- typically connected to the ctrl-key for selection.
 void QGMDockInfo::selectMouseModeExtra( bool rActive, MeshWidgetParams::eMouseModes rMode ) {
-	if( rActive ) {
-		mMouseModeNoControlKey = ui->comboBoxMouseMode->itemData( ui->comboBoxMouseMode->currentIndex() );
-		int selIndex = ui->comboBoxMouseMode->findData( QVariant( rMode ) );
-		ui->comboBoxMouseMode->setCurrentIndex( selIndex );
-		return;
-	}
-	int selIndex = ui->comboBoxMouseMode->findData( mMouseModeNoControlKey );
+	QSignalBlocker blockComboBox(ui->comboBoxMouseMode); //avoid sending setMouseMode from comboBoxMouseMode
+
+	int selIndex = rActive ? ui->comboBoxMouseMode->findData( QVariant( rMode ) ) :
+	                         ui->comboBoxMouseMode->findData( mMouseModeNoControlKey );
+
 	ui->comboBoxMouseMode->setCurrentIndex( selIndex );
+	setMouseMode(selIndex);
 }
 
 
@@ -289,6 +288,11 @@ void QGMDockInfo::setMouseMode( const int rComboBoxIdx ) {
 			break;
 		default:
 			setGuideIDCommon( mGuideCommon );
+	}
+
+	if(QObject::sender() == ui->comboBoxMouseMode)
+	{
+		mMouseModeNoControlKey = QVariant(mMouseMode);
 	}
 
 	emit sShowParamIntMeshWidget( MeshWidgetParams::MOUSE_MODE, mouseMode );

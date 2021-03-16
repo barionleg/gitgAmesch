@@ -23,11 +23,12 @@
 #define MESHINFODATA_H
 
 #include <string>
+#include <filesystem>
 
 class MeshInfoData {
 	public:
 		MeshInfoData();
-		~MeshInfoData();
+		~MeshInfoData() = default;
 
 	public:
 		enum eMeshPropertyString {
@@ -35,13 +36,18 @@ class MeshInfoData {
 			MODEL_ID,                      //!< Meta-data: Id of the object e.g. inventory number.
 			MODEL_MATERIAL,                //!< Meta-data: Material(s) of the acquired object e.g. clay, original or gypsum, cast copy.
 			MODEL_WEBREFERENCE,            //!< Meta-data: Web-Reference e.g. CDLI url for a cuneiform tablet.
+			MODEL_USER_FULLNAME,
+			MODEL_USER_USERNAME,
+			MODEL_USER_PROVIDER,
+			MODEL_USER_ID,
 			STRING_COUNT                   //!< Number of elements.
 		};
+
 	public:
 		std::string mStrings[STRING_COUNT];
+
 	private:
 		std::string mStringName[STRING_COUNT];
-
 	public:
 		enum eMeshPropertyULongCount {
 			VERTICES_TOTAL,                //!< Number of vertices.
@@ -51,6 +57,7 @@ class MeshInfoData {
 			VERTICES_POLYLINE,
 			VERTICES_BORDER,
 			VERTICES_NONMANIFOLD,
+			VERTICES_SINGULAR,             //!< AKA double cone
 			VERTICES_ON_INVERTED_EDGE,
 			VERTICES_PART_OF_ZERO_FACE,
 			VERTICES_SYNTHETIC,
@@ -74,10 +81,11 @@ class MeshInfoData {
 			FACES_INVERTED,
 			FACES_SELECTED,
 			FACES_WITH_SYNTH_VERTICES,     //!< Number of faces having only synthetic vertices i.e. all three vertices are synthetic.
+			CONNECTED_COMPONENTS,          //!< Number of connected components
 			ULONG_COUNT,                   //!< Number of elements.
 		};
 	public:
-		unsigned long mCountULong[ULONG_COUNT];
+		uint64_t mCountULong[ULONG_COUNT];
 	private:
 		std::string mCountULongName[ULONG_COUNT];
 
@@ -105,8 +113,21 @@ class MeshInfoData {
 
 	public:
 		void reset();
-		bool getMeshInfoHTML( std::string& rInfoHTML );
 
+		// Fetch formatted text
+		bool getMeshInfoTTL(  std::string& rInfoTTL  );
+		bool getMeshInfoHTML( std::string& rInfoHTML );
+		bool getMeshInfoJSON( std::string& rInfoJSON );
+		bool getMeshInfoXML(  std::string& rInfoXML  );
+
+		// Write formatted text
+		bool writeMeshInfo( std::filesystem::path rFilenameInfo, bool rReplace=true );
+		bool writeMeshInfoProcess( const MeshInfoData& rMeshInfoPrevious, const std::filesystem::path& rFileNameOut,
+		                           const std::string& rFunctionExecuted, const uint64_t& rIterationCount,
+		                           const std::chrono::system_clock::time_point& rTimeStart, 
+		                           const std::chrono::system_clock::time_point& rTimeStop );
+
+		// Property names
 		bool getMeshInfoPropertyName( const MeshInfoData::eMeshPropertyString     rPropId, std::string& rPropName );
 		bool getMeshInfoPropertyName( const MeshInfoData::eMeshPropertyULongCount rPropId, std::string& rPropName );
 		bool getMeshInfoPropertyName( const MeshInfoData::eMeshPropertyDouble     rPropId, std::string& rPropName );

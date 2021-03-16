@@ -73,8 +73,8 @@ struct sVertexProperties {
 	unsigned char mColorGrn = 0; // Green
 	unsigned char mColorBle = 0; // Blue
 	unsigned char mColorAlp = 0; // Alpha
-	unsigned long mLabelId = 0; // Connected component id. Zero means background.
-	unsigned long mFlags = 0; // Flags
+	uint64_t mLabelId = 0; // Connected component id. Zero means background.
+	uint64_t mFlags = 0; // Flags
 };
 
 struct sFaceProperties {

@@ -31,8 +31,8 @@ ModelMetaData::ModelMetaData()
 }
 
 bool ModelMetaData::setModelMetaString(
-				eMetaStrings       rMetaStrID,        //!< Id of the meta-data string.
-				const std::string& rModelMeta         //!< Meta-data content as string.
+        eMetaStrings       rMetaStrID,        //!< Id of the meta-data string.
+        const std::string& rModelMeta         //!< Meta-data content as string.
 ) {
 	mMetaDataStrings[rMetaStrID] = rModelMeta;
 	return( true );
@@ -41,9 +41,8 @@ bool ModelMetaData::setModelMetaString(
 //! Get Meta-Data as strings.
 //! @returns nullptr case of an error.
 std::string ModelMetaData::getModelMetaString(
-				eMetaStrings rMetaStrID               //!< Id of the meta-data string.
-) const 
-{
+        eMetaStrings rMetaStrID               //!< Id of the meta-data string.
+) const {
 	if( rMetaStrID == META_STRINGS_COUNT ) {
 		std::cerr << "[ModelMetaData::" << __FUNCTION__ << "] ERROR: Id META_STRINGS_COUNT has no content!\n" << std::endl;
 		return std::string();
@@ -54,10 +53,9 @@ std::string ModelMetaData::getModelMetaString(
 //! Fetch the name of the Meta-Data strings using an Id.
 //! @returns false in case of an error. True otherwise.
 bool ModelMetaData::getModelMetaStringName(
-				eMetaStrings rMetaStrID,                   //!< Id of the meta-data string.
-				std::string& rModelMetaStringName          //!< Name as string of the meta-data string.
-) const 
-{
+        eMetaStrings rMetaStrID,                   //!< Id of the meta-data string.
+        std::string& rModelMetaStringName          //!< Name as string of the meta-data string.
+) const {
 	if( rMetaStrID == META_STRINGS_COUNT ) {
 		std::cerr << "[ModelMetaData::" << __FUNCTION__ << "] ERROR: Id META_STRINGS_COUNT has no name!" << std::endl;
 		return( false );
@@ -66,13 +64,26 @@ bool ModelMetaData::getModelMetaStringName(
 	return( true );
 }
 
+//! Fetch the label for the name of a Meta-Data strings using an Id.
+//! @returns false in case of an error. True otherwise.
+bool ModelMetaData::getModelMetaStringLabel(
+        eMetaStrings rMetaStrID,                   //!< Id of the meta-data string.
+        std::string& rModelMetaStringLabel         //!< Name as string of the meta-data string.
+) const {
+	if( rMetaStrID == META_STRINGS_COUNT ) {
+		std::cerr << "[ModelMetaData::" << __FUNCTION__ << "] ERROR: Id META_STRINGS_COUNT has no name!" << std::endl;
+		return( false );
+	}
+	rModelMetaStringLabel = mMetaDataStringLabels[rMetaStrID];
+	return( true );
+}
+
 //! Fetch the Id of the Meta-Data strings using its name as string.
-//! @returns false in case of an error or no Id found. True otherwise.
+//! @returns false in case of an error or no Id found. True otherwise.META_STRINGS_COUNT
 bool ModelMetaData::getModelMetaStringId(
-				const std::string& rModelMetaStringName,   //!< Id of the meta-data string.
-				eMetaStrings& rMetaStrID                   //!< Name as string of the meta-data string.
-) const 
-{
+        const std::string& rModelMetaStringName,   //!< Id of the meta-data string.
+        eMetaStrings& rMetaStrID                   //!< Name as string of the meta-data string.
+) const {
 	for( unsigned i=0; i<META_STRINGS_COUNT ; i++ ) {
 		if( rModelMetaStringName == mMetaDataStringNames[i]) {
 			rMetaStrID = static_cast<eMetaStrings>( i );
@@ -87,7 +98,7 @@ bool ModelMetaData::getModelMetaStringId(
 //! @returns false in case of an error or no Id found. True otherwise.
 bool ModelMetaData::clearModelMetaStrings() {
 	// Initialize strings holding meta-data
-	for( unsigned i=0; i<META_STRINGS_COUNT ; i++ ) {
+        for( unsigned i=0; i< META_STRINGS_COUNT; i++ ) {
 		mMetaDataStrings[i].clear();
 		mMetaDataStringNames[i] = "ERROR: Not Set!";
 	}
@@ -97,9 +108,29 @@ bool ModelMetaData::clearModelMetaStrings() {
 	mMetaDataStringNames[META_MODEL_MATERIAL]   = "ModelMaterial";
 	mMetaDataStringNames[META_FILENAME]         = "ModelFileName";
 	mMetaDataStringNames[META_REFERENCE_WEB]    = "ModelReferenceWeb";
+	mMetaDataStringNames[META_MODEL_UUID]           = "ModelUUID";
+	mMetaDataStringNames[META_MODEL_UUID_PARENT]    = "ModelUUIDParent";
+	mMetaDataStringNames[META_MODEL_UUID_PROCESS]   = "ModelUUIDProcess";
+	mMetaDataStringNames[META_MODEL_CREATORS]       = "ModelCreators";
+	mMetaDataStringNames[META_MODEL_CONTRIBUTORS]   = "ModelContributors";
 	mMetaDataStringNames[META_TEXTUREFILE]      = "TextureFile";
+        mMetaDataStringNames[META_USER_USERNAME]        = "UserName";
+        mMetaDataStringNames[META_USER_FULLNAME]        = "UserFullname";
+        mMetaDataStringNames[META_USER_ID]              = "UserID";
+        mMetaDataStringNames[META_USER_PROVIDER]        = "UserProvider";
 
-	mFileName = "ModelFileName";
+	// Initialze labels for the names of the strings holding meta-data
+	mMetaDataStringLabels[META_MODEL_ID]             = "ID of the model";
+	mMetaDataStringLabels[META_MODEL_MATERIAL]       = "Material of the object";
+	mMetaDataStringLabels[META_FILENAME]             = "Filename";
+	mMetaDataStringLabels[META_REFERENCE_WEB]        = "Reference / URL";
+	mMetaDataStringLabels[META_MODEL_UUID]           = "UUID of the model";
+	mMetaDataStringLabels[META_MODEL_UUID_PARENT]    = "UUID of the model's parent";
+	mMetaDataStringLabels[META_MODEL_UUID_PROCESS]   = "UUID of the last applied function";
+	mMetaDataStringLabels[META_MODEL_CREATORS]       = "Creator(s) of the model";
+	mMetaDataStringLabels[META_MODEL_CONTRIBUTORS]   = "Contributor(s)";
+	mMetaDataStringLabels[META_TEXTUREFILE]          = "TextureFile";
+
 	// Done.
 	return( true );
 }

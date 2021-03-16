@@ -142,7 +142,6 @@ MeshWidget::MeshWidget( const QGLFormat &format, QWidget *parent )
 	QObject::connect( mMainWindow, SIGNAL(screenshotSVG()),                this, SLOT(screenshotSVG())                );
 	QObject::connect( mMainWindow, SIGNAL(screenshotRuler()),              this, SLOT(screenshotRuler())              );
 
-    QObject::connect( mMainWindow, SIGNAL(screenshotDirectory()),          this, SLOT(screenshotDirectory())          );
     QObject::connect( mMainWindow, SIGNAL(generateLatexFile()),            this, SLOT(generateLatexFile())            );
     QObject::connect( mMainWindow, SIGNAL(generateLatexCatalog()),         this, SLOT(generateLatexCatalog())         );
 	//.
@@ -511,11 +510,7 @@ bool MeshWidget::setParamIntegerMeshWidget( MeshWidgetParams::eParamInt rParam, 
 	if( !MeshWidgetParams::setParamIntegerMeshWidget( rParam, rValue ) ) {
 		return false;
 	}
-	if( rParam == MOUSE_MODE ) {
-		switch( rValue ) {
 
-		}
-	}
 	switch( rParam ) {
 		case STATE_NUMBER:
 			//! \todo implent check for parameters.
@@ -615,11 +610,8 @@ bool MeshWidget::callFunctionMeshWidget( MeshWidgetParams::eFunctionCall rFuncti
 		case SCREENSHOT_VIEWS_PDF:
 			retVal &= screenshotViewsPDFUser();
 			break;
-		case SCREENSHOT_VIEWS_PDF_DIRECTORY:
-			retVal &= screenshotViewsPDFDirectory();
-			break;
-		case SCREENSHOT_VIEWS_PNG_DIRECTORY:
-			retVal &= screenshotViewsPNGDirectory();
+		case SCREENSHOT_VIEWS_DIRECTORY:
+			retVal &= screenshotViewsDirectory();
 			break;
 		case EDIT_SET_CONEAXIS_CENTRALPIXEL:
 			retVal &= userSetConeAxisCentralPixel();
@@ -880,9 +872,6 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 	checkMeshSanity();
 
 	// Guess some initial distance for fog:
-	double minDist;
-	double maxDist;
-
 	double bboxLength = mMeshVisual->getBoundingBoxRadius() * 2.0;
 
 	setParamFloatMeshWidget( FOG_LINEAR_START, bboxLength  * 0.75);
@@ -934,6 +923,7 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 	cout << "[MeshWidget::" << __FUNCTION__ << "] Done." << endl;
 
 	emit loadedMeshIsTextured( mMeshVisual->getModelMetaDataRef().hasTextureCoordinates() && mMeshVisual->getModelMetaDataRef().hasTextureFiles() );
+        this->mMainWindow->saveUser();
 
 	return( true );
 }
@@ -1036,7 +1026,7 @@ void MeshWidget::saveStillImages360( Vector3D rotCenter, Vector3D rotAxis ) {
 	for( int i=0; i<stepAnglesNr; i++ ) {
 		rotArbitAxis( rotCenter, rotAxis, stepAngles[i]*180.0/M_PI );
 
-		QString fileName = QString("%1gigamesh_still_image_%2.tiff").arg(savePath).arg(i,5,10,QChar('0'));
+		QString fileName = QString("%1gigamesh_still_image_%2.png").arg(savePath).arg(i,5,10,QChar('0'));
 		double realWidth, realHeigth;
 		screenshotSingle( fileName, useTiled, realWidth, realHeigth );
 	}
@@ -1046,7 +1036,7 @@ void MeshWidget::saveStillImages360( Vector3D rotCenter, Vector3D rotAxis ) {
 //! Screenshots for a video - 360° horizonal rotation from left to right.
 //! Typical for pottery videos.
 //!
-//! Hint: ffmpeg -i gigamesh_still_image_%05d.tiff -s 720x576 -b 4000k test.mpg
+//! Hint: ffmpeg -i gigamesh_still_image_%05d.png -s 720x576 -b 4000k test.mpg
 void MeshWidget::saveStillImages360HLR() {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
@@ -1167,7 +1157,7 @@ void MeshWidget::sphericalImagesLight( const QString& rFileName ) {
 //! Compute spherical images with moving light (instead of moving the object).
 //! (3) - execute.
 //!
-//! String for Object2VR: 'gigamesh_still_image_'+ fill(row,5,'0') + '_' +fill(column,5,'0')+ '.tiff'
+//! String for Object2VR: 'gigamesh_still_image_'+ fill(row,5,'0') + '_' +fill(column,5,'0')+ '.png'
 void MeshWidget::sphericalImagesLight( const QString& rFileName, const bool rUseTiled ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
@@ -1625,12 +1615,12 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
 
     QStringList texFiles;
 
-    double left     = paperPropertiesf[0];
-    double right    = paperPropertiesf[1];
-    double top      = paperPropertiesf[2];
-    double bottom       = paperPropertiesf[3];
-    double paperWidth   = paperPropertiesf[4];
-    double paperHeight  = paperPropertiesf[5];
+	double left         = paperPropertiesf[0];
+	double right        = paperPropertiesf[1];
+	double top          = paperPropertiesf[2];
+	double bottom       = paperPropertiesf[3];
+	double paperWidth   = paperPropertiesf[4];
+	double paperHeight  = paperPropertiesf[5];
 
     // all values are experimental (in cm)
     double tableHeight  = 2.5;
@@ -1680,8 +1670,8 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         getParamStringMeshWidget( FILENAME_EXPORT_VIEWS, &fileNamePattern );
         // important name change !!!!
 		fileNamePattern.insert( fileNamePattern.find_last_of('.'), to_string(k) + suffix.toStdString() );
-		QString fileName = filePath + tr( fileNamePattern.c_str() );
-		if( fileName == nullptr ) {
+		QString fileName = filePath + QString( fileNamePattern.c_str() );
+		if( fileName.isNull() ) {
 			return QStringList();
 		}
 		double mmPerPixel_Width;
@@ -1698,7 +1688,15 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
 
 		getViewPortPixelWorldSize( mmPerPixel_Width, mmPerPixel_Height );
 
-		QString strDPI = QString( "_%1DPI" ).arg( round( 25.4/mmPerPixel_Width ) );
+		QString strDPI = "";
+
+		bool appendDPItoFileName = false;
+		getParamFlagMeshWidget(MeshWidgetParams::SCREENSHOT_FILENAME_WITH_DPI, &appendDPItoFileName);
+
+		if(appendDPItoFileName)
+		{
+			strDPI = QString( "_%1DPI" ).arg( round( 25.4/mmPerPixel_Width ) );
+		}
 
 		mmPerPixel_Width = ( mmPerPixel_Width + mmPerPixel_Height ) / 2.0;
 
@@ -1708,12 +1706,13 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         vector<pair<string,string> > replacmentStrings;
         mMeshVisual->latexFetchFigureInfos( &replacmentStrings );
 
-        QString tempFileName = rFilePath;
+		QString fileNameAbsolute = rFilePath;
+		fileNameAbsolute.truncate( fileNameAbsolute.lastIndexOf( QString('.') ) );
 
-        tempFileName.truncate( tempFileName.lastIndexOf( QString('.') ) );
-        tempFileName.replace(mainPath, ".");
-        string temp = tempFileName.toStdString();
-        tempFileName.replace(".", mainPath);
+		QString fileNameRelative = fileNameAbsolute;
+		fileNameRelative.replace(mainPath, ".");
+
+		string temp = fileNameRelative.toStdString();
 
 		//! .) Fetch strings and their values. (For the pictures)
 		QString title = QString( mMeshVisual->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID ).c_str() );
@@ -1727,51 +1726,94 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
 			replacmentStrings.emplace_back( pair<string,string>( string( "\\section{__TITLE__}"  ),     string( "\\section*{}" ) ) );
 		}
 
-		replacmentStrings.emplace_back( pair<string,string>( string( "__01_HA_TOP__"  ),           string( temp + "_01_ha_top" +           to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-		replacmentStrings.emplace_back( pair<string,string>( string( "__02_HA_LEFT__"  ),          string( temp + "_02_ha_left" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-		replacmentStrings.emplace_back( pair<string,string>( string( "__03_HA_FRONT__"  ),         string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-		replacmentStrings.emplace_back( pair<string,string>( string( "__04_HA_RIGHT__"  ),         string( temp + "_04_ha_right" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-		replacmentStrings.emplace_back( pair<string,string>( string( "__05_HA_BOTTOM__"  ),        string( temp + "_05_ha_bottom" +        to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-		replacmentStrings.emplace_back( pair<string,string>( string( "__06_HA_BACK_LEFT__"  ),     string( temp + "_06_ha_back_left" +     to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-		replacmentStrings.emplace_back( pair<string,string>( string( "__07_HA_BACK__"  ),          string( temp + "_07_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-		replacmentStrings.emplace_back( pair<string,string>( string( "__08_HA_BACK_RIGHT__"  ),    string( temp + "_08_ha_back_right" +    to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
 
+		temp = fileNameAbsolute.toStdString();
+		float width = 0;
+		float height = 0;
+		vector<string> widthPictures;
+		vector<string> heightPictures;
 
+		if(mParamFlag[SPHERICAL_VERTICAL])
+		{
+			replacmentStrings.emplace_back( pair<string,string>( string( "__01_HA_TOP__"  ),           string( temp + "_01_va_top" +           to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
+			replacmentStrings.emplace_back( pair<string,string>( string( "__02_HA_LEFT__"  ),          string( temp + "_03_va_side" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
+			replacmentStrings.emplace_back( pair<string,string>( string( "__03_HA_FRONT__"  ),         string( temp + "_02_va_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
+			replacmentStrings.emplace_back( pair<string,string>( string( "__04_HA_RIGHT__"  ),         string( temp + "_05_va_side" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
+			replacmentStrings.emplace_back( pair<string,string>( string( "__05_HA_BOTTOM__"  ),        string( temp + "_06_va_bottom" +        to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
+			replacmentStrings.emplace_back( pair<string,string>( string( "__06_HA_BACK__"  ),          string( temp + "_04_va_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
 
-        temp = tempFileName.toStdString();
+			//Those do not exist for Vertical rotations:
+			//replacmentStrings.emplace_back( pair<string,string>( string( "__07_HA_BACK_LEFT__"  ),     string( temp + "_07_ha_back_left" +     to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
+			//replacmentStrings.emplace_back( pair<string,string>( string( "__08_HA_BACK_RIGHT__"  ),    string( temp + "_08_ha_back_right" +    to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
 
-        float width = 0;
-        float height = 0;
-        vector<string> widthPictures;
-        vector<string> heightPictures;
+			if( rTemplate == "single-view" ) {
+				heightPictures.push_back(       string( temp + "_02_va_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				widthPictures.push_back(        string( temp + "_02_va_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+			}
+			else{
+				heightPictures.push_back(       string( temp + "_01_va_top" +           to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				heightPictures.push_back(       string( temp + "_02_va_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				heightPictures.push_back(       string( temp + "_06_va_bottom" +        to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
 
-        if( rTemplate == "single-view" ) {
-            heightPictures.push_back(       string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-            widthPictures.push_back(        string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-        }
-        else{
-            heightPictures.push_back(       string( temp + "_01_ha_top" +           to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-            heightPictures.push_back(       string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-            heightPictures.push_back(       string( temp + "_05_ha_bottom" +        to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				widthPictures.push_back(        string( temp + "_03_va_side" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				widthPictures.push_back(        string( temp + "_05_va_side" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
 
-            widthPictures.push_back(        string( temp + "_02_ha_left" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-            widthPictures.push_back(        string( temp + "_04_ha_right" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				if( rTemplate == "vessols" ) {
+					widthPictures.push_back(    string( temp + "_02_va_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+					widthPictures.push_back(    string( temp + "_04_va_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				}
+				else if( rTemplate == "fatcross-inv" ) {
+					heightPictures.push_back(   string( temp + "_04_va_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
 
-            if( rTemplate == "vessols" ) {
-                widthPictures.push_back(    string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-                widthPictures.push_back(    string( temp + "_07_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-            }
-            else if( rTemplate == "fatcross-inv" ) {
-                heightPictures.push_back(   string( temp + "_07_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+					widthPictures.push_back(    string( temp + "_04_va_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				}
+				else{
+					heightPictures.push_back(   string( temp + "_04_va_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
 
-                widthPictures.push_back(    string( temp + "_07_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-            }
-            else{
-                heightPictures.push_back(   string( temp + "_07_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+					widthPictures.push_back(    string( temp + "_02_va_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				}
+			}
+		}
+		else
+		{
+			replacmentStrings.emplace_back( pair<string,string>( string( "__01_HA_TOP__"  ),           string( temp + "_01_ha_top" +           to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
+			replacmentStrings.emplace_back( pair<string,string>( string( "__02_HA_LEFT__"  ),          string( temp + "_02_ha_left" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
+			replacmentStrings.emplace_back( pair<string,string>( string( "__03_HA_FRONT__"  ),         string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
+			replacmentStrings.emplace_back( pair<string,string>( string( "__04_HA_RIGHT__"  ),         string( temp + "_04_ha_right" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
+			replacmentStrings.emplace_back( pair<string,string>( string( "__05_HA_BOTTOM__"  ),        string( temp + "_05_ha_bottom" +        to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
+			replacmentStrings.emplace_back( pair<string,string>( string( "__07_HA_BACK_LEFT__"  ),     string( temp + "_07_ha_back_left" +     to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
+			replacmentStrings.emplace_back( pair<string,string>( string( "__06_HA_BACK__"  ),          string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
+			replacmentStrings.emplace_back( pair<string,string>( string( "__08_HA_BACK_RIGHT__"  ),    string( temp + "_08_ha_back_right" +    to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
 
-                widthPictures.push_back(    string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-            }
-        }
+			if( rTemplate == "single-view" ) {
+				heightPictures.push_back(       string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				widthPictures.push_back(        string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+			}
+			else{
+				heightPictures.push_back(       string( temp + "_01_ha_top" +           to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				heightPictures.push_back(       string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				heightPictures.push_back(       string( temp + "_05_ha_bottom" +        to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+
+				widthPictures.push_back(        string( temp + "_02_ha_left" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				widthPictures.push_back(        string( temp + "_04_ha_right" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+
+				if( rTemplate == "vessols" ) {
+					widthPictures.push_back(    string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+					widthPictures.push_back(    string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				}
+				else if( rTemplate == "fatcross-inv" ) {
+					heightPictures.push_back(   string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+
+					widthPictures.push_back(    string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				}
+				else{
+					heightPictures.push_back(   string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+
+					widthPictures.push_back(    string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
+				}
+			}
+		}
+
 
         QImage tempImage;
 		for(const string& heightPicture : heightPictures) {
@@ -1784,7 +1826,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         }
 
         // Height and width of the Pictures on Latex
-        double mmPerPixel_Latex = 1/rDPIf*2.54*10;
+        double mmPerPixel_Latex = 1.0/rDPIf*2.54*10.0;
         height *= mmPerPixel_Latex/10.0;    // in cm
         width  *= mmPerPixel_Latex/10.0;    // in cm
 
@@ -1796,7 +1838,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         double factor = min(factorHeight, factorWidth);
 
         double latexToRealFactor = mmPerPixel_Width/mmPerPixel_Latex;
-        factor = 1/factor;
+		factor = 1.0/factor;
         factor *= latexToRealFactor;
 
         string scaling;
@@ -1812,7 +1854,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         }
 
         factor /= latexToRealFactor;
-        factor = 1/factor;
+		factor = 1.0/factor;
 
         QString factorString = QString::fromStdString(to_string(factor));
         factorString.replace(",", ".");
@@ -1831,19 +1873,19 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         QTextStream latexTemplateFileInStream( &latexTemplateFile );
         QString fileContent;
         while( !latexTemplateFileInStream.atEnd() ) {
-            fileContent += latexTemplateFileInStream.readLine() + "\r\n";
+			fileContent += latexTemplateFileInStream.readLine() + "\n";
         }
         //cout << "[MeshQt::" << __FUNCTION__ << "] File: " << fileContent.toStdString() << endl;
 
-        QString keyDataTableRow = QString() + "__OBJECT_ID__ &" + "\r\n"
-								+ "$\\numprint{__BOUNDING_BOX_WIDTH__} \\times \\numprint{__BOUNDING_BOX_HEIGHT__} \\times \\numprint{__BOUNDING_BOX_THICK__}$ &" + "\r\n"
-                                + "$\\numprint{__VERTEX_COUNT__}$ &" + "\r\n"
-                                + "$\\numprint{__FACE_COUNT__}$ &" + "\r\n"
-                                + "$\\numprint{__AREA_TOTAL__}$ &" + "\r\n"
-                                + "$\\numprint{__AREA_RESOLUTION_METRIC__}$ &" + "\r\n"
-                                + "$\\numprint{__VOLUME_TOTAL__}$ &" + "\r\n"
-                                + "__OBJECT_MATERIAL__\\\\" + "\r\n"
-                                + "\\hline" + "\r\n" + "\r\n";
+		QString keyDataTableRow = QString() + "__OBJECT_ID__ &" + "\n"
+		                        + "$\\numprint{__BOUNDING_BOX_WIDTH__} \\times \\numprint{__BOUNDING_BOX_HEIGHT__} \\times \\numprint{__BOUNDING_BOX_THICK__}$ &" + "\n"
+		                        + "$\\numprint{__VERTEX_COUNT__}$ &" + "\n"
+		                        + "$\\numprint{__FACE_COUNT__}$ &" + "\n"
+		                        + "$\\numprint{__AREA_TOTAL__}$ &" + "\n"
+		                        + "$\\numprint{__AREA_RESOLUTION_METRIC__}$ &" + "\n"
+		                        + "$\\numprint{__VOLUME_TOTAL__}$ &" + "\n"
+		                        + "__OBJECT_MATERIAL__\\\\" + "\n"
+		                        + "\\hline" + "\n" + "\n";
 
         //! .) Replace place holder with values.
 		for(pair<string, string>& replacmentString : replacmentStrings) {
@@ -1860,7 +1902,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
         keyDataTableRow.replace( QString("-"), QString("\\protect\\-") );
         keyDataTableRow.replace( QString("_"), QString("\\protect\\_") );
 
-        ofstream outfile( tempFileName.toStdString()+ to_string(k) + suffix.toStdString() + ".tex" );
+		ofstream outfile( fileNameAbsolute.toStdString()+ to_string(k) + suffix.toStdString() + ".tex" );
         outfile << fileContent.toStdString() << endl;
         outfile.close();
 
@@ -1868,7 +1910,7 @@ QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool
 
 
 
-        QString texNameAndKeyTableData = QString( (tempFileName.toStdString()+ to_string(k) + suffix.toStdString() + ".tex").c_str() );
+		QString texNameAndKeyTableData = QString( (fileNameAbsolute.toStdString()+ to_string(k) + suffix.toStdString() + ".tex").c_str() );
         if( k == 0 ) {
             texNameAndKeyTableData += "__KEYDATATABLE__" + keyDataTableRow;
         }
@@ -1890,7 +1932,7 @@ void MeshWidget::bindFramebuffer(int framebufferID)
 
 void MeshWidget::generateLatexFile() {
 
-	cout << "Begin Latex Page" << endl;
+	LOG::debug() << "Begin Latex Page\n";
 
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
@@ -2002,9 +2044,9 @@ void MeshWidget::generateLatexFile() {
 
     }
 
-	QString combinationList = tr("These are your combinations:") + QString("\r\n\r\n");
+	QString combinationList = tr("These are your combinations:") + QString("\n\n");
 	for(const QStringList& pageCombination : pageCombinations) {
-		combinationList += pageCombination.at(0) + ", " + pageCombination.at(1) + ", " + pageCombination.at(2) + "\r\n";
+		combinationList += pageCombination.at(0) + ", " + pageCombination.at(1) + ", " + pageCombination.at(2) + "\n";
     }
 
     bool userContinue;
@@ -2034,7 +2076,7 @@ void MeshWidget::generateLatexFile() {
     QTextStream latexKeyDataTableTemplateInStream( &latexKeyDataTableTemplateFile );
     QString latexKeyDataTableFileContent;
     while( !latexKeyDataTableTemplateInStream.atEnd() ) {
-        latexKeyDataTableFileContent += latexKeyDataTableTemplateInStream.readLine() + "\r\n";
+		latexKeyDataTableFileContent += latexKeyDataTableTemplateInStream.readLine() + "\n";
     }
 
     QString keyDataTexFileName = path + '/' + "keyDataTable" + suffix + ".tex";
@@ -2054,7 +2096,7 @@ void MeshWidget::generateLatexFile() {
         QTextStream latexTemplateFileInStream( &latexTemplateFile );
         QString fileContent;
         while( !latexTemplateFileInStream.atEnd() ) {
-            fileContent += latexTemplateFileInStream.readLine() + "\r\n";
+			fileContent += latexTemplateFileInStream.readLine() + "\n";
         }
 
         //cout << "[MeshQt::" << __FUNCTION__ << "] File: " << fileContent.toStdString() << endl;
@@ -2064,9 +2106,9 @@ void MeshWidget::generateLatexFile() {
         for( int i = 0; i < texFiles.size(); i++ ) {
             QStringList texFileComponents = texFiles[i].split( "__KEYDATATABLE__" );
 
-            replacementString += "\\input{"+texFileComponents[0].replace( path+'/', "" )+'}' + "\r\n" + "\\newpage" + "\r\n";
+			replacementString += "\\input{"+texFileComponents[0].replace( path+'/', "" )+'}' + "\n" + "\\newpage" + "\n";
             if( pageCombinations.size() % 2 == 1 && (i+1) % pageCombinations.size() == 0 ) {
-                replacementString += QString() + "\r\n" + "\\thispagestyle{empty}" + "\r\n" + "\\mbox{}" + "\r\n" + "\\newpage" + "\r\n" + "\r\n";
+				replacementString += QString() + "\n" + "\\thispagestyle{empty}" + "\n" + "\\mbox{}" + "\n" + "\\newpage" + "\n" + "\n";
             }
 
             replacementStringKeyDataTable += texFileComponents[1];
@@ -2154,17 +2196,9 @@ void MeshWidget::generateLatexCatalog() {
         return;
     }
 
-    cout << "chosen path: " << path.toStdString() << endl;
-
     // Filter files with certain patterns (types copied from load dialog except!!! txt / TXT)
-    QStringList filters;
-    // filters << "*.obj" << "*.OBJ" << "*.ply" << "*.PLY" << "*.wrl" << "*.WRL" << "*.xyz" << "*.XYZ";
+	QStringList filters;
     filters << "*.obj" << "*.OBJ" << "*.ply" << "*.PLY";
-
-    cout << "used filters: " << endl;
-    for (int i = 0; i < filters.size(); ++i) {
-        cout << filters.at(i).toStdString() << endl;
-    }
 
     bool userCancel;
 
@@ -2258,13 +2292,13 @@ void MeshWidget::generateLatexCatalog() {
 		SHOW_QUESTION( tr("Additional Pages"), tr("Do you want to include an additional (color, template, light) combination?"), additionalCombinations, userCancel );
         if( userCancel ) {
             return;
-        }
+		}
 
     }
 
-	QString combinationList = tr("These are your combinations:") + QString("\r\n\r\n");
+	QString combinationList = tr("These are your combinations:") + QString("\n\n");
 	for(const QStringList& pageCombination : pageCombinations) {
-		combinationList += pageCombination.at(0) + ", " + pageCombination.at(1) + ", " + pageCombination.at(2) + "\r\n";
+		combinationList += pageCombination.at(0) + ", " + pageCombination.at(1) + ", " + pageCombination.at(2) + "\n";
     }
 
     bool userContinue;
@@ -2298,7 +2332,7 @@ void MeshWidget::generateLatexCatalog() {
     QTextStream latexTemplateFileInStream( &latexTemplateFile );
     QString fileContent;
     while( !latexTemplateFileInStream.atEnd() ) {
-        fileContent += latexTemplateFileInStream.readLine() + "\r\n";
+		fileContent += latexTemplateFileInStream.readLine() + "\n";
     }
 
     QFile latexKeyDataTableTemplateFile( ":/GMGeneric/latextemplates/keydata.tex" );
@@ -2311,7 +2345,7 @@ void MeshWidget::generateLatexCatalog() {
     QTextStream latexKeyDataTableTemplateInStream( &latexKeyDataTableTemplateFile );
     QString latexKeyDataTableFileContent;
     while( !latexKeyDataTableTemplateInStream.atEnd() ) {
-        latexKeyDataTableFileContent += latexKeyDataTableTemplateInStream.readLine() + "\r\n";
+		latexKeyDataTableFileContent += latexKeyDataTableTemplateInStream.readLine() + "\n";
     }
 
     //cout << "[MeshQt::" << __FUNCTION__ << "] File: " << fileContent.toStdString() << endl;
@@ -2322,9 +2356,9 @@ void MeshWidget::generateLatexCatalog() {
     for( int i = 0; i < texFiles.size(); i++ ) {
         QStringList texFileComponents = texFiles[i].split( "__KEYDATATABLE__" );
 
-        replacementString += "\\input{"+texFileComponents[0].replace( path+'/', "" )+'}' + "\r\n" + "\\newpage" + "\r\n";
+		replacementString += "\\input{"+texFileComponents[0].replace( path+'/', "" )+'}' + "\n" + "\\newpage" + "\n";
         if( pageCombinations.size() % 2 == 1 && (i+1) % pageCombinations.size() == 0 ) {
-            replacementString += QString() + "\r\n" + "\\thispagestyle{empty}" + "\r\n" + "\\mbox{}" + "\r\n" + "\\newpage" + "\r\n" + "\r\n";
+			replacementString += QString() + "\n" + "\\thispagestyle{empty}" + "\n" + "\\mbox{}" + "\n" + "\\newpage" + "\n" + "\n";
         }
 
         replacementStringKeyDataTable += texFileComponents[1];
@@ -2352,247 +2386,22 @@ void MeshWidget::generateLatexCatalog() {
 	SHOW_MSGBOX_INFO( tr("Finished"), tr("Your catalog generation has finished.") );
 }
 
-QStringList MeshWidget::screenshotDirectory(const bool rUseTiled, const QString& rColor, const int depth,
-                                            const QString& rPath, const QStringList& rFilters,
-                                            const QString& rMode, const QString& suffix) {
-
-    if( depth > 9 ) {
-        cout << "maximum recursion depth reached: " << depth << endl;
-        cout << "path: " << rPath.toStdString() << endl;
-        return QStringList();
-    }
-
-    QStringList pictureInformation;
-
-    QDir directory      = QDir(rPath);
-    QStringList files   = directory.entryList(rFilters);
-    QFileInfoList fileInfoList = directory.entryInfoList();
-    QStringList directories;
-
-	for (const QFileInfo& fileInfo : fileInfoList) {
-		if( fileInfo.isDir() && fileInfo.absolutePath().contains(rPath) && !fileInfo.isHidden() ) {
-			directories.append( fileInfo.absolutePath() + '/' + fileInfo.completeBaseName() );
-        }
-    }
-
-    // could be outsourced
-    if( rMode == "multible views") {
-
-        for (int i = 0; i < files.size(); ++i) {            
-            mMainWindow->load(rPath+'/'+files.at(i));
-
-            if( mMeshVisual == nullptr ) {
-                return QStringList();
-            }
-
-            // set the color of the objects
-            if( rColor == "Solid Color" ) {
-                mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_MONO );
-            }
-            if( rColor == "Vertex Texture" ) {
-                mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_RGB );
-            }
-            if( rColor == "Vertex Func. Values" ) {
-                mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_FUNCVAL );
-            }
-            if( rColor == "Vertex Labels" ) {
-                mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_LABELS );
-            }
-
-            setParamFlagMeshWidget( SHOW_GRID_RECTANGULAR, false );
-
-            QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation().wstring());
-            string fileNamePattern;
-            getParamStringMeshWidget( FILENAME_EXPORT_VIEWS, &fileNamePattern );
-			fileNamePattern.insert( fileNamePattern.find_last_of('.'), suffix.toStdString() );
-			QString fileName = filePath + QString( fileNamePattern.c_str() );
-			if( fileName == nullptr ) {
-				return QStringList();
-			}
-			double rPixelWidth;
-			double rPixelHeight;
-			getViewPortPixelWorldSize( rPixelWidth, rPixelHeight );
-			pictureInformation.append( rPath+'/'+files.at(i) + '@' + QString::number(rPixelHeight) + '@' + QString::number(rPixelWidth) + '@' );
-
-			std::vector<QString> imageFileNames;
-			std::vector<double> imageSizes;
-            const auto filePrefix = QString::fromStdWString(mMeshVisual->getBaseName().wstring());
-			screenshotViews( fileName.toLatin1(), filePrefix, rUseTiled, imageFileNames, imageSizes );
-
-            cout << "done " << (i+1) << " of " << files.size() << endl;
-        }
-
-    }
-
-    // could be outsourced
-    if ( rMode == "single view" ) {
-
-        for (int i = 0; i < files.size(); ++i) {
-
-			emit mMainWindow->sFileOpen(rPath+'/'+files.at(i));
-            repaint();
-
-            if( mMeshVisual == nullptr ) {
-                return QStringList();
-            }
-
-            // set the color of the objects
-            if( rColor == "Solid Color" ) {
-                mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_MONO );
-            }
-            if( rColor == "Vertex Texture" ) {
-                mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_RGB );
-            }
-            if( rColor == "Vertex Func. Values" ) {
-                mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_FUNCVAL );
-            }
-            if( rColor == "Vertex Labels" ) {
-                mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_LABELS );
-            }
-
-            setParamFlagMeshWidget( SHOW_GRID_RECTANGULAR, false );
-
-            repaint();
-
-            // getting rid of the datatype
-            files[i].truncate( files.at(i).lastIndexOf( QString('.') ) );
-            string fileNamePattern = files.at(i).toStdString();
-            fileNamePattern += suffix.toStdString();
-            fileNamePattern += ".png";
-
-            // filePath should be equal to path path+'/'+files.at(i)
-            QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation().wstring() );
-
-			QString fileName = filePath + QString( fileNamePattern.c_str() );
-
-            if( fileName == nullptr ) {
-                return QStringList();
-            }
-			double realWidth, realHeigth;
-			screenshotSingle( fileName, rUseTiled, realWidth, realHeigth );
-
-            cout << "done " << (i+1) << " of " << files.size() << endl;
-        }
-    }
-
-    if( !directories.isEmpty() && depth > -1 ) {
-        for (int i = 0; i < directories.size(); ++i) {
-            pictureInformation.append( screenshotDirectory(rUseTiled, rColor, depth+1, directories[i], rFilters, rMode, suffix) );
-        }
-    }
-
-    return pictureInformation;
-}
-
-void MeshWidget::screenshotDirectory() {
-    #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-        cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
-    #endif
-
-    // get the path chosen by the user
-	QString path = QFileDialog::getExistingDirectory( mMainWindow, tr( "Choose the Directory" ) );
-
-    if( path.isEmpty() ) {
-        return;
-    }
-
-    cout << "chosen path: " << path.toStdString() << endl;
-
-    // Filter files with certain patterns (types copied from load dialog except!!! txt / TXT)
-    QStringList filters;
-    // filters << "*.obj" << "*.OBJ" << "*.ply" << "*.PLY" << "*.wrl" << "*.WRL" << "*.xyz" << "*.XYZ";
-    filters << "*.obj" << "*.OBJ" << "*.ply" << "*.PLY";
-
-    cout << "used filters: " << endl;
-    for (int i = 0; i < filters.size(); ++i) {
-        cout << filters.at(i).toStdString() << endl;
-    }
-
-    bool userCancel;
-
-    QStringList modeOptions;
-    modeOptions.append( "single view" );
-    modeOptions.append( "multible views" );
-
-    QString rMode;
-	SHOW_DIALOG_COMBO_BOX( tr("Views"), tr("Which kind of views do you want to generate?"), modeOptions, rMode, userCancel );
-    if( userCancel ) {
-        return;
-    }
-
-    bool useRecursion;
-	SHOW_QUESTION( tr("Recursion"), tr("Do you want to use recursion?"), useRecursion, userCancel );
-    if( userCancel ) {
-        return;
-    }
-
-    bool rUseTiled;
-/*    SHOW_QUESTION( tr("Tiled rendering"), tr("Do you want to use tiled rendering?"), rUseTiled, userCancel );
-    if( userCancel ) {
-        return;
-    }
-*/
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! tiled rendering adds _%DPI which isnt a fix pattern and therefore hard to use
-    // =>
-    rUseTiled = false;
-
-
-    QStringList colorOptions;
-    colorOptions.append( "Solid Color" );
-    colorOptions.append( "Vertex Texture" );
-    colorOptions.append( "Vertex Func. Values" );
-    colorOptions.append( "Vertex Labels" );
-
-    QString rColor;
-	SHOW_DIALOG_COMBO_BOX( tr("Object Color"), tr("Which coloring do you want to use?"), colorOptions, rColor, userCancel );
-    if( userCancel ) {
-        return;
-    }
-
-    QString suffix;
-	SHOW_INPUT_DIALOG( tr("Your suffix (Example: _project1)"), tr("Enter your suffix for your files here."), "", suffix, userCancel );
-    if( userCancel ) {
-        return;
-    }
-
-    cout << "Suffix: " << suffix.toStdString() << endl;
-
-    // execution
-    QStringList pictureInformation;
-
-    if( useRecursion ) {
-        pictureInformation = screenshotDirectory(rUseTiled, rColor, 0,  path, filters, rMode, suffix);
-    }
-    else {
-        pictureInformation = screenshotDirectory(rUseTiled, rColor, -1, path, filters, rMode, suffix);
-    }
-
-    if( rMode == "multible views") {
-        ofstream outfile( path.toStdString() + '/' + "pictureInformation" + suffix.toStdString() + ".txt" );
-        for( int i = 0; i < pictureInformation.size(); i++ ) {
-            outfile << pictureInformation[i].toStdString() << endl;
-        }
-        outfile.close();
-    }
-
-}
-
 // --- Screenshots Side-Views as PDF ---------------------------------------------------------------------------------------------------------------------------
 
 //! User interaction: ask for directory to parse.
 //! @returns false in case of an error. True otherwise.
-bool MeshWidget::screenshotViewsDirectory(
+bool MeshWidget::screenshotViewsDirectoryFiles(
                 QString&       rPathChoosen,     //!< Current directory.
                 QStringList&   rCurrFiles        //!< List of files.
 ) {
 	QString pathChoosen = QFileDialog::getExistingDirectory( mMainWindow,
-															 tr( "Choose the Directory" ) );
+	                                                         tr( "Choose the Directory" ) );
 
 	if( pathChoosen.isEmpty() ) { // User cancel.
-		cout << "[MeshWidget::" << __FUNCTION__ << "] User canceled!" << endl;
+		std::cout << "[MeshWidget::" << __FUNCTION__ << "] User canceled!" << std::endl;
 		return( false );
 	}
-	cout << "[MeshWidget::" << __FUNCTION__ << "] chosen path: " << pathChoosen.toStdString() << endl;
+	std::cout << "[MeshWidget::" << __FUNCTION__ << "] chosen path: " << pathChoosen.toStdString() << std::endl;
 
 	// Filter files with certain patterns (types copied from load dialog except!!! txt / TXT)
 	QStringList filter3DFiles;
@@ -2613,171 +2422,209 @@ bool MeshWidget::screenshotViewsDirectory(
 	return( true );
 }
 
-//! Render side-views as PNG and embed those within a PDF using a LaTeX template.
+//! Render front-views or side-views as
+//! PNGs or PDFs having PNGs embeded created using a LaTeX template.
 //!
-//! User interaction: select a path to load the meshes consecutively and generate
-//! a PDF for each 3D-file found.
+//! User interaction: select a path to load the meshes consecutively
+//! and generate views for each 3D-file found.
 //!
 //! @returns false in case of an error or user cancel. True otherwise.
-bool MeshWidget::screenshotViewsPDFDirectory() {
-	QString     pathChoosen;
-	QStringList currFiles;
-	if( !screenshotViewsDirectory( pathChoosen, currFiles ) ) {
+bool MeshWidget::screenshotViewsDirectory() {
+	// Store settings from current Mesh and MeshWidget
+	MeshGLParams storeMeshGLParams( (MeshGLParams)mMeshVisual );
+	MeshWidgetParams storeMeshWidgetParams( (MeshWidgetParams)this );
+
+	// PDF or PNG
+	bool preferPNGoverPDF(true);
+	// Ask user about PDF creation or PNG rendering only
+	bool userCancel;
+	SHOW_QUESTION( tr( "PNG images or PDF documents" ),
+	               tr( "Do you want to create<br /><br />"
+	                   "... PNG images - choose: YES<br /><br />"
+	                   "... PDF documents - choose: NO" ),
+	               preferPNGoverPDF, userCancel );
+	if( userCancel ) {
 		return( false );
 	}
 
-	bool errorOccured = false;
-	// This could be outsourced
-	for( int i=0; i<currFiles.size(); ++i ) {
-		// mMainWindow->load( pathChoosen+'/'+currFiles.at(i) );
-		if( !fileOpen( pathChoosen+'/'+currFiles.at(i) ) ) {
-			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: File open failed for '" << (pathChoosen+'/'+currFiles.at(i)).toStdString() << "'!" << endl;
-			errorOccured = true;
-			continue;
+	// Print resolution and tiled renderin (only in Orthographic projection mode)
+	bool   frontView(true);
+	bool   useTiled(false);
+	double printResDPI;
+	getViewPortDPI( printResDPI );
+	bool orthoMode;
+	if( !getParamFlagMeshWidget( ORTHO_MODE, &orthoMode ) ) {
+		return( false );
+	}
+	if( orthoMode ) {
+		// Ask user for the print resolution using the current setting
+		QGMDialogEnterText dlgEnterTxt;
+		dlgEnterTxt.setWindowTitle( "Set DPI" );
+		dlgEnterTxt.setDouble( printResDPI );
+		if( dlgEnterTxt.exec() == QDialog::Rejected ) {
+			return( false );
 		}
-		if( mMeshVisual == nullptr ) {
-			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: No mesh loaded for '" << (pathChoosen+'/'+currFiles.at(i)).toStdString() << "'!" << endl;
-			errorOccured = true;
-			continue;
+		if( !dlgEnterTxt.getText( &printResDPI ) ) {
+			return( false );
 		}
-
-		//! \todo add User interaction.
-		//===============================================================================================================
-		// Set properties - HEURISTIC for cuneiform tablets
-		//===============================================================================================================
-		// Set ligth and fixed resolution
-		callFunctionMeshWidget( SET_RENDER_LIGHT_SHADING );
-		orthoSetDPI( 600 );
-		// Compute function value and choose grayscale
-		double minFuncValue = -0.12910306806; // Values used for HeiCuBeDa
-		double maxFuncValue = +0.48764927169; // Values used for HeiCuBeDa
-		mMeshVisual->callFunctionMesh( MeshParams::FUNCVAL_FEATUREVECTOR_MAX_ELEMENT, false ); // False has NO influence.
-		mMeshVisual->setParamIntMeshGL( MeshGLParams::GLSL_COLMAP_CHOICE, MeshGLParams::GLSL_COLMAP_GRAYSCALE );
-		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_COLMAP_INVERT, true );
-		// Set fixed range for the function value for all renderings to achieve uniform coloring
-		mMeshVisual->setParamIntMeshGL( MeshGLParams::FUNCVAL_CUTOFF_CHOICE, MeshGLParams::FUNCVAL_CUTOFF_MINMAX_USER );
-		mMeshVisual->setParamFloatMeshGL( MeshGLParams::TEXMAP_FIXED_MIN, minFuncValue );
-		mMeshVisual->setParamFloatMeshGL( MeshGLParams::TEXMAP_FIXED_MAX, maxFuncValue );
-		// Turn of vertex sprite rendering
-		mMeshVisual->callFunctionMeshGL( MeshGLParams::SET_SHOW_VERTICES_NONE, false ); // False has NO influence.
-		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_SELECTION, false );
-		//===============================================================================================================
-
-		// Create PDF
-		QString prefixStem( string( std::filesystem::path( currFiles.at(i).toStdString() ).stem().string() ).c_str() );
-		screenshotViewsPDF( pathChoosen+'/'+prefixStem+".pdf" ); // Multiple Sides
-		//screenshotPDF( pathChoosen+'/'+prefixStem+".pdf", true ); // Fromt Sides
+		// Ask user about single VS side views
+		SHOW_QUESTION( tr( "Front view | Side views" ),
+		               tr( "Do you want render<br /><br />"
+		                   "... only the front view - choose: YES<br /><br />"
+		                   "... views from all sides - choose: NO" ),
+		               frontView, userCancel );
+		if( userCancel ) {
+			return( false );
+		}
+		if( frontView | preferPNGoverPDF ) { // Tiled rendering is not an option for PDF and Views
+			// Ask user about tiled rendering
+			SHOW_QUESTION( tr( "Tiled rendering" ),
+				       tr( "Do you want to use tiled rendering?" ),
+				       useTiled, userCancel );
+			if( userCancel ) {
+				return( false );
+			}
+		}
 	}
 
-	SHOW_MSGBOX_INFO( tr("Schreenshots - Views - PDF"), tr("Screenshots have been exported as PDF, LaTeX and PNG.") );
-
-	return( !errorOccured );
-}
-
-//! Render side-views as PNGs.
-//!
-//! User interaction: select a path to load the meshes consecutively and generate
-//! side-views for each 3D-file found.
-//!
-//! @returns false in case of an error or user cancel. True otherwise.
-bool MeshWidget::screenshotViewsPNGDirectory() {
+	// Let the user choose a path
 	QString     pathChoosen;
 	QStringList currFiles;
-	if( !screenshotViewsDirectory( pathChoosen, currFiles ) ) {
+	if( !screenshotViewsDirectoryFiles( pathChoosen, currFiles ) ) {
 		return( false );
 	}
 
-	//! \todo add User interaction.
-	//double printResDPI = 600.0; // HeiCuBeDa Setting
-	double printResDPI = 1000.0; // ErKon3D Springer LNCS Setting
+	// Enter a suffox
+	QString fileNameSuffix( "_Uniform");
+	QGMDialogEnterText dlgEnterTxt;
+	dlgEnterTxt.setWindowTitle( "Filename Suffix" );
+	dlgEnterTxt.setText( fileNameSuffix );
+	if( dlgEnterTxt.exec() == QDialog::Rejected ) {
+		return( false );
+	}
+	if( !dlgEnterTxt.getText( &fileNameSuffix ) ) {
+		return( false );
+	}
 
-	bool errorOccured = false;
-	// This could be outsourced
+	bool retVal = true;
 	for( int i=0; i<currFiles.size(); ++i ) {
 		// mMainWindow->load( pathChoosen+'/'+currFiles.at(i) );
 		if( !fileOpen( pathChoosen+'/'+currFiles.at(i) ) ) {
-			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: File open failed for '" << (pathChoosen+'/'+currFiles.at(i)).toStdString() << "'!" << endl;
-			errorOccured = true;
+			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: File open failed for '"
+			          << (pathChoosen+'/'+currFiles.at(i)).toStdString() << "'!" << std::endl;
+			retVal = false;
 			continue;
 		}
 		if( mMeshVisual == nullptr ) {
-			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: No mesh loaded for '" << (pathChoosen+'/'+currFiles.at(i)).toStdString() << "'!" << endl;
-			errorOccured = true;
+			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: No mesh loaded for '"
+			          << (pathChoosen+'/'+currFiles.at(i)).toStdString() << "'!" << std::endl;
+			retVal = false;
 			continue;
 		}
 
-		//! \todo add User interaction.
-		//===============================================================================================================
-		// Set properties - HEURISTIC for cuneiform tablets
-		//===============================================================================================================
-		// Set ligth and fixed resolution
-		setParamFlagMeshWidget( EXPORT_SIDE_VIEWS_SIX, false );
-		setParamFlagMeshWidget( LIGHT_ENABLED, true );
-		mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_MONO );
-		orthoSetDPI( printResDPI );
-		// Turn of vertex sprite rendering -- COPY+PASTE from BELOW!
-		mMeshVisual->callFunctionMeshGL( MeshGLParams::SET_SHOW_VERTICES_NONE, false ); // False has NO influence.
-		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_SELECTION, false );
+		this->setParamAllMeshWidget( storeMeshWidgetParams );
+		mMeshVisual->setParamAllMeshWidget( storeMeshGLParams );
+		if( orthoMode ) {
+			orthoSetDPI( printResDPI );
+		}
 
 		// Create PNGs
 		string fileNamePattern;
 		getParamStringMeshWidget( FILENAME_EXPORT_VIEWS, &fileNamePattern );
 		QString prefixStem( string( std::filesystem::path( currFiles.at(i).toStdString() ).stem().string() ).c_str() );
-		bool   useTiled = true;
-		std::vector<std::string> imageFiles;
-		std::vector<double>      imageSizes;
-		// SIDE Views
-		//screenshotViews( fileNamePattern, ( pathChoosen+"/"+prefixStem+"_SolidColor" ).toStdString(),
-		//                 useTiled, imageFiles, imageSizes );
-		// FRONT View
-		double widthReal;  // Dummy var - unused in this context.
-		double heigthReal; // Dummy var - unused in this context.
-		screenshotSingle( ( pathChoosen+"/"+prefixStem+"_SolidColor.png" ),
-		                  useTiled, widthReal, heigthReal );
 
-		//===============================================================================================================
-		// Set properties - HEURISTIC for cuneiform tablets
-		//===============================================================================================================
-		// Set ligth and fixed resolution
-		setParamFlagMeshWidget( EXPORT_SIDE_VIEWS_SIX, true );
-		setParamFlagMeshWidget( LIGHT_ENABLED, false );
-		orthoSetDPI( printResDPI );
-		// Compute function value and choose grayscale
-		//double minFuncValue = -0.12910306806; // Values used for HeiCuBeDa 1%
-		//double maxFuncValue = +0.48764927169; // Values used for HeiCuBeDa 99%
-		double minFuncValue = -0.061743971965; // Values used for ErKon3D Springer LNCS 5%
-		double maxFuncValue = 0.205966176870; // Values used for ErKon3D Springer LNCS 98%
-		//double maxFuncValue = +0.554183392987; // Values used for ErKon3D Springer LNCS
-		mMeshVisual->callFunctionMesh( MeshParams::FUNCVAL_FEATUREVECTOR_MAX_ELEMENT, false ); // False has NO influence.
-		mMeshVisual->setParamIntMeshGL( MeshGLParams::GLSL_COLMAP_CHOICE, MeshGLParams::GLSL_COLMAP_GRAYSCALE );
-		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_COLMAP_INVERT, true );
-		// Set fixed range for the function value for all renderings to achieve uniform coloring
-		mMeshVisual->setParamIntMeshGL( MeshGLParams::FUNCVAL_CUTOFF_CHOICE, MeshGLParams::FUNCVAL_CUTOFF_MINMAX_USER );
-		mMeshVisual->setParamFloatMeshGL( MeshGLParams::TEXMAP_FIXED_MIN, minFuncValue );
-		mMeshVisual->setParamFloatMeshGL( MeshGLParams::TEXMAP_FIXED_MAX, maxFuncValue );
-		// Turn of vertex sprite rendering
-		mMeshVisual->callFunctionMeshGL( MeshGLParams::SET_SHOW_VERTICES_NONE, false ); // False has NO influence.
-		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_SELECTION, false );
-		//===============================================================================================================
+		if( frontView ) {
+			if( preferPNGoverPDF ) {
+				// FRONT View PNG image
+				double widthReal;  // Dummy var - unused in this context.
+				double heigthReal; // Dummy var - unused in this context.
+				retVal |= screenshotSingle( pathChoosen+"/"+prefixStem+fileNameSuffix+".png",
+				                             useTiled, widthReal, heigthReal );
+			} else {
+				// FRONT View PDF document
+				QString prefixStem( string( std::filesystem::path( currFiles.at(i).toStdString() ).stem().string() ).c_str() );
+				retVal |= screenshotPDF( pathChoosen+'/'+prefixStem+fileNameSuffix+".pdf",
+				                         useTiled ); // Fromt Side
+			}
+		} else {
+			if( preferPNGoverPDF ) {
+				// SIDE Views PNG images
+				std::vector<QString> imageFiles;
+				std::vector<double>  imageSizes;
+				//! \todo add boolean return to screenshotViews
+				screenshotViews( QString( fileNamePattern.c_str() ),
+				                 QString( pathChoosen+"/"+prefixStem+fileNameSuffix ),
+				                 useTiled, imageFiles, imageSizes );
+			} else {
+				// SIDE Views PDF document
+				QString prefixStem( string( std::filesystem::path( currFiles.at(i).toStdString() ).stem().string() ).c_str() );
+				retVal |= screenshotViewsPDF( pathChoosen+'/'+prefixStem+fileNameSuffix+".pdf" ); // TILES always ON
+			}
+		}
 
-		// Create PNGs
-		// SIDE Views
-		//screenshotViews( fileNamePattern, ( pathChoosen+"/"+prefixStem ).toStdString(),
-		//                 useTiled, imageFiles, imageSizes );
-		// FRONT View
-		screenshotSingle( ( pathChoosen+"/"+prefixStem+".png" ),
-		                  useTiled, widthReal, heigthReal );
+		//! \todo clean-up.
+//		//===============================================================================================================
+//		// Set properties - HEURISTIC for cuneiform tablets
+//		//===============================================================================================================
+//		// Set ligth and fixed resolution
+//		setParamFlagMeshWidget( EXPORT_SIDE_VIEWS_SIX, false );
+//		setParamFlagMeshWidget( LIGHT_ENABLED, true );
+//		mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_MONO );
+//		// Turn of vertex sprite rendering -- COPY+PASTE from BELOW!
+//		mMeshVisual->callFunctionMeshGL( MeshGLParams::SET_SHOW_VERTICES_NONE, false ); // False has NO influence.
+//		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_SELECTION, false );
+//		.......
+//		//===============================================================================================================
+//		// Set properties - HEURISTIC for cuneiform tablets
+//		//===============================================================================================================
+//		// Set ligth and fixed resolution
+//		setParamFlagMeshWidget( EXPORT_SIDE_VIEWS_SIX, true );
+//		setParamFlagMeshWidget( LIGHT_ENABLED, false );
+//		orthoSetDPI( printResDPI );
+//		// Compute function value and choose grayscale
+//		//double minFuncValue = -0.12910306806; // Values used for HeiCuBeDa 1%
+//		//double maxFuncValue = +0.48764927169; // Values used for HeiCuBeDa 99%
+//		double minFuncValue = -0.061743971965; // Values used for ErKon3D Springer LNCS 5%
+//		double maxFuncValue = 0.205966176870; // Values used for ErKon3D Springer LNCS 98%
+//		//double maxFuncValue = +0.554183392987; // Values used for ErKon3D Springer LNCS
+//		mMeshVisual->callFunctionMesh( MeshParams::FUNCVAL_FEATUREVECTOR_MAX_ELEMENT, false ); // False has NO influence.
+//		mMeshVisual->setParamIntMeshGL( MeshGLParams::GLSL_COLMAP_CHOICE, MeshGLParams::GLSL_COLMAP_GRAYSCALE );
+//		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_COLMAP_INVERT, true );
+//		// Set fixed range for the function value for all renderings to achieve uniform coloring
+//		mMeshVisual->setParamIntMeshGL( MeshGLParams::FUNCVAL_CUTOFF_CHOICE, MeshGLParams::FUNCVAL_CUTOFF_MINMAX_USER );
+//		mMeshVisual->setParamFloatMeshGL( MeshGLParams::TEXMAP_FIXED_MIN, minFuncValue );
+//		mMeshVisual->setParamFloatMeshGL( MeshGLParams::TEXMAP_FIXED_MAX, maxFuncValue );
+//		// Turn of vertex sprite rendering
+//		mMeshVisual->callFunctionMeshGL( MeshGLParams::SET_SHOW_VERTICES_NONE, false ); // False has NO influence.
+//		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_SELECTION, false );
+//		//===============================================================================================================
 
-		// THIS is really QUICK and DIRTY
-		// Save file with function value and the created color.
-		// stops because of confirmation: mMeshVisual->callFunctionMeshGL( MeshGLParams::TRANSFORM_FUNCTION_VALUES_TO_RGB, false );
+//		// Create PNGs
+//		// SIDE Views
+//		//screenshotViews( fileNamePattern, ( pathChoosen+"/"+prefixStem ).toStdString(),
+//		//                 useTiled, imageFiles, imageSizes );
+//		// FRONT View
+//		screenshotSingle( ( pathChoosen+"/"+prefixStem+".png" ),
+//		                  useTiled, widthReal, heigthReal );
+
+//		// THIS is really QUICK and DIRTY
+//		// Save file with function value and the created color.
+//		// stops because of confirmation: mMeshVisual->callFunctionMeshGL( MeshGLParams::TRANSFORM_FUNCTION_VALUES_TO_RGB, false );
 //		mMeshVisual->runFunctionValueToRGBTransformation();
 //		mMeshVisual->writeFile( pathChoosen+"/"+prefixStem+"_FtElMax-as_VertexColor.ply" );
 	}
 
-	SHOW_MSGBOX_INFO( tr("Schreenshots - Views - PDF"), tr("Screenshots have been exported as PDF, LaTeX and PNG.") );
+	if( retVal ) {
+		SHOW_MSGBOX_INFO( tr( "Directory Schreenshots" ),
+		                  tr( "Screenshots have been exported for:<br /><br />" ) +
+		                  pathChoosen );
+	} else {
+		SHOW_MSGBOX_WARN( tr( "ERROR - Directory Schreenshots" ),
+		                  tr( "Errors occured creating screenshots for:<br /><br />" ) +
+		                  pathChoosen );
+	}
 
-	return( !errorOccured );
+	return( retVal );
 }
 
 //! Render side-views as PNG and embed those within a PDF using a LaTeX template.
@@ -2904,6 +2751,17 @@ bool MeshWidget::screenshotViewsPDF( const QString& rFileName ) {
 	mMeshVisual->latexFetchFigureInfos( &replacmentStrings );
 
 	// Replace placeholders
+	if (mParamFlag[SPHERICAL_VERTICAL])
+	{
+		replacmentStrings.emplace_back(pair<string, string>("01_ha_top"   , "01_va_top"));
+		replacmentStrings.emplace_back(pair<string, string>("02_ha_left"  , "03_va_side"));
+		replacmentStrings.emplace_back(pair<string, string>("03_ha_front" , "02_va_front"));
+		replacmentStrings.emplace_back(pair<string, string>("04_ha_right" , "05_va_side"));
+		replacmentStrings.emplace_back(pair<string, string>("05_ha_bottom", "06_va_bottom"));
+		replacmentStrings.emplace_back(pair<string, string>("06_ha_back"  , "04_va_back"));
+	}
+
+
 	latexTemplate.replace( QRegExp( "__FIGURE_PREFIX__" ), filePrefixImgTex );
 	latexTemplate.replace( QRegExp( "__SCALE_FACTOR_STRING__" ), scaleFactorTex );
 	latexTemplate.replace( QRegExp( "__SCALE_FACTOR__" ), QString( "%1" ).arg( scaleFactor, 'f' ).trimmed() );
@@ -3354,7 +3212,7 @@ bool MeshWidget::screenshotSingle( const QString&   rFileName,   //!< Filename t
 	rWidthReal  = _NOT_A_NUMBER_DBL_;
 	rHeigthReal = _NOT_A_NUMBER_DBL_;
 
-	QString fileExtension = QFileInfo(rFileName).completeSuffix().toLower();
+	QString fileExtension = QFileInfo(rFileName).suffix().toLower();
 
 	if( fileExtension.isEmpty() ) {
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: No extension/type for file '" << rFileName.toStdString() << "' specified!" << endl;
@@ -3483,8 +3341,8 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled )
 	double widthReal;
 	double heigthReal;
 	screenshotSingle( filePrefixTex+".png", rUseTiled, widthReal, heigthReal );
-	cout << "[MeshWidget::" << __FUNCTION__ << "] allImageWidth: "  << widthReal << endl;
-	cout << "[MeshWidget::" << __FUNCTION__ << "] allImageHeigth: " << heigthReal << endl;
+	std::cout << "[MeshWidget::" << __FUNCTION__ << "] allImageWidth: "  << widthReal << std::endl;
+	std::cout << "[MeshWidget::" << __FUNCTION__ << "] allImageHeigth: " << heigthReal << std::endl;
 	double scaleFactor    = 1.0;
 	QString scaleFactorTex( "1:1" );
 
@@ -3492,12 +3350,12 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled )
 	double borderWidth = 10.0 * 2.0;
 	double ratioWidth  = widthReal  / ( 210.0 - borderWidth - 20.0 );
 	double ratioHeigth = heigthReal / ( 297.0 - borderWidth - 45.0 ); // for table heigth
-	cout << "[MeshWidget::" << __FUNCTION__ << "] ratioWidth:  " << ratioWidth  << endl;
-	cout << "[MeshWidget::" << __FUNCTION__ << "] ratioHeigth: " << ratioHeigth << endl;
+	std::cout << "[MeshWidget::" << __FUNCTION__ << "] ratioWidth:  " << ratioWidth  << std::endl;
+	std::cout << "[MeshWidget::" << __FUNCTION__ << "] ratioHeigth: " << ratioHeigth << std::endl;
 	double maxRatio = max( ratioWidth, ratioHeigth );
-	cout << "[MeshWidget::" << __FUNCTION__ << "] maxRatio: " << maxRatio << endl;
+	std::cout << "[MeshWidget::" << __FUNCTION__ << "] maxRatio: " << maxRatio << std::endl;
 	double log10pow = floor( log10( maxRatio ) );
-	cout << "[MeshWidget::" << __FUNCTION__ << "] log10pow: " << log10pow << endl;
+	std::cout << "[MeshWidget::" << __FUNCTION__ << "] log10pow: " << log10pow << std::endl;
 	scaleFactor       = 2.0/( ceil( maxRatio*2.0/pow( 10.0, log10pow ) )*pow( 10.0, log10pow ) );
 	scaleFactorTex    = "1:" + QString( "%1" ).arg( 1.0/scaleFactor, 'f' ).trimmed() ;
 
@@ -3518,7 +3376,7 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled )
 	mMeshVisual->latexFetchFigureInfos( &replacmentStrings );
 
 	// Replace placeholders
-	latexTemplate.replace( QRegExp( "__FIGURE_IMAGE_FILE__" ), "\""+QString( prefixStem.c_str() )+"\".png" );
+	latexTemplate.replace( QRegExp( "__FIGURE_IMAGE_FILE__" ), "\""+QString( prefixStem.c_str() )+"\"" );
 	latexTemplate.replace( QRegExp( "__SCALE_FACTOR_STRING__" ), scaleFactorTex );
 	latexTemplate.replace( QRegExp( "__SCALE_FACTOR__" ), QString( "%1" ).arg( scaleFactor, 'f' ).trimmed() );
 	for( pair<string, string>& replacmentString : replacmentStrings ) {
@@ -3531,7 +3389,7 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled )
 	// Write LaTex file
 	QFile fileLatexOut( filePrefixTex + ".tex" );
 	if( !fileLatexOut.open( QIODevice::WriteOnly ) ) {
-		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: LaTeX file could not be opened!" << endl;
+		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: LaTeX file could not be opened!" << std::endl;
 		return( false );
 	}
 
@@ -3547,7 +3405,7 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled )
 #endif
 
 	if( !screenshotPDFMake( qPrefixPath , filePrefixTex ) ) {
-		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: LaTeX file could not be compiled!" << endl;
+		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: LaTeX file could not be compiled!" << std::endl;
 		return( false );
 	}
 
@@ -3587,8 +3445,6 @@ bool MeshWidget::fetchFrameAndZBufferTile( unsigned int rTilesX,    //!< Number 
                                            unsigned char* rImRGBA,  //!< Array for the full image
                                            uint64_t rImWidth,  //!< Widht of the frame buffer
                                            uint64_t rImHeight, //!< Height of the frame buffer
-                                           GLubyte*    rImArrayGL,  //!< Array to fetch the framebuffer - has to be pre-allocated and of size rImWidth*3*rImWidth
-										   float*   rPixelZBuffer,   //!< Array to fetch the z.buffer - has to be pre-allocated and of size rImWidth*rImWidth,
 										   OffscreenBuffer* offscreenBuffer, //!< Offscreenbuffer to fetch the render-result from
                                            long       rBorderSize
 	) {
@@ -3645,13 +3501,13 @@ bool MeshWidget::fetchFrameAndZBufferTile( unsigned int rTilesX,    //!< Number 
 //! Typically used for PNGs, which support transparency.
 //!
 //! Optional flag: crop using the z-buffer.
-bool MeshWidget::fetchFrameAndZBuffer(
-                unsigned char*&   rImRGBA,          //!< Image as RGBA byte array (return value)
+bool MeshWidget::fetchFrameAndZBuffer(unsigned char*&   rImRGBA,          //!< Image as RGBA byte array (return value)
                 uint64_t&    rImWidth,         //!< Image heigth (return value)
                 uint64_t&    rImHeight,        //!< Image width (return value)
-				bool              rCropUsingZBuffer, //!< Crop image using the z-buffer
-				OffscreenBuffer*  offscreenBuffer	//!< Offscreenbuffer to fetch the render-result from
-) {
+                bool              rCropUsingZBuffer, //!< Crop image using the z-buffer
+                OffscreenBuffer*  offscreenBuffer,	//!< Offscreenbuffer to fetch the render-result from
+                bool keepBackground  //!< keep background or replace it by transparency
+                                      ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
@@ -3696,26 +3552,29 @@ bool MeshWidget::fetchFrameAndZBuffer(
 			rImRGBA[(ix+iy*rImWidth)*4]   = imArrayGL[ix*3+  (rImHeight-1-iy)*rImWidth*3];
 			rImRGBA[(ix+iy*rImWidth)*4+1] = imArrayGL[ix*3+1+(rImHeight-1-iy)*rImWidth*3];
 			rImRGBA[(ix+iy*rImWidth)*4+2] = imArrayGL[ix*3+2+(rImHeight-1-iy)*rImWidth*3];
-			if( pixelZBuffer[ix+(rImHeight-1-iy)*rImWidth] < 1.0f ) {
-				rImRGBA[(ix+iy*rImWidth)*4+3] = 255;
-				if( ix < xMin ) {
-					xMin = ix;
+			rImRGBA[(ix+iy*rImWidth)*4+3] = 255;
+			if(!keepBackground)
+			{
+				if( pixelZBuffer[ix+(rImHeight-1-iy)*rImWidth] < 1.0f ) {
+					if( ix < xMin ) {
+						xMin = ix;
+					}
+					if( ix > xMax ) {
+						xMax = ix;
+					}
+					if( iy < yMin ) {
+						yMin = iy;
+					}
+					if( iy > yMax ) {
+						yMax = iy;
+					}
+				} else {
+					// Use white color together with full transparency
+					rImRGBA[(ix+iy*rImWidth)*4]   = 255; //! \todo fetch background color used by the widget
+					rImRGBA[(ix+iy*rImWidth)*4+1] = 255;
+					rImRGBA[(ix+iy*rImWidth)*4+2] = 255;
+					rImRGBA[(ix+iy*rImWidth)*4+3] =   0;
 				}
-				if( ix > xMax ) {
-					xMax = ix;
-				}
-				if( iy < yMin ) {
-					yMin = iy;
-				}
-				if( iy > yMax ) {
-					yMax = iy;
-				}
-			} else {
-				// Use white color together with full transparency
-				rImRGBA[(ix+iy*rImWidth)*4]   = 255; //! \todo fetch background color used by the widget
-				rImRGBA[(ix+iy*rImWidth)*4+1] = 255;
-				rImRGBA[(ix+iy*rImWidth)*4+2] = 255;
-				rImRGBA[(ix+iy*rImWidth)*4+3] =   0;
 			}
 		}
 	}
@@ -3902,7 +3761,11 @@ bool MeshWidget::screenshotPNG(const QString& rFileName,
 	uint64_t imWidth;
 	uint64_t imHeight;
 	unsigned char* imRGBA;
-	if( !fetchFrameAndZBuffer( imRGBA, imWidth, imHeight, mParamFlag[CROP_SCREENSHOTS], offscreenBuffer ) ) {
+
+	bool opaqueBackground = false;
+	MeshWidgetParams::getParamFlagMeshWidget(MeshWidgetParams::SCREENSHOT_PNG_BACKGROUND_OPAQUE, &opaqueBackground);
+
+	if( !fetchFrameAndZBuffer( imRGBA, imWidth, imHeight, mParamFlag[CROP_SCREENSHOTS], offscreenBuffer, opaqueBackground ) ) {
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: fetchFrameAndZBuffer failed!" << endl;
 		return( false );
 	}
@@ -3947,13 +3810,13 @@ void MeshWidget::selectColorBackground() {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
-	QColor colorBackground; //!< Background Color of the Widget.
-	bool   okChoosen;       //!< True, when the OK button was pressed.
-	QRgb   rgbNew = QColorDialog::getRgba( colorBackground.rgba(), &okChoosen, nullptr );
-	if( okChoosen ) {
-		colorBackground.setRgb( rgbNew );
+	QColor rgbNew = QColorDialog::getColor( Qt::white, nullptr, 
+	                                        QString( "Background Color"), 
+	                                        QColorDialog::ShowAlphaChannel );
+	if( !rgbNew.isValid() ) { // Cancel was pressed.
+		return;
 	}
-	qglClearColor( colorBackground );
+	qglClearColor( rgbNew );
 	update();
 }
 
@@ -4356,11 +4219,11 @@ bool MeshWidget::screenshotSVG( const QString& rFileName, const QString& rFileNa
 	bool pointsLeft = true;
 	while( pointsLeft ) {
 		pointsLeft = false;
-		int sx = -1;
-		int sy = -1;
+		int64_t sx = 0;
+		int64_t sy = 0;
 		// find a first point
-		for( size_t ix=0; ix<imWidth; ix++ ) {
-			for( size_t iy=0; iy<imHeight; iy++ ) {
+		for( uint64_t ix=0; ix<imWidth; ix++ ) {
+			for( uint64_t iy=0; iy<imHeight; iy++ ) {
 				if( silhArr[ix+iy*imWidth] != 0 ) {
 					sx = ix;
 					sy = iy;
@@ -4935,7 +4798,7 @@ bool MeshWidget::exportPlaneIntersectPolyLinesSVG() {
 	std::string inkscapeCommand;
 	getParamStringMeshWidget(MeshWidgetParams::INKSCAPE_COMMAND, &inkscapeCommand);
 	// 8.) Display with Inkscape:
-	if( !QProcess::startDetached( QString(inkscapeCommand.c_str()) + " " + fileName ) ) {
+	if( !QProcess::startDetached( QString(inkscapeCommand.c_str()) + " \"" + fileName + "\"" ) ) {
 		LOG::error() << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Inkscape won't start!\n";
 	}
 
@@ -4978,11 +4841,6 @@ bool MeshWidget::screenshotSVGexportPlaneIntersections(double rOffsetX,
 			continue;
 		}
 		ctrPolyLinesDrawn++;
-
-		Plane::ePlaneDefinedBy planeDefType = intersectPlane->getDefinedBy();
-		if( planeDefType == Plane::AXIS_POINTS_AND_POSITION ) {
-			cout << "[MeshWidget::" << __FUNCTION__ << "] Plane defined by Axis." << endl;
-		}
 
 		delete intersectPlane;
 
@@ -5316,7 +5174,7 @@ bool MeshWidget::screenshotTiledPNG(
 		for( unsigned int ix=0; ix<tilesX; ix++ ) {
  			setView( orthoViewPort );
  			repaint(); // update() will not work at this point as it tries to prevent flickering!
-			fetchFrameAndZBufferTile( tilesX, tilesY, ix, iy, imRGBA, imWidth, imHeight, imArrayGL, pixelZBuffer, offscreenBuffer, rBorderSize );
+			fetchFrameAndZBufferTile( tilesX, tilesY, ix, iy, imRGBA, imWidth, imHeight, offscreenBuffer, rBorderSize );
 			orthoViewPort[0] += realWidth - (2*rBorderSize * widthRatio);
 			orthoViewPort[1] += realWidth - (2*rBorderSize * widthRatio);
 			cout << "X";
@@ -5374,7 +5232,7 @@ bool MeshWidget::screenshotTiledPNG(
 		cout << "[MeshWidget::" << __FUNCTION__ << "] Resolution in DPI not set." << endl;
 	}
 	bool appendDPItoFilename = false;
-	getParamFlagMeshWidget( SCREENSHOT_FILENAME_WITH_DPI, &appendDPItoFilename );
+	getParamFlagMeshWidget( MeshWidgetParams::SCREENSHOT_FILENAME_WITH_DPI, &appendDPItoFilename );
 
 	double dpm;
 	if(!getViewPortDPM(dpm))
@@ -5895,7 +5753,7 @@ bool MeshWidget::rotPlaneRoll(double rAngle)
 // OpenGL Stuff ----------------------------------------------------------------
 
 //! Re-draws the OpenGL widget, when its size has changed by calling setView().
-void MeshWidget::resizeGL( int width , int height  ) {
+void MeshWidget::resizeGL( [[maybe_unused]]int width , [[maybe_unused]]int height  ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "] width: " << width << " height: " << height << endl;
 #endif
@@ -6238,7 +6096,7 @@ bool MeshWidget::paintRasterImage( eTextureMaps rTexMap, int rPixelX, int rPixel
 	someBuffer.create();
 	someBuffer.setUsagePattern( QOpenGLBuffer::StaticDraw );
 	someBuffer.bind();
-	someBuffer.allocate( coords.data(), sizeof(GLfloat)*coords.size() );
+	someBuffer.allocate( coords.data(), static_cast<int>(sizeof(GLfloat)*coords.size()) );
 
 	// Strided data -- first there floats are the position vectors.
 	mShaderImage->setAttributeBuffer( "vertPosition", GL_FLOAT, 0, 2, sizeof(GLfloat)*4 );
@@ -6287,7 +6145,7 @@ void MeshWidget::checkMissingTextures(ModelMetaData& metadata)
 		{
 			auto fileNames = textureDialog.getFileNames();
 
-			if(fileNames.size() != missingTexIds.size())
+			if(fileNames.size() != static_cast<int>(missingTexIds.size()))
 				return;
 
 			auto fileNameIt = fileNames.begin();
@@ -6309,7 +6167,6 @@ void MeshWidget::checkMeshSanity()
 	const auto meshCenterDistance = mMeshVisual->getBoundingBoxCenter().getLength3();
 
 	int exponent = 0.0F;
-	const auto mantissa = frexp(meshCenterDistance,&exponent);
 
 	//! TODO: find out resonable value. Currently, assume that the float should have at least 4 binary decimal places
 	if(std::numeric_limits<float>::digits - exponent < 4)
@@ -6380,7 +6237,7 @@ void MeshWidget::paintSelection() {
 	painter.begin( &imPoly );
 	painter.setRenderHint( QPainter::Antialiasing );
 	painter.setPen( somePen );
-	painter.drawPolyline( mSelectionPoly.data(), mSelectionPoly.size() );
+	painter.drawPolyline( mSelectionPoly.data(), static_cast<int>(mSelectionPoly.size()) );
 	somePen.setStyle( Qt::DashLine );
 	painter.setPen( somePen );
 	painter.drawLine( mSelectionPoly.front(), mSelectionPoly.back() );
@@ -6632,6 +6489,28 @@ void MeshWidget::mousePressEvent( QMouseEvent *rEvent ) {
 	}
 }
 
+void MeshWidget::mouseDoubleClickEvent( QMouseEvent* rEvent)
+{
+	if(rEvent->button() == Qt::LeftButton)
+	{
+		// Correct for OpenGL:
+		GLint viewport[4];
+		glGetIntegerv( GL_VIEWPORT, viewport );
+		const int yPixel = viewport[3] - rEvent->pos().y();
+		const int xPixel = rEvent->pos().x();
+		Vector3D clickPos;
+
+		if(mMeshVisual->getWorldPointOnMesh(xPixel, yPixel, &clickPos))
+		{
+			const Vector3D transVec = clickPos - mCenterView;
+			mCenterView = clickPos;
+			mCameraCenter += transVec;
+			setView();
+			update();
+		}
+	}
+}
+
 //! Handles the event when the mouse button is released again
 void MeshWidget::mouseReleaseEvent(QMouseEvent *rEvent)
 {
@@ -6722,7 +6601,7 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 	}
 	//! Move lightFixedWorld, when the Left Mouse Button is pressed and the lights are on.
 	if( ( rEvent->buttons() == Qt::LeftButton ) &&
-		( currMouseMode == MOUSE_MODE_MOVE_LIGHT_FIXED_WORLD ) &&
+	    ( currMouseMode == MOUSE_MODE_MOVE_LIGHT_FIXED_OBJECT ) &&
 		( lightEnabled ) &&
 	    ( lightFixedWorld )
 	  ) {
@@ -7475,7 +7354,7 @@ void MeshWidget::wheelEventZoom(
 }
 
 //! Takes care to properly resize this OpenGL widget.
-void MeshWidget::resizeEvent( QResizeEvent * event  ) {
+void MeshWidget::resizeEvent( [[maybe_unused]] QResizeEvent * event  ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "] " << event->size().width() << " x " << event->size().height() << endl;
 #endif

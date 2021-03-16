@@ -22,7 +22,7 @@ uniform float uNormalWidth  = 0.1;
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // +++ Rendering of a light direction as line-like triangles: --------------------------------------------------------------------------------------------------
-uniform bool  uLightVectors    = true;
+uniform int   uLightVectors    = 0; // 0 = off, 1 = MOUSE_MODE_MOVE_LIGHT_FIXED_CAM, 2 = MOUSE_MODE_MOVE_LIGHT_FIXED_OBJECT
 uniform int   uLightVecModVal  = 10;
 uniform float uLightVeclLength = 20.0;
 uniform float uLightVecWidth   =  0.005;
@@ -136,7 +136,7 @@ void main(void) {
 		gInvertColor = 0u;
 	}
 	
-	if( uLightVectors && ( mod( gl_PrimitiveIDIn, uLightVecModVal ) == 0 ) ) {
+        if( uLightVectors != 0 && ( mod( gl_PrimitiveIDIn, uLightVecModVal ) == 0 ) ) {
 		gInvertColor = 1u;
 		// Calculate the center of gravity of the triangle:
 		vec3 cog = ( oVertex[0].ec_pos.xyz + oVertex[1].ec_pos.xyz + oVertex[2].ec_pos.xyz ) / 3.0;
@@ -146,29 +146,15 @@ void main(void) {
 		vec3 ac = oVertex[2].ec_pos.xyz - oVertex[0].ec_pos.xyz;
 		vec3 normal = normalize( cross( ab, ac ) );
 
-		vec3 lightDirFix = normalize( uLightDirectionFixedCamera );
-		if( ( length( lightDirFix ) > 0.0 ) &&       // Show only if the light is turned on
-		    ( dot( normal, lightDirFix ) > 0.1 ) ) { // Show only if the light hits the face
-			lightDirFix *= uLightVeclLength;
-	
-			vec3 diagNormal = cross( lightDirFix, vec3( 0.0, 0.0, uLightVecWidth ) );
-			
-			gl_Position = projection * vec4( cog, 1.0 );
-			EmitVertex();
-			
-			vec4 sideShift = vec4( lightDirFix + diagNormal, 0.0 );
-		
-			gl_Position = projection * ( vec4( cog, 1.0 ) + sideShift );
-			EmitVertex();
-		
-			sideShift = vec4( lightDirFix - diagNormal, 0.0 );
-			gl_Position = projection * ( vec4( cog, 1.0 ) + sideShift );
-			EmitVertex();
-		
-			EndPrimitive();
-		}
-
-		lightDirFix = ( normalize( vec4( uLightDirectionFixedWorld, 0.0 ) )*inverse(modelview) ).xyz;
+                vec3 lightDirFix;
+                if(uLightVectors == 1)
+                {
+                    lightDirFix = normalize( uLightDirectionFixedCamera );
+                }
+                else if(uLightVectors == 2)
+                {
+                    lightDirFix = ( normalize( vec4( uLightDirectionFixedWorld, 0.0 ) )*inverse(modelview) ).xyz;
+                }
 		if( ( length( lightDirFix ) > 0.0 ) &&       // Show only if the light is turned on
 		    ( dot( normal, lightDirFix ) > 0.1 ) ) { // Show only if the light hits the face
 			lightDirFix *= uLightVeclLength;

@@ -92,7 +92,7 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		virtual bool showEnterText( std::set<long>&      rIntegers,  const char* rTitle );
 		virtual bool showEnterText( std::vector<long>&   rIntegers,  const char* rTitle );
 		virtual bool showEnterText( std::vector<double>& rDoubles,   const char* rTitle );
-		virtual bool showEnterText( Matrix4D* rMatrix4x4 );
+		virtual bool showEnterText( Matrix4D* rMatrix4x4, bool selectedVerticesOnly = false );
 		virtual bool showSlider( double* rValueToChange, double rMin, double rMax, const char* rTitle );
 		virtual bool showQuestion( bool* rUserChoice, const std::string& rHead, const std::string& rMsg );
 

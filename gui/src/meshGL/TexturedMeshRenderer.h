@@ -51,8 +51,10 @@ class TexturedMeshRenderer
 				QVector4D fixedWorldDiffuse;
 				QVector4D fixedWorldSpecular;
 				QVector4D ambient;
+				QVector4D clipPlane;
 				QVector3D lightDirFixedCam;
 				QVector3D lightDirFixedWorld;
+				QVector3D clipVertexPos;
 				double shininess = 1.0;
 				bool lightEnabled = false;
 		};
@@ -85,7 +87,7 @@ class TexturedMeshRenderer
 		std::vector<QOpenGLTexture*> mTextures;
 		QOpenGLFunctions_3_3_Core mGL;
 
-		QVector3D mBackFaceColor = QVector3D(128.0 / 255.0, 92.0 / 255.0, 92.0 / 255.0);
+		QVector3D mBackFaceColor = QVector3D(128.0F / 255.0F, 92.0F / 255.0F, 92.0F / 255.0F);
 		bool mCullBackfaces = false;
 };
 

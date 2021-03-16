@@ -67,36 +67,38 @@ class MeshGL : public Mesh, public MeshGLParams {
 		~MeshGL();
 
 		// Menu interactions:
-		virtual bool       callFunction( MeshParams::eFunctionCall rFunctionID,   bool rFlagOptional=false );
+		        bool       callFunction( MeshParams::eFunctionCall rFunctionID,   bool rFlagOptional=false ) override;
 		virtual bool       callFunction( MeshGLParams::eFunctionCall rFunctionID, bool rFlagOptional=false );
 
-		virtual bool         labelsChanged();
-		virtual void         polyLinesChanged();
+				bool         labelsChanged()    override;
+				void         polyLinesChanged() override;
 
-		virtual unsigned int selectedMVertsChanged();
-		virtual unsigned int selectedMFacesChanged();
+		unsigned int selectedMVertsChanged() override;
+		unsigned int selectedMFacesChanged() override;
 
-		virtual bool       compPolylinesIntInvRunLen( double rIIRadius, PolyLine::ePolyIntInvDirection rDirection );
-		virtual bool       compPolylinesIntInvAngle( double rIIRadius );
+		        bool       compPolylinesIntInvRunLen( double rIIRadius, PolyLine::ePolyIntInvDirection rDirection ) override;
+				bool       compPolylinesIntInvAngle( double rIIRadius ) override;
 		virtual void       getPolylineExtrema();
 		virtual bool       fillPolyLines( uint64_t& rFilled, uint64_t& rFail, uint64_t& rSkipped );
 
-		virtual bool       applyTransformation( Matrix4D rTrans, std::set<Vertex*>* rSomeVerts, bool rResetNormals = true );
-		virtual bool       applyMeltingSphere( double rRadius, double rRel );
+				bool       applyTransformationToWholeMesh( Matrix4D rTrans, bool rResetNormals = true ) override;
+				bool       applyTransformation( Matrix4D rTrans, std::set<Vertex*>* rSomeVerts, bool rResetNormals = true ) override;
+				bool       applyMeltingSphere( double rRadius, double rRel ) override;
 
-		virtual bool       resetVertexNormals();
+				bool       normalsVerticesChanged() override;
 
-		virtual void       changedFaceFuncVal();
-		virtual void       changedVertFuncVal();
+				void       changedFaceFuncVal() override;
+				void       changedVertFuncVal() override;
 
 		// Color creation related
 		        bool       normalizeFunctionValues();
 		        bool       runFunctionValueToRGBTransformation();
 
-		virtual bool       assignImportedTexture( int rLineCount, uint64_t* rRefToPrimitves, unsigned char* rTexMap );
-		virtual bool       assignImportedNormalsToVertices( std::vector<MeshIO::grVector3ID>* rNormals );
-		virtual bool       multiplyColorWithFuncVal();
-		virtual bool       multiplyColorWithFuncVal( const double rMin, const double rMax );
+				bool       assignImportedTexture( int rLineCount, uint64_t* rRefToPrimitves, unsigned char* rTexMap ) override;
+				bool       assignImportedNormalsToVertices( const std::vector<grVector3ID>& rNormals ) override;
+				bool       multiplyColorWithFuncVal() override;
+				bool       multiplyColorWithFuncVal( const double rMin, const double rMax ) override;
+				bool       assignAlphaToSelectedVertices(unsigned char alpha) override;
 
 		// UI/Selection:
 		        bool       selectPlaneThreePoints( int rXPixel, int rYPixel );
@@ -115,6 +117,7 @@ class MeshGL : public Mesh, public MeshGLParams {
 	public:
 		        bool       getRayWorld( int xPixel, int yPixel, Vector3D* rayTop, Vector3D* rayBot );
 		        bool       getWorldPoint( int rPixelX, int rPixelY, float rDepth, Vector3D* rPosVec );
+				bool       getWorldPointOnMesh( int rPixelX, int rPixelY, Vector3D* rPosVec);
 
 		// Function Values - Generic:
 		virtual bool       setVertexFuncValues(Vertex** vertices, double* values, int verticesNr, const std::string& setName );
@@ -136,18 +139,18 @@ class MeshGL : public Mesh, public MeshGLParams {
 		virtual void       glPaintFrontalLightPerVertex( const QMatrix4x4 &rTransformMat, GLint rXResolution, GLint rYResolution, GLuint rDepthTexture, GLfloat rZTolerance, GLint rFirstVertIdx );
 
 		// Handling of new primitives:
-		virtual bool       removeVertices( std::set<Vertex*>* verticesToRemove );
-		virtual bool       insertVerticesCoordTriplets( std::vector<double>* rCoordTriplets );
-		virtual bool       insertVertices( std::vector<Vertex*>* rNewVertices );
+				bool       removeVertices( std::set<Vertex*>* verticesToRemove ) override;
+				bool       insertVerticesCoordTriplets( std::vector<double>* rCoordTriplets ) override;
+				bool       insertVertices( std::vector<Vertex*>* rNewVertices ) override;
 
 		// Parameters:
-		virtual bool       setParamFlagMeshGL(  MeshGLParams::eParamFlag rParamID, bool   rState );
-		virtual bool       setParamIntMeshGL(   MeshGLParams::eParamInt  rParamID, int    rValue );
-		virtual bool       setParamFloatMeshGL( MeshGLParams::eParamFlt  rParamID, double rValue );
+				bool       setParamFlagMeshGL(  MeshGLParams::eParamFlag rParamID, bool   rState ) override;
+				bool       setParamIntMeshGL(   MeshGLParams::eParamInt  rParamID, int    rValue ) override;
+				bool       setParamFloatMeshGL( MeshGLParams::eParamFlt  rParamID, double rValue ) override;
 
 		// Shelling:
-		virtual bool       applyNormalShift( double offset );
-		virtual bool       applyNormalShiftHelper( bool initCall, bool removeOriginalObject, bool connectBorders );
+				bool       applyNormalShift( double offset ) override;
+				bool       applyNormalShiftHelper( bool initCall, bool removeOriginalObject, bool connectBorders ) override;
 		virtual bool       removeDoubleTriangles();
 		virtual bool       recalculateTriangleOrientation();
 		virtual bool       fixTriangleIntersection();

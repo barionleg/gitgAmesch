@@ -224,7 +224,7 @@ bool CatmullClark::apply_to(mesh& input_mesh)
 
 void CatmullClark::create_face_points(mesh& input_mesh, mesh& output_mesh)
 {
-	for(size_t i = 0; i < input_mesh.num_faces(); i++)
+	for(size_t i = 0; i < input_mesh.num_faces(); ++i)
 	{
 		print_progress("Creating face points",
 				i,
@@ -236,7 +236,7 @@ void CatmullClark::create_face_points(mesh& input_mesh, mesh& output_mesh)
 		for(size_t j = 0; j < f->num_vertices(); j++)
 			centroid += f->get_vertex(j)->get_position();
 
-		centroid /= f->num_vertices();
+		centroid /= static_cast<double>(f->num_vertices());
 
 		f->face_point = output_mesh.add_vertex(centroid);
 
@@ -255,7 +255,7 @@ void CatmullClark::create_face_points(mesh& input_mesh, mesh& output_mesh)
 
 void CatmullClark::create_edge_points(mesh& input_mesh, mesh& output_mesh)
 {
-	for(size_t i = 0; i < input_mesh.num_edges(); i++)
+	for(size_t i = 0; i < input_mesh.num_edges(); ++i)
 	{
 		print_progress("Creating edge points",
 				i,
@@ -324,7 +324,7 @@ void CatmullClark::create_edge_points(mesh& input_mesh, mesh& output_mesh)
 
 void CatmullClark::create_vertex_points_parametrically(mesh& input_mesh, mesh& output_mesh)
 {
-	for(size_t i = 0; i < input_mesh.num_vertices(); i++)
+	for(size_t i = 0; i < input_mesh.num_vertices(); ++i)
 	{
 		print_progress("Creating vertex points [parametrically]",
 				i,
@@ -408,13 +408,13 @@ void CatmullClark::create_vertex_points_parametrically(mesh& input_mesh, mesh& o
 		if(beta != 0.0)
 		{
 			for(std::set<const vertex*>::iterator it = vertices_beta.begin(); it != vertices_beta.end(); it++)
-				vertex_point += (*it)->get_position()*beta/n;
+				vertex_point += (*it)->get_position()*beta/static_cast<double>(n);
 		}
 
 		if(gamma != 0.0)
 		{
 			for(std::set<const vertex*>::iterator it = vertices_gamma.begin(); it != vertices_gamma.end(); it++)
-				vertex_point += (*it)->get_position()*gamma/n;
+				vertex_point += (*it)->get_position()*gamma/static_cast<double>(n);
 		}
 
 		v->vertex_point = output_mesh.add_vertex(vertex_point);
@@ -454,8 +454,8 @@ void CatmullClark::create_vertex_points_geometrically(mesh& input_mesh, mesh& ou
 		v3ctor R;
 		v3ctor S;
 
-		size_t n = v->valency();
-		if(n < 3)
+		double n = static_cast<double>(v->valency());
+		if(n < 3.0)
 			continue; // ignore degenerate vertices
 
 		// Q is the average of the new face points of all faces
@@ -463,7 +463,7 @@ void CatmullClark::create_vertex_points_geometrically(mesh& input_mesh, mesh& ou
 		for(size_t j = 0; j < v->num_adjacent_faces(); j++)
 			Q += v->get_face(j)->face_point->get_position();
 
-		Q /= v->num_adjacent_faces();
+		Q /= static_cast<double>(v->num_adjacent_faces());
 
 		// R is the average of the midpoints of all old edges incident
 		// on the current vertex
@@ -478,7 +478,7 @@ void CatmullClark::create_vertex_points_geometrically(mesh& input_mesh, mesh& ou
 		// S is the current vertex
 		S = v->get_position();
 
-		v3ctor vertex_point = (Q+R*2+S*(n-3))/n;
+		v3ctor vertex_point = (Q+R*2.0+S*(n-3.0))/n;
 		v->vertex_point = output_mesh.add_vertex(vertex_point);
 	}
 }

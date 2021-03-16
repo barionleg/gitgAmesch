@@ -1,6 +1,10 @@
 #include "tcpServer.h"
 #include <typeinfo>
-
+#include <QDesktopServices>
+#include <QUrl>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 
 using namespace std;
 using json = nlohmann::json;
@@ -50,11 +54,10 @@ TcpServer::TcpServer(QObject *parent) :
     this->socket = new QTcpSocket();
 
     // whenever a user connects, it will emit signal
-    QObject::connect(server, SIGNAL(newConnection()),
-	    this, SLOT(newConnection()));
+    QObject::connect(server, &QTcpServer::newConnection, this, &TcpServer::newConnection);
+    QObject::connect(this->socket, &QTcpSocket::connected, this, &TcpServer::connected);
 
-    QObject::connect(this->socket, SIGNAL(connected()),
-	    this, SLOT(connected()));
+    in.setDevice(this->socket);
 
     if(!server->listen(QHostAddress::Any, 8080))
     {
@@ -63,6 +66,12 @@ TcpServer::TcpServer(QObject *parent) :
     else
     {
 	qDebug() << "[TcpServer::TcpServer] Server started.";
+
+        QSettings settings;
+        QString user = settings.value("userName").toString();
+        Provider prov = static_cast<Provider>( settings.value("provider").toInt() );
+        refreshing = true;
+        emit authenticateUser(&user, &prov);
     }
 }
 
@@ -71,19 +80,19 @@ string TcpServer::statusCodeAsString(httpStatusCode c)
 {
 	switch (c)
 	{
-	case c200: return "200 OK\r\n";
-	case c202: return "202 Accepted\r\n";
-	case c404: return "424 Unknown command\r\n";
-	case c424: return "424 No mesh loaded\r\n";
-	case c500: return "500 \r\n";
-	case c503: return "503 Service Unavailable\r\n";
-	//default: throw Exception("Bad httpStatusCode");
+            case c200: return "200 OK\r\n";
+            case c202: return "202 Accepted\r\n";
+            case c404: return "424 Unknown command\r\n";
+            case c424: return "424 No mesh loaded\r\n";
+            case c500: return "500 \r\n";
+            case c503: return "503 Service Unavailable\r\n";
+            //default: throw Exception("Bad httpStatusCode");
 	}
     return "500 \r\n";
 }
 
 
-void TcpServer::connected()//QTcpSocket *socket)
+void TcpServer::connected()
 {
 	httpStatusCode statusCode;
 	if(this->socket != nullptr && this->socket->isOpen()){
@@ -94,50 +103,45 @@ void TcpServer::connected()//QTcpSocket *socket)
 	}
 
 	QString verConnected = QString::fromStdString("HTTP/1.0 ");
-	verConnected += QString::fromStdString(TcpServer::statusCodeAsString(statusCode));
-	this->socket->write(verConnected.toLocal8Bit());
+        verConnected += QString::fromStdString(TcpServer::statusCodeAsString(statusCode));
+        this->socket->write(verConnected.toLocal8Bit());
 	this->socket->flush();
 
-	this->socket->waitForBytesWritten(verConnected.toUtf8().size());
+        this->socket->waitForBytesWritten(verConnected.toUtf8().size());
 	this->socket->waitForReadyRead();
 }
 
 
 void TcpServer::reading(HTTP::Request *request)
 {
-	cout << endl << "[TcpServer::reading] Reading data..." << endl;
+        cout << "[TcpServer::reading] Reading data..." << endl;
 
-	bool headerEnd = false;
-	int maxSize = 1000000;
-	int bodySize = maxSize;
-	int receivedBytes = 0;
+        if(!this->socket->canReadLine()){
+            return ;
+        }
 
-	QByteArray reqHead;
+        QByteArray reqHead;
 	// wait for message body
-	while(!headerEnd){
+        while(this->socket->canReadLine()){
 		QByteArray buffer;
-		buffer = this->socket->readLine(maxSize);
+                buffer = this->socket->readLine();
 		reqHead += buffer;
 		string mess = buffer.toStdString();
 
-		// search for content length info
-		if(mess.find("Content-Length: ")!= -1){
-			bodySize = std::stoi(mess.substr(mess.find("Content-Length: ")+16,std::string::npos));
-		}
 		// search for end of message header
 		if(reqHead.toStdString().find("\r\n\r\n")!= -1){
-			headerEnd = true;
+                        break;
 		}
 	}
 
-	cout << endl << "[TcpServer::reading] Received request: " << endl;
-	qDebug() << "Header: " << reqHead;
+        cout << "[TcpServer::reading] Received Request: " << endl;
+        qDebug() << "Header: " << reqHead << "\n";
 	request->httpParser(QString(reqHead).toStdString());
 
 	QByteArray reqBody;
-	while(receivedBytes < bodySize && HTTP::method_to_string(request->getMeth()) == "POST"){
-		reqBody += this->socket->readLine(maxSize);
-		receivedBytes = reqBody.size();
+        while(this->socket->canReadLine()){
+                reqBody += this->socket->readLine();
+
 	}
 	qDebug() << "Body: " << reqBody << "\n";
 	request->setBody(reqBody.toStdString());
@@ -153,9 +157,6 @@ void TcpServer::sending(QStringList *response)
 	QByteArray mess;
 	mess += "HTTP/1.0 ";
 	mess += response->at(0).toLocal8Bit(); 
-	int numbOfBytes = response->at(1).toLocal8Bit().size()+1;
-	//mess += "Content-Length: " + QVariant(numbOfBytes).toString() + "\r\n";
-	//mess += "Content-Type: json\r\n" ;
 	mess += "\r\n\r\n" ;
 	mess += response->at(1).toLocal8Bit();
 	mess += "\r\n\r\n" ;
@@ -181,6 +182,181 @@ void TcpServer::newConnection()
 	emit sending(&requestData);
 
 	this->socket->close();
+}
+
+
+bool TcpServer::authenticateUser(QString *username, Provider *provider)
+{
+    QSettings settings;
+    QString clientId = "f31165013adac0da36ed";
+    QString clientSecret = "32d6f2a7939c1b40cae13c20a36d4cd32942e60d";
+    QString redirectURI = "http://localhost:8080/authorize";
+    QString state = "randomString";
+    QString authorizationUrlBase;
+    QString accessTokenUrlBase;
+    string userDataUrlBase;
+    QString scope;
+
+    switch(*provider)
+    {
+        case GITHUB:
+            authorizationUrlBase = "https://github.com/login/oauth/authorize";
+            accessTokenUrlBase = "https://github.com/login/oauth/access_token";
+            userDataUrlBase = "https://api.github.com/user";
+            clientId = "f31165013adac0da36ed";
+            clientSecret = "32d6f2a7939c1b40cae13c20a36d4cd32942e60d";
+            scope = "user";
+            break;
+        case GITLAB:
+            authorizationUrlBase = "https://gitlab.com/oauth/authorize";
+            accessTokenUrlBase = "https://gitlab.com/oauth/token";
+            userDataUrlBase = "https://gitlab.com/api/v4";
+            //userDataUrlBase = "https://gitlab.com/api/v4/users?username=" + username->toStdString();
+            clientId = "0838bf6d76153b656173";
+            clientSecret = "c29a631dbcec4349c38d";
+            scope = "public+write";
+            break;
+        case ORCID:
+            // orcid id: 0000-0002-3045-7920
+            authorizationUrlBase = "https://sandbox.orcid.org/oauth/authorize";
+            accessTokenUrlBase = "https://orcid.org/oauth/token";
+            userDataUrlBase = "https://api.gitlab.com/user";
+            clientId = "APP-QTDRZ74P88AWIDF8";
+            clientSecret = "38c556d3-ec89-4666-aff0-30d2e44c1750";
+            scope = "/read-limited";
+            //redirectURI = "https://localhost:8080/authorize"; // orcid requests http(s)!
+            break;
+        case REDDIT:
+            authorizationUrlBase = "https://www.reddit.com/api/v1/authorize";
+            accessTokenUrlBase = "https://www.reddit.com/api/v1/access_token";
+            userDataUrlBase = "https://api.gitlab.com/user";
+            clientId = "6QVMuM64f_ApLQ";
+            clientSecret = "BKHdqqbTEu1pkvbwSlx5_QIUKKwolA";
+            scope = "read edit";
+            break;
+        case MATTERMOST:
+            authorizationUrlBase = "http://localhost:8080/api/v4/users/login";
+            accessTokenUrlBase = "";
+            userDataUrlBase = "";
+            clientId = "";
+            clientSecret = "";
+            scope = "";
+            break;
+        default:
+            authorizationUrlBase = "https://github.com/login/oauth/authorize";
+            accessTokenUrlBase = "https://github.com/login/oauth/access_token";
+            userDataUrlBase = "https://api.github.com/user";
+            clientId = "f31165013adac0da36ed";
+            clientSecret = "32d6f2a7939c1b40cae13c20a36d4cd32942e60d";
+            scope = "user";
+    }
+
+    if(!refreshing)
+    {
+        QString authorizationUrl = authorizationUrlBase + "?response_type=code&client_id=" + clientId +
+                "&scope=" + scope + "&login=" + username + "&redirect_uri=" + redirectURI + "&state=" + state + "&duration=permanent";
+
+        qDebug() << "[TcpServer::RequestAuthentication] Via: " << authorizationUrl;
+
+        QDesktopServices::openUrl(QUrl(authorizationUrl));
+
+        QObject::connect(this, &TcpServer::codeReceived, this, [=](string code){
+
+            QSettings settings;
+            settings.setValue("code", QString::fromStdString(code));
+            QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+
+            cout << "[TcpServer:authenticateUser] Code Received: " << code << endl;
+
+            QString pars = "?clientId=" + clientId + "&clientSecret=" + clientSecret + "&code=" + QString::fromStdString(code);
+            QString accessTokenUrl = accessTokenUrlBase + pars;
+            qDebug() << "[TcpServer:RequestAccessToken] Via: " << accessTokenUrl;
+
+            QNetworkRequest request(accessTokenUrlBase);
+            request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+
+            QUrlQuery params;
+            params.addQueryItem("client_id", clientId);
+            params.addQueryItem("client_secret", clientSecret);
+            params.addQueryItem("code", QString::fromStdString(code));
+            params.addQueryItem("redirect_uri", redirectURI);
+
+            QObject::connect(manager, &QNetworkAccessManager::finished, this, &TcpServer::readToken);
+
+            manager->post(request, params.query().toUtf8());
+        });
+    }
+
+    QObject::connect(this, &TcpServer::tokenReceived, this, [=](string token){
+        QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+
+        cout << "[TcpServer:authenticateUser] Token Received: " << token << endl;
+        QSettings settings;
+        settings.setValue( "token", QString::fromStdString(token));
+
+        QString userDataUrl = QString::fromStdString(userDataUrlBase + "?token=" + token);
+        QNetworkRequest request(userDataUrl);
+        qDebug() << "[TcpServer::authorizeUser] Requesting User Data via: " << userDataUrl;
+        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+        request.setRawHeader(QByteArray("Authorization"),  QByteArray::fromStdString("token " + token));
+
+        QObject::connect(manager, &QNetworkAccessManager::finished, this, &TcpServer::readUserData);
+
+        manager->get(request); // , dataToSend.toUtf8());
+    });
+
+    if(refreshing){
+        cout << "[TcpServer:authenticateUser] Refreshing Authentication" << endl;
+        QSettings settings;
+        emit tokenReceived(settings.value("token").toString().toStdString());
+    }
+
+    QObject::connect(this, &TcpServer::userDataReceived, this, [=](QJsonObject data){
+        cout << "[TcpServer::authenticateUser] User Data Received" << endl;
+        emit mainWin->authenticated(data);
+    });
+
+    this->refreshing = false;
+
+    return true;
+}
+
+
+void TcpServer::readToken(QNetworkReply *reply)
+{
+    QByteArray bts = reply->readAll();
+    QString str(bts);
+    qDebug() << "[TcpServer:readReply] Received Reply: " << str;
+
+    if(str.contains("access_token=", Qt::CaseSensitive)){
+        int start = str.indexOf("access_token=", 1);
+        int end = str.indexOf("&", 1);
+
+        QString token = str.mid(start+14, end-start-14);
+        emit tokenReceived(token.toStdString());
+    }
+}
+
+
+void TcpServer::readUserData(QNetworkReply *reply)
+{
+    const auto bts = reply->readAll();
+
+    const auto document = QJsonDocument::fromJson(bts);
+    QString str(bts);
+    qDebug() << "[TcpServer::readUserData] Received User Data: " << str;
+    Q_ASSERT(document.isObject());
+    const auto rootObject = document.object();
+    const auto dataValue = rootObject.value("data");
+    Q_ASSERT(dataValue.isObject());
+    const auto dataObject = dataValue.toObject();
+
+    if(!document.isEmpty()){
+        emit userDataReceived(rootObject);
+    }else{
+        qDebug() << "[TcpServer::readUserData] Json object is empty.";
+    }
+
 }
 
 
@@ -401,19 +577,6 @@ QStringList TcpServer::parseCommand(Request req){
                             statusCode = c424;
                         }
 
-			/*
-			for(map<string,vector<double>>::iterator it = bodyPars.begin();it != bodyPars.end();it++)	{
-				cout << it->first << " ";
-				data_str += QString::fromStdString(it->first);
-				vector<double> values = it->second;
-				for(size_t i=0; i<values.size();i++){
-					cout << double(values[i]) << " " ;
-					data_str += QString::fromStdString(",") + QString::number(values[i]);
-				}
-				cout << endl;
-				data_str += QString::fromStdString("\n");
-			}
-			*/
 		} else {
 			std::cout << "[QGMMainWindow::receiveCommand] Error: No mesh loaded!" << std::endl;
 			statusCode = c424;
@@ -627,6 +790,48 @@ QStringList TcpServer::parseCommand(Request req){
 			statusCode = c424;
 		}
 	}
+        else if(command=="authorize"){
+                string code;
+                if(pars.find("code") != pars.end()){
+                        code = pars["code"];
+                        //cout << "[QGMMainWindow::parseCommand] Received Code '" << code << "'" << endl;
+                        emit codeReceived(code);
+
+                        QFile file("../../gui/python-interface/websiteSuccess.html");
+                        QString dataToSend;
+                        if(!file.open(QIODevice::ReadOnly)){
+                            qDebug() << "Current path:" << QDir::currentPath();
+                            QMessageBox::information(0, "error", file.errorString());
+                        }else{
+                            QTextStream in(&file);
+                            dataToSend = in.readAll();
+                            qDebug() << "[TcpServer::authorizeUser] Opened File: " << dataToSend;
+                        }
+                        data_str += dataToSend;
+                }else{
+                        cout << "[QGMMainWindow::parseCommand] Missing Code." << endl;
+                        QFile file("../../gui/python-interface/websiteFail.html");
+                        QString dataToSend;
+                        if(!file.open(QIODevice::ReadOnly)){
+                            qDebug() << "Current path:" << QDir::currentPath();
+                            QMessageBox::information(0, "error", file.errorString());
+                        }else{
+                            QTextStream in(&file);
+                            dataToSend = in.readAll();
+                            qDebug() << "[TcpServer::authorizeUser] Opened File: " << dataToSend;
+                        }
+                        data_str += dataToSend;
+                }
+                string returnedState;
+                if(pars.find("state") != pars.end()){
+                        returnedState = pars["state"];
+                        if(returnedState != "randomString"){
+                            cout << "[QGMMainWindow::parseCommand] State differs!" << endl;
+                        }
+                }else{
+                        cout << "[QGMMainWindow::parseCommand] Missing State." << endl;
+                }
+            }
 	else{
 		std::cout << "[QGMMainWindow::parseCommand] Error: Unknown command!" << std::endl;
 		statusCode = c404;

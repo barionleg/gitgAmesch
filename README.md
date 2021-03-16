@@ -1,4 +1,7 @@
 [![pipeline status](https://gitlab.com/fcgl/GigaMesh/badges/master/pipeline.svg)](https://gitlab.com/fcgl/GigaMesh/-/commits/master)
+[![pipeline status](https://gitlab.com/fcgl/GigaMesh/badges/develop/pipeline.svg)](https://gitlab.com/fcgl/GigaMesh/-/commits/develop)
+[![Build status](https://ci.appveyor.com/api/projects/status/jbixmroxgb9hkw1p/branch/master?svg=true)](https://ci.appveyor.com/project/rkuehl-iwr/gigamesh/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/jbixmroxgb9hkw1p/branch/develop?svg=true)](https://ci.appveyor.com/project/rkuehl-iwr/gigamesh/branch/develop)
 
 # NAME
 
@@ -24,6 +27,7 @@ WebSites:
 - [GigaMesh](https://gigamesh.eu) (official, with [tutorials](https://gigamesh.eu/tutorials) and [package downloads](https://gigamesh.eu/downloads))
 - [Project on ResearchGate](https://www.researchgate.net/project/GigaMesh-Software-Framework)
 - [Open Access 3D Datasets](https://heidata.uni-heidelberg.de/dataverse/iwrgraphics)
+- [Twitter](https://twitter.com/MeshGiga)
 
 Video Tutorials:
 - [YouTube Channel](https://www.youtube.com/channel/UCJSOsw9GX8DnkqnciyVwmLw)
@@ -34,7 +38,7 @@ Video Tutorials:
 All executables provide details by adding `--help` or `-h` on the command line.
 
 ## Graphical user interface (GUI)
-- `gigamesh` ... for all functions except the MSII filter.
+- `gigamesh` ... for all functions including the MSII filter with default options.
 
 ## Command line interface (CLI)
 - `gigamesh-featurevectors` ...  MSII filter for single files. Computes **V**olume and surface **P**atch integral invariants for multiple scales.
@@ -55,9 +59,10 @@ git clone https://gitlab.com/fcgl/GigaMesh.git
 #### FEATURE EXTRACTION
 
 For computing the `MSII Featurevectors` a radius and a mesh file need to be given
-for the input.
+for the input. For example a `mesh` in Stanford Polygon ([PLY](https://en.wikipedia.org/wiki/PLY_(file_format))) format is filtered
+for features up to 5 millimeter by:
 
-    gigamesh-featurevectors -r 5.0 -f mesh.ply
+    gigamesh-featurevectors -r 5.0 mesh.ply
 
 BUILDING GigaMesh
 --------------
@@ -92,17 +97,59 @@ cmake ..
 cmake --build . --config Release
 ```
 
+GigaMesh can also be build without the gui or the command line interface:
+Build GigaMesh without gui
+```sh
+cmake .. -DBUILD_GUI=OFF
+```
+Build GigaMesh without command line interface
+```sh
+cmake .. -DBUILD_CLI=OFF
+```
+
 GigaMesh is ideally build with the qtcreator IDE. To load the project, open the CMakeLists.txt in the root directory.
 Please make sure you have a kit selected, that has a C++17 compatible compiler. For further information see:
 * https://doc.qt.io/qtcreator/creator-targets.html
 * https://doc.qt.io/qtcreator/creator-tool-chains.html
 
-AUTHOR
+License
 ------
 
-*GigaMesh* is developed by Hubert Mara.
+The GigaMesh Software Framework's source is released under the [GPL License](https://www.gnu.org/licenses/gpl-3.0.de.html).
+
+Reference
+------
+There is a number of publications [listed on the GigaMesh Website](https://gigamesh.eu/publications) for specific methods 
+and applications. The software framework was first introduced together with the MSII filtering at an Eurographics workshop 
+in 2010. If you are using GigaMesh please cite the following publication (in BibTeX format):
+```
+@inproceedings {VAST:VAST10:131-138,
+    booktitle = {VAST: International Symposium on Virtual Reality, Archaeology and Intelligent Cultural Heritage},
+    editor = {Alessandro Artusi and Morwena Joly and Genevieve Lucet and Denis Pitzalis and Alejandro Ribes},
+    title = {{GigaMesh and Gilgamesh 3D Multiscale Integral Invariant Cuneiform Character Extraction}},
+    author = {Mara, Hubert and Krömker, Susanne and Jakob, Stefan and Breuckmann, Bernd},
+    year = {2010},
+    publisher = {The Eurographics Association},
+    ISSN = {1811-864X},
+    ISBN = {978-3-905674-29-3},
+    DOI = {10.2312/VAST/VAST10/131-138}
+}
+```
+
+Author
+------
+
+*GigaMesh* is developed by [Hubert Mara](https://hubert-mara.at).
 
 Robert Kühl is the senior developer.
 
 *psalm* is developed by Bastian Rieck (onfgvna@evrpx.eh; use `rot13` to
 descramble). The original code is available via [GitHub](https://github.com/Pseudomanifold/psalm).
+
+Feedback
+-------
+is best given via the [issue tracker of GitLab](https://gitlab.com/fcgl/GigaMesh/issues).
+
+Contact
+-------
+by EMail: info@gigamesh.eu

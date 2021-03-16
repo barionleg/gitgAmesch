@@ -250,7 +250,6 @@ int Image2D::writeTIFF(filesystem::path filename, //!< Name of the file to be wr
 	//! and more important a working real-world example: 
 	//! for a binary-image: http://www.ibm.com/developerworks/linux/library/l-libtiff/
 	//! for a colour-image: http://www.ibm.com/developerworks/linux/library/l-libtiff2/
-
 #ifndef LIBTIFF
 	//cerr << "[Image2D::" << __FUNCTION__ << "] ERROR: libtiff NOT present!" << endl;
 
@@ -258,17 +257,14 @@ int Image2D::writeTIFF(filesystem::path filename, //!< Name of the file to be wr
 	{
 		filename += ".png";
 	}
-
 	else
 	{
-
-		filename = filename.parent_path().wstring() +
-		        filename.stem().wstring()
-		        + L"png"; //substitude extension by png
+		filename.replace_extension(".png");
 	}
 
 	QImage img(raster, static_cast<int>(width),
-	           static_cast<int>(height),
+	           static_cast<int>(height), 
+			   (isRGB ? 3 * width * sizeof(unsigned char) : width * sizeof(unsigned char)),
 	           (isRGB ? QImage::Format_RGB888 : QImage::Format_Grayscale8));
 
     if(!img.save(QString::fromStdWString(filename.wstring())))

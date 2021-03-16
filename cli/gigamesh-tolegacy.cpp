@@ -154,9 +154,11 @@ void printHelp( const char* rExecName ) {
 	std::cout << "                                          Default suffices are '_ASCII' and '_Legacy'." << std::endl;
 	std::cout << "  -k, --overwrite-existing                Overwrite exisitng files, which is not done by default" << std::endl;
 	std::cout << "                                          to prevent accidental data loss." << std::endl;
+	std::cout << std::endl;
+	std::cout << "Options for testing and debugging:" << std::endl;
 	std::cout << "    , --log-level [0-4]                   Sets the log level of this application.\n"
-				 "                                          Higher numbers increases verbosity.\n"
-				 "                                          (Default: 1)" << std::endl;
+	             "                                          Higher numbers increases verbosity.\n"
+	             "                                          (Default: 1)" << std::endl;
 	//std::cout << "" << endl;
 }
 
@@ -213,7 +215,7 @@ int main( int argc, char *argv[] ) {
 
 				break;
 
-			case 's':
+			case 's': // optional file suffix
 				optFileSuffix = std::string( optarg );
 				break;
 
@@ -232,11 +234,7 @@ int main( int argc, char *argv[] ) {
 
 			case 'v':
 				std::cout << "GigaMesh Software Framework TO.LEGACY Stanford Polygon Files (PLYs) " << VERSION_PACKAGE << endl;
-#ifdef THREADS
-				std::cout << "Multi-threading with " << std::thread::hardware_concurrency() * 2 << " threads." << endl;
-#else
-				std::cout << "Single-threading. " << endl;
-#endif
+				std::cout << "Multi-threading with " << std::thread::hardware_concurrency() - 1 << " threads." << endl;
 				std::exit( EXIT_SUCCESS );
 				break;
 

@@ -78,10 +78,15 @@ class MeshParams {
 
 		// ENumerator for methods/functions to be called from else-where.
 		enum eFunctionCall {
-			FILE_SAVE_AS,                              //!< Call writeFile related methods.
-			EXPORT_COORDINATES_OF_VERTICES,            //!< Export coordinates of all vertices
-			EXPORT_COORDINATES_OF_SELECTED_VERTICES,   //!< Export coordinates of selected vertices
-			EXPORT_SELPRIMS_POSITIONS,                 //!< Export positions of selected primitives
+			FILE_SAVE_AS,                                 //!< Call writeFile related methods.
+			EXPORT_COORDINATES_OF_VERTICES,               //!< Export coordinates of all vertices
+			EXPORT_COORDINATES_OF_SELECTED_VERTICES,      //!< Export coordinates of selected vertices
+			EXPORT_SELPRIMS_POSITIONS,                    //!< Export positions of selected primitives
+			EXPORT_METADATA_HTML,                         //!< Export Meta-Data as HTML page.
+			EXPORT_METADATA_JSON,                         //!< Export Meta-Data as JSON.
+			EXPORT_METADATA_TTL,                          //!< Export Meta-Data as TTL - Turtle, Terse RDF Triple Language.
+			EXPORT_METADATA_XML,                          //!< Export Meta-Data as XML.
+			EXPORT_METADATA_ALL,                          //!< Export Meta-Data in all available formats (HTML, JSON, TTL and XML).
 			PLANE_FLIP,                                //!< Flip the mesh plane.
 			SELPRIM_VERTEX_BY_INDEX,                   //!< Select a single vertex using an index given by the user.
 			SELMVERTS_FLAG_SYNTHETIC,                  //!< Call selection of vertices tagged synthetic.
@@ -94,6 +99,7 @@ class MeshParams {
 			SELMVERTS_SHOW_INDICES,                    //!< Show the indices of the selected vertices.
 			SELMVERTS_SELECT_INDICES,                  //!< Select vertices using indicies given by the user.
 			SELMVERTS_RANDOM,                          //!< Randomly select vertices. Amount given by user.
+			SELMVERTS_SET_ALPHA,                       //!< Set the color-alpha value of selected vertices.
 			SELMFACES_WITH_SYNTHETIC_VERTICES,         //!< Select faces having synthetic vertices.
 			SELMFACES_WITH_THREE_BORDER_VERTICES,      //!< Select faces having three border vertices e.g. for erosion.
 			SELMFACES_WITH_THREE_SELECTED_VERTICES,    //!< Select faces having three vertices selected (SelMVerts).
@@ -140,7 +146,7 @@ class MeshParams {
 			FUNCVAL_FACE_SORT_INDEX,                   //!< Sort index to face function value.
 			FUNCVAL_SPHERE_SURFACE_LENGTH,             //!< Compute a normalized arc length of the intersection of a local part of the mesh surface with a sphere
 			FUNCVAL_SPHERE_VOLUME_AREA,                //!< Compute a normalized area of the intersection of a local part of the mesh volume with a sphere
-			FUNCVAL_SPHERE_SURFACE_NUMBER_OF_COMPONENTS,//!< Compute the number of components of the intersection of a local part of the mesh surface with a sphere
+			FUNCVAL_SPHERE_SURFACE_NUMBER_OF_COMPONENTS,  //!< Compute the number of components of the intersection of a local part of the mesh surface with a sphere
 			EDIT_REMOVE_SELMFACES,                     //!< Remove selected faces (SelMFace).
 			EDIT_REMOVE_FACESZERO,                     //!< Call to remove face with zero area.
 			EDIT_REMOVE_FACES_BORDER_EROSION,          //!< Call to remove faces having three border vertices iterativly.
@@ -156,6 +162,7 @@ class MeshParams {
 			SELMPRIMS_POS_DESELECT_ALL,				   //!< Call to de-select all positions.
 			SELMPRIMS_POS_DISTANCES,				   //!< Show distances of the selected positions.
 			SELMPRIMS_POS_CIRCLE_CENTERS,              //!< Compute circle centers of selected positions.
+			COMPUTE_FEATUREVECTORS_QUICK,              //!< Apply volume integral invariant filtering (MSII) with default options
 			GEODESIC_DISTANCE_TO_SELPRIM,              //!< Estimate the geodesic distance to a given primitive (SelPrim).
 			POLYLINES_FROM_MULTIPLE_FUNCTION_VALUES,   //!< Compute multiple isolines using the function values.
 			POLYLINES_FROM_FUNCTION_VALUE,             //!< Compute isolines using the function values.

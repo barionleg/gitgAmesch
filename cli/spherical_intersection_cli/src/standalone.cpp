@@ -52,7 +52,7 @@ enum File_Format { obj, ply };
 File_Format input_format;
 bool input_format_is_set = false;
 
-double radius;
+double radius = 0.0;
 bool radius_is_set = false;
 
 std::function<double(spherical_intersection::Graph &)> algorithm;
@@ -61,7 +61,7 @@ bool algorithm_is_set = false;
 std::string output_path;
 bool output_path_is_set = false;
 
-std::size_t thread_count;
+std::size_t thread_count = 1;
 bool thread_count_is_set = false;
 
 std::size_t max_thread_load;

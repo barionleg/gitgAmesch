@@ -53,6 +53,7 @@ class MeshWidgetParams {
 	public:
 		// Constructor and deconstructor:
 		MeshWidgetParams();
+		MeshWidgetParams( const MeshWidgetParams* const rParams );
 		~MeshWidgetParams() = default;
 
 		// Parameters:
@@ -80,7 +81,8 @@ class MeshWidgetParams {
 		                 VIDEO_FRAME_FIXED,         //!< Switch between resizeable and fixed window size.
 		                 EXPORT_SVG_AXIS_DASHED,    //!< Export the rotational axis with(out) dashes to a SVG.
 		                 EXPORT_SIDE_VIEWS_SIX,     //!< Toggle between six and eigth side-views. The latter is typically only interesting for cuneiform tablets.
-		                 SCREENSHOT_FILENAME_WITH_DPI,   //!< Add the DPI for ortho images to the filename.
+			             SCREENSHOT_FILENAME_WITH_DPI,    //!< Add the DPI for ortho images to the filename.
+			             SCREENSHOT_PNG_BACKGROUND_OPAQUE, //!< Toggle between transparent background (false) and background color.
 		                 SHOW_MESH_REDUCED,         //!< Is set when the mesh is moved and the option is enabled the mesh should be shown as a reduced pointcloud or not
 		                 ENABLE_SHOW_MESH_REDUCED,  //!< Toggle if the mesh should be shown as a reduced pointcloud or not
 		                 PARAMS_FLAG_COUNT               //!< Number of flags available
@@ -154,7 +156,7 @@ class MeshWidgetParams {
 			MOUSE_MODE_MOVE_PLANE_AXIS,         //!< Move plane bound by axis
 			MOUSE_MODE_ROTATE_PLANE_AXIS,       //!< Rotate plane bound by axis
 			MOUSE_MODE_MOVE_LIGHT_FIXED_CAM,    //!< Move the OpenGL light fixed to the camera coordinate system.
-			MOUSE_MODE_MOVE_LIGHT_FIXED_WORLD,  //!< Move the OpenGL light fixed in the world/object coordinate system.
+			MOUSE_MODE_MOVE_LIGHT_FIXED_OBJECT,  //!< Move the OpenGL light fixed in the object coordinate system.
 			MOUSE_MODE_SELECT,                  //!< Use the mouse for selection.
 			MOUSE_MODE_COUNT                    //!< Number of choices for mouse modes.
 		};
@@ -184,6 +186,11 @@ class MeshWidgetParams {
 			VPINFO_LABEL_ID        //!< Label ID of the selected primiitve (SelPrim).
 		};
 
+		enum eViewUserInfo {
+			USER_INFO,
+			USER_LOGIN	
+		};
+
 		// ENumerator for methods/functions to be called from else-where.
 		enum eFunctionCall {
 			EXPORT_POLYLINES_INTERSECT_PLANE,   //!< Export the polylines computed using an intersecting plane.
@@ -191,8 +198,7 @@ class MeshWidgetParams {
 			SCREENSHOT_CURRENT_VIEW_SINGLE_PDF, //!< Write a single image with the current view embedded into a PDF.
 			SCREENSHOT_VIEWS_IMAGES,            //!< Side-views of the mesh as PNGs or TIFFs.
 			SCREENSHOT_VIEWS_PDF,               //!< Side-views of the mesh as PNGs embedded into a PDF.
-			SCREENSHOT_VIEWS_PDF_DIRECTORY,     //!< Side-views of all meshes in a given directory as PNGs embedded via LaTeX into PDFs (one per mesh).
-			SCREENSHOT_VIEWS_PNG_DIRECTORY,     //!< Side-views of all meshes in a given directory as PNGs.
+			SCREENSHOT_VIEWS_DIRECTORY,         //!< Side-views or front-view of all meshes in a given directory as PNGs with or without embeding via LaTeX into PDFs (one per mesh).
 			EDIT_SET_CONEAXIS_CENTRALPIXEL,     //!< Use the central pixel of the viewport to set the axis of the cone. See Mesh::setConeAxis
 			SET_CURRENT_VIEW_TO_DEFAULT,        //!< Use the current view (matrix) to set the default view of the object.
 			SET_ORTHO_DPI,                      //!< Set the screen resolution for the orthographic rendering.
@@ -246,18 +252,20 @@ class MeshWidgetParams {
 		};
 
 		// Flags:
-		virtual bool getParamFlagMeshWidget( eParamFlag rFlagNr, bool* rState );
+		virtual bool getParamFlagMeshWidget( eParamFlag rFlagNr, bool* rState ) const;
 		virtual bool setParamFlagMeshWidget( eParamFlag rFlagNr, bool rState );
 		virtual bool toggleShowFlag( eParamFlag rFlagNr );
 		// Integer:
-		virtual bool getParamIntegerMeshWidget( eParamInt rParam, int* rValue );
+		virtual bool getParamIntegerMeshWidget( eParamInt rParam, int* rValue ) const;
 		virtual bool setParamIntegerMeshWidget( eParamInt rParam, int rValue );
 		// Floating point:
-		virtual bool getParamFloatMeshWidget( eParamFlt rParam, double* rValue );
+		virtual bool getParamFloatMeshWidget( eParamFlt rParam, double* rValue ) const;
 		virtual bool setParamFloatMeshWidget( eParamFlt rParam, double rValue );
 		// Strings:
-		virtual bool getParamStringMeshWidget( eParamStr rParamID, std::string* rString );
+		virtual bool getParamStringMeshWidget( eParamStr rParamID, std::string* rString ) const;
 		virtual bool setParamStringMeshWidget( eParamStr rParamID, const std::string& rString );
+		// ALL:
+		        bool setParamAllMeshWidget( const MeshWidgetParams& rParams );
 
 		// Extra Helper functions (to prevent copied code)
 		bool getGridCenterPosOffsets( double& rXOffset, double& rYOffset );

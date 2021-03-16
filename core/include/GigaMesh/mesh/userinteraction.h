@@ -39,12 +39,12 @@ class UserInteraction
 		virtual void showWarning( const std::string& rHead, const std::string& rMsg );
 
 		virtual bool showEnterText( std::string&         rSomeStrg,  const char* rTitle );
-		virtual bool showEnterText( uint64_t&       rULongInt,  const char* rTitle );
+		virtual bool showEnterText( uint64_t&            rULongInt,  const char* rTitle );
 		virtual bool showEnterText( double&              rDoubleVal, const char* rTitle );
 		virtual bool showEnterText( std::set<long>&      rIntegers,  const char* rTitle );
 		virtual bool showEnterText( std::vector<long>&   rIntegers,  const char* rTitle );
 		virtual bool showEnterText( std::vector<double>& rDoubles,   const char* rTitle );
-		virtual bool showEnterText( Matrix4D* rMatrix4x4 );
+		virtual bool showEnterText( Matrix4D* rMatrix4x4, bool selectedVerticesOnly = false );
 
 		virtual bool showSlider( double* rValueToChange, double rMin, double rMax, const char* rTitle );
 		virtual bool showQuestion( bool* rUserChoice, const std::string& rHead, const std::string& rMsg );

@@ -346,6 +346,7 @@ bool MeshIO::importTEXMap(const filesystem::path&          rFileName,
 //! Import an ASCII file with normal vectors.
 //! Expected format: <integer/primitive_id> <double/x-component> <double/y-component> <double/z-component>
 bool MeshIO::importNormals( const filesystem::path& rFileName, vector<grVector3ID>* rNormals ) {
+	// Prepare
 	std::fstream fileStream;
 	fileStream.open( rFileName, std::fstream::in );
 	if( !fileStream.is_open() ) {
@@ -353,8 +354,19 @@ bool MeshIO::importNormals( const filesystem::path& rFileName, vector<grVector3I
 		return false;
 	}
 	LOG::debug() << "[MeshIO::" << __FUNCTION__ << "] Reading from '" << rFileName << "'\n";
-	int primID;
-	while( fileStream >> primID ) {
+
+	// Fetch data
+	while( fileStream.good() ) {
+		char nextByte = fileStream.peek();
+		// Comment line:
+		if( nextByte == '#' ) {
+			std::string line;
+			getline( fileStream, line );
+			continue;
+		}
+		// Regular line:
+		unsigned long primID;
+		fileStream >> primID;
 		double normalX;
 		double normalY;
 		double normalZ;
@@ -364,13 +376,10 @@ bool MeshIO::importNormals( const filesystem::path& rFileName, vector<grVector3I
 		rNormals->push_back( grVector3ID{ primID, normalX, normalY, normalZ } );
 		//cout << "[MeshIO::" << __FUNCTION__ << "] " << primID << " " << normalX << " " << normalY << " " << normalZ << endl;
 	}
-	if( !fileStream.eof() ) {
-		LOG::error() << "[MeshIO::" << __FUNCTION__ << "] ERROR: File '" << rFileName << "' not parsed to its end!\n";
-		fileStream.close();
-		return false;
-	}
+
+	// Done
 	fileStream.close();
-	return true;
+	return( true );
 }
 
 // WRITE -----------------------------------------------------------------------

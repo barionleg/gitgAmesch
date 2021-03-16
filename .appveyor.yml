@@ -1,0 +1,82 @@
+branches:
+  only:
+    - develop
+    - master
+
+image:
+  - Visual Studio 2019
+  - macOS
+  - Ubuntu
+
+
+
+for:
+-
+  matrix:
+    only:
+      - image: Ubuntu
+  install:
+  - sudo apt-get update -qq
+  - sudo apt-get -y install build-essential libtiff5-dev
+  - sudo apt-get -y install qtbase5-dev libqt5opengl5-dev libgl-dev g++-8
+  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 90 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
+  after_build:
+  - mv install GigaMesh
+  - cd ..
+  test_script:
+  - build/tests/gigameshCore_tests -o test_reportUbuntu.xml -r junit || true
+  on_finish:
+    - sh: |
+        find "$APPVEYOR_BUILD_FOLDER" -type f -name 'test_*.xml' -print0 | xargs -0 -I '{}' curl -F 'file=@{}' "https://ci.appveyor.com/api/testresults/junit/$APPVEYOR_JOB_ID"
+
+
+-
+  matrix:
+    only:
+      - image: Visual Studio 2019
+  install:
+  - cmd: set QTDIR=C:\Qt\5.14\msvc2017_64
+  - cmd: set PATH=%QTDIR%\bin;C:\Qt\Tools\msvc2017_64\bin;%PATH%;
+  after_build:
+  - windeployqt install/bin/gigamesh.exe
+  - mv install GigaMesh
+  - ls tests\Release
+  - cd ..
+  test_script:
+  - .\build\tests\Release\gigameshCore_tests.exe -o test_reportWin.xml -r junit & exit 0
+    #upload results
+  - ps: $wc = New-Object 'System.Net.WebClient'
+  - ps: $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\test_reportWin.xml))
+-
+  matrix:
+    only:
+      - image: macOS
+  install:
+  - brew update > /dev/null
+  - brew install qt5
+  - chmod -R 755 /usr/local/opt/qt5/*
+  - export QTDIR="/usr/local/opt/qt5"
+  - export PATH="$QTDIR/bin:$PATH"
+  - export QT_SELECT=qt5
+  after_build:
+  - cd install/bin
+  - macdeployqt gigamesh.app
+  - cd ../..
+  - mv install GigaMesh
+  - cd ..
+  test_script:
+  - build/tests/gigameshCore_tests -o test_reportMac.xml -r junit || true
+  on_finish:
+    - sh: |
+        find "$APPVEYOR_BUILD_FOLDER" -type f -name 'test_*.xml' -print0 | xargs -0 -I '{}' curl -F 'file=@{}' "https://ci.appveyor.com/api/testresults/junit/$APPVEYOR_JOB_ID"
+
+build_script:
+  - mkdir build
+  - cd build
+  - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./install
+  - cmake --build . --config Release
+  - cmake --build . --config Release --target install
+
+artifacts:
+  - path: build/GigaMesh
+    type: zip

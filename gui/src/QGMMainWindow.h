@@ -45,6 +45,7 @@
 #include "meshGL/meshGL_params.h"
 #include "meshGL/meshglcolors.h"
 
+
 class MeshWidget;
 class QGMDockSideBar;
 class QGMDockInfo;
@@ -65,6 +66,15 @@ class QNetworkReply;
 //!
 //! Layer 3
 //!
+
+
+enum Provider {GITHUB, GITLAB, ORCID, REDDIT, MATTERMOST};
+
+std::string providerAsString(Provider p);
+
+std::ostream& operator<<(std::ostream& out, Provider p);
+
+
 
 class QGMMainWindow : public QMainWindow, public Ui::MainWindow {
     Q_OBJECT
@@ -100,6 +110,8 @@ public slots:
 	void menuImportTexMap();
 	void menuImportFeatureVectors();
 	void menuImportNormalVectors();
+	void updateUser(QJsonObject data);
+	void logInOut();
 
 	// --- MENU - MeshWidget --------------------------------------------------------------------------------------------------------------------------------
 	bool setMeshWidgetFlag( QAction* rAction );
@@ -168,6 +180,12 @@ private:
 private slots:
 	void openExternalProgramsDialog();
 	void openGridPositionDialog();
+
+	void authenticate();
+
+public slots:
+	void saveUser();
+
 private:
 	// --- Extra Keys --------------------------------------------------------------------------------------------------------------------------------------
 	void keyPressEvent( QKeyEvent *rEvent );
@@ -287,9 +305,10 @@ signals:
 	void screenshotSVG();                                    //!< trigger a screenshot stored as SVG with a PNG embedded.
 	void screenshotRuler();                                  //!< trigger the export of an image of a ruler matching the screenshot resolution (in ortho mode).
 
-    void screenshotDirectory();                              //!< trigger screenshot of side-, top- and bottom view of all Objects in the directory
+	// === LEGACY to be removed! ===========================================================================================================================
     void generateLatexFile();                                //!< trigger latex file    to be generated
     void generateLatexCatalog();                             //!< trigger latex catalog to be generated
+	// =====================================================================================================================================================
 
 	//.
 	void sDefaultViewLight();                                //!< signal to restore the default view and lights.
@@ -341,6 +360,11 @@ signals:
 	void hueToFuncVal();                                     //!< trigger hue estimation, which we will be assigned as function value.
 	//.
 	void sDatumAddSphere();                                  //!< Manually enter a datum sphere.
+
+// --- User Authentication ----------------------------------------------------------------------------------------------------------------------------------
+	void authentication();
+	void authenticating(QString *username, Provider *provider);
+	void authenticated(QJsonObject data);
 
 	// --- Octree related ----------------------------------------------------------------------------------------------------------------------------------
 	void generateOctree();
@@ -430,6 +454,7 @@ signals:
 	// DockView:
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
 	void sViewPortInfo(MeshWidgetParams::eViewPortInfo,QString);     //!< Infos emitted by the viewport (MeshWidget) e.g. for display purposes.
+	void sViewUserInfo(MeshWidgetParams::eViewUserInfo,QString); 	//!< Infos about User emitted by (TcpServer)
 	void sInfoMesh(MeshGLParams::eInfoMesh,QString);                 //!< Infos emotted by the mesh (MeshQt) e.g. for display purposes.
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -489,6 +514,7 @@ private:
 
 	// Network access e.g. for checking the version number.
 	QNetworkAccessManager* mNetworkManager;          //! manages simple http-request (cf. version number)
+	bool loggedIn = false;
 
 	// QWidget interface
 	protected:

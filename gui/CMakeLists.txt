@@ -3,13 +3,11 @@ cmake_minimum_required(VERSION 3.10)
 set(OpenGL_GL_PREFERENCE GLVND)
 
 find_package(OpenGL REQUIRED)
-find_package(Qt5 COMPONENTS Core Widgets Gui OpenGL Network REQUIRED)
+find_package(Qt5 COMPONENTS Core Widgets Gui OpenGL Network NetworkAuth REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
-
-#add_subdirectory(python-interface)
 
 if(CMAKE_VERSION VERSION_LESS "3.7.0")
 	set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -31,6 +29,7 @@ set(GUI_SOURCES src/main.cpp
 				src/QGMDialogSliderHD.cpp             src/QGMDialogSliderHD.h
 				src/QGMDialogConeParam.cpp            src/QGMDialogConeParam.h
 				src/QGMDialogEnterText.cpp            src/QGMDialogEnterText.h
+                                src/QGMDialogMatrix.cpp               src/QGMDialogMatrix.h
 				src/QGMDialogPlaneParam.cpp           src/QGMDialogPlaneParam.h
 				src/QGMDialogNprSettings.cpp          src/QGMDialogNprSettings.h
 				src/MeshQtCSVImportExport.cpp         src/MeshQtCSVImportExport.h
@@ -46,6 +45,7 @@ set(GUI_SOURCES src/main.cpp
 				src/meshGL/PinRenderer.cpp            src/meshGL/PinRenderer.h
 				src/meshGL/TexturedMesh.cpp           src/meshGL/TexturedMesh.h
 				src/meshGL/TexturedMeshRenderer.cpp   src/meshGL/TexturedMeshRenderer.h
+                                src/meshGL/ShaderManager.cpp          src/meshGL/ShaderManager.h
 				src/svg/SvgWriter.cpp                 src/svg/SvgWriter.h
 				src/svg/SvgCircle.cpp                 src/svg/SvgCircle.h
 				src/svg/SvgImage.cpp                  src/svg/SvgImage.h
@@ -57,9 +57,12 @@ set(GUI_SOURCES src/main.cpp
 				src/normalSphereSelection/NormalSphereSelectionDialog.cpp
 				src/normalSphereSelection/NormalSphereSelectionDialog.h
 				src/normalSphereSelection/NormalSphereSelectionRenderWidget.cpp
-				src/normalSphereSelection/NormalSphereSelectionRenderWidget.h
+				src/normalSphereSelection/NormalSphereSelectionRenderWidget.h		
+				src/oauth/githubmodel.cpp			src/oauth/githubmodel.h
+				src/oauth/githubwrapper.cpp			src/oauth/githubwrapper.h
+				src/oauth/oauthwrapper.cpp			src/oauth/oauthwrapper.h
+				src/QGMDialogAuthorize.cpp			src/QGMDialogAuthorize.h
 )
-
 
 #add ui files, so they appear it qtcreator projects view
 set(GUI_UI_FILES
@@ -83,6 +86,7 @@ set(GUI_UI_FILES
 	forms/qgmdocksidebar.ui
 	forms/dialogCutOffValues.ui
 	forms/DialogFindTextures.ui
+        forms/QGMDialogMatrix.ui
 )
 
 set(PY_INTER_SOURCES
@@ -122,6 +126,11 @@ qt5_wrap_cpp(PY_INTER_MOC ${PY_INTER_SOURCES})
 
 add_executable(gigamesh ${GUI_SOURCES} ${GUI_RESOURCES} ${GUI_UI_FILES} ${PY_INTER_SOURCES} ${PY_INTER_MOC})# ${PY_INTER_HEADERS})
 
+if(APPLE)
+    set_target_properties(gigamesh PROPERTIES
+        MACOSX_BUNDLE ON)
+endif()
+
 add_definitions(${Qt5Widgets_DEFINITIONS})
 target_include_directories(gigamesh PRIVATE ${Qt5Widgets_INCLUDES})
 
@@ -130,6 +139,9 @@ target_include_directories(gigamesh PRIVATE ${Qt5OpenGL_INCLUDES})
 
 add_definitions(${Qt5Network_DEFINITIONS})
 target_include_directories(gigamesh PRIVATE ${Qt5Network_INCLUDES})
+
+add_definitions(${Qt5NetworkAuth_DEFINITIONS})
+target_include_directories(gigamesh PRIVATE ${Qt5NetworkAuth_INCLUDES})
 
 add_dependencies(gigamesh OpenGL::GL)
 
@@ -141,7 +153,7 @@ target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/python-interface)
 
-target_link_libraries(gigamesh PRIVATE ${Qt5Widgets_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Network_LIBRARIES} psalm OpenGL::GL gigameshCore triangle)
+target_link_libraries(gigamesh PRIVATE ${Qt5Widgets_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Network_LIBRARIES}  ${Qt5NetworkAuth_LIBRARIES} psalm OpenGL::GL gigameshCore triangle)
 
 #extras for static linking using the MXE mingw static build (set this via "export MINGW_CI_BUILD=True" on the command line)
 if(MINGW_CI_BUILD)
