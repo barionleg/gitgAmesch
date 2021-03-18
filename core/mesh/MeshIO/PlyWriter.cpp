@@ -29,7 +29,7 @@
 #include <filesystem>
 #include <GigaMesh/mesh/primitive.h>
 #include "PlyEnums.h"
-
+#include <GigaMesh/mesh/meshinfodata.h>
 #include <GigaMesh/logging/Logging.h>
 
 using namespace std;
@@ -125,49 +125,19 @@ bool PlyWriter::writeFile(const std::filesystem::path& rFilename, const std::vec
 	filestr << "comment +-------------------------------------------------------------------------------+\n";
 	filestr << "comment | Meta information:                                                             |\n";
 	filestr << "comment +-------------------------------------------------------------------------------+\n";
-	for( uint64_t i=0; i<ModelMetaData::META_STRINGS_COUNT; i++ ) {
-		auto metaId = static_cast<ModelMetaData::eMetaStrings>( i );
-		if( metaId == ModelMetaData::META_FILENAME ) { // Ignore the filename!
-			continue;
-		}
-		string metaStr = MeshWriter::getModelMetaDataRef().getModelMetaString( metaId );
-		if( metaStr.empty()) { // Ignore empty strings!
-			continue;
-                }
 
-		string metaName;
-		if( MeshWriter::getModelMetaDataRef().getModelMetaStringName( metaId, metaName ) ) {
-			if(metaId == ModelMetaData::META_TEXTUREFILE)
-			{
-				continue;	//we use the textures stored in getTexturefilesRef instead
-                        }
-                        if( metaId == ModelMetaData::META_USER_USERNAME ) { // write user data to several lines
+        MeshInfoData metaInfo;
+        //Mesh::getMeshInfoData( metaInfo, true );
+        std::string infoStr;
+        metaInfo.getMeshInfoTTL( infoStr );
+        std::string userMetaString;
+        std::istringstream ss(infoStr);
+        std::string line;
+        while(std::getline(ss, line)){
+            userMetaString += "comment ttl " + line + "\n";
+        }
+        filestr << userMetaString;
 
-                                std::string userMetaString;
-                                std::istringstream ss(metaStr);
-                                std::string line;
-                                while(std::getline(ss, line)){
-                                    userMetaString += line + "\ncomment json ";
-                                }
-
-                                filestr << "comment " << metaName << " json " << userMetaString << "\n";
-                                continue;
-                        }
-
-			filestr << "comment " << metaName << " " << metaStr << "\n";
-		}
-	}
-
-	if(!MeshWriter::getModelMetaDataRef().getTexturefilesRef().empty())
-	{
-		for(const auto& texName : MeshWriter::getModelMetaDataRef().getTexturefilesRef())
-		{
-			auto prevPath = std::filesystem::current_path();
-			std::filesystem::current_path(std::filesystem::absolute(rFilename).parent_path());
-			filestr << "comment TextureFile " << std::filesystem::relative(texName).string() << "\n";
-			std::filesystem::current_path(prevPath);
-		}
-	}
 	filestr << "comment +-------------------------------------------------------------------------------+\n";
 
 	filestr << "element vertex " << rVertexProps.size() << "\n";

@@ -5,10 +5,13 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <type_traits>
 
 using namespace std;
-using json = nlohmann::json;
 using namespace HTTP;
+using json = nlohmann::json;
 
 
 void parseCSV(string& data_csv, map<string,vector<double>>& data_map){
@@ -70,8 +73,10 @@ TcpServer::TcpServer(QObject *parent) :
         QSettings settings;
         QString user = settings.value("userName").toString();
         Provider prov = static_cast<Provider>( settings.value("provider").toInt() );
-        refreshing = true;
-        emit authenticateUser(&user, &prov);
+        if(!settings.value("token").toString().isEmpty()){
+            refreshing = true;
+            emit authenticateUser(&user, &prov);
+        }
     }
 }
 
@@ -86,9 +91,8 @@ string TcpServer::statusCodeAsString(httpStatusCode c)
             case c424: return "424 No mesh loaded\r\n";
             case c500: return "500 \r\n";
             case c503: return "503 Service Unavailable\r\n";
-            //default: throw Exception("Bad httpStatusCode");
 	}
-    return "500 \r\n";
+        return "500 \r\n";
 }
 
 
@@ -210,37 +214,35 @@ bool TcpServer::authenticateUser(QString *username, Provider *provider)
         case GITLAB:
             authorizationUrlBase = "https://gitlab.com/oauth/authorize";
             accessTokenUrlBase = "https://gitlab.com/oauth/token";
-            userDataUrlBase = "https://gitlab.com/api/v4";
-            //userDataUrlBase = "https://gitlab.com/api/v4/users?username=" + username->toStdString();
-            clientId = "0838bf6d76153b656173";
-            clientSecret = "c29a631dbcec4349c38d";
-            scope = "public+write";
+            userDataUrlBase = "https://gitlab.com/api/v4/user";
+            clientId = "0838bf6d76153b656173387328777f369bf7ceb5074138606aacb77dabc66be9";
+            clientSecret = "c29a631dbcec4349c38dfa4887a9fc8669d4dbdd9883a4aa9e480d00f4b03832";
+            scope = "read_user+api";
             break;
         case ORCID:
-            // orcid id: 0000-0002-3045-7920
-            authorizationUrlBase = "https://sandbox.orcid.org/oauth/authorize";
+            authorizationUrlBase = "https://orcid.org/oauth/authorize";
             accessTokenUrlBase = "https://orcid.org/oauth/token";
             userDataUrlBase = "https://api.gitlab.com/user";
             clientId = "APP-QTDRZ74P88AWIDF8";
             clientSecret = "38c556d3-ec89-4666-aff0-30d2e44c1750";
-            scope = "/read-limited";
-            //redirectURI = "https://localhost:8080/authorize"; // orcid requests http(s)!
+            scope = "/authenticate";
+            redirectURI = "https://localhost:8080/authorize"; // orcid requests http(s)!
             break;
         case REDDIT:
             authorizationUrlBase = "https://www.reddit.com/api/v1/authorize";
             accessTokenUrlBase = "https://www.reddit.com/api/v1/access_token";
-            userDataUrlBase = "https://api.gitlab.com/user";
+            userDataUrlBase = "https://oauth.reddit.com/api/v1/me";// "https://api.gitlab.com/user";
             clientId = "6QVMuM64f_ApLQ";
             clientSecret = "BKHdqqbTEu1pkvbwSlx5_QIUKKwolA";
-            scope = "read edit";
+            scope = "identity";
             break;
         case MATTERMOST:
-            authorizationUrlBase = "http://localhost:8080/api/v4/users/login";
-            accessTokenUrlBase = "";
-            userDataUrlBase = "";
-            clientId = "";
-            clientSecret = "";
-            scope = "";
+            authorizationUrlBase = "https://gitlab.rlp.net/oauth/authorize";
+            accessTokenUrlBase = "https://gitlab.rlp.net/oauth/token";
+            userDataUrlBase = "https://gitlab.rlp.net/api/v4/user";
+            clientId = "82ff8b175f9d64aab9a08ca1b9d6b7ba8383c246f106502f74694dd6deef53dc";
+            clientSecret = "580282d1147516a99bdde41d2f74be1b17b67cc9bcff8b8ae0aa59859c27b5a3";
+            scope = "api";
             break;
         default:
             authorizationUrlBase = "https://github.com/login/oauth/authorize";
@@ -254,7 +256,8 @@ bool TcpServer::authenticateUser(QString *username, Provider *provider)
     if(!refreshing)
     {
         QString authorizationUrl = authorizationUrlBase + "?response_type=code&client_id=" + clientId +
-                "&scope=" + scope + "&login=" + username + "&redirect_uri=" + redirectURI + "&state=" + state + "&duration=permanent";
+                "&scope=" + scope + "&login=" + username + "&redirect_uri=" + redirectURI + "&state=" +
+                state + "&duration=permanent";
 
         qDebug() << "[TcpServer::RequestAuthentication] Via: " << authorizationUrl;
 
@@ -268,18 +271,21 @@ bool TcpServer::authenticateUser(QString *username, Provider *provider)
 
             cout << "[TcpServer:authenticateUser] Code Received: " << code << endl;
 
-            QString pars = "?clientId=" + clientId + "&clientSecret=" + clientSecret + "&code=" + QString::fromStdString(code);
+            QString pars = "?clientId=" + clientId + "&clientSecret=" + clientSecret + "&code=" +
+                    QString::fromStdString(code) + "&redirect_uri=" + redirectURI;
             QString accessTokenUrl = accessTokenUrlBase + pars;
             qDebug() << "[TcpServer:RequestAccessToken] Via: " << accessTokenUrl;
 
             QNetworkRequest request(accessTokenUrlBase);
             request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+            request.setRawHeader(QByteArray("WWW-Authenticate"),  QByteArray::fromStdString("code " + code));
 
             QUrlQuery params;
             params.addQueryItem("client_id", clientId);
             params.addQueryItem("client_secret", clientSecret);
             params.addQueryItem("code", QString::fromStdString(code));
             params.addQueryItem("redirect_uri", redirectURI);
+            params.addQueryItem("grant_type", "authorization_code"); //needed for gitlab.rlp.net
 
             QObject::connect(manager, &QNetworkAccessManager::finished, this, &TcpServer::readToken);
 
@@ -295,18 +301,21 @@ bool TcpServer::authenticateUser(QString *username, Provider *provider)
         settings.setValue( "token", QString::fromStdString(token));
 
         QString userDataUrl = QString::fromStdString(userDataUrlBase + "?token=" + token);
+        if(settings.value("provider") == 4 || 1) userDataUrl = QString::fromStdString(userDataUrlBase +
+                    "?access_token=" + token);
+
         QNetworkRequest request(userDataUrl);
-        qDebug() << "[TcpServer::authorizeUser] Requesting User Data via: " << userDataUrl;
+        qDebug() << "[TcpServer::authenticateUser] Requesting User Data via: " << userDataUrl;
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
         request.setRawHeader(QByteArray("Authorization"),  QByteArray::fromStdString("token " + token));
 
         QObject::connect(manager, &QNetworkAccessManager::finished, this, &TcpServer::readUserData);
 
-        manager->get(request); // , dataToSend.toUtf8());
+        manager->get(request);
     });
 
     if(refreshing){
-        cout << "[TcpServer:authenticateUser] Refreshing Authentication" << endl;
+        cout << "[TcpServer::authenticateUser] Refreshing Authentication" << endl;
         QSettings settings;
         emit tokenReceived(settings.value("token").toString().toStdString());
     }
@@ -328,13 +337,26 @@ void TcpServer::readToken(QNetworkReply *reply)
     QString str(bts);
     qDebug() << "[TcpServer:readReply] Received Reply: " << str;
 
+    // if reply contains parameters as text
     if(str.contains("access_token=", Qt::CaseSensitive)){
         int start = str.indexOf("access_token=", 1);
         int end = str.indexOf("&", 1);
 
         QString token = str.mid(start+14, end-start-14);
         emit tokenReceived(token.toStdString());
+        return;
     }
+
+    // if reply contains data as json
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(bts);
+    if(jsonDoc.isEmpty()){
+        cout << "[TcpServer::readToken] No json provided." << endl;
+    }else{
+        if(!jsonDoc.object().value("access_token").isObject()){
+            emit tokenReceived(jsonDoc.object().value("access_token").toString().toStdString());
+        }
+    }
+    return;
 }
 
 
@@ -360,89 +382,130 @@ void TcpServer::readUserData(QNetworkReply *reply)
 }
 
 
+void TcpServer::load(std::map<std::string,std::string>& parameters){
+    QString meshName;
+    if(parameters.find("filename") != parameters.end()){
+            meshName = QString::fromStdString(parameters["filename"]);
+    }else{
+            cout << "[QGMMainWindow::parseCommand] Missing Data Path - "
+                    "Set to Default ('../../testdata/cube.obj')." << endl;
+            meshName = QString::fromStdString("../../testdata/cube.obj");
+    }
+
+    this->mainWin->load(meshName);
+
+    statusCode = c200;
+}
+
+
+void TcpServer::exportVertices(map<string,string>& parameters){
+
+    if(this->mainWin->getWidget()->getMesh() != nullptr){
+            QString path;
+            if(parameters.find("filename") != parameters.end()){
+                    path = QString::fromStdString(parameters["filename"]);
+            }else{
+                    cout << "[QGMMainWindow::" << __FUNCTION__ << "] Missing Data Path - "
+                            "Set to Default ('../../testdata/cube.obj')." << endl;
+                    path = QString::fromStdString("../../testdata/cube.obj");
+            }
+
+            if(mainWin->getWidget()->getMesh()->exportVertexCoordinatesToCSV(path,false)){
+                    statusCode = c200;
+            }else{
+                    cout << "[QGMMainWindow::" << __FUNCTION__ << "] Error: Could not export!" << endl;
+                    statusCode = c500;
+            }
+    } else {
+            std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] Error: No mesh loaded!" << std::endl;
+            statusCode = c424;
+    }
+}
+
+
+void TcpServer::getVertices(QVariant& var){ //! \todo use enable_if for function deduction
+    json data;
+    QJsonArray data_json;
+    QString data_str;
+    if(mainWin->getWidget()->getMesh() != nullptr){
+
+            std::vector<Vertex*> rVertices;
+            this->mainWin->getWidget()->getMesh()->getVertexList(&rVertices );
+
+            vector<Vertex*>::iterator itVertex;
+            data_str += "vertices_x,vertices_y,vertices_z\n";
+            for( itVertex=rVertices.begin(); itVertex!=rVertices.end(); itVertex++ ) {
+                    data.push_back((*itVertex)->getX());
+                    data.push_back((*itVertex)->getY());
+                    data.push_back((*itVertex)->getZ());
+                    data_json.append((*itVertex)->getX());
+                    data_json.append((*itVertex)->getY());
+                    data_json.append((*itVertex)->getZ());
+                    data_str += QString::number((*itVertex)->getX()) + "," +
+                            QString::number((*itVertex)->getY()) + "," + QString::number((*itVertex)->getZ()) + "\n";
+            }
+
+            statusCode = c200;
+    } else {
+            std::cout << "[TcpServer::" << __FUNCTION__ << "] Error: No mesh loaded!" << std::endl;
+            statusCode = c424;
+    }
+
+    QJsonDocument json_doc;
+    cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Return type: " << std::is_same_v<decltype(var), decltype(data_str)> << endl;
+    cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Return type: " << std::is_same_v<decltype(var), decltype(data_json)> << endl;
+    //
+    if( std::is_same_v<decltype(var), decltype(data_str)>){
+        cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Return type: " << var.typeName() << endl;
+        var = data_str;
+    }else if ( std::is_same_v<decltype(var), decltype(data_json)>){
+        cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Return type: " << var.typeName() << endl;
+        json_doc.setArray(data_json);
+        var = json_doc;
+    }
+
+}
+
+
 QStringList TcpServer::parseCommand(Request req){
 
-	string command=req.getFunc();
+        string command = req.getFunc();
 	map<string,string> pars = req.getPars();
 	string return_type = "csv";
-	if( HTTP::method_to_string(req.getMeth())=="GET"){
+        if( HTTP::method_to_string(req.getMeth()) == "GET"){
 		if(pars.find("return_type") != pars.end()){
 			return_type = pars["return_type"];
 		}else{
-			cout << "[QGMMainWindow::parseCommand] Missing Return Type - Set to Default (csv)." << endl;
+                        cout << "[TcpServer::" << __FUNCTION__ << "] Missing Return Type - "
+                                "Set to Default (csv)." << endl;
 		}
 	}
 
-	string body=req.getBody();
+        string body = req.getBody();
 	map<string,vector<double>> bodyPars;
-	if(body.size()>0){	
-		parseCSV(body,bodyPars);
+        if(body.size() > 0){
+                parseCSV(body, bodyPars);
 	}
 	
-	cout << "[QGMMainWindow::parseCommand] Received command: " << command << endl;
+        cout << "[TcpServer::" << __FUNCTION__ << "] Received command: " << command << endl;
 
 	json data;
-	QString data_str;
-	httpStatusCode statusCode;
+        QString data_str;
+        QVariant v; //! \todo holds data either as QJson or QString (csv)
+        if(return_type == "csv"){
+            v = QVariant(QString());
+        }else if (return_type == "json") {
+            v = QVariant(QJsonDocument());
+        }
 
-        if(command=="load"){
-		QString meshName;
-		if(pars.find("filename") != pars.end()){
-			meshName = QString::fromStdString(pars["filename"]);
-		}else{
-			cout << "[QGMMainWindow::parseCommand] Missing Data Path - Set to Default ('../../testdata/cube.obj')." << endl;
-			meshName = QString::fromStdString("../../testdata/cube.obj");
-		}
-
-		this->mainWin->load(meshName);
-
-		statusCode = c200;
+	if(command == "load"){
+            load(pars);
 	}
-        else if(command=="exportVertices"){
-
-		if(mainWin->getWidget()->getMesh() != nullptr){
-
-			QString path;
-			if(pars.find("filename") != pars.end()){
-				path = QString::fromStdString(pars["filename"]);
-			}else{
-				cout << "[QGMMainWindow::parseCommand] Missing Data Path - Set to Default ('../../testdata/cube.obj')." << endl;
-				path = QString::fromStdString("../../testdata/cube.obj");
-			}
-
-			if(this->mainWin->getWidget()->getMesh()->exportVertexCoordinatesToCSV(path,false)){
-				statusCode = c200;
-			}else{
-				cout << "[QGMMainWindow::parseCommand] Error: Could not export!" << endl;
-				statusCode = c500;
-			}
-		} else {
-			std::cout << "[QGMMainWindow::parseCommand] Error: No mesh loaded!" << std::endl;
-			statusCode = c424;
-		}
+	else if(command == "exportVertices"){
+            exportVertices(pars);
 	}
-	else if(command=="getVertices"){
-
-		if(mainWin->getWidget()->getMesh() != nullptr){
-
-			std::vector<Vertex*> rVertices;
-			this->mainWin->getWidget()->getMesh()->getVertexList(&rVertices );
-
-			vector<Vertex*>::iterator itVertex;
-                        data_str += "vertices_x,vertices_y,vertices_z\n";
-			for( itVertex=rVertices.begin(); itVertex!=rVertices.end(); itVertex++ ) {
-                                //data.push_back((double)(*itVertex)->getIndex());
-				data.push_back((*itVertex)->getX());
-				data.push_back((*itVertex)->getY());
-				data.push_back((*itVertex)->getZ());
-                                data_str += QString::number((*itVertex)->getX()) + "," + QString::number((*itVertex)->getY()) + "," + QString::number((*itVertex)->getZ()) + "\n";
-			}
-
-			statusCode = c200;
-		} else {
-			std::cout << "[QGMMainWindow::parseCommand] Error: No mesh loaded!" << std::endl;
-			statusCode = c424;
-		}
+        else if(command == "getVertices"){
+            getVertices(v);
 	}
 	else if(command=="getMeshVertexNormals"){
 		if(mainWin->getWidget()->getMesh() != nullptr){
@@ -460,7 +523,7 @@ QStringList TcpServer::parseCommand(Request req){
 
 			statusCode = c200;
 		} else {
-			std::cout << "[QGMMainWindow::parseCommand] Error: No mesh loaded!" << std::endl;
+                        std::cout << "[TcpServer::" << __FUNCTION__ << "] Error: No mesh loaded!" << std::endl;
 			statusCode = c424;
 		}
 	}
@@ -792,6 +855,34 @@ QStringList TcpServer::parseCommand(Request req){
 	}
         else if(command=="authorize"){
                 string code;
+                if(pars.find("token") != pars.end()){
+                        string token = pars["token"];
+                        cout << "[QGMMainWindow::parseCommand] Received Token '" << token << "'" << endl;
+                        emit tokenReceived(token);
+
+                        QFile file("../../gui/python-interface/websiteSuccess.html");
+                        QString dataToSend;
+                        if(!file.open(QIODevice::ReadOnly)){
+                            qDebug() << "Current path:" << QDir::currentPath();
+                            QMessageBox::information(0, "error", file.errorString());
+                        }else{
+                            QTextStream in(&file);
+                            dataToSend = in.readAll();
+                        }
+                        data_str = dataToSend;
+                }else{
+                        cout << "[QGMMainWindow::parseCommand] Missing Token." << endl;
+                        QFile file("../../gui/python-interface/websiteFail.html");
+                        QString dataToSend;
+                        if(!file.open(QIODevice::ReadOnly)){
+                            qDebug() << "Current path:" << QDir::currentPath();
+                            QMessageBox::information(0, "error", file.errorString());
+                        }else{
+                            QTextStream in(&file);
+                            dataToSend = in.readAll();
+                        }
+                        data_str = dataToSend;
+                }
                 if(pars.find("code") != pars.end()){
                         code = pars["code"];
                         //cout << "[QGMMainWindow::parseCommand] Received Code '" << code << "'" << endl;
@@ -805,9 +896,8 @@ QStringList TcpServer::parseCommand(Request req){
                         }else{
                             QTextStream in(&file);
                             dataToSend = in.readAll();
-                            qDebug() << "[TcpServer::authorizeUser] Opened File: " << dataToSend;
                         }
-                        data_str += dataToSend;
+                        data_str = dataToSend;
                 }else{
                         cout << "[QGMMainWindow::parseCommand] Missing Code." << endl;
                         QFile file("../../gui/python-interface/websiteFail.html");
@@ -820,7 +910,7 @@ QStringList TcpServer::parseCommand(Request req){
                             dataToSend = in.readAll();
                             qDebug() << "[TcpServer::authorizeUser] Opened File: " << dataToSend;
                         }
-                        data_str += dataToSend;
+                        data_str = dataToSend;
                 }
                 string returnedState;
                 if(pars.find("state") != pars.end()){
@@ -840,9 +930,12 @@ QStringList TcpServer::parseCommand(Request req){
 	QStringList response;
         response << QString::fromStdString(TcpServer::statusCodeAsString(statusCode));
 	if(return_type == "json"){
-		response << QString::fromStdString(data.dump());
+                //response << QString::fromStdString(data.dump());
+                response << v.toJsonDocument().toJson();
+                qDebug() << "[TcpServer::" << __FUNCTION__ << "] Data: " << v.toJsonDocument().toJson();
 	}else{
-		response << data_str;
+                qDebug() << "[TcpServer::" << __FUNCTION__ << "] Data: " << v.toString();
+                response << v.toString(); //data_str;
 	}
 
 	return response;

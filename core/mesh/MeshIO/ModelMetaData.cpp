@@ -79,7 +79,7 @@ bool ModelMetaData::getModelMetaStringLabel(
 }
 
 //! Fetch the Id of the Meta-Data strings using its name as string.
-//! @returns false in case of an error or no Id found. True otherwise.META_STRINGS_COUNT
+//! @returns false in case of an error or no Id found. True otherwise.
 bool ModelMetaData::getModelMetaStringId(
         const std::string& rModelMetaStringName,   //!< Id of the meta-data string.
         eMetaStrings& rMetaStrID                   //!< Name as string of the meta-data string.

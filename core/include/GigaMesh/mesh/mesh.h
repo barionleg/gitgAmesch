@@ -108,7 +108,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool     writeFile( const std::filesystem::path& rFileName );
 		virtual bool     importFeatureVectorsFromFile( const std::filesystem::path& rFileName );
 		virtual bool     exportFeatureVectors(const std::filesystem::path& rFileName);
-		bool     assignFeatureVectors( const std::vector<double>& rFeatureVecs, const uint64_t& rMaxFeatVecLen );
+				bool     assignFeatureVectors( const std::vector<double>& rFeatureVecs, const uint64_t& rMaxFeatVecLen );
 
 		// IO Operations - overloaded from MeshSeed
 		virtual bool     getVertNormal( int rVertIdx, double* rNormal );

@@ -9,10 +9,10 @@ InputDialog::InputDialog(QWidget *parent) : QDialog(parent)
 {
     QFormLayout *lytMain = new QFormLayout(this);
 
-    QLabel *tLabel = new QLabel(QString("Username: "), this);
-    QLineEdit *tLine = new QLineEdit(this);
-    lytMain->addRow(tLabel, tLine);
-    fields << tLine;
+    QLabel *tLabel1 = new QLabel(QString("Select a provider and confirm in order to begin the authorization process. \n"
+                                         "   The username is optional and can be changed later on - it is used for \n"
+                                         "logging into the respective profile."), this);
+    lytMain->addRow(tLabel1);
 
     QComboBox *comboBox = new QComboBox(this);
     this->comboBox = comboBox;
@@ -20,7 +20,13 @@ InputDialog::InputDialog(QWidget *parent) : QDialog(parent)
     comboBox->addItem("Gitlab"); // index 1
     comboBox->addItem("Orcid"); // index 2
     comboBox->addItem("Reddit"); // index 3
+    comboBox->addItem("Mattermost"); // index 4
     lytMain->addWidget(comboBox);
+
+    QLabel *tLabel = new QLabel(QString("Username: "), this);
+    QLineEdit *tLine = new QLineEdit(this);
+    lytMain->addRow(tLabel, tLine);
+    fields << tLine;
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox
             ( QDialogButtonBox::Ok | QDialogButtonBox::Cancel,

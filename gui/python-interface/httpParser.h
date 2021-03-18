@@ -36,13 +36,10 @@ namespace HTTP
 			void handleRequest();
 
 		public:
-			// Default-Constructor
 			Request();
 
-			// Non-Default-Constructor
 			Request(Method meth, std::string ver, std::string func, std::map<std::string, std::string> pars, std::string body);
 
-			// Copy-Constructor
 			Request(Request &r);
 
 			void httpParser(std::string request);

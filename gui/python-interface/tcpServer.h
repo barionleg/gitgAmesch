@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <QVariant>
 
 
 void parseCSV(std::string& data_csv, std::map<std::string,std::vector<double>>& data_map);
@@ -28,6 +29,11 @@ public:
     explicit TcpServer(QObject *parent = 0);
     enum httpStatusCode { c200, c202, c404, c424, c500, c503 };
     void setMainWindow(QGMMainWindow *mainWindow);
+
+	// command related functions
+	void load(std::map<std::string,std::string>& parameters);
+	void exportVertices(std::map<std::string,std::string>& parameters);
+	void getVertices(QVariant& var);
 
 signals:
 	void codeReceived(std::string code);
@@ -52,6 +58,7 @@ private:
     QTcpSocket *socket;
     QStringList parseCommand(HTTP::Request r);
 	QDataStream in;
+	httpStatusCode statusCode;
     bool refreshing = false;
 };
 

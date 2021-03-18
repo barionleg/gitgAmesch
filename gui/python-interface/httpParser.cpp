@@ -17,10 +17,9 @@ void splitStr(const string& str, Container& cont, char delim)
 }
 
 
-// Default-Constructor
 Request::Request(){}
 
-// Non-Default-Constructor
+
 Request::Request(Method meth, string ver,string func,map<string, string> pars,string body)
 {
 	this->meth = meth;
@@ -30,7 +29,7 @@ Request::Request(Method meth, string ver,string func,map<string, string> pars,st
 	this->body = body;
 }
 
-// Copy-Constructor
+
 Request::Request(Request &r)
 {
 	this->meth = r.meth;
@@ -42,7 +41,7 @@ Request::Request(Request &r)
 
 void Request::httpParser(string request)
 {
-	cout << "[HTTP::httpParser] Start parsing..." << endl;
+        cout << "[HTTP::" << __FUNCTION__ << "] Start parsing..." << endl;
     
     size_t found1= request.find(" ");
     size_t found2= request.find(" ",found1+1);
@@ -70,18 +69,28 @@ void Request::httpParser(string request)
 		this->pars=pars_map;
 	}
 
-	cout << endl << "[HTTP::httpParser] Parsing completed." << endl << endl;
+        cout << endl << "[HTTP::" << __FUNCTION__ << "] Parsing completed." << endl << endl;
 }
 
-Method Request::getMeth() {return meth;}
+Method Request::getMeth() {
+    return meth;
+}
 
-string Request::getVer() {return ver;}
+string Request::getVer() {
+    return ver;
+}
 
-string Request::getFunc() {return func;}
+string Request::getFunc() {
+    return func;
+}
 
-string Request::getBody() {return body;}
+string Request::getBody() {
+    return body;
+}
 
-map<string, string> Request::getPars() {return pars;}
+map<string, string> Request::getPars() {
+    return pars;
+}
 
 void Request::setPars(string& parameters, map<string,string>& pars_map) {
 	vector<string> pars_vec;
@@ -99,12 +108,16 @@ void Request::setPars(string& parameters, map<string,string>& pars_map) {
 	}
 }
 
-void Request::setPars(map<string, string> parameters) {this->pars = parameters;}
+void Request::setPars(map<string, string> parameters) {
+    this->pars = parameters;
+}
 
-void Request::setBody(string b) {this->body = b;}
+void Request::setBody(string b) {
+    this->body = b;
+}
 
 void Request::info(){
-	cout << "[HTTP::httpParser] Info about request: " << endl;
+        cout << "[HTTP::" << __FUNCTION__ << "] Info about request: " << endl;
 	cout << "Version: " << this->ver << endl;
 	cout << "Method: " << HTTP::method_to_string(this->meth) << endl;
 	cout << "Function: " << this->func << endl;

@@ -45,10 +45,10 @@ MeshInfoData::MeshInfoData() {
 	mStringName[MODEL_ID]             = "Model Id";
 	mStringName[MODEL_MATERIAL]       = "Model Material";
 	mStringName[MODEL_WEBREFERENCE]   = "Web-Reference";
-        mStringName[MODEL_USER_FULLNAME]   = "User-Fullname";
-        mStringName[MODEL_USER_USERNAME]   = "Username";
-        mStringName[MODEL_USER_PROVIDER]   = "User-Provider";
-        mStringName[MODEL_USER_ID]   = "User-ID";
+        mStringName[MODEL_USER_FULLNAME]  = "User-Fullname";
+        mStringName[MODEL_USER_USERNAME]  = "User-Username";
+        mStringName[MODEL_USER_PROVIDER]  = "User-Provider";
+        mStringName[MODEL_USER_ID]        = "User-ID";
 
 	// Unsigned long names
 	mCountULongName[VERTICES_TOTAL] = "Total number of vertices";

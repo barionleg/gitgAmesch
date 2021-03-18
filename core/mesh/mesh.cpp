@@ -320,9 +320,9 @@ bool Mesh::setParamFloatMesh( MeshParams::eParamFlt rParam, double rValue ) {
 bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOptional  ) {
 	bool retVal = false;
 	switch( rFunctionID ) {
-		case FILE_SAVE_AS:
-			retVal = writeFileUserInteract();
-			break;
+                case FILE_SAVE_AS: {
+                        retVal = writeFileUserInteract();
+                        } break;
 		case EXPORT_METADATA_HTML: {
 				MeshInfoData metaInfo;
 				getMeshInfoData( metaInfo, true );
@@ -1274,6 +1274,7 @@ bool Mesh::writeFile(
 		currFace = getFacePos( faceIdx );
 		currFace->copyFacePropsTo( faceProps[faceIdx] );
 	}
+
 	//! 3. Write arrays to file.
 	bool retVal = MeshIO::writeFile( rFileName, vertexProps, faceProps );
 	//! 4. Remove arrays.
