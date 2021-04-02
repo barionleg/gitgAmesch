@@ -1,3 +1,25 @@
+/* 
+ * GigaMesh - The GigaMesh Software Framework is a modular software for display,
+ * editing and visualization of 3D-data typically acquired with structured light or
+ * structure from motion.
+ * Copyright (C) 2009-2020 Hubert Mara
+ *
+ * This file is part of GigaMesh.
+ *
+ * GigaMesh is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * GigaMesh is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GigaMesh.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef HTTP_PARSER_H
 #define HTTP_PARSER_H
 
@@ -25,42 +47,30 @@ namespace HTTP
 	{
 		Q_OBJECT
 
-		private:
-			std::string ver;
-			Method meth;
-			std::string func;
-			std::map<std::string, std::string> pars;
-			std::string body;
-
 		signals:
 			void handleRequest();
 
 		public:
 			Request();
-
-			Request(Method meth, std::string ver, std::string func, std::map<std::string, std::string> pars, std::string body);
-
-			Request(Request &r);
-
+			Request(Method method, std::string ver, std::string function, std::map<std::string, std::string> parameters, std::string body);
+			Request(Request &request);
 			void httpParser(std::string request);
-
-			Method getMeth();
-			
-			std::string getVer();
-			
-			std::string getFunc();
-			
-			std::map<std::string, std::string> getPars();
-
-			std::string getBody();
-			
-			void setPars(std::string& parameters, std::map<std::string, std::string>& pars_map);
-
-			void setBody(std::string b);
-			
-			void setPars(std::map<std::string, std::string> parameters);
-			
+			Method getMethod();	
+			std::string getVersion();		
+			std::string getFunction();		
+			std::map<std::string, std::string> getParameters();
+			std::string getBody();			
+			void setParameters(std::string& parameters, std::map<std::string, std::string>& pars_map);		
+			void setParameters(std::map<std::string, std::string> parameters);
+			void setBody(std::string body);
 			void info();
+
+		private:
+			std::string version;
+			Method method;
+			std::string function;
+			std::map<std::string, std::string> parameters;
+			std::string body;
 	};
 
 }

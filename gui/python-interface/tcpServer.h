@@ -1,3 +1,25 @@
+/* 
+ * GigaMesh - The GigaMesh Software Framework is a modular software for display,
+ * editing and visualization of 3D-data typically acquired with structured light or
+ * structure from motion.
+ * Copyright (C) 2009-2020 Hubert Mara
+ *
+ * This file is part of GigaMesh.
+ *
+ * GigaMesh is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * GigaMesh is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GigaMesh.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef TCPSERVER_H
 #define TCPSERVER_H
 
@@ -30,10 +52,27 @@ public:
     enum httpStatusCode { c200, c202, c404, c424, c500, c503 };
     void setMainWindow(QGMMainWindow *mainWindow);
 
-	// command related functions
-	void load(std::map<std::string,std::string>& parameters);
-	void exportVertices(std::map<std::string,std::string>& parameters);
+	/*	command related functions
+	 *	
+	 * 	Trigger respective functions in QGMMainWindow or Mesh.
+	 * 	Function parameters are passed from request header and body.
+	 *	Return data written into QVariant of type QJsonDocument or QString.
+	*/ 
+        void load(std::map<std::string, std::string>& parameters);
+        void exportVertices(std::map<std::string, std::string>& parameters);
 	void getVertices(QVariant& var);
+	void getMeshVertexNormals(QVariant& var);
+	void getBoundingBoxSize(QVariant& var);
+        void getVerticesInBeam(std::map<std::string, std::vector<double>> bodyPars, QVariant& var);
+        void nonMaxSupp(std::map<std::string, std::string>& parameters);
+        void watershed(std::map<std::string, std::string>& parameters);
+        void clustering(std::map<std::string, std::string>& parameters);
+        void ransac(std::map<std::string, std::string>& parameters, QVariant& var);
+        void featureElementsByIndex(std::map<std::string, std::string>& parameters);
+        void assignFeatVec(std::map<std::string, std::vector<double>> bodyPars);
+	void compFeatVecLen();
+	void authorize(std::map<std::string,std::string>& parameters, QVariant& var);
+	 
 
 signals:
 	void codeReceived(std::string code);

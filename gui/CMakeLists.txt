@@ -29,7 +29,7 @@ set(GUI_SOURCES src/main.cpp
 				src/QGMDialogSliderHD.cpp             src/QGMDialogSliderHD.h
 				src/QGMDialogConeParam.cpp            src/QGMDialogConeParam.h
 				src/QGMDialogEnterText.cpp            src/QGMDialogEnterText.h
-                                src/QGMDialogMatrix.cpp               src/QGMDialogMatrix.h
+                src/QGMDialogMatrix.cpp               src/QGMDialogMatrix.h
 				src/QGMDialogPlaneParam.cpp           src/QGMDialogPlaneParam.h
 				src/QGMDialogNprSettings.cpp          src/QGMDialogNprSettings.h
 				src/MeshQtCSVImportExport.cpp         src/MeshQtCSVImportExport.h
@@ -45,7 +45,7 @@ set(GUI_SOURCES src/main.cpp
 				src/meshGL/PinRenderer.cpp            src/meshGL/PinRenderer.h
 				src/meshGL/TexturedMesh.cpp           src/meshGL/TexturedMesh.h
 				src/meshGL/TexturedMeshRenderer.cpp   src/meshGL/TexturedMeshRenderer.h
-                                src/meshGL/ShaderManager.cpp          src/meshGL/ShaderManager.h
+                src/meshGL/ShaderManager.cpp          src/meshGL/ShaderManager.h
 				src/svg/SvgWriter.cpp                 src/svg/SvgWriter.h
 				src/svg/SvgCircle.cpp                 src/svg/SvgCircle.h
 				src/svg/SvgImage.cpp                  src/svg/SvgImage.h
@@ -58,10 +58,7 @@ set(GUI_SOURCES src/main.cpp
 				src/normalSphereSelection/NormalSphereSelectionDialog.h
 				src/normalSphereSelection/NormalSphereSelectionRenderWidget.cpp
 				src/normalSphereSelection/NormalSphereSelectionRenderWidget.h		
-				src/oauth/githubmodel.cpp			src/oauth/githubmodel.h
-				src/oauth/githubwrapper.cpp			src/oauth/githubwrapper.h
-				src/oauth/oauthwrapper.cpp			src/oauth/oauthwrapper.h
-				src/QGMDialogAuthorize.cpp			src/QGMDialogAuthorize.h
+				src/QGMDialogAuthorize.cpp			  src/QGMDialogAuthorize.h
 )
 
 #add ui files, so they appear it qtcreator projects view

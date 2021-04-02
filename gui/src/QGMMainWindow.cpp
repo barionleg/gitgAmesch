@@ -36,7 +36,6 @@
 #include "qgmdockview.h"
 #include "ExternalProgramsDialog.h"
 #include "dialogGridCenterSelect.h"
-#include "oauth/githubmodel.h"
 #include "QGMDialogAuthorize.h"
 
 using namespace std;
