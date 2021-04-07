@@ -321,7 +321,9 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 	bool retVal = false;
 	switch( rFunctionID ) {
                 case FILE_SAVE_AS: {
-                        retVal = writeFileUserInteract();
+                                MeshInfoData metaInfo;
+                                getMeshInfoData( metaInfo, true );
+                                retVal = writeFileUserInteract();
                         } break;
 		case EXPORT_METADATA_HTML: {
 				MeshInfoData metaInfo;

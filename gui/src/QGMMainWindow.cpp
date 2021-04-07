@@ -1192,9 +1192,8 @@ void QGMMainWindow::initMeshSignals() {
 	actionBackGroundGridNone->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_GRID_NONE                    );
 
         // --- Github userdata check --------------------------------------------------------------------------------------------------------------
-        QObject::connect( actionFileSaveAs, &QAction::triggered, this, &QGMMainWindow::saveUser);
+        //QObject::connect( actionFileSaveAs, &QAction::triggered, this, &QGMMainWindow::saveUser); //! todo: check if neccessary
         QObject::connect( actionAuthorizeUser, &QAction::triggered, this, &QGMMainWindow::authenticate);
-        QObject::connect(this, &QGMMainWindow::authentication, this, &QGMMainWindow::authenticate);
         QObject::connect(this, &QGMMainWindow::authenticated, this, &QGMMainWindow::updateUser);
 
 	mMeshFunctionCalls = new QActionGroup( this );
@@ -1238,6 +1237,8 @@ bool QGMMainWindow::setupMeshWidget( const QGLFormat& rGLFormat ) {
 	return true;
 }
 
+
+//! Enables streaming of enum provider
 std::ostream& operator<<(std::ostream out, Provider p){
 
     switch(p){
@@ -1252,6 +1253,8 @@ std::ostream& operator<<(std::ostream out, Provider p){
     return out;
 }
 
+
+//! Converts enum provider into readable string
 std::string providerAsString(Provider p){
 
     switch(p){
@@ -1265,6 +1268,10 @@ std::string providerAsString(Provider p){
 
 }
 
+
+//! \brief QGMMainWindow::logInOut
+//! If user already logged in, user data in settings is reset, the user is logged out and the button text is refreshed,
+//! otherwise authenticate() is called starting the authentication process.
 void QGMMainWindow::logInOut(){
     QSettings settings;
     if(loggedIn){
@@ -1278,10 +1285,13 @@ void QGMMainWindow::logInOut(){
         emit sViewUserInfo(MeshWidgetParams::USER_LOGIN, "Log in");
         emit saveUser();
     }else{
-        emit authenticate();
+        authenticate();
     }
 }
 
+
+//! \brief QGMMainWindow::authenticate
+//! Initiates login dialog asking for login data such as username and provider and starts login process.
 void QGMMainWindow::authenticate(){
 
     QSettings settings;
@@ -1300,6 +1310,13 @@ void QGMMainWindow::authenticate(){
     settings.setValue( "provider", int(provider));
 }
 
+
+//! \brief QGMMainWindow::updateUser
+//! \param data
+//! After successfull authentication the received user data is checked for the required information like id, username and full name.
+//! If data is complete the settings are updated, the button is refreshed and the user is officially logged in,
+//! otherwise authentication fails.
+//! Subsequently saving of the user data as meta data of the mesh is triggered.
 void QGMMainWindow::updateUser(QJsonObject data){
 
     if(!data.empty() && data.contains("id") && data.contains("name") && (data.contains("login")||data.contains("username"))){
@@ -1311,7 +1328,8 @@ void QGMMainWindow::updateUser(QJsonObject data){
         settings.setValue( "id", data.value("id").toInt());
         settings.setValue( "fullName", data.value("name").toString());
 
-        qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Current user: " << settings.value( "userName" ).toString() << " with id " << settings.value("id").toInt() ;
+        qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Current user: " << settings.value( "userName" ).toString()
+                 << " with id " << settings.value("id").toInt() ;
 
         std::string s(providerAsString(static_cast<Provider>(settings.value("provider").toInt())));
         QString userInfo = settings.value("userName").toString() + QString("@") + QString::fromStdString(s) ;
@@ -1319,23 +1337,27 @@ void QGMMainWindow::updateUser(QJsonObject data){
         emit sViewUserInfo(MeshWidgetParams::USER_INFO, userInfo);
         emit sViewUserInfo(MeshWidgetParams::USER_LOGIN, "Log out");
     }else{
-        //this->loggedIn = false;
         qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Authentication failed due to incomplete user data.";
     }
-    emit saveUser();
+    saveUser();
 }
 
-
+//! \brief QGMMainWindow::saveUser
+//! Updates user data in ModelMetaData in order to document the most recent successfully logged in user in the meta data of the mesh.
 void QGMMainWindow::saveUser(){
 
     QSettings settings;
     // update meta data, if mesh loaded
     if(this->mMeshWidget->getMesh() != nullptr){
         if(loggedIn){
-            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_USERNAME, settings.value("userName").toString().toStdString() );
-            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_FULLNAME, settings.value("fullName").toString().toStdString() );
-            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_ID, std::to_string(settings.value("id").toInt()) );
-            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_PROVIDER, providerAsString(static_cast<Provider>(settings.value("provider").toInt())));
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_USERNAME,
+                                                                                    settings.value("userName").toString().toStdString() );
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_FULLNAME,
+                                                                                    settings.value("fullName").toString().toStdString() );
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_ID,
+                                                                                    std::to_string(settings.value("id").toInt()) );
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_PROVIDER,
+                                                                                    providerAsString(static_cast<Provider>(settings.value("provider").toInt())));
         }else{
             this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_USERNAME, "" );
             this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_FULLNAME, "");
@@ -1379,7 +1401,7 @@ bool QGMMainWindow::event( QEvent* rEvent ) {
 void QGMMainWindow::load() {
 	QSettings settings;
 	QString fileName = QFileDialog::getOpenFileName( this,
-                                                         tr( "Open 3D-Mesh or Point Cloud" ),
+                                                                                                         tr( "Open 3D-Mesh or Point Cloud" ),
 	                                                 settings.value( "lastPath" ).toString(),
 													 tr( "3D mesh files (*.ply *.PLY *.obj *.OBJ);;Other 3D files (*.txt *.TXT *.xyz *.XYZ)" )
 	                                                );

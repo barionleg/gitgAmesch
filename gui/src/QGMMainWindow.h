@@ -181,6 +181,7 @@ private slots:
 	void openExternalProgramsDialog();
 	void openGridPositionDialog();
 
+// --- User Authentication --------------------------------------------------------------------------------------------------------------------------------------	
 	void authenticate();
 
 public slots:
@@ -362,7 +363,6 @@ signals:
 	void sDatumAddSphere();                                  //!< Manually enter a datum sphere.
 
 // --- User Authentication ----------------------------------------------------------------------------------------------------------------------------------
-	void authentication();
 	void authenticating(QString *username, Provider *provider);
 	void authenticated(QJsonObject data);
 
@@ -514,6 +514,8 @@ private:
 
 	// Network access e.g. for checking the version number.
 	QNetworkAccessManager* mNetworkManager;          //! manages simple http-request (cf. version number)
+
+	// User Authentication
 	bool loggedIn = false;
 
 	// QWidget interface

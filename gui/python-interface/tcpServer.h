@@ -33,7 +33,6 @@
 #include "meshwidget.h"
 #include "meshwidget_params.h"
 #include "httpParser.h"
-#include <json.hpp>
 #include <string>
 #include <vector>
 #include <map>
@@ -52,28 +51,6 @@ public:
     enum httpStatusCode { c200, c202, c404, c424, c500, c503 };
     void setMainWindow(QGMMainWindow *mainWindow);
 
-	/*	command related functions
-	 *	
-	 * 	Trigger respective functions in QGMMainWindow or Mesh.
-	 * 	Function parameters are passed from request header and body.
-	 *	Return data written into QVariant of type QJsonDocument or QString.
-	*/ 
-        void load(std::map<std::string, std::string>& parameters);
-        void exportVertices(std::map<std::string, std::string>& parameters);
-	void getVertices(QVariant& var);
-	void getMeshVertexNormals(QVariant& var);
-	void getBoundingBoxSize(QVariant& var);
-        void getVerticesInBeam(std::map<std::string, std::vector<double>> bodyPars, QVariant& var);
-        void nonMaxSupp(std::map<std::string, std::string>& parameters);
-        void watershed(std::map<std::string, std::string>& parameters);
-        void clustering(std::map<std::string, std::string>& parameters);
-        void ransac(std::map<std::string, std::string>& parameters, QVariant& var);
-        void featureElementsByIndex(std::map<std::string, std::string>& parameters);
-        void assignFeatVec(std::map<std::string, std::vector<double>> bodyPars);
-	void compFeatVecLen();
-	void authorize(std::map<std::string,std::string>& parameters, QVariant& var);
-	 
-
 signals:
 	void codeReceived(std::string code);
 	void tokenReceived(std::string token);
@@ -81,12 +58,14 @@ signals:
 	void sViewUserInfo(MeshWidgetParams::eViewUserInfo,QString);
 
 public slots:
+	void authenticateUser(QString *username, Provider *provider);
+
+private slots:
     void newConnection();
     void connected();
     void reading(HTTP::Request *request);
     void sending(QStringList *response);
     std::string statusCodeAsString(httpStatusCode c);
-	bool authenticateUser(QString *username, Provider *provider);
 	void readToken(QNetworkReply *reply);
 	void readUserData(QNetworkReply *reply);
 
@@ -99,6 +78,27 @@ private:
 	QDataStream in;
 	httpStatusCode statusCode;
     bool refreshing = false;
+	void authorize(std::map<std::string,std::string>& parameters, QVariant& var);
+
+	/*	command related functions
+	 *	
+	 * 	Trigger respective functions in QGMMainWindow or Mesh.
+	 * 	Function parameters are passed from request header and body.
+	 *	Return data written into QVariant of type QJsonDocument or QString.
+	*/ 
+    void load(std::map<std::string, std::string>& parameters);
+    void exportVertices(std::map<std::string, std::string>& parameters);
+	void getVertices(QVariant& var);
+	void getMeshVertexNormals(QVariant& var);
+	void getBoundingBoxSize(QVariant& var);
+	void getVerticesInBeam(std::map<std::string, std::vector<double>> bodyPars, QVariant& var);
+	void nonMaxSupp(std::map<std::string, std::string>& parameters);
+	void watershed(std::map<std::string, std::string>& parameters);
+	void clustering(std::map<std::string, std::string>& parameters);
+	void ransac(std::map<std::string, std::string>& parameters, QVariant& var);
+	void featureElementsByIndex(std::map<std::string, std::string>& parameters);
+	void assignFeatVec(std::map<std::string, std::vector<double>> bodyPars);
+	void compFeatVecLen();
 };
 
 

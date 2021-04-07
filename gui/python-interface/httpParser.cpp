@@ -25,7 +25,6 @@
 
 using namespace std;
 using namespace HTTP;
-using json = nlohmann::json;
 
 
 template <class Container>
@@ -65,14 +64,13 @@ void Request::httpParser(string request)
 {
     cout << "[HTTP::" << __FUNCTION__ << "] Start parsing..." << endl;
     
-    size_t found1= request.find(" ");
-    size_t found2= request.find(" ",found1+1);
+    size_t found1 = request.find(" ");
+    size_t found2 = request.find(" ",found1+1);
 
     string method = request.substr(0,found1);
     HTTP::Method m = HTTP::method_from_string(method);
 
     string f,v,p;
-    json j;
     v = request.substr(found2+1, request.find("\r\n")-found2-1);
     if(request.find("?") != -1){
         f = request.substr(request.find("/")+1, request.find("?")-request.find("/")-1);

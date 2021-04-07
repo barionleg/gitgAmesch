@@ -33,8 +33,6 @@
 #include "httpVersion.cpp"
 #include <QObject>
 #include <map>
-#include <json.hpp>
-
 
 template <class Container>
 void splitStr(const std::string& str, Container& cont, char delim = ' ');

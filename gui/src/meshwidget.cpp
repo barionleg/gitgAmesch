@@ -923,6 +923,8 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 	cout << "[MeshWidget::" << __FUNCTION__ << "] Done." << endl;
 
 	emit loadedMeshIsTextured( mMeshVisual->getModelMetaDataRef().hasTextureCoordinates() && mMeshVisual->getModelMetaDataRef().hasTextureFiles() );
+
+        // after loading new file, guarantee that currently logged in user is documented in meta data of the mesh
         this->mMainWindow->saveUser();
 
 	return( true );

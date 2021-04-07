@@ -33,7 +33,6 @@
 
 using namespace std;
 using namespace HTTP;
-using json = nlohmann::json;
 
 
 //! \brief parses a string in csv format into a map
@@ -85,7 +84,7 @@ TcpServer::TcpServer(QObject *parent) :
 
     this->socket = new QTcpSocket();
 
-    // whenever a user connects, it will emit signal
+    // whenever a user connects, signal is emitted
     QObject::connect(server, &QTcpServer::newConnection, this, &TcpServer::newConnection);
     QObject::connect(this->socket, &QTcpSocket::connected, this, &TcpServer::connected);
 
@@ -93,23 +92,25 @@ TcpServer::TcpServer(QObject *parent) :
 
     if(!server->listen(QHostAddress::Any, 8080))
     {
-	qDebug() << "[TcpServer::TcpServer] Server could not start";
+        qDebug() << "[TcpServer::" << __FUNCTION__ << "] Server could not start";
     }
     else
     {
-	qDebug() << "[TcpServer::TcpServer] Server started.";
+        qDebug() << "[TcpServer::" << __FUNCTION__ << "] Server started.";
 
+        // if login data from last session available, automatically refresh authentication
         QSettings settings;
-        QString user = settings.value("userName").toString();
-        Provider prov = static_cast<Provider>( settings.value("provider").toInt() );
         if(!settings.value("token").toString().isEmpty()){
             refreshing = true;
+            QString user = settings.value("userName").toString();
+            Provider prov = static_cast<Provider>( settings.value("provider").toInt() );
             emit authenticateUser(&user, &prov);
         }
     }
 }
 
 
+//! convert enum status code to readable string for http response
 string TcpServer::statusCodeAsString(httpStatusCode c)
 {
     switch (c)
@@ -188,7 +189,10 @@ void TcpServer::reading(HTTP::Request *request)
 	request->info();
 }
 
-
+//!
+//! \brief TcpServer::sending
+//! \param response contains at first position the
+//!
 void TcpServer::sending(QStringList *response)
 {
 	cout << "[TcpServer::sending] Sending data..." << endl;
@@ -207,6 +211,10 @@ void TcpServer::sending(QStringList *response)
 }
 
 
+//!
+//! \brief TcpServer::newConnection
+//! server connect to next pending connection, reads an incoming request,
+//! parses the received command and sends status code and data in response
 void TcpServer::newConnection()
 {
 	this->socket = server->nextPendingConnection();
@@ -233,19 +241,27 @@ void TcpServer::newConnection()
 */
 
 
-
-bool TcpServer::authenticateUser(QString *username, Provider *provider)
+//!
+//! \brief TcpServer::authenticateUser
+//! \param username with which the user will log into profile
+//! \param provider at which the specefied user profile is defined
+//!
+void TcpServer::authenticateUser(QString *username, Provider *provider)
 {
+    // required information for authentication process
     QSettings settings;
-    QString clientId = "f31165013adac0da36ed";
-    QString clientSecret = "32d6f2a7939c1b40cae13c20a36d4cd32942e60d";
+    QString clientId;               //!< generated id for gigamesh as registered application at selected provider
+    QString clientSecret;           //!< generated secret for gigamesh as registered application at selected provider
     QString redirectURI = "http://localhost:8080/authorize";
-    QString state = "randomString";
-    QString authorizationUrlBase;
-    QString accessTokenUrlBase;
-    string userDataUrlBase;
-    QString scope;
+                                    //!< user is redirected to localhost at port 8080 after permitting access
+    //! todo: generate random string
+    QString state = "randomString"; //!< string used for securing communication between server and provider
+    QString authorizationUrlBase;   //!< url for requesting authorization code
+    QString accessTokenUrlBase;     //!< url for requesting access token
+    string userDataUrlBase;         //!< url for accessing user profile
+    QString scope;                  //!< scope specifying access rights to user profile
 
+    // adapt information according to provider
     switch(*provider)
     {
         case GITHUB:
@@ -298,16 +314,19 @@ bool TcpServer::authenticateUser(QString *username, Provider *provider)
             scope = "user";
     }
 
+    // if authirization is not refreshed, the user is prompted to permit access to profile for gigamesh
     if(!refreshing)
     {
+        // add required parameters to url base for authorization code
         QString authorizationUrl = authorizationUrlBase + "?response_type=code&client_id=" + clientId +
                 "&scope=" + scope + "&login=" + username + "&redirect_uri=" + redirectURI + "&state=" +
                 state + "&duration=permanent";
 
-        qDebug() << "[TcpServer::RequestAuthentication] Via: " << authorizationUrl;
-
+        // (I) Ask user to permit authorization
+        qDebug() << "[TcpServer::authenticateUser] Request authentication via: " << authorizationUrl;
         QDesktopServices::openUrl(QUrl(authorizationUrl));
 
+        // (III) Post code and request access token
         QObject::connect(this, &TcpServer::codeReceived, this, [=](string code){
 
             QSettings settings;
@@ -332,13 +351,17 @@ bool TcpServer::authenticateUser(QString *username, Provider *provider)
             params.addQueryItem("redirect_uri", redirectURI);
             params.addQueryItem("grant_type", "authorization_code"); //needed for gitlab.rlp.net
 
+            // (IV) extract token from response
             QObject::connect(manager, &QNetworkAccessManager::finished, this, &TcpServer::readToken);
 
             manager->post(request, params.query().toUtf8());
         });
     }
 
+    // (V) Post token and request user data
     QObject::connect(this, &TcpServer::tokenReceived, this, [=](string token){
+        this->refreshing = false;
+
         QNetworkAccessManager *manager = new QNetworkAccessManager(this);
 
         cout << "[TcpServer:authenticateUser] Token Received: " << token << endl;
@@ -354,25 +377,24 @@ bool TcpServer::authenticateUser(QString *username, Provider *provider)
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
         request.setRawHeader(QByteArray("Authorization"),  QByteArray::fromStdString("token " + token));
 
+        // (VI) extract user data
         QObject::connect(manager, &QNetworkAccessManager::finished, this, &TcpServer::readUserData);
 
         manager->get(request);
     });
 
+    // when token from last session available omit first steps of process and jump to step V.
     if(refreshing){
         cout << "[TcpServer::authenticateUser] Refreshing Authentication" << endl;
         QSettings settings;
         emit tokenReceived(settings.value("token").toString().toStdString());
     }
 
+    // (VII) Signalize authentication finished and pass user data on to MainWindow
     QObject::connect(this, &TcpServer::userDataReceived, this, [=](QJsonObject data){
         cout << "[TcpServer::authenticateUser] User Data Received" << endl;
         emit mainWin->authenticated(data);
     });
-
-    this->refreshing = false;
-
-    return true;
 }
 
 
@@ -380,7 +402,7 @@ void TcpServer::readToken(QNetworkReply *reply)
 {
     QByteArray bts = reply->readAll();
     QString str(bts);
-    qDebug() << "[TcpServer:readReply] Received Reply: " << str;
+    qDebug() << "[TcpServer:" << __FUNCTION__ << "] Received Reply: " << str;
 
     // if reply contains parameters as text
     if(str.contains("access_token=", Qt::CaseSensitive)){
@@ -388,6 +410,7 @@ void TcpServer::readToken(QNetworkReply *reply)
         int end = str.indexOf("&", 1);
 
         QString token = str.mid(start+14, end-start-14);
+        qDebug() << "[TcpServer:" << __FUNCTION__ << "] Received Reply as String. ";
         emit tokenReceived(token.toStdString());
         return;
     }
@@ -395,9 +418,10 @@ void TcpServer::readToken(QNetworkReply *reply)
     // if reply contains data as json
     QJsonDocument jsonDoc = QJsonDocument::fromJson(bts);
     if(jsonDoc.isEmpty()){
-        cout << "[TcpServer::readToken] No json provided." << endl;
+        cout << "[TcpServer::" << __FUNCTION__ << "] No json provided." << endl;
     }else{
         if(!jsonDoc.object().value("access_token").isObject()){
+            qDebug() << "[TcpServer:" << __FUNCTION__ << "] Received Reply as Json. ";
             emit tokenReceived(jsonDoc.object().value("access_token").toString().toStdString());
         }
     }
@@ -411,7 +435,7 @@ void TcpServer::readUserData(QNetworkReply *reply)
 
     const auto document = QJsonDocument::fromJson(bts);
     QString str(bts);
-    qDebug() << "[TcpServer::readUserData] Received User Data: " << str;
+    qDebug() << "[TcpServer::" << __FUNCTION__ << "] Received User Data: " << str;
     Q_ASSERT(document.isObject());
     const auto rootObject = document.object();
     const auto dataValue = rootObject.value("data");
@@ -421,7 +445,7 @@ void TcpServer::readUserData(QNetworkReply *reply)
     if(!document.isEmpty()){
         emit userDataReceived(rootObject);
     }else{
-        qDebug() << "[TcpServer::readUserData] Json object is empty.";
+        qDebug() << "[TcpServer::" << __FUNCTION__ << "] Json object is empty.";
     }
 
 }
@@ -671,7 +695,7 @@ void TcpServer::getVerticesInBeam(map<string,vector<double>> bodyPars, QVariant&
         }
 
     } else {
-        std::cout << "[QGMMainWindow::receiveCommand] Error: No mesh loaded!" << std::endl;
+        std::cout << "[QGMMainWindow::parseCommand] Error: No mesh loaded!" << std::endl;
         statusCode = c424;
     }
 
@@ -711,7 +735,7 @@ void TcpServer::nonMaxSupp(map<string,string>& parameters){
         }
 
     } else {
-        std::cout << "[QGMMainWindow::receiveCommand] Error: No mesh loaded!" << std::endl;
+        std::cout << "[QGMMainWindow::parseCommand] Error: No mesh loaded!" << std::endl;
         statusCode = c424;
     }
 
@@ -743,7 +767,7 @@ void TcpServer::watershed(map<string,string>& parameters){
         }
 
     } else {
-        std::cout << "[QGMMainWindow::receiveCommand] Error: No mesh loaded!" << std::endl;
+        std::cout << "[QGMMainWindow::parseCommand] Error: No mesh loaded!" << std::endl;
         statusCode = c424;
     }
 
@@ -775,7 +799,7 @@ void TcpServer::clustering(map<string,string>& parameters){
         }
 
     } else {
-        std::cout << "[QGMMainWindow::receiveCommand] Error: No mesh loaded!" << std::endl;
+        std::cout << "[QGMMainWindow::parseCommand] Error: No mesh loaded!" << std::endl;
         statusCode = c424;
     }
 
@@ -826,7 +850,7 @@ void TcpServer::ransac(map<string,string>& parameters, QVariant& var){
         }
 
     } else {
-        std::cout << "[QGMMainWindow::receiveCommand] Error: No mesh loaded!" << std::endl;
+        std::cout << "[QGMMainWindow::parseCommand] Error: No mesh loaded!" << std::endl;
         statusCode = c424;
     }
 
@@ -866,7 +890,7 @@ void TcpServer::featureElementsByIndex(map<string,string>& parameters){
         }
 
     } else {
-        std::cout << "[QGMMainWindow::receiveCommand] Error: No mesh loaded!" << std::endl;
+        std::cout << "[QGMMainWindow::parseCommand] Error: No mesh loaded!" << std::endl;
         statusCode = c424;
     }
 
@@ -884,14 +908,14 @@ void TcpServer::assignFeatVec(map<string,vector<double>> bodyPars){
 
         bool succ = this->mainWin->getWidget()->getMesh()->assignFeatureVectors(funcVals, 1);
         if(!succ){
-            cout << "[QGMMainWindow::receiveCommand] Could not assign feature values!" << endl;
+            cout << "[QGMMainWindow::parseCommand] Could not assign feature values!" << endl;
             statusCode = c424;
         }
         else{
             statusCode = c200;
         }
     } else {
-        std::cout << "[QGMMainWindow::receiveCommand] Error: No mesh loaded!" << std::endl;
+        std::cout << "[QGMMainWindow::parseCommand] Error: No mesh loaded!" << std::endl;
         statusCode = c424;
     }
 
@@ -912,39 +936,10 @@ void TcpServer::compFeatVecLen(){
 void TcpServer::authorize(std::map<std::string,std::string>& parameters, QVariant& var){
     QString data_str;
 
+    // (II) Receive code in response
     string code;
-    if(parameters.find("token") != parameters.end()){
-        string token = parameters["token"];
-        cout << "[QGMMainWindow::parseCommand] Received Token '" << token << "'" << endl;
-        emit tokenReceived(token);
-
-        QFile file("../../gui/python-interface/websiteSuccess.html");
-        QString dataToSend;
-        if(!file.open(QIODevice::ReadOnly)){
-            qDebug() << "Current path:" << QDir::currentPath();
-            QMessageBox::information(0, "error", file.errorString());
-        }else{
-            QTextStream in(&file);
-            dataToSend = in.readAll();
-        }
-        data_str = dataToSend;
-    }else{
-        cout << "[QGMMainWindow::parseCommand] Missing Token." << endl;
-        QFile file("../../gui/python-interface/websiteFail.html");
-        QString dataToSend;
-        if(!file.open(QIODevice::ReadOnly)){
-            qDebug() << "Current path:" << QDir::currentPath();
-            QMessageBox::information(0, "error", file.errorString());
-        }else{
-            QTextStream in(&file);
-            dataToSend = in.readAll();
-        }
-        data_str = dataToSend;
-    }
-
     if(parameters.find("code") != parameters.end()){
         code = parameters["code"];
-        //cout << "[QGMMainWindow::parseCommand] Received Code '" << code << "'" << endl;
         emit codeReceived(code);
 
         QFile file("../../gui/python-interface/websiteSuccess.html");
@@ -958,7 +953,7 @@ void TcpServer::authorize(std::map<std::string,std::string>& parameters, QVarian
         }
         data_str = dataToSend;
     }else{
-        cout << "[QGMMainWindow::parseCommand] Missing Code." << endl;
+        cout << "[QGMMainWindow::" << __FUNCTION__ << "] Missing Code." << endl;
         QFile file("../../gui/python-interface/websiteFail.html");
         QString dataToSend;
         if(!file.open(QIODevice::ReadOnly)){
@@ -972,14 +967,15 @@ void TcpServer::authorize(std::map<std::string,std::string>& parameters, QVarian
         data_str = dataToSend;
     }
 
+    // check if received state is same as original
     string returnedState;
     if(parameters.find("state") != parameters.end()){
             returnedState = parameters["state"];
             if(returnedState != "randomString"){
-                cout << "[QGMMainWindow::parseCommand] State differs!" << endl;
+                cout << "[QGMMainWindow::" << __FUNCTION__ << "] State differs!" << endl;
             }
     }else{
-            cout << "[QGMMainWindow::parseCommand] Missing State." << endl;
+            cout << "[QGMMainWindow::" << __FUNCTION__ << "] Missing State." << endl;
     }
 
     var = data_str;
@@ -1002,7 +998,6 @@ QStringList TcpServer::parseCommand(Request req){
         }
 
         // set QVariant type according to selected return_type
-        json data;
         QString data_str;
         QVariant v; // holds data either as QJsonDocument or QString (csv)
         if(return_type == "csv"){
@@ -1066,7 +1061,7 @@ QStringList TcpServer::parseCommand(Request req){
             authorize(pars, v);
         }
         else{
-            std::cout << "[QGMMainWindow::parseCommand] Error: Unknown command!" << std::endl;
+            std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] Error: Unknown command!" << std::endl;
             statusCode = c404;
 	}
 

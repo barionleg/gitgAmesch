@@ -91,13 +91,11 @@ set(PY_INTER_SOURCES
 	python-interface/httpVersion.cpp
 	python-interface/httpParser.cpp
 	python-interface/tcpServer.cpp
-	python-interface/json.hpp
 	python-interface/httpParser.h
 	python-interface/tcpServer.h
 )
 
 set(PY_INTER_HEADERS
-	python-interface/json.hpp
 	python-interface/httpParser.h
 	python-interface/tcpServer.h
 )
