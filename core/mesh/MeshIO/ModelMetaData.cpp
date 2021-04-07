@@ -118,6 +118,7 @@ bool ModelMetaData::clearModelMetaStrings() {
         mMetaDataStringNames[META_USER_FULLNAME]        = "UserFullname";
         mMetaDataStringNames[META_USER_ID]              = "UserID";
         mMetaDataStringNames[META_USER_PROVIDER]        = "UserProvider";
+        mMetaDataStringNames[META_DATA_TTL]             = "MetaDataTTL";
 
 	// Initialze labels for the names of the strings holding meta-data
 	mMetaDataStringLabels[META_MODEL_ID]             = "ID of the model";

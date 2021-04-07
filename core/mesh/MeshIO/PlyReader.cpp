@@ -707,12 +707,7 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
 	getline( filestr, lineToParse );
 	// then the header begins, which is typically ASCII:
 
-        bool userRelated = false;
-        bool userDataRead = false;
-        bool first = true;
-        int opened = 0;
-        std::string userData;
-
+        std::string metaDataTTL;
 	while( !filestr.eof() && !endOfHeader) {
 		getline( filestr, lineToParseOri );
 		lineToParse = lineToParseOri;
@@ -748,7 +743,7 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
 			ModelMetaData::eMetaStrings foundMetaId;
 			if( MeshReader::getModelMetaDataRef().getModelMetaStringId( possibleMetaDataName, foundMetaId ) ) {
 				uint64_t preMetaLen = 9 + possibleMetaDataName.size(); // 7 for 'comment' plus 2x space.
-				std::string metaContent = lineToParseOri.substr( preMetaLen );
+                                std::string metaContent = lineToParseOri.substr( preMetaLen );
 				LOG::info() << "[PlyReader::" << __FUNCTION__ << "] Meta-Data: " << possibleMetaDataName << " (" << foundMetaId << ") = " << metaContent << "\n";
 
 				if( foundMetaId == ModelMetaData::META_TEXTUREFILE)
@@ -756,12 +751,11 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
 					MeshReader::getModelMetaDataRef().addTextureName(metaContent);
 				}
 
-                                /*
-                                if( foundMetaId == ModelMetaData::META_USER_DATA)
+                                // ttl data spreads over multiple lines starting with 'comment ttl'
+                                if( possibleMetaDataName == "ttl")
                                 {
-                                    userRelated = true;
+                                    metaDataTTL += metaContent;
                                 }
-                                */
 
 				else
 				{
@@ -771,41 +765,9 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
 				}
 			}
 
-                        if(userRelated){
-                            uint64_t preMetaLen;
-                            if(first){
-                                    preMetaLen = 18; //13;
-                                    first = false;
-                            }else{
-                                    preMetaLen = 13; //8;
-                            }
-                            std::string metaContent = lineToParseOri.substr( preMetaLen );
-                            std::cout << "--------> User Data Found: " << metaContent << std::endl;
-                            userData += metaContent + "\n";
-                            if(metaContent.find("{") != -1){
-                                opened++;
-                            }
-                            if(metaContent.find("}") != -1){
-                                opened--;
-                                if(opened == 0){
-                                    userDataRead = true;
-                                    userRelated = false;
-                                }
-                            }
-                            std::cout << opened << std::endl;
-                        }
-
-
 
 			continue;
 		}
-
-                if(userDataRead){
-                    if( !MeshReader::getModelMetaDataRef().setModelMetaString(  ModelMetaData::META_USER_USERNAME, userData ) ) {
-                            LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Meta-Data not set!" << "\n";
-                    }
-                    userRelated = false; // \todo right place?
-                }
 
 		// --------------------------------------------------------------------------------------------
 
@@ -998,6 +960,11 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
 				LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] undefined section type: " << plyCurrentSection << "!\n";
 		}
 	}
+
+        // write ttl data extracted from header into model meta data
+        if( !MeshReader::getModelMetaDataRef().setModelMetaString( ModelMetaData::META_DATA_TTL, metaDataTTL ) ) {
+                LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Meta-Data not set!" << "\n";
+        }
 
 	if( !endOfHeader ) {
 		// no end of the header found means some trouble:

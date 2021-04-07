@@ -323,6 +323,9 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
                 case FILE_SAVE_AS: {
                                 MeshInfoData metaInfo;
                                 getMeshInfoData( metaInfo, true );
+                                std::string infoStr;
+                                metaInfo.getMeshInfoTTL( infoStr );
+                                MeshIO::getModelMetaDataRef().setModelMetaString( ModelMetaData::META_DATA_TTL, infoStr);
                                 retVal = writeFileUserInteract();
                         } break;
 		case EXPORT_METADATA_HTML: {

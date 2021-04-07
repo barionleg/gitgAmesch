@@ -50,7 +50,9 @@ class ModelMetaData
 			META_USER_USERNAME,		   //!< Username of currently authenticated user.
 			META_USER_ID,			   //!< User id extracted during authorization from profile information.
 			META_USER_FULLNAME,		   //!< Full name extracted during authorization from profile information.
+			META_DATA_TTL,			   //!< MeshInfoData as string in ttl format.
 			META_STRINGS_COUNT         //!< Total number of strings for meta-data.
+			
 		};
 
 		bool         setModelMetaString( eMetaStrings rMetaStrID, const std::string& rModelMeta );
