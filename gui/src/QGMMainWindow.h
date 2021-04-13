@@ -187,6 +187,9 @@ private slots:
 public slots:
 	void saveUser();
 
+public:
+	bool loggedIn = false;
+
 private:
 	// --- Extra Keys --------------------------------------------------------------------------------------------------------------------------------------
 	void keyPressEvent( QKeyEvent *rEvent );
@@ -514,9 +517,6 @@ private:
 
 	// Network access e.g. for checking the version number.
 	QNetworkAccessManager* mNetworkManager;          //! manages simple http-request (cf. version number)
-
-	// User Authentication
-	bool loggedIn = false;
 
 	// QWidget interface
 	protected:

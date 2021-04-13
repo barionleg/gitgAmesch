@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -4562,7 +4562,7 @@ The latter will be shown, when the processing has finished.</string>
   </action>
   <action name="actionAuthorizeUser">
    <property name="text">
-    <string>AuthorizeUser</string>
+    <string>Authorize User</string>
    </property>
   </action>
  </widget>

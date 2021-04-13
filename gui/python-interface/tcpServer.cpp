@@ -27,6 +27,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QHostAddress>
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <type_traits>
@@ -37,7 +38,8 @@ using namespace HTTP;
 
 //! \brief parses a string in csv format into a map
 //! \param data_csv: std::string in csv format (colname1, colname2 \n c11, c12 \n c12, c22)
-//! \param data_map: map with the i'th column-name as key and the (i+1, ..., n) column in a vector as value (colname1:{c11,c12})
+//! \param data_map: map with the i'th column-name as key and the (i+1, ..., n) column in
+//!                  a vector as value (colname1:{c11,c12})
 void parseCSV(string& data_csv, map<string, vector<double>>& data_map){
     istringstream rows;
     rows.str(data_csv);
@@ -47,7 +49,7 @@ void parseCSV(string& data_csv, map<string, vector<double>>& data_map){
 
     for(string row; getline(rows, row);){
         vector<string> vals;
-        char splitBy=',';
+        char splitBy=','; //! todo: splitting character as optional parameter
         splitStr(row,vals,splitBy);
         for (std::vector<string>::iterator val = begin(vals); val != end(vals); ++val){
             if(first){
@@ -67,46 +69,6 @@ void parseCSV(string& data_csv, map<string, vector<double>>& data_map){
         data_map.insert(make_pair(varNames[i], currValues));
     }
 	
-}
-
-
-/*  Python/curl interface process:
- *
- *
- *
- *
-*/
-
-TcpServer::TcpServer(QObject *parent) :
-    QObject(parent)
-{
-    server = new QTcpServer(this);
-
-    this->socket = new QTcpSocket();
-
-    // whenever a user connects, signal is emitted
-    QObject::connect(server, &QTcpServer::newConnection, this, &TcpServer::newConnection);
-    QObject::connect(this->socket, &QTcpSocket::connected, this, &TcpServer::connected);
-
-    in.setDevice(this->socket);
-
-    if(!server->listen(QHostAddress::Any, 8080))
-    {
-        qDebug() << "[TcpServer::" << __FUNCTION__ << "] Server could not start";
-    }
-    else
-    {
-        qDebug() << "[TcpServer::" << __FUNCTION__ << "] Server started.";
-
-        // if login data from last session available, automatically refresh authentication
-        QSettings settings;
-        if(!settings.value("token").toString().isEmpty()){
-            refreshing = true;
-            QString user = settings.value("userName").toString();
-            Provider prov = static_cast<Provider>( settings.value("provider").toInt() );
-            emit authenticateUser(&user, &prov);
-        }
-    }
 }
 
 
@@ -132,6 +94,96 @@ string TcpServer::statusCodeAsString(httpStatusCode c)
 }
 
 
+/*  ----- Python Interface Process -----
+ *
+ *      main::TcpServer()
+ *      main::setMainWindow()
+ *
+ * After creating a MainWindow in the main a TcpServer is constructed and a pointer to the mainWindow
+ * set as private member of the server. In the constructor a link to a socket is added as private member
+ * and assigned to a QDataStream in order to catch incoming messages. Further the server is ordered to
+ * listen at port 8080. If login data from the last session is available, authorization is refreshed.
+ *
+ *      QObject::connect(server, &QTcpServer::newConnection, this, &TcpServer::newConnection);
+ *      QObject::connect(this->socket, &QTcpSocket::connected, this, &TcpServer::connected);
+ *      TcpServer::newConnection()
+ *
+ * Evertime a new connection is established 'newConnection' is triggered. This function is the main
+ * part of handling incoming messages and respective responses. This connection is assigned to the
+ * socket and the signal 'connected' is emitted.
+ *
+ *      TcpServer::connected()
+ *
+ * In 'connected' the private member enum statusCode is set indicating the success of the connection
+ * and send as confirmation in a response. Then the socket is ready to receive a message.
+ *
+ *      TcpServer::reading(HTTP::Request *request)
+ *
+ * After establishing a connection, a new message is received in 'reading'. First the socket reads
+ * until the header ends and sends read data to httpParser to extract parameters etc.
+ * Then the remaining message is read and set as body of the request.
+ *
+ *      Request::httpParser(string request)
+ *
+ * This http header is parsed into a request in 'httpParser'.
+ *
+ *      TcpServer::parseCommand(HTTP::Request r)
+ *
+ * In 'parseCommand' the resuest's parameters are checked if containing a command. If a match is found,
+ * the parameters are forwarded to the respective function and optional data received in a QVariant.
+ * The response is filled with the status code and the data.
+ *
+ *      TcpServer::sending(QStringList *response)
+ *
+ * Finally a status code indicating the success of the process at first position of the QStringList
+ * and optional data at second position is send in a response.
+ *
+*/
+
+
+//! \brief TcpServer::TcpServer
+//! A server object is constructed.A link to a socket is added as private member and assigned to a
+//! QDataStream in order to catch incoming messages. Then the server is ordered to listen at port 8080.
+//! If login data from the last session is available, authorization is refreshed. The internal qtSignals
+//! 'newConnection' of the server and 'connected' of the socket are linked to respective slots.
+TcpServer::TcpServer(QObject *parent) :
+    QObject(parent)
+{
+    server = new QTcpServer(this);
+
+    this->socket = new QTcpSocket();
+
+    // bind QT-signals to in class defined slots for handling new incoming connections
+    QObject::connect(server, &QTcpServer::newConnection, this, &TcpServer::newConnection);
+    QObject::connect(this->socket, &QTcpSocket::connected, this, &TcpServer::connected);
+
+    in.setDevice(this->socket);
+
+    // let server listen at localhost port 8080
+    if(!server->listen(QHostAddress::Any, 8080))
+    {
+        qDebug() << "[TcpServer::" << __FUNCTION__ << "] Server could not start";
+    }
+    else
+    {
+        qDebug() << "[TcpServer::" << __FUNCTION__ << "] Server started.";
+
+        // if login data from last session available, automatically refresh authentication
+        QSettings settings;
+        if(!settings.value("token").toString().isEmpty()){
+            refreshing = true;
+            QString user = settings.value("userName").toString();
+            Provider prov = static_cast<Provider>( settings.value("provider").toInt() );
+            emit authenticateUser(&user, &prov);
+        }
+    }
+}
+
+
+//! \brief TcpServer::connected
+//! A new connection to the socket triggers this function.
+//! The private member enum statusCode is set according to the success of the connection and send
+//! as a confirmation as response. Then the socket is ready to receive a message.
 void TcpServer::connected()
 {
 	httpStatusCode statusCode;
@@ -152,9 +204,14 @@ void TcpServer::connected()
 }
 
 
+//! \brief TcpServer::reading
+//! \param request containing the parsed header and body
+//! Reads a message via the socket. First the socket reads until the header ends
+//! and sends read data to httpParser to extract parameters etc.
+//! Then the remaining message is read and set as body of the request.
 void TcpServer::reading(HTTP::Request *request)
 {
-        cout << "[TcpServer::reading] Reading data..." << endl;
+        cout << "[TcpServer::" << __FUNCTION__ << "] Reading data..." << endl;
 
         if(!this->socket->canReadLine()){
             return ;
@@ -163,18 +220,18 @@ void TcpServer::reading(HTTP::Request *request)
         QByteArray reqHead;
 	// wait for message body
         while(this->socket->canReadLine()){
-		QByteArray buffer;
-                buffer = this->socket->readLine();
-		reqHead += buffer;
-		string mess = buffer.toStdString();
+            QByteArray buffer;
+            buffer = this->socket->readLine();
+            reqHead += buffer;
+            string mess = buffer.toStdString();
 
-		// search for end of message header
-		if(reqHead.toStdString().find("\r\n\r\n")!= -1){
-                        break;
-		}
+            // search for end of message header
+            if(reqHead.toStdString().find("\r\n\r\n")!= -1){
+                break;
+            }
 	}
 
-        cout << "[TcpServer::reading] Received Request: " << endl;
+        cout << "[TcpServer::" << __FUNCTION__ << "] Received Request: " << endl;
         qDebug() << "Header: " << reqHead << "\n";
 	request->httpParser(QString(reqHead).toStdString());
 
@@ -189,32 +246,34 @@ void TcpServer::reading(HTTP::Request *request)
 	request->info();
 }
 
-//!
+
 //! \brief TcpServer::sending
-//! \param response contains at first position the
-//!
+//! \param response contains at first position a status code, at second position optional data
+//! Sends a response with status code and data via the socket.
 void TcpServer::sending(QStringList *response)
 {
-	cout << "[TcpServer::sending] Sending data..." << endl;
+        cout << "[TcpServer::" << __FUNCTION__ << "] Sending data..." << endl;
 
-	QByteArray mess;
-	mess += "HTTP/1.0 ";
-	mess += response->at(0).toLocal8Bit(); 
-	mess += "\r\n\r\n" ;
-	mess += response->at(1).toLocal8Bit();
-	mess += "\r\n\r\n" ;
+        QByteArray message;
+        message += "HTTP/1.0 ";
+        message += response->at(0).toLocal8Bit();
+        message += "\r\n\r\n" ;
+        message += response->at(1).toLocal8Bit();
+        message += "\r\n\r\n" ;
 
-	socket->write(mess);
-	socket->flush();
+        this->socket->write(message);
+        this->socket->flush();
 
-	cout << "[TcpServer::sending] Finished sending." << endl;
+        cout << "[TcpServer::" << __FUNCTION__ << "] Finished sending." << endl;
 }
 
 
-//!
 //! \brief TcpServer::newConnection
-//! server connect to next pending connection, reads an incoming request,
-//! parses the received command and sends status code and data in response
+//! A new connection to the server triggers this function. This connection is assigned to the socket
+//! and the signal 'connected' is emitted.
+//! After establishing a connection, the message is received in 'reading' and parsed into a request,
+//! which is checked if containing a command.
+//! Finally a status code indicating the success of the process and optional data is send in a response.
 void TcpServer::newConnection()
 {
 	this->socket = server->nextPendingConnection();
@@ -226,26 +285,141 @@ void TcpServer::newConnection()
 
 	QStringList requestData = parseCommand(r);
 
-	emit sending(&requestData);
+        emit sending(&requestData);
 
-	this->socket->close();
+        this->socket->close();
 }
 
 
+/*  ----- OAuth Process -----
+ *
+ *      qgmdockview.ui::buttonLogInOut
+ *      mainWin.ui::actionAuthorizeUser
+ *
+ * The Authorization process is startet either by clicking 'buttonLogInOut' or selecting
+ * the menu option 'Authorize User' in settings.
+ *
+ * Clicking the button triggers the function logInOut:
+ *
+ *      QGMMainWindow::connect( mDockView, &QGMDockView::sLogInOut, this, &QGMMainWindow::logInOut);
+ *      QGMMainWindos::logInOut()
+ *
+ * In 'logInOut' it is checked whether the user is already logged in. If logged in, the user
+ * gets logged out by resetting the user data and then updating the button text. Otherwise
+ * 'authenticate' is called, starting the actual authentication process.
+ *
+ * By selecting the menu option, the process skips the function 'logInOut' and directly starts
+ * at 'authenticate'.
+ *
+ * QGMMainWindow::connect( actionAuthorizeUser, &QAction::triggered, this, &QGMMainWindow::authenticate);
+ * QGMMainWindos::authenticate()
+ *
+ * The function 'authenticate' opens a dialog window asking the user to select a provider
+ * at which the authentication will be performed and specify the corresponding username.
+ * After affirming the input, the signal 'authenticating' is emitted transfering the username
+ * and provider to tcpServer.
+ *
+ *      main::connect(&mainWindow, &QGMMainWindow::authenticating, &server, &TcpServer::authenticateUser);
+ *      QGMMainWindos::authenticating(QString *username, Provider *provider)
+ *      TcpServer::authenticateUser(QString *username, Provider *provider)
+ *
+ * The OAuth Flow is realized in 'authenticateUser' with the following steps:
+ *
+ *              QDesktopServices::openUrl(QUrl)
+ *
+ *      I. Open browser asking for permission from user to access profile.
+ *
+ *              TcpServer::reading(HTTP::Request *request)
+ *              TcpServer::parseCommand(HTTP::Request r)
+ *              TcpServer::authorize(std::map<std::string,std::string>& parameters, QVariant& var)
+ *              TcpServer::codeReceived(std::string code)
+ *
+ *      II. Receive Code from provider's API.
+ *          The answer of the API is captured by the server in 'reading' via the open connection of the socket.
+ *          This message is parsed into a request and searched for the command authorize. If found, the message
+ *          parameters are scanned for the code in 'authorize'. If successfull, 'codeReceived' is emitted
+ *          and a html-website for confirmation send back as response.
+ *
+ *              QObject::connect(manager, &QNetworkAccessManager::finished, this, &TcpServer::readToken);
+ *              TcpServer::readToken(QNetworkReply *reply)
+ *              TcpServer::tokenReceived(std::string token)
+ *
+ *      III. Trade the code for an access token
+ *          A QNetworkAccessManager posts the request for the access token containing the code as parameter.
+ *          As soon as the manager received a message and finished. The reply is passed to 'readToken' extracting
+ *          the token from the reply. If successfull 'tokenReceived' is emitted.
+ *
+ *              QObject::connect(manager, &QNetworkAccessManager::finished, this, &TcpServer::readUserData);
+ *              TcpServer::readUserData(QNetworkReply *reply)
+ *              QObject::connect(this, &TcpServer::userDataReceived, this->mainWin, &QGMMainWindow::authenticated);
+ *              QGMMainWindow::authenticated()
+ *
+ *      IV. Use access token to read profile data of the user.
+ *          Send token in request to read user data via a QNetworkAccessManager. When the manager finished,
+ *          extract user data from reply. If successfull 'userDataReceived' is emitted which in turn triggers
+ *          'authenticated' in the MainWindow, otherwise the QSettings related to the user are reset.
+ *
+ *
+ *      main::connect(this, &QGMMainWindow::authenticated, this, &QGMMainWindow::updateUser);
+ *
+ * In QGMMainWindow 'updateUser' updates the user related QSettings and the login-button text. After setting loggedIn
+ * true, saveUSer is called.
+ *
+ *      saveUser();
+ *
+ * If a mesh is loaded in 'saveUser' the user data is saved in the modelMetaData.
+ *
+ *
+ *  Flow Diagramm:
 
-/*  OAuth log-in process:
- *
- *
- *
+      +-------------+    .   +------------------+   .    +------------------+    .   +------------+
+      |     UI      |    .   |   QGMMainWindow  |   .    |    TcpServer     |    .   | Provider's |
+      +-------------+    .   +------------------+   .    +------------------+    .   |     API    |
+                         .                          .                            .   +------------+
+      buttonLogInOut +----------> logInOut -----+   .                            .
+                         .                      |   .                            .
+    actionAuthorizeUser +------>                |   .                            .
+                         .       authenticate <-+   .                            .
+                       <-------+                    .                            .
+     QGMDialogAuthorize  .                          .                            .
+                       +------> authenticating +----------> authenticateUser     .
+                         .                          .                            .
+                         .                          .    I. Request permission +------->
+                         .                          .                            .       OpenUrl
+                         .                          .   II. Receive Code  <------------+
+                         .                          .                            .
+                         .                          .   +----+  reading          .
+                         .                          .   |                        .
+                         .                          .   +---> parseCommand +--+  .
+                         .                          .                         |  .
+                         .                          .   +----+ authorize <----+  .
+                         .                          .   |                        .
+                         .                          .   +---> codeReceived  +-----------> htmlWebsite
+                         .                          .                            .
+                         .                          .  III. Request Token +------------->
+                         .                          .                            .
+                         .                          .   +--+ readToken  <---------------+
+                         .                          .   |                        .
+                         .                          .   +--> tokenReceived       .
+                         .                          .                            .
+                         .                          .   IV. readUserData  +------------->
+                         .                          .                            .
+                         .  +--+ authenticated <----------+ userDataReceived <----------+
+                         .  |                       .                            .
+                         .  +---> updateUser +---+  .                            .
+                         .                       |  .                            .
+                         .        saveUser <-----+  .                            .
+                         .                          .                            .
  *
 */
 
 
-//!
 //! \brief TcpServer::authenticateUser
 //! \param username with which the user will log into profile
-//! \param provider at which the specefied user profile is defined
-//!
+//! \param provider at which the specified user profile is defined
+//! Realizes authorization process according to the OAuth 2.0 protocol (https://tools.ietf.org/html/rfc6749)
+//! Requests permission from user in browser to access profile. Sends request to API of provider asking for code,
+//! then trades the code for an access token and finally uses access token to read profile data of the user.
 void TcpServer::authenticateUser(QString *username, Provider *provider)
 {
     // required information for authentication process
@@ -331,6 +505,7 @@ void TcpServer::authenticateUser(QString *username, Provider *provider)
 
             QSettings settings;
             settings.setValue("code", QString::fromStdString(code));
+
             QNetworkAccessManager *manager = new QNetworkAccessManager(this);
 
             cout << "[TcpServer:authenticateUser] Code Received: " << code << endl;
@@ -355,10 +530,11 @@ void TcpServer::authenticateUser(QString *username, Provider *provider)
             QObject::connect(manager, &QNetworkAccessManager::finished, this, &TcpServer::readToken);
 
             manager->post(request, params.query().toUtf8());
+
         });
     }
 
-    // (V) Post token and request user data
+    // (IV) Post token and request user data
     QObject::connect(this, &TcpServer::tokenReceived, this, [=](string token){
         this->refreshing = false;
 
@@ -377,7 +553,6 @@ void TcpServer::authenticateUser(QString *username, Provider *provider)
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
         request.setRawHeader(QByteArray("Authorization"),  QByteArray::fromStdString("token " + token));
 
-        // (VI) extract user data
         QObject::connect(manager, &QNetworkAccessManager::finished, this, &TcpServer::readUserData);
 
         manager->get(request);
@@ -385,69 +560,70 @@ void TcpServer::authenticateUser(QString *username, Provider *provider)
 
     // when token from last session available omit first steps of process and jump to step V.
     if(refreshing){
-        cout << "[TcpServer::authenticateUser] Refreshing Authentication" << endl;
         QSettings settings;
+        cout << "[TcpServer::authenticateUser] Refreshing Authentication" << endl;
         emit tokenReceived(settings.value("token").toString().toStdString());
     }
-
-    // (VII) Signalize authentication finished and pass user data on to MainWindow
-    QObject::connect(this, &TcpServer::userDataReceived, this, [=](QJsonObject data){
-        cout << "[TcpServer::authenticateUser] User Data Received" << endl;
-        emit mainWin->authenticated(data);
-    });
 }
 
 
+//! \brief TcpServer::readToken
+//! \param reply received from QNetworkAccessManager
+//! Searches for an access token in reply either as http parameter or json.
+//! If successfull, tokenReceived is emitted transfering data back to 'authenticateUser'.
 void TcpServer::readToken(QNetworkReply *reply)
 {
+    QSettings settings;
+
     QByteArray bts = reply->readAll();
     QString str(bts);
     qDebug() << "[TcpServer:" << __FUNCTION__ << "] Received Reply: " << str;
+
+    std::string token;
 
     // if reply contains parameters as text
     if(str.contains("access_token=", Qt::CaseSensitive)){
         int start = str.indexOf("access_token=", 1);
         int end = str.indexOf("&", 1);
-
-        QString token = str.mid(start+14, end-start-14);
-        qDebug() << "[TcpServer:" << __FUNCTION__ << "] Received Reply as String. ";
-        emit tokenReceived(token.toStdString());
-        return;
+        token = str.mid(start+14, end-start-14).toStdString();
     }
 
     // if reply contains data as json
     QJsonDocument jsonDoc = QJsonDocument::fromJson(bts);
-    if(jsonDoc.isEmpty()){
-        cout << "[TcpServer::" << __FUNCTION__ << "] No json provided." << endl;
-    }else{
-        if(!jsonDoc.object().value("access_token").isObject()){
-            qDebug() << "[TcpServer:" << __FUNCTION__ << "] Received Reply as Json. ";
-            emit tokenReceived(jsonDoc.object().value("access_token").toString().toStdString());
-        }
+    if(!jsonDoc.isEmpty() && !jsonDoc.object().value("access_token").isObject()){
+        token = jsonDoc.object().value("access_token").toString().toStdString();
     }
-    return;
+
+    emit tokenReceived(token);
 }
 
 
+//! \brief TcpServer::readUserData
+//! \param reply received from QNetworkAccessManager
+//! Searches for user data in reply by checking if data contains json.
+//! If successfull, userDataReceived is emitted transfering data back to 'authenticateUser'.
 void TcpServer::readUserData(QNetworkReply *reply)
 {
     const auto bts = reply->readAll();
-
     const auto document = QJsonDocument::fromJson(bts);
     QString str(bts);
-    qDebug() << "[TcpServer::" << __FUNCTION__ << "] Received User Data: " << str;
-    Q_ASSERT(document.isObject());
     const auto rootObject = document.object();
-    const auto dataValue = rootObject.value("data");
-    Q_ASSERT(dataValue.isObject());
-    const auto dataObject = dataValue.toObject();
 
-    if(!document.isEmpty()){
+    qDebug() << "[TcpServer:" << __FUNCTION__ << "] Received Reply: " << str;
+
+    //! todo: try to send html doc at this point
+    if(!rootObject.empty() && rootObject.contains("id") && rootObject.contains("name") && (rootObject.contains("login") || rootObject.contains("username"))){
+        cout << "[TcpServer::readUserData] User Data Received - Authentication successfull." << endl;
         emit userDataReceived(rootObject);
     }else{
-        qDebug() << "[TcpServer::" << __FUNCTION__ << "] Json object is empty.";
+        cout << "[TcpServer::readUserData] User Data Incomplete - Authentication failed." << endl;
+        QSettings settings;
+        settings.setValue( "userName", "");
+        settings.setValue( "id", "");
+        settings.setValue( "fullName", "");
+        settings.setValue( "provider", "");
+        settings.setValue( "token", "");
     }
-
 }
 
 
@@ -933,6 +1109,11 @@ void TcpServer::compFeatVecLen(){
     }
 }
 
+//! \brief TcpServer::authorize
+//! \param parameters extracted from received message
+//! \param var containing data for response
+//! Searches for code in parameters which is used in authorization process.
+//! Sends a html document indicating success of authorization.
 void TcpServer::authorize(std::map<std::string,std::string>& parameters, QVariant& var){
     QString data_str;
 
@@ -941,30 +1122,23 @@ void TcpServer::authorize(std::map<std::string,std::string>& parameters, QVarian
     if(parameters.find("code") != parameters.end()){
         code = parameters["code"];
         emit codeReceived(code);
-
         QFile file("../../gui/python-interface/websiteSuccess.html");
-        QString dataToSend;
         if(!file.open(QIODevice::ReadOnly)){
-            qDebug() << "Current path:" << QDir::currentPath();
             QMessageBox::information(0, "error", file.errorString());
         }else{
             QTextStream in(&file);
-            dataToSend = in.readAll();
+            data_str = in.readAll();
         }
-        data_str = dataToSend;
     }else{
         cout << "[QGMMainWindow::" << __FUNCTION__ << "] Missing Code." << endl;
         QFile file("../../gui/python-interface/websiteFail.html");
-        QString dataToSend;
         if(!file.open(QIODevice::ReadOnly)){
-            qDebug() << "Current path:" << QDir::currentPath();
             QMessageBox::information(0, "error", file.errorString());
         }else{
             QTextStream in(&file);
-            dataToSend = in.readAll();
-            qDebug() << "[TcpServer::authorizeUser] Opened File: " << dataToSend;
+            data_str = in.readAll();
         }
-        data_str = dataToSend;
+        statusCode = c404;
     }
 
     // check if received state is same as original
@@ -973,116 +1147,128 @@ void TcpServer::authorize(std::map<std::string,std::string>& parameters, QVarian
             returnedState = parameters["state"];
             if(returnedState != "randomString"){
                 cout << "[QGMMainWindow::" << __FUNCTION__ << "] State differs!" << endl;
+                statusCode = c404;
             }
     }else{
             cout << "[QGMMainWindow::" << __FUNCTION__ << "] Missing State." << endl;
+            statusCode = c404;
     }
 
     var = data_str;
+    statusCode = c200;
 }
 
 
-
+//! \brief TcpServer::parseCommand
+//! \param req received via socket containing parameters and optional data in body
+//! \return A QStringList containg status code at first, data at second position
+//! Checks parameters of request and parses request body from csv to a map.
+//! Then the function in the request is compared to pre-defined commands.
+//! If a match is found, the parameters are forwarded to the respective function
+//! and optional data received in a QVariant.
+//! Finally the response is filled with the status code and the data and is returned.
 QStringList TcpServer::parseCommand(Request req){
 
-        // check if return_type is set in parameters of request, otherwise set to default (csv)
-        map<string,string> pars = req.getParameters();
-	string return_type = "csv";
-        if( HTTP::method_to_string(req.getMethod()) == "GET"){
-		if(pars.find("return_type") != pars.end()){
-			return_type = pars["return_type"];
-		}else{
-                        cout << "[TcpServer::" << __FUNCTION__ << "] Missing Return Type - "
-                                "Set to Default (csv)." << endl;
-		}
-        }
+    // check if return_type is set in parameters of request, otherwise set to default (csv)
+    map<string,string> pars = req.getParameters();
+    string return_type = "csv";
+    if( HTTP::method_to_string(req.getMethod()) == "GET"){
+            if(pars.find("return_type") != pars.end()){
+                    return_type = pars["return_type"];
+            }else{
+                    cout << "[TcpServer::" << __FUNCTION__ << "] Missing Return Type - "
+                            "Set to Default (csv)." << endl;
+            }
+    }
 
-        // set QVariant type according to selected return_type
-        QString data_str;
-        QVariant v; // holds data either as QJsonDocument or QString (csv)
-        if(return_type == "csv"){
-            v = QVariant(QString());
-        }else if (return_type == "json") {
-            v = QVariant(QJsonDocument());
-        }
+    // set QVariant type according to selected return_type
+    QString data_str;
+    QVariant v; // holds data either as QJsonDocument or QString (csv)
+    if(return_type == "csv"){
+        v = QVariant(QString());
+    }else if (return_type == "json") {
+        v = QVariant(QJsonDocument());
+    }
 
-        // check for additional data in the request body
-        string body = req.getBody();
-	map<string,vector<double>> bodyPars;
-        if(body.size() > 0){
-                parseCSV(body, bodyPars); //! data type not secured, json not selectible
-	}
-	
-        // extract command from request
-        string command = req.getFunction();
-        cout << "[TcpServer::" << __FUNCTION__ << "] Received command: " << command << endl;   
+    // check for additional data in the request body
+    string body = req.getBody();
+    map<string,vector<double>> bodyPars;
+    if(body.size() > 0){
+        parseCSV(body, bodyPars); //! data type not secured, json not selectible
+    }
 
-        // search for respective function to call
-	if(command == "load"){
-            load(pars);
-	}
-	else if(command == "exportVertices"){
-            exportVertices(pars);
-	}
-        else if(command == "getVertices"){
-            getVertices(v);
-	}
-	else if(command=="getMeshVertexNormals"){
-            getMeshVertexNormals(v);
-	}
-	else if(command=="getBoundingBoxSize"){
-            getBoundingBoxSize(v);
-	}
-	else if(command=="getVerticesInBeam"){
-            getVerticesInBeam(bodyPars, v);
-	}
-        else if(command=="nonMaxSupp"){
-            nonMaxSupp(pars);
-        }
-        else if(command=="watershed"){
-            watershed(pars);
-        }
-        else if(command=="clustering"){
-            clustering(pars);
-        }
-        else if(command=="ransac"){
-            ransac(pars, v);
-        }
-        else if(command=="featureElementsByIndex"){
-            featureElementsByIndex(pars);
-        }
-	else if(command=="assignFeatVec"){
-            assignFeatVec(bodyPars);
-	}
-	else if(command=="compFeatVecLen"){
-            compFeatVecLen();
-	}
-        else if(command=="authorize"){
-            authorize(pars, v);
-        }
-        else{
-            std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] Error: Unknown command!" << std::endl;
-            statusCode = c404;
-	}
+    // extract command from request
+    string command = req.getFunction();
+    cout << "[TcpServer::" << __FUNCTION__ << "] Received command: " << command << endl;
 
-        // dump return data
-	QStringList response;
-        response << QString::fromStdString(TcpServer::statusCodeAsString(statusCode));
-        if(return_type == "json"){
-            response << v.toJsonDocument().toJson();
-            qDebug() << "[TcpServer::" << __FUNCTION__ << "] Data: " << v.toJsonDocument().toJson();
-	}else{
-            response << v.toString();
-            qDebug() << "[TcpServer::" << __FUNCTION__ << "] Data: " << v.toString();
-	}
+    statusCode = c200;
+    // search for respective function to call
+    if(command == "load"){
+        load(pars);
+    }
+    else if(command == "exportVertices"){
+        exportVertices(pars);
+    }
+    else if(command == "getVertices"){
+        getVertices(v);
+    }
+    else if(command=="getMeshVertexNormals"){
+        getMeshVertexNormals(v);
+    }
+    else if(command=="getBoundingBoxSize"){
+        getBoundingBoxSize(v);
+    }
+    else if(command=="getVerticesInBeam"){
+        getVerticesInBeam(bodyPars, v);
+    }
+    else if(command=="nonMaxSupp"){
+        nonMaxSupp(pars);
+    }
+    else if(command=="watershed"){
+        watershed(pars);
+    }
+    else if(command=="clustering"){
+        clustering(pars);
+    }
+    else if(command=="ransac"){
+        ransac(pars, v);
+    }
+    else if(command=="featureElementsByIndex"){
+        featureElementsByIndex(pars);
+    }
+    else if(command=="assignFeatVec"){
+        assignFeatVec(bodyPars);
+    }
+    else if(command=="compFeatVecLen"){
+        compFeatVecLen();
+    }
+    else if(command=="authorize"){
+        authorize(pars, v);
+    }
+    else{
+        std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] Error: Unknown command!" << std::endl;
+        statusCode = c404;
+    }
 
-	return response;
+    // dump return data
+    QStringList response;
+    response << QString::fromStdString(TcpServer::statusCodeAsString(statusCode));
+    if(return_type == "json"){
+        response << v.toJsonDocument().toJson();
+        qDebug() << "[TcpServer::" << __FUNCTION__ << "] Data: " << v.toJsonDocument().toJson();
+    }else{
+        response << v.toString();
+        qDebug() << "[TcpServer::" << __FUNCTION__ << "] Data: " << v.toString();
+    }
+
+    return response;
 }
 
 
+//! Adds a pointer to the mainWindow as private member, is called once in the main
 void TcpServer::setMainWindow(QGMMainWindow *mainWindow)
 {
-	this->mainWin = mainWindow;
+    this->mainWin = mainWindow;
 }
 
 

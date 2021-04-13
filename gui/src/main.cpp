@@ -166,6 +166,7 @@ int main( int argc, char *argv[] ) {
         TcpServer server;
         server.setMainWindow(&mainWindow);
         QObject::connect(&mainWindow, &QGMMainWindow::authenticating, &server, &TcpServer::authenticateUser);
+        QObject::connect(&server, &TcpServer::userDataReceived, &mainWindow, &QGMMainWindow::authenticated);
 
 	// Pass arguments to the main window
 	if( targetFile.size() > 0 ) {

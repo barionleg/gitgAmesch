@@ -30,11 +30,11 @@ using namespace HTTP;
 template <class Container>
 void splitStr(const string& str, Container& cont, char delim)
 {
-	std::stringstream ss(str);
-	std::string token;
-	while(std::getline(ss, token, delim)) {
-		cont.push_back(token);
-	}
+    std::stringstream ss(str);
+    std::string token;
+    while(std::getline(ss, token, delim)) {
+            cont.push_back(token);
+    }
 }
 
 
@@ -43,21 +43,21 @@ Request::Request(){}
 
 Request::Request(Method method, string version, string function, map<string, string> parameters, string body)
 {
-        this->method = method;
-        this->version = version;
-        this->function = function;
-        this->parameters = parameters;
-	this->body = body;
+    this->method = method;
+    this->version = version;
+    this->function = function;
+    this->parameters = parameters;
+    this->body = body;
 }
 
 
 Request::Request(Request &request)
 {
-        this->method = request.method;
-        this->version = request.version;
-        this->function = request.function;
-        this->parameters = request.parameters;
-        this->body = request.body;
+    this->method = request.method;
+    this->version = request.version;
+    this->function = request.function;
+    this->parameters = request.parameters;
+    this->body = request.body;
 }
 
 void Request::httpParser(string request)
@@ -80,16 +80,16 @@ void Request::httpParser(string request)
         p = "";
     }
 
-        this->method = m;
-        this->version = v;
-        this->function = f;
-	if(p.size()>0){
-            map<string,string> pars_map;
-            setParameters(p, pars_map);
-            this->parameters = pars_map;
-	}
+    this->method = m;
+    this->version = v;
+    this->function = f;
+    if(p.size()>0){
+        map<string,string> pars_map;
+        setParameters(p, pars_map);
+        this->parameters = pars_map;
+    }
 
-        cout << endl << "[HTTP::" << __FUNCTION__ << "] Parsing completed." << endl << endl;
+    cout << endl << "[HTTP::" << __FUNCTION__ << "] Parsing completed." << endl << endl;
 }
 
 Method Request::getMethod() {
@@ -137,11 +137,11 @@ void Request::setBody(string body) {
 }
 
 void Request::info(){
-        cout << "[HTTP::" << __FUNCTION__ << "] Info about request: " << endl;
-        cout << "Version: " << this->version << endl;
-        cout << "Method: " << HTTP::method_to_string(this->method) << endl;
-        cout << "Function: " << this->function << endl;
-        cout << "Parameters: " << this->parameters.size() << endl;
+    cout << "[HTTP::" << __FUNCTION__ << "] Info about request: " << endl;
+    cout << "Version: " << this->version << endl;
+    cout << "Method: " << HTTP::method_to_string(this->method) << endl;
+    cout << "Function: " << this->function << endl;
+    cout << "Parameters: " << this->parameters.size() << endl;
 }
 
 

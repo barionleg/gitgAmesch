@@ -1296,18 +1296,14 @@ void QGMMainWindow::authenticate(){
 
     QSettings settings;
     bool ok;
-    cout << "[QGMMainWindow::" << __FUNCTION__ << "] Last user: " << settings.value( "userName" ).toString().toStdString() << endl;
-
-    Provider provider;
 
     QStringList list = InputDialog::getStrings(this, &ok);
     if(ok){
         QString username = list.at(0);
-        provider = static_cast<Provider>(list.at(1).toInt());
+        Provider provider = static_cast<Provider>(list.at(1).toInt());
+        settings.setValue( "provider", int(provider));
         emit authenticating(&username, &provider);
     }
-
-    settings.setValue( "provider", int(provider));
 }
 
 
@@ -1319,27 +1315,22 @@ void QGMMainWindow::authenticate(){
 //! Subsequently saving of the user data as meta data of the mesh is triggered.
 void QGMMainWindow::updateUser(QJsonObject data){
 
-    if(!data.empty() && data.contains("id") && data.contains("name") && (data.contains("login")||data.contains("username"))){
-        qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Authentication successful.";
+    QSettings settings;
+    if(data.contains("login")) settings.setValue( "userName", data.value("login").toString());
+    if(data.contains("username")) settings.setValue( "userName", data.value("username").toString());
+    settings.setValue( "id", data.value("id").toInt());
+    settings.setValue( "fullName", data.value("name").toString());
 
-        QSettings settings;
-        if(data.contains("login")) settings.setValue( "userName", data.value("login").toString());
-        if(data.contains("username")) settings.setValue( "userName", data.value("username").toString());
-        settings.setValue( "id", data.value("id").toInt());
-        settings.setValue( "fullName", data.value("name").toString());
+    qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Current user: " << settings.value( "userName" ).toString()
+             << " with id " << settings.value("id").toInt() ;
 
-        qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Current user: " << settings.value( "userName" ).toString()
-                 << " with id " << settings.value("id").toInt() ;
-
-        std::string s(providerAsString(static_cast<Provider>(settings.value("provider").toInt())));
-        QString userInfo = settings.value("userName").toString() + QString("@") + QString::fromStdString(s) ;
-        loggedIn = true;
-        emit sViewUserInfo(MeshWidgetParams::USER_INFO, userInfo);
-        emit sViewUserInfo(MeshWidgetParams::USER_LOGIN, "Log out");
-    }else{
-        qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Authentication failed due to incomplete user data.";
-    }
+    std::string s(providerAsString(static_cast<Provider>(settings.value("provider").toInt())));
+    QString userInfo = settings.value("userName").toString() + QString("@") + QString::fromStdString(s) ;
+    loggedIn = true;
+    emit sViewUserInfo(MeshWidgetParams::USER_INFO, userInfo);
+    emit sViewUserInfo(MeshWidgetParams::USER_LOGIN, "Log out");
     saveUser();
+
 }
 
 //! \brief QGMMainWindow::saveUser

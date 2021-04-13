@@ -325,6 +325,7 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
                                 getMeshInfoData( metaInfo, true );
                                 std::string infoStr;
                                 metaInfo.getMeshInfoTTL( infoStr );
+                                //! todo: append new ttl to loaded from file, check if new ttl data is already present to avoid duplicates
                                 MeshIO::getModelMetaDataRef().setModelMetaString( ModelMetaData::META_DATA_TTL, infoStr);
                                 retVal = writeFileUserInteract();
                         } break;
