@@ -618,10 +618,6 @@ void TcpServer::readUserData(QNetworkReply *reply)
     }else{
         cout << "[TcpServer::readUserData] User Data Incomplete - Authentication failed." << endl;
         QSettings settings;
-        settings.setValue( "userName", "");
-        settings.setValue( "id", "");
-        settings.setValue( "fullName", "");
-        settings.setValue( "provider", "");
         settings.setValue( "token", "");
     }
 }

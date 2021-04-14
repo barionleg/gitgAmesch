@@ -321,12 +321,26 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 	bool retVal = false;
 	switch( rFunctionID ) {
                 case FILE_SAVE_AS: {
+                                // get current metaInfo as ttl
                                 MeshInfoData metaInfo;
                                 getMeshInfoData( metaInfo, true );
-                                std::string infoStr;
-                                metaInfo.getMeshInfoTTL( infoStr );
-                                //! todo: append new ttl to loaded from file, check if new ttl data is already present to avoid duplicates
-                                MeshIO::getModelMetaDataRef().setModelMetaString( ModelMetaData::META_DATA_TTL, infoStr);
+                                std::string newInfoStr;
+                                metaInfo.getMeshInfoTTL( newInfoStr );
+
+                                // get old metaInfo loaded from file
+                                std::string oldInfoStr = MeshIO::getModelMetaDataRef().getModelMetaString( ModelMetaData::META_DATA_TTL);
+
+                                // append new ttl if not already present to avoid duplicates
+                                std::istringstream ss(newInfoStr);
+                                std::string line;
+                                while(std::getline(ss, line)){
+                                    if(oldInfoStr.find(line) == std::string::npos){
+                                        oldInfoStr += line + "\n";
+                                    }
+                                }
+
+                                // update metaData
+                                MeshIO::getModelMetaDataRef().setModelMetaString( ModelMetaData::META_DATA_TTL, oldInfoStr);
                                 retVal = writeFileUserInteract();
                         } break;
 		case EXPORT_METADATA_HTML: {
