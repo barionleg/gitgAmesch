@@ -41,6 +41,8 @@
 
 void parseCSV(std::string& data_csv, std::map<std::string,std::vector<double>>& data_map);
 
+std::string getRandomString();
+
 
 class TcpServer : public QObject
 {

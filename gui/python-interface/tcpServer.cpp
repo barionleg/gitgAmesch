@@ -31,6 +31,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <type_traits>
+#include <random>
 
 using namespace std;
 using namespace HTTP;
@@ -69,6 +70,20 @@ void parseCSV(string& data_csv, map<string, vector<double>>& data_map){
         data_map.insert(make_pair(varNames[i], currValues));
     }
 	
+}
+
+
+//! \brief getRandomString
+//! \return a random string
+//! Generates a random string shuffling the alphabet and numbers.
+//! Used in the oauth process to prevent third party intervention.
+std::string getRandomString()
+{
+    std::string randomString("ABCDEFGIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890");
+    std::random_device randDev;
+    std::mt19937 gen(randDev());
+    std::shuffle(randomString.begin(), randomString.end(), gen);
+    return randomString;
 }
 
 
@@ -424,16 +439,16 @@ void TcpServer::authenticateUser(QString *username, Provider *provider)
 {
     // required information for authentication process
     QSettings settings;
-    QString clientId;               //!< generated id for gigamesh as registered application at selected provider
-    QString clientSecret;           //!< generated secret for gigamesh as registered application at selected provider
+    QString clientId;                   //!< generated id for gigamesh as registered application at selected provider
+    QString clientSecret;               //!< generated secret for gigamesh as registered application at selected provider
     QString redirectURI = "http://localhost:8080/authorize";
-                                    //!< user is redirected to localhost at port 8080 after permitting access
-    //! todo: generate random string
-    QString state = "randomString"; //!< string used for securing communication between server and provider
-    QString authorizationUrlBase;   //!< url for requesting authorization code
-    QString accessTokenUrlBase;     //!< url for requesting access token
-    string userDataUrlBase;         //!< url for accessing user profile
-    QString scope;                  //!< scope specifying access rights to user profile
+                                        //!< user is redirected to localhost at port 8080 after permitting access
+    QString state = QString::fromStdString(getRandomString());
+    settings.setValue("state", state);  //!< string used for securing communication between server and provider
+    QString authorizationUrlBase;       //!< url for requesting authorization code
+    QString accessTokenUrlBase;         //!< url for requesting access token
+    string userDataUrlBase;             //!< url for accessing user profile
+    QString scope;                      //!< scope specifying access rights to user profile
 
     // adapt information according to provider
     switch(*provider)
@@ -1111,9 +1126,23 @@ void TcpServer::compFeatVecLen(){
 //! Searches for code in parameters which is used in authorization process.
 //! Sends a html document indicating success of authorization.
 void TcpServer::authorize(std::map<std::string,std::string>& parameters, QVariant& var){
-    QString data_str;
+
+    // check if received state is same as original
+    QSettings settings;
+    if(parameters.find("state") != parameters.end()){
+            if(parameters["state"] != settings.value("state").toString().toStdString()){
+                cout << "[QGMMainWindow::" << __FUNCTION__ << "] State differs!" << endl;
+                statusCode = c404;
+                return;
+            }
+    }else{
+            cout << "[QGMMainWindow::" << __FUNCTION__ << "] Missing State." << endl;
+            statusCode = c404;
+            return;
+    }
 
     // (II) Receive code in response
+    QString data_str;
     string code;
     if(parameters.find("code") != parameters.end()){
         code = parameters["code"];
@@ -1135,19 +1164,6 @@ void TcpServer::authorize(std::map<std::string,std::string>& parameters, QVarian
             data_str = in.readAll();
         }
         statusCode = c404;
-    }
-
-    // check if received state is same as original
-    string returnedState;
-    if(parameters.find("state") != parameters.end()){
-            returnedState = parameters["state"];
-            if(returnedState != "randomString"){
-                cout << "[QGMMainWindow::" << __FUNCTION__ << "] State differs!" << endl;
-                statusCode = c404;
-            }
-    }else{
-            cout << "[QGMMainWindow::" << __FUNCTION__ << "] Missing State." << endl;
-            statusCode = c404;
     }
 
     var = data_str;
