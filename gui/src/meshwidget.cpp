@@ -207,6 +207,10 @@ MeshWidget::~MeshWidget() {
 	//doneCurrent();
 }
 
+MeshQt* MeshWidget::getMesh(){
+	return this->mMeshVisual;
+}
+
 //! Returns the resolution of back-plane of the viewport in dots per centimeter.
 //! Attention: Calling this function makes only sense, when in orthographic mode!
 //! @returns false in case of an error. true otherwise.
@@ -933,6 +937,9 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 	cout << "[MeshWidget::" << __FUNCTION__ << "] Done." << endl;
 
 	emit loadedMeshIsTextured( mMeshVisual->getModelMetaDataRef().hasTextureCoordinates() && mMeshVisual->getModelMetaDataRef().hasTextureFiles() );
+
+        // after loading new file, guarantee that currently logged in user is documented in meta data of the mesh
+        this->mMainWindow->saveUser();
 
 	return( true );
 }
@@ -5837,7 +5844,7 @@ bool MeshWidget::writePNG( const QString& rFileName,        //!< Filename for wr
 
 	if( file.open( QIODevice::ReadWrite ) ){
 		QTextStream stream( &file );
-		stream << exifttl << Qt::endl;
+                stream << exifttl << endl;
 	}
 	file.close();
 

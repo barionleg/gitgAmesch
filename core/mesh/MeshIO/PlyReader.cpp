@@ -1,4 +1,4 @@
-//
+﻿//
 // GigaMesh - The GigaMesh Software Framework is a modular software for display,
 // editing and visualization of 3D-data typically acquired with structured light or
 // structure from motion.
@@ -706,6 +706,8 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
 	// the first two lines we expect: "ply" -- maybe add a check?
 	getline( filestr, lineToParse );
 	// then the header begins, which is typically ASCII:
+
+        std::string metaDataTTL;
 	while( !filestr.eof() && !endOfHeader) {
 		getline( filestr, lineToParseOri );
 		lineToParse = lineToParseOri;
@@ -730,7 +732,8 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
 		}
 
 		// Meta-Data strings stored as comments -------------------------------------------------------
-		if( lineToParse.compare( 0, 7, "comment" ) == 0 ) {
+
+                if( lineToParse.compare( 0, 7, "comment" ) == 0 ) {
 			std::istringstream iss( lineToParseOri );
 			std::vector<std::string> lineParts{ std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{} };
 			if( lineParts.size() < 2 ) {
@@ -740,13 +743,19 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
 			ModelMetaData::eMetaStrings foundMetaId;
 			if( MeshReader::getModelMetaDataRef().getModelMetaStringId( possibleMetaDataName, foundMetaId ) ) {
 				uint64_t preMetaLen = 9 + possibleMetaDataName.size(); // 7 for 'comment' plus 2x space.
-				std::string metaContent = lineToParseOri.substr( preMetaLen );
+                                std::string metaContent = lineToParseOri.substr( preMetaLen );
 				LOG::info() << "[PlyReader::" << __FUNCTION__ << "] Meta-Data: " << possibleMetaDataName << " (" << foundMetaId << ") = " << metaContent << "\n";
 
 				if( foundMetaId == ModelMetaData::META_TEXTUREFILE)
 				{
 					MeshReader::getModelMetaDataRef().addTextureName(metaContent);
 				}
+
+                                // ttl data spreads over multiple lines starting with 'comment ttl'
+                                if( possibleMetaDataName == "ttl")
+                                {
+                                    metaDataTTL += metaContent;
+                                }
 
 				else
 				{
@@ -755,8 +764,11 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
 					}
 				}
 			}
+
+
 			continue;
 		}
+
 		// --------------------------------------------------------------------------------------------
 
 		if( lineToParse.substr( 0, 6 ) == "format" ) {
@@ -948,6 +960,11 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
 				LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] undefined section type: " << plyCurrentSection << "!\n";
 		}
 	}
+
+        // write ttl data extracted from header into model meta data
+        if( !MeshReader::getModelMetaDataRef().setModelMetaString( ModelMetaData::META_DATA_TTL, metaDataTTL ) ) {
+                LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Meta-Data not set!" << "\n";
+        }
 
 	if( !endOfHeader ) {
 		// no end of the header found means some trouble:

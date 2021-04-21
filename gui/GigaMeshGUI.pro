@@ -71,7 +71,7 @@ lessThan( QT_MINOR_VERSION, 2 ) {
 # User interface with OpenGL
 QT += widgets opengl gui
 # Add the Network-Manager
-QT += network
+QT += network networkauth
 
 # -------------------------------------------------------------------------------
 

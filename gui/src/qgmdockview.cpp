@@ -28,6 +28,7 @@ QGMDockView::QGMDockView( QWidget *parent ) :
         QDockWidget( parent ),
         ui( new Ui::QGMDockView ) {
 	ui->setupUi(this);
+        QObject::connect(ui->buttonLogInOut, &QPushButton::released, this, &QGMDockView::sLogInOut);
 }
 
 //! Destructor.
@@ -57,6 +58,18 @@ void QGMDockView::viewPortInfo( const MeshWidgetParams::eViewPortInfo rInfoID, c
 			ui->labelLabelValue->setText( rInfoString );
 			break;
 	}
+}
+
+//! Handles incoming informations of TcpServer.
+void QGMDockView::viewUserInfo( const MeshWidgetParams::eViewUserInfo rInfoID, const QString& rInfoString ) {
+        switch( rInfoID ) {
+                case MeshWidgetParams::USER_INFO:
+                        ui->labelUserValue->setText( rInfoString );
+                        break;
+                case MeshWidgetParams::USER_LOGIN:
+                        ui->buttonLogInOut->setText( rInfoString );
+                        break;
+        }
 }
 
 //! Handles incoming informations of the MeshQt.

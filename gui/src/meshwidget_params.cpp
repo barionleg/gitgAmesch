@@ -134,6 +134,12 @@ MeshWidgetParams::MeshWidgetParams() {
 		mParamStr[PYTHON3_COMMAND] = "python3";
 	else
 		mParamStr[PYTHON3_COMMAND] = tmpString;
+
+        tmpString = settings.value("provider", "").toString().toStdString();
+        if(tmpString.length() == 0)
+                mParamStr[PYTHON3_COMMAND] = "NA";
+        else
+                mParamStr[PYTHON3_COMMAND] = tmpString;
 }
 
 //! Constructor copying all the settings.

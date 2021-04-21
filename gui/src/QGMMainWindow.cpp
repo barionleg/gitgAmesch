@@ -36,6 +36,7 @@
 #include "qgmdockview.h"
 #include "ExternalProgramsDialog.h"
 #include "dialogGridCenterSelect.h"
+#include "QGMDialogAuthorize.h"
 
 using namespace std;
 
@@ -125,7 +126,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	//.
 	QObject::connect( actionCutOffFeatureVertex,    SIGNAL(triggered()), this,       SIGNAL(cutOffFeatureVertex())     );
 	QObject::connect( actionCutOffFeatureFace,      SIGNAL(triggered()), this,       SIGNAL(cutOffFeatureFace())       );
-	//. 
+	//.
 	QObject::connect( actionFuncValSet,             SIGNAL(triggered()), this,       SIGNAL(funcValSet())              );
 	QObject::connect( actionFuncValueCutOff,        SIGNAL(triggered()), this,       SIGNAL(funcValueCutOff())         );
 	QObject::connect( actionFuncValsNormalize,      SIGNAL(triggered()), this,       SIGNAL(funcValsNormalize())       );
@@ -159,7 +160,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionSelVertFuncGT,          SIGNAL(triggered()),         this, SIGNAL(selectVertFuncGT())      );
     //.
     QObject::connect( actionSelVertNonMax,          SIGNAL(triggered()),         this, SIGNAL(selectVertNonMax())      );
-	//. 
+	//.
 	QObject::connect( actionSelVertLocalMin,        SIGNAL(triggered()),         this, SIGNAL(selectVertLocalMin())      );
 	QObject::connect( actionSelVertLocalMax,        SIGNAL(triggered()),         this, SIGNAL(selectVertLocalMax())      );
 	//.
@@ -199,7 +200,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 
 	QObject::connect( actionViewActivateInspectionOptions,      SIGNAL(triggered()), this, SLOT(activateInspectionOptions())     );
 
-	// ... Vertices 
+	// ... Vertices
 	QObject::connect( actionViewPolylinesCurvScale,      SIGNAL(triggered()),   this, SIGNAL(polylinesCurvScale())               );
 	//.
 	QObject::connect( actionScreenshotsCrop,         SIGNAL(toggled(bool)), this,       SIGNAL(screenshotsCrop(bool))  );
@@ -262,7 +263,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	//.
 	QObject::connect( actionDatumAddSphere,          SIGNAL(triggered()), this, SIGNAL(sDatumAddSphere())   );
 
-	// --- Octree reöated ----------------------------------------------------------------------------------------------------------------------------------
+	// --- Octree related ----------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( actionGenerateOctree,          SIGNAL(triggered()), this, SIGNAL(generateOctree())            );
 	QObject::connect( actionRemove_Drawing_of_Octree,SIGNAL(triggered()), this, SIGNAL(removeOctreedraw())            );
 	QObject::connect( actionDraw_Octree,             SIGNAL(triggered()), this, SIGNAL(drawOctree())            );
@@ -286,6 +287,15 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionFeatAutoCorrelationVert,        SIGNAL(triggered()),   this,       SIGNAL(sFuncVertFeatAutoCorrVert())            ); // <- NEW naming convention based on new menu structure!
 	QObject::connect( actionFeatAutoSelectedVertCorr,       SIGNAL(triggered()),   this,       SIGNAL(sFuncVertFeatAutoCorrSelVert())         ); // <- NEW naming convention based on new menu structure!
 	QObject::connect( actionFuncValToFeatureVector,         SIGNAL(triggered()),   this,       SIGNAL(sFuncValToFeatureVector())              );
+
+	// Wedge extraction
+	QObject::connect( actionWedgeExtrSuppressNonMaxima,    SIGNAL(triggered()), this,       SIGNAL(sFuncWedgeExtrSuppressNonMaxima())         );
+	QObject::connect( actionWedgeExtrComputeWatershed,     SIGNAL(triggered()), this,       SIGNAL(sFuncWedgeExtrComputeWatershed())          );
+	QObject::connect( actionWedgeExtrComputeClustering,    SIGNAL(triggered()), this,       SIGNAL(sFuncWedgeExtrComputeClustering())         );
+	QObject::connect( actionWedgeExtrComputeRANSAC,        SIGNAL(triggered()), this,       SIGNAL(sFuncWedgeExtrComputeRANSAC())             );
+	QObject::connect( actionWedgeExtrAdditionalInput,      SIGNAL(triggered()), this,       SIGNAL(sFuncWedgeExtrAdditionalInput())           );
+
+
 	//! \todo Rename regarding new menu structure.
 	// # Distance to plane, line, selected primitive and cone
 	QObject::connect( actionDistanceToPlane,                SIGNAL(triggered()),   this,       SIGNAL(visualizeDistanceToPlane())             ); // <- OLD
@@ -304,7 +314,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 
 	// --- ? -----------------------------------------------------------------------------------------------------------------------------------------------
 	// New Qt5 Signal-Slot concept:
-	QObject::connect( actionInfoKeyShortcuts,      &QAction::triggered, this, &QGMMainWindow::infoKeyShortcuts      );
+        QObject::connect( actionInfoKeyShortcuts,      &QAction::triggered, this, &QGMMainWindow::infoKeyShortcuts      );
 	QObject::connect( actionVisitVideoTutorials,   &QAction::triggered, this, &QGMMainWindow::visitVideoTutorials   );
 	QObject::connect( actionVisitWebSite,          &QAction::triggered, this, &QGMMainWindow::visitWebSite          );
 	QObject::connect( actionAbout,                 &QAction::triggered, this, &QGMMainWindow::aboutBox              );
@@ -332,15 +342,17 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( this,      &QGMMainWindow::sGuideIDSelection,                                 mDockInfo, &QGMDockInfo::setGuideIDSelection                                );
 	QObject::connect( this,      &QGMMainWindow::sShowProgressStart,                                mDockInfo, &QGMDockInfo::showProgressStart                                  );
 	QObject::connect( this,      &QGMMainWindow::sShowProgress,                                     mDockInfo, &QGMDockInfo::showProgress                                       );
-	QObject::connect( this,      &QGMMainWindow::sShowProgressStop,                                 mDockInfo, &QGMDockInfo::showProgressStop                                   );
-	// -----------------------------------------------------------------------------------------------------------------------------------------------------
+        QObject::connect( this,      &QGMMainWindow::sShowProgressStop,                                 mDockInfo, &QGMDockInfo::showProgressStop                                   );
+        // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
 	// --- DOCK Widgets: Viewport --------------------------------------------------------------------------------------------------------------------------
 	mDockView = new QGMDockView( this );
 	addDockWidget( Qt::LeftDockWidgetArea, mDockView );
-	QObject::connect( this, SIGNAL(sViewPortInfo(MeshWidgetParams::eViewPortInfo,QString)), mDockView, SLOT(viewPortInfo(MeshWidgetParams::eViewPortInfo,QString)) );
+        QObject::connect( this,      &QGMMainWindow::sViewUserInfo,                             mDockView, &QGMDockView::viewUserInfo                                  );
+        QObject::connect( mDockView, &QGMDockView::sLogInOut,                                   this, &QGMMainWindow::logInOut                                         );
+        QObject::connect( this, SIGNAL(sViewPortInfo(MeshWidgetParams::eViewPortInfo,QString)), mDockView, SLOT(viewPortInfo(MeshWidgetParams::eViewPortInfo,QString)) );
 	QObject::connect( this, SIGNAL(sInfoMesh(MeshGLParams::eInfoMesh,QString)),             mDockView, SLOT(infoMesh(MeshGLParams::eInfoMesh,QString))             );
-	// -----------------------------------------------------------------------------------------------------------------------------------------------------
+        // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
 	QObject::connect( actionExternal_Programs, SIGNAL(triggered()), this, SLOT(openExternalProgramsDialog()));
 	QObject::connect( actionGridCenter, SIGNAL(triggered()), this, SLOT(openGridPositionDialog()));
@@ -351,7 +363,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	time( &timeNow );
 	QSettings settings;
 	timeLast = settings.value( "lastVersionCheck" ).toLongLong();
-	double daysSinceLastCheck = difftime( timeNow, timeLast ) / ( 24.0 * 3600.0 );
+        double daysSinceLastCheck = difftime( timeNow, timeLast ) / ( 24.0 * 3600.0 );
 	// daysSinceLastCheck = 356.0; // for testing (1/2)
 	cout << "[QGMMainWindow::" << __FUNCTION__ << "] Last check " << daysSinceLastCheck << " days ago." << endl;
 	if( daysSinceLastCheck > 3.0 ) {
@@ -363,6 +375,8 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 		mNetworkManager->get( request );
 	}
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
+
+        // -----------------------------------------------------------------------------------------------------------------------------------------------------
 
 	// --- Check external Tools i.e. Inkscape and convert/ImageMagick --------------------------------------------------------------------------------------
 	auto inkscapePath = settings.value("Inkscape_Path", "").toString();
@@ -970,9 +984,8 @@ void QGMMainWindow::initMeshSignals() {
 
 	actionPin_Line_Height->setProperty( "gmMeshGLParamFloat", MeshGLParams::PIN_LINE_HEIGHT);
 	actionPin_Line_Height->setProperty( "gmMeshGLParamValue", 0.5f);
-	actionPin_Line_Height->setProperty( "gmParamValueMin"   , 0.0f );
-	actionPin_Line_Height->setProperty( "gmParamValueMax"   , 1.0f );
-	
+	actionPin_Line_Height->setProperty( "gmParamValueMin",  0.0f );
+	actionPin_Line_Height->setProperty( "gmParamValueMax",  1.0f );
 	actionPointcloud_pointsize->setProperty( "gmMeshGLParamFloat", MeshGLParams::POINTCLOUD_POINTSIZE);
 	actionPointcloud_pointsize->setProperty( "gmMeshGLParamValue", 3.0f);
 	actionPointcloud_pointsize->setProperty( "gmParamValueMin"   , 1.0f);
@@ -1151,8 +1164,8 @@ void QGMMainWindow::initMeshSignals() {
 	actionShowInfoAxis->setProperty(                              "gmMeshFunctionCall", MeshParams::SHOW_INFO_AXIS                               );
 	// ... Other .............................................................................................................................................
 	actionShowLaTeXInfo->setProperty(                             "gmMeshFunctionCall", MeshParams::LATEX_TEMPLATE                               );
-	actionMetaDataEditModelId->setProperty(                       "gmMeshFunctionCall", MeshParams::METADATA_EDIT_MODEL_ID                       );
-	actionMetaDataEditMaterial->setProperty(                      "gmMeshFunctionCall", MeshParams::METADATA_EDIT_MODEL_MATERIAL                 );
+        actionMetaDataEditModelId->setProperty(                       "gmMeshFunctionCall", MeshParams::METADATA_EDIT_MODEL_ID                       );
+        actionMetaDataEditMaterial->setProperty(                      "gmMeshFunctionCall", MeshParams::METADATA_EDIT_MODEL_MATERIAL                 );
 	actionMetaDataEditWebReference->setProperty(                  "gmMeshFunctionCall", MeshParams::METADATA_EDIT_REFERENCE_WEB                  );
 	actionEllipsenFit->setProperty(                               "gmMeshFunctionCall", MeshParams::ELLIPSENFIT_EXPERIMENTAL                     );
 	actionSelFaceSelfIntersecting->setProperty(                   "gmMeshFunctionCall", MeshParams::DRAW_SELF_INTERSECTIONS                      );
@@ -1180,6 +1193,11 @@ void QGMMainWindow::initMeshSignals() {
 	actionViewMatrixSet->setProperty(                             "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_VIEW_PARAMETERS                  );
 	actionViewMatrix->setProperty(                                "gmMeshWidgetFunctionCall", MeshWidgetParams::SHOW_VIEW_PARAMETERS                 );
 	actionViewShow2DBoundingBox->setProperty(                     "gmMeshWidgetFunctionCall", MeshWidgetParams::SHOW_VIEW_2D_BOUNDING_BOX            );
+
+        // --- Github userdata check --------------------------------------------------------------------------------------------------------------
+        //QObject::connect( actionFileSaveAs, &QAction::triggered, this, &QGMMainWindow::saveUser); //! todo: check if neccessary
+        QObject::connect( actionAuthorizeUser, &QAction::triggered, this, &QGMMainWindow::authenticate);
+        QObject::connect(this, &QGMMainWindow::authenticated, this, &QGMMainWindow::updateUser);
 
 	mMeshFunctionCalls = new QActionGroup( this );
 	for(QAction*& currAction : allActions) {
@@ -1231,6 +1249,134 @@ bool QGMMainWindow::setupHighDPI20() {
 	return( retVal );
 }
 
+//! Enables streaming of enum provider
+std::ostream& operator<<(std::ostream out, Provider p){
+
+    switch(p){
+        case GITHUB: out << "GITHUB"; break;
+        case GITLAB: out << "GITLAB"; break;
+        case ORCID: out << "ORCID"; break;
+        case REDDIT: out << "REDDIT"; break;
+        case MATTERMOST: out << "MATTERMOST"; break;
+        default: out << int(p); break;
+    }
+
+    return out;
+}
+
+
+//! Converts enum provider into readable string
+std::string providerAsString(Provider p){
+
+    switch(p){
+        case GITHUB: return "GITHUB";
+        case GITLAB: return "GITLAB";
+        case ORCID: return "ORCID";
+        case REDDIT: return "REDDIT";
+        case MATTERMOST: return "MATTERMOST";
+        default: return "NA";
+    }
+
+}
+
+
+//! \brief QGMMainWindow::logInOut
+//! If user already logged in, user data in settings is reset, the user is logged out and the button text is refreshed,
+//! otherwise authenticate() is called starting the authentication process.
+void QGMMainWindow::logInOut(){
+    QSettings settings;
+    if(loggedIn){
+        loggedIn = false;
+        settings.setValue( "userName", "");
+        settings.setValue( "id", "");
+        settings.setValue( "fullName", "");
+        settings.setValue( "provider", "");
+        settings.setValue( "token", "");
+        emit sViewUserInfo(MeshWidgetParams::USER_INFO, "-");
+        emit sViewUserInfo(MeshWidgetParams::USER_LOGIN, "Log in");
+        emit saveUser();
+    }else{
+        authenticate();
+    }
+}
+
+
+//! \brief QGMMainWindow::authenticate
+//! Initiates login dialog asking for login data such as username and provider and starts login process.
+void QGMMainWindow::authenticate(){
+
+    QSettings settings;
+    bool ok;
+
+    QStringList list = InputDialog::getStrings(this, &ok);
+    if(ok){
+        QString username = list.at(0);
+        Provider provider = static_cast<Provider>(list.at(1).toInt());
+        settings.setValue( "provider", int(provider));
+        emit authenticating(&username, &provider);
+    }
+}
+
+
+//! \brief QGMMainWindow::updateUser
+//! \param data
+//! After successfull authentication the received user data is checked for the required information like id, username and full name.
+//! If data is complete the settings are updated, the button is refreshed and the user is officially logged in,
+//! otherwise authentication fails.
+//! Subsequently saving of the user data as meta data of the mesh is triggered.
+void QGMMainWindow::updateUser(QJsonObject data){
+
+    QSettings settings;
+    if(data.contains("login")) settings.setValue( "userName", data.value("login").toString());
+    if(data.contains("username")) settings.setValue( "userName", data.value("username").toString());
+    settings.setValue( "id", data.value("id").toInt());
+    settings.setValue( "fullName", data.value("name").toString());
+
+    qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Current user: " << settings.value( "userName" ).toString()
+             << " with id " << settings.value("id").toInt() ;
+
+    std::string s(providerAsString(static_cast<Provider>(settings.value("provider").toInt())));
+    QString userInfo = settings.value("userName").toString() + QString("@") + QString::fromStdString(s) ;
+    loggedIn = true;
+    emit sViewUserInfo(MeshWidgetParams::USER_INFO, userInfo);
+    emit sViewUserInfo(MeshWidgetParams::USER_LOGIN, "Log out");
+    saveUser();
+
+}
+
+//! \brief QGMMainWindow::saveUser
+//! Updates user data in ModelMetaData in order to document the most recent successfully logged in user in the meta data of the mesh.
+void QGMMainWindow::saveUser(){
+
+    QSettings settings;
+    // update meta data, if mesh loaded
+    if(this->mMeshWidget->getMesh() != nullptr){
+        if(loggedIn){
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_USERNAME,
+                                                                                    settings.value("userName").toString().toStdString() );
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_FULLNAME,
+                                                                                    settings.value("fullName").toString().toStdString() );
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_ID,
+                                                                                    std::to_string(settings.value("id").toInt()) );
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_PROVIDER,
+                                                                                    providerAsString(static_cast<Provider>(settings.value("provider").toInt())));
+        }else{
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_USERNAME, "" );
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_FULLNAME, "");
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_ID, "");
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_PROVIDER, "");
+        }
+        qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Updated User Data.";
+    }else{
+        std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] No mesh loaded!" << std::endl;
+    }
+
+}
+
+MeshWidget* QGMMainWindow::getWidget(){
+	return this->mMeshWidget;
+}
+
 //! Overloaded from QGMMainWindow
 void QGMMainWindow::closeEvent( QCloseEvent* rEvent ) {
 	emit unloadMesh();
@@ -1257,12 +1403,12 @@ bool QGMMainWindow::event( QEvent* rEvent ) {
 void QGMMainWindow::load() {
 	QSettings settings;
 	QString fileName = QFileDialog::getOpenFileName( this,
-													 tr( "Open 3D-Mesh or Point Cloud" ),
+                                                                                                         tr( "Open 3D-Mesh or Point Cloud" ),
 	                                                 settings.value( "lastPath" ).toString(),
 													 tr( "3D mesh files (*.ply *.PLY *.obj *.OBJ);;Other 3D files (*.txt *.TXT *.xyz *.XYZ)" )
 	                                                );
 	if( fileName.size() > 0 ) {
-		emit sFileOpen( fileName );
+                emit sFileOpen( fileName );
 	}
 
     mMeshWidget->setFocus();
@@ -1278,7 +1424,7 @@ void QGMMainWindow::load( const QString& rFileName ) {
 }
 
 //! Will emit a signal to load the last file opened (before).
-//! 
+//!
 //! @returns in case of an error e.g. no last file. True otherwise.
 bool QGMMainWindow::loadLast() {
 	// Fetch first entry from the .config
@@ -2208,9 +2354,9 @@ void QGMMainWindow::slotHttpCheckVersion( QNetworkReply* rReply ) {
 		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Version (online) is not an unsigned integer!" << endl;
 		return;
 	}
-	
+
 	convOk = false;
-	
+
 	unsigned int versionCurrent = QString( "%1" ).arg( VERSION_PACKAGE ).toUInt( &convOk );
 	if( !convOk ) {
 		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Version (current) is not an unsigned integer!" << endl;

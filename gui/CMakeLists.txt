@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 set(OpenGL_GL_PREFERENCE GLVND)
 
 find_package(OpenGL REQUIRED)
-find_package(Qt5 COMPONENTS Core Widgets Gui OpenGL Network REQUIRED)
+find_package(Qt5 COMPONENTS Core Widgets Gui OpenGL Network NetworkAuth REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -29,7 +29,7 @@ set(GUI_SOURCES src/main.cpp
 				src/QGMDialogSliderHD.cpp             src/QGMDialogSliderHD.h
 				src/QGMDialogConeParam.cpp            src/QGMDialogConeParam.h
 				src/QGMDialogEnterText.cpp            src/QGMDialogEnterText.h
-                                src/QGMDialogMatrix.cpp               src/QGMDialogMatrix.h
+                src/QGMDialogMatrix.cpp               src/QGMDialogMatrix.h
 				src/QGMDialogPlaneParam.cpp           src/QGMDialogPlaneParam.h
 				src/QGMDialogNprSettings.cpp          src/QGMDialogNprSettings.h
 				src/MeshQtCSVImportExport.cpp         src/MeshQtCSVImportExport.h
@@ -45,7 +45,7 @@ set(GUI_SOURCES src/main.cpp
 				src/meshGL/PinRenderer.cpp            src/meshGL/PinRenderer.h
 				src/meshGL/TexturedMesh.cpp           src/meshGL/TexturedMesh.h
 				src/meshGL/TexturedMeshRenderer.cpp   src/meshGL/TexturedMeshRenderer.h
-                                src/meshGL/ShaderManager.cpp          src/meshGL/ShaderManager.h
+                src/meshGL/ShaderManager.cpp          src/meshGL/ShaderManager.h
 				src/svg/SvgWriter.cpp                 src/svg/SvgWriter.h
 				src/svg/SvgCircle.cpp                 src/svg/SvgCircle.h
 				src/svg/SvgImage.cpp                  src/svg/SvgImage.h
@@ -57,9 +57,9 @@ set(GUI_SOURCES src/main.cpp
 				src/normalSphereSelection/NormalSphereSelectionDialog.cpp
 				src/normalSphereSelection/NormalSphereSelectionDialog.h
 				src/normalSphereSelection/NormalSphereSelectionRenderWidget.cpp
-				src/normalSphereSelection/NormalSphereSelectionRenderWidget.h
+				src/normalSphereSelection/NormalSphereSelectionRenderWidget.h		
+				src/QGMDialogAuthorize.cpp			  src/QGMDialogAuthorize.h
 )
-
 
 #add ui files, so they appear it qtcreator projects view
 set(GUI_UI_FILES
@@ -86,20 +86,40 @@ set(GUI_UI_FILES
         forms/QGMDialogMatrix.ui
 )
 
+set(PY_INTER_SOURCES
+	python-interface/httpMethod.cpp
+	python-interface/httpVersion.cpp
+	python-interface/httpParser.cpp
+	python-interface/tcpServer.cpp
+	python-interface/httpParser.h
+	python-interface/tcpServer.h
+)
+
+set(PY_INTER_HEADERS
+	python-interface/httpParser.h
+	python-interface/tcpServer.h
+)
+
 #NOTE: instead of adding translations via resources, the ts-files can also be build by
 #      qt5_create_translation and then be added
-qt5_add_resources(GUI_RESOURCES "forms/gigamesh.qrc"
-								"src/shaders/shaders.qrc"
-								"languages/translations.qrc"
-								"latex_report_template/latex_templates.qrc"
-								"python-scripts/pythonscripts.qrc"
+qt5_add_resources(GUI_RESOURCES 
+	"forms/gigamesh.qrc"
+	"src/shaders/shaders.qrc"
+	"languages/translations.qrc"
+	"latex_report_template/latex_templates.qrc"
+	"python-scripts/pythonscripts.qrc"
 )
 
 #set here the paths of the ui-files, so autouic can find them
-set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/forms
-							   ${CMAKE_CURRENT_SOURCE_DIR}/normalSphereSelection)
+set(CMAKE_AUTOUIC_SEARCH_PATHS 
+	${CMAKE_CURRENT_SOURCE_DIR}/forms	  
+	${CMAKE_CURRENT_SOURCE_DIR}/normalSphereSelection
+	${CMAKE_CURRENT_SOURCE_DIR}/python-interface)
 
-add_executable(gigamesh ${GUI_SOURCES} ${GUI_RESOURCES} ${GUI_UI_FILES})
+#qt5_wrap_cpp(gigamesh ${PY_INTER_SOURCES})
+qt5_wrap_cpp(PY_INTER_MOC ${PY_INTER_SOURCES})
+
+add_executable(gigamesh ${GUI_SOURCES} ${GUI_RESOURCES} ${GUI_UI_FILES} ${PY_INTER_SOURCES} ${PY_INTER_MOC})# ${PY_INTER_HEADERS})
 
 if(APPLE)
     set_target_properties(gigamesh PROPERTIES
@@ -115,6 +135,9 @@ target_include_directories(gigamesh PRIVATE ${Qt5OpenGL_INCLUDES})
 add_definitions(${Qt5Network_DEFINITIONS})
 target_include_directories(gigamesh PRIVATE ${Qt5Network_INCLUDES})
 
+add_definitions(${Qt5NetworkAuth_DEFINITIONS})
+target_include_directories(gigamesh PRIVATE ${Qt5NetworkAuth_INCLUDES})
+
 add_dependencies(gigamesh OpenGL::GL)
 
 #needed to find generated ui-header files
@@ -123,7 +146,9 @@ target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 #needed, if ui-header files need references to custom classes (e.g. NormalSphereSelectionRenderWidget.h)
 target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-target_link_libraries(gigamesh PRIVATE ${Qt5Widgets_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Network_LIBRARIES} psalm OpenGL::GL gigameshCore triangle)
+target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/python-interface)
+
+target_link_libraries(gigamesh PRIVATE ${Qt5Widgets_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Network_LIBRARIES}  ${Qt5NetworkAuth_LIBRARIES} psalm OpenGL::GL gigameshCore triangle)
 
 #extras for static linking using the MXE mingw static build (set this via "export MINGW_CI_BUILD=True" on the command line)
 if(MINGW_CI_BUILD)

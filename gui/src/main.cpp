@@ -44,6 +44,7 @@
 
 // C++ includes:
 #include <GigaMesh/printbuildinfo.h>
+#include "tcpServer.h"
 
 using namespace std;
 
@@ -157,6 +158,13 @@ int main( int argc, char *argv[] ) {
 	if( hidpi20 ) {
 		mainWindow.setupHighDPI20();
 	}
+
+
+        // create server listening at port 8080
+        TcpServer server;
+        server.setMainWindow(&mainWindow);
+        QObject::connect(&mainWindow, &QGMMainWindow::authenticating, &server, &TcpServer::authenticateUser);
+        QObject::connect(&server, &TcpServer::userDataReceived, &mainWindow, &QGMMainWindow::authenticated);
 
 	// Pass arguments to the main window
 	if( targetFile.size() > 0 ) {

@@ -221,6 +221,12 @@
      <addaction name="actionFuncValFeatureVecMahalanobis"/>
      <addaction name="separator"/>
      <addaction name="actionFuncValToFeatureVector"/>
+     <addaction name="separator"/>
+     <addaction name="actionWedgeExtrSuppressNonMaxima"/>
+     <addaction name="actionWedgeExtrComputeWatershed"/>
+     <addaction name="actionWedgeExtrComputeClustering"/>
+     <addaction name="actionWedgeExtrComputeRANSAC"/>
+     <addaction name="actionWedgeExtrAdditionalInput"/>
     </widget>
     <widget class="QMenu" name="menuColorPerVertexToFunctionValue">
      <property name="title">
@@ -507,6 +513,7 @@
     <addaction name="actionBad_Lit_Areas"/>
     <addaction name="actionBad_Lit_Areas_Upper_Threshold"/>
     <addaction name="actionBad_Lit_Areas_Lower_Threshold"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuSelect">
     <property name="title">
@@ -736,6 +743,8 @@
     <addaction name="actionExternal_Programs"/>
     <addaction name="separator"/>
     <addaction name="menuLanguages"/>
+    <addaction name="separator"/>
+    <addaction name="actionAuthorizeUser"/>
     <addaction name="separator"/>
     <addaction name="actionHighDPIZoomFactor"/>
    </widget>
@@ -4411,6 +4420,46 @@ p, li { white-space: pre-wrap; }
     <string>Plane - Set orientation using Axis</string>
    </property>
   </action>
+  <action name="actionNon_Maximum_Suppression">
+   <property name="text">
+    <string>Non Maximum Suppression</string>
+   </property>
+  </action>
+  <action name="actionExperimental_Non_Maximum_Suppression">
+   <property name="text">
+    <string>Experimental Non Maximum Suppression</string>
+   </property>
+  </action>
+  <action name="actionWedgeExtrSuppressNonMaxima">
+   <property name="text">
+    <string>Non Maximum Suppression</string>
+   </property>
+  </action>
+  <action name="actionWedgeExtrComputeWatershed">
+   <property name="text">
+    <string>Watershed</string>
+   </property>
+  </action>
+  <action name="actionWedgeExtrComputeClustering">
+   <property name="text">
+    <string>Clustering</string>
+   </property>
+  </action>
+  <action name="actionElement">
+   <property name="text">
+    <string>Element</string>
+   </property>
+  </action>
+  <action name="actionWedgeExtrAdditionalInput">
+   <property name="text">
+    <string>NMS and Watershed additional Input</string>
+   </property>
+  </action>
+  <action name="actionWedgeExtrComputeRANSAC">
+   <property name="text">
+    <string>RANSAC</string>
+   </property>
+  </action>
   <action name="actionMSIIFilterApplyQuick">
    <property name="icon">
     <iconset resource="gigamesh.qrc">
@@ -4421,7 +4470,7 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="toolTip">
     <string>Apply MSII filtering with default settings. Only a radius i.e. largest feature size is required.
-Volume based feature vectors are computed including a function value (Max element). 
+Volume based feature vectors are computed including a function value (Max element).
 The latter will be shown, when the processing has finished.</string>
    </property>
   </action>
@@ -4515,6 +4564,11 @@ The latter will be shown, when the processing has finished.</string>
   <action name="actionViewShow2DBoundingBox">
    <property name="text">
     <string>Bounding Box Size in Camera Coordinates</string>
+   </property>
+  </action>
+  <action name="actionAuthorizeUser">
+   <property name="text">
+    <string>Authorize User</string>
    </property>
   </action>
  </widget>

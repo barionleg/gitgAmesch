@@ -185,6 +185,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	QObject::connect( mMainWindow, SIGNAL(funcValsAbs()),                this, SLOT(funcValsAbs())            );
 	QObject::connect( mMainWindow, SIGNAL(funcValsAdd()),                this, SLOT(funcValsAdd())            );
 	QObject::connect( mMainWindow, SIGNAL(sFuncValToFeatureVector()),    this, SLOT(funcValsToFeatureVector()));
+
 	//.
 	QObject::connect( mMainWindow, SIGNAL(setConeData()),                this, SLOT(setConeData()));
 	QObject::connect( mMainWindow, SIGNAL(centerAroundCone()),           this, SLOT(centerAroundCone()));
@@ -278,7 +279,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	QObject::connect( mMainWindow, SIGNAL(estimateVolume()),                             this, SLOT(estimateVolume())                    );
 	QObject::connect( mMainWindow, SIGNAL(compVolumePlane()),                            this, SLOT(compVolumePlane())                   );
 
-	// --- Octree reöated ----------------------------------------------------------------------------------------------------------------------------------
+	// --- Octree related ----------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( mMainWindow, SIGNAL(generateOctree()),                     this, SLOT(generateOctree())                    );
 	QObject::connect( mMainWindow, SIGNAL(detectselfintersections()),            this, SLOT(detectselfintersections())           );
 	QObject::connect( mMainWindow, SIGNAL(drawOctree()),                         this, SLOT(drawOctree())                        );
@@ -288,7 +289,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	// #####################################################################################################################################################
 	// # FUNCTION VALUE
 	// #####################################################################################################################################################
-	// # Feature Vector reöated
+	// # Feature Vector related
 	QObject::connect( mMainWindow, SIGNAL(sFuncVertFeatLengthEuc()),              this, SLOT(visualizeFeatLengthEuc())               );
 	QObject::connect( mMainWindow, SIGNAL(sFuncVertFeatLengthMan()),              this, SLOT(visualizeFeatLengthMan())               );
 	QObject::connect( mMainWindow, SIGNAL(sFuncVertFeatBVFunc()),                 this, SLOT(visualizeFeatBVFunc())                  );
@@ -311,6 +312,13 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	QObject::connect( mMainWindow, SIGNAL(visualizeVertexOctree()),               this, SLOT(visualizeVertexOctree())                );
 	QObject::connect( mMainWindow, SIGNAL(visualizeVertexFaceSphereAngleMax()),   this, SLOT(visualizeVertexFaceSphereAngleMax())    );
 	QObject::connect( mMainWindow, SIGNAL(visualizeVertFaceSphereMeanAngleMax()), this, SLOT(visualizeVertFaceSphereMeanAngleMax())  );
+
+		//Wedge extraction
+	QObject::connect( mMainWindow, SIGNAL(sFuncWedgeExtrSuppressNonMaxima()),     this, SLOT(funcWedgeExtrSuppressNonMaxima())     );
+	QObject::connect( mMainWindow, SIGNAL(sFuncWedgeExtrComputeWatershed()),      this, SLOT(funcWedgeExtrComputeWatershed())      );
+	QObject::connect( mMainWindow, SIGNAL(sFuncWedgeExtrComputeClustering()),     this, SLOT(funcWedgeExtrComputeClustering())     );
+	QObject::connect( mMainWindow, SIGNAL(sFuncWedgeExtrComputeRANSAC()),         this, SLOT(funcWedgeExtrComputeRANSAC())         );
+	QObject::connect( mMainWindow, SIGNAL(sFuncWedgeExtrAdditionalInput()),       this, SLOT(funcWedgeExtrAdditionalInput())  );
 	// #####################################################################################################################################################
 
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -972,8 +980,8 @@ bool MeshQt::removeUncleanSmallUser() {
 //! Automatic mesh polishing.
 //!
 //! Iterativly applies Mesh::removeUncleanSmall and Mesh::fillPolyLines
-//! 
-//! This method loops till mesh is fully restored 
+//!
+//! This method loops till mesh is fully restored
 //! tracking the changes of the number of vertices and faces.
 //!
 //! @returns false in case of an error. True otherwise.
@@ -1171,6 +1179,65 @@ bool MeshQt::funcValsToFeatureVector()
 	dlgEnterTextVal.setWindowTitle( tr("Set dimension (warning, resizes feature vectors if necessary!)") );
 
 	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int dim) {this->funcValToFeatureVector(dim);});
+
+	return dlgEnterTextVal.exec() == QDialog::Accepted;
+}
+
+//Wedge extraction
+
+bool MeshQt::funcWedgeExtrSuppressNonMaxima()
+{
+    QGMDialogEnterText dlgEnterTextVal;
+	dlgEnterTextVal.setDouble(1.0); //3 mm is standard for non maximum suppression distance
+	dlgEnterTextVal.setWindowTitle( tr("Give radius for non maximum suppression!") ); //a text much longer than this gets cropped
+
+	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double NMSDistance) {this->funcWeExSuppNonMax(NMSDistance);});
+
+	//I am not sure, if this does anything else than return true, if all went well
+	return dlgEnterTextVal.exec() == QDialog::Accepted;
+	//return true;
+}
+
+bool MeshQt::funcWedgeExtrComputeWatershed()
+{
+    QGMDialogEnterText dlgEnterTextVal;
+	dlgEnterTextVal.setDouble(0.0);
+	dlgEnterTextVal.setWindowTitle( tr("Give value when to stop watershed!") );
+
+	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double watershedLimit) {this->funcWeExComputeWatershed(watershedLimit);});
+
+	return dlgEnterTextVal.exec() == QDialog::Accepted;
+}
+
+bool MeshQt::funcWedgeExtrComputeClustering()
+{
+    QGMDialogEnterText dlgEnterTextVal;
+	dlgEnterTextVal.setInt(100);
+	dlgEnterTextVal.setWindowTitle( tr("Give number of iterations for clustering!") );
+
+	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int numberOfIterations) {this->funcWeExComputeClustering(numberOfIterations);});
+
+	return dlgEnterTextVal.exec() == QDialog::Accepted;
+}
+
+bool MeshQt::funcWedgeExtrComputeRANSAC()
+{
+    QGMDialogEnterText dlgEnterTextVal;
+	dlgEnterTextVal.setInt(1000);
+	dlgEnterTextVal.setWindowTitle( tr("Give number of iterations for RANSAC!") );
+
+	QObject::connect(&dlgEnterTextVal, QOverload<int>::of(&QGMDialogEnterText::textEntered), [this](int numberOfIterations) {this->funcWeExComputeRANSAC(numberOfIterations);});
+
+	return dlgEnterTextVal.exec() == QDialog::Accepted;
+}
+
+bool MeshQt::funcWedgeExtrAdditionalInput()
+{
+    QGMDialogEnterText dlgEnterTextVal;
+	dlgEnterTextVal.setDouble(0.1);
+	dlgEnterTextVal.setWindowTitle( tr("Give additional Input for NMS or watershed") );
+
+	QObject::connect(&dlgEnterTextVal, QOverload<double>::of(&QGMDialogEnterText::textEntered), [this](double additionalInput) {this->funcWeExAdditionalInput(additionalInput);});
 
 	return dlgEnterTextVal.exec() == QDialog::Accepted;
 }
@@ -3085,12 +3152,12 @@ void MeshQt::drawOctree() {
 }
 
 void MeshQt::removeOctreedraw() {
-	
+
 	for(RectBox* rectBoxPtr : mDatumBoxes)
 	{
 		delete rectBoxPtr;
 	}
-	
+
 	mDatumBoxes.clear();
 }
 

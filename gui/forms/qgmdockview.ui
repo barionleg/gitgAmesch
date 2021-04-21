@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>155</width>
-    <height>291</height>
+    <width>172</width>
+    <height>350</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,8 +18,8 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>155</width>
-    <height>291</height>
+    <width>172</width>
+    <height>350</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -328,6 +328,13 @@
       </property>
      </widget>
     </item>
+    <item row="9" column="1">
+     <widget class="Line" name="line_3">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
     <item row="10" column="0">
      <widget class="QLabel" name="labelSelMVerts">
       <property name="font">
@@ -484,10 +491,49 @@
       </property>
      </widget>
     </item>
-    <item row="9" column="1">
-     <widget class="Line" name="line_3">
+    <item row="15" column="0">
+     <widget class="QLabel" name="labelUser">
+      <property name="font">
+       <font>
+        <pointsize>8</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>User:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="15" column="1">
+     <widget class="QLabel" name="labelUserValue">
+      <property name="font">
+       <font>
+        <pointsize>8</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>-</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="14" column="1">
+     <widget class="Line" name="line_4">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="16" column="1">
+     <widget class="QPushButton" name="buttonLogInOut">
+      <property name="font">
+       <font>
+        <pointsize>8</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Log in</string>
       </property>
      </widget>
     </item>

@@ -151,6 +151,14 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		virtual bool   funcValsAdd();
 		virtual bool   funcValsAdd( double rVal );
 		virtual bool   funcValsToFeatureVector();
+
+		//Wedge extraction
+		virtual bool   funcWedgeExtrSuppressNonMaxima();
+		virtual bool   funcWedgeExtrComputeWatershed();
+		virtual bool   funcWedgeExtrComputeClustering();
+		virtual bool   funcWedgeExtrComputeRANSAC();
+		virtual bool   funcWedgeExtrAdditionalInput();
+
 		//.
 		virtual bool   setConeData();
 		virtual bool   setConeParameters( const Vector3D& rAxisTop, const Vector3D& rAxisBot,

@@ -109,10 +109,9 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		        bool     writeFilesForConnectedComponents();
 		virtual bool     importFeatureVectorsFromFile( const std::filesystem::path& rFileName );
 		virtual bool     exportFeatureVectors( const std::filesystem::path& rFileName );
-	private:
-		        bool     assignFeatureVectors( const std::vector<double>& rFeatureVecs, const uint64_t& rMaxFeatVecLen );
+		        bool     assignFeatureVectors( const std::vector<double>& rFeatureVecs, 
+											const uint64_t& rMaxFeatVecLen );
 
-	public:
 		// IO Operations - overloaded from MeshSeed
 		virtual bool     getVertNormal( int rVertIdx, double* rNormal );
 
@@ -154,6 +153,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool    getVertexNextTo( Vector3D rVertPos, Vertex** rVertexNext );
 				bool    getVerticesInBeam( Vector3D rVertAPos, Vector3D rVertBPos, float rBeamPerimeterRadius, std::set<Vertex*>* rVertsInBeam );
 				bool    getFacesInBeam( Vector3D rVertAPos, Vector3D rVertBPos, float rBeamPerimeterRadius, std::set<Face*>* rFacesInBeam );
+				bool 	getMeshVertexNormals(std::vector<Vector3D>* rVertexNormals);
 				double  getEdgeLenMin();
 				double  getEdgeLenMax();
 				double  getAltitudeMin();
@@ -535,6 +535,46 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool funcVertSphereVolumeArea();
 				bool funcVertSphereSurfaceNumberOfComponents();
 				bool funcValToFeatureVector(unsigned int dim);
+
+		//Wedge extraction
+				std::vector<std::vector<double>> meshIntrinsicExtractedTetraeders;
+				double NMSWaterAdditionalInput = 0.1;
+		//Wedge extraction helper methods
+				double weExComputeSquaredDistanceBetweenTwoVertices(Vertex* &vertexNo1, Vertex* &vertexNo2);
+				double weExComputeSquaredDistanceBetweenTwoNormalsTreatedAsVertices(Vertex* &vertexNo1, Vertex* &vertexNo2);
+				double weExComputeSquaredDistanceBetweenTwoNormalsTreatedAsVertices(Vertex* &vertexNo1, std::vector<double> &normalComponents);
+				void weExRandomlyChooseVerticesFromVector(std::vector<Vertex*> &inputVector, std::vector<Vertex*> &outputVector, int howManyVerticesWanted);
+				void weExAssignNormalsToNearestMean(std::vector<int> &currentClustering, std::vector<Vertex*> &verticesWithCurrentLabel, std::vector<std::vector<double>> &normalMeanComponents);
+				void weExAssignNormalsToNearestMean(std::vector<int> &currentClustering, std::vector<Vertex*> &verticesWithCurrentLabel, std::vector<Vertex*> &threeRandomlyChosenVertices);
+				void weExComputeMeans(std::vector<int> &currentClustering, std::vector<Vertex*> &verticesWithCurrentLabel, std::vector<std::vector<double>> &normalMeanComponents);
+				double weExComputeShortestDistanceBetweenPointAndRay(Vertex* &arbPoint, Vertex* &point1RayStart, Vertex* &point2OnRay);
+				void weExGetBorderGroupFromVertexByFeatureVector(Vertex* &finalLineVertex1, Vertex* &finalLineVertex2, Vertex* &finalLineVertex3, Vertex* &finalTetraederVertexGroup12, Vertex* &finalTetraederVertexGroup23, Vertex* &finalTetraederVertexGroup31);
+				void weExComputeSquaredDistanceFromTetraederTopToProjectedPointOnLine(Vertex* &arbPoint, Vertex* &point1OnLine, Vertex* &point2OnLine, double &computedSquaredDistance);
+				double weExComputeTetraederHeight(std::vector<Vertex*> &foundTetraeder);
+				bool weExCheckTetraederHeight(std::vector<Vertex*> &foundTetraeder, double &minimumHeight);
+				void weExCheckTriangleFaceOrientation(std::vector<std::vector<Vertex*>> &extractedTetraeders, std::vector<bool> &faceVerdict);
+				void weExNormalizeValues(std::vector<double> &vectorOfDoubles, std::vector<double> &vectorOfNormalizedDoubles);
+				void weExWriteExtractedTetraedersIntoFile(std::vector<std::vector<Vertex*>> &extractedTetraeders, std::string outputFileName);
+				void weExWriteExtractedTetraedersAndMeshIntoFile(	std::vector<std::vector<Vertex*>> &extractedTetraeders,
+																std::string outputFileName,
+																std::vector<double> &vectorOfNormalizedDoubles,
+																int doubleInterpretation,
+																std::vector<Vertex*> &mVertices,
+																std::vector<Face*> &mFaces);
+				void weExWriteExtractedTetraedersIntoMeshForCollection(	std::vector<std::vector<double>> &meshIntrinsicExtractedTetraeders,
+																		std::vector<double> &RANSACQualities,
+																		std::vector<double> &TetraederHeights,
+																		std::vector<std::vector<Vertex*>> &extractedTetraeders);
+				void weExBuildVertexNeighbourLookUpStructure(std::vector<Vertex*> &mVertices, std::map<Vertex*,std::set<Vertex*>> &vertexNeighbourLookUp);
+
+				bool legacyGetSurroundingVerticesInOrder (std::list<Vertex*> &adjacentVertsInOrder, Vertex* &pi, bool printDebug);
+		//Wedge extraction main methods
+				bool funcWeExSuppNonMax(double NMSDistance);
+				bool funcWeExComputeWatershed(double watershedLimit);
+				bool funcWeExComputeClustering(int numberOfIterations);
+				bool funcWeExComputeRANSAC(	int numberOfIterations);
+				bool funcWeExAdditionalInput(double additionalInput);
+
 		// Again some old style function value calls:
 				bool setVertFuncValCorrTo( std::vector<double>* rFeatVector );
 				bool setVertFuncValDistanceToSelPrim();

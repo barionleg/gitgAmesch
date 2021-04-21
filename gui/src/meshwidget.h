@@ -87,6 +87,7 @@ public:
 	bool    getViewPortPixelWorldSize( double& rPixelWidth, double& rPixelHeight ) const;
 	bool    getViewPortDPI( double& rDPI ) const;
 	bool    getViewPortDPM( double& rDPM ) const;
+	MeshQt* getMesh();
 
 public slots: // ... overloaded from MeshWidgetParams:
 	bool    setParamFlagMeshWidget(    MeshWidgetParams::eParamFlag rFlagNr,  bool   rState  ) override;

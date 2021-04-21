@@ -557,7 +557,6 @@ void MeshGLShader::glPaintFrontalLightPerVertex( const QMatrix4x4 &rTransformMat
 }
 
 //==============================================================================================================================================================
-
 //! Set a shader's basic uniforms: the modelview and the projection matrix.
 void MeshGLShader::shaderSetLocationBasicMatrices( QOpenGLShaderProgram* rShaderProgram ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS

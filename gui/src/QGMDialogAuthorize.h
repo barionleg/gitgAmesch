@@ -1,4 +1,5 @@
-/* * GigaMesh - The GigaMesh Software Framework is a modular software for display,
+/* 
+ * GigaMesh - The GigaMesh Software Framework is a modular software for display,
  * editing and visualization of 3D-data typically acquired with structured light or
  * structure from motion.
  * Copyright (C) 2009-2020 Hubert Mara
@@ -19,40 +20,27 @@
  * along with GigaMesh.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QGMDOCKVIEW_H
-#define QGMDOCKVIEW_H
+#ifndef INPUTDIALOG_H
+#define INPUTDIALOG_H
 
-#include <QDockWidget>
+#include <QDialog>
+#include <QComboBox>
 
-#include "meshwidget_params.h"
-#include "meshGL/meshGL_params.h"
+class QLineEdit;
+class QLabel;
 
-namespace Ui {
-class QGMDockView;
-}
-
-class QGMDockView : public QDockWidget
+class InputDialog : public QDialog
 {
-	Q_OBJECT
-
+    Q_OBJECT
 public:
-	explicit QGMDockView(QWidget *parent = 0);
-	~QGMDockView();
+    explicit InputDialog(QWidget *parent = nullptr);
 
-signals:
-	void sLogInOut();
-
-public slots:
-	void viewUserInfo(const MeshWidgetParams::eViewUserInfo rInfoID, const QString& rInfoString );
-	void viewPortInfo(const MeshWidgetParams::eViewPortInfo rInfoID, const QString& rInfoString );
-	void infoMesh(const MeshGLParams::eInfoMesh rInfoID, const QString& rInfoString );
+    static QStringList getStrings(QWidget *parent, bool *ok = nullptr);
 
 private:
-	Ui::QGMDockView *ui;
-
-	// QWidget interface
-	protected:
-	virtual void changeEvent(QEvent* event) override;
+    QList<QLineEdit*> fields;
+	QComboBox* comboBox;
 };
 
-#endif // QGMDOCKVIEW_H
+#endif // INPUTDIALOG_H
+

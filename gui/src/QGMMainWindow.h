@@ -45,6 +45,7 @@
 #include "meshGL/meshGL_params.h"
 #include "meshGL/meshglcolors.h"
 
+
 class MeshWidget;
 class QGMDockSideBar;
 class QGMDockInfo;
@@ -66,6 +67,15 @@ class QNetworkReply;
 //! Layer 3
 //!
 
+
+enum Provider {GITHUB, GITLAB, ORCID, REDDIT, MATTERMOST};
+
+std::string providerAsString(Provider p);
+
+std::ostream& operator<<(std::ostream& out, Provider p);
+
+
+
 class QGMMainWindow : public QMainWindow, public Ui::MainWindow {
     Q_OBJECT
 
@@ -80,6 +90,7 @@ private:
 public:
 	bool setupMeshWidget( const QGLFormat& rGLFormat );
 	bool setupHighDPI20();
+	MeshWidget* getWidget();
 
 protected:
 	virtual void closeEvent( QCloseEvent* rEvent ) override;
@@ -100,6 +111,8 @@ public slots:
 	void menuImportTexMap();
 	void menuImportFeatureVectors();
 	void menuImportNormalVectors();
+	void updateUser(QJsonObject data);
+	void logInOut();
 
 	// --- MENU - MeshWidget --------------------------------------------------------------------------------------------------------------------------------
 	bool setMeshWidgetFlag( QAction* rAction );
@@ -168,6 +181,16 @@ private:
 private slots:
 	void openExternalProgramsDialog();
 	void openGridPositionDialog();
+
+// --- User Authentication --------------------------------------------------------------------------------------------------------------------------------------	
+	void authenticate();
+
+public slots:
+	void saveUser();
+
+public:
+	bool loggedIn = false;
+
 private:
 	// --- Extra Keys --------------------------------------------------------------------------------------------------------------------------------------
 	void keyPressEvent( QKeyEvent *rEvent ) override;
@@ -340,7 +363,11 @@ signals:
 	//.
 	void sDatumAddSphere();                                  //!< Manually enter a datum sphere.
 
-	// --- Octree reöated ----------------------------------------------------------------------------------------------------------------------------------
+// --- User Authentication ----------------------------------------------------------------------------------------------------------------------------------
+	void authenticating(QString *username, Provider *provider);
+	void authenticated(QJsonObject data);
+
+	// --- Octree related ----------------------------------------------------------------------------------------------------------------------------------
 	void generateOctree();
 	void generateOctree(unsigned int);
 	void detectselfintersections();
@@ -365,6 +392,12 @@ signals:
 	void sFuncVertFeatAutoCorrVert();                        //!< Visualize Auto Correlation of Vertices features using OpenGL.
 	void sFuncVertFeatAutoCorrSelVert();                     //!< Visualize Auto-Correlation and Correlation to a selected Vertex using OpenGL.
 	void sFuncValToFeatureVector();                          //!< Assign function value to Nth feature vector component
+	// Wedge extraction
+	void sFuncWedgeExtrSuppressNonMaxima();                  //!< Non Maximum Suppression
+	void sFuncWedgeExtrComputeWatershed();                   //!< Watershed
+	void sFuncWedgeExtrComputeClustering();                  //!< Clustering
+	void sFuncWedgeExtrComputeRANSAC();                      //!< Wedge Extraction using RANSAC
+	void sFuncWedgeExtrAdditionalInput();                    //!< Additional Input for Non Maximum Suppression and Watershed
 	// # Distance to plane, line, selected primitive and cone
 	void visualizeDistanceToPlane();                         //!< triggers the plane distance estimation.
 	void visualizeDistanceToCone();                          //!< triggers distance to cone estimation (if cone has been selected)
@@ -422,6 +455,7 @@ signals:
 	// DockView:
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
 	void sViewPortInfo(MeshWidgetParams::eViewPortInfo,QString);     //!< Infos emitted by the viewport (MeshWidget) e.g. for display purposes.
+	void sViewUserInfo(MeshWidgetParams::eViewUserInfo,QString); 	//!< Infos about User emitted by (TcpServer)
 	void sInfoMesh(MeshGLParams::eInfoMesh,QString);                 //!< Infos emotted by the mesh (MeshQt) e.g. for display purposes.
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
 

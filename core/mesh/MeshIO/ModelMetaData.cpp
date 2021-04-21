@@ -98,7 +98,7 @@ bool ModelMetaData::getModelMetaStringId(
 //! @returns false in case of an error or no Id found. True otherwise.
 bool ModelMetaData::clearModelMetaStrings() {
 	// Initialize strings holding meta-data
-	for( unsigned i=0; i<META_STRINGS_COUNT ; i++ ) {
+        for( unsigned i=0; i< META_STRINGS_COUNT; i++ ) {
 		mMetaDataStrings[i].clear();
 		mMetaDataStringNames[i] = "ERROR: Not Set!";
 	}
@@ -115,6 +115,11 @@ bool ModelMetaData::clearModelMetaStrings() {
 	mMetaDataStringNames[META_MODEL_CREATORS]       = "ModelCreators";
 	mMetaDataStringNames[META_MODEL_CONTRIBUTORS]   = "ModelContributors";
 	mMetaDataStringNames[META_TEXTUREFILE]      = "TextureFile";
+        mMetaDataStringNames[META_USER_USERNAME]        = "UserName";
+        mMetaDataStringNames[META_USER_FULLNAME]        = "UserFullname";
+        mMetaDataStringNames[META_USER_ID]              = "UserID";
+        mMetaDataStringNames[META_USER_PROVIDER]        = "UserProvider";
+        mMetaDataStringNames[META_DATA_TTL]             = "MetaDataTTL";
 
 	// Initialze labels for the names of the strings holding meta-data
 	mMetaDataStringLabels[META_MODEL_ID]             = "ID of the model";
