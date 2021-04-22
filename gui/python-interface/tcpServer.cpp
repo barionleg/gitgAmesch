@@ -457,17 +457,17 @@ void TcpServer::authenticateUser(QString *username, Provider *provider)
             authorizationUrlBase = "https://github.com/login/oauth/authorize";
             accessTokenUrlBase = "https://github.com/login/oauth/access_token";
             userDataUrlBase = "https://api.github.com/user";
-            clientId = "f31165013adac0da36ed";
-            clientSecret = "32d6f2a7939c1b40cae13c20a36d4cd32942e60d";
-            scope = "user";
+            clientId = "4bec3473c4ca3bf8bd6b";
+            clientSecret = "e1835a5295a66e51b2c99d897e77017cf632c33f";
+            scope = "read:user";
             break;
         case GITLAB:
             authorizationUrlBase = "https://gitlab.com/oauth/authorize";
             accessTokenUrlBase = "https://gitlab.com/oauth/token";
             userDataUrlBase = "https://gitlab.com/api/v4/user";
-            clientId = "0838bf6d76153b656173387328777f369bf7ceb5074138606aacb77dabc66be9";
-            clientSecret = "c29a631dbcec4349c38dfa4887a9fc8669d4dbdd9883a4aa9e480d00f4b03832";
-            scope = "read_user+api";
+            clientId = "59251f7a95cce59f116ebef4ba0d2fad315ec34683c86c08a1fce1cc5cdf7427";
+            clientSecret = "f849a0b9100d8a6c570573713def421efae40b1921fb36f06b24443b5c4e48c0";
+            scope = "read_user";
             break;
         case ORCID:
             authorizationUrlBase = "https://orcid.org/oauth/authorize";
@@ -490,9 +490,9 @@ void TcpServer::authenticateUser(QString *username, Provider *provider)
             authorizationUrlBase = "https://gitlab.rlp.net/oauth/authorize";
             accessTokenUrlBase = "https://gitlab.rlp.net/oauth/token";
             userDataUrlBase = "https://gitlab.rlp.net/api/v4/user";
-            clientId = "82ff8b175f9d64aab9a08ca1b9d6b7ba8383c246f106502f74694dd6deef53dc";
-            clientSecret = "580282d1147516a99bdde41d2f74be1b17b67cc9bcff8b8ae0aa59859c27b5a3";
-            scope = "api";
+            clientId = "4f7f741f47ec79558fcce324f033ba62477be24f2c7aca977bb5a9d8960803ae";
+            clientSecret = "16944bc7e9a8acb0b20254d35bdaa17e5bc01901a587e1396b0221bc5cfd4057";
+            scope = "read_user";
             break;
         default:
             authorizationUrlBase = "https://github.com/login/oauth/authorize";
