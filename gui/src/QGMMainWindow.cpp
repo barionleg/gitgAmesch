@@ -1195,7 +1195,6 @@ void QGMMainWindow::initMeshSignals() {
 	actionViewShow2DBoundingBox->setProperty(                     "gmMeshWidgetFunctionCall", MeshWidgetParams::SHOW_VIEW_2D_BOUNDING_BOX            );
 
         // --- Github userdata check --------------------------------------------------------------------------------------------------------------
-        //QObject::connect( actionFileSaveAs, &QAction::triggered, this, &QGMMainWindow::saveUser); //! todo: check if neccessary
         QObject::connect( actionAuthorizeUser, &QAction::triggered, this, &QGMMainWindow::authenticate);
         QObject::connect(this, &QGMMainWindow::authenticated, this, &QGMMainWindow::updateUser);
 
@@ -1253,12 +1252,12 @@ bool QGMMainWindow::setupHighDPI20() {
 std::ostream& operator<<(std::ostream out, Provider p){
 
     switch(p){
-        case GITHUB: out << "GITHUB"; break;
-        case GITLAB: out << "GITLAB"; break;
-        case ORCID: out << "ORCID"; break;
-        case REDDIT: out << "REDDIT"; break;
-        case MATTERMOST: out << "MATTERMOST"; break;
-        default: out << int(p); break;
+        case GITHUB: out << "Github.com"; break;
+        case GITLAB: out << "Gitlab.com"; break;
+        case ORCID: out << "Orcid.org"; break;
+        case REDDIT: out << "Reddit.com"; break;
+        case GITLAB_RLP: out << "Gitlab.rlp.net"; break;
+        default: out << "NA"; break;
     }
 
     return out;
@@ -1269,11 +1268,11 @@ std::ostream& operator<<(std::ostream out, Provider p){
 std::string providerAsString(Provider p){
 
     switch(p){
-        case GITHUB: return "GITHUB";
-        case GITLAB: return "GITLAB";
-        case ORCID: return "ORCID";
-        case REDDIT: return "REDDIT";
-        case MATTERMOST: return "MATTERMOST";
+        case GITHUB: return "Github.com";
+        case GITLAB: return "Gitlab.com";
+        case ORCID: return "Orcid.org";
+        case REDDIT: return "Reddit.com";
+        case GITLAB_RLP: return "Gitlab.rlp.net";
         default: return "NA";
     }
 
@@ -1287,10 +1286,10 @@ void QGMMainWindow::logInOut(){
     QSettings settings;
     if(loggedIn){
         loggedIn = false;
-        settings.setValue( "userName", "");
-        settings.setValue( "id", "");
-        settings.setValue( "fullName", "");
-        settings.setValue( "provider", "");
+        settings.setValue( "userName", "-");
+        settings.setValue( "id", "-");
+        settings.setValue( "fullName", "-");
+        settings.remove( "provider");
         settings.setValue( "token", "");
         emit sViewUserInfo(MeshWidgetParams::USER_INFO, "-");
         emit sViewUserInfo(MeshWidgetParams::USER_LOGIN, "Log in");
@@ -1361,10 +1360,10 @@ void QGMMainWindow::saveUser(){
             this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_PROVIDER,
                                                                                     providerAsString(static_cast<Provider>(settings.value("provider").toInt())));
         }else{
-            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_USERNAME, "" );
-            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_FULLNAME, "");
-            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_ID, "");
-            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_PROVIDER, "");
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_USERNAME, "-" );
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_FULLNAME, "-");
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_ID, "-");
+            this->mMeshWidget->getMesh()->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_USER_PROVIDER, "-");
         }
         qDebug() << "[QGMMainWindow::" << __FUNCTION__ << "] Updated User Data.";
     }else{

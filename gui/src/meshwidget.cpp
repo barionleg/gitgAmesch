@@ -5772,6 +5772,15 @@ bool MeshWidget::writePNG( const QString& rFileName,        //!< Filename for wr
     QString id=(rFileName);
     id = "giga:"+id.replace(0,rFileName.lastIndexOf("/")+1,"");
     getViewSettingsTTL(exifttl,id);
+    QSettings settings;
+    exifttl+="username:" + settings.value("userName").toString() + "\n";
+    exifttl+="userid:" + settings.value("id").toString() + "\n";
+    exifttl+="fullname:" + settings.value("fullName").toString() + "\n";
+    if(settings.contains("provider")) {
+        exifttl+="provider:" + QString::fromStdString(providerAsString(static_cast<Provider>(settings.value("provider").toInt()))) + "\n";
+    }else{
+        exifttl+="provider: -\n";
+    }
     exifttl+=id+" rdf:type foaf:Image .\n";
     exifttl+= "exif:make rdf:type owl:DatatypeProperty .\n";
     exifttl+=id+" exif:make \"Gigamesh Software\"^^xsd:string .\n";

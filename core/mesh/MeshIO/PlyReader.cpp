@@ -740,9 +740,9 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
 				continue;
 			}
 			std::string possibleMetaDataName = lineParts[ 1 ];
-			ModelMetaData::eMetaStrings foundMetaId;
+                        ModelMetaData::eMetaStrings foundMetaId;
 			if( MeshReader::getModelMetaDataRef().getModelMetaStringId( possibleMetaDataName, foundMetaId ) ) {
-				uint64_t preMetaLen = 9 + possibleMetaDataName.size(); // 7 for 'comment' plus 2x space.
+                                uint64_t preMetaLen = 9 + possibleMetaDataName.size(); // 7 for 'comment' plus 2x space.
                                 std::string metaContent = lineToParseOri.substr( preMetaLen );
 				LOG::info() << "[PlyReader::" << __FUNCTION__ << "] Meta-Data: " << possibleMetaDataName << " (" << foundMetaId << ") = " << metaContent << "\n";
 
@@ -750,21 +750,21 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
 				{
 					MeshReader::getModelMetaDataRef().addTextureName(metaContent);
 				}
-
-                                // ttl data spreads over multiple lines starting with 'comment ttl'
-                                if( possibleMetaDataName == "ttl")
-                                {
-                                    metaDataTTL += metaContent;
-                                }
-
 				else
 				{
 					if( !MeshReader::getModelMetaDataRef().setModelMetaString( foundMetaId, metaContent ) ) {
 						LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Meta-Data not set!" << "\n";
 					}
 				}
-			}
+                        }
 
+                        // ttl data spreads over multiple lines starting with 'comment ttl'
+                        if( possibleMetaDataName == "ttl")
+                        {
+                            uint64_t preMetaLen = 9 + possibleMetaDataName.size(); // 7 for 'comment' plus 2x space.
+                            std::string metaContent = lineToParseOri.substr( preMetaLen );
+                            metaDataTTL += metaContent + "\n";
+                        }
 
 			continue;
 		}

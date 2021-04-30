@@ -486,7 +486,7 @@ void TcpServer::authenticateUser(QString *username, Provider *provider)
             clientSecret = "BKHdqqbTEu1pkvbwSlx5_QIUKKwolA";
             scope = "identity";
             break;
-        case MATTERMOST:
+        case GITLAB_RLP:
             authorizationUrlBase = "https://gitlab.rlp.net/oauth/authorize";
             accessTokenUrlBase = "https://gitlab.rlp.net/oauth/token";
             userDataUrlBase = "https://gitlab.rlp.net/api/v4/user";

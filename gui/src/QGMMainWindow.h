@@ -68,7 +68,7 @@ class QNetworkReply;
 //!
 
 
-enum Provider {GITHUB, GITLAB, ORCID, REDDIT, MATTERMOST};
+enum Provider {GITHUB, GITLAB, GITLAB_RLP, REDDIT, ORCID};
 
 std::string providerAsString(Provider p);
 

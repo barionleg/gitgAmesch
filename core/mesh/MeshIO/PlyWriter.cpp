@@ -29,7 +29,6 @@
 #include <filesystem>
 #include <GigaMesh/mesh/primitive.h>
 #include "PlyEnums.h"
-#include <GigaMesh/mesh/meshinfodata.h>
 #include <GigaMesh/logging/Logging.h>
 
 using namespace std;
@@ -162,7 +161,7 @@ bool PlyWriter::writeFile(const std::filesystem::path& rFilename, const std::vec
         }
 
         filestr << "comment +-------------------------------------------------------------------------------+\n";
-        filestr << "comment | TTL information:                                                             |\n";
+        filestr << "comment | TTL information:                                                              |\n";
         filestr << "comment +-------------------------------------------------------------------------------+\n";
 
         string metaStr = MeshWriter::getModelMetaDataRef().getModelMetaString( ModelMetaData::META_DATA_TTL );

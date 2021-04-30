@@ -37,11 +37,12 @@ InputDialog::InputDialog(QWidget *parent) : QDialog(parent)
 
     QComboBox *comboBox = new QComboBox(this);
     this->comboBox = comboBox;
-    comboBox->addItem("Github"); // index 0
-    comboBox->addItem("Gitlab"); // index 1
-    comboBox->addItem("Orcid"); // index 2
-    comboBox->addItem("Reddit"); // index 3
-    comboBox->addItem("Mattermost"); // index 4
+    //! attention: order must match enum definition in QGMMainWindow
+    comboBox->addItem("Github.com"); // index 0
+    comboBox->addItem("Gitlab.com"); // index 1
+    comboBox->addItem("Gitlab.rlp.net"); // index 2
+    //comboBox->addItem("Reddit"); // index 3
+    //comboBox->addItem("Orcid"); // index 4
     lytMain->addWidget(comboBox);
 
     QLabel *tLabel = new QLabel(QString("Username: "), this);
