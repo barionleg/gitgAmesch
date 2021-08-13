@@ -27,6 +27,7 @@
 #include <unordered_map>
 #include <variant>
 #include <vector>
+#include <limits>
 
 #include "endian.h"
 #include "ply.h"
