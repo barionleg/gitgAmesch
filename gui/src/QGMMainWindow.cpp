@@ -353,7 +353,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	timeLast = settings.value( "lastVersionCheck" ).toLongLong();
 	double daysSinceLastCheck = difftime( timeNow, timeLast ) / ( 24.0 * 3600.0 );
 	// daysSinceLastCheck = 356.0; // for testing (1/2)
-	cout << "[QGMMainWindow::" << __FUNCTION__ << "] Last check " << daysSinceLastCheck << " days ago." << endl;
+	std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] Last check " << daysSinceLastCheck << " days ago." << std::endl;
 	if( daysSinceLastCheck > 3.0 ) {
 		mNetworkManager = new QNetworkAccessManager( this );
 		QObject::connect( mNetworkManager, &QNetworkAccessManager::finished, this, &QGMMainWindow::slotHttpCheckVersion );
@@ -2194,18 +2194,37 @@ void QGMMainWindow::setMenuContextToSelection( Primitive* primitive ) {
 //! Slot taking care about successfull http-request to fetch the
 //! latest version number of GigaMesh from the WebSite.
 void QGMMainWindow::slotHttpCheckVersion( QNetworkReply* rReply ) {
-	cout << "[QGMMainWindow::" << __FUNCTION__ << "] Current version is   " << QString( "%1" ).arg( VERSION_PACKAGE ).toStdString() << endl;
+	std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] Current version is   " << QString( "%1" ).arg( VERSION_PACKAGE ).toStdString() << std::endl;
 	if( rReply->error() != QNetworkReply::NoError ) {
-		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Code " << rReply->error() << ": " << rReply->errorString().toStdString() << endl;
+		std::cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Code " << rReply->error() << ": " << rReply->errorString().toStdString() << std::endl;
+		// Before we exit we check if the last access was more than a year ago:
+		time_t timeNow, timeLast;
+		time( &timeNow );
+		QSettings settings;
+		timeLast = settings.value( "lastVersionCheck" ).toLongLong();
+		double daysSinceLastCheck = difftime( timeNow, timeLast ) / ( 24.0 * 3600.0 );
+		// daysSinceLastCheck = 400.0; // for testing
+		std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] Last check " << daysSinceLastCheck << " days ago." << std::endl;
+		if( daysSinceLastCheck > 365.0 ) {
+			QString msgStr = tr( "There might be a newer version of GigaMesh available for download at: <br /><br />"
+			                     "<a href='https://gigamesh.eu/download'>https://gigamesh.eu/download</a> <br /><br />"
+			                     "See the CHANGELOG file within the new package for updates. "
+			                     "Additional info is typically provided "
+			                     "in our <a href='https://gigamesh.eu/news'>WebSite's news section</a> and "
+			                     "in the <a href='https://gigamesh.eu/researchgate'>ResearchGate project log</a>."
+			                   );
+			SHOW_MSGBOX_WARN( tr( "Check for updates!" ), msgStr.toStdString().c_str() );
+		}
+		settings.setValue( "lastVersionCheck", qlonglong( timeNow ) );
 		return;
 	}
 	QByteArray responseBytes = rReply->readAll();
-	cout << "[QGMMainWindow::" << __FUNCTION__ << "] Available Version is " << responseBytes.constData() << endl;
+	std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] Available Version is " << responseBytes.constData() << std::endl;
 
 	bool convOk = false;
 	unsigned int versionOnline = responseBytes.toUInt( &convOk );
 	if( !convOk ) {
-		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Version (online) is not an unsigned integer!" << endl;
+		std::cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Version (online) is not an unsigned integer!" << std::endl;
 		return;
 	}
 	
@@ -2213,28 +2232,28 @@ void QGMMainWindow::slotHttpCheckVersion( QNetworkReply* rReply ) {
 	
 	unsigned int versionCurrent = QString( "%1" ).arg( VERSION_PACKAGE ).toUInt( &convOk );
 	if( !convOk ) {
-		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Version (current) is not an unsigned integer!" << endl;
+		std::cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Version (current) is not an unsigned integer!" << std::endl;
 		return;
 	}
 
 	// versionCurrent = 170101; // for testing (2/2)
 
 	if( versionOnline == versionCurrent ) {
-		cout << "[QGMMainWindow::" << __FUNCTION__ << "] You are using the latest offical version." << endl;
+		std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] You are using the latest offical version." << std::endl;
 	} else if ( versionOnline < versionCurrent ) {
-		cout << "[QGMMainWindow::" << __FUNCTION__ << "] You are using a NEWER version than the offical version." << endl;
+		std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] You are using a NEWER version than the offical version." << std::endl;
 	} else {
-		cout << "[QGMMainWindow::" << __FUNCTION__ << "] There is a newer version of GigaMesh available for" << endl;
-		cout << "[QGMMainWindow::" << __FUNCTION__ << "] download at: https://gigamesh.eu/download" << endl;
+		std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] There is a newer version of GigaMesh available for" << std::endl;
+		std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] download at: https://gigamesh.eu/download" << std::endl;
 		QString msgStr = tr( "There is a newer version (%1) of GigaMesh available for download at: <br /><br />"
-		                          "<a href='https://gigamesh.eu/download'>https://gigamesh.eu/download</a> <br /><br />"
-		                          "The version you are using is&nbsp;%2.<br /><br />"
-		                          "See the CHANGELOG file within the new package for updates. "
-		                          "Additional info is typically provided "
-		                          "in our <a href='https://gigamesh.eu/news'>WebSite's news section</a> and "
-		                          "in the <a href='https://gigamesh.eu/researchgate'>ResearchGate project log</a>."
-		                        ).arg( versionOnline ).arg( versionCurrent );
-		SHOW_MSGBOX_WARN( tr("NEW Version available"), msgStr.toStdString().c_str() );
+		                     "<a href='https://gigamesh.eu/download'>https://gigamesh.eu/download</a> <br /><br />"
+		                     "The version you are using is&nbsp;%2.<br /><br />"
+		                     "See the CHANGELOG file within the new package for updates. "
+		                     "Additional info is typically provided "
+		                     "in our <a href='https://gigamesh.eu/news'>WebSite's news section</a> and "
+		                     "in the <a href='https://gigamesh.eu/researchgate'>ResearchGate project log</a>."
+		                   ).arg( versionOnline ).arg( versionCurrent );
+		SHOW_MSGBOX_WARN( tr( "NEW Version available" ), msgStr.toStdString().c_str() );
 	}
 
 	// Store the current timestamp for the last successful attempt
@@ -2314,7 +2333,7 @@ void QGMMainWindow::createLanguageMenu()
 		if(defaultLocale == locale)
 		{
 			localeSet = true;
-			action->setChecked(true);
+			action->setChecked( localeSet );
 			//call slot manually, as the menu is created in QGMMainWindow's constructor. remove if it is done elsewhere in the future,
 			//because then it is handled via signal/slots by setChecked
 			slotChangeLanguage(action);
