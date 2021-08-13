@@ -50,7 +50,7 @@ manjaro arch:
     - master
     - develop
   # Use latest manjaro release
-  image: archlinux/base
+  image: archlinux:base
   stage: build
   # install the necessary build tools when needed
   before_script: 
@@ -92,7 +92,7 @@ manjaro arch test:
     - master
     - develop
   # Use latest manjaro release
-  image: archlinux/base
+  image: archlinux:base
   stage: test
   dependencies:
     - manjaro arch
