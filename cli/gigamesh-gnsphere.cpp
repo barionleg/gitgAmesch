@@ -52,13 +52,43 @@ using namespace std;
 bool convertMeshData(
                 const filesystem::path&   rFileName,
                 const filesystem::path&   rOutputPath,
+                const filesystem::path&   rFileSuffix,
                 int& rSubdivisionLevel,
-                const bool      rFaceNormals
+                const bool      rFaceNormals,
+                const bool      rReplaceFiles
 ) {
         if( rFileName.extension().wstring().size() != 4 ) {
                 cerr << "[GigaMesh] ERROR: File extension '" << rFileName.extension().string() << "' is faulty!" << endl;
                 return( false );
         }
+
+        // Check: Input file exists?
+        if( !std::filesystem::exists( rFileName ) ) {
+            cerr << "[GigaMesh] Error: File '" << rFileName << "' not found!" << endl;
+            return( false );
+        }
+
+        // create output path
+        //get file name of original and append suffix
+        std::filesystem::path fileNameOut = rFileName.stem();
+        fileNameOut += rFileSuffix;
+        //combine output path and input name
+        // Output file for the csv with the gaussian normal sphere data.
+        std::filesystem::path fileNameOutCSV( rOutputPath );
+        fileNameOutCSV += fileNameOut;
+        fileNameOutCSV += ".csv";
+        if( std::filesystem::exists( fileNameOutCSV ) ) {
+            if( !rReplaceFiles ) {
+                cerr << "[GigaMesh] File '" << fileNameOutCSV << "' already exists!" << endl;
+                return( false );
+            }
+            cout << "[GigaMesh] Warning: File '" << fileNameOutCSV << "' will be replaced!" << endl;
+        }
+
+        // All parameters OK => infos to stdout and file with metadata  -----------------------------------------------------------
+        cout << "[GigaMesh] File IN:         " << rFileName << endl;
+        cout << "[GigaMesh] File OUT/Prefix: " << fileNameOut << endl;
+
 
         // Prepare data structures
         //--------------------------------------------------------------------------
@@ -114,7 +144,7 @@ bool convertMeshData(
         time( &rawtime );
         timeinfo = localtime( &rawtime );
         cout << "[GigaMesh] Start date/time is: " << asctime( timeinfo );// << endl;
-        someMesh.writeIcoNormalSphereData(rOutputPath, vertexProps , rSubdivisionLevel, sphereCoordinates);
+        someMesh.writeIcoNormalSphereData(fileNameOutCSV, vertexProps , rSubdivisionLevel, sphereCoordinates);
         cout << "[GigaMesh] End date/time is: " << asctime( timeinfo );// << endl;
 
         return( true );
@@ -129,9 +159,15 @@ void printHelp( const char* rExecName ) {
         std::cout << "Options:" << endl;
         std::cout << "  -h, --help                              Displays this help." << std::endl;
         std::cout << "  -v, --version                           Displays version information." << std::endl << std::endl;
-        std::cout << "  -s, --subdivision-level                 subdivision-level of the export" << std::endl;
+        std::cout << "  -l, --subdivision-level                 subdivision-level of the export" << std::endl;
         std::cout << "  -f, --face-normals                      Export the face normals. Default: Vertex Normals" << std::endl;
-        std::cout << "  -o, --output-path <string>              Path to save the export. Default: gaussian_normals.csv" << std::endl;
+        std::cout << "  -o, --output-path <string>              Path to save the export" << std::endl;
+        std::cout << "  -s, --output-suffix <string>            Write the converted file using the given <string> as suffix for its name." << std::endl;
+        std::cout << "                                          Default suffices are '_ASCII' and '_Legacy'." << std::endl;
+        std::cout << "  -k, --overwrite-existing                Overwrite exisitng files, which is not done by default" << std::endl;
+        std::cout << "                                          to prevent accidental data loss." << std::endl;
+        std::cout << "  -r, --recursive-iteration               Move through all subdirectories of the input path" << std::endl;
+        std::cout << "                                          All '.ply' files and '.obj' files in this directories will be used for the export. " << std::endl;
 }
 
 //! Main routine for loading a (binary) PLY and store it as ASCII without the extra data supplied by GigaMesh
@@ -142,17 +178,24 @@ int main( int argc, char *argv[] ) {
 
         // Default string parameter
         std::filesystem::path optOutputPath;
+        std::filesystem::path optFileSuffix;
 
         // Default flags
         bool optFaceNormals = false;
+        bool optReplaceFiles = false;
+        bool optRecursiveIteration = false;
+
+        //Default integer Parameter
         int subdivisionLevel = 6;
         // PARSE command line options
         //--------------------------------------------------------------------------
         // https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html#Getopt-Long-Option-Example
         static struct option longOptions[] = {
+                { "output-suffix",                required_argument, nullptr, 's' },
                 { "output-path",                required_argument, nullptr, 'o' },
-                { "subdivision-level",                     required_argument, nullptr, 's'},
+                { "subdivision-level",                     required_argument, nullptr, 'l'},
                 { "face-normals",           no_argument,       nullptr, 'f' },
+                { "recursive-iteration",           no_argument,       nullptr, 'r' },
                 { "version",                      no_argument,       nullptr, 'v' },
                 { "help",                         no_argument,       nullptr, 'h' },
                 { nullptr, 0, nullptr, 0 }
@@ -165,16 +208,29 @@ int main( int argc, char *argv[] ) {
                  longOptions, &optionIndex ) ) != -1 ) {
                 switch(character) {
 
-                        case 'o': // output file
+                        case 'o': // output path
                                 optOutputPath = std::string( optarg );
+                                break;
+
+                        case 's': // optional file suffix
+                                optFileSuffix = std::string( optarg );
                                 break;
 
                         case 'f': // export face normals
                                 optFaceNormals = true;
                                 break;
 
-                        case 's': // subdivision level
+                        case 'l': // subdivision level
                                 subdivisionLevel = stoi(std::string( optarg ));
+                                break;
+
+                        case 'k': // replaces output files
+                                std::cout << "[GigaMesh] Warning: files might be replaced!" << std::endl;
+                                optReplaceFiles = true;
+                                break;
+
+                        case 'r': // recursive directory iteration
+                                optRecursiveIteration = true;
                                 break;
 
                         case 'v':
@@ -182,6 +238,7 @@ int main( int argc, char *argv[] ) {
                                 std::cout << "Multi-threading with " << std::thread::hardware_concurrency() - 1 << " threads." << endl;
                                 std::exit( EXIT_SUCCESS );
                                 break;
+
 
                         case 'h':
                                 printHelp( argv[0] );
@@ -202,13 +259,20 @@ int main( int argc, char *argv[] ) {
                 std::exit( EXIT_FAILURE );
         }
 
-        // Add default suffix
+        // Add default output path
         if( optOutputPath.empty() ) {
-                optOutputPath = "gaussian_normals.csv";
+                optOutputPath = "./";
+        }
+
+
+        // Add default suffix
+        if( optFileSuffix.empty() ) {
+            optFileSuffix = "_GNS";
         }
 
         // SHOW Build information
         printBuildInfo();
+
 
         // Process given files
         unsigned long filesProcessed = 0;
@@ -218,16 +282,35 @@ int main( int argc, char *argv[] ) {
                 std::filesystem::path nonOptionArgumentString ( argv[nonOptionArgumentCount] );
 
                 if( !nonOptionArgumentString.empty() ) {
-                        std::cout << "[GigaMesh] Processing file " << nonOptionArgumentString << "..." << std::endl;
+                        if(!optRecursiveIteration){
+                            std::cout << "[GigaMesh] Processing file " << nonOptionArgumentString << "..." << std::endl;
 
-                        if( !convertMeshData( nonOptionArgumentString, optOutputPath, subdivisionLevel,
-                                              optFaceNormals) ) {
-                                std::cerr << "[GigaMesh] ERROR: export Normalsphere failed!" << std::endl;
-                                std::exit( EXIT_FAILURE );
+                            if( !convertMeshData( nonOptionArgumentString, optOutputPath, optFileSuffix, subdivisionLevel,
+                                                  optFaceNormals, optReplaceFiles) ) {
+                                    std::cerr << "[GigaMesh] ERROR: export Normalsphere failed!" << std::endl;
+                                    std::exit( EXIT_FAILURE );
+                            }
+                            filesProcessed++;
                         }
-                        filesProcessed++;
+                        else{
+                            for (auto const& dir_entry : std::filesystem::recursive_directory_iterator(nonOptionArgumentString.parent_path())){
+                                    //only use 3D-objects. the recursive iterator returns also directry names and other files
+                                    if( dir_entry.path().extension() == ".ply" or dir_entry.path().extension() == ".obj"){
+                                        std::cout << "[GigaMesh] Processing file " << dir_entry.path() << "..." << std::endl;
+
+                                        if( !convertMeshData( dir_entry.path(), optOutputPath, optFileSuffix, subdivisionLevel,
+                                                              optFaceNormals, optReplaceFiles) ) {
+                                                std::cerr << "[GigaMesh] ERROR: export Normalsphere failed!" << std::endl;
+                                                std::exit( EXIT_FAILURE );
+                                        }
+                                        filesProcessed++;
+                                    }
+                            }
+                        }
                 }
         }
+
+
 
         std::cout << "[GigaMesh] Processed files: " << filesProcessed << std::endl;
         exit( EXIT_SUCCESS );
