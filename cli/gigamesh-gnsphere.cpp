@@ -54,6 +54,7 @@ bool convertMeshData(
                 const filesystem::path&   rOutputPath,
                 const filesystem::path&   rFileSuffix,
                 int& rSubdivisionLevel,
+                double& rRadiusRecomputeNormals,
                 const bool      rFaceNormals,
                 const bool      rReplaceFiles
 ) {
@@ -99,6 +100,14 @@ bool convertMeshData(
                 return( false );
         }
 
+        //recompute normals
+        if( rRadiusRecomputeNormals <= 0.0 ) {
+            someMesh.resetVertexNormals();
+        } else {
+            someMesh.normalsVerticesComputeSphere( rRadiusRecomputeNormals );
+        }
+
+        //--------------------------------------------------------------------------
         //prepare normal data
         bool sphereCoordinates = true;
 
@@ -147,6 +156,75 @@ bool convertMeshData(
         someMesh.writeIcoNormalSphereData(fileNameOutCSV, vertexProps , rSubdivisionLevel, sphereCoordinates);
         cout << "[GigaMesh] End date/time is: " << asctime( timeinfo );// << endl;
 
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        // Clean mesh and calculate volume
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        cout << "[GigaMesh] Start cleaning procedure" << endl;
+        // Initial numbers of primitives
+        auto oldVertexNr = someMesh.getVertexNr();
+        auto oldFaceNr = someMesh.getFaceNr();
+
+        //! \todo define input parameters for each variable
+        //static variables
+        double percentArea = 0.1;
+        bool applyBorderErosion = true;
+        bool skipLargestHole = false;
+        bool keepLargestComponent = false;
+        unsigned long maxNumberVertices = 3000;
+        uint64_t iterationCount = 0;
+
+        // Keep ONLY the largest connected component.
+        //----------------------------------------------------------
+        if( !keepLargestComponent ) {
+            uint64_t largestLabelId;
+            std::set<int64_t> labelNrs;
+
+            // Determine connected components and select the largest
+            //----------------------------------------------------------
+            someMesh.labelVerticesAll();
+            someMesh.getVertLabelAreaLargest( largestLabelId );
+
+            // Select and remove everything except the largest component
+            //----------------------------------------------------------
+            std::cout << "[GigaMesh] Label kept: " << largestLabelId << std::endl;
+            labelNrs.insert( -static_cast<int64_t>(largestLabelId) );
+
+            someMesh.deSelMVertsAll();
+            someMesh.selectVertLabelNo( labelNrs );
+            someMesh.removeVerticesSelected();
+        }
+
+        //cleaning procedure
+        someMesh.completeRestore( "", percentArea, applyBorderErosion,
+                                  skipLargestHole, maxNumberVertices,
+                                  nullptr, iterationCount ); // use fileNameOut instead of "" for saving the intermediate mesh.
+
+        std::cout << "[GigaMesh] POLISH: Vertex count changed by " << static_cast<long>(someMesh.getVertexNr())-static_cast<long>(oldVertexNr) << std::endl;
+        std::cout << "[GigaMesh]         Face count changed by   " << static_cast<long>(someMesh.getFaceNr())-static_cast<long>(oldFaceNr) << std::endl;
+
+        // Prepare for editing holes i.e. false-positiv filled connected components
+        //-------------------------------------------------------------------------
+        someMesh.selVertByFlag( Primitive::FLAG_SYNTHETIC );
+        someMesh.labelSelectedVerticesBackGrd();
+
+        //calculate volume
+        // Count primitives and their properties
+        MeshInfoData meshInfoData;
+        if( !someMesh.getMeshInfoData( meshInfoData, true ) ) {
+            std::wcerr << "[GigaMesh] ERROR: Could not fetch mesh information about '" << rFileName.wstring() << "'!" << std::endl;
+            return( false );
+        }
+        // create output path
+        //get file name of original and append suffix
+        std::filesystem::path infoFileNameOut = rFileName.stem();
+        infoFileNameOut += "_info";
+        //combine output path and input name
+        // Output file for the mesh information
+        std::filesystem::path infoFileOutJSON( rOutputPath );
+        infoFileOutJSON += infoFileNameOut;
+        infoFileOutJSON += ".json";
+        meshInfoData.writeMeshInfo(infoFileOutJSON);
+
         return( true );
 }
 
@@ -160,6 +238,7 @@ void printHelp( const char* rExecName ) {
         std::cout << "  -h, --help                              Displays this help." << std::endl;
         std::cout << "  -v, --version                           Displays version information." << std::endl << std::endl;
         std::cout << "  -l, --subdivision-level                 subdivision-level of the export" << std::endl;
+        std::cout << "  -n, --recompute-normals-radius          radius to recompute the normals. Default 0.0" << std::endl;
         std::cout << "  -f, --face-normals                      Export the face normals. Default: Vertex Normals" << std::endl;
         std::cout << "  -o, --output-path <string>              Path to save the export" << std::endl;
         std::cout << "  -s, --output-suffix <string>            Write the converted file using the given <string> as suffix for its name." << std::endl;
@@ -170,7 +249,7 @@ void printHelp( const char* rExecName ) {
         std::cout << "                                          All '.ply' files and '.obj' files in this directories will be used for the export. " << std::endl;
 }
 
-//! Main routine for loading a (binary) PLY and store it as ASCII without the extra data supplied by GigaMesh
+//! Main routine for loading a (binary) PLY and compute gaussian normal sphere supplied by GigaMesh
 //==============================================================================================================================================================
 int main( int argc, char *argv[] ) {
 
@@ -186,7 +265,11 @@ int main( int argc, char *argv[] ) {
         bool optRecursiveIteration = false;
 
         //Default integer Parameter
-        int subdivisionLevel = 6;
+        int optSubdivisionLevel = 6;
+
+        //Default double parameters
+        double optRadiusRecomputeNormals{0.0};
+
         // PARSE command line options
         //--------------------------------------------------------------------------
         // https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html#Getopt-Long-Option-Example
@@ -194,6 +277,7 @@ int main( int argc, char *argv[] ) {
                 { "output-suffix",                required_argument, nullptr, 's' },
                 { "output-path",                required_argument, nullptr, 'o' },
                 { "subdivision-level",                     required_argument, nullptr, 'l'},
+                { "recompute-normals-radius",           required_argument, nullptr, 'n'},
                 { "face-normals",           no_argument,       nullptr, 'f' },
                 { "recursive-iteration",           no_argument,       nullptr, 'r' },
                 { "version",                      no_argument,       nullptr, 'v' },
@@ -221,7 +305,11 @@ int main( int argc, char *argv[] ) {
                                 break;
 
                         case 'l': // subdivision level
-                                subdivisionLevel = stoi(std::string( optarg ));
+                                optSubdivisionLevel = stoi(std::string( optarg ));
+                                break;
+
+                        case 'n': // recompute normals radius
+                                optRadiusRecomputeNormals = stod(std::string( optarg ));
                                 break;
 
                         case 'k': // replaces output files
@@ -285,8 +373,8 @@ int main( int argc, char *argv[] ) {
                         if(!optRecursiveIteration){
                             std::cout << "[GigaMesh] Processing file " << nonOptionArgumentString << "..." << std::endl;
 
-                            if( !convertMeshData( nonOptionArgumentString, optOutputPath, optFileSuffix, subdivisionLevel,
-                                                  optFaceNormals, optReplaceFiles) ) {
+                            if( !convertMeshData( nonOptionArgumentString, optOutputPath, optFileSuffix, optSubdivisionLevel,
+                                                  optRadiusRecomputeNormals, optFaceNormals, optReplaceFiles) ) {
                                     std::cerr << "[GigaMesh] ERROR: export Normalsphere failed!" << std::endl;
                                     std::exit( EXIT_FAILURE );
                             }
@@ -298,8 +386,8 @@ int main( int argc, char *argv[] ) {
                                     if( dir_entry.path().extension() == ".ply" or dir_entry.path().extension() == ".obj"){
                                         std::cout << "[GigaMesh] Processing file " << dir_entry.path() << "..." << std::endl;
 
-                                        if( !convertMeshData( dir_entry.path(), optOutputPath, optFileSuffix, subdivisionLevel,
-                                                              optFaceNormals, optReplaceFiles) ) {
+                                        if( !convertMeshData( dir_entry.path(), optOutputPath, optFileSuffix, optSubdivisionLevel,
+                                                              optRadiusRecomputeNormals, optFaceNormals, optReplaceFiles) ) {
                                                 std::cerr << "[GigaMesh] ERROR: export Normalsphere failed!" << std::endl;
                                                 std::exit( EXIT_FAILURE );
                                         }
