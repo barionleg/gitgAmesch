@@ -57,6 +57,7 @@ bool convertMeshData(
                 const filesystem::path&   rFileName,
                 const filesystem::path&   rOutputPath,
                 const filesystem::path&   rFileSuffix,
+                const filesystem::path&   rInfoFileSuffix,
                 int& rSubdivisionLevel,
                 double& rRadiusRecomputeNormals,
                 const bool      rFaceNormals,
@@ -224,7 +225,7 @@ bool convertMeshData(
         // create output path
         //get file name of original and append suffix
         std::filesystem::path infoFileNameOut = rFileName.stem();
-        infoFileNameOut += "_info";
+        infoFileNameOut += rInfoFileSuffix;
         //combine output path and input name
         // Output file for the mesh information
         std::filesystem::path infoFileOutJSON( rOutputPath );
@@ -245,12 +246,14 @@ void printHelp( const char* rExecName ) {
         std::cout << "  -h, --help                              Displays this help." << std::endl;
         std::cout << "  -v, --version                           Displays version information." << std::endl << std::endl;
         std::cout << "  -l, --subdivision-level                 subdivision-level of the export" << std::endl;
-        std::cout << "  -n, --normals-recompution-radius        radius to recompute the normals. Default 0.0" << std::endl;
+        std::cout << "  -n, --normals-recompution-radius <float>radius to recompute the normals. Default 0.0" << std::endl;
         std::cout << "  -f, --face-normals                      Export the face normals. Default: Vertex Normals" << std::endl;
         std::cout << "  -c, --clean-mesh                        Activates the mesh cleaning procedure before the volume calculation " << std::endl;
         std::cout << "  -o, --output-path <string>              Path to save the export" << std::endl;
-        std::cout << "  -s, --output-suffix <string>            Write the converted file using the given <string> as suffix for its name." << std::endl;
-        std::cout << "                                          Default suffices are '_ASCII' and '_Legacy'." << std::endl;
+        std::cout << "  -i, --info-suffix <string>              Write the exported information file of the mesh with the given <string> as suffix for its name." << std::endl;
+        std::cout << "                                          Default suffix is '_info' " << std::endl;
+        std::cout << "  -s, --output-suffix <string>            Write the exported GNS file using the given <string> as suffix for its name." << std::endl;
+        std::cout << "                                          Default suffix is '_GNS' " << std::endl;
         std::cout << "  -k, --overwrite-existing                Overwrite exisitng files, which is not done by default" << std::endl;
         std::cout << "                                          to prevent accidental data loss." << std::endl;
         std::cout << "  -r, --recursive-iteration               Move through all subdirectories of the input path" << std::endl;
@@ -268,6 +271,7 @@ int main( int argc, char *argv[] ) {
         // Default string parameter
         std::filesystem::path optOutputPath;
         std::filesystem::path optFileSuffix;
+        std::filesystem::path optInfoSuffix;
 
         // Default flags
         bool optFaceNormals = false;
@@ -286,6 +290,7 @@ int main( int argc, char *argv[] ) {
         // https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html#Getopt-Long-Option-Example
         static struct option longOptions[] = {
                 { "output-suffix",                required_argument, nullptr, 's' },
+                { "info-suffix",                required_argument, nullptr, 'i' },
                 { "output-path",                required_argument, nullptr, 'o' },
                 { "subdivision-level",                     required_argument, nullptr, 'l'},
                 { "normals-recompution-radius",           required_argument, nullptr, 'n'},
@@ -299,7 +304,7 @@ int main( int argc, char *argv[] ) {
 
         int character = 0;
         int optionIndex = 0;
-        while( ( character = getopt_long_only( argc, argv, ":l:n:o:s:frckvh",
+        while( ( character = getopt_long_only( argc, argv, ":l:n:o:s:i:frckvh",
                  longOptions, &optionIndex ) ) != -1 ) {
 
                 switch(character) {
@@ -310,6 +315,10 @@ int main( int argc, char *argv[] ) {
 
                         case 's': // optional file suffix
                                 optFileSuffix = std::string( optarg );
+                                break;
+
+                        case 'i': // optional info file suffix
+                                optInfoSuffix = std::string( optarg );
                                 break;
 
                         case 'f': // export face normals
@@ -370,9 +379,13 @@ int main( int argc, char *argv[] ) {
         }
 
 
-        // Add default suffix
+        // Add default gns file suffix
         if( optFileSuffix.empty() ) {
             optFileSuffix = "_GNS";
+        }
+        // Add default info file suffix
+        if( optInfoSuffix.empty() ) {
+            optInfoSuffix = "_info";
         }
 
         // SHOW Build information
@@ -392,7 +405,7 @@ int main( int argc, char *argv[] ) {
                         if(!optRecursiveIteration){
                             std::cout << "[GigaMesh] Processing file " << nonOptionArgumentString << "..." << std::endl;
 
-                            if( !convertMeshData( nonOptionArgumentString, optOutputPath, optFileSuffix, optSubdivisionLevel,
+                            if( !convertMeshData( nonOptionArgumentString, optOutputPath, optFileSuffix, optInfoSuffix, optSubdivisionLevel,
                                                   optRadiusRecomputeNormals, optFaceNormals, optReplaceFiles, optCleanMesh )) {
                                 std::cerr << "[GigaMesh] ERROR: export Normalsphere failed!" << std::endl;
                                 //std::exit( EXIT_FAILURE );
@@ -412,7 +425,7 @@ int main( int argc, char *argv[] ) {
                                 if( fileExtension == ".ply" or fileExtension == ".obj"){
                                     std::cout << "[GigaMesh] Processing file " << dir_entry.path() << "..." << std::endl;
 
-                                    if( !convertMeshData( dir_entry.path(), optOutputPath, optFileSuffix, optSubdivisionLevel,
+                                    if( !convertMeshData( dir_entry.path(), optOutputPath, optFileSuffix, optInfoSuffix, optSubdivisionLevel,
                                                           optRadiusRecomputeNormals, optFaceNormals, optReplaceFiles, optCleanMesh) ) {
                                         std::cerr << "[GigaMesh] ERROR: export Normalsphere failed!" << std::endl;
                                         //std::exit( EXIT_FAILURE );
