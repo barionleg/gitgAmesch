@@ -16035,12 +16035,20 @@ bool Mesh::exportPolyLinesCoords( filesystem::path rFileName, bool rWithNormals,
 	strHeader << "# | Polylines:  " << mPolyLines.size() << std::endl;
 	strHeader << "# | Timestamp:  " << timeInfoStr << std::endl;
 	filestr << strHeader.str();
-	//! \todo fix file header - vertices indices!
-	if( rWithNormals ) {
+
+    if ( rWithNormals && rWithVertIdx) {
+        filestr << "# +------------------------------------------------------------------------------------------------------------------------" << endl;
+        filestr << "# | Format: Label No. | Number of Vertices | id1 x1 y1 z1 nx1 ny1 nz1 id2 x2 y2 z2 nx2 ny2 nz2 ... idN xN yN zN nxN nyN nzN" << endl;
+        filestr << "# +------------------------------------------------------------------------------------------------------------------------" << endl;
+    } else if( rWithNormals && !rWithVertIdx ) {
 		filestr << "# +------------------------------------------------------------------------------------------------------------" << endl;
 		filestr << "# | Format: Label No. | Number of Vertices | x1 y1 z1 nx1 ny1 nz1 x2 y2 z2 nx2 ny2 nz2 ... xN yN zN nxN nyN nzN" << endl;
 		filestr << "# +------------------------------------------------------------------------------------------------------------" << endl;
-	} else {
+    } else if ( rWithVertIdx && !rWithNormals) {
+        filestr << "# +------------------------------------------------------------------------------------" << endl;
+        filestr << "# | Format: Label No. | Number of Vertices | id1 x1 y1 z1 id2 x2 y2 z2 ... idN xN yN zN" << endl;
+        filestr << "# +------------------------------------------------------------------------------------" << endl;
+    } else {
 		filestr << "# +------------------------------------------------------------------------" << endl;
 		filestr << "# | Format: Label No. | Number of Vertices | x1 y1 z1 x2 y2 z2 ... xN yN zN" << endl;
 		filestr << "# +------------------------------------------------------------------------" << endl;
