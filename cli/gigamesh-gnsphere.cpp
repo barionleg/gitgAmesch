@@ -416,7 +416,7 @@ int main( int argc, char *argv[] ) {
                             //recursive directory iteration
                             for (auto const& dir_entry : std::filesystem::recursive_directory_iterator(nonOptionArgumentString.parent_path())){
                                 //only use 3D-objects. the recursive iterator returns also directry names and other files
-                                string fileExtension = dir_entry.path().extension();
+                                string fileExtension = dir_entry.path().extension().string();
                                 //file extensio to lower (transform is not working)
                                 for (int iter = 0; iter < fileExtension.length(); iter++) {
                                     fileExtension[iter] = tolower(fileExtension[iter]);
