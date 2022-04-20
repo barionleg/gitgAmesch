@@ -267,7 +267,9 @@ bool parseAscii(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, std
 		}
 	}
 	std::cout << "[PlyReader::" << __FUNCTION__ << "] Reading faces done.\n";
+
 	//! \todo ASCII: add support for selected vertices.
+
     //--------------------------------- PARSE POLYLINES --------------------------------------------------------
 
     // Read polylines
@@ -321,7 +323,9 @@ bool parseAscii(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, std
                     break;
                 case PLY_LIST_VERTEX_INDICES: {
                         const uint64_t elementCount = atoi( lineElement.c_str() );
-
+                        if (elementCount == 0) {
+                            break;
+                        }
                         std::vector<int>* somePolylinesIndices = new std::vector<int>;
                         for(uint64_t j = 0; j < elementCount; ++j)
                         {
