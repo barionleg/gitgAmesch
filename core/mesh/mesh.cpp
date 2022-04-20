@@ -7304,7 +7304,7 @@ bool Mesh::isolineToPolyline(
 			mPolyLines.push_back( isoLine );
 		}
 	}
-	polyLinesChanged();
+    polyLinesChanged();
 	delete[] facesVisitedBitArray;
 	return( true );
 }
@@ -16448,6 +16448,97 @@ bool Mesh::importFuncValsFromFile(const filesystem::path& rFileName, bool withVe
 
 	changedVertFuncVal();
 	return true;
+}
+
+//! Imports the polylines coordinates from file
+//! File extension: .pline
+//! each line of the file is a line definition with coordinates
+//! lines starting with # are treated as comments
+bool Mesh::importPolylinesFromFile(const filesystem::path& rFileName)
+{
+    ifstream filestr(rFileName);
+
+    filestr.imbue(std::locale("C"));
+
+    if(!filestr.is_open())
+    {
+        LOG::error() << "[Mesh::" << __FUNCTION__ << "] Could not open file: '" << rFileName << "'.\n";
+        return false;
+    }
+    std::string line;
+    std::string elem;
+    std::string substring;
+    while(std::getline(filestr, line))
+    {
+        if(!line.empty())
+        {
+            //each line of the file without "#" is a polyline
+            if(line[0] == '#')
+            {
+                continue;
+            }
+            PolyLine* tmpPolyLine = new PolyLine();
+            //PolyLine* tmpPolyLine = new PolyLine( Vector3D( _NOT_A_NUMBER_, _NOT_A_NUMBER_, _NOT_A_NUMBER_, 1.0 ),
+            //                                              Vector3D( _NOT_A_NUMBER_, _NOT_A_NUMBER_, _NOT_A_NUMBER_, 0.0 ) );
+            int valueCount = 0;
+            double x = 0.0;
+            double y = 0.0;
+            double z = 0.0;
+            double normalX = 0.0;
+            double normalY = 0.0;
+            double normalZ = 0.0;
+            //variables for the division of the values from String/line
+            // values are seperated by space
+            int start = 0;
+            int end = line.find(" ");
+            //create polyline
+            while(end != -1){
+                elem = line.substr(start,end-start);
+                start = end + 1;
+                end = line.find(" ",start);
+                //ignore the first 2 values id and number of vertices
+                if(valueCount > 1){
+                    //extract vertex coordinate
+                    //each vertex has 7 elments of information: seperator, x,y,z normal x, ny,nz
+                    //ignore the seperator "-1"
+
+                    // -2 on the count because of the first 2 ignored values
+                    if((valueCount-2) % 7 == 1){
+                        x = stod(elem);
+                    }
+                    if((valueCount-2) % 7 == 2){
+                        y = stod(elem);
+                    }
+                    if((valueCount-2) % 7 == 3){
+                        z = stod(elem);
+                    }
+                    if((valueCount-2) % 7 == 4){
+                        normalX = stod(elem);
+                    }
+                    if((valueCount-2) % 7 == 5){
+                        normalY = stod(elem);
+                    }
+                    if((valueCount-2) % 7 == 6){
+                        normalZ  = stod(elem);
+
+                        //add vertex to polyline
+                        Vertex* newVertex = new Vertex(Vector3D(x,y,z),Vector3D(normalX,normalY,normalZ));
+                        tmpPolyLine->addBack( newVertex );
+                    }
+                }
+                //count the extracted values of the string
+                valueCount++;
+            }
+
+            //add the new polyline to the mesh
+            mPolyLines.push_back( tmpPolyLine );
+        }
+    }
+
+    filestr.close();
+
+    polyLinesChanged();
+    return true;
 }
 
 //! Exports the faces normals as sphereical coordinates as ASCII file in the format:
