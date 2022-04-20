@@ -16462,6 +16462,7 @@ bool Mesh::importFuncValsFromFile(const filesystem::path& rFileName, bool withVe
 //! File extension: .pline
 //! each line of the file is a line definition with coordinates
 //! lines starting with # are treated as comments
+//! currently only takes lines where the points are given as id, x, y, z, nx, ny, nz
 bool Mesh::importPolylinesFromFile(const filesystem::path& rFileName)
 {
     ifstream filestr(rFileName);
@@ -16509,6 +16510,7 @@ bool Mesh::importPolylinesFromFile(const filesystem::path& rFileName)
                     //extract vertex coordinate
                     //each vertex has 7 elments of information: seperator, x,y,z normal x, ny,nz
                     //ignore the seperator "-1"
+                    //separator often also is the index of the point in the mesh it was taken from
 
                     // -2 on the count because of the first 2 ignored values
                     if((valueCount-2) % 7 == 1){
