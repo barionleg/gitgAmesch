@@ -155,6 +155,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 
 	// File menu -------------------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( mMainWindow, &QGMMainWindow::sFileImportFunctionValues, this, &MeshQt::importFunctionValues );
+    QObject::connect( mMainWindow, &QGMMainWindow::sFileImportPolylines, this, &MeshQt::importPolylines );
 	// Old Qt Style connections:
 	QObject::connect( mMainWindow, SIGNAL(sFileImportFeatureVectors(QString)), this, SLOT(importFeatureVectors(QString)) );
 	QObject::connect( mMainWindow, SIGNAL(sExportFeatureVectors()), this, SLOT(exportFeatureVectors()) );
@@ -4667,6 +4668,19 @@ bool MeshQt::importFunctionValues( const QString& rFileName ) {
 	emit primitiveSelected( mPrimSelected );
 	emit statusMessage( "Feature vectors assigned and imported from " + rFileName );
 	return( true );
+}
+//! Import Polylines and emit statusMessage.
+//! See ...
+//! @returns false in case of an error. True otherwise.
+bool MeshQt::importPolylines( const QString& rFileName ) {
+    emit statusMessage( "Importing Polylines from " + rFileName );
+    if( !Mesh::importPolylinesFromFile( rFileName.toStdString()) ) {
+        emit statusMessage( "ERROR - Reading file " + rFileName );
+        return( false );
+    }
+
+
+    return( true );
 }
 
 //! Export feature vectors and emit statusMessage

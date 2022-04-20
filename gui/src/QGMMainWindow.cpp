@@ -83,6 +83,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 
 	// === SIGNALS & SLOTS =================================================================================================================================
 	QObject::connect( actionImportFunctionValues,     &QAction::triggered, this,   &QGMMainWindow::menuImportFunctionValues        );
+    QObject::connect( actionImportPolylines,     &QAction::triggered, this,   &QGMMainWindow::menuImportPolylines        );
 	// connect the main windows menu entries with slots:
 	// --- File ---
 	QObject::connect( actionFileOpen,                 SIGNAL(triggered()), this,       SLOT(load())                      );
@@ -1320,8 +1321,22 @@ void QGMMainWindow::menuImportFunctionValues() {
 													  tr( "ASCII Text (*.mat *.txt)" )
 	                                                 );
 	if( fileNames.size() > 0 ) {
-		emit sFileImportFunctionValues( fileNames );
+        emit sFileImportFunctionValues( fileNames );
 	}
+}
+
+//! Handles the dialog for importing Polylines
+//! see also QGMMainWindow:: and MeshQt::importPolylines
+void QGMMainWindow::menuImportPolylines() {
+    QSettings settings;
+    QString fileNames = QFileDialog::getOpenFileName( this,
+                                                      tr( "Import Polylines)" ),
+                                                      settings.value( "lastPath" ).toString(),
+                                                      tr( "ASCII Polyline (*.pline)" )
+                                                     );
+    if( fileNames.size() > 0 ) {
+        emit sFileImportPolylines( fileNames );
+    }
 }
 
 //! Handles the dialog for importing a texture map (color per vertex).
