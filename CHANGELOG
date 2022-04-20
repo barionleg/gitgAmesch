@@ -4,11 +4,15 @@ Current Version
 +) New: Meta-data export GUI menus. See 'File -> Export Meta-Data'.
 +) New: Option to export backgrounds with PNGs: See 'File -> Export Screenshots -> PNG - Keep Background'.
 +) New: Transfer of function values to RGB for all files within a directory. See 'File -> Directory: FuncVal to RGB'.
++) New: CLI: Normal Sphere Export 'gigames-gnsexport'
 +) Improved: Rendering performance.
++) Improved: Ascii files now also read in with polylines
 +) Bugfix: fixed Screenshot Views (PDF with PNG+TEX), when exporting views with a vertical axis.
 +) Bugfix: fixed potential crash when exporting tif screenshots without libtiff.
 +) Bugfix: Compute axis from circle centers did not work for smaller fragments (pottery sherds).
 +) Bugfix: '--hidpi20' sets the viewport properly for 2x magnification on Linux HiDPI displays. Arbritary zoom factors can be set in the 'Setting' menu.
++) Bugfix: fixed invalid structure of JSON Export with CLI 'gigamesh-info' and 'gigamesh-gns'
++) Bugfix: fixed headers for export polylines to show the correct format of line coordinates
 
 Version 200529
 +) New: MSII filtering can be applied using the GUI with default settings. See 'Analyze -> MSII Feature Vectors and Function Value (Quick)'.

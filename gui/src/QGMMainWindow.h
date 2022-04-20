@@ -97,6 +97,7 @@ public slots:
 	bool loadLast();
 	bool fileOpen( QAction* rFileAction );
 	void menuImportFunctionValues();
+    void menuImportPolylines();
 	void menuImportTexMap();
 	void menuImportFeatureVectors();
 	void menuImportNormalVectors();
@@ -178,6 +179,7 @@ signals:
 	void sFileOpen(QString);                                 //!< causes MeshWidget to load and show a Mesh from a file (see MeshWidget::loadMeshFromFile)
 	void sFileReload();                                      //!< causes MeshWidget to reload the file
 	void sFileImportFunctionValues( QString );               //!< passes a filename for import of a file with function values per vertices to MeshQt::importFunctionValues
+    void sFileImportPolylines( QString );                    //!< passes a filename for import of a file with Polylines to MeshQt::importPolylines
 	void sFileImportTexMap( QString );                       //!< passes a filename for import of a file with a colors per verices ("texture map") to MeshQt::importTexMapFromFile
 	void sFileImportFeatureVectors( QString );               //!< passes a filename for import of a file with feature vectors to MeshWidget::importFeatureVectorsFile
 	void sFileImportNormals( QString );                      //!< passes a filename for import of a file with normal vectors to MeshQt::importNormalVectorsFile

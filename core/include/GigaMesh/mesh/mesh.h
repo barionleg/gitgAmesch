@@ -724,6 +724,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool exportPolyLinesFuncVals( std::filesystem::path rFileName );
 				bool exportFuncVals( std::filesystem::path rFileName, bool rWithVertIdx );
 				bool importFuncValsFromFile( const std::filesystem::path& rFileName, bool withVertIdx );
+                bool importPolylinesFromFile( const std::filesystem::path& rFileName );
 		virtual bool exportFaceNormalAngles( std::filesystem::path filename );
 
 		// Extra menu
