@@ -16505,6 +16505,12 @@ bool Mesh::importPolylinesFromFile(const filesystem::path& rFileName)
                 elem = line.substr(start,end-start);
                 start = end + 1;
                 end = line.find(" ",start);
+                // check if polyline is at least 2 vertices long
+                if(valueCount == 1){
+                    if(stod(elem) < 3){
+                        break;
+                    }
+                }
                 //ignore the first 2 values id and number of vertices
                 if(valueCount > 1){
                     //extract vertex coordinate
