@@ -16490,6 +16490,8 @@ bool Mesh::importPolylinesFromFile(const filesystem::path& rFileName)
             //PolyLine* tmpPolyLine = new PolyLine( Vector3D( _NOT_A_NUMBER_, _NOT_A_NUMBER_, _NOT_A_NUMBER_, 1.0 ),
             //                                              Vector3D( _NOT_A_NUMBER_, _NOT_A_NUMBER_, _NOT_A_NUMBER_, 0.0 ) );
             int valueCount = 0;
+			// need flag to only add tmpPolyline or delete it, otherwise can cause bugs if more 0 polylines are added than >3 polylines
+            bool flag_add = true;
             double x = 0.0;
             double y = 0.0;
             double z = 0.0;
@@ -16508,6 +16510,7 @@ bool Mesh::importPolylinesFromFile(const filesystem::path& rFileName)
                 // check if polyline is at least 2 vertices long
                 if(valueCount == 1){
                     if(stod(elem) < 3){
+                        flag_add = false;
                         break;
                     }
                 }
@@ -16547,7 +16550,11 @@ bool Mesh::importPolylinesFromFile(const filesystem::path& rFileName)
             }
 
             //add the new polyline to the mesh
-            mPolyLines.push_back( tmpPolyLine );
+            if (flag_add){
+                mPolyLines.push_back( tmpPolyLine );
+            } else {
+                delete tmpPolyLine;
+            }
         }
     }
 
