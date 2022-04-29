@@ -4022,7 +4022,7 @@ bool MeshWidget::getViewSettingsTTL(
 	// Old style view settings format as one line. 
 	//-------------------------------------------------------------------------------------
     //QString uri=QString("giga:123"); //Where do we get the Mesh ID?
-    rSettingsStr += uri+" rdf:type giga:Mesh .\n";    
+    rSettingsStr += uri+" rdf:type giga:MeshRendering .\n";    
     rSettingsStr += "giga:lookAtPointX rdf:type owl:DatatypeProperty .\n";
     rSettingsStr += "giga:lookAtPointX rdfs:label \"LookAt point X\"@en .\n";
     rSettingsStr += uri+" giga:lookAtPointX \""+QString( "%1"   ).arg( mCenterView.getX() )+"\"^^xsd:double .\n";    // LookAt point X
