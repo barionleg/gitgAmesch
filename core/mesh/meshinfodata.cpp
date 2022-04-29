@@ -1074,7 +1074,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:"+indid+"_manifoldFaces wdt:P361 giga:"+indid+"_totalNumberOfFaces .\n";
     infoStr+="giga:NonManifoldFaces rdf:type owl:Class .\n";    
     infoStr+="giga:NonManifoldFaces rdfs:subClassOf giga:GigameshInfo .\n";    
-    infoStr+="giga:"+indid+"_nonManifoldFaces rdf:type giga:ManifoldFaces .\n";   
+    infoStr+="giga:"+indid+"_nonManifoldFaces rdf:type giga:NonManifoldFaces .\n";   
     infoStr+="giga:"+indid+"_nonManifoldFaces rdfs:label \""+indname+" Amount of non-manifold faces\"@en .\n";
     infoStr+="giga:"+indid+"_nonManifoldFaces  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_NONMANIFOLD])+"\"^^xsd:integer .\n";  
     infoStr+="giga:nonManifoldFaces rdf:type owl:ObjectProperty .\n";
