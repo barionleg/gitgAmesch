@@ -16490,6 +16490,8 @@ bool Mesh::importPolylinesFromFile(const filesystem::path& rFileName)
             //PolyLine* tmpPolyLine = new PolyLine( Vector3D( _NOT_A_NUMBER_, _NOT_A_NUMBER_, _NOT_A_NUMBER_, 1.0 ),
             //                                              Vector3D( _NOT_A_NUMBER_, _NOT_A_NUMBER_, _NOT_A_NUMBER_, 0.0 ) );
             int valueCount = 0;
+			// need flag to only add tmpPolyline or delete it, otherwise can cause bugs if more 0 polylines are added than >3 polylines
+            bool flag_add = true;
             double x = 0.0;
             double y = 0.0;
             double z = 0.0;
@@ -16505,6 +16507,13 @@ bool Mesh::importPolylinesFromFile(const filesystem::path& rFileName)
                 elem = line.substr(start,end-start);
                 start = end + 1;
                 end = line.find(" ",start);
+                // check if polyline is at least 2 vertices long
+                if(valueCount == 1){
+                    if(stod(elem) < 3){
+                        flag_add = false;
+                        break;
+                    }
+                }
                 //ignore the first 2 values id and number of vertices
                 if(valueCount > 1){
                     //extract vertex coordinate
@@ -16541,7 +16550,11 @@ bool Mesh::importPolylinesFromFile(const filesystem::path& rFileName)
             }
 
             //add the new polyline to the mesh
-            mPolyLines.push_back( tmpPolyLine );
+            if (flag_add){
+                mPolyLines.push_back( tmpPolyLine );
+            } else {
+                delete tmpPolyLine;
+            }
         }
     }
 
@@ -16747,9 +16760,11 @@ bool Mesh::latexFetchFigureInfos( vector<pair<string,string>>* rStrings ) {
 	rStrings->push_back( pair<string,string>( string( "__BOUNDING_BOX_THICK__"  ), to_string( bbThick  ) ) ); //! __BOUNDING_BOX_THICK__
 
 	//! Primitive count:
-	int vertexCount = getVertexNr();
+    //have to be double otherwise the trailing zeros will be deleted
+    double vertexCount = getVertexNr();
+    double faceNr = getFaceNr();
 	rStrings->push_back( pair<string,string>( string( "__VERTEX_COUNT__" ), to_string( vertexCount )   ) ); //! __VERTEX_COUNT__
-	rStrings->push_back( pair<string,string>( string( "__FACE_COUNT__"  ),  to_string( getFaceNr()   ) ) ); //! __FACE_COUNT__
+    rStrings->push_back( pair<string,string>( string( "__FACE_COUNT__"  ),  to_string( faceNr  ) ) ); //! __FACE_COUNT__
 
 	//! Meta-data:
 	std::string metaObjectId       = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );

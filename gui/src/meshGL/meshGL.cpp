@@ -3279,8 +3279,8 @@ bool MeshGL::vboPreparePolylines() {
 
 		unsigned int vboSize    = 0;
 		for( auto const& currPoly: mPolyLines ) {
-				vboSize    += currPoly->length();
-		}
+                vboSize    += currPoly->length();
+        }
 		unsigned int vboSizeIdx = (vboSize-mPolyLines.size())*2;
 
 		// Vertex data
@@ -3303,8 +3303,8 @@ bool MeshGL::vboPreparePolylines() {
 						}
 						vertexCtr++;
 				}
-		}
-		vboAddBuffer( sizeof(grVertexStripeElment)*vboSize, vertexBufferData.data(), QOpenGLBuffer::StaticDraw, VBUFF_VERTICES_POLYLINES, __FUNCTION__ );
+        }
+        vboAddBuffer( sizeof(grVertexStripeElment)*vboSize, vertexBufferData.data(), QOpenGLBuffer::StaticDraw, VBUFF_VERTICES_POLYLINES, __FUNCTION__ );
 		vboAddBuffer( sizeof(GLuint)*vboSizeIdx,            vertexIndices.data(),    QOpenGLBuffer::StaticDraw, VBUFF_POLYLINES,          __FUNCTION__ );
 		return noError;
 }
@@ -3468,7 +3468,7 @@ void MeshGL::vboAddBuffer( GLsizeiptr                   rTotalSize,   //!< Size 
 #endif
 		mVertBufObjs[rBufferID]->release();
 
-		// Bind previous buffer.
+        // Bind previous buffer.
 		glBindVertexArray( static_cast<GLuint>(currentVAO) );
 		PRINT_OPENGL_ERROR( "glBindVertexArray( currentVAO )" );
 }

@@ -323,7 +323,7 @@ bool parseAscii(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, std
                     break;
                 case PLY_LIST_VERTEX_INDICES: {
                         const uint64_t elementCount = atoi( lineElement.c_str() );
-                        if (elementCount == 0) {
+                        if (elementCount < 3) {
                             break;
                         }
                         std::vector<int>* somePolylinesIndices = new std::vector<int>;
@@ -657,6 +657,9 @@ bool parseBinary(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, st
 						int nrIndices = 0;
 						READ_IN_PROPER_BYTE_ORDER( filestr, &nrIndices, (*plyPropListCountSize), reverseByteOrder );
 						std::vector<int>* somePolyLinesIndices = new std::vector<int>;
+						if (nrIndices < 3){
+							break;
+						}
 						for( int j=0; j<nrIndices; j++ ) {
 							int vertIndex;
 							READ_IN_PROPER_BYTE_ORDER( filestr, &vertIndex, (*plyPropListSize), reverseByteOrder );

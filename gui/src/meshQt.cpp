@@ -703,20 +703,22 @@ bool MeshQt::exportPolyLinesCoords() {
 		return false;
 	}
 
-	bool userCancel;
+   //27.04. E. Stoetzner deconstruct questions
+
+    //bool userCancel;
 	// Ask for vertex normals
-	bool withNormals;
-	SHOW_QUESTION( tr("Export vertex normals"), tr("Export polylines with vertex normals"), withNormals, userCancel );
-	if( userCancel ) {
-		return false;
-	}
+    bool withNormals = true;
+//	SHOW_QUESTION( tr("Export vertex normals"), tr("Export polylines with vertex normals"), withNormals, userCancel );
+//	if( userCancel ) {
+//		return false;
+//	}
 
 	// Ask for vertex indices
-	bool withVertIdx;
-	SHOW_QUESTION( tr("Export vertex indices"), tr("Export polylines with indices of the vertices"), withVertIdx, userCancel );
-	if( userCancel ) {
-		return false;
-	}
+    bool withVertIdx = true;
+//	SHOW_QUESTION( tr("Export vertex indices"), tr("Export polylines with indices of the vertices"), withVertIdx, userCancel );
+//	if( userCancel ) {
+//		return false;
+//	}
 
 	if( !MeshGL::exportPolyLinesCoords( fileName.toStdString(), withNormals, withVertIdx ) ) {
 		SHOW_MSGBOX_CRIT( tr("Export polylines"), tr("Failed") );
