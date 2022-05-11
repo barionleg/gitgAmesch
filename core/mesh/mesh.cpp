@@ -16458,6 +16458,95 @@ bool Mesh::importFuncValsFromFile(const filesystem::path& rFileName, bool withVe
 	return true;
 }
 
+//! Imports labels of the vertices
+//! File extension: .txt or .mat
+//! assumes that the files are either single column with the labels, or double column with index + label
+//! lines starting with # are treated as comments
+//! labels are expected to be integers
+bool Mesh::importLabelsFromFile(const filesystem::path& rFileName, bool withVertIdx)
+{
+    ifstream filestr(rFileName);
+
+    filestr.imbue(std::locale("C"));
+
+    if(!filestr.is_open())
+    {
+        LOG::error() << "[Mesh::" << __FUNCTION__ << "] Could not open file: '" << rFileName << "'.\n";
+        return false;
+    }
+
+    auto numVerts = getVertexNr();
+    std::string line;
+    uint64_t labelNr = 0;
+
+    //importing with index
+    if(withVertIdx)
+    {
+        uint64_t currIndex = 0;
+        while(std::getline(filestr, line))
+        {
+            if(!line.empty())
+            {
+                if(line[0] == '#')
+                {
+                    continue;
+                }
+
+                std::stringstream lineStream(line);
+                if(!(lineStream >> currIndex >> labelNr))
+                {
+                    LOG::warn() << "[Mesh::" << __FUNCTION__ << "] File: '" << rFileName << "' contains invalid values!\n";
+                    continue;
+                }
+                if(currIndex < numVerts)
+                {
+                    mVertices[currIndex]->setLabel(labelNr);
+                }
+                else
+                {
+                    LOG::warn() << "[Mesh::" << __FUNCTION__ << "] warning: function value out of range: " << currIndex << "\n";
+                }
+            }
+        }
+    }
+    //importing without index
+    else
+    {
+        uint64_t currIndex = 0;
+        while(std::getline(filestr, line))
+        {
+            if(!line.empty())
+            {
+                if(line[0] == '#')
+                {
+                    continue;
+                }
+
+                if(currIndex > numVerts)
+                {
+                    LOG::warn() << "[Mesh::" << __FUNCTION__ << "] warning: function value out of range: " << currIndex - 1 << "\n";
+                    break;
+                }
+                try {
+                    labelNr = std::stod(line);
+                }
+                catch (std::exception& e)
+                {
+                    LOG::warn() << "[Mesh::" << __FUNCTION__ << "] File: '" << rFileName << "' contains invalid values!\n";
+                    mVertices[currIndex++]->setLabel(0);
+                    continue;
+                }
+
+                mVertices[currIndex++]->setLabel(labelNr);
+            }
+        }
+    }
+
+    filestr.close();
+    labelsChanged();
+    return true;
+}
+
 //! Imports the polylines coordinates from file
 //! File extension: .pline
 //! each line of the file is a line definition with coordinates

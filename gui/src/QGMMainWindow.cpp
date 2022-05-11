@@ -84,6 +84,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	// === SIGNALS & SLOTS =================================================================================================================================
 	QObject::connect( actionImportFunctionValues,     &QAction::triggered, this,   &QGMMainWindow::menuImportFunctionValues        );
     QObject::connect( actionImportPolylines,     &QAction::triggered, this,   &QGMMainWindow::menuImportPolylines        );
+    QObject::connect( actionImportLabels, &QAction::triggered, this,   &QGMMainWindow::menuImportLabels        );
 	// connect the main windows menu entries with slots:
 	// --- File ---
 	QObject::connect( actionFileOpen,                 SIGNAL(triggered()), this,       SLOT(load())                      );
@@ -1336,6 +1337,20 @@ void QGMMainWindow::menuImportPolylines() {
                                                      );
     if( fileNames.size() > 0 ) {
         emit sFileImportPolylines( fileNames );
+    }
+}
+
+//! Handles the dialog for importing labels (per vertex).
+//! see also QGMMainWindow:: and MeshQt::importLabels
+void QGMMainWindow::menuImportLabels() {
+    QSettings settings;
+    QString fileNames = QFileDialog::getOpenFileName( this,
+                                                      tr( "Import Labels (per Vertex)" ),
+                                                      settings.value( "lastPath" ).toString(),
+                                                      tr( "ASCII Text (*.mat *.txt)" )
+                                                     );
+    if( fileNames.size() > 0 ) {
+        emit sFileImportLabels( fileNames );
     }
 }
 

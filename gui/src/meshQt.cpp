@@ -156,6 +156,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	// File menu -------------------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( mMainWindow, &QGMMainWindow::sFileImportFunctionValues, this, &MeshQt::importFunctionValues );
     QObject::connect( mMainWindow, &QGMMainWindow::sFileImportPolylines, this, &MeshQt::importPolylines );
+    QObject::connect( mMainWindow, &QGMMainWindow::sFileImportLabels, this, &MeshQt::importLabels);
 	// Old Qt Style connections:
 	QObject::connect( mMainWindow, SIGNAL(sFileImportFeatureVectors(QString)), this, SLOT(importFeatureVectors(QString)) );
 	QObject::connect( mMainWindow, SIGNAL(sExportFeatureVectors()), this, SLOT(exportFeatureVectors()) );
@@ -4671,6 +4672,31 @@ bool MeshQt::importFunctionValues( const QString& rFileName ) {
 	emit statusMessage( "Feature vectors assigned and imported from " + rFileName );
 	return( true );
 }
+
+//! Import labels and emit statusMessage.
+//! See ...
+//! @returns false in case of an error. True otherwise.
+bool MeshQt::importLabels( const QString& rFileName ) {
+
+    emit statusMessage( "Importing labels from " + rFileName );
+
+    // Ask for vertex index within the first colum
+    bool hasVertexIndex = true;
+    if( !showQuestion( &hasVertexIndex, "First Column", "Does the first column contain the vertex index?<br /><br />"
+                       "YES for files with index label columns." ) ) {
+        std::cout << "[Mesh::" << __FUNCTION__ << "] User cancled." << std::endl;
+        return( false );
+    }
+
+    if( !Mesh::importLabelsFromFile( rFileName.toStdString(), hasVertexIndex ) ) {
+        emit statusMessage( "ERROR - Reading file " + rFileName );
+        return( false );
+    }
+    emit primitiveSelected( mPrimSelected );
+    emit statusMessage( "Labels assigned and imported from " + rFileName );
+    return( true );
+}
+
 //! Import Polylines and emit statusMessage.
 //! See ...
 //! @returns false in case of an error. True otherwise.
