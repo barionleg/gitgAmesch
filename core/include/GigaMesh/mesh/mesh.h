@@ -747,6 +747,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool showInfoLabelPropsHTML();
 		virtual bool showInfoAxisHTML();
 
+        //getter methods for protected area
+               std::set<Vertex*> getVertices();
 	protected:
 		// Bounding Box:
 		double             mMinX = 0.0;               //!< Bounding Box - minimum X
