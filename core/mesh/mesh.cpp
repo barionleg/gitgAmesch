@@ -17608,4 +17608,9 @@ bool Mesh::getAxisFromCircleCenters(
 	return( true );
 }
 
+//! Getter Method of the protected attribute mVertices as set
+std::set<Vertex*> Mesh::getVertices(){
+    return std::set<Vertex*>(mVertices.begin(), mVertices.end());
+    //return mSelectedMVerts;
+}
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
