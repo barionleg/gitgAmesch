@@ -52,6 +52,7 @@ manjaro arch:
    - pacman -Sy
    - pacman -S gcc glibc cmake boost unzip qtcreator make git libffi --noconfirm
   script:
+    - export PATH="$Qt5_DIR/bin:$PATH"
     - export QT_SELECT=qt5
 
     # build gigamesh
