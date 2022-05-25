@@ -53,16 +53,22 @@
 
 using namespace std;
 
+
+
 bool convertMeshData(
                 const filesystem::path&   rFileName,
                 const filesystem::path&   rOutputPath,
                 const filesystem::path&   rFileSuffix,
                 const filesystem::path&   rInfoFileSuffix,
                 int& rSubdivisionLevel,
+                int& rXRotationAngle,
+                int& rYRotationAngle,
+                int& rZRotationAngle,
                 double& rRadiusRecomputeNormals,
                 const bool      rFaceNormals,
                 const bool      rReplaceFiles,
-                const bool      rCleanMesh
+                const bool      rCleanMesh,
+                const bool      rInformationExport
 ) {
         if( rFileName.extension().wstring().size() != 4 ) {
                 cerr << "[GigaMesh] ERROR: File extension '" << rFileName.extension().string() << "' is faulty!" << endl;
@@ -83,6 +89,20 @@ bool convertMeshData(
         // Output file for the csv with the gaussian normal sphere data.
         std::filesystem::path fileNameOutCSV( rOutputPath );
         fileNameOutCSV += fileNameOut;
+
+        //add angle information
+        if( rXRotationAngle != 0 || rYRotationAngle != 0 || rZRotationAngle != 0 ){
+            string xAngString = to_string(rXRotationAngle);
+            string yAngString = to_string(rYRotationAngle);
+            string zAngString = to_string(rZRotationAngle);
+            fileNameOutCSV += "_ANGLES:X";
+            fileNameOutCSV += xAngString;
+            fileNameOutCSV += "Y";
+            fileNameOutCSV += yAngString;
+            fileNameOutCSV += "Z";
+            fileNameOutCSV += zAngString;
+        }
+
         fileNameOutCSV += ".csv";
         if( std::filesystem::exists( fileNameOutCSV ) ) {
             if( !rReplaceFiles ) {
@@ -113,6 +133,28 @@ bool convertMeshData(
             someMesh.normalsVerticesComputeSphere( rRadiusRecomputeNormals );
         }
 
+        //rotation
+        //--------------------------------------------------------------------------
+        if( rXRotationAngle != 0 || rYRotationAngle != 0 || rZRotationAngle != 0 ){
+            vector<double> matrixParam;
+            //constructor of the Matrix4D class needs a vector
+            matrixParam.clear();
+            double angleRadians = rXRotationAngle * (M_PI/180);
+            matrixParam.push_back(angleRadians);
+            Matrix4D xRotationMatrix = Matrix4D(Matrix4D::INIT_ROTATE_ABOUT_X,&matrixParam);
+            //someMesh.applyTransformationToWholeMesh(xRotationMatrix);
+            matrixParam.clear();
+            angleRadians = rYRotationAngle * (M_PI/180);
+            matrixParam.push_back(angleRadians);
+            Matrix4D yRotationMatrix = Matrix4D(Matrix4D::INIT_ROTATE_ABOUT_Y,&matrixParam);
+            //someMesh.applyTransformationToWholeMesh(yRotationMatrix);
+            matrixParam.clear();
+            angleRadians = rZRotationAngle * (M_PI/180);
+            matrixParam.push_back(angleRadians);
+            Matrix4D zRotationMatrix = Matrix4D(Matrix4D::INIT_ROTATE_ABOUT_Z,&matrixParam);
+            Matrix4D transformationMatrix = xRotationMatrix*yRotationMatrix*zRotationMatrix;
+            someMesh.applyTransformationToWholeMesh(transformationMatrix);
+        }
         //--------------------------------------------------------------------------
         //prepare normal data
         bool sphereCoordinates = true;
@@ -152,6 +194,8 @@ bool convertMeshData(
                 fAddNormal(normal);
             }
         }
+
+        //------------------------------------------------------
         // Write data to file
 
         time_t     rawtime;
@@ -160,6 +204,7 @@ bool convertMeshData(
         timeinfo = localtime( &rawtime );
         cout << "[GigaMesh] Start date/time is: " << asctime( timeinfo );// << endl;
         someMesh.writeIcoNormalSphereData(fileNameOutCSV, vertexProps , rSubdivisionLevel, sphereCoordinates);
+        timeinfo = localtime( &rawtime );
         cout << "[GigaMesh] End date/time is: " << asctime( timeinfo );// << endl;
         if(rCleanMesh == true){
             //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -215,24 +260,42 @@ bool convertMeshData(
             someMesh.selVertByFlag( Primitive::FLAG_SYNTHETIC );
             someMesh.labelSelectedVerticesBackGrd();
         }
-        //calculate volume
-        // Count primitives and their properties
-        MeshInfoData meshInfoData;
-        if( !someMesh.getMeshInfoData( meshInfoData, true ) ) {
-            std::wcerr << "[GigaMesh] ERROR: Could not fetch mesh information about '" << rFileName.wstring() << "'!" << std::endl;
-            return( false );
-        }
-        // create output path
-        //get file name of original and append suffix
-        std::filesystem::path infoFileNameOut = rFileName.stem();
-        infoFileNameOut += rInfoFileSuffix;
-        //combine output path and input name
-        // Output file for the mesh information
-        std::filesystem::path infoFileOutJSON( rOutputPath );
-        infoFileOutJSON += infoFileNameOut;
-        infoFileOutJSON += ".json";
-        meshInfoData.writeMeshInfo(infoFileOutJSON);
 
+
+
+        if( rInformationExport ){
+            //calculate volume
+            // Count primitives and their properties
+            MeshInfoData meshInfoData;
+            if( !someMesh.getMeshInfoData( meshInfoData, true ) ) {
+                std::wcerr << "[GigaMesh] ERROR: Could not fetch mesh information about '" << rFileName.wstring() << "'!" << std::endl;
+                return( false );
+            }
+            // create output path
+            //get file name of original and append suffix
+            std::filesystem::path infoFileNameOut = rFileName.stem();
+            infoFileNameOut += rInfoFileSuffix;
+            //combine output path and input name
+            // Output file for the mesh information
+            std::filesystem::path infoFileOutJSON( rOutputPath );
+            infoFileOutJSON += infoFileNameOut;
+
+            //add angle information
+            if( rXRotationAngle != 0 || rYRotationAngle != 0 || rZRotationAngle != 0 ){
+                string xAngString = to_string(rXRotationAngle);
+                string yAngString = to_string(rYRotationAngle);
+                string zAngString = to_string(rZRotationAngle);
+                infoFileOutJSON += "_ANGLES:X";
+                infoFileOutJSON += xAngString;
+                infoFileOutJSON += "Y";
+                infoFileOutJSON += yAngString;
+                infoFileOutJSON += "Z";
+                infoFileOutJSON += zAngString;
+            }
+
+            infoFileOutJSON += ".json";
+            meshInfoData.writeMeshInfo(infoFileOutJSON);
+        }
         return( true );
 }
 
@@ -249,6 +312,7 @@ void printHelp( const char* rExecName ) {
         std::cout << "  -n, --normals-recompution-radius <float>radius to recompute the normals. Default 0.0" << std::endl;
         std::cout << "  -f, --face-normals                      Export the face normals. Default: Vertex Normals" << std::endl;
         std::cout << "  -c, --clean-mesh                        Activates the mesh cleaning procedure before the volume calculation " << std::endl;
+        std::cout << "  -e, --mesh-information-export           Export the mesh information as json file" << std::endl;
         std::cout << "  -o, --output-path <string>              Path to save the export" << std::endl;
         std::cout << "  -i, --info-suffix <string>              Write the exported information file of the mesh with the given <string> as suffix for its name." << std::endl;
         std::cout << "                                          Default suffix is '_info' " << std::endl;
@@ -258,6 +322,13 @@ void printHelp( const char* rExecName ) {
         std::cout << "                                          to prevent accidental data loss." << std::endl;
         std::cout << "  -r, --recursive-iteration               Move through all subdirectories of the input path" << std::endl;
         std::cout << "                                          All '.ply' files and '.obj' files in this directories will be used for the export. " << std::endl;
+        std::cout << "  -x, --x-rotation-angle <int>            Rotate the mesh about the x-axis with this angle in degree" << std::endl;
+        std::cout << "                                          Default angle is 0." << std::endl;
+        std::cout << "  -y, --y-rotation-angle <int>            Rotate the mesh about the y-axis with this angle in degree" << std::endl;
+        std::cout << "                                          Default angle is 0." << std::endl;
+        std::cout << "  -z, --z-rotation-angle <int>            Rotate the mesh about the z-axis with this angle in degree" << std::endl;
+        std::cout << "                                          Default angle is 0." << std::endl;
+        std::cout << "                                          if any rotation is used, then the file gets 'ANGLES:X<angle>Y<angle>Z<angle>' as suffix." << std::endl;
 }
 
 //! Main routine for loading a (binary) PLY and compute gaussian normal sphere supplied by GigaMesh
@@ -278,12 +349,18 @@ int main( int argc, char *argv[] ) {
         bool optReplaceFiles = false;
         bool optRecursiveIteration = false;
         bool optCleanMesh = false;
+        bool optInformationExport = false;
+
 
         //Default integer Parameter
         int optSubdivisionLevel = 6;
+        int optXRotationAngle = 0;
+        int optYRotationAngle = 0;
+        int optZRotationAngle = 0;
 
         //Default double parameters
         double optRadiusRecomputeNormals{0.0};
+
 
         // PARSE command line options
         //--------------------------------------------------------------------------
@@ -294,8 +371,12 @@ int main( int argc, char *argv[] ) {
                 { "output-path",                required_argument, nullptr, 'o' },
                 { "subdivision-level",                     required_argument, nullptr, 'l'},
                 { "normals-recompution-radius",           required_argument, nullptr, 'n'},
+                { "x-rotation-angle",           required_argument, nullptr, 'x'},
+                { "y-rotation-angle",           required_argument, nullptr, 'y'},
+                { "z-rotation-angle",           required_argument, nullptr, 'z'},
                 { "face-normals",           no_argument,       nullptr, 'f' },
                 { "recursive-iteration",           no_argument,       nullptr, 'r' },
+                { "mesh-information-export",           no_argument,       nullptr, 'e' },
                 { "clean-mesh",           no_argument,       nullptr, 'c' },
                 { "version",                      no_argument,       nullptr, 'v' },
                 { "help",                         no_argument,       nullptr, 'h' },
@@ -304,7 +385,7 @@ int main( int argc, char *argv[] ) {
 
         int character = 0;
         int optionIndex = 0;
-        while( ( character = getopt_long_only( argc, argv, ":l:n:o:s:i:frckvh",
+        while( ( character = getopt_long_only( argc, argv, ":l:n:o:s:i:x:y:z:freckvh",
                  longOptions, &optionIndex ) ) != -1 ) {
 
                 switch(character) {
@@ -329,6 +410,16 @@ int main( int argc, char *argv[] ) {
                                 optSubdivisionLevel = stoi(std::string( optarg ));
                                 break;
 
+                        case 'x': // x rotation angle
+                                optXRotationAngle = stoi(std::string( optarg ));
+                                break;
+                        case 'y': // y rotation angle
+                                optYRotationAngle = stoi(std::string( optarg ));
+                                break;
+                        case 'z': // z rotation angle
+                                optZRotationAngle = stoi(std::string( optarg ));
+                                break;
+
                         case 'n': // recompute normals radius
                                 optRadiusRecomputeNormals = stod(std::string( optarg ));
                                 break;
@@ -341,6 +432,11 @@ int main( int argc, char *argv[] ) {
                         case 'r': // recursive directory iteration
                                 optRecursiveIteration = true;
                                 break;
+
+                        case 'e': // export mesh informatation
+                                optInformationExport = true;
+                                break;
+
 
                         case 'c': // cleaning procedure before volume calculation
                                 optCleanMesh = true;
@@ -406,7 +502,8 @@ int main( int argc, char *argv[] ) {
                             std::cout << "[GigaMesh] Processing file " << nonOptionArgumentString << "..." << std::endl;
 
                             if( !convertMeshData( nonOptionArgumentString, optOutputPath, optFileSuffix, optInfoSuffix, optSubdivisionLevel,
-                                                  optRadiusRecomputeNormals, optFaceNormals, optReplaceFiles, optCleanMesh )) {
+                                                  optXRotationAngle, optYRotationAngle, optZRotationAngle, optRadiusRecomputeNormals,
+                                                  optFaceNormals, optReplaceFiles, optCleanMesh, optInformationExport )) {
                                 std::cerr << "[GigaMesh] ERROR: export Normalsphere failed!" << std::endl;
                                 //std::exit( EXIT_FAILURE );
                             }
@@ -426,7 +523,8 @@ int main( int argc, char *argv[] ) {
                                     std::cout << "[GigaMesh] Processing file " << dir_entry.path() << "..." << std::endl;
 
                                     if( !convertMeshData( dir_entry.path(), optOutputPath, optFileSuffix, optInfoSuffix, optSubdivisionLevel,
-                                                          optRadiusRecomputeNormals, optFaceNormals, optReplaceFiles, optCleanMesh) ) {
+                                                          optXRotationAngle, optYRotationAngle, optZRotationAngle, optRadiusRecomputeNormals,
+                                                          optFaceNormals, optReplaceFiles, optCleanMesh, optInformationExport) ) {
                                         std::cerr << "[GigaMesh] ERROR: export Normalsphere failed!" << std::endl;
                                         //std::exit( EXIT_FAILURE );
                                     }
