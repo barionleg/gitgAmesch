@@ -145,7 +145,9 @@ class MeshWidgetParams {
 			RULER_WIDTH_UNIT,                 //!< Unit of Ruler
 			INKSCAPE_COMMAND,                 //!< path to run inkscape
 			PDF_LATEX_COMMAND,                //!< path to run pdflatex
-			PDF_VIEWER_COMMAND,               //!< program to view pdf's, for (e.g. evince)
+            PDF_VIEWER_COMMAND,               //!< program to view pdf's (evince)
+            PDF_VIEWER_COMMAND_ALT1,          //!< program to view pdf's, first alternative (okular)
+            PDF_VIEWER_COMMAND_ALT2,          //!< program to view pdf's, second alternative (atril)
 			PYTHON3_COMMAND,                  //!< path to python3
 			PARAMS_STR_COUNT                  //!< Number of integer paramters.
 		};

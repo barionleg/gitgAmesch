@@ -129,6 +129,18 @@ MeshWidgetParams::MeshWidgetParams() {
 	else
 		mParamStr[PDF_VIEWER_COMMAND] = tmpString;
 
+    tmpString = settings.value("PdfViewer_Path", "").toString().toStdString();
+    if(tmpString.length() == 0)
+        mParamStr[PDF_VIEWER_COMMAND_ALT1] = "okular";
+    else
+        mParamStr[PDF_VIEWER_COMMAND_ALT1] = tmpString;
+
+    tmpString = settings.value("PdfViewer_Path", "").toString().toStdString();
+    if(tmpString.length() == 0)
+        mParamStr[PDF_VIEWER_COMMAND_ALT2] = "atril";
+    else
+        mParamStr[PDF_VIEWER_COMMAND_ALT2] = tmpString;
+
 	tmpString = settings.value("Python3_Path", "").toString().toStdString();
 	if(tmpString.length() == 0)
 		mParamStr[PYTHON3_COMMAND] = "python3";
