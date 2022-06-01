@@ -57,6 +57,7 @@ manjaro arch:
    - pacman -Sy
    - pacman -S gcc glibc cmake boost unzip qtcreator make git libffi --noconfirm
    - pacman -Ss qt5-base
+   - pacman -Ss qt5-declarative
   script:
     - export QT_SELECT=qt5
 
