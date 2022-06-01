@@ -55,10 +55,8 @@ manjaro arch:
   # install the necessary build tools when needed
   before_script: 
    - pacman -Sy
-   - pacman -S gcc glibc cmake boost unzip qtcreator make git libffi --noconfirm
+   - pacman -S gcc glibc cmake boost unzip qtcreator make git libffi qtcreator-devel --noconfirm
   script:
-    - export Qt5_DIR="/usr/share/qtcreator/qml/qmlpuppet/mockfiles/qt5"
-    - export PATH="$Qt5_DIR/bin:$PATH"
     - export QT_SELECT=qt5
 
     # build gigamesh
