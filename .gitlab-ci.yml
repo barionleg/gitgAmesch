@@ -56,10 +56,8 @@ manjaro arch:
   before_script: 
    - pacman -Sy
    - pacman -S gcc glibc cmake boost unzip qtcreator make git libffi --noconfirm
+   - pacman -Ss qt5-base
   script:
-    - ls $HOME
-    - export Qt5_DIR="$HOME/Qt/latest/gcc_64"
-    - export PATH="$Qt5_DIR/bin:$PATH"
     - export QT_SELECT=qt5
 
     # build gigamesh
