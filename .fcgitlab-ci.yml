@@ -52,6 +52,8 @@ manjaro arch:
    - pacman -Sy
    - pacman -S gcc glibc cmake boost unzip qtcreator make git libffi --noconfirm
   script:
+    - ls $HOME/Qt
+    - ls $HOME/Qt/latest
     - export Qt5_DIR="$HOME/Qt/latest/gcc_64"
     - export PATH="$Qt5_DIR/bin:$PATH"
     - export QT_SELECT=qt5
