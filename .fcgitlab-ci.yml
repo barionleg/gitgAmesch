@@ -52,7 +52,7 @@ manjaro arch:
    - pacman -Sy
    - pacman -S gcc glibc cmake boost unzip qtcreator make git libffi --noconfirm
   script:
-    - export Qt5_DIR="usr/share/qtcreator/qml/qmlpuppet/mockfiles/qt5"
+    - export Qt5_DIR="/usr/share/qtcreator/qml/qmlpuppet/mockfiles/qt5"
     - export PATH="$Qt5_DIR/bin:$PATH"
     - export QT_SELECT=qt5
 
