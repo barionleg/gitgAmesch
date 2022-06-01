@@ -56,7 +56,6 @@ manjaro arch:
   before_script: 
    - pacman -Sy
    - pacman -S gcc glibc cmake boost unzip qtcreator make git libffi --noconfirm
-   - pacman -Ss qt5-default
   script:
     - whereis Qt5Config.cmake
     - whereis qt5-config.cmake
