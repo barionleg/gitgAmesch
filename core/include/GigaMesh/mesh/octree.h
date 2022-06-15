@@ -611,6 +611,10 @@ private:
 		}
 		//mark as leaf
 		else {
+            //Test
+            for (int i=0; i<cnode->mElements.size(); i++){
+                cnode->mElements[i]->setLabel(1);
+            }
 			cnode->misleaf = true;
 		}
 		return true;

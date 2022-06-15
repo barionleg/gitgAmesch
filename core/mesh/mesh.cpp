@@ -1199,12 +1199,15 @@ void Mesh::generateOctree(int vertexmaxnr,int facemaxnr) {
 
 	if (vertexmaxnr > 0) {
         delete mOctree;
-		mOctree = new Octree<Vertex*>(mVertices, &center, vertexmaxnr, edgelen, h);
+        mOctree = new Octree<Vertex*>(mVertices, &center, vertexmaxnr, edgelen, h);
+
+
 		mOctree->dumpInfo();
 	}
 	if (facemaxnr > 0) {
         delete mOctreeface;
 		mOctreeface = new Octree<Face*>(mFaces, &center, facemaxnr, edgelen, h);
+
 		mOctreeface->dumpInfo();
 	}
 }
