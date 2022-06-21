@@ -81,8 +81,11 @@ bool generateFeatureVectors(
 		return( false );
 	}
 
+    //get absolute path, is necessary to save the texture paths correct in the new PLY File
+    std::filesystem::path absoluteInPath = std::filesystem::absolute( fileNameIn );
+
 	// Fileprefix for output
-	std::filesystem::path fileNameOut( fileNameIn );
+    std::filesystem::path fileNameOut( absoluteInPath );
 	fileNameOut.replace_extension( "" );
 
 	// Prepare suffix for the output file
