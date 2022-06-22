@@ -27,11 +27,6 @@
 #include "line.h"
 #include "cube.h"
 
-// IMPORTANT lesson about templates:
-//==================================
-// "The only portable way of using templates at the moment is to implement them in header files by using inline functions."
-// -- C++ standard library: a tutorial and handbook.
-
 // Sets default values
 // ----------------------------------------------------
 #define OCTNODEDEFAULTS   \
@@ -39,29 +34,17 @@
 	mchildren()
 
 
-template <class T>
 
 class Octnode {
 
 public:
 	// Constructor for the root node.
-	Octnode( Vector3D* center, double scale ) : \
-	        OCTNODEDEFAULTS,                    \
-	        mparent( nullptr ),                    \
-	        mlevel( 0 ),                        \
-	        mCube( *center, scale ) {
-		// do nothing
-	};
+    Octnode( Vector3D* center, double scale );
 
 	// Constructor for a child node.
-	Octnode( Octnode* parent, int nr ) : \
-	       OCTNODEDEFAULTS,              \
-	       mparent( parent ),            \
-	       mlevel( parent->mlevel+1 ),   \
-	       mCube( Cube(mparent->mCube.mcenter, 0.5*mparent->mCube.mscale).getVertex(nr), 0.5*mparent->mCube.mscale ) {
-		// do nothing
-	};
+    Octnode( Octnode* parent, int nr );
 
+    std::vector<Octnode*> getLeafNodes();
 	// Destructor
 //	~Octnode();
 
@@ -77,12 +60,9 @@ public:
 	Cube mCube;
 
 	/// vertices inside this node
-	std::vector<T> mElements;
+    std::vector<Vertex*> mElements;
 
-	/// comparison function to sort nodes by level
-	static bool compareoctnode( Octnode<T>* rNode1, Octnode<T>* rNode2 ) {
-		return ( rNode1->mlevel < rNode2->mlevel );
-	}
+    static bool compareoctnode( Octnode* rNode1, Octnode* rNode2 );
 };
 
 

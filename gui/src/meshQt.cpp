@@ -2975,9 +2975,10 @@ void MeshQt::createSkeletonLine() {
     emit statusMessage( "ERROR: Converted selected Vertices to Polyline(s) failed!" );
 }
 
-//! Ask the user what kind of Octree to be generated (Vertex/Face)
-//! and how many primitives (maximum) should be contained within a node (cube).
+//! Ask the user how many primitives (maximum) should be contained within a node (cube).
 void MeshQt::generateOctree() {
+    //obsolete: Octree generates automatically the face and the vertex octree
+    /**
 	// Ask user what kind of octree to be generated.
 	QStringList Element;
 	Element << QString("Vertex") << QString("Face");
@@ -2986,9 +2987,9 @@ void MeshQt::generateOctree() {
 	if( !userChoiceValid ) {
 		return;
 	}
-
+    **/
 	// Choice: Vertex
-	if( text == "Vertex" ) {
+    //if( text == "Vertex" ) {
 		QGMDialogEnterText dlgenter;
 		dlgenter.setInt( 500 ); //some useful default value should be set here e.g. 500
 		dlgenter.setWindowTitle( tr("Set maximum number of vertices per cube") );
@@ -3000,7 +3001,9 @@ void MeshQt::generateOctree() {
 				SHOW_MSGBOX_WARN( tr("Wrong value"), tr("Wrong value entered!") );
 			}
 		}
-	}
+
+    //obsolete:
+    /**
 	// Choice: Face
 	if( text == "Face" ) {
 		QGMDialogEnterText dlgenter;
@@ -3015,6 +3018,7 @@ void MeshQt::generateOctree() {
 			}
 		}
 	}
+    **/
 }
 
 void MeshQt::generateOctreeVertex(int maxnr) {
@@ -3058,12 +3062,12 @@ void MeshQt::drawOctree() {
 	if (text == "Vertex") {
 		if ( mOctree != nullptr ) {
 			cout<<"OCTREE DRAW Vertex"<<endl;
-			vector<Octnode<Vertex*>*> nodelist;
+            vector<Octnode*> nodelist;
 			mOctree->getnodelist(nodelist);
 			Vector3D cubeboxx(1.0, 0.0, 0.0);
 			Vector3D cubeboxy(0.0, 1.0, 0.0);
 			Vector3D cubeboxz(0.0, 0.0, 1.0);
-			for (Octnode<Vertex*>*& octnode : nodelist) {
+            for (Octnode*& octnode : nodelist) {
 				 RectBox* someBox = new RectBox( octnode->mCube.mcenter, octnode->mCube.mscale * cubeboxx, octnode->mCube.mscale * cubeboxy, octnode->mCube.mscale * cubeboxz );
 				 mDatumBoxes.push_back( someBox );
 			}
@@ -3073,12 +3077,12 @@ void MeshQt::drawOctree() {
 	if (text == "Face") {
 		if(mOctreeface != nullptr) {
 			cout<<"OCTREE DRAW Face"<<endl;
-			vector<Octnode<Face*>*> nodelist;
+            vector<Octnode*> nodelist;
 			mOctreeface->getnodelist(nodelist);
 			Vector3D cubeboxx(1.0, 0.0, 0.0);
 			Vector3D cubeboxy(0.0, 1.0, 0.0);
 			Vector3D cubeboxz(0.0, 0.0, 1.0);
-			for (Octnode<Face*>*& octnode : nodelist) {
+            for (Octnode*& octnode : nodelist) {
 				 RectBox* someBox = new RectBox( octnode->mCube.mcenter, octnode->mCube.mscale * cubeboxx, octnode->mCube.mscale * cubeboxy, octnode->mCube.mscale * cubeboxz );
 				 mDatumBoxes.push_back( someBox );
 			}

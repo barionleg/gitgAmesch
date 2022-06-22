@@ -1429,8 +1429,8 @@ bool MeshGL::selectPrism(
 	tInterStart = high_resolution_clock::now();
 
 	//vertices in cvertexlist are contained completely, no further check necessary
-	vector<Octnode<Vertex*> *> ilist;  // Vertices of a node, which is partially enclosed by the prism
-	vector<Octnode<Vertex*> *> cilist; // Vertices of a node, which is fully enclosed by the prism
+    vector<Octnode *> ilist;  // Vertices of a node, which is partially enclosed by the prism
+    vector<Octnode *> cilist; // Vertices of a node, which is fully enclosed by the prism
 	Vector3D selectBeam[6];
 
 	for( unsigned int j=0; j<rTri.size(); j+=3 ) {
@@ -1458,11 +1458,11 @@ bool MeshGL::selectPrism(
 	set<Vertex*> vertexlist;
 	set<Vertex*> cvertexlist;
 	//copy Vertex* from Octnode* ilist to vertexlist
-	for(Octnode<Vertex*>*& octnode : ilist) {
+    for(Octnode*& octnode : ilist) {
 		vertexlist.insert( octnode->mElements.begin(), octnode->mElements.end());
 	}
 	//copy Vertex* from Octnode* cilist to cvertexlist
-	for(Octnode<Vertex*>*& octnode : cilist) {
+    for(Octnode*& octnode : cilist) {
 		cvertexlist.insert( octnode->mElements.begin(), octnode->mElements.end());
 	}
 

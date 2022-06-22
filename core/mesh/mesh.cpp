@@ -286,11 +286,12 @@ Mesh::~Mesh() {
 		delete mOctree;
 		mOctree = nullptr;
 	}
+    /**
 	if(mOctreeface != nullptr) {
 		delete mOctreeface;
 		mOctreeface = nullptr;
 	}
-
+    **/
 	showProgressStop( string( "Destruct Mesh" ) );
 	LOG::debug() << "[Mesh::" << __FUNCTION__ << "] Done.\n";
 }
@@ -1199,14 +1200,26 @@ void Mesh::generateOctree(int vertexmaxnr,int facemaxnr) {
 
 	if (vertexmaxnr > 0) {
         delete mOctree;
-		mOctree = new Octree<Vertex*>(mVertices, &center, vertexmaxnr, edgelen, h);
+        mOctree = new Octree(mVertices, &center, vertexmaxnr, edgelen, h);
 		mOctree->dumpInfo();
+
+        //test
+        std::vector<Octnode*> nodes;
+        mOctree->getleafnodes(nodes);
+        for( unsigned int i=0; i < nodes.size(); i++){
+            for( unsigned int j=0; j < nodes[i]->mElements.size(); j++){
+                nodes[i]->mElements[j]->setLabel(i);
+            }
+        }
+        labelsChanged();
 	}
+    /**
 	if (facemaxnr > 0) {
         delete mOctreeface;
 		mOctreeface = new Octree<Face*>(mFaces, &center, facemaxnr, edgelen, h);
 		mOctreeface->dumpInfo();
 	}
+    **/
 }
 
 
