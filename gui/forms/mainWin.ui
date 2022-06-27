@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>33</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -107,6 +107,8 @@
      <addaction name="actionImportTexMap"/>
      <addaction name="separator"/>
      <addaction name="actionImportVertexCoordinatesFromCSV"/>
+     <addaction name="actionImportPolylines"/>
+     <addaction name="actionImportLabels"/>
     </widget>
     <widget class="QMenu" name="menuExport">
      <property name="title">
@@ -4515,6 +4517,16 @@ The latter will be shown, when the processing has finished.</string>
   <action name="actionViewShow2DBoundingBox">
    <property name="text">
     <string>Bounding Box Size in Camera Coordinates</string>
+   </property>
+  </action>
+  <action name="actionImportPolylines">
+   <property name="text">
+    <string>Import Polylines</string>
+   </property>
+  </action>
+  <action name="actionImportLabels">
+   <property name="text">
+    <string>Import Labels</string>
    </property>
   </action>
  </widget>

@@ -679,8 +679,8 @@ bool MeshInfoData::getMeshInfoJSON(std::string& rInfoJSON){
     infoStr+="\"@context\":{\n";
     infoStr+="\"giga\":\"http://www.gigamesh.eu/ont#\",\n";
     infoStr+="\"dc\":\"http://purl.org/dc/terms/\",\n";
-    infoStr+="\"foaf\":\"http://xmlns.com/foaf/0.1/\",\n";
-    infoStr+="}\n"; 
+    infoStr+="\"foaf\":\"http://xmlns.com/foaf/0.1/\"\n";
+    infoStr+="},\n";
     infoStr+="\"@type\":\"GigaMeshInfo\",\n"; 
     infoStr+="\"giga:FileName\":\""+this->mStrings[MeshInfoData::FILENAME]+"\",\n";
     infoStr+="\"giga:GigaMeshVersion\":\"\",\n";
@@ -733,10 +733,10 @@ bool MeshInfoData::getMeshInfoJSON(std::string& rInfoJSON){
     infoStr+="\"giga:TotalVolumeDX\":"+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_VOLUME_DX])+",\n";   
     infoStr+="\"giga:TotalVolumeDY\":"+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_VOLUME_DY])+",\n";  
     infoStr+="\"giga:TotalVolumeDZ\":"+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_VOLUME_DZ])+"\n";  
-    infoStr+="}\n";
+    infoStr+="},\n";
     infoStr+="\"dc:creator\":{\n";
-    infoStr+="\"foaf:name\":\"___\"\n";
-    infoStr+="\"foaf:accountName\":\"___\"\n";
+    infoStr+="\"foaf:name\":\"___\",\n";
+    infoStr+="\"foaf:accountName\":\"___\",\n";
     infoStr+="\"giga:pcname\":\"___\"\n";  
     infoStr+="}\n";
     infoStr+="}";

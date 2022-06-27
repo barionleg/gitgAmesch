@@ -86,7 +86,7 @@ bool parseAscii(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, std
                 const std::array<PlyContainer, PLY_SECTIONS_COUNT>& sectionProps,
                 std::vector<float>& vertexTextureCoordinates,
                 std::vector<sVertexProperties>& rVertexProps, std::vector<sFaceProperties>& rFaceProps,
-                bool hasVertexTexCoords)
+                bool hasVertexTexCoords, MeshSeedExt& rMeshSeed)
 {
 	std::string lineToParse;
 	unsigned char listNrChar;
@@ -267,8 +267,83 @@ bool parseAscii(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, std
 		}
 	}
 	std::cout << "[PlyReader::" << __FUNCTION__ << "] Reading faces done.\n";
+
 	//! \todo ASCII: add support for selected vertices.
-	//! \todo ASCII: add support for polylines.
+
+    //--------------------------------- PARSE POLYLINES --------------------------------------------------------
+
+    // Read polylines
+    for(size_t polyLinesRead=0; polyLinesRead<plyElements[PLY_POLYGONAL_LINE]; ++polyLinesRead ) {
+        getline( filestr, lineToParse );
+        std::string strLine( lineToParse );
+        // Remove trailing '\r' e.g. from files provided from some low-cost scanners
+        if( !lineToParse.empty() && lineToParse[lineToParse.size() - 1] == '\r' ) {
+            lineToParse.erase( lineToParse.size() - 1 );
+        }
+        // Break line into tokens:
+        std::istringstream iss( lineToParse );
+        std::vector<std::string> tokens{ std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{} };
+        if( tokens.size() == 0 ) {
+            continue; // Empty line
+        }
+        // Parse each token of a line:
+        auto currPropertyIt = sectionProps[PLY_POLYGONAL_LINE].propertyType.begin();
+        PrimitiveInfo primInfo;
+
+        for( uint64_t i=0; i<tokens.size(); i++ ) {
+            if(currPropertyIt == sectionProps[PLY_POLYGONAL_LINE].propertyType.end())
+            {
+                LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Unknown property in polyline section!\n";
+                continue;
+            }
+
+            std::string lineElement = tokens[ i ];
+            ePlyProperties currProperty = *currPropertyIt;
+            switch( currProperty ) {
+                case PLY_COORD_X:
+                    primInfo.mPosX = atof( lineElement.c_str() );
+                    break;
+                case PLY_COORD_Y:
+                    primInfo.mPosY = atof( lineElement.c_str() );
+                    break;
+                case PLY_COORD_Z:
+                    primInfo.mPosZ = atof( lineElement.c_str() );
+                    break;
+                case PLY_VERTEX_NORMAL_X:
+                    primInfo.mNormalX = atof( lineElement.c_str() );
+                    break;
+                case PLY_VERTEX_NORMAL_Y:
+                    primInfo.mNormalY = atof( lineElement.c_str() );
+                    break;
+                case PLY_VERTEX_NORMAL_Z:
+                    primInfo.mNormalZ = atof( lineElement.c_str() );
+                    break;
+                case PLY_LABEL:
+                    rMeshSeed.getPolyLabelIDRef().push_back( atoi( lineElement.c_str() ) );
+                    break;
+                case PLY_LIST_VERTEX_INDICES: {
+                        const uint64_t elementCount = atoi( lineElement.c_str() );
+                        if (elementCount < 3) {
+                            break;
+                        }
+                        std::vector<int>* somePolylinesIndices = new std::vector<int>;
+                        for(uint64_t j = 0; j < elementCount; ++j)
+                        {
+                            const uint64_t vertexIndexNr = atoll( tokens[++i].c_str() );
+                            somePolylinesIndices->push_back(vertexIndexNr);
+                        }
+                        rMeshSeed.getPolyLineVertIndicesRef().push_back( somePolylinesIndices );
+                    } break;
+                case PLY_LIST_FEATURE_VECTOR:
+                case PLY_LIST_TEXCOORDS:
+                default:
+                    // Read but ignore
+                    LOG::warn() << "[PlyReader::" << __FUNCTION__ << "] Unknown property in polyline section " << currProperty << " !\n";
+            }
+            ++currPropertyIt;
+        }
+    }
+    std::cout << "[PlyReader::" << __FUNCTION__ << "] Reading polylines done.\n";
 	//! \todo ASCII: add support for unsupported lines.
 	filestr.close();
 
@@ -582,6 +657,9 @@ bool parseBinary(const std::array<uint64_t, PLY_SECTIONS_COUNT>& plyElements, st
 						int nrIndices = 0;
 						READ_IN_PROPER_BYTE_ORDER( filestr, &nrIndices, (*plyPropListCountSize), reverseByteOrder );
 						std::vector<int>* somePolyLinesIndices = new std::vector<int>;
+						if (nrIndices < 3){
+							break;
+						}
 						for( int j=0; j<nrIndices; j++ ) {
 							int vertIndex;
 							READ_IN_PROPER_BYTE_ORDER( filestr, &vertIndex, (*plyPropListSize), reverseByteOrder );
@@ -969,7 +1047,7 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
 	bool parseSuccess = false;
 
 	if( readASCII ) {
-		parseSuccess = parseAscii(plyElements, filestr, sectionProps, vertexTextureCoordinates, rVertexProps, rFaceProps, hasVertexTexCoords);
+        parseSuccess = parseAscii(plyElements, filestr, sectionProps, vertexTextureCoordinates, rVertexProps, rFaceProps, hasVertexTexCoords, rMeshSeed);
 	}
 	else
 	{

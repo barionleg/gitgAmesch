@@ -50,12 +50,12 @@ manjaro arch:
     - master
     - develop
   # Use latest manjaro release
-  image: archlinux/base
+  image: archlinux:base
   stage: build
   # install the necessary build tools when needed
   before_script: 
    - pacman -Sy
-   - pacman -S gcc glibc cmake boost unzip qtcreator make git libffi --noconfirm
+   - pacman -S gcc glibc cmake boost unzip qtcreator make git libffi qtcreator-devel --noconfirm
   script:
     - export QT_SELECT=qt5
 
@@ -92,7 +92,7 @@ manjaro arch test:
     - master
     - develop
   # Use latest manjaro release
-  image: archlinux/base
+  image: archlinux:base
   stage: test
   dependencies:
     - manjaro arch

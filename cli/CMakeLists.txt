@@ -4,6 +4,12 @@ cmake_minimum_required(VERSION 3.10)
 add_executable(gigamesh-tolegacy gigamesh-tolegacy.cpp)
 target_link_libraries(gigamesh-tolegacy PRIVATE gigameshCore)
 
+add_executable(gigamesh-gnsphere gigamesh-gnsphere.cpp)
+target_link_libraries(gigamesh-gnsphere PRIVATE gigameshCore)
+
+add_executable(gigamesh-meshsplit gigamesh-meshsplit.cpp)
+target_link_libraries(gigamesh-meshsplit PRIVATE gigameshCore)
+
 add_executable(gigamesh-clean gigamesh-clean.cpp)
 target_link_libraries(gigamesh-clean PRIVATE gigameshCore psalm)
 target_compile_options(gigamesh-clean PRIVATE -DLIBPSALM)
@@ -25,6 +31,7 @@ install(TARGETS gigamesh-tolegacy
                 gigamesh-info
                 gigamesh-featurevectors
                 gigamesh-borders
+                gigamesh-gnsphere
         DESTINATION bin)
 
 

@@ -36,8 +36,8 @@ for:
     only:
       - image: Visual Studio 2019
   install:
-  - cmd: set QTDIR=C:\Qt\5.14\msvc2017_64
-  - cmd: set PATH=%QTDIR%\bin;C:\Qt\Tools\msvc2017_64\bin;%PATH%;
+  - cmd: set QTDIR=C:\Qt\5.15.2\msvc2019_64
+  - cmd: set PATH=%QTDIR%\bin;C:\Qt\Tools\msvc2019_64\bin;%PATH%;
   after_build:
   - windeployqt install/bin/gigamesh.exe
   - mv install GigaMesh

@@ -2693,7 +2693,7 @@ bool MeshWidget::screenshotViewsPDFUser() {
 		return( false );
 	}
 
-	// --- Show PDF, when evince is available --------------------------------------------------------------------------------------------------------------
+    // --- Show PDF, when evince, okular or atril is available --------------------------------------------------------------------------------------------------------------
 	std::string pdfViewerCommand;
 	getParamStringMeshWidget(MeshWidgetParams::PDF_VIEWER_COMMAND, &pdfViewerCommand);
 #ifdef WIN32
@@ -2701,6 +2701,20 @@ bool MeshWidget::screenshotViewsPDFUser() {
 #endif
 	if( !QProcess::startDetached( QString(pdfViewerCommand.c_str()) + " \"" + fileName + "\"" ) ) {
 		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Program " + pdfViewerCommand + " not found!" << std::endl;
+        //Try okular
+        getParamStringMeshWidget(MeshWidgetParams::PDF_VIEWER_COMMAND_ALT1, &pdfViewerCommand);
+
+        if( !QProcess::startDetached( QString(pdfViewerCommand.c_str()) + " \"" + fileName + "\"" ) ) {
+            std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Program " + pdfViewerCommand + " not found!" << std::endl;
+
+            //Try atril
+            getParamStringMeshWidget(MeshWidgetParams::PDF_VIEWER_COMMAND_ALT2, &pdfViewerCommand);
+
+            if( !QProcess::startDetached( QString(pdfViewerCommand.c_str()) + " \"" + fileName + "\"" ) ) {
+                std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Program " + pdfViewerCommand + " not found!" << std::endl;
+            }
+        }
+
 	}
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -3353,9 +3367,23 @@ bool MeshWidget::screenshotPDFUser() {
 	fileName.replace( QString("/") , QString("\\"));
 #endif
 
-	if( !QProcess::startDetached( QString(pdfViewerCommand.c_str()) + " \"" + fileName + "\"") ) {
-		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Program " + pdfViewerCommand + " not found!" << std::endl;
-	}
+    if( !QProcess::startDetached( QString(pdfViewerCommand.c_str()) + " \"" + fileName + "\"" ) ) {
+        std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Program " + pdfViewerCommand + " not found!" << std::endl;
+        //Try okular
+        getParamStringMeshWidget(MeshWidgetParams::PDF_VIEWER_COMMAND_ALT1, &pdfViewerCommand);
+
+        if( !QProcess::startDetached( QString(pdfViewerCommand.c_str()) + " \"" + fileName + "\"" ) ) {
+            std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Program " + pdfViewerCommand + " not found!" << std::endl;
+
+            //Try atril
+            getParamStringMeshWidget(MeshWidgetParams::PDF_VIEWER_COMMAND_ALT2, &pdfViewerCommand);
+
+            if( !QProcess::startDetached( QString(pdfViewerCommand.c_str()) + " \"" + fileName + "\"" ) ) {
+                std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Program " + pdfViewerCommand + " not found!" << std::endl;
+            }
+        }
+
+    }
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
 
 	return( true );

@@ -1197,12 +1197,15 @@ void Mesh::generateOctree(int vertexmaxnr,int facemaxnr) {
 
 	if (vertexmaxnr > 0) {
         delete mOctree;
-		mOctree = new Octree<Vertex*>(mVertices, &center, vertexmaxnr, edgelen, h);
+        mOctree = new Octree<Vertex*>(mVertices, &center, vertexmaxnr, edgelen, h);
+
+
 		mOctree->dumpInfo();
 	}
 	if (facemaxnr > 0) {
         delete mOctreeface;
 		mOctreeface = new Octree<Face*>(mFaces, &center, facemaxnr, edgelen, h);
+
 		mOctreeface->dumpInfo();
 	}
 }
@@ -7302,7 +7305,7 @@ bool Mesh::isolineToPolyline(
 			mPolyLines.push_back( isoLine );
 		}
 	}
-	polyLinesChanged();
+    polyLinesChanged();
 	delete[] facesVisitedBitArray;
 	return( true );
 }
@@ -16034,12 +16037,20 @@ bool Mesh::exportPolyLinesCoords( filesystem::path rFileName, bool rWithNormals,
 	strHeader << "# | Polylines:  " << mPolyLines.size() << std::endl;
 	strHeader << "# | Timestamp:  " << timeInfoStr << std::endl;
 	filestr << strHeader.str();
-	//! \todo fix file header - vertices indices!
-	if( rWithNormals ) {
+
+    if ( rWithNormals && rWithVertIdx) {
+        filestr << "# +------------------------------------------------------------------------------------------------------------------------" << endl;
+        filestr << "# | Format: Label No. | Number of Vertices | id1 x1 y1 z1 nx1 ny1 nz1 id2 x2 y2 z2 nx2 ny2 nz2 ... idN xN yN zN nxN nyN nzN" << endl;
+        filestr << "# +------------------------------------------------------------------------------------------------------------------------" << endl;
+    } else if( rWithNormals && !rWithVertIdx ) {
 		filestr << "# +------------------------------------------------------------------------------------------------------------" << endl;
 		filestr << "# | Format: Label No. | Number of Vertices | x1 y1 z1 nx1 ny1 nz1 x2 y2 z2 nx2 ny2 nz2 ... xN yN zN nxN nyN nzN" << endl;
 		filestr << "# +------------------------------------------------------------------------------------------------------------" << endl;
-	} else {
+    } else if ( rWithVertIdx && !rWithNormals) {
+        filestr << "# +------------------------------------------------------------------------------------" << endl;
+        filestr << "# | Format: Label No. | Number of Vertices | id1 x1 y1 z1 id2 x2 y2 z2 ... idN xN yN zN" << endl;
+        filestr << "# +------------------------------------------------------------------------------------" << endl;
+    } else {
 		filestr << "# +------------------------------------------------------------------------" << endl;
 		filestr << "# | Format: Label No. | Number of Vertices | x1 y1 z1 x2 y2 z2 ... xN yN zN" << endl;
 		filestr << "# +------------------------------------------------------------------------" << endl;
@@ -16449,6 +16460,201 @@ bool Mesh::importFuncValsFromFile(const filesystem::path& rFileName, bool withVe
 	return true;
 }
 
+//! Imports labels of the vertices
+//! File extension: .txt or .mat
+//! assumes that the files are either single column with the labels, or double column with index + label
+//! lines starting with # are treated as comments
+//! labels are expected to be integers
+bool Mesh::importLabelsFromFile(const filesystem::path& rFileName, bool withVertIdx)
+{
+    ifstream filestr(rFileName);
+
+    filestr.imbue(std::locale("C"));
+
+    if(!filestr.is_open())
+    {
+        LOG::error() << "[Mesh::" << __FUNCTION__ << "] Could not open file: '" << rFileName << "'.\n";
+        return false;
+    }
+
+    auto numVerts = getVertexNr();
+    std::string line;
+    uint64_t labelNr = 0;
+
+    //importing with index
+    if(withVertIdx)
+    {
+        uint64_t currIndex = 0;
+        while(std::getline(filestr, line))
+        {
+            if(!line.empty())
+            {
+                if(line[0] == '#')
+                {
+                    continue;
+                }
+
+                std::stringstream lineStream(line);
+                if(!(lineStream >> currIndex >> labelNr))
+                {
+                    LOG::warn() << "[Mesh::" << __FUNCTION__ << "] File: '" << rFileName << "' contains invalid values!\n";
+                    continue;
+                }
+                if(currIndex < numVerts)
+                {
+                    mVertices[currIndex]->setLabel(labelNr);
+                }
+                else
+                {
+                    LOG::warn() << "[Mesh::" << __FUNCTION__ << "] warning: function value out of range: " << currIndex << "\n";
+                }
+            }
+        }
+    }
+    //importing without index
+    else
+    {
+        uint64_t currIndex = 0;
+        while(std::getline(filestr, line))
+        {
+            if(!line.empty())
+            {
+                if(line[0] == '#')
+                {
+                    continue;
+                }
+
+                if(currIndex > numVerts)
+                {
+                    LOG::warn() << "[Mesh::" << __FUNCTION__ << "] warning: function value out of range: " << currIndex - 1 << "\n";
+                    break;
+                }
+                try {
+                    labelNr = std::stod(line);
+                }
+                catch (std::exception& e)
+                {
+                    LOG::warn() << "[Mesh::" << __FUNCTION__ << "] File: '" << rFileName << "' contains invalid values!\n";
+                    mVertices[currIndex++]->setLabel(0);
+                    continue;
+                }
+
+                mVertices[currIndex++]->setLabel(labelNr);
+            }
+        }
+    }
+
+    filestr.close();
+    labelsChanged();
+    return true;
+}
+
+//! Imports the polylines coordinates from file
+//! File extension: .pline
+//! each line of the file is a line definition with coordinates
+//! lines starting with # are treated as comments
+//! currently only takes lines where the points are given as id, x, y, z, nx, ny, nz
+bool Mesh::importPolylinesFromFile(const filesystem::path& rFileName)
+{
+    ifstream filestr(rFileName);
+
+    filestr.imbue(std::locale("C"));
+
+    if(!filestr.is_open())
+    {
+        LOG::error() << "[Mesh::" << __FUNCTION__ << "] Could not open file: '" << rFileName << "'.\n";
+        return false;
+    }
+    std::string line;
+    std::string elem;
+    std::string substring;
+    while(std::getline(filestr, line))
+    {
+        if(!line.empty())
+        {
+            //each line of the file without "#" is a polyline
+            if(line[0] == '#')
+            {
+                continue;
+            }
+            PolyLine* tmpPolyLine = new PolyLine();
+            //PolyLine* tmpPolyLine = new PolyLine( Vector3D( _NOT_A_NUMBER_, _NOT_A_NUMBER_, _NOT_A_NUMBER_, 1.0 ),
+            //                                              Vector3D( _NOT_A_NUMBER_, _NOT_A_NUMBER_, _NOT_A_NUMBER_, 0.0 ) );
+            int valueCount = 0;
+			// need flag to only add tmpPolyline or delete it, otherwise can cause bugs if more 0 polylines are added than >3 polylines
+            bool flag_add = true;
+            double x = 0.0;
+            double y = 0.0;
+            double z = 0.0;
+            double normalX = 0.0;
+            double normalY = 0.0;
+            double normalZ = 0.0;
+            //variables for the division of the values from String/line
+            // values are seperated by space
+            int start = 0;
+            int end = line.find(" ");
+            //create polyline
+            while(end != -1){
+                elem = line.substr(start,end-start);
+                start = end + 1;
+                end = line.find(" ",start);
+                // check if polyline is at least 2 vertices long
+                if(valueCount == 1){
+                    if(stod(elem) < 3){
+                        flag_add = false;
+                        break;
+                    }
+                }
+                //ignore the first 2 values id and number of vertices
+                if(valueCount > 1){
+                    //extract vertex coordinate
+                    //each vertex has 7 elments of information: seperator, x,y,z normal x, ny,nz
+                    //ignore the seperator "-1"
+                    //separator often also is the index of the point in the mesh it was taken from
+
+                    // -2 on the count because of the first 2 ignored values
+                    if((valueCount-2) % 7 == 1){
+                        x = stod(elem);
+                    }
+                    if((valueCount-2) % 7 == 2){
+                        y = stod(elem);
+                    }
+                    if((valueCount-2) % 7 == 3){
+                        z = stod(elem);
+                    }
+                    if((valueCount-2) % 7 == 4){
+                        normalX = stod(elem);
+                    }
+                    if((valueCount-2) % 7 == 5){
+                        normalY = stod(elem);
+                    }
+                    if((valueCount-2) % 7 == 6){
+                        normalZ  = stod(elem);
+
+                        //add vertex to polyline
+                        Vertex* newVertex = new Vertex(Vector3D(x,y,z),Vector3D(normalX,normalY,normalZ));
+                        tmpPolyLine->addBack( newVertex );
+                    }
+                }
+                //count the extracted values of the string
+                valueCount++;
+            }
+
+            //add the new polyline to the mesh
+            if (flag_add){
+                mPolyLines.push_back( tmpPolyLine );
+            } else {
+                delete tmpPolyLine;
+            }
+        }
+    }
+
+    filestr.close();
+
+    polyLinesChanged();
+    return true;
+}
+
 //! Exports the faces normals as sphereical coordinates as ASCII file in the format:
 //! Face Number Phi Theta Radius
 //! File extension: .facen
@@ -16645,9 +16851,11 @@ bool Mesh::latexFetchFigureInfos( vector<pair<string,string>>* rStrings ) {
 	rStrings->push_back( pair<string,string>( string( "__BOUNDING_BOX_THICK__"  ), to_string( bbThick  ) ) ); //! __BOUNDING_BOX_THICK__
 
 	//! Primitive count:
-	int vertexCount = getVertexNr();
+    //have to be double otherwise the trailing zeros will be deleted
+    double vertexCount = getVertexNr();
+    double faceNr = getFaceNr();
 	rStrings->push_back( pair<string,string>( string( "__VERTEX_COUNT__" ), to_string( vertexCount )   ) ); //! __VERTEX_COUNT__
-	rStrings->push_back( pair<string,string>( string( "__FACE_COUNT__"  ),  to_string( getFaceNr()   ) ) ); //! __FACE_COUNT__
+    rStrings->push_back( pair<string,string>( string( "__FACE_COUNT__"  ),  to_string( faceNr  ) ) ); //! __FACE_COUNT__
 
 	//! Meta-data:
 	std::string metaObjectId       = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
@@ -17414,4 +17622,9 @@ bool Mesh::getAxisFromCircleCenters(
 	return( true );
 }
 
+//! Getter Method of the protected attribute mVertices as set
+std::set<Vertex*> Mesh::getVertices(){
+    return std::set<Vertex*>(mVertices.begin(), mVertices.end());
+    //return mSelectedMVerts;
+}
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
