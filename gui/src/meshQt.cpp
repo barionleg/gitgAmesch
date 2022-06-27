@@ -1011,7 +1011,7 @@ bool MeshQt::completeRestore() {
 	// Optional border erosion
 	bool applyErosion;
 	SHOW_QUESTION( tr("Apply border erosion"), tr("Do you want to remove dangling faces along the borders?") +
-										   QString("<br /><br />") + tr("Recommended: YES"), applyErosion, userCancel );
+	               QString("<br /><br />") + tr("Recommended: YES"), applyErosion, userCancel );
 	if( userCancel ) {
 		return( false );
 	}
@@ -1024,26 +1024,27 @@ bool MeshQt::completeRestore() {
 	bool saveFile;
 	SHOW_QUESTION( tr("Store results"), tr("Do you want to store the result as file?"), saveFile, userCancel );
 	if( userCancel ) {
-		return false;
+		return( false );
 	}
 	QString fileName = "";
 	if( saveFile ) {
 		// Show file dialog
 		QString fileLocation = QString::fromStdWString( getFileLocation().wstring() + getBaseName().wstring() + L"_GMxCF.ply" );
 		fileName = QFileDialog::getSaveFileName( \
-					   mMainWindow, tr( "Save as" ), \
-					   fileLocation, tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) \
+		               mMainWindow, tr( "Save as" ), \
+		               fileLocation, tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) \
 		           );
 	}
 
 	// Iterative cleaning is done in the Mesh class.
 	uint64_t iterationCount;
 	std::string resultMsg;
-	MeshGL::completeRestore( fileName.toStdString(), percentArea, applyErosion, prevent, maxNrVertices, 
+	MeshGL::completeRestore( fileName.toStdString(), percentArea,
+	                         applyErosion, prevent, maxNrVertices,
 	                         &resultMsg, iterationCount );
 	SHOW_MSGBOX_INFO( tr("Complete Restore finished"), QString( resultMsg.c_str() ) );
 
-	return true;
+	return( true );
 }
 
 //! Manually insert vertices by entering triplets of coordinates.
@@ -3902,18 +3903,15 @@ void MeshQt::visualizeDistanceToCone( bool rAbsDist ) {
 //!
 //! @returns false in case of an error or user cancel.
 bool MeshQt::editMetaData() {
-
-	//! \todo add META_MODEL_UNIT 
-	
 	//! .) Edit Model ID.
-	string modelID = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
+	std::string modelID = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
 	if( modelID.empty() ) {
 		// Prepare suggestion
 		QString suggestId( QString::fromStdWString(getBaseName().wstring()) );
-		cout << "[MeshQt::" << __FUNCTION__ << "] Basename: " << suggestId.toStdString().c_str() << endl;
+		std::cout << "[MeshQt::" << __FUNCTION__ << "] Basename: " << suggestId.toStdString().c_str() << std::endl;
 		suggestId.replace( "_", " " );
 		suggestId.replace( QRegularExpression( "GM[oOcCfFpPxX]*$" ), "" );
-		cout << "[MeshQt::" << __FUNCTION__ << "] Suggest Id: " << suggestId.toStdString().c_str() << endl;
+		std::cout << "[MeshQt::" << __FUNCTION__ << "] Suggest Id: " << suggestId.toStdString().c_str() << std::endl;
 		// Show dialog
 		QGMDialogEnterText dlgEnterTxt;
 		dlgEnterTxt.setText( suggestId );
@@ -3931,7 +3929,7 @@ bool MeshQt::editMetaData() {
 	}
 
 	//! .) Edit Model Material.
-	string modelMaterial = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
+	std::string modelMaterial = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
 	if( modelMaterial.empty() ) {
 		QGMDialogEnterText dlgEnterTxt;
 		dlgEnterTxt.setText( tr( "original, clay" ) );
@@ -3949,10 +3947,12 @@ bool MeshQt::editMetaData() {
 	}
 
 	//! .) Edit Model Unit.
-	string modelUnit = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_UNIT );
-	string modelUnitLabel;
+	/*
+	std::string modelUnit = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_UNIT );
+	std::string modelUnitLabel;
 	getModelMetaDataRef().getModelMetaStringLabel( ModelMetaData::META_MODEL_UNIT, modelUnitLabel );
 	if( modelUnit.empty() ) {
+		//getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_UNIT, "mm" );
 		QGMDialogEnterText dlgEnterTxt;
 		dlgEnterTxt.setText( tr( "mm" ) );
 		dlgEnterTxt.setWindowTitle( tr("Model Unit") );
@@ -3966,7 +3966,8 @@ bool MeshQt::editMetaData() {
 			return( false );
 		}
 		getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_UNIT, newUnit.toStdString() );
-	}
+	}*/
+	getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_UNIT, "mm" );
 
 	return( true );
 }

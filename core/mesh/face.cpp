@@ -2902,7 +2902,7 @@ double Face::getAreaNormal() {
 	vCAx = vertC->getX() - vertA->getX();
 	vCAy = vertC->getY() - vertA->getY();
 	vCAz = vertC->getZ() - vertA->getZ();
-	
+
 	// cross product using xyzzy - see: http://en.wikipedia.org/wiki/Cross_product#Mnemonic
 	// divided by half => | NORMAL | = sqrt( x^2 + y^2 + z^2 ) == area
 	NORMAL_X = ( ( vBAy * vCAz ) - ( vBAz * vCAy ) );

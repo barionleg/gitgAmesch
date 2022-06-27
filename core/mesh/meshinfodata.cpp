@@ -90,6 +90,8 @@ MeshInfoData::MeshInfoData() {
 	mmCountDoubleName[BOUNDINGBOX_WIDTH]    = "Bounding box width";
 	mmCountDoubleName[BOUNDINGBOX_HEIGHT]   = "Bounding box height";
 	mmCountDoubleName[BOUNDINGBOX_THICK]    = "Bounding box thickness";
+	mmCountDoubleName[FACES_AREA_SMALLEST]  = "Area largest face";
+	mmCountDoubleName[FACES_AREA_LARGEST]   = "Area smallest face";
 	mmCountDoubleName[TOTAL_AREA]           = "Total area";
 	mmCountDoubleName[TOTAL_VOLUME_DX]      = "Total volume (dx)";
 	mmCountDoubleName[TOTAL_VOLUME_DY]      = "Total volume (dy)";
@@ -1392,6 +1394,9 @@ bool MeshInfoData::getMeshInfoHTML(
 	infoStr += "<tr><td>&nbsp;&nbsp;&nbsp;...&nbsp;3&nbsp;Edges&nbsp;(Solo,3E):</td><td align=\"right\">"        + std::to_string( this->mCountULong[MeshInfoData::FACES_SOLO] )                    + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_SOLO].str()                  + "&#37;</td></tr>\n";
 	//infoStr += "<tr><td></td><td></td><td></td></tr>\n"; // Empty line
 	infoStr += "<tr><td>Selected:</td><td align=\"right\">"                                    + std::to_string( this->mCountULong[MeshInfoData::FACES_SELECTED] )                + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_SELECTED].str()              + "&#37;</td></tr>\n";
+	infoStr += "<tr><td></td><td></td><td></td></tr>\n"; // Empty line
+	infoStr += "<tr><td>Smallest&nbsp;area:</td><td align=\"right\">"                          + std::to_string( this->mCountDouble[MeshInfoData::FACES_AREA_SMALLEST] )          + "</td><td align=\"right\">mm<sup>2</sup></td></tr>\n";
+	infoStr += "<tr><td>Largest&nbsp;area:</td><td align=\"right\">"                           + std::to_string( this->mCountDouble[MeshInfoData::FACES_AREA_LARGEST] )           + "</td><td align=\"right\">mm<sup>2</sup></td></tr>\n";
 	infoStr += "</table>\n";
 
 	// Outer table - End

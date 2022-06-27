@@ -474,7 +474,7 @@ bool Mesh::callFunction(
 				break;
 			}
 			retVal |= setVertFuncValCorrTo( &refernceVector );
-		    } break;
+	        } break;
 		case FUNCVAL_FEATUREVECTOR_APPLY_PNORM:
 			retVal = funcVertFeatureVecPNorm();
 			break;
@@ -644,7 +644,7 @@ bool Mesh::callFunction(
 			}
 			LOG::error() << "[Mesh::" << __FUNCTION__ << "] ERROR: Bad number of values given. Expecting one or three values, but "<< valuesScaleSkew.size() << " were given!\n";
 			retVal = false;
-		    } break;
+	        } break;
 		case APPLY_TRANSMAT_SELMVERT: {
 			if(hasDatumObjects())
 			{
@@ -661,7 +661,7 @@ bool Mesh::callFunction(
 				break;
 			}
 			retVal = applyTransformation( valuesMatrix4x4, &mSelectedMVerts );
-		    } break;
+	        } break;
 		case SELMPRIMS_POS_DESELECT_ALL:
 			mSelectedPositions.clear();
 			selectedMPositionsChanged();
@@ -822,22 +822,20 @@ bool Mesh::callFunction(
 		case DRAW_SELF_INTERSECTIONS:
 			selectFaceSelfIntersecting();
 			break;
-		case SELMVERTS_SET_ALPHA:
-		{
+	    case SELMVERTS_SET_ALPHA: {
 			uint64_t alphaVal = 255;
 			if(!showEnterText(alphaVal, "Enter Value [0-255]"))
 			{
 				return false;
 			}
 			assignAlphaToSelectedVertices(static_cast<unsigned char>(alphaVal));
-		}
-			break;
+	        } break;
 		default:
 			LOG::error() << "[Mesh::" << __FUNCTION__ << "] ERROR: Unknown rFunctionID "<< rFunctionID << " !\n";
-			return false;
+		    return( false );
 	}
 
-	return retVal;
+	return( retVal );
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -10141,8 +10139,8 @@ bool Mesh::removeUncleanSmallCore(
 	// Reset counter
 	rIteration = 0;
 
-	set<Vertex*> verticesToRemove;
-	set<Face*> facesToRemove;
+	std::set<Vertex*> verticesToRemove;
+	std::set<Face*> facesToRemove;
 
 	//! 0.) Remove all polylines.
 	//!     \todo this has to be done as the polylines will cause a segementation fault, when written to the VBO.
@@ -10426,6 +10424,7 @@ bool Mesh::completeRestore(
 			removePolylinesSelected();
 		}
 
+		// Fill so-called holes
 		uint64_t holesFilled  = 0;
 		uint64_t holesFail    = 0;
 		uint64_t holesSkipped = 0;
@@ -10434,7 +10433,7 @@ bool Mesh::completeRestore(
 		totalHolesFail    += holesFail;
 		totalHolesSkipped += holesSkipped;
 		someHolesFilled = ( holesFilled != 0 );
-
+		// Cleanup after filling holes
 		removePolylinesAll();
 
 		rIterationCount++;
@@ -16883,6 +16882,10 @@ bool Mesh::getMeshInfoData(
 		showProgress( static_cast<double>(vertIdx)/progressSteps, "Mesh information" );
 	}
 
+	// Set initial values
+	rMeshInfos.mCountDouble[MeshInfoData::FACES_AREA_SMALLEST] = std::numeric_limits<double>::infinity();
+	rMeshInfos.mCountDouble[MeshInfoData::FACES_AREA_LARGEST]  = 0.0;
+
 	Face* currFace;
 	for( uint64_t faceIdx=0; faceIdx<getFaceNr(); faceIdx++ ) {
 		currFace = getFacePos( faceIdx );
@@ -16932,6 +16935,14 @@ bool Mesh::getMeshInfoData(
 		}
 		if( currFace->getFlag( FLAG_SELECTED ) ) {
 			rMeshInfos.mCountULong[MeshInfoData::FACES_SELECTED]++;
+		}
+		// floating point properties
+		double faceArea = currFace->getAreaNormal();
+		if( faceArea < rMeshInfos.mCountDouble[MeshInfoData::FACES_AREA_SMALLEST] ) {
+			rMeshInfos.mCountDouble[MeshInfoData::FACES_AREA_SMALLEST] = faceArea;
+		}
+		if( faceArea > rMeshInfos.mCountDouble[MeshInfoData::FACES_AREA_LARGEST] ) {
+			rMeshInfos.mCountDouble[MeshInfoData::FACES_AREA_LARGEST] = faceArea;
 		}
 		showProgress( static_cast<double>( faceIdx+getVertexNr() )/progressSteps, "Mesh information" );
 	}

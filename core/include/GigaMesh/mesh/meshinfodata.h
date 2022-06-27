@@ -95,6 +95,8 @@ class MeshInfoData {
 			BOUNDINGBOX_WIDTH,                  //!< Bounding box width.
 			BOUNDINGBOX_HEIGHT,                 //!< Bounding box height.
 			BOUNDINGBOX_THICK,                  //!< Bounding box thickness.
+			FACES_AREA_SMALLEST,                //!< Area of the smallest face.
+			FACES_AREA_LARGEST,                 //!< Area of the largest face.
 			TOTAL_AREA,                         //!< Total area.
 			TOTAL_VOLUME_DX,                    //!< Total volume in dx.
 			TOTAL_VOLUME_DY,                    //!< Total volume in dy.
