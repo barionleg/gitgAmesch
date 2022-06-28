@@ -941,6 +941,40 @@ bool Vertex::sortByIndex( Vertex* vert1, Vertex* vert2 ) {
 	return false;
 }
 
+//! Used for sorting e.g. a heap.
+//! @returns false, when one of the vertices has no rgb values.
+bool Vertex::RGBLower( Vertex* vert1, Vertex* vert2 ) {
+    unsigned char RGB1[3];
+    if( !vert1->copyRGBTo( RGB1 ) ) {
+        LOG::debug() << "[Vertex::" << __FUNCTION__ << "] no function value!\n";
+        return false;
+    }
+    unsigned char RGB2[3];
+    if( !vert2->copyRGBTo( RGB2 ) ) {
+        LOG::debug() << "[Vertex::" << __FUNCTION__ << "] no function value!\n";
+        return false;
+    }
+
+    if( RGB1[0] < RGB2[0] ) {
+        // red value smaller
+        return true;
+    }
+    else if( RGB1[0] == RGB2[0] ) {
+        if( RGB1[1] < RGB2[1] ) {
+            // red value equal, green value smaller
+            return true;
+        }
+        else if( RGB1[1] == RGB2[1] ) {
+            if( RGB1[2] < RGB2[2] ) {
+                // red and green value equal, blue smaller
+                return true;
+            }
+        }
+    }
+    // red or green is larger, or red and green are equal and blue is equal or larger
+    return false;
+}
+
 // --- Transformation --------------------------------------------------------
 
 //! Applies (multiplies) a given homogenous transformation matrix.
