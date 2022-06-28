@@ -10,6 +10,8 @@ wait
 # Make sure all submodules are up to date!
 cd $NAME
 git submodule foreach git pull origin master
+git checkout develop
+git submodule foreach git pull origin develop
 cd ..
 # end update of submodule
 wait
@@ -42,15 +44,19 @@ ND="gigamesh-$CURRENT_VERSION-linux-x86_64"
 mkdir -p $ND/scripts
 cp -a ../CHANGELOG $ND
 
-# --- binaries
-cp -a ../build/gui/gigamesh $ND
-cp -a ../build/cli/gigamesh-info  $ND
-cp -a ../build/cli/gigamesh-clean $ND
-cp -a ../build/cli/gigamesh-tolegacy $ND
-cp -a ../build/cli/gigamesh-featurevectors $ND
-cp -a ../build/cli/gigamesh-borders $ND
-cp -a ../build/cli/spherical_intersection_cli/gigamesh-sphere-profiles $ND
-cp -a ../build/cli/spherical_intersection_cli/gigamesh-featurevectors-sl $ND
+# --- binaries --- new: add all executeable binaries.
+find ../build/cli/ ../build/gui/ -executable -type f -exec mv {} $ND \;
+# --- binaries --- old style one by one.
+#cp -a ../build/gui/gigamesh $ND
+#cp -a ../build/cli/gigamesh-info  $ND
+#cp -a ../build/cli/gigamesh-clean $ND
+#cp -a ../build/cli/gigamesh-tolegacy $ND
+#cp -a ../build/cli/gigamesh-featurevectors $ND
+#cp -a ../build/cli/gigamesh-borders $ND
+#cp -a ../build/cli/gigamesh-gnsphere $ND
+#cp -a ../build/cli/gigamesh-meshsplit $ND
+#cp -a ../build/cli/spherical_intersection_cli/gigamesh-sphere-profiles $ND
+#cp -a ../build/cli/spherical_intersection_cli/gigamesh-featurevectors-sl $ND
 # --- Scripts ---
 # None for now, which is a good thing.
 
