@@ -6938,7 +6938,7 @@ bool Mesh::labelVerticesEqualRGB() {
 
     uint64_t labelNr = 0; // was -1 in older versions.
                                // Now the first label id has to be one (for inverted selection)
-    unsigned char RGBLast[3] = {255,255,255};
+    unsigned char RGBLast[3] = {255,255,255}; // since we order from low to high, this should work
     unsigned char RGB[3];
     Vertex* currVertex;
     for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
@@ -6947,11 +6947,9 @@ bool Mesh::labelVerticesEqualRGB() {
             cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: copyRGBto failed!" << endl;
             continue;
         }
-        //if( std::isnan( RGB[0] ) || std::isnan( RGB[1] ) || std::isnan( RGB[2] ) ) {
-        //    currVertex->setLabelBackGround();
-        //    continue;
-        //}
+
         // as vertices are order - a new function value means a new label
+        // RGBLast is set to 255,255,255, so if all vertices have only 255,255,255 as color, all will get label 0 (unlabeld)
         if( RGBLast[0] != RGB[0] || RGBLast[1] != RGB[1] || RGBLast[2] != RGB[2] ) {
             RGBLast[0] = RGB[0];
             RGBLast[1] = RGB[1];
