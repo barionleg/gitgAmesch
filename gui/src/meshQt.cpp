@@ -252,6 +252,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	QObject::connect( mMainWindow, SIGNAL(labelFaces()),                                 this, SLOT(labelFaces())                        );
 	QObject::connect( mMainWindow, SIGNAL(labelSelectionToSeeds()),                      this, SLOT(labelSelectionToSeeds())             );
 	QObject::connect( mMainWindow, SIGNAL(labelVerticesEqualFV()),                       this, SLOT(labelVerticesEqualFV())              );
+    QObject::connect( mMainWindow, SIGNAL(labelVerticesEqualRGB()),                      this, SLOT(labelVerticesEqualRGB())             );
 	QObject::connect( mMainWindow, SIGNAL(sLabelSelMVertsToBack()),                      this, SLOT(labelSelMVertsToBack())              );
 	//.
 	QObject::connect( mMainWindow, SIGNAL(convertSelectedVerticesToPolyline()),          this, SLOT(convertSelectedVerticesToPolyline()) );
@@ -2853,6 +2854,11 @@ void MeshQt::labelSelectionToSeeds() {
 bool MeshQt::labelVerticesEqualFV() {
 	//! Labels vertices having the same function value - see MeshGL::labelSelectedVertices
 	return MeshGL::labelVerticesEqualFV();
+}
+
+bool MeshQt::labelVerticesEqualRGB() {
+    //! Labels vertices having the same RGB values - see MeshGL::labelSelectedVertices
+    return MeshGL::labelVerticesEqualRGB();
 }
 
 //! Sets the selected vertices' label to background -- see MeshGL::labelSelMVertsToBack

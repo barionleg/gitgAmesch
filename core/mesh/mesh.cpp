@@ -1536,6 +1536,14 @@ bool Mesh::orderVertsByFuncVal() {
 	return true;
 }
 
+//! Order Vertices ascending by Function Value.
+bool Mesh::orderVertsByRGB() {
+    int timeStart = clock();
+    sort( mVertices.begin(), mVertices.end(), Vertex::RGBLower );
+    cout << "[Mesh::" << __FUNCTION__ << "] time: " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
+    return true;
+}
+
 //! Set a given flag for all vertices.
 //! @returns false in case an error occured.
 bool Mesh::setVertexFlagForAll( ePrimitiveFlags rFlag ) {
@@ -6920,6 +6928,39 @@ bool Mesh::labelVerticesEqualFV() {
 	orderVertsByIndex();
 	labelsChanged();
 	return true;
+}
+
+//! Labels vertices having the same color.
+//! Nan-values become background label.
+bool Mesh::labelVerticesEqualRGB() {
+    cout << "[Mesh::" << __FUNCTION__ << "]" << endl;
+    orderVertsByRGB();
+
+    uint64_t labelNr = 0; // was -1 in older versions.
+                               // Now the first label id has to be one (for inverted selection)
+    unsigned char RGBLast[3] = {255,255,255}; // since we order from low to high, this should work
+    unsigned char RGB[3];
+    Vertex* currVertex;
+    for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
+        currVertex = getVertexPos( vertIdx );
+        if( !currVertex->copyRGBTo( RGB ) ) {
+            cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: copyRGBto failed!" << endl;
+            continue;
+        }
+
+        // as vertices are order - a new function value means a new label
+        // RGBLast is set to 255,255,255, so if all vertices have only 255,255,255 as color, all will get label 0 (unlabeld)
+        if( RGBLast[0] != RGB[0] || RGBLast[1] != RGB[1] || RGBLast[2] != RGB[2] ) {
+            RGBLast[0] = RGB[0];
+            RGBLast[1] = RGB[1];
+            RGBLast[2] = RGB[2];
+            labelNr++;
+        }
+        currVertex->setLabel( labelNr );
+    }
+    orderVertsByIndex();
+    labelsChanged();
+    return true;
 }
 
 //! Sets the selected vertices' label to background.

@@ -308,6 +308,7 @@ signals:
 	void labelFaces();                                       //!< trigger labeling with optional removal of small areas.
 	void labelSelectionToSeeds();                            //!< triggers the storage of selected vertices as seeds for labeling.
 	void labelVerticesEqualFV();                             //!< trigger labeling of vertices having the same function value.
+    void labelVerticesEqualRGB();                            //!< trigger labeling of vertices having the same color values.
 	void sLabelSelMVertsToBack();                            //!< Set the selected vertices label to background.
 	//.
 	void convertSelectedVerticesToPolyline();                //!< trigger conversion from selected vertices to (a) polyline(s).

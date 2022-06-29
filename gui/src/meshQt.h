@@ -258,6 +258,7 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 				void intersectSphere();
 		virtual void labelSelectionToSeeds();
 		virtual bool labelVerticesEqualFV();
+        virtual bool labelVerticesEqualRGB();
 		virtual bool labelSelMVertsToBack();
 		virtual bool convertBordersToPolylines();
 		virtual void convertLabelBordersToPolylines();

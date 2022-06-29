@@ -121,6 +121,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				Vertex*      getVertexPos( uint64_t rPosIdx ) const;
 				bool         orderVertsByIndex();
 				bool         orderVertsByFuncVal();
+                bool         orderVertsByRGB();
 				bool         setVertexPosToIndex();
 				bool         setVertexFlagForAll( ePrimitiveFlags rFlag );
 				bool         clearVertexFlagForAll( ePrimitiveFlags rFlag );
@@ -454,6 +455,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 			    bool labelSelectedVerticesUser();
 				bool labelSelectedVertices( std::set<Vertex *>& rSelectedVertices, bool rSetNotSelectedtoBackGrd );
 		virtual bool labelVerticesEqualFV();
+        virtual bool labelVerticesEqualRGB();
 		virtual bool labelSelMVertsToBack();
 
 		virtual bool compPolylinesIntInvRunLen( double rIIRadius, PolyLine::ePolyIntInvDirection rDirection );

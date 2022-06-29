@@ -228,6 +228,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionLabelFaces,                    SIGNAL(triggered()), this, SIGNAL(labelFaces())            );
 	QObject::connect( actionLabelSelectionToSeeds,         SIGNAL(triggered()), this, SIGNAL(labelSelectionToSeeds()) );
 	QObject::connect( actionLabelVertEqualFV,              SIGNAL(triggered()), this, SIGNAL(labelVerticesEqualFV())  );
+    QObject::connect( actionLabelVertEqualRGB,             SIGNAL(triggered()), this, SIGNAL(labelVerticesEqualRGB()) );
 	QObject::connect( actionLabelSelMVertsBackground,      SIGNAL(triggered()), this, SIGNAL(sLabelSelMVertsToBack()) );
 	//.
 	QObject::connect( actionSelectionToPolyline,           SIGNAL(triggered()), this, SIGNAL(convertSelectedVerticesToPolyline()) );

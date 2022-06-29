@@ -160,6 +160,7 @@ virtual bool     setAlpha(unsigned char alpha);
 		static  bool     funcValLowerLabled( Vertex* vert1, Vertex* vert2 );
 		static  bool     sortLabelsFirst( Vertex* vert1, Vertex* vert2 );
 		static  bool     sortByIndex( Vertex* vert1, Vertex* vert2 );
+        static  bool     RGBLower( Vertex* vert1, Vertex* vert2 );
 		
 		
 		// Coordinate Setter:
