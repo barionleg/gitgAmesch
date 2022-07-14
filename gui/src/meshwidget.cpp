@@ -5794,7 +5794,7 @@ bool MeshWidget::writePNG( const QString& rFileName,        //!< Filename for wr
     id = "giga:"+id.replace(0,rFileName.lastIndexOf("/")+1,"");
     getViewSettingsTTL(exifttl,id);
     exifttl+=id+" rdf:type foaf:Image .\n";
-	exifttl+=id+" dc:liecense <https://creativecommons.org/licenses/by-sa/4.0/> .\n";
+	exifttl+=id+" dc:license <https://creativecommons.org/licenses/by-sa/4.0/> .\n";
     exifttl+= "exif:make rdf:type owl:DatatypeProperty .\n";
     exifttl+=id+" exif:make \"Gigamesh Software\"^^xsd:string .\n";
     exifttl+= "exif:makerNote rdf:type owl:DatatypeProperty .\n";
