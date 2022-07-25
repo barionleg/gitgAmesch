@@ -104,10 +104,10 @@ private:
     void generateFacesOctreeHypothesis(Octnode* parentNodeFace,Octnode* parentNodeVertex, unsigned int treeLevel, std::vector<Face*> *incompletFaces);
     //! check if each face is only inside the initial assigned node/cube
     //! otherwise search all nodes/cube that are intersected by the face
-    //!
-    //! TODO: Change Faces vector to set because the verification if a face is inside has a runtime log n and vector has n
     void correctFacesOctree(std::vector<Face*> &facelist);
     void addFaceToAllIntersectedChildren(Octnode* parentNode, Face* face);
+    //!method for parallel compution of correctFacesOctree
+    void correctFace(Face* face);
 
     /// pointer to the root node of the vertex octree
     Octnode* mRootVertices;

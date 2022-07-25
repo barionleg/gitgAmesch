@@ -92,7 +92,7 @@ std::vector<Octnode*> Octnode::getNodeList(){
 }
 
 bool Octnode::isFaceInside(Face *face){
-    if(std::find(mFaces.begin(), mFaces.end(), face) != mFaces.end()) {
+    if(mFaces.find(face) != mFaces.end()) {
         return true;
     } else {
         return false;

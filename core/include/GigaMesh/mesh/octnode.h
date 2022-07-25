@@ -68,7 +68,7 @@ public:
     std::vector<Vertex*> mVertices;
 
     /// faces inside the node
-    std::vector<Face*> mFaces;
+    std::set<Face*> mFaces;
 
     static bool compareoctnode( Octnode* rNode1, Octnode* rNode2 );
 };

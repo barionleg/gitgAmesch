@@ -1206,24 +1206,29 @@ void Mesh::generateOctree(int vertexmaxnr) {
         mOctree->getleafnodes(nodesFaces,Octree::FACE_OCTREE);
 
         for( unsigned int i=0; i < nodesFaces.size(); i++){
-            for( unsigned int j=0; j < nodesFaces[i]->mFaces.size(); j++){
+            for( Face* face : nodesFaces[i]->mFaces){
+                face->getVertA()->setLabel(i);
+                face->getVertB()->setLabel(i);
+                face->getVertC()->setLabel(i);
                 //check more than one node
+                /**
                 bool oneNode = true;
                 for(Octnode* node: nodesFaces){
-                    if(node != nodesFaces[i] && node->isFaceInside(nodesFaces[i]->mFaces[j])){
+                    if(node != nodesFaces[i] && node->isFaceInside(face)){
                         oneNode = false;
                     }
                 }
                 if (oneNode){
-                    nodesFaces[i]->mFaces[j]->getVertA()->setLabel(1);
-                    nodesFaces[i]->mFaces[j]->getVertB()->setLabel(1);
-                    nodesFaces[i]->mFaces[j]->getVertC()->setLabel(1);
+                    face->getVertA()->setLabel(1);
+                    face->getVertB()->setLabel(1);
+                    face->getVertC()->setLabel(1);
                 }
                 else{
-                    nodesFaces[i]->mFaces[j]->getVertA()->setLabel(3);
-                    nodesFaces[i]->mFaces[j]->getVertB()->setLabel(3);
-                    nodesFaces[i]->mFaces[j]->getVertC()->setLabel(3);
+                    face->getVertA()->setLabel(3);
+                    face->getVertB()->setLabel(3);
+                    face->getVertC()->setLabel(3);
                 }
+                **/
             }
         }
 

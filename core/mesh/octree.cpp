@@ -61,6 +61,9 @@ Octree::Octree(std::vector<Vertex*> &vertexlist,std::vector<Face*> &facelist, Ve
     mRootFaces = new Octnode(center, 0.5*edgelen);
     //for all faces inside this vector we have to check in which nodes they intersect
     generateFacesOctreeHypothesis(mRootFaces,mRootVertices,1,&mIncompleteFaces);
+    //delete dulicates
+    sort(mIncompleteFaces.begin(),mIncompleteFaces.end());
+    mIncompleteFaces.erase( unique( mIncompleteFaces.begin(), mIncompleteFaces.end()),mIncompleteFaces.end());
     correctFacesOctree(mIncompleteFaces);
 }
 
@@ -102,10 +105,10 @@ void Octree::getnodelist(std::vector<Octnode*>& nodelist, eTreeType treeType) {
 }
 
 bool Octree::getNodesOfFace(std::vector<Octnode *> &nodelist, Face *face){
-    std::vector<Octnode *> allNodes;
-    allNodes = mRootFaces->getNodeList();
+    std::vector<Octnode *> allLeafNodes;
+    allLeafNodes = mRootFaces->getLeafNodes();
 
-    for(Octnode* node : allNodes){
+    for(Octnode* node : allLeafNodes){
         if(node->isFaceInside(face)){
             nodelist.push_back(node);
         }
@@ -473,6 +476,7 @@ void Octree::detectselfintersections(std::vector<Face*>& sif) {
     //#ifdef THREADS
 #define NUM_THREADSA           7
 
+
     std::vector<p> res= splitthreads(nodelist, NUM_THREADSA);
     std::array<std::thread, NUM_THREADSA> threads;
 
@@ -641,8 +645,8 @@ void Octree::generateFacesOctreeHypothesis(Octnode* parentNodeFace,Octnode* pare
             //not using insert because you have to check if the face is already in the node
             for(Face* face : facesOfVertex){
                 //only add face if not already in mfaces
-                if(!(std::find(parentNodeFace->mFaces.begin(), parentNodeFace->mFaces.end(), face) != parentNodeFace->mFaces.end())){
-                    parentNodeFace->mFaces.push_back(face);
+                if(!(parentNodeFace->mFaces.find(face) != parentNodeFace->mFaces.end())){
+                    parentNodeFace->mFaces.insert(face);
                     //check here if the face is completely in octnode/cube --> if not it is an interesting face for correction
                     if(!parentNodeFace->mCube.isFaceCompletelyInCube(face)){
                         incompleteFaces->push_back(face);
@@ -670,34 +674,49 @@ void Octree::generateFacesOctreeHypothesis(Octnode* parentNodeFace,Octnode* pare
 
 }
 
+void Octree::correctFace(Face *face)
+{
+    //get the nodes where the face is aligned
+    std::vector<Octnode*> faceNodes;
+    if (!getNodesOfFace(faceNodes,face)) {
+        //the face isn't in any node --> faces octree is not correct
+        //TODO: error handling
+    }
+
+    //face is not completely inside the node
+    //get the level of the octree in that the face is completely inside
+    Octnode* parent;
+    parent = faceNodes[0]->mparent;
+    while(!parent->mCube.isFaceCompletelyInCube(face)){
+        parent = parent->mparent;
+        //loop emergency exit
+        if( parent->mlevel == 1 ){
+            break;
+        }
+    }
+    //add face to all nodes that intersects their cube
+    addFaceToAllIntersectedChildren(parent,face);
+
+}
+
 
 void Octree::correctFacesOctree(std::vector<Face *> &facelist){
-    // check all faces (facelist = all faces of the mesh)
-    for(Face* face : facelist){
-        //get the nodes where the face is aligned
-        std::vector<Octnode*> faceNodes;
-        if (!getNodesOfFace(faceNodes,face)) {
-            //the face isn't in any node --> faces octree is not correct
-            //TODO: error handling
-        }
-        //check if the face is only in this cube
-        //it's enough to check the first node because if the face is not completely in one node it is aligned to more then one node
-        //so we have to search the parent node that contains the face completely and search all nodes that the face intersects
-        if (faceNodes.size() > 1 || !faceNodes[0]->mCube.isFaceCompletelyInCube(face)){
-            //face is not completely inside the node
-            //get the level of the opctree in that the face is completely inside
-            Octnode* parent;
-            parent = faceNodes[0]->mparent;
-            while(!parent->mCube.isFaceCompletelyInCube(face)){
-                parent = parent->mparent;
-                //loop emergency exit
-                if( parent->mlevel == 1 ){
-                    break;
-                }
-            }
-            //add face to all nodes that intersects their cube
-            addFaceToAllIntersectedChildren(parent,face);
+    // check all problematic faces (facelist = all faces with more then one node )
 
+    unsigned int i = 0;
+    while(i < facelist.size()){
+        std::vector<std::thread> threads(NUM_THREADSA);
+        // spawn n threads:
+        for (int threadId = 0; threadId < NUM_THREADSA; threadId++) {
+            if(i < facelist.size()){
+                i++;
+            }
+            threads[threadId] = std::thread(&Octree::correctFace, this, std::ref(facelist[i]));
+
+        }
+        //wait until the threads are finished
+        for (auto& th : threads) {
+            th.join();
         }
     }
 }
@@ -710,7 +729,7 @@ void Octree::addFaceToAllIntersectedChildren(Octnode *parentNode, Face *face){
             if(parentNode->mchildren[i]->misleaf){
                 //add if face is not inside
                 if(!parentNode->mchildren[i]->isFaceInside(face)){
-                  parentNode->mchildren[i]->mFaces.push_back(face);
+                  parentNode->mchildren[i]->mFaces.insert(face);
                 }
             }
             else{
@@ -720,6 +739,7 @@ void Octree::addFaceToAllIntersectedChildren(Octnode *parentNode, Face *face){
         }
     }
 }
+
 
 
 /// maximum depth of octree
