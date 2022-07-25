@@ -1419,7 +1419,7 @@ bool MeshGL::selectPrism(
 
 	// Octree required - also time consuming
 	if( mOctree == nullptr ) {
-		generateOctree( 0.05*getVertexNr(), 0 );
+        generateOctree( 0.05*getVertexNr());
 	}
 
 	// Determine processing time - INTERMEDIATE
@@ -1459,11 +1459,11 @@ bool MeshGL::selectPrism(
 	set<Vertex*> cvertexlist;
 	//copy Vertex* from Octnode* ilist to vertexlist
     for(Octnode*& octnode : ilist) {
-		vertexlist.insert( octnode->mElements.begin(), octnode->mElements.end());
+		vertexlist.insert( octnode->mVertices.begin(), octnode->mVertices.end());
 	}
 	//copy Vertex* from Octnode* cilist to cvertexlist
     for(Octnode*& octnode : cilist) {
-		cvertexlist.insert( octnode->mElements.begin(), octnode->mElements.end());
+		cvertexlist.insert( octnode->mVertices.begin(), octnode->mVertices.end());
 	}
 
 	// Determine processing time - INTERMEDIATE

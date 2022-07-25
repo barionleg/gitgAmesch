@@ -283,8 +283,6 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		//.
 		void generateOctree();
 		virtual void generateOctreeVertex(int maxnr);
-		virtual void generateOctreeFace(int maxnr);
-		virtual void generateOctree(int vertexmaxnr, int facemaxnr);
 		virtual void detectselfintersections();
 		void drawOctree();
 		void removeOctreedraw();

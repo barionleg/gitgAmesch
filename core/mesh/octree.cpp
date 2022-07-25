@@ -1,4 +1,4 @@
-//
+﻿//
 // GigaMesh - The GigaMesh Software Framework is a modular software for display,
 // editing and visualization of 3D-data typically acquired with structured light or
 // structure from motion.
@@ -41,71 +41,93 @@ class octreetriangleintersection;
 //! @param vertexlist  @param  center @param maxnr represents the maximum number of vertices per cube
 //! @param edgelen contains the length of edge of the largest cube
 //! Octree is primarily a octree of vertices. A Faceoctree can be created on the base of the vertex octree.
-Octree::Octree(std::vector<Vertex*> &vertexlist, Vector3D* center, unsigned int maxnr, double edgelen, double EdgeLenMax, bool copyelements): mmaxnr(maxnr) {
+Octree::Octree(std::vector<Vertex*> &vertexlist,std::vector<Face*> &facelist, Vector3D* center, unsigned int maxnr, double edgelen, double EdgeLenMax, bool copyelements): mmaxnr(maxnr) {
 
     //max EdgeLen of current mesh
     mEdgeLenMax = EdgeLenMax;
     //current level is 0, as we have done no subdivision so far
     mmaxlevel = 0;
     //create root node
-    mroot = new Octnode(center, 0.5*edgelen);
+    mRootVertices = new Octnode(center, 0.5*edgelen);
     //assign elementlist to root node
-    mroot->mElements = vertexlist;
+    mRootVertices->mVertices = vertexlist;
     //mcopyelements true means that an element may copied to more than one node,
     //e.g. if it is in on the border of the nodes
     mcopyelements = copyelements;
     //start recursive initialization of octree
-    initialize(mroot, 1);
+    initialize(mRootVertices, 1);
+
+    //create face octree
+    mRootFaces = new Octnode(center, 0.5*edgelen);
+    //for all faces inside this vector we have to check in which nodes they intersect
+    generateFacesOctreeHypothesis(mRootFaces,mRootVertices,1,&mIncompleteFaces);
+    correctFacesOctree(mIncompleteFaces);
 }
 
 //! destruct
 Octree::~Octree() {
-    std::vector<Octnode*> nodePtrList;
-    getnodelist(nodePtrList);
+    std::vector<Octnode*> nodeVertPtrList;
+    std::vector<Octnode*> nodeFacePtrList;
+    getnodelist(nodeVertPtrList,VERTEX_OCTREE);
+    getnodelist(nodeFacePtrList,FACE_OCTREE);
     // The following causes a CRASH, because .CLEAR() will try to delete the already deleted entries!!!
     //for(vector<Octnode*>::iterator it= nodelist.begin(); it!= nodelist.end(); ++it) {
     //	delete (*it);
     //}
 
-    for(Octnode* nodePtr : nodePtrList)
+    //delete Vertex octree
+    for(Octnode* nodePtr : nodeVertPtrList)
     {
         delete nodePtr;
     }
-    nodePtrList.clear();
+    nodeVertPtrList.clear();
+
+    //delete Face octree
+    for(Octnode* nodePtr : nodeFacePtrList)
+    {
+        delete nodePtr;
+    }
+    nodeFacePtrList.clear();
 }
 
 
-template <class C>
-bool Octree::traverse_topdown(C& functor) {
-    if(functor(mroot)) {
-        for(int i=0; i<8; ++i) {
-            traverse_topdown(functor, mroot->mchildren[i]);
+
+void Octree::getnodelist(std::vector<Octnode*>& nodelist, eTreeType treeType) {
+    if( treeType == VERTEX_OCTREE ){
+        nodelist = mRootVertices->getNodeList();
+    }
+    else if( treeType == FACE_OCTREE){
+        nodelist = mRootFaces->getNodeList();
+    }
+}
+
+bool Octree::getNodesOfFace(std::vector<Octnode *> &nodelist, Face *face){
+    std::vector<Octnode *> allNodes;
+    allNodes = mRootFaces->getNodeList();
+
+    for(Octnode* node : allNodes){
+        if(node->isFaceInside(face)){
+            nodelist.push_back(node);
         }
     }
-    return true;
-}
-
-template <class C>
-bool Octree::traverse_topdown(C& functor, Octnode* cnode) {
-    if(functor(cnode)) {
-        for(int i=0; i<8; ++i) {
-            traverse_topdown(functor, cnode->mchildren[i]);
-        }
+    if( nodelist.size() == 0){
+        return false;
     }
     return true;
-}
-
-void Octree::getnodelist(std::vector<Octnode*>& nodelist) {
-    //gnl tmp(nodelist);
-    //traverse_topdown(tmp);
 }
 void Octree::getnodesinlevel(std::vector<Octnode*>& nodelist, unsigned int i) {
     //gnlinlvl<T> tmp(nodelist, i);
     //traverse_topdown(tmp);
 }
 //!get all nodes of the octree with vertices inside (leafnodes)
-void Octree::getleafnodes(std::vector<Octnode*>& nodelist) {
-    nodelist = mroot->getLeafNodes();
+void Octree::getleafnodes(std::vector<Octnode*>& nodelist, eTreeType treeType) {
+    if( treeType == VERTEX_OCTREE ){
+        nodelist = mRootVertices->getLeafNodes();
+    }
+    else if( treeType == FACE_OCTREE){
+        nodelist = mRootFaces->getLeafNodes();
+    }
+
 }
 /**
 //!get all nodes of the octree with vertices inside (leafnodes)
@@ -440,9 +462,10 @@ bool Octree::twovert(std::vector<Face*>::iterator& kt, std::vector<Face*>::itera
 
 
 //! @param[out] sif contains pointers to self intersectiing faces
+//!
 void Octree::detectselfintersections(std::vector<Face*>& sif) {
     std::vector<Octnode*> nodelist;
-    getleafnodes(nodelist);
+    getleafnodes(nodelist,VERTEX_OCTREE);
 
     using p = std::pair<std::vector<Octnode*>::iterator,
     std::vector<Octnode*>::iterator>;
@@ -538,7 +561,7 @@ void Octree::oointers(Vertex* object, Octnode* cnode) {
              fabs( y - cnode->mchildren[j]->mCube.mcenter.getY() ) <= 0.5*cnode->mCube.mscale &&
              fabs( z - cnode->mchildren[j]->mCube.mcenter.getZ() ) <= 0.5*cnode->mCube.mscale   ) {
 
-            cnode->mchildren[j]->mElements.push_back(object);
+            cnode->mchildren[j]->mVertices.push_back(object);
             if(mcopyelements==false) {
                 break;
             }
@@ -573,9 +596,9 @@ bool Octree::initialize(Octnode* cnode, unsigned int clevel) {
     mmaxlevel = clevel;
 
     //decide if to further subdivide or mark octnode as leaf
-    if ( mmaxnr < cnode->mElements.size() &&
-         clevel < mmaxlevelpermitted &&
-         mEdgeLenMax < cnode->mCube.mscale ) {
+    if ( mmaxnr < cnode->mVertices.size() &&
+         clevel < mmaxlevelpermitted){ //&&
+         //mEdgeLenMax < cnode->mCube.mscale ) {
 
         //create children
         for ( unsigned int i=0; i<8; ++i ) {
@@ -583,13 +606,13 @@ bool Octree::initialize(Octnode* cnode, unsigned int clevel) {
         }
 
         //assign vertices to children
-        for (typename std::vector<Vertex*>::iterator it = cnode->mElements.begin(); it!=cnode->mElements.end(); ++it) {
+        for (typename std::vector<Vertex*>::iterator it = cnode->mVertices.begin(); it!=cnode->mVertices.end(); ++it) {
             oointers(*it, cnode);
         }
 
 
         //delete vertices in node above
-        cnode->mElements.clear();
+        cnode->mVertices.clear();
 
 
         //next level
@@ -605,10 +628,99 @@ bool Octree::initialize(Octnode* cnode, unsigned int clevel) {
     return true;
 }
 
+void Octree::generateFacesOctreeHypothesis(Octnode* parentNodeFace,Octnode* parentNodeVertex, unsigned int treeLevel, std::vector<Face*> *incompleteFaces){
+    //traverse through the vertex octree
+    //create the same nodes for the face octree
+    //if the node is a leaf node, then add all involved faces of the vertices to the new node
+    if( parentNodeVertex->misleaf ){
+        parentNodeFace->misleaf = true;
+        // get all faces of the vertices inside the node
+        for( unsigned int i=0; i < parentNodeVertex->mVertices.size(); i++){
+            std::vector<Face*> facesOfVertex;
+            parentNodeVertex->mVertices[i]->getFaces(&facesOfVertex);
+            //not using insert because you have to check if the face is already in the node
+            for(Face* face : facesOfVertex){
+                //only add face if not already in mfaces
+                if(!(std::find(parentNodeFace->mFaces.begin(), parentNodeFace->mFaces.end(), face) != parentNodeFace->mFaces.end())){
+                    parentNodeFace->mFaces.push_back(face);
+                    //check here if the face is completely in octnode/cube --> if not it is an interesting face for correction
+                    if(!parentNodeFace->mCube.isFaceCompletelyInCube(face)){
+                        incompleteFaces->push_back(face);
+                    }
+                }
+            }
+
+            //parentNodeFace->mFaces.insert(parentNodeFace->mFaces.end(), facesOfVertex.begin(), facesOfVertex.end());
+        }
+    }
+    else{
+        //create children
+        parentNodeFace->misleaf = false;
+        for ( unsigned int i=0; i<8; ++i ) {
+            parentNodeFace->mchildren[i] = new Octnode(parentNodeFace, i);
+        }
+
+        //next level
+        for ( unsigned int i=0; i<8; ++i ) {
+            std::vector<Face*> tmpIncompleteFaces;
+            generateFacesOctreeHypothesis(parentNodeFace->mchildren[i],parentNodeVertex->mchildren[i], treeLevel + 1, &tmpIncompleteFaces);
+            incompleteFaces->insert(incompleteFaces->begin(),tmpIncompleteFaces.begin(),tmpIncompleteFaces.end());
+        }
+    }
+
+}
 
 
-/// pointer to the root node
-Octnode* mroot;
+void Octree::correctFacesOctree(std::vector<Face *> &facelist){
+    // check all faces (facelist = all faces of the mesh)
+    for(Face* face : facelist){
+        //get the nodes where the face is aligned
+        std::vector<Octnode*> faceNodes;
+        if (!getNodesOfFace(faceNodes,face)) {
+            //the face isn't in any node --> faces octree is not correct
+            //TODO: error handling
+        }
+        //check if the face is only in this cube
+        //it's enough to check the first node because if the face is not completely in one node it is aligned to more then one node
+        //so we have to search the parent node that contains the face completely and search all nodes that the face intersects
+        if (faceNodes.size() > 1 || !faceNodes[0]->mCube.isFaceCompletelyInCube(face)){
+            //face is not completely inside the node
+            //get the level of the opctree in that the face is completely inside
+            Octnode* parent;
+            parent = faceNodes[0]->mparent;
+            while(!parent->mCube.isFaceCompletelyInCube(face)){
+                parent = parent->mparent;
+                //loop emergency exit
+                if( parent->mlevel == 1 ){
+                    break;
+                }
+            }
+            //add face to all nodes that intersects their cube
+            addFaceToAllIntersectedChildren(parent,face);
+
+        }
+    }
+}
+
+void Octree::addFaceToAllIntersectedChildren(Octnode *parentNode, Face *face){
+    //get all children that the face intersects
+    for ( unsigned int i=0; i<8; ++i ) {
+        if( parentNode->mchildren[i]->mCube.trianglecubeintersection(face) ){
+            // deeper into the tree if not a leaf node
+            if(parentNode->mchildren[i]->misleaf){
+                //add if face is not inside
+                if(!parentNode->mchildren[i]->isFaceInside(face)){
+                  parentNode->mchildren[i]->mFaces.push_back(face);
+                }
+            }
+            else{
+                addFaceToAllIntersectedChildren(parentNode->mchildren[i],face);
+            }
+
+        }
+    }
+}
+
 
 /// maximum depth of octree
 unsigned int mmaxlevel;

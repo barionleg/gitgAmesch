@@ -97,7 +97,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 
 	public:
 		// Octree
-		virtual void generateOctree( int vertexmaxnr, int facemaxnr );
+        virtual void generateOctree( int vertexmaxnr);
 
 		// Information retrival - overloaded from Primitive:
 		virtual double   getX() const;

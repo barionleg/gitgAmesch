@@ -1612,7 +1612,7 @@ bool MeshQt::applyNormalShift(){
 
 	if( userAnswerYes ){
 		cout << "[generateOctree] Start..." << endl;
-		MeshQt::generateOctree(500, 1000);
+        MeshQt::generateOctreeVertex(500);
 		cout << "[generateOctree] Done." << endl;
 
 		cout << "[detectselfintersections] Start..." << endl;
@@ -3022,13 +3022,7 @@ void MeshQt::generateOctree() {
 }
 
 void MeshQt::generateOctreeVertex(int maxnr) {
-	MeshGL::generateOctree(maxnr, -1);
-}
-void MeshQt::generateOctreeFace(int maxnr) {
-	MeshGL::generateOctree(-1, maxnr);
-}
-void MeshQt::generateOctree(int vertexmaxnr, int facemaxnr) {
-	MeshGL::generateOctree(vertexmaxnr, facemaxnr);
+    MeshGL::generateOctree(maxnr);
 }
 
 void MeshQt::detectselfintersections() {
@@ -3047,48 +3041,37 @@ void MeshQt::detectselfintersections() {
 
 void MeshQt::drawOctree() {
 
-	//actionViewDatumBoxes is used to draw boxes of octree
-	if( ! mMainWindow->actionViewDatumBoxes->isChecked() ) {
-		mMainWindow->actionViewDatumBoxes->trigger();
-	}
+    //actionViewDatumBoxes is used to draw boxes of octree
+    if( ! mMainWindow->actionViewDatumBoxes->isChecked() ) {
+        mMainWindow->actionViewDatumBoxes->trigger();
+    }
 
-	QStringList Element;
-	Element<< QString("Vertex") << QString("Face");
-	bool ok=false;
-	QString text =  QInputDialog::getItem(nullptr, tr("Draw Octree"),tr("Element"), Element, 0, false, &ok);
+    /**
+    QStringList Element;
+    Element<< QString("Vertex") << QString("Face");
+    bool ok=false;
+    QString text =  QInputDialog::getItem(nullptr, tr("Draw Octree"),tr("Element"), Element, 0, false, &ok);
 
-	if(!ok) return;
+    if(!ok) return;
+    **/
 
-	if (text == "Vertex") {
-		if ( mOctree != nullptr ) {
-			cout<<"OCTREE DRAW Vertex"<<endl;
-            vector<Octnode*> nodelist;
-			mOctree->getnodelist(nodelist);
-			Vector3D cubeboxx(1.0, 0.0, 0.0);
-			Vector3D cubeboxy(0.0, 1.0, 0.0);
-			Vector3D cubeboxz(0.0, 0.0, 1.0);
-            for (Octnode*& octnode : nodelist) {
-				 RectBox* someBox = new RectBox( octnode->mCube.mcenter, octnode->mCube.mscale * cubeboxx, octnode->mCube.mscale * cubeboxy, octnode->mCube.mscale * cubeboxz );
-				 mDatumBoxes.push_back( someBox );
-			}
-		}
-		else cout << "NO OCTREE CONSTRUCTED: DO THIS FIRST!" << endl;
-	}
-	if (text == "Face") {
-		if(mOctreeface != nullptr) {
-			cout<<"OCTREE DRAW Face"<<endl;
-            vector<Octnode*> nodelist;
-			mOctreeface->getnodelist(nodelist);
-			Vector3D cubeboxx(1.0, 0.0, 0.0);
-			Vector3D cubeboxy(0.0, 1.0, 0.0);
-			Vector3D cubeboxz(0.0, 0.0, 1.0);
-            for (Octnode*& octnode : nodelist) {
-				 RectBox* someBox = new RectBox( octnode->mCube.mcenter, octnode->mCube.mscale * cubeboxx, octnode->mCube.mscale * cubeboxy, octnode->mCube.mscale * cubeboxz );
-				 mDatumBoxes.push_back( someBox );
-			}
-		}
-		else cout<<"NO OCTREE CONSTRUCTED: DO THIS FIRST!"<<endl;
-	}
+    if ( mOctree != nullptr ) {
+
+        cout<<"OCTREE DRAW Vertex"<<endl;
+        vector<Octnode*> nodelist;
+        mOctree->getnodelist(nodelist,Octree::VERTEX_OCTREE);
+        //mOctree->getleafnodes(nodelist);
+        Vector3D cubeboxx(1.0, 0.0, 0.0);
+        Vector3D cubeboxy(0.0, 1.0, 0.0);
+        Vector3D cubeboxz(0.0, 0.0, 1.0);
+        for (Octnode*& octnode : nodelist) {
+            RectBox* someBox = new RectBox( octnode->mCube.mcenter, octnode->mCube.mscale * cubeboxx, octnode->mCube.mscale * cubeboxy, octnode->mCube.mscale * cubeboxz );
+            mDatumBoxes.push_back( someBox );
+        }
+
+
+    }
+    else cout<<"NO OCTREE CONSTRUCTED: DO THIS FIRST!"<<endl;
 
 }
 
@@ -3104,7 +3087,11 @@ void MeshQt::removeOctreedraw() {
 
 void MeshQt::deleteOctree() {
 	removeOctreedraw();
+    delete mOctree;
+    mOctree = nullptr;
+    cout<<"Octree Vertex deleted"<<endl;
 
+    /**
 	QStringList Element;
 	Element<< QString("Vertex") << QString("Face")<< QString("both");
 	bool ok=false;
@@ -3130,6 +3117,7 @@ void MeshQt::deleteOctree() {
 		cout<<"Octree Vertex deleted"<<endl;
 		cout<<"Octree Face deleted"<<endl;
 	}
+    **/
 
 }
 

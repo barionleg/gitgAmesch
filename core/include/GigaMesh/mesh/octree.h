@@ -38,19 +38,25 @@ public:
     //! @param vertexlist  @param  center @param maxnr represents the maximum number of vertices per cube
     //! @param edgelen contains the length of edge of the largest cube
     //! Octree is primarily a octree of vertices. A Faceoctree can be created on the base of the vertex octree.
-    Octree(std::vector<Vertex*> &vertexlist, Vector3D* center, unsigned int maxnr, double edgelen, double EdgeLenMax, bool copyelements=true);
+    Octree(std::vector<Vertex*> &vertexlist,std::vector<Face*> &facelist, Vector3D* center, unsigned int maxnr, double edgelen, double EdgeLenMax, bool copyelements=true);
 
 	//! destruct
     ~Octree();
 
-    template <class C>
-    bool traverse_topdown(C& functor);
-
-    template <class C>
-    bool traverse_topdown(C& functor, Octnode* cnode);
-    void getnodelist(std::vector<Octnode*>& nodelist);
     void getnodesinlevel(std::vector<Octnode*>& nodelist, unsigned int i);
-    void getleafnodes(std::vector<Octnode*>& nodelist);
+
+    enum eTreeType {
+        VERTEX_OCTREE, //!< Octree of Vertices (Vertices inside the Leafnodes)
+        FACE_OCTREE //!< Octree of Faces (Faces inside the Leafnodes)
+    };
+
+    void getleafnodes(std::vector<Octnode*>& nodelist, eTreeType treeType);
+    void getnodelist(std::vector<Octnode*>& nodelist,  eTreeType treeType);
+
+    //! get all nodes of the faces octree with the face inside
+    //! return false if the face is not in any node
+    bool getNodesOfFace(std::vector<Octnode*>& nodelist, Face* face);
+
     //get leaf nodes contained in cnode
     //void getleafnodes(std::vector<Octnode*>& nodelist, Octnode * cnode);
     void getlineintersection(std::vector<Octnode*>& nodelist, Vector3D &a, Vector3D &b);
@@ -91,9 +97,24 @@ private:
 	//helper function for recursive construction (we do not want to call the constructor recursively)
     bool initialize(Octnode* cnode, unsigned int clevel);
 
+    //! generate a faces octree with the base of the vertex octree
+    //! each assigned face of a vertex inside a node becomes part of the same node in the face octree
+    //! face octree has the same nodes like the vertex octree
+    //! @param[incompleteFaces] are all faces which are not completely inside a node
+    void generateFacesOctreeHypothesis(Octnode* parentNodeFace,Octnode* parentNodeVertex, unsigned int treeLevel, std::vector<Face*> *incompletFaces);
+    //! check if each face is only inside the initial assigned node/cube
+    //! otherwise search all nodes/cube that are intersected by the face
+    //!
+    //! TODO: Change Faces vector to set because the verification if a face is inside has a runtime log n and vector has n
+    void correctFacesOctree(std::vector<Face*> &facelist);
+    void addFaceToAllIntersectedChildren(Octnode* parentNode, Face* face);
 
-	/// pointer to the root node
-    Octnode* mroot;
+    /// pointer to the root node of the vertex octree
+    Octnode* mRootVertices;
+    /// pointer to the root node of the face octree
+    Octnode* mRootFaces;
+    ///all face with more than one node
+    std::vector<Face*> mIncompleteFaces;
 
 	/// maximum depth of octree
 	unsigned int mmaxlevel;

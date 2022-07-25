@@ -1183,13 +1183,11 @@ void Mesh::establishStructure(
 //! Generates Octree(s)
 //! @param[in] vertexmaxnr maximum number of vertices per cube
 //!            if vertexmaxnr==-1 no new octree vertex will be constructed
-//! @param[in] facemaxnr maximum number of faces per cube
-//!            if facemaxnr==-1 no new octree face will be constructed
-void Mesh::generateOctree(int vertexmaxnr,int facemaxnr) {
+void Mesh::generateOctree(int vertexmaxnr) {
 
 	//if bad estimate for a small mesh suggests to choose 0 elements per cube
 	if(vertexmaxnr == 0) vertexmaxnr = 5;
-	if(facemaxnr == 0) facemaxnr = 7;
+    //if(facemaxnr == 0) facemaxnr = 7;
 
 	//get boundingbox size for largest cube of octree
 	double h=getEdgeLenMax();
@@ -1200,17 +1198,35 @@ void Mesh::generateOctree(int vertexmaxnr,int facemaxnr) {
 
 	if (vertexmaxnr > 0) {
         delete mOctree;
-        mOctree = new Octree(mVertices, &center, vertexmaxnr, edgelen, h);
+        mOctree = new Octree(mVertices, mFaces, &center, vertexmaxnr, edgelen, h);
 		mOctree->dumpInfo();
 
         //test
-        std::vector<Octnode*> nodes;
-        mOctree->getleafnodes(nodes);
-        for( unsigned int i=0; i < nodes.size(); i++){
-            for( unsigned int j=0; j < nodes[i]->mElements.size(); j++){
-                nodes[i]->mElements[j]->setLabel(i);
+        std::vector<Octnode*> nodesFaces;
+        mOctree->getleafnodes(nodesFaces,Octree::FACE_OCTREE);
+
+        for( unsigned int i=0; i < nodesFaces.size(); i++){
+            for( unsigned int j=0; j < nodesFaces[i]->mFaces.size(); j++){
+                //check more than one node
+                bool oneNode = true;
+                for(Octnode* node: nodesFaces){
+                    if(node != nodesFaces[i] && node->isFaceInside(nodesFaces[i]->mFaces[j])){
+                        oneNode = false;
+                    }
+                }
+                if (oneNode){
+                    nodesFaces[i]->mFaces[j]->getVertA()->setLabel(1);
+                    nodesFaces[i]->mFaces[j]->getVertB()->setLabel(1);
+                    nodesFaces[i]->mFaces[j]->getVertC()->setLabel(1);
+                }
+                else{
+                    nodesFaces[i]->mFaces[j]->getVertA()->setLabel(3);
+                    nodesFaces[i]->mFaces[j]->getVertB()->setLabel(3);
+                    nodesFaces[i]->mFaces[j]->getVertC()->setLabel(3);
+                }
             }
         }
+
         labelsChanged();
 	}
     /**

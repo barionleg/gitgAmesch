@@ -20,6 +20,7 @@
 // along with GigaMesh.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <GigaMesh/mesh/octnode.h>
+#include <algorithm>
 
 // Constructor for the root node.
 Octnode::Octnode( Vector3D* center, double scale ) : \
@@ -39,6 +40,15 @@ Octnode::Octnode( Octnode* parent, int nr ) : \
     // do nothing
 }
 
+Octnode::Octnode(Octnode &copy) :\
+    OCTNODEDEFAULTS,              \
+    mlevel(copy.mlevel),       \
+    mCube(copy.mCube),            \
+    mVertices(copy.mVertices)
+{
+   // do nothing
+}
+
 
 
 //!get all the leaf nodes of the octnode
@@ -48,10 +58,13 @@ std::vector<Octnode*> Octnode::getLeafNodes(){
     //check all children of the node
     for( unsigned int i=0; i < 8; i++){
         if(mchildren[i]->misleaf == true){
-            leafNodes.push_back(mchildren[i]);
+            //nodes without vertices or faces are not interesting
+            if(mchildren[i]->mVertices.size() > 0 || mchildren[i]->mFaces.size() > 0){
+                leafNodes.push_back(mchildren[i]);
+            }
         }
         else{
-            //search in the child
+            //search in the children
             std::vector<Octnode*> tmpNodes;
             tmpNodes = mchildren[i]->getLeafNodes();
             leafNodes.insert(leafNodes.end(), tmpNodes.begin(), tmpNodes.end());
@@ -59,6 +72,32 @@ std::vector<Octnode*> Octnode::getLeafNodes(){
     }
 
     return leafNodes;
+}
+
+//! traverse all children recursive until all nodes were added
+std::vector<Octnode*> Octnode::getNodeList(){
+    std::vector<Octnode*> nodes;
+    //check all children of the node
+    for( unsigned int i=0; i < 8; i++){
+        if(mchildren[i]->misleaf == false){
+            //search in the child
+            std::vector<Octnode*> tmpNodes;
+            tmpNodes = mchildren[i]->getNodeList();
+            nodes.insert(nodes.end(), tmpNodes.begin(), tmpNodes.end());
+        }
+        nodes.push_back(mchildren[i]);
+    }
+
+    return nodes;
+}
+
+bool Octnode::isFaceInside(Face *face){
+    if(std::find(mFaces.begin(), mFaces.end(), face) != mFaces.end()) {
+        return true;
+    } else {
+        return false;
+    }
+
 }
 
 /// comparison function to sort nodes by level

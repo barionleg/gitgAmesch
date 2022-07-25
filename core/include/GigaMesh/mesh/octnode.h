@@ -44,7 +44,12 @@ public:
 	// Constructor for a child node.
     Octnode( Octnode* parent, int nr );
 
+    //copy constructor
+    Octnode( Octnode &copy);
+
     std::vector<Octnode*> getLeafNodes();
+    std::vector<Octnode*> getNodeList();
+    bool isFaceInside(Face *face);
 	// Destructor
 //	~Octnode();
 
@@ -60,7 +65,10 @@ public:
 	Cube mCube;
 
 	/// vertices inside this node
-    std::vector<Vertex*> mElements;
+    std::vector<Vertex*> mVertices;
+
+    /// faces inside the node
+    std::vector<Face*> mFaces;
 
     static bool compareoctnode( Octnode* rNode1, Octnode* rNode2 );
 };
