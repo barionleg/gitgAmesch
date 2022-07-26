@@ -478,7 +478,7 @@ bool MeshInfoData::writeMeshInfoProcess(
     ttlmeta+="giga:"+actid+" prov:endedAtTime \""+std::string(endTimeBuf)+"\"^^xsd:dateTime .\n";
     ttlmeta+="giga:"+actid+" prov:used giga:"+indid+" .\n";
     ttlmeta+="giga:"+newindid+" rdf:type giga:Mesh .\n";
-    ttlmeta+="giga:"+newindid+" dc:license <https://creativecommons.org/licenses/by-sa/4.0/> .\n"
+    ttlmeta+="giga:"+newindid+" dc:license <https://creativecommons.org/licenses/by-sa/4.0/> .\n";
     ttlmeta+="giga:"+newindid+" prov:wasGeneratedBy giga:"+actid+" .\n";
     ttlmeta+="giga:"+newindid+" prov:wasDerivedFrom giga:"+indid+" .\n";
     ttlmeta+="giga:"+newindid+" prov:wasAttributedTo giga:"+funcid+" .\n";
