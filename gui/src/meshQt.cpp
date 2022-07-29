@@ -3027,15 +3027,15 @@ void MeshQt::generateOctreeVertex(int maxnr) {
 
 void MeshQt::detectselfintersections() {
 	// Sanity check
-	if( mOctreeface == nullptr ) {
-		cerr << "[MeshQt::" << __FUNCTION__ << "] ERROR: No octree for faces defined!" << endl;
-		SHOW_MSGBOX_WARN( tr("Octree missing"), tr("No octree for faces defined!") );
+    if( mOctree == nullptr ) {
+        cerr << "[MeshQt::" << __FUNCTION__ << "] ERROR: No octree defined!" << endl;
+        SHOW_MSGBOX_WARN( tr("Octree missing"), tr("No octree defined!") );
 		return;
 	}
 
-	vector<Face*> tmp;
-	mOctreeface->detectselfintersections(tmp);
-	mFacesSelected.insert(tmp.begin(), tmp.end());
+    vector<Face*> intersectedFaces;
+    mOctree->detectselfintersections(intersectedFaces);
+    mFacesSelected.insert(intersectedFaces.begin(), intersectedFaces.end());
 	selectedMFacesChanged();
 }
 

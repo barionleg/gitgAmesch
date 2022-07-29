@@ -785,9 +785,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 
 		// Binary Space Partitioning -- Octree
 	protected:
-        Octree*   mOctree     = nullptr;          //! Octree handling the Vertices stored in mVertices and the faces.
-        //!TODO mOctreeface entfernen
-        Octree*   mOctreeface = nullptr;          //! Octree handling the Faces stored in mFaces.
+        Octree*   mOctree     = nullptr;          //! Octree handling the Vertices stored in mParentVertices and the mParentFaces.
 
 		// Primitves describing the Mesh:
 		std::vector<Vertex*> mVertices;   //!< Vertices of the Mesh.

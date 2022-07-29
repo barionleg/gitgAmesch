@@ -1170,9 +1170,6 @@ void Mesh::establishStructure(
     delete mOctree;
 	mOctree = nullptr;
 
-    delete mOctreeface;
-	mOctreeface = nullptr;
-
 	//timeStart = clock(); // for performance mesurement
 	// TODO: provide better estimate for small meshes
 	//generateOctree( 0.05*mVertices.size(), 0.05*mFaces.size() );
@@ -1197,42 +1194,14 @@ void Mesh::generateOctree(int vertexmaxnr) {
 	double edgelen = max( size.getX(), max( size.getY(), size.getZ() ) );
 
 	if (vertexmaxnr > 0) {
+        if (vertexmaxnr > mVertices.size()){
+            vertexmaxnr = round(mVertices.size()/4);
+        }
         delete mOctree;
         mOctree = new Octree(mVertices, mFaces, &center, vertexmaxnr, edgelen, h);
 		mOctree->dumpInfo();
 
-        //test
-        std::vector<Octnode*> nodesFaces;
-        mOctree->getleafnodes(nodesFaces,Octree::FACE_OCTREE);
 
-        for( unsigned int i=0; i < nodesFaces.size(); i++){
-            for( Face* face : nodesFaces[i]->mFaces){
-                face->getVertA()->setLabel(i);
-                face->getVertB()->setLabel(i);
-                face->getVertC()->setLabel(i);
-                //check more than one node
-                /**
-                bool oneNode = true;
-                for(Octnode* node: nodesFaces){
-                    if(node != nodesFaces[i] && node->isFaceInside(face)){
-                        oneNode = false;
-                    }
-                }
-                if (oneNode){
-                    face->getVertA()->setLabel(1);
-                    face->getVertB()->setLabel(1);
-                    face->getVertC()->setLabel(1);
-                }
-                else{
-                    face->getVertA()->setLabel(3);
-                    face->getVertB()->setLabel(3);
-                    face->getVertC()->setLabel(3);
-                }
-                **/
-            }
-        }
-
-        labelsChanged();
 	}
     /**
 	if (facemaxnr > 0) {
@@ -10093,9 +10062,6 @@ bool Mesh::removeVertices( set<Vertex*>* verticesToRemove ) {
 	delete mOctree;
 	mOctree = nullptr;
 	cout << "[Mesh::" << __FUNCTION__ << "] Octree for vertices removed." << endl;
-	delete mOctreeface;
-	mOctreeface = nullptr;
-	cout << "[Mesh::" << __FUNCTION__ << "] Octree for faces removed." << endl;
 
 	return true;
 }

@@ -1442,7 +1442,7 @@ bool MeshGL::selectPrism(
 		}
 		TriangularPrism tritmp(selectBeam);
 
-		mOctree->gettriangleintersection( ilist, cilist, mLines, tritmp );
+        mOctree->gettriangleintersection( ilist, cilist, mLines, tritmp );
 	}
 
 	// CILIST is often empty. However, it has to be collected.

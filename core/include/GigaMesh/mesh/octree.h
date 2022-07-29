@@ -30,7 +30,7 @@
 #include "octnode.h"
 #include "rectbox.h"
 #include "face.h"
-
+#include "showprogress.h"
 
 class Octree {
 
@@ -57,36 +57,23 @@ public:
     //! return false if the face is not in any node
     bool getNodesOfFace(std::vector<Octnode*>& nodelist, Face* face);
 
-    //get leaf nodes contained in cnode
-    //void getleafnodes(std::vector<Octnode*>& nodelist, Octnode * cnode);
-    void getlineintersection(std::vector<Octnode*>& nodelist, Vector3D &a, Vector3D &b);
-    void getleaflineintersection(std::vector<Octnode*>& nodelist, Vector3D &a, Vector3D &b);
-    void gettriangleintersection(std::vector<Octnode *>& nodelist, std::vector<Octnode*>& cnodelist,
-                                 std::vector<Line> &drawlines, TriangularPrism& tri);
-
-
 	bool twovert(std::vector<Face*>::iterator& kt, std::vector<Face*>::iterator& jt, std::vector<Face*>& sif,
                  Line& l1, Line& l2, Line& l3);
 
 
-	void detectselfintersectionst(std::vector<Face*>& sif,
-        std::pair< std::vector<Octnode*>::iterator,
-                             std::vector<Octnode*>::iterator > & p);
-
-
 	//! @param[out] sif contains pointers to self intersectiing faces
     void detectselfintersections(std::vector<Face*>& sif);
+
+    //!get triangle intersection of the Triangular prism tri
+    void gettriangleintersection(std::vector<Octnode*>& nodelist, std::vector<Octnode*>& cnodelist,
+                                     std::vector<Line> &drawlines, TriangularPrism& tri);
 	//! prints number of levels and number of nodes in each level and total number of nodes
     bool dumpInfo();
-
-
-    /**
 	//! prints all centers of octnodes
     bool dumpInfov();
-
 	//! prints all centers of octnodes and corresponding vertices
     bool dumpInfovlong();
-**/
+
 
 private:
 
@@ -109,12 +96,22 @@ private:
     //!method for parallel compution of correctFacesOctree
     void correctFace(Face* face);
 
+    //!contains the implementation of Tomas Moeller A Fast Triangle-Triangle Intersection Test
+    //! obsolete and not tested
+    bool areFacesIntersected(Face* faceA, Face* faceB);
+    //!helper function of detectselfintersections for parallel threads
+    //! check for one face if it has an intersection with all following faces
+    //! the function only checks the following faces inside the vector because the predecessors are already checked
+    //! @param[nodeFace] all faces of a octree node
+    void checkIntersectionOfFaceToOtherFaces(std::vector<Face*> nodeFaces, unsigned int faceIterator);
     /// pointer to the root node of the vertex octree
     Octnode* mRootVertices;
     /// pointer to the root node of the face octree
     Octnode* mRootFaces;
-    ///all face with more than one node
+    ///all faces with more than one node
     std::vector<Face*> mIncompleteFaces;
+    ///all faces which are intersected by an other face
+    std::vector<Face*> mSelfIntersectedFaces;
 
 	/// maximum depth of octree
 	unsigned int mmaxlevel;

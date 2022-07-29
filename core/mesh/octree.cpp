@@ -22,20 +22,9 @@
 
 #include <GigaMesh/mesh/octree.h>
 
-//forward declaration of functors, because they are used in class Octree
-//we use functors, because we dont want overloading like this for each getter function:
-//getnodelist(nodelist) and getnodelist(nodelist, cnode)
-//and getnodelist(nodelist, cnode=mroot) is invalid c++03/11 if mroot is non-static member
-class gnl;
-class gnlinlvl;
-template <class T>
-class octreelineintersection;
-template <class T>
-class octreeleaflineintersection;
-template <class T>
-class octreetriangleintersection;
 
 
+const auto NUM_THREADS = std::thread::hardware_concurrency() * 2;
 
 
 //! @param vertexlist  @param  center @param maxnr represents the maximum number of vertices per cube
@@ -119,8 +108,13 @@ bool Octree::getNodesOfFace(std::vector<Octnode *> &nodelist, Face *face){
     return true;
 }
 void Octree::getnodesinlevel(std::vector<Octnode*>& nodelist, unsigned int i) {
-    //gnlinlvl<T> tmp(nodelist, i);
-    //traverse_topdown(tmp);
+    std::vector<Octnode*> nodes;
+    nodes = mRootVertices->getNodeList();
+    for(Octnode* node : nodes){
+        if( node->mlevel == i){
+            nodelist.push_back(node);
+        }
+    }
 }
 //!get all nodes of the octree with vertices inside (leafnodes)
 void Octree::getleafnodes(std::vector<Octnode*>& nodelist, eTreeType treeType) {
@@ -132,359 +126,73 @@ void Octree::getleafnodes(std::vector<Octnode*>& nodelist, eTreeType treeType) {
     }
 
 }
-/**
-//!get all nodes of the octree with vertices inside (leafnodes)
-//get leaf nodes contained in cnode
-void Octree::getleafnodes(std::vector<Octnode*>& nodelist, Octnode * cnode) {
-    //gnlleaf<T> tmp(nodelist);
-    //traverse_topdown(tmp, cnode);
-}
-**/
-void Octree::getlineintersection(std::vector<Octnode*>& nodelist, Vector3D &a, Vector3D &b) {
-    //octreelineintersection<T> tmp(nodelist, a, b);
-    //traverse_topdown(tmp);
-}
-void Octree::getleaflineintersection(std::vector<Octnode*>& nodelist, Vector3D &a, Vector3D &b) {
-    //octreeleaflineintersection<T> tmp(nodelist, a, b);
-    //traverse_topdown(tmp);
-}
-void Octree::gettriangleintersection(std::vector<Octnode *>& nodelist, std::vector<Octnode*>& cnodelist,
-                                     std::vector<Line> &drawlines, TriangularPrism& tri) {
-    //octreetriangleintersection<T> tmp(nodelist, cnodelist, drawlines, tri);
-    //traverse_topdown(tmp);
-}
 
 
 
-
-/*	std::vector<p> splitelements(std::vector<int> &v, size_t elementsPerThread) {
-        std::vector<p> ranges;
-
-        size_t range_count = (v.size()+1) / elementsPerThread+1;
-        size_t ePT = v.size() / range_count;
-
-        size_t i;
-
-        it b = v.begin();
-
-        for (i=0; i<v.size()-ePT; i+=ePT)
-            ranges.push_back(std::make_pair(b+i, b+i+ePT));
-
-        ranges.push_back(std::make_pair(b+i, v.end()));
-        return ranges;
-    }
-*/
-template <typename X>
-std::vector<std::pair<typename std::vector<X>::iterator, typename std::vector<X>::iterator>>
-splitthreads(std::vector<X> &v, size_t numberOfThreads) {
-
-    std::vector<std::pair<typename std::vector<X>::iterator, typename std::vector<X>::iterator>> ranges;
-    size_t h;
-    typename std::vector<X>::iterator b = v.begin();
-    size_t i;
-
-    h = v.size()/numberOfThreads;
-
-    for(i=0; i<numberOfThreads-1; ++i) {
-        ranges.push_back(std::make_pair( b+(h*i), b+h*(i+1) ));
-    }
-
-    ranges.push_back(std::make_pair(b+i*h, v.end()));
-
-    return ranges;
-}
-
-
-//helper function for detectselfintersectionst
-// check the cases where one or two vertices are in common
-// and check the (ugly) case where the ramaining vertex lies inside the other face
-//return false means that we have found intersection between the two faces ,
-//or that intersection is not possible at all, so we dont have to investigate further
-//return true means we have found no  intersection and the other tests for intersection will be executed
-bool Octree::twovert(std::vector<Face*>::iterator& kt, std::vector<Face*>::iterator& jt, std::vector<Face*>& sif,
-                     Line& l1, Line& l2, Line& l3) {
-
-    Vector3D tmp;
-    int h;
-
-    //if two faces have one vertex in common, dont check the edges
-    //connected to that vertex, because its error prone due to numerical rounding
-    if( (*kt)->getVertA() == (*jt)->getVertA() ||
-            (*kt)->getVertB() == (*jt)->getVertA() ||
-            (*kt)->getVertC() == (*jt)->getVertA() ) {
-
-        //if two vertices in common, we just need to check if one of
-        //the remaining vertices is in the other face
-        if( (*kt)->getVertA() == (*jt)->getVertB() ||
-                (*kt)->getVertB() == (*jt)->getVertB() ||
-                (*kt)->getVertC() == (*jt)->getVertB() ) {
-            tmp = (*jt)->getVertC()->getPositionVector();
-            if ( (*kt)->pointintriangle(&tmp) ) {
-#ifdef DEBUG
-                std::cout<<"TEST self intersected face: "<<(*jt)->getIndex() <<"with "<< (*kt)->getIndex() <<std::endl;
-#endif
-                sif.push_back(*jt);
-                sif.push_back(*kt);
-            }
-            return false;
-        }
-        if( (*kt)->getVertA() == (*jt)->getVertC() ||
-                (*kt)->getVertB() == (*jt)->getVertC() ||
-                (*kt)->getVertC() == (*jt)->getVertC() ) {
-            tmp = (*jt)->getVertB()->getPositionVector();
-            if ( (*kt)->pointintriangle(&tmp)) {
-#ifdef DEBUG
-                std::cout<<"TEST self intersected face: "<<(*jt)->getIndex() <<"with "<< (*kt)->getIndex() <<std::endl;
-#endif
-                sif.push_back(*jt);
-                sif.push_back(*kt);
-            }
-            return false;
-        }
-
-
-
-        h = l2.getLinePlaneIntersection(**kt, tmp);
-        //h == 0 means, that the intersection of the line with the plane of the other triangle is
-        // is between the two pints from the face describing the line
-        if(h==0) {
-            //check if point of intersection is in one ow the two triangles
-            if ( (*kt)->pointintriangle(&tmp)) {
-#ifdef DEBUG
-                std::cout<<"TEST self intersected face: "<<(*jt)->getIndex() <<"with "<< (*kt)->getIndex() <<" on Vert "<<tmp<<std::endl;
-#endif
-                sif.push_back(*jt);
-            }
-        }
-        return false;
-    }
-
-
-    //if two faces have one vertex in common, dont check the edges
-    //of the connected to that vertex, cause its error prone due to numerical rounding
-    if( (*kt)->getVertA() == (*jt)->getVertB() ||
-            (*kt)->getVertB() == (*jt)->getVertB() ||
-            (*kt)->getVertC() == (*jt)->getVertB() ) {
-
-
-        //if two vertices in common, nothing needs to be checked
-        if( (*kt)->getVertA() == (*jt)->getVertA() ||
-                (*kt)->getVertB() == (*jt)->getVertA() ||
-                (*kt)->getVertC() == (*jt)->getVertA() ) {
-            tmp = (*jt)->getVertC()->getPositionVector();
-            if ( (*kt)->pointintriangle(&tmp)) {
-#ifdef DEBUG
-                std::cout<<"TEST self intersected face: "<<(*jt)->getIndex() <<"with "<< (*kt)->getIndex() <<std::endl;
-#endif
-                sif.push_back(*jt);
-                sif.push_back(*kt);
-            }
-            return false;
-        }
-        if(	(*kt)->getVertA() == (*jt)->getVertC() ||
-                (*kt)->getVertB() == (*jt)->getVertC() ||
-                (*kt)->getVertC() == (*jt)->getVertC() ) {
-            tmp = (*jt)->getVertA()->getPositionVector();
-            if ( (*kt)->pointintriangle(&tmp)) {
-#ifdef DEBUG
-                std::cout<<"TEST self intersected face: "<<(*jt)->getIndex() <<"with "<< (*kt)->getIndex() <<std::endl;
-#endif
-                sif.push_back(*jt);
-                sif.push_back(*kt);
-            }
-            return false;
-        }
-
-
-
-
-        h = l3.getLinePlaneIntersection(**kt, tmp);
-        //h == 0 means, that the intersection of the line with the plane of the other triangle is
-        // is between the two pints from the face describing the line
-        if(h==0) {
-            //check if point of intersection is in one ow the two triangles
-            if ( (*kt)->pointintriangle(&tmp)) {
-#ifdef DEBUG
-                std::cout<<"TEST self intersected face: "<<(*jt)->getIndex() <<"with "<< (*kt)->getIndex() <<" on Vert "<<tmp<<std::endl;
-#endif
-                sif.push_back(*jt);
-            }
-        }
-        return false;
-    }
-
-    //if two faces have one vertex in common, dont check the edges
-    //of the connected to that vertex, cause its error prone due to numerical rounding
-    if( (*kt)->getVertA() == (*jt)->getVertC() ||
-            (*kt)->getVertB() == (*jt)->getVertC() ||
-            (*kt)->getVertC() == (*jt)->getVertC() ) {
-
-
-        //if two vertices in common, nothing needs to be checked
-        if( (*kt)->getVertA() == (*jt)->getVertB() ||
-                (*kt)->getVertB() == (*jt)->getVertB() ||
-                (*kt)->getVertC() == (*jt)->getVertB() ) {
-            tmp = (*jt)->getVertA()->getPositionVector();
-            if ( (*kt)->pointintriangle(&tmp)) {
-#ifdef DEBUG
-                std::cout<<"TEST self intersected face: "<<(*jt)->getIndex() <<"with "<< (*kt)->getIndex() <<std::endl;
-#endif
-                sif.push_back(*jt);
-                sif.push_back(*kt);
-            }
-            return false;
-        }
-        if ((*kt)->getVertA() == (*jt)->getVertA() ||
-                (*kt)->getVertB() == (*jt)->getVertA() ||
-                (*kt)->getVertC() == (*jt)->getVertA() ) {
-            tmp = (*jt)->getVertB()->getPositionVector();
-            if ( (*kt)->pointintriangle(&tmp)) {
-#ifdef DEBUG
-                std::cout<<"TEST self intersected face: "<<(*jt)->getIndex() <<"with "<< (*kt)->getIndex() <<std::endl;
-#endif
-                sif.push_back(*jt);
-                sif.push_back(*kt);
-            }
-            return false;
-        }
-
-
-        h = l1.getLinePlaneIntersection(**kt, tmp);
-        //h == 0 means, that the intersection of the line with the plane of the other triangle is
-        // is between the two points from the face describing the line
-        if(h==0) {
-            if ( (*kt)->pointintriangle(&tmp) ) {
-#ifdef DEBUG
-                std::cout<<"TEST self intersected face: "<<(*jt)->getIndex() <<" with "<< (*kt)->getIndex()
-                        <<" on Vert "<<tmp<<std::endl;
-#endif
-                sif.push_back(*jt);
-            }
-        }
-        return false;
-    }
-
-    return true;
-}
-
-/**
-    //! @param[out] sif contains pointers to self intersectiing faces
-    //! @param[in] p the pair of iterator begin to end for this thread
-    void detectselfintersectionst(std::vector<Face*>& sif,
-        std::pair< std::vector<Octnode*>::iterator,
-                             std::vector<Octnode*>::iterator > & p) {
-
-        Vector3D tmp;
-        int h;
-
-        //typedef std::chrono::high_resolution_clock clock;
-        //typedef std::chrono::milliseconds milliseconds;
-
-
-
-        //check all edges of faces (may intersect plane of other face)
-        for(auto it=p.first; it != p.second; ++it) {
-
-            //clock::time_point t2 = clock::now();
-            for(auto jt = (*it)->mElements.begin(); jt != (*it)->mElements.end(); ++jt ) {
-
-                //clock::time_point t0 = clock::now();
-                //Line l1( *((*jt)->getVertA()), *((*jt)->getVertB()) );
-                //Line l2( *((*jt)->getVertB()), *((*jt)->getVertC()) );
-                //Line l3( *((*jt)->getVertC()), *((*jt)->getVertA()) );
-
-                //clock::time_point t1 = clock::now();
-                //milliseconds total_ms = std::chrono::duration_cast<milliseconds>(t1 - t0);
-                //std::cout<<"Creation of Lines lasted: "<<total_ms.count() << "ms\n";
-
-                for(auto kt = (*it)->mElements.begin(); kt != (*it)->mElements.end(); ++kt ) {
-
-                    //do not check the edges of the face itself
-                    if(*kt != *jt) {
-
-
-                        //if ( twovert(kt, jt, sif, l1, l2, l3) ) {
-
-
-                            //if none of the special cases where nothing or only partial check is necessary
-                            //occurs, than check all edges for intersection with the other face
-
-                            /h = l1.getLinePlaneIntersection(**kt, tmp);
-                            //h == 0 means, that the intersection of the line with the plane of the other triangle is
-                            // is between the two points from the face describing the line
-                            if(h==0) {
-                                if ( (*kt)->pointontriangle(&tmp) ) {
-                                    #ifdef DEBUG
-                                    std::cout<<"TEST self intersected face: "<<(*jt)->getIndex() <<" with "<< (*kt)->getIndex()
-                                       <<" on Vert "<<tmp<<std::endl;
-                                    #endif
-                                    sif.push_back(*jt);
-                                    sif.push_back(*kt);
-                                    continue;
-                                }
-                            }
-                            h = l2.getLinePlaneIntersection(**kt, tmp);
-                            //h == 0 means, that the intersection of the line with the plane of the other triangle is
-                            // is between the two pints from the face describing the line
-                            if(h==0) {
-                                //check if point of intersection is on one of the two triangles
-                                if ( (*kt)->pointontriangle(&tmp) ) {
-                                    #ifdef DEBUG
-                                    std::cout<<"TEST self intersected face: "<<(*jt)->getIndex() <<"with "<< (*kt)->getIndex() <<" on Vert "<<tmp<<std::endl;
-                                    #endif
-                                    sif.push_back(*jt);
-                                    sif.push_back(*kt);
-                                    continue;
-                                }
-                            }
-                            h = l3.getLinePlaneIntersection(**kt, tmp);
-                            //h == 0 means, that the intersection of the line with the plane of the other triangle is
-                            // is between the two pints from the face describing the line
-                            if(h==0) {
-                                //check if point of intersection is on one of the two triangles
-                                if ( (*kt)->pointontriangle(&tmp) ) {
-                                    #ifdef DEBUG
-                                    std::cout<<"TEST self intersected face: "<<(*jt)->getIndex() <<"with "<< (*kt)->getIndex() <<" on Vert "<<tmp<<std::endl;
-                                    #endif
-                                    sif.push_back(*jt);
-                                    sif.push_back(*kt);
-                                    continue;
-                                }
-                            }
-                        }
-
-                    }
-                }
-            }
-            //clock::time_point t3 = clock::now();
-            //milliseconds total_ms = std::chrono::duration_cast<milliseconds>(t3 - t2);
-            //std::cout<<"One Octnode lasted: "<<total_ms.count() << "ms\n";
-        }
-    }
-**/
 
 
 //! @param[out] sif contains pointers to self intersectiing faces
 //!
 void Octree::detectselfintersections(std::vector<Face*>& sif) {
-    std::vector<Octnode*> nodelist;
-    getleafnodes(nodelist,VERTEX_OCTREE);
-
-    using p = std::pair<std::vector<Octnode*>::iterator,
-    std::vector<Octnode*>::iterator>;
-
-    //#ifdef THREADS
-#define NUM_THREADSA           7
-
-
-    std::vector<p> res= splitthreads(nodelist, NUM_THREADSA);
-    std::array<std::thread, NUM_THREADSA> threads;
-
-    for(size_t i=0; i<NUM_THREADSA; ++i) {
-        //threads[i] = std::thread( &Octree::detectselfintersectionst, this, std::ref(sif), std::ref(res[i]) );
+    ShowProgress progress = ShowProgress("[Octree]");
+    progress.showProgressStart( "Detect Face-Intersection" );
+    std::vector<Octnode *> allLeafNodes;
+    allLeafNodes = mRootFaces->getLeafNodes();
+    //check for all faces in leafnodes if they intersect each other
+    for(unsigned int nodeId = 0; nodeId < allLeafNodes.size(); nodeId++){
+        //we have to convert the face set into vector because only with a vector we can access the values by index
+        std::vector<Face*> nodeFaces{allLeafNodes[nodeId]->mFaces.begin(),allLeafNodes[nodeId]->mFaces.end()};
+        std::vector<std::thread> threads(NUM_THREADS);
+        unsigned int i = 0;
+        while(i < nodeFaces.size()){
+            // spawn n threads:
+            for (unsigned int threadId = 0; threadId < NUM_THREADS ; threadId++) {
+                if(i < nodeFaces.size()){
+                    i++;
+                }
+                threads[threadId] = std::thread(&Octree::checkIntersectionOfFaceToOtherFaces, this, nodeFaces, i);
+            }
+            //wait until the threads are finished
+            for (auto& th : threads) {
+                th.join();
+            }
+        }
+        progress.showProgress( static_cast<double>(nodeId)/static_cast<double>(allLeafNodes.size()),
+                               "Detect Face-Intersection" );
     }
-    for(auto& thread : threads){
-        thread.join();
+    //mSelfIntersectedFaces is filled in checkIntersectionOfFaceToOtherFaces
+    sif = mSelfIntersectedFaces;
+    progress.showProgressStop( "Detect Face-Intersection" );
+}
+
+void Octree::gettriangleintersection(std::vector<Octnode *> &nodelist, std::vector<Octnode *> &cnodelist, std::vector<Line> &drawlines, TriangularPrism &tri)
+{
+    std::vector<Octnode*> nodes;
+    nodes = mRootVertices->getNodeList();
+    for(Octnode* node : nodes){
+        if(node->misleaf) {
+            relativePosition tmp;
+            tmp = node->mCube.CubeisintriangularPrism(tri, drawlines);
+
+            switch(tmp) {
+                case CONTAINED:
+                    cnodelist.push_back(node);
+                    break;
+
+                case INTERSECTION:
+                    nodelist.push_back(node);
+                    break;
+
+
+                case DISJOINT:
+                    break;
+
+                //should not be reached
+                default:
+                    std::cout<<"OCTREE triangle intersection something is incorrect"<<std::endl;
+
+            }
+        }
     }
 
 }
@@ -502,7 +210,7 @@ bool Octree::dumpInfo() {
     std::cout<<"Octree maximum depth:       "<<mmaxlevel<<std::endl;
     std::vector<Octnode*> nodelist;
     size_t temp = 0;
-    unsigned int i = 0;
+    unsigned int i = 1;
     size_t totalnodes=0;
     do {
         temp = nodelist.size();
@@ -519,34 +227,34 @@ bool Octree::dumpInfo() {
     return true;
 }
 
-/**
-    //! prints all centers of octnodes
-    bool dumpInfov() {
-        std::vector<Octnode*> nodelist;
-        getnodelist(nodelist);
-        for ( typename std::vector<Octnode*>::iterator it = nodelist.begin(); it!=nodelist.end(); ++it) {
-            (*it)->mcenter.dumpInfo();
-            std::cout<<(*it)->mscale<<std::endl;
-        }
-        nodelist.clear();
-        return true;
-    }
 
-    //! prints all centers of octnodes and corresponding vertices
-    bool dumpInfovlong() {
-        std::vector<Octnode<Vertex*>*> nodelist;
-        getnodelist(nodelist);
-        for ( typename std::vector<Octnode*>::iterator it = nodelist.begin(); it!=nodelist.end(); ++it) {
-            (*it)->mcenter.dumpInfo();
-            std::cout<<(*it)->mscale<<std::endl;
-            for ( typename std::vector<T>::iterator jt = (*it)->mVertices.begin(); jt!=(*it)->mVertices.end(); ++jt) {
-                (*jt)->dumpInfo();
-            }
-        }
-        nodelist.clear();
-        return true;
+//! prints all centers of octnodes
+bool Octree::dumpInfov() {
+    std::vector<Octnode*> nodelist;
+    getnodelist(nodelist,VERTEX_OCTREE);
+    for ( typename std::vector<Octnode*>::iterator it = nodelist.begin(); it!=nodelist.end(); ++it) {
+        (*it)->mCube.mcenter.dumpInfo();
+        std::cout<<(*it)->mCube.mscale<<std::endl;
     }
-**/
+    nodelist.clear();
+    return true;
+}
+
+//! prints all centers of octnodes and corresponding vertices
+bool Octree::dumpInfovlong() {
+    std::vector<Octnode*> nodelist;
+    getnodelist(nodelist,VERTEX_OCTREE);
+    for ( typename std::vector<Octnode*>::iterator it = nodelist.begin(); it!=nodelist.end(); ++it) {
+        (*it)->mCube.mcenter.dumpInfo();
+        std::cout<<(*it)->mCube.mscale<<std::endl;
+        for ( typename std::vector<Vertex*>::iterator jt = (*it)->mVertices.begin(); jt!=(*it)->mVertices.end(); ++jt) {
+            (*jt)->dumpInfo();
+        }
+    }
+    nodelist.clear();
+    return true;
+}
+
 
 
 
@@ -601,8 +309,8 @@ bool Octree::initialize(Octnode* cnode, unsigned int clevel) {
 
     //decide if to further subdivide or mark octnode as leaf
     if ( mmaxnr < cnode->mVertices.size() &&
-         clevel < mmaxlevelpermitted){ //&&
-         //mEdgeLenMax < cnode->mCube.mscale ) {
+         clevel < mmaxlevelpermitted &&
+         mEdgeLenMax < cnode->mCube.mscale ) {
 
         //create children
         for ( unsigned int i=0; i<8; ++i ) {
@@ -698,16 +406,124 @@ void Octree::correctFace(Face *face)
     addFaceToAllIntersectedChildren(parent,face);
 
 }
+//!obsolete and not tested
+bool Octree::areFacesIntersected(Face *faceA, Face *faceB)
+{
+    //get vertices as position of face A
+    Vector3D vA0 = faceA->getVertA()->getPositionVector();
+    Vector3D vA1 = faceA->getVertB()->getPositionVector();
+    Vector3D vA2 = faceA->getVertC()->getPositionVector();
+    //get vertices as position of face B
+    Vector3D vB0 = faceB->getVertA()->getPositionVector();
+    Vector3D vB1 = faceB->getVertB()->getPositionVector();
+    Vector3D vB2 = faceB->getVertC()->getPositionVector();
+
+    //1: simple rejection test: all vertices of the faceA is on the other side of the plane of faceB
+    //and the otherway around
+
+    //plane face A
+    Vector3D normalA = (vA1 - vA0) * (vA2 - vA0);
+    double distanceA = (-1 * normalA)*vA0;
+
+    //plae face B
+    Vector3D normalB = (vB1 - vB0) * (vB2 - vB0);
+    double distanceB = (-1 * normalB)*vB0;
+
+    //calculate distance of the vertices face A to the plane B
+    double d_vA0 = (normalB * vA0) + distanceB;
+    double d_vA1 = (normalB * vA1) + distanceB;
+    double d_vA2 = (normalB * vA2) + distanceB;
+
+    //calculate distance of the vertices face B to the plane A
+    double d_vB0 = (normalA * vB0) + distanceA;
+    double d_vB1 = (normalA * vB1) + distanceA;
+    double d_vB2 = (normalA * vB2) + distanceA;
+
+    if(((d_vA0 > 0 && d_vA1 > 0 && d_vA2 > 0) || (d_vA0 < 0 && d_vA1 < 0 && d_vA2 < 0)) &&
+          ((d_vB0 > 0 && d_vB1 > 0 && d_vB2 > 0)||(d_vB0 < 0 && d_vB1 < 0 && d_vB2 < 0))){
+        // face A is completely on the other side of the plane B and the otherway around
+        // --> intersection not possible
+        return false;
+    }
+
+    //2: calculate plane intersection --> line
+    // then calculate the intervall for both faces which results from the intersection of the edges with the line
+    //if the intervalls overlaps -> the faces intersects
+    Vector3D directionPlaneIntersection = normalA * normalB;
+    //projected vertices on intersection Lin
+    Vector3D projectedVA0 = vA0;
+    Vector3D projectedVA1 = vA1;
+    Vector3D projectedVA2 = vA2;
+    Vector3D projectedVB0 = vB0;
+    Vector3D projectedVB1 = vB1;
+    Vector3D projectedVB2 = vB2;
+
+    double Dx = std::abs(directionPlaneIntersection.getX());
+    double Dy = std::abs(directionPlaneIntersection.getY());
+    double Dz = std::abs(directionPlaneIntersection.getZ());
+    double maxD = std::max({Dx,Dy,Dz});
+    if( Dx == maxD){
+        projectedVA0.setX(Dx);
+        projectedVA1.setX(Dx);
+        projectedVA2.setX(Dx);
+        projectedVB0.setX(Dx);
+        projectedVB1.setX(Dx);
+        projectedVB2.setX(Dx);
+    }
+    if( Dy == maxD){
+        projectedVA0.setY(Dy);
+        projectedVA1.setY(Dy);
+        projectedVA2.setY(Dy);
+        projectedVB0.setY(Dy);
+        projectedVB1.setY(Dy);
+        projectedVB2.setY(Dy);
+    }
+    if( Dz == maxD){
+        projectedVA0.setZ(Dz);
+        projectedVA1.setZ(Dz);
+        projectedVA2.setZ(Dz);
+        projectedVB0.setZ(Dz);
+        projectedVB1.setZ(Dz);
+        projectedVB2.setZ(Dz);
+    }
+
+    //calculate the intervals
+    //face A
+    Vector3D tA1 = projectedVA0 + ((projectedVA1 - projectedVA0)*(d_vA0/(d_vA0-d_vA1)));
+    Vector3D tA2 = projectedVA2 + ((projectedVA1 - projectedVA2)*(d_vA2/(d_vA2-d_vA1)));
+    //face B
+    Vector3D tB1 = projectedVB0 + ((projectedVB1 - projectedVB0)*(d_vB0/(d_vB0-d_vB1)));
+    Vector3D tB2 = projectedVB2 + ((projectedVB1 - projectedVB2)*(d_vB2/(d_vB2-d_vB1)));
+
+    Line TA = Line(tA1,tA2);
+    Line TB = Line(tB1,tB2);
+    Line result; //no relevance
+    if(TA.getLineIntersection(TB,result)){
+        return true;
+    }
+    return false;
+}
+
+void Octree::checkIntersectionOfFaceToOtherFaces(std::vector<Face *> nodeFaces, unsigned int faceIterator)
+{
+    for(unsigned int j=faceIterator+1; j<nodeFaces.size();j++){
+        if(nodeFaces[faceIterator]->intersectsFace(nodeFaces[j])){
+            mSelfIntersectedFaces.push_back(nodeFaces[faceIterator]);
+            mSelfIntersectedFaces.push_back(nodeFaces[j]);
+        }
+    }
+}
 
 
 void Octree::correctFacesOctree(std::vector<Face *> &facelist){
     // check all problematic faces (facelist = all faces with more then one node )
-
+    ShowProgress progress = ShowProgress("[Octree]");
+    progress.showProgressStart( "Generate octree of faces" );
     unsigned int i = 0;
     while(i < facelist.size()){
-        std::vector<std::thread> threads(NUM_THREADSA);
+        std::vector<std::thread> threads(NUM_THREADS);
         // spawn n threads:
-        for (int threadId = 0; threadId < NUM_THREADSA; threadId++) {
+        for (int threadId = 0; threadId < NUM_THREADS ; threadId++) {
             if(i < facelist.size()){
                 i++;
             }
@@ -718,7 +534,11 @@ void Octree::correctFacesOctree(std::vector<Face *> &facelist){
         for (auto& th : threads) {
             th.join();
         }
+        progress.showProgress( static_cast<double>(i)/static_cast<double>(facelist.size()),
+                      "Generate octree of faces" );
+
     }
+    progress.showProgressStop( "Generate octree of faces" );
 }
 
 void Octree::addFaceToAllIntersectedChildren(Octnode *parentNode, Face *face){
@@ -740,214 +560,9 @@ void Octree::addFaceToAllIntersectedChildren(Octnode *parentNode, Face *face){
     }
 }
 
-
-
-/// maximum depth of octree
-unsigned int mmaxlevel;
-// mmaxnr represents the maximum number of vertices per cube
-unsigned int mmaxnr;
-
-//at this level no further subdivision is permitted
-static constexpr unsigned int mmaxlevelpermitted = 15 ;
-
 //! @param copyelements ==true => elements on the border of a cube are copied to all adjacent cubes
 //! if copyelements ==false => elements on the border of a cube are copied to a single cube
 //! should be true for correct collision detection etc.
 bool mcopyelements;
 
 double mEdgeLenMax;
-
-
-
-
-
-
-
-//functors that may passed to octree::traverse_topdown for doing some actions, e.g. information retrieval
-
-
-//! functor that returns a list of all nodes when passed to octree::traverse_topdown
-//!
-class gnl{
-
-public:
-    gnl(std::vector<Octnode*>& nodelist_):nodelist(nodelist_) {}
-
-    bool operator() (Octnode * cnode) {
-        if (cnode->misleaf == false) {
-            nodelist.push_back( cnode );
-            return true;
-        }
-        else {
-            nodelist.push_back( cnode );
-            return false;
-        }
-    }
-
-
-    std::vector<Octnode *>& nodelist;
-
-};
-
-
-
-//! functor that returns a list of all nodes in level mlevel when passed to octree::traverse_topdown
-
-class gnlinlvl{
-
-public:
-    gnlinlvl(std::vector<Octnode*>& nodelist_, unsigned int level):nodelist(nodelist_), mlevel(level) {}
-
-    bool operator() (Octnode * cnode) {
-
-        if ( (cnode->misleaf == false) && (mlevel > cnode->mlevel) ) {
-            return true;
-        }
-        if (mlevel == cnode->mlevel) {
-            nodelist.push_back( cnode );
-            return false;
-        }
-
-        if ( cnode->misleaf == true) {
-            return false;
-        }
-        //should not be reached
-        return false;
-    }
-
-    std::vector<Octnode *>& nodelist;
-    unsigned int mlevel;
-
-};
-
-//! functor that returns a list of all leaf-nodes when passed to octree::traverse_topdown
-
-class gnlleaf{
-
-public:
-    gnlleaf(std::vector<Octnode*>& nodelist_):nodelist(nodelist_) {}
-
-    bool operator() (Octnode * cnode) {
-        if (cnode->misleaf == false) {
-            //nodelist.push_back( cnode );
-            return true;
-        }
-        else {
-            nodelist.push_back( cnode );
-            return false;
-        }
-    }
-
-
-    std::vector<Octnode *>& nodelist;
-
-};
-
-
-
-
-
-//! returns nodelist of nodes which are intersected by a line through a and b
-template <class T>
-class octreelineintersection {
-public:
-    octreelineintersection(std::vector<Octnode*>& nodelist_, Vector3D &a_, Vector3D &b_):nodelist(nodelist_), a(a_), b(b_) {}
-
-    bool operator() (Octnode * cnode) {
-        if(cnode->mCube.linecubeintersection(&a,&b)) {
-            if (cnode->misleaf == true) {
-                nodelist.push_back( cnode );
-                return false;
-            }
-            else {
-                nodelist.push_back( cnode );
-                return true;
-            }
-        }
-        return false;
-    }
-
-
-    std::vector<Octnode *>& nodelist;
-    Vector3D &a, &b;
-
-};
-
-//! returns nodelist of nodes which are intersected by a line through a and b
-//! only leaf ndoes are returned
-template <class T>
-class octreeleaflineintersection {
-public:
-    octreeleaflineintersection(std::vector<Octnode*>& nodelist_, Vector3D &a_, Vector3D &b_):nodelist(nodelist_), a(a_), b(b_) {}
-
-    bool operator() (Octnode * cnode) {
-        if(cnode->mCube.linecubeintersection(&a,&b)) {
-            if (cnode->misleaf == true) {
-                nodelist.push_back( cnode );
-                return false;
-            }
-            else {
-                //nodelist.push_back( cnode );
-                return true;
-            }
-        }
-        return false;
-    }
-
-
-    std::vector<Octnode *>& nodelist;
-    Vector3D &a, &b;
-
-};
-
-
-/**
-//! returns list of leaf nodes which are intersected by triangular prism defined as Vector3D[6] tri
-//! @param nodelist_ vector of leaf nodes, which have intersection with triangle
-//! @param cnodelist_ vector of leaf nodes, which are containing the triangle
-template <class T>
-class octreetriangleintersection {
-public:
-    octreetriangleintersection(std::vector<Octnode *>& nodelist_, std::vector<Octnode*>& cnodelist_,
-                             std::vector<Line> &drawlines_, TriangularPrism& tri_): \
-                             nodelist(nodelist_), cnodelist(cnodelist_), drawlines(drawlines_), tri(tri_) {}
-
-    bool operator() (Octnode * current) {
-
-            relativePosition tmp;
-            tmp = current->mCube.CubeisintriangularPrism(tri, drawlines);
-
-            switch(tmp) {
-                case CONTAINED:
-                    if(current->misleaf) {
-                        cnodelist.push_back(current);
-                        return false;
-                    }
-                    else {
-                        return true;
-                    }
-                case INTERSECTION:
-                    if(current->misleaf) {
-                        nodelist.push_back(current);
-                        return false;
-                    }
-                    else {
-                        return true;
-                    }
-                case DISJOINT:
-                    return false;
-                //should not be reached
-                default:
-                    std::cout<<"OCTREE triangle intersection something is incorrect"<<std::endl;
-                    return false;
-
-                //should not be reached
-                std::cout<<"OCTREE triangle intersection something is incorrect"<<std::endl;
-                return false;
-            }
-            //should not be reached
-            std::cout<<"OCTREE triangle intersection something is incorrect"<<std::endl;
-            return false;
-        }
-};
-**/

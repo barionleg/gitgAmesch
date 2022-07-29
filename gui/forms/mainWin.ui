@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -3003,8 +3003,14 @@ p, li { white-space: pre-wrap; }
    </property>
   </action>
   <action name="actionDetect_Self_Intersections">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Detect Self-Intersections</string>
+   </property>
+   <property name="visible">
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionImportNormals">
