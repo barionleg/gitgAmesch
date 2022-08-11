@@ -50,8 +50,10 @@ Octree::Octree(std::vector<Vertex*> &vertexlist,std::vector<Face*> &facelist, Ve
     mRootFaces = new Octnode(center, 0.5*edgelen);
     //for all faces inside this vector we have to check in which nodes they intersect
     generateFacesOctreeHypothesis(mRootFaces,mRootVertices,1,&mIncompleteFaces);
-    //delete dulicates
+
     sort(mIncompleteFaces.begin(),mIncompleteFaces.end());
+    checkNeighborhoodOfIncompleteFaces();
+    //delete duplicates
     mIncompleteFaces.erase( unique( mIncompleteFaces.begin(), mIncompleteFaces.end()),mIncompleteFaces.end());
     correctFacesOctree(mIncompleteFaces);
 }
@@ -107,6 +109,17 @@ bool Octree::getNodesOfFace(std::vector<Octnode *> &nodelist, Face *face){
     }
     return true;
 }
+bool Octree::getNodesOfFace(std::vector<Octnode *> &nodelist, Face *face, std::vector<Octnode *> allNodes){
+    for(Octnode* node : allNodes){
+        if(node->isFaceInside(face)){
+            nodelist.push_back(node);
+        }
+    }
+    if( nodelist.size() == 0){
+        return false;
+    }
+    return true;
+}
 void Octree::getnodesinlevel(std::vector<Octnode*>& nodelist, unsigned int i) {
     std::vector<Octnode*> nodes;
     nodes = mRootVertices->getNodeList();
@@ -139,26 +152,36 @@ void Octree::detectselfintersections(std::vector<Face*>& sif) {
     std::vector<Octnode *> allLeafNodes;
     allLeafNodes = mRootFaces->getLeafNodes();
     //check for all faces in leafnodes if they intersect each other
-    for(unsigned int nodeId = 0; nodeId < allLeafNodes.size(); nodeId++){
-        //we have to convert the face set into vector because only with a vector we can access the values by index
-        std::vector<Face*> nodeFaces{allLeafNodes[nodeId]->mFaces.begin(),allLeafNodes[nodeId]->mFaces.end()};
+    unsigned int nodeId = 0;
+    while(nodeId < allLeafNodes.size()){
         std::vector<std::thread> threads(NUM_THREADS);
-        unsigned int i = 0;
-        while(i < nodeFaces.size()){
-            // spawn n threads:
-            for (unsigned int threadId = 0; threadId < NUM_THREADS ; threadId++) {
-                if(i < nodeFaces.size()){
-                    i++;
-                }
-                threads[threadId] = std::thread(&Octree::checkIntersectionOfFaceToOtherFaces, this, nodeFaces, i);
+        unsigned int activeThread = NUM_THREADS;
+        // spawn n threads:
+        for (unsigned int threadId = 0; threadId < NUM_THREADS ; threadId++) {
+            if(nodeId < allLeafNodes.size()){
+                threads[threadId] = std::thread(&Octree::checkSelfIntersectionInsideNode,this,allLeafNodes[nodeId]);
+                nodeId++;
             }
-            //wait until the threads are finished
-            for (auto& th : threads) {
-                th.join();
+            else{
+                //max number can change if the end of the node list is reached
+                // not every thread is active
+                activeThread--;
             }
         }
-        progress.showProgress( static_cast<double>(nodeId)/static_cast<double>(allLeafNodes.size()),
-                               "Detect Face-Intersection" );
+        //wait until the threads are finished
+        //only wait for active threads
+        for(unsigned int threadJoinId = 0; threadJoinId < activeThread; threadJoinId++){
+            if(threads[threadJoinId].joinable()){
+                threads[threadJoinId].join();
+            }
+
+        }
+        //for (auto& th : threads) {
+        //    th.join();
+        //}
+
+    progress.showProgress( static_cast<double>(nodeId)/static_cast<double>(allLeafNodes.size()),
+                           "Detect Face-Intersection" );
     }
     //mSelfIntersectedFaces is filled in checkIntersectionOfFaceToOtherFaces
     sif = mSelfIntersectedFaces;
@@ -340,7 +363,7 @@ bool Octree::initialize(Octnode* cnode, unsigned int clevel) {
     return true;
 }
 
-void Octree::generateFacesOctreeHypothesis(Octnode* parentNodeFace,Octnode* parentNodeVertex, unsigned int treeLevel, std::vector<Face*> *incompleteFaces){
+void Octree::generateFacesOctreeHypothesis(Octnode* parentNodeFace,Octnode* parentNodeVertex, unsigned int treeLevel, std::vector<StrucIncompleteFace> *incompleteFaces){
     //traverse through the vertex octree
     //create the same nodes for the face octree
     //if the node is a leaf node, then add all involved faces of the vertices to the new node
@@ -352,17 +375,15 @@ void Octree::generateFacesOctreeHypothesis(Octnode* parentNodeFace,Octnode* pare
             parentNodeVertex->mVertices[i]->getFaces(&facesOfVertex);
             //not using insert because you have to check if the face is already in the node
             for(Face* face : facesOfVertex){
-                //only add face if not already in mfaces
-                if(!(parentNodeFace->mFaces.find(face) != parentNodeFace->mFaces.end())){
+                //only add face if not already in mfaces. it's automatic in C++ Set inserts
+                //if(!(parentNodeFace->mFaces.find(face) != parentNodeFace->mFaces.end())){
                     parentNodeFace->mFaces.insert(face);
-                    //check here if the face is completely in octnode/cube --> if not it is an interesting face for correction
+                    //check here if the face is completely in octnode/cube or neighbors --> if not it is an interesting face for the correction
                     if(!parentNodeFace->mCube.isFaceCompletelyInCube(face)){
-                        incompleteFaces->push_back(face);
+                        incompleteFaces->push_back({face,parentNodeFace});
                     }
-                }
+                //}
             }
-
-            //parentNodeFace->mFaces.insert(parentNodeFace->mFaces.end(), facesOfVertex.begin(), facesOfVertex.end());
         }
     }
     else{
@@ -374,7 +395,7 @@ void Octree::generateFacesOctreeHypothesis(Octnode* parentNodeFace,Octnode* pare
 
         //next level
         for ( unsigned int i=0; i<8; ++i ) {
-            std::vector<Face*> tmpIncompleteFaces;
+            std::vector<StrucIncompleteFace> tmpIncompleteFaces;
             generateFacesOctreeHypothesis(parentNodeFace->mchildren[i],parentNodeVertex->mchildren[i], treeLevel + 1, &tmpIncompleteFaces);
             incompleteFaces->insert(incompleteFaces->begin(),tmpIncompleteFaces.begin(),tmpIncompleteFaces.end());
         }
@@ -382,158 +403,173 @@ void Octree::generateFacesOctreeHypothesis(Octnode* parentNodeFace,Octnode* pare
 
 }
 
-void Octree::correctFace(Face *face)
+void Octree::correctFace(StrucIncompleteFace IncompFaceStruct)
 {
     //get the nodes where the face is aligned
-    std::vector<Octnode*> faceNodes;
-    if (!getNodesOfFace(faceNodes,face)) {
+    //std::vector<Octnode*> faceNodes;
+    //if (!getNodesOfFace(faceNodes,IncompFaceStruct.face, allNodes)) {
         //the face isn't in any node --> faces octree is not correct
         //TODO: error handling
-    }
+    //}
 
     //face is not completely inside the node
     //get the level of the octree in that the face is completely inside
     Octnode* parent;
-    parent = faceNodes[0]->mparent;
-    while(!parent->mCube.isFaceCompletelyInCube(face)){
+    parent = IncompFaceStruct.node->mparent;
+    while(!parent->mCube.isFaceCompletelyInCube(IncompFaceStruct.face)){
         parent = parent->mparent;
         //loop emergency exit
-        if( parent->mlevel == 1 ){
+        if( parent->mlevel == 0 ){
             break;
         }
     }
     //add face to all nodes that intersects their cube
-    addFaceToAllIntersectedChildren(parent,face);
-
-}
-//!obsolete and not tested
-bool Octree::areFacesIntersected(Face *faceA, Face *faceB)
-{
-    //get vertices as position of face A
-    Vector3D vA0 = faceA->getVertA()->getPositionVector();
-    Vector3D vA1 = faceA->getVertB()->getPositionVector();
-    Vector3D vA2 = faceA->getVertC()->getPositionVector();
-    //get vertices as position of face B
-    Vector3D vB0 = faceB->getVertA()->getPositionVector();
-    Vector3D vB1 = faceB->getVertB()->getPositionVector();
-    Vector3D vB2 = faceB->getVertC()->getPositionVector();
-
-    //1: simple rejection test: all vertices of the faceA is on the other side of the plane of faceB
-    //and the otherway around
-
-    //plane face A
-    Vector3D normalA = (vA1 - vA0) * (vA2 - vA0);
-    double distanceA = (-1 * normalA)*vA0;
-
-    //plae face B
-    Vector3D normalB = (vB1 - vB0) * (vB2 - vB0);
-    double distanceB = (-1 * normalB)*vB0;
-
-    //calculate distance of the vertices face A to the plane B
-    double d_vA0 = (normalB * vA0) + distanceB;
-    double d_vA1 = (normalB * vA1) + distanceB;
-    double d_vA2 = (normalB * vA2) + distanceB;
-
-    //calculate distance of the vertices face B to the plane A
-    double d_vB0 = (normalA * vB0) + distanceA;
-    double d_vB1 = (normalA * vB1) + distanceA;
-    double d_vB2 = (normalA * vB2) + distanceA;
-
-    if(((d_vA0 > 0 && d_vA1 > 0 && d_vA2 > 0) || (d_vA0 < 0 && d_vA1 < 0 && d_vA2 < 0)) &&
-          ((d_vB0 > 0 && d_vB1 > 0 && d_vB2 > 0)||(d_vB0 < 0 && d_vB1 < 0 && d_vB2 < 0))){
-        // face A is completely on the other side of the plane B and the otherway around
-        // --> intersection not possible
-        return false;
-    }
-
-    //2: calculate plane intersection --> line
-    // then calculate the intervall for both faces which results from the intersection of the edges with the line
-    //if the intervalls overlaps -> the faces intersects
-    Vector3D directionPlaneIntersection = normalA * normalB;
-    //projected vertices on intersection Lin
-    Vector3D projectedVA0 = vA0;
-    Vector3D projectedVA1 = vA1;
-    Vector3D projectedVA2 = vA2;
-    Vector3D projectedVB0 = vB0;
-    Vector3D projectedVB1 = vB1;
-    Vector3D projectedVB2 = vB2;
-
-    double Dx = std::abs(directionPlaneIntersection.getX());
-    double Dy = std::abs(directionPlaneIntersection.getY());
-    double Dz = std::abs(directionPlaneIntersection.getZ());
-    double maxD = std::max({Dx,Dy,Dz});
-    if( Dx == maxD){
-        projectedVA0.setX(Dx);
-        projectedVA1.setX(Dx);
-        projectedVA2.setX(Dx);
-        projectedVB0.setX(Dx);
-        projectedVB1.setX(Dx);
-        projectedVB2.setX(Dx);
-    }
-    if( Dy == maxD){
-        projectedVA0.setY(Dy);
-        projectedVA1.setY(Dy);
-        projectedVA2.setY(Dy);
-        projectedVB0.setY(Dy);
-        projectedVB1.setY(Dy);
-        projectedVB2.setY(Dy);
-    }
-    if( Dz == maxD){
-        projectedVA0.setZ(Dz);
-        projectedVA1.setZ(Dz);
-        projectedVA2.setZ(Dz);
-        projectedVB0.setZ(Dz);
-        projectedVB1.setZ(Dz);
-        projectedVB2.setZ(Dz);
-    }
-
-    //calculate the intervals
-    //face A
-    Vector3D tA1 = projectedVA0 + ((projectedVA1 - projectedVA0)*(d_vA0/(d_vA0-d_vA1)));
-    Vector3D tA2 = projectedVA2 + ((projectedVA1 - projectedVA2)*(d_vA2/(d_vA2-d_vA1)));
-    //face B
-    Vector3D tB1 = projectedVB0 + ((projectedVB1 - projectedVB0)*(d_vB0/(d_vB0-d_vB1)));
-    Vector3D tB2 = projectedVB2 + ((projectedVB1 - projectedVB2)*(d_vB2/(d_vB2-d_vB1)));
-
-    Line TA = Line(tA1,tA2);
-    Line TB = Line(tB1,tB2);
-    Line result; //no relevance
-    if(TA.getLineIntersection(TB,result)){
-        return true;
-    }
-    return false;
+    mLock.lock();
+    addFaceToAllIntersectedChildren(parent,IncompFaceStruct.face);
+    mLock.unlock();
 }
 
-void Octree::checkIntersectionOfFaceToOtherFaces(std::vector<Face *> nodeFaces, unsigned int faceIterator)
+void Octree::checkNeighborhoodOfIncompleteFaces()
 {
-    for(unsigned int j=faceIterator+1; j<nodeFaces.size();j++){
-        if(nodeFaces[faceIterator]->intersectsFace(nodeFaces[j])){
-            mSelfIntersectedFaces.push_back(nodeFaces[faceIterator]);
-            mSelfIntersectedFaces.push_back(nodeFaces[j]);
+    //true if entry has to delete
+    //save this information in an extra vector have a better performance then delete the entry directly
+    std::vector<bool> deletingIndices(mIncompleteFaces.size(), false);;
+    unsigned int i = 0;
+
+    while(i < mIncompleteFaces.size()){
+        Face* faceA = mIncompleteFaces[i].face;
+        Octnode* nodeA = mIncompleteFaces[i].node;
+        Octnode* nodeB = NULL;
+
+        //look 3 entries ahead --> only 3 entries with the same face in a row are possible
+        for(unsigned int j = i+1; j<i+4; j++){
+
+            //exit
+            if(j >= mIncompleteFaces.size()){
+                i = j;
+                break;
+            }
+
+            //nodeB must be null because otherwise the face is in 3 different nodes
+            if(faceA == mIncompleteFaces[j].face && nodeA != mIncompleteFaces[j].node && nodeB == nullptr){
+                nodeB = mIncompleteFaces[j].node;
+
+            }
+            if(nodeB != nullptr && nodeB != mIncompleteFaces[j].node && nodeA != mIncompleteFaces[j].node && faceA == mIncompleteFaces[j].face){
+                // 3 different nodes
+                i = j;
+                break;
+            }
+
+            if(faceA != mIncompleteFaces[j].face){
+                //next entry is an other face
+
+                //delete faces if they are in neighbor-nodes and completely in this nodes defined
+
+
+                if(nodeB != nullptr && nodeA != nodeB){
+                    if(nodeA->isNeighbor(nodeB)){
+                        //check if all vertices of the points are in the two neighbored nodes
+                        Vector3D posVertA;
+                        Vector3D posVertB;
+                        Vector3D posVertC;
+                        faceA->getVertA()->getPositionVector(&posVertA);
+                        faceA->getVertB()->getPositionVector(&posVertB);
+                        faceA->getVertC()->getPositionVector(&posVertC);
+                        //j-i == 3 --> the face is defined by 3 vertices in these nodes
+                        if(j-i == 3 ||
+                                ((nodeA->mCube.PointisinCube(posVertA) || nodeB->mCube.PointisinCube(posVertA))&&
+                                (nodeA->mCube.PointisinCube(posVertB) || nodeB->mCube.PointisinCube(posVertB)) &&
+                                (nodeA->mCube.PointisinCube(posVertC) || nodeB->mCube.PointisinCube(posVertC)))){
+                            //face is completly defined inside the neighbored node
+                            //--> delete from incompleteFaces
+                            //j could be different
+                            for(unsigned int k=i; k < j; k++){
+                                //delete the same index because the indices of the vector changed
+                                //mIncompleteFaces.erase(mIncompleteFaces.begin() + i);
+                                //deletingIndices.push_back(k);
+                                deletingIndices[k] = true;
+                            }
+                            //break because i should be the same
+                            // the indices in the vector have changed
+                            //break;
+                        }
+                    }
+                }
+
+                i = j;
+                break;
+            }
+
+
+        }
+
+    }
+    //copy array and only add not for deleting marked entries
+    std::vector tmpIncompleteFace(mIncompleteFaces);
+    mIncompleteFaces.clear();
+    for(unsigned int i=0; i<tmpIncompleteFace.size(); i++){
+        if(!deletingIndices[i]){
+            mIncompleteFaces.push_back(tmpIncompleteFace[i]);
         }
     }
 }
 
 
-void Octree::correctFacesOctree(std::vector<Face *> &facelist){
+void Octree::checkIntersectionOfFaceToOtherFaces(std::vector<Face *> nodeFaces, unsigned int faceIterator)
+{
+    //start at the faceIterator because the other face already visited
+    for(unsigned int j=faceIterator+1; j<nodeFaces.size();j++){
+        if(nodeFaces[faceIterator]->intersectsFace(nodeFaces[j])){
+            //lock for safty memory in threads
+            mLock.lock();
+            mSelfIntersectedFaces.push_back(nodeFaces[faceIterator]);
+            mSelfIntersectedFaces.push_back(nodeFaces[j]);
+            mLock.unlock();
+
+        }
+    }
+}
+
+void Octree::checkSelfIntersectionInsideNode(Octnode *node)
+{
+    //we have to convert the face set into vector because only with a vector we can access the values by index
+    std::vector<Face*> nodeFaces{node->mFaces.begin(),node->mFaces.end()};
+    for(unsigned int i = 0;i<nodeFaces.size();i++){
+        checkIntersectionOfFaceToOtherFaces(nodeFaces, i);
+    }
+}
+
+
+void Octree::correctFacesOctree(std::vector<StrucIncompleteFace> &facelist){
+
     // check all problematic faces (facelist = all faces with more then one node )
     ShowProgress progress = ShowProgress("[Octree]");
     progress.showProgressStart( "Generate octree of faces" );
     unsigned int i = 0;
     while(i < facelist.size()){
         std::vector<std::thread> threads(NUM_THREADS);
+        unsigned int activeThread = NUM_THREADS;
         // spawn n threads:
-        for (int threadId = 0; threadId < NUM_THREADS ; threadId++) {
+        for (unsigned int threadId = 0; threadId < NUM_THREADS ; threadId++) {
             if(i < facelist.size()){
+                threads[threadId] = std::thread(&Octree::correctFace, this, std::ref(facelist[i]));
                 i++;
             }
-            threads[threadId] = std::thread(&Octree::correctFace, this, std::ref(facelist[i]));
-
+            else{
+                activeThread--;
+            }
         }
         //wait until the threads are finished
-        for (auto& th : threads) {
-            th.join();
+        //only wait for active threads
+        for(unsigned int threadJoinId = 0; threadJoinId < activeThread; threadJoinId++){
+            if(threads[threadJoinId].joinable()){
+                threads[threadJoinId].join();
+            }
         }
+        //for (auto& th : threads) {
+        //    th.join();
+        //}
         progress.showProgress( static_cast<double>(i)/static_cast<double>(facelist.size()),
                       "Generate octree of faces" );
 

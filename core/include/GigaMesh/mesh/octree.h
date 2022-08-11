@@ -26,11 +26,13 @@
 #include <thread>
 #include <array>
 #include <chrono>
+#include <mutex>
 #include "vector3d.h"
 #include "octnode.h"
 #include "rectbox.h"
 #include "face.h"
 #include "showprogress.h"
+
 
 class Octree {
 
@@ -56,6 +58,10 @@ public:
     //! get all nodes of the faces octree with the face inside
     //! return false if the face is not in any node
     bool getNodesOfFace(std::vector<Octnode*>& nodelist, Face* face);
+    //! @param[allNodes] list of nodes where the face will be searched in --> no tree traverse needed
+    //! @param[nodelist] list of nodes where the face is inside
+    bool getNodesOfFace(std::vector<Octnode*>& nodelist, Face* face,std::vector<Octnode*>allNodes);
+
 
 	bool twovert(std::vector<Face*>::iterator& kt, std::vector<Face*>::iterator& jt, std::vector<Face*>& sif,
                  Line& l1, Line& l2, Line& l3);
@@ -76,8 +82,19 @@ public:
 
 
 private:
-
-
+    ///all faces with more than one node
+    struct StrucIncompleteFace{
+        Face* face; // face not completly in aligned node
+        Octnode* node; // aligned node
+        bool operator==(const StrucIncompleteFace& a) const
+        {
+            return (face == a.face);
+        }
+        bool operator<(const StrucIncompleteFace& a) const
+        {
+            return (face < a.face);
+        }
+    };
     void oointers(Vertex* object, Octnode* cnode);
     void oointers(Face* object, Octnode* cnode);
 
@@ -88,13 +105,15 @@ private:
     //! each assigned face of a vertex inside a node becomes part of the same node in the face octree
     //! face octree has the same nodes like the vertex octree
     //! @param[incompleteFaces] are all faces which are not completely inside a node
-    void generateFacesOctreeHypothesis(Octnode* parentNodeFace,Octnode* parentNodeVertex, unsigned int treeLevel, std::vector<Face*> *incompletFaces);
+    void generateFacesOctreeHypothesis(Octnode* parentNodeFace,Octnode* parentNodeVertex, unsigned int treeLevel, std::vector<StrucIncompleteFace> *incompletFaces);
     //! check if each face is only inside the initial assigned node/cube
     //! otherwise search all nodes/cube that are intersected by the face
-    void correctFacesOctree(std::vector<Face*> &facelist);
+    void correctFacesOctree(std::vector<StrucIncompleteFace> &facelist);
     void addFaceToAllIntersectedChildren(Octnode* parentNode, Face* face);
     //!method for parallel compution of correctFacesOctree
-    void correctFace(Face* face);
+    void correctFace(StrucIncompleteFace IncompFaceStruct);
+    //! delete all faces from mIncompleteFaces if they are neighbors and all vertices are inside this two cubes
+    void checkNeighborhoodOfIncompleteFaces();
 
     //!contains the implementation of Tomas Moeller A Fast Triangle-Triangle Intersection Test
     //! obsolete and not tested
@@ -104,12 +123,17 @@ private:
     //! the function only checks the following faces inside the vector because the predecessors are already checked
     //! @param[nodeFace] all faces of a octree node
     void checkIntersectionOfFaceToOtherFaces(std::vector<Face*> nodeFaces, unsigned int faceIterator);
+    //! for each face inside the check if it intersects a other node
+    void checkSelfIntersectionInsideNode(Octnode* node);
     /// pointer to the root node of the vertex octree
     Octnode* mRootVertices;
     /// pointer to the root node of the face octree
     Octnode* mRootFaces;
     ///all faces with more than one node
-    std::vector<Face*> mIncompleteFaces;
+    std::vector<StrucIncompleteFace> mIncompleteFaces;
+    /// mutex to lock critical memory access
+    std::mutex mLock;
+
     ///all faces which are intersected by an other face
     std::vector<Face*> mSelfIntersectedFaces;
 

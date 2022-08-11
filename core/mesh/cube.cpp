@@ -283,8 +283,8 @@ bool Cube::PointisinCube(Vector3D& p) {
 	if (    (fabs( p.getX() - mcenter.getX() ) <= mscale+DBL_EPSILON)
 		 && (fabs( p.getY() - mcenter.getY() ) <= mscale+DBL_EPSILON)
 		 && (fabs( p.getZ() - mcenter.getZ() ) <= mscale+DBL_EPSILON) ) {
-		return true;
-	}
+        return true;
+    }
     return false;
 }
 

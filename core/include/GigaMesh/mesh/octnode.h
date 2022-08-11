@@ -50,6 +50,8 @@ public:
     std::vector<Octnode*> getLeafNodes();
     std::vector<Octnode*> getNodeList();
     bool isFaceInside(Face *face);
+    ///is the octnode neighbor of the @param[node]?
+    bool isNeighbor(Octnode* node);
 	// Destructor
 //	~Octnode();
 
@@ -63,6 +65,8 @@ public:
 	unsigned int mlevel;
 	 /// the centerpoint of this node
 	Cube mCube;
+    ///position at the parent --> look at figure in cube.cpp
+    int mPosNr = -1;
 
 	/// vertices inside this node
     std::vector<Vertex*> mVertices;

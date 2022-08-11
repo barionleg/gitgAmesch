@@ -36,6 +36,7 @@ Octnode::Octnode( Octnode* parent, int nr ) : \
        OCTNODEDEFAULTS,              \
        mparent( parent ),            \
        mlevel( parent->mlevel+1 ),   \
+       mPosNr(nr), \
        mCube( Cube(mparent->mCube.mcenter, 0.5*mparent->mCube.mscale).getVertex(nr), 0.5*mparent->mCube.mscale ) {
     // do nothing
 }
@@ -97,7 +98,61 @@ bool Octnode::isFaceInside(Face *face){
     } else {
         return false;
     }
+}
 
+bool Octnode::isNeighbor(Octnode *node)
+{
+    //neighbors must have the same parent
+    if (node->mparent != mparent){
+        return false;
+    }
+    switch (mPosNr)
+    {
+    case 0:
+        if (node->mPosNr == 1 || node->mPosNr == 2 || node->mPosNr == 4 ){
+            return true;
+        }
+        return false;
+    case 1:
+        if (node->mPosNr == 0 || node->mPosNr == 3 || node->mPosNr == 6 ){
+            return true;
+        }
+        return false;
+    case 2:
+        if (node->mPosNr == 0 || node->mPosNr == 3 || node->mPosNr == 5 ){
+            return true;
+        }
+        return false;
+    case 3:
+        if (node->mPosNr == 1 || node->mPosNr == 7 || node->mPosNr == 2 ){
+            return true;
+        }
+        return false;
+    case 4:
+        if (node->mPosNr == 0 || node->mPosNr == 6 || node->mPosNr == 5 ){
+            return true;
+        }
+        return false;
+    case 5:
+        if (node->mPosNr == 4 || node->mPosNr == 7 || node->mPosNr == 2 ){
+            return true;
+        }
+        return false;
+    case 6:
+        if (node->mPosNr == 4 || node->mPosNr == 7 || node->mPosNr == 1 ){
+            return true;
+        }
+        return false;
+    case 7:
+        if (node->mPosNr == 3 || node->mPosNr == 5 || node->mPosNr == 6 ){
+            return true;
+        }
+        return false;
+
+    default:
+        return false;
+    }
+    return false;
 }
 
 /// comparison function to sort nodes by level

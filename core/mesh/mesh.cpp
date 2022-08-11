@@ -1198,7 +1198,7 @@ void Mesh::generateOctree(int vertexmaxnr) {
             vertexmaxnr = round(mVertices.size()/4);
         }
         delete mOctree;
-        mOctree = new Octree(mVertices, mFaces, &center, vertexmaxnr, edgelen, h);
+        mOctree = new Octree(mVertices, mFaces, &center, vertexmaxnr, edgelen, h, false);
 		mOctree->dumpInfo();
 
 
@@ -3325,31 +3325,15 @@ bool Mesh::selectFaceRandom( double rRatio ) {
 //! Selects self-intersecting faces.
 //! @returns true if successful.
 bool Mesh::selectFaceSelfIntersecting() {
-	Face* current_face = nullptr;
-	Face* compare_face = nullptr;
-
 	// Progress - Start
-	showProgressStart( "Detect self-intersecting trianlges" );
-
-	uint64_t faceCount = getFaceNr();
-	for( uint64_t faceIdx0 = 0; faceIdx0 < faceCount; ++faceIdx0 ) {
-		current_face = getFacePos( faceIdx0 );
-		for( uint64_t faceIdx1 = faceIdx0; faceIdx1 < faceCount; ++faceIdx1) {
-			compare_face = getFacePos( faceIdx1 );
-			if( current_face->intersectsFace( compare_face ) ) {
-				mFacesSelected.insert( current_face );
-				mFacesSelected.insert( compare_face );
-			}
-			// Progress in inner loop
-			showProgress( static_cast<double>(faceIdx0*faceCount+faceIdx1)/static_cast<double>(faceCount*faceCount),
-			              "Detect self-intersecting trianlges" );
-		}
-	}
-
-	// Progress - End
-	showProgressStop( "Detect self-intersecting trianlges" );
-
-	selectedMFacesChanged();
+    // Octree required - also time consuming
+    if( mOctree == nullptr ) {
+        generateOctree( 1000 );
+    }
+    vector<Face*> intersectedFaces;
+    mOctree->detectselfintersections(intersectedFaces);
+    mFacesSelected.insert(intersectedFaces.begin(), intersectedFaces.end());
+    selectedMFacesChanged();
 	return( true );
 }
 
@@ -16963,7 +16947,12 @@ bool Mesh::latexFetchFigureInfos( vector<pair<string,string>>* rStrings ) {
 //! @returns false in case of an error. True otherwise.
 bool Mesh::showInfoMeshHTML() {
 	MeshInfoData infoData;
-	if( !getMeshInfoData( infoData, true ) ) {
+    bool withSelfIntersection = false;
+    if(!showQuestion(&withSelfIntersection, "Selfintersection Detection", "Do you want to calculate the number of self-intersecting faces?\n This could take several minutes!"))
+        return false;
+
+
+    if( !getMeshInfoData( infoData, true, withSelfIntersection ) ) {
 		return( false );
 	}
 	std::string infoString;
@@ -16972,6 +16961,7 @@ bool Mesh::showInfoMeshHTML() {
 	}
 	showInformation( "Mesh Information", infoString );
 	return true;
+
 }
 
 //! Fetch mesh information as Numbers.
@@ -16982,7 +16972,8 @@ bool Mesh::showInfoMeshHTML() {
 //! @returns false in case of an error. True otherwise.
 bool Mesh::getMeshInfoData(
         MeshInfoData& rMeshInfos,
-        const bool    rAbsolutePath
+        const bool    rAbsolutePath,
+        bool rWithSelfIntersectedFaces
 ) {
 	// Initialize
 	rMeshInfos.reset();
@@ -17140,6 +17131,22 @@ bool Mesh::getMeshInfoData(
 		}
 		showProgress( static_cast<double>( faceIdx+getVertexNr() )/progressSteps, "Mesh information" );
 	}
+    //detect self itersection
+    if(rWithSelfIntersectedFaces){
+        // Octree required - time consuming
+        if( mOctree == nullptr ) {
+            generateOctree( 1000 );
+        }
+        vector<Face*> intersectedFaces;
+        mOctree->detectselfintersections(intersectedFaces);
+        //delete duplicates
+        sort(intersectedFaces.begin(),intersectedFaces.end());
+        intersectedFaces.erase( unique( intersectedFaces.begin(),intersectedFaces.end()),intersectedFaces.end());
+        rMeshInfos.mCountULong[MeshInfoData::FACES_SELFINTERSECTED] = intersectedFaces.size();
+    }
+    else{
+        rMeshInfos.mCountULong[MeshInfoData::FACES_SELFINTERSECTED] = -1;
+    }
 
 	// Labeled connected components
 	labelCount( Primitive::IS_VERTEX, rMeshInfos.mCountULong[MeshInfoData::CONNECTED_COMPONENTS] );

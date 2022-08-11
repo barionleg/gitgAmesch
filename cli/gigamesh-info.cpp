@@ -67,7 +67,7 @@ bool infoGigaMeshData(
 	someMesh.labelVerticesAll();
 
 	// Count primitives and their properties
-	if( !someMesh.getMeshInfoData( rFileInfos, rAbsolutePath ) ) {
+    if( !someMesh.getMeshInfoData( rFileInfos, rAbsolutePath, true) ) {
 		std::wcerr << "[GigaMesh] ERROR: Could not fetch mesh information about '" << rFileNameIn.wstring() << "'!" << std::endl;
 		return( false );
 	}
