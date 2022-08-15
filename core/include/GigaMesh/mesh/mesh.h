@@ -97,7 +97,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 
 	public:
 		// Octree
-		virtual void generateOctree( int vertexmaxnr, int facemaxnr );
+        virtual void generateOctree( int vertexmaxnr);
 
 		// Information retrival - overloaded from Primitive:
 		virtual double   getX() const;
@@ -742,7 +742,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool latexFetchFigureInfos( std::vector<std::pair<std::string, std::string>>* rStrings );
 		// Mesh information - Display for the console in plain text and html for the GUI
 				bool showInfoMeshHTML();
-				bool getMeshInfoData( MeshInfoData& rMeshInfos, const bool rAbsolutePath );
+                //! @param[rWithSelfIntersectedFaces] leads to high running time
+                bool getMeshInfoData( MeshInfoData& rMeshInfos, const bool rAbsolutePath, bool rWithSelfIntersectedFaces=false );
 				void dumpMeshInfo( bool avoidSlow=true );
 		virtual bool showInfoSelectionHTML();
 		virtual bool showInfoFuncValHTML();
@@ -787,8 +788,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 
 		// Binary Space Partitioning -- Octree
 	protected:
-		Octree<Vertex*>*   mOctree     = nullptr;          //! Octree handling the Vertices stored in mVertices.
-		Octree<Face*>*     mOctreeface = nullptr;          //! Octree handling the Faces stored in mFaces.
+        Octree*   mOctree     = nullptr;          //! Octree handling the Vertices stored in mParentVertices and the mParentFaces.
 
 		// Primitves describing the Mesh:
 		std::vector<Vertex*> mVertices;   //!< Vertices of the Mesh.

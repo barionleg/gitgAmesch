@@ -1419,7 +1419,7 @@ bool MeshGL::selectPrism(
 
 	// Octree required - also time consuming
 	if( mOctree == nullptr ) {
-		generateOctree( 0.05*getVertexNr(), 0 );
+        generateOctree( 0.05*getVertexNr());
 	}
 
 	// Determine processing time - INTERMEDIATE
@@ -1429,8 +1429,8 @@ bool MeshGL::selectPrism(
 	tInterStart = high_resolution_clock::now();
 
 	//vertices in cvertexlist are contained completely, no further check necessary
-	vector<Octnode<Vertex*> *> ilist;  // Vertices of a node, which is partially enclosed by the prism
-	vector<Octnode<Vertex*> *> cilist; // Vertices of a node, which is fully enclosed by the prism
+    vector<Octnode *> ilist;  // Vertices of a node, which is partially enclosed by the prism
+    vector<Octnode *> cilist; // Vertices of a node, which is fully enclosed by the prism
 	Vector3D selectBeam[6];
 
 	for( unsigned int j=0; j<rTri.size(); j+=3 ) {
@@ -1442,7 +1442,7 @@ bool MeshGL::selectPrism(
 		}
 		TriangularPrism tritmp(selectBeam);
 
-		mOctree->gettriangleintersection( ilist, cilist, mLines, tritmp );
+        mOctree->gettriangleintersection( ilist, cilist, mLines, tritmp );
 	}
 
 	// CILIST is often empty. However, it has to be collected.
@@ -1458,12 +1458,12 @@ bool MeshGL::selectPrism(
 	set<Vertex*> vertexlist;
 	set<Vertex*> cvertexlist;
 	//copy Vertex* from Octnode* ilist to vertexlist
-	for(Octnode<Vertex*>*& octnode : ilist) {
-		vertexlist.insert( octnode->mElements.begin(), octnode->mElements.end());
+    for(Octnode*& octnode : ilist) {
+		vertexlist.insert( octnode->mVertices.begin(), octnode->mVertices.end());
 	}
 	//copy Vertex* from Octnode* cilist to cvertexlist
-	for(Octnode<Vertex*>*& octnode : cilist) {
-		cvertexlist.insert( octnode->mElements.begin(), octnode->mElements.end());
+    for(Octnode*& octnode : cilist) {
+		cvertexlist.insert( octnode->mVertices.begin(), octnode->mVertices.end());
 	}
 
 	// Determine processing time - INTERMEDIATE

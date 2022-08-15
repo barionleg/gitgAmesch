@@ -76,6 +76,7 @@ class MeshInfoData {
 			FACES_INVERTED,
 			FACES_SELECTED,
 			FACES_WITH_SYNTH_VERTICES,     //!< Number of faces having only synthetic vertices i.e. all three vertices are synthetic.
+            FACES_SELFINTERSECTED,         //! Number of faces which intersect a other face (self-intersection)
 			CONNECTED_COMPONENTS,          //!< Number of connected components
 			ULONG_COUNT,                   //!< Number of elements.
 		};

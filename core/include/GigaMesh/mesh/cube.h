@@ -49,6 +49,7 @@ class Cube {
 		std::unique_ptr<Plane> getPlane(int nr);
 
 		bool PointisinCube(Vector3D& p);
+        bool isFaceCompletelyInCube(Face* face);
 
 		//! check if theres an intersection between triangular prism and octnode cube
 		//test if there is intersection of this cube with triangular prism,

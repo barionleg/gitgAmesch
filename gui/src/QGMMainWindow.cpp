@@ -270,7 +270,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionRemove_Drawing_of_Octree,SIGNAL(triggered()), this, SIGNAL(removeOctreedraw())            );
 	QObject::connect( actionDraw_Octree,             SIGNAL(triggered()), this, SIGNAL(drawOctree())            );
 	QObject::connect( actionDelete_Octree,           SIGNAL(triggered()), this, SIGNAL(deleteOctree())            );
-
+    QObject::connect( actionDetect_Self_Intersections,           SIGNAL(triggered()), this, SIGNAL(detectselfintersections())            );
 
 	// #####################################################################################################################################################
 	// # FUNCTION VALUE

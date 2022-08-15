@@ -78,6 +78,7 @@ MeshInfoData::MeshInfoData() {
 	mCountULongName[FACES_INVERTED] = "Inverted Faces";
 	mCountULongName[FACES_SELECTED] = "Selected Faces";
 	mCountULongName[FACES_WITH_SYNTH_VERTICES] = "Faces with synthetic vertices";
+    mCountULongName[FACES_SELFINTERSECTED] = "Faces which intersect other faces (self-intersection)";
 	mCountULongName[CONNECTED_COMPONENTS] = "Connected components";
 
 	// Double names
@@ -715,7 +716,8 @@ bool MeshInfoData::getMeshInfoJSON(std::string& rInfoJSON){
     infoStr+="\"giga:StickyFaces\":"+std::to_string(this->mCountULong[MeshInfoData::FACES_STICKY])+",\n"; 
     infoStr+="\"giga:ZeroAreaFaces\":"+std::to_string(this->mCountULong[MeshInfoData::FACES_ZEROAREA])+",\n"; 
     infoStr+="\"giga:InvertedFaces\":"+std::to_string(this->mCountULong[MeshInfoData::FACES_INVERTED])+",\n"; 
-    infoStr+="\"giga:SelectedFaces\":"+std::to_string(this->mCountULong[MeshInfoData::FACES_SELECTED])+",\n"; 
+    infoStr+="\"giga:SelectedFaces\":"+std::to_string(this->mCountULong[MeshInfoData::FACES_SELECTED])+",\n";
+    infoStr+="\"giga:SelfIntersectedFaces\":"+std::to_string(this->mCountULong[MeshInfoData::FACES_SELFINTERSECTED])+",\n";
     infoStr+="\"giga:SyntheticVertexFaces\":"+std::to_string(this->mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES])+"\n"; 
     infoStr+="},\n";    
     infoStr+="\"giga:BoundingBox\":{\n";
@@ -1397,7 +1399,11 @@ bool MeshInfoData::getMeshInfoHTML(
 	infoStr += "<tr><td></td><td></td><td></td></tr>\n"; // Empty line
 	infoStr += "<tr><td>Smallest&nbsp;area:</td><td align=\"right\">"                          + std::to_string( this->mCountDouble[MeshInfoData::FACES_AREA_SMALLEST] )          + "</td><td align=\"right\">mm<sup>2</sup></td></tr>\n";
 	infoStr += "<tr><td>Largest&nbsp;area:</td><td align=\"right\">"                           + std::to_string( this->mCountDouble[MeshInfoData::FACES_AREA_LARGEST] )           + "</td><td align=\"right\">mm<sup>2</sup></td></tr>\n";
-	infoStr += "</table>\n";
+    if(this->mCountULong[MeshInfoData::FACES_SELFINTERSECTED] != -1){
+        infoStr += "<tr><td>Self-intersected:</td><td align=\"right\">"                     + std::to_string( this->mCountULong[MeshInfoData::FACES_SELFINTERSECTED] )               + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_SELFINTERSECTED].str()               + "&#37;</td></tr>\n";
+    }
+    //infoStr += "<tr><td>Self-intersected:</td><td align=\"right\">"                     + std::to_string( this->mCountULong[MeshInfoData::FACES_SELFINTERSECTED] )               + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_SELFINTERSECTED].str()               + "&#37;</td></tr>\n";
+    infoStr += "</table>\n";
 
 	// Outer table - End
 	infoStr += "</td></tr>\n";
