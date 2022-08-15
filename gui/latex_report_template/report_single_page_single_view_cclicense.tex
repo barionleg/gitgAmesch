@@ -7,6 +7,12 @@
 	\usepackage{graphicx}     % For inclusions of images
 	\usepackage{caption}       % Figure caption without number
 	\usepackage{numprint}   % Number formatting
+    \usepackage[
+    type={CC},
+    modifier={by-sa},
+    version={4.0},
+    ]{doclicense}
+    \usepackage{hyperxmp}
 	\usepackage[pdftex,
 	                           pdfauthor={},
 	                           pdftitle={VAT 11403 rendered with GigaMesh},
@@ -16,7 +22,7 @@
 	                           pdfcreator={pdflatex}]{hyperref}
 	\hypersetup{frenchlinks=true}
 
-	\def\figurescale{1.5}   % default scale 1:1
+	\def\figurescale{2.5}   % default scale 1:1
 	\def\figureprefix{figs/VAT_11403_GM_orient_Gray}
 
 	\usepackage{titleps}    % Header and footer
@@ -30,27 +36,27 @@
 	%\section*{VAT 11403}
 	\pagenumbering{gobble} % Turn off page number
 
-	\vspace*{\fill}
-	\begin{figure*}[!ht]
-		\begin{center}
-		\begin{tabular}{ccc}
-			&   % empty
-			\includegraphics[scale=\figurescale]{{\figureprefix_01_ha_top}}        &
-			\\  % empty
-			\includegraphics[scale=\figurescale]{{\figureprefix_02_ha_left}}       &
-			\includegraphics[scale=\figurescale]{{\figureprefix_03_ha_front}}      &
-			\includegraphics[scale=\figurescale]{{\figureprefix_04_ha_right}}      \\
-			&   % empty
-			\includegraphics[scale=\figurescale]{{\figureprefix_05_ha_bottom}}     &
-			\\  % empty
-			&   % ignore: \includegraphics[scale=\figurescale]{{\figureprefix_06_ha_back_left}}  &
-			\includegraphics[scale=\figurescale]{{\figureprefix_07_ha_back}}       &
-			\\  % ignore: \includegraphics[scale=\figurescale]{{\figureprefix_08_ha_back_right}} \\
-		\end{tabular}
- 		%\caption*{VAT 11403}
- 		%\label{VAT_11403}
-		\end{center}
-	\end{figure*}
+ 	\vspace*{\fill}
+ 	\begin{figure*}[!ht]
+ 		\begin{center}
+% 		\begin{tabular}{ccc}
+% 			&   % empty
+% 			\includegraphics[scale=\figurescale]{{\figureprefix_01_ha_top}}        &
+% 			\\  % empty
+% 			\includegraphics[scale=\figurescale]{{\figureprefix_02_ha_left}}       &
+			\includegraphics[scale=\figurescale]{{\figureprefix_03_ha_front}}      %&
+% 			\includegraphics[scale=\figurescale]{{\figureprefix_04_ha_right}}      \\
+% 			&   % empty
+% 			\includegraphics[scale=\figurescale]{{\figureprefix_05_ha_bottom}}     &
+% 			\\  % empty
+% 			&   % ignore: \includegraphics[scale=\figurescale]{{\figureprefix_06_ha_back_left}}  &
+% 			\includegraphics[scale=\figurescale]{{\figureprefix_07_ha_back}}       &
+% 			\\  % ignore: \includegraphics[scale=\figurescale]{{\figureprefix_08_ha_back_right}} \\
+% 		\end{tabular}
+%  		%\caption*{VAT 11403}
+%  		%\label{VAT_11403}
+ 		\end{center}
+ 	\end{figure*}
 	\vspace*{\fill}
 
 	\begin{center}
@@ -77,5 +83,7 @@
 			\end{tabular}
 		\end{tabular}
 	\end{center}
-
+\clearpage
+\doclicenseThis
 \end{document}
+
