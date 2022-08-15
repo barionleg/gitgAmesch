@@ -699,7 +699,7 @@ bool MeshInfoData::getMeshInfoJSON(std::string& rInfoJSON){
     infoStr+="\"giga:NonManifoldVertices\":\""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_NONMANIFOLD])+"\",\n"; 
     infoStr+="\"giga:SingularVertices\":\""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_SINGULAR])+"\",\n"; 
     infoStr+="\"giga:VerticesOnInvertedEdge\":\""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_ON_INVERTED_EDGE])+"\",\n"; 
-    infoStr+="\"giga:VerticesPartOfZeroAreaFace\":"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_PART_OF_ZERO_FACE])+"\",\n"; 
+    infoStr+="\"giga:VerticesPartOfZeroAreaFace\":\""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_PART_OF_ZERO_FACE])+"\",\n";
     infoStr+="\"giga:SyntheticVertices\":\""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_SYNTHETIC])+"\",\n"; 
     infoStr+="\"giga:ManuallyAddedVertices\":\""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_MANUAL])+"\",\n"; 
     infoStr+="\"giga:CircleCenterVertices\":\""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_CIRCLE_CENTER])+"\",\n";
