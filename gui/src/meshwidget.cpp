@@ -2553,7 +2553,8 @@ bool MeshWidget::screenshotViewsDirectory() {
 				// FRONT View PDF document
 				QString prefixStem( string( std::filesystem::path( currFiles.at(i).toStdString() ).stem().string() ).c_str() );
 				retVal |= screenshotPDF( pathChoosen+'/'+prefixStem+fileNameSuffix+".pdf",
-				                         useTiled ); // Fromt Side
+                                         useTiled,
+                                         "Single page"); // Fromt Side
 			}
 		} else {
 			if( preferPNGoverPDF ) {
@@ -2567,7 +2568,8 @@ bool MeshWidget::screenshotViewsDirectory() {
 			} else {
 				// SIDE Views PDF document
 				QString prefixStem( string( std::filesystem::path( currFiles.at(i).toStdString() ).stem().string() ).c_str() );
-				retVal |= screenshotViewsPDF( pathChoosen+'/'+prefixStem+fileNameSuffix+".pdf" ); // TILES always ON
+                retVal |= screenshotViewsPDF( pathChoosen+'/'+prefixStem+fileNameSuffix+".pdf",
+                                              "Single page"); // TILES always ON
 			}
 		}
 	} // for all files
@@ -2687,8 +2689,20 @@ bool MeshWidget::screenshotViewsPDFUser() {
 		return( false );
 	}
 
+    QStringList templates;
+    templates.append( "Single page" );
+    templates.append( "Single page with cc-license" );
+    templates.append( "Own template" );
+
+    bool userCancel;
+    QString rTemplate;
+    SHOW_DIALOG_COMBO_BOX( tr("Template"), tr("Which template do you want to use?"), templates, rTemplate, userCancel );
+    if( userCancel ) {
+        return( false );
+    }
+
 	// Execute
-	if( !screenshotViewsPDF( fileName ) ) {
+    if( !screenshotViewsPDF( fileName, rTemplate ) ) {
 		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: screenshotViewsPDF( " << fileName.toStdString() << " ) failed!" << std::endl;
 		return( false );
 	}
@@ -2725,8 +2739,9 @@ bool MeshWidget::screenshotViewsPDFUser() {
 //!
 //! Accepts a filename to write a PDF with views for the current mesh (MeshWidget::mMeshVisual).
 //!
+//! @todo GUI Questions for the cc license parameters
 //! @returns false in case of an error. True otherwise.
-bool MeshWidget::screenshotViewsPDF( const QString& rFileName ) {
+bool MeshWidget::screenshotViewsPDF( const QString& rFileName, QString rTemplate ) {
 	//! Always use tiled rendering.
 	bool useTiled = true;
 	//! Six views only (for now)
@@ -2784,7 +2799,13 @@ bool MeshWidget::screenshotViewsPDF( const QString& rFileName ) {
 	scaleFactorTex    = "1:" + QString( "%1" ).arg( 1.0/scaleFactor, 'f' ).trimmed() ;
 
 	// Load template
+    //standard = single page
 	QString latexTemplateName( ":/GMLaTeX/report_single_page_template.tex" );
+    //other templates
+    if(rTemplate == "Single page with cc-license"){
+        latexTemplateName = ":/GMLaTeX/report_single_page_cclicense_template.tex";
+    }
+
 	QString latexTemplate;
 	QFile fileLatexIn( latexTemplateName );
 	if( !fileLatexIn.open( QIODevice::ReadOnly ) ) {
@@ -2810,6 +2831,9 @@ bool MeshWidget::screenshotViewsPDF( const QString& rFileName ) {
 		replacmentStrings.emplace_back(pair<string, string>("06_ha_back"  , "04_va_back"));
 	}
 
+    //replace license placeholders
+    latexTemplate.replace( QRegExp( "__CC_PARAMETERS__" ), "by-sa" );
+    latexTemplate.replace( QRegExp( "__CC_VERSION__" ), "4.0" );
 
 	latexTemplate.replace( QRegExp( "__FIGURE_PREFIX__" ), filePrefixImgTex );
 	latexTemplate.replace( QRegExp( "__SCALE_FACTOR_STRING__" ), scaleFactorTex );
@@ -3343,22 +3367,34 @@ bool MeshWidget::screenshotPDFUser() {
 	}
 
 	// Ask for tiled rendering
+    bool userCancel;
 	bool useTiled = false;
 	{
-		bool userCancel;
+
 		SHOW_QUESTION( tr("Tiled rendering"), tr("Do you want to use tiled rendering?") + QString("\n\n") + tr("Recommended: YES"), useTiled, userCancel );
 		if( userCancel ) {
 			return( false );
 		}
 	}
 
+    QStringList templates;
+    templates.append( "Single page" );
+    templates.append( "Single page with cc-license" );
+    templates.append( "Own template" );
+
+    QString rTemplate;
+    SHOW_DIALOG_COMBO_BOX( tr("Template"), tr("Which template do you want to use?"), templates, rTemplate, userCancel );
+    if( userCancel ) {
+        return( false );
+    }
+
 	// Execute
-	if( !screenshotPDF( fileName, useTiled ) ) {
+    if( !screenshotPDF( fileName, useTiled, rTemplate ) ) {
 		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: screenshotPDF(...) failed!" << std::endl;
 		return( false );
 	}
 
-	// --- Show PDF, when evince is available --------------------------------------------------------------------------------------------------------------
+    // --- Show PDF, when evince, okular or atril is available --------------------------------------------------------------------------------------------------------------
 
 	std::string pdfViewerCommand;
 	getParamStringMeshWidget(MeshWidgetParams::PDF_VIEWER_COMMAND, &pdfViewerCommand);
@@ -3393,8 +3429,9 @@ bool MeshWidget::screenshotPDFUser() {
 //!
 //! Accepts a filename to write a PDF with views for the current mesh (MeshWidget::mMeshVisual).
 //!
+//! @todo GUI Questions for the cc license parameters
 //! @returns false in case of an error. True otherwise.
-bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled ) {
+bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled, const QString rTemplate ) {
 	// Prepare filename.
 	string prefixPath = std::filesystem::path( rFileName.toStdString() ).parent_path().string();
 	string prefixStem = std::filesystem::path( rFileName.toStdString() ).stem().string();
@@ -3423,7 +3460,13 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled )
 	scaleFactorTex    = "1:" + QString( "%1" ).arg( 1.0/scaleFactor, 'f' ).trimmed() ;
 
 	// Load template
+    //standard = single page
 	QString latexTemplateName( ":/GMLaTeX/report_single_page_single_view_template.tex" );
+    //other templates
+    if(rTemplate == "Single page with cc-license"){
+        latexTemplateName = ":/GMLaTeX/report_single_page_single_view_cclicense_template.tex";
+    }
+
 	QString latexTemplate;
 	QFile fileLatexIn( latexTemplateName );
 	if( !fileLatexIn.open( QIODevice::ReadOnly ) ) {
@@ -3437,6 +3480,10 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled )
 	// Fetch strings with information for the table
 	vector<pair<string,string>> replacmentStrings;
 	mMeshVisual->latexFetchFigureInfos( &replacmentStrings );
+
+    //replace license placeholders
+    latexTemplate.replace( QRegExp( "__CC_PARAMETERS__" ), "by-sa" );
+    latexTemplate.replace( QRegExp( "__CC_VERSION__" ), "4.0" );
 
 	// Replace placeholders
 	latexTemplate.replace( QRegExp( "__FIGURE_IMAGE_FILE__" ), "\""+QString( prefixStem.c_str() )+"\"" );

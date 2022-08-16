@@ -139,7 +139,7 @@ private:
 
 	// Screenshot - Wrapping methods
 	bool screenshotPDFUser();
-	bool screenshotPDF( const QString& rFileName, const bool rUseTiled );
+    bool screenshotPDF( const QString& rFileName, const bool rUseTiled, const QString rTemplate );
 
 private:
 	// Screenshot - Views - Wrapping methods
@@ -148,7 +148,7 @@ public:
 	bool screenshotViewsDirectory();
 	bool directoryFuncValToRGB();
 	bool screenshotViewsPDFUser();
-	bool screenshotViewsPDF( const QString& rFileName );
+    bool screenshotViewsPDF( const QString& rFileName, const QString rTemplate );
 private:
 	bool screenshotPDFMake( const QString& rPrefixPath, const QString& rFilePrefixTex );
 
