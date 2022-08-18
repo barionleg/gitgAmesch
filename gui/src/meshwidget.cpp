@@ -170,6 +170,9 @@ MeshWidget::MeshWidget( const QGLFormat &format, QWidget *parent )
 	QObject::connect( this, &MeshWidget::sGuideIDCommon,    mMainWindow, &QGMMainWindow::sGuideIDCommon    );
 	// ----------------------------------------------------------------------------------------------------------------
 
+    //set the latex placeholder descriptions (PDF Export)
+    setLatexPlaceholderDefinition();
+
 	cout << "[MeshWidget] ... done." << endl;
 
 	//! \bug Emitting inside constructor has no effect
@@ -2428,7 +2431,78 @@ bool MeshWidget::screenshotViewsDirectoryFiles(
 //		}
 //	}
 
-	return( true );
+    return( true );
+}
+//! Set all possible Latex placeholder definitions
+//!
+//! placeholders are used to check if a userdefined latextemplate uses all possible values/placeholders
+//! descriptions are used to give the user information about the placeholder value
+void MeshWidget::setLatexPlaceholderDefinition()
+{
+
+    //single page
+    mPdfSinglePlaceholders.clear();
+    mPdfSinglePlaceholders = {
+        {"__PDF_AUTHOR__","username and hostname of the system"},
+        {"__OBJECT_ID__","is the value of 'ModelID' at the Meta information of the PLY"},
+        {"__WEB_REFERENCE__","is the value of 'ModelReferenceWeb' at the Meta information of the PLY"},
+        {"__FIGURE_IMAGE_FILE__","is the Name of the created PNG at the target directory (without '.png')"},
+        {"__BOUNDING_BOX_WIDTH__","bounding box width in cm"},
+        {"__BOUNDING_BOX_HEIGHT__","bounding box height in cm"},
+        {"__BOUNDING_BOX_THICK__","bounding box thick in cm"},
+        {"__VERTEX_COUNT__","number of vertices"},
+        {"__FACE_COUNT__","number of faces"},
+        {"__OBJECT_MATERIAL__","is the value of 'ModelMaterial' at the Meta information of the PLY"},
+        {"__AREA_TOTAL__","surface of the mesh in mm²"},
+        {"__AREA_TOTAL__","surface of the mesh in mm²"},
+        {"__AREA_RESOLUTION_METRIC__","resolution in 1/cm²"},
+        {"__AREA_RESOLUTION_DPI__","resolution in DPI"},
+        {"__VOLUME_TOTAL__","volume in cm³"}
+    };
+
+    //views
+    mPdfViewsPlaceholders.clear();
+    mPdfViewsPlaceholders = {
+        {"__PDF_AUTHOR__","username and hostname of the system"},
+        {"__OBJECT_ID__","is the value of 'ModelID' at the Meta information of the PLY"},
+        {"__WEB_REFERENCE__","is the value of 'ModelReferenceWeb' at the Meta information of the PLY"},
+        {"__FIGURE_PREFIX__","is the Präfix of all generated images in directory figs at the target directory.\n Use in combination with e.g. \figureprefix_01_ha_top to include a image.\n possible Views:_01_ha_top,_02_ha_left,_03_ha_front,_04_ha_right,_05_ha_bottom, _06_ha_back"},
+        {"__BOUNDING_BOX_WIDTH__","bounding box width in cm"},
+        {"__BOUNDING_BOX_HEIGHT__","bounding box height in cm"},
+        {"__BOUNDING_BOX_THICK__","bounding box thick in cm"},
+        {"__VERTEX_COUNT__","number of vertices"},
+        {"__FACE_COUNT__","number of faces"},
+        {"__OBJECT_MATERIAL__","is the value of 'ModelMaterial' at the Meta information of the PLY"},
+        {"__AREA_TOTAL__","surface of the mesh in mm²"},
+        {"__AREA_TOTAL__","surface of the mesh in mm²"},
+        {"__AREA_RESOLUTION_METRIC__","resolution in 1/cm²"},
+        {"__AREA_RESOLUTION_DPI__","resolution in DPI"},
+        {"__VOLUME_TOTAL__","volume in cm³"}
+    };
+
+}
+
+bool MeshWidget::checkUserdefinedLatexFile(QString *latexTemplate, std::vector<LatexPlaceholder> rPlaceHolders)
+{
+    bool notUsedPlaceholderFound = false;
+    QString informationTextPlaceholders;
+    for(LatexPlaceholder placeholder: rPlaceHolders){
+        if(!latexTemplate->contains(QRegExp(placeholder.placeholder))){
+            informationTextPlaceholders = informationTextPlaceholders + placeholder.placeholder;
+            informationTextPlaceholders = informationTextPlaceholders + QString(" | ");
+            informationTextPlaceholders = informationTextPlaceholders + placeholder.descr +  QString("\n");
+            notUsedPlaceholderFound = true;
+        }
+    }
+    if(notUsedPlaceholderFound){
+        bool userCancel;
+        bool userContinue;
+        SHOW_QUESTION( tr("Some Placeholders are not used"), tr("The Latex template contains not all possible Placeholders.\n This additional placeholders are still possible: ") + QString("\n\n") + informationTextPlaceholders + QString("\n\n") + tr("Continue?"), userContinue, userCancel );
+        if( userCancel || !userContinue) {
+            return( false );
+        }
+    }
+    return ( true );
 }
 
 //! Render front-views or side-views as
@@ -2496,6 +2570,56 @@ bool MeshWidget::screenshotViewsDirectory() {
 		}
 	}
 
+    //ask for pdf templates
+    QString rTemplate;
+    QString texFileName;
+    //set standard license Values
+    QString ccParameters = "by-sa";
+    QString ccVersion = "4.0";
+    if(!preferPNGoverPDF){
+        QStringList templates;
+        templates.append( "Single page" );
+        templates.append( "Single page with cc-license" );
+        templates.append( "Own template" );
+
+        SHOW_DIALOG_COMBO_BOX( tr("Template"), tr("Which template do you want to use?"), templates, rTemplate, userCancel );
+        if( userCancel ) {
+            return( false );
+        }
+        //load user individual template
+        if( rTemplate == "Own template"){
+            texFileName = QFileDialog::getOpenFileName( this,
+                                                              tr( "Import Latex template" ),
+                                                              nullptr,
+                                                              tr( "tex-file (*.tex)" )
+                                                             );
+            if( texFileName == nullptr) {
+                return( false );
+            }
+        }
+        //ask for cc license parameters and Version
+        if( rTemplate == "Single page with cc-license"){
+            QGMDialogEnterText dlgEnterTxt;
+            dlgEnterTxt.setWindowTitle( "Set CC-Parameters" );
+            dlgEnterTxt.setText(ccParameters);
+            if( dlgEnterTxt.exec() == QDialog::Rejected ) {
+                return( false );
+            }
+            if( !dlgEnterTxt.getText( &ccParameters ) ) {
+                return( false );
+            }
+
+            dlgEnterTxt.setWindowTitle( "Set CC-Version" );
+            dlgEnterTxt.setText(ccVersion);
+            if( dlgEnterTxt.exec() == QDialog::Rejected ) {
+                return( false );
+            }
+            if( !dlgEnterTxt.getText( &ccVersion ) ) {
+                return( false );
+            }
+        }
+    }
+
 	// Let the user choose a path
 	QString     pathChoosen;
 	QStringList currFiles;
@@ -2554,7 +2678,10 @@ bool MeshWidget::screenshotViewsDirectory() {
 				QString prefixStem( string( std::filesystem::path( currFiles.at(i).toStdString() ).stem().string() ).c_str() );
 				retVal |= screenshotPDF( pathChoosen+'/'+prefixStem+fileNameSuffix+".pdf",
                                          useTiled,
-                                         "Single page"); // Fromt Side
+                                         rTemplate,
+                                         texFileName,
+                                         ccParameters,
+                                         ccVersion); // Fromt Side
 			}
 		} else {
 			if( preferPNGoverPDF ) {
@@ -2569,7 +2696,10 @@ bool MeshWidget::screenshotViewsDirectory() {
 				// SIDE Views PDF document
 				QString prefixStem( string( std::filesystem::path( currFiles.at(i).toStdString() ).stem().string() ).c_str() );
                 retVal |= screenshotViewsPDF( pathChoosen+'/'+prefixStem+fileNameSuffix+".pdf",
-                                              "Single page"); // TILES always ON
+                                              rTemplate,
+                                              texFileName,
+                                              ccParameters,
+                                              ccVersion); // TILES always ON
 			}
 		}
 	} // for all files
@@ -2583,7 +2713,8 @@ bool MeshWidget::screenshotViewsDirectory() {
 		                  tr( "Errors occured creating screenshots for:<br /><br />" ) +
 		                  pathChoosen );
 	}
-
+    //set false, that the userindividual latex template will check next time
+    mUserContinue = false;
 	return( retVal );
 }
 
@@ -2701,8 +2832,45 @@ bool MeshWidget::screenshotViewsPDFUser() {
         return( false );
     }
 
+    //load user individual template
+    QString texFileName;
+    if( rTemplate == "Own template"){
+
+        texFileName = QFileDialog::getOpenFileName( this,
+                                                          tr( "Import Latex template" ),
+                                                          nullptr,
+                                                          tr( "tex-file (*.tex)" )
+                                                         );
+        if( texFileName == nullptr) {
+            return( false );
+        }
+    }
+    //ask for cc license parameters and Version
+    QString ccParameters = "by-sa";
+    QString ccVersion = "4.0";
+    if( rTemplate == "Single page with cc-license"){
+        QGMDialogEnterText dlgEnterTxt;
+        dlgEnterTxt.setWindowTitle( "Set CC-Parameters" );
+        dlgEnterTxt.setText(ccParameters);
+        if( dlgEnterTxt.exec() == QDialog::Rejected ) {
+            return( false );
+        }
+        if( !dlgEnterTxt.getText( &ccParameters ) ) {
+            return( false );
+        }
+
+        dlgEnterTxt.setWindowTitle( "Set CC-Version" );
+        dlgEnterTxt.setText(ccVersion);
+        if( dlgEnterTxt.exec() == QDialog::Rejected ) {
+            return( false );
+        }
+        if( !dlgEnterTxt.getText( &ccVersion ) ) {
+            return( false );
+        }
+    }
+
 	// Execute
-    if( !screenshotViewsPDF( fileName, rTemplate ) ) {
+    if( !screenshotViewsPDF( fileName, rTemplate, texFileName, ccParameters, ccVersion ) ) {
 		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: screenshotViewsPDF( " << fileName.toStdString() << " ) failed!" << std::endl;
 		return( false );
 	}
@@ -2731,7 +2899,8 @@ bool MeshWidget::screenshotViewsPDFUser() {
 
 	}
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
-
+    //set false, that the userindividual latex template will check next time
+    mUserContinue = false;
 	return( true );
 }
 
@@ -2741,7 +2910,7 @@ bool MeshWidget::screenshotViewsPDFUser() {
 //!
 //! @todo GUI Questions for the cc license parameters
 //! @returns false in case of an error. True otherwise.
-bool MeshWidget::screenshotViewsPDF( const QString& rFileName, QString rTemplate ) {
+bool MeshWidget::screenshotViewsPDF( const QString& rFileName, QString rTemplate, const QString rTexFileName, const QString rCCparameter, const QString rCCversion ) {
 	//! Always use tiled rendering.
 	bool useTiled = true;
 	//! Six views only (for now)
@@ -2805,8 +2974,10 @@ bool MeshWidget::screenshotViewsPDF( const QString& rFileName, QString rTemplate
     if(rTemplate == "Single page with cc-license"){
         latexTemplateName = ":/GMLaTeX/report_single_page_cclicense_template.tex";
     }
-
-	QString latexTemplate;
+    if( rTemplate == "Own template"){
+        latexTemplateName = rTexFileName;
+    }
+    QString latexTemplate;
 	QFile fileLatexIn( latexTemplateName );
 	if( !fileLatexIn.open( QIODevice::ReadOnly ) ) {
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Template could not be opened!" << endl;
@@ -2815,6 +2986,17 @@ bool MeshWidget::screenshotViewsPDF( const QString& rFileName, QString rTemplate
 
 	latexTemplate = fileLatexIn.readAll();
 	fileLatexIn.close();
+
+    //check user defined Latex file
+    if( rTemplate == "Own template" && !mUserContinue){
+        if(!checkUserdefinedLatexFile(&latexTemplate,mPdfSinglePlaceholders)){
+            cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: User stopped process" << endl;
+            return( false );
+        }
+        else{
+            mUserContinue = true;
+        }
+    }
 
 	// Fetch strings with information for the table
 	vector<pair<string,string>> replacmentStrings;
@@ -2832,8 +3014,8 @@ bool MeshWidget::screenshotViewsPDF( const QString& rFileName, QString rTemplate
 	}
 
     //replace license placeholders
-    latexTemplate.replace( QRegExp( "__CC_PARAMETERS__" ), "by-sa" );
-    latexTemplate.replace( QRegExp( "__CC_VERSION__" ), "4.0" );
+    latexTemplate.replace( QRegExp( "__CC_PARAMETERS__" ), rCCparameter );
+    latexTemplate.replace( QRegExp( "__CC_VERSION__" ), rCCversion );
 
 	latexTemplate.replace( QRegExp( "__FIGURE_PREFIX__" ), filePrefixImgTex );
 	latexTemplate.replace( QRegExp( "__SCALE_FACTOR_STRING__" ), scaleFactorTex );
@@ -3388,8 +3570,44 @@ bool MeshWidget::screenshotPDFUser() {
         return( false );
     }
 
+    //load user individual template
+    QString texFileName;
+    if( rTemplate == "Own template"){
+
+        texFileName = QFileDialog::getOpenFileName( this,
+                                                          tr( "Import Latex template" ),
+                                                          nullptr,
+                                                          tr( "tex-file (*.tex)" )
+                                                         );
+        if( texFileName == nullptr) {
+            return( false );
+        }
+    }
+    //ask for cc license parameters and Version
+    QString ccParameters = "by-sa";
+    QString ccVersion = "4.0";
+    if( rTemplate == "Single page with cc-license"){
+        QGMDialogEnterText dlgEnterTxt;
+        dlgEnterTxt.setWindowTitle( "Set CC-Parameters" );
+        dlgEnterTxt.setText(ccParameters);
+        if( dlgEnterTxt.exec() == QDialog::Rejected ) {
+            return( false );
+        }
+        if( !dlgEnterTxt.getText( &ccParameters ) ) {
+            return( false );
+        }
+
+        dlgEnterTxt.setWindowTitle( "Set CC-Version" );
+        dlgEnterTxt.setText(ccVersion);
+        if( dlgEnterTxt.exec() == QDialog::Rejected ) {
+            return( false );
+        }
+        if( !dlgEnterTxt.getText( &ccVersion ) ) {
+            return( false );
+        }
+    }
 	// Execute
-    if( !screenshotPDF( fileName, useTiled, rTemplate ) ) {
+    if( !screenshotPDF( fileName, useTiled, rTemplate, texFileName, ccParameters, ccVersion ) ) {
 		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: screenshotPDF(...) failed!" << std::endl;
 		return( false );
 	}
@@ -3421,7 +3639,8 @@ bool MeshWidget::screenshotPDFUser() {
 
     }
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
-
+    //set false, that the userindividual latex template will check next time
+    mUserContinue = false;
 	return( true );
 }
 
@@ -3431,7 +3650,7 @@ bool MeshWidget::screenshotPDFUser() {
 //!
 //! @todo GUI Questions for the cc license parameters
 //! @returns false in case of an error. True otherwise.
-bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled, const QString rTemplate ) {
+bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled, const QString rTemplate, const QString rTexFileName, const QString rCCparameter, const QString rCCversion ) {
 	// Prepare filename.
 	string prefixPath = std::filesystem::path( rFileName.toStdString() ).parent_path().string();
 	string prefixStem = std::filesystem::path( rFileName.toStdString() ).stem().string();
@@ -3466,7 +3685,9 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled, 
     if(rTemplate == "Single page with cc-license"){
         latexTemplateName = ":/GMLaTeX/report_single_page_single_view_cclicense_template.tex";
     }
-
+    if( rTemplate == "Own template"){
+        latexTemplateName = rTexFileName;
+    }
 	QString latexTemplate;
 	QFile fileLatexIn( latexTemplateName );
 	if( !fileLatexIn.open( QIODevice::ReadOnly ) ) {
@@ -3477,13 +3698,23 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled, 
 	}
 	fileLatexIn.close();
 
+    //check user defined Latex file
+    if( rTemplate == "Own template" && !mUserContinue){
+        if(!checkUserdefinedLatexFile(&latexTemplate,mPdfSinglePlaceholders)){
+            cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: User stopped process" << endl;
+            return( false );
+        }
+        else{
+            mUserContinue = true;
+        }
+    }
 	// Fetch strings with information for the table
 	vector<pair<string,string>> replacmentStrings;
 	mMeshVisual->latexFetchFigureInfos( &replacmentStrings );
 
     //replace license placeholders
-    latexTemplate.replace( QRegExp( "__CC_PARAMETERS__" ), "by-sa" );
-    latexTemplate.replace( QRegExp( "__CC_VERSION__" ), "4.0" );
+    latexTemplate.replace( QRegExp( "__CC_PARAMETERS__" ), rCCparameter );
+    latexTemplate.replace( QRegExp( "__CC_VERSION__" ), rCCversion );
 
 	// Replace placeholders
 	latexTemplate.replace( QRegExp( "__FIGURE_IMAGE_FILE__" ), "\""+QString( prefixStem.c_str() )+"\"" );

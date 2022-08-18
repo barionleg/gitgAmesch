@@ -139,19 +139,34 @@ private:
 
 	// Screenshot - Wrapping methods
 	bool screenshotPDFUser();
-    bool screenshotPDF( const QString& rFileName, const bool rUseTiled, const QString rTemplate );
+    bool screenshotPDF( const QString& rFileName, const bool rUseTiled, const QString rTemplate, const QString rTexFileName, const QString rCCparameter, const QString rCCversion );
 
 private:
 	// Screenshot - Views - Wrapping methods
 	bool screenshotViewsDirectoryFiles( QString& rPathChoosen, QStringList& rCurrFiles ); // Internal use only
+
+
+    //structure of all possible Latex Placeholder
+    // need for a Helping Text
+    struct LatexPlaceholder{
+        QString placeholder;
+        QString descr; //description for the Helper Text
+    };
+    std::vector<LatexPlaceholder> mPdfViewsPlaceholders;
+
+
+    void setLatexPlaceholderDefinition();
+    bool checkUserdefinedLatexFile(QString *latexTemplate,std::vector<LatexPlaceholder> rPlaceHolders);
+    bool mUserContinue; //needed for the directory function. Don't give for every mesh the information box
+
 public:
 	bool screenshotViewsDirectory();
 	bool directoryFuncValToRGB();
 	bool screenshotViewsPDFUser();
-    bool screenshotViewsPDF( const QString& rFileName, const QString rTemplate );
+    bool screenshotViewsPDF( const QString& rFileName, const QString rTemplate, const QString rTexFileName, const QString rCCparameter, const QString rCCversion );
 private:
 	bool screenshotPDFMake( const QString& rPrefixPath, const QString& rFilePrefixTex );
-
+    std::vector<LatexPlaceholder> mPdfSinglePlaceholders;
 public slots:
 	// Screenshot - Views - Rendering
 	void screenshotViews();
