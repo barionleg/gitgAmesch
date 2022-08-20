@@ -1054,7 +1054,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:"+indid+"_bridgeBorderFaces wdt:P361 giga:"+indid+"_totalNumberOfFaces .\n";
     infoStr+="giga:DanglingBorderFaces rdf:type owl:Class .\n";    
     infoStr+="giga:DanglingBorderFaces rdfs:subClassOf giga:GigameshInfo .\n";    
-    infoStr+="giga:"+indid+"_danglingBorderFaces rdf:type giga:BridgeBorderFaces .\n";   
+    infoStr+="giga:"+indid+"_danglingBorderFaces rdf:type giga:DanglingBorderFaces .\n";   
     infoStr+="giga:"+indid+"_danglingBorderFaces rdfs:label \""+indname+" Amount of dangling border faces\"@en .\n";
     infoStr+="giga:"+indid+"_danglingBorderFaces  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_BORDER_DANGLING])+"\"^^xsd:integer .\n";  
     infoStr+="giga:danglingBorderFaces rdf:type owl:ObjectProperty .\n";
