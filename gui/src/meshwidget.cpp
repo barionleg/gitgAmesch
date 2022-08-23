@@ -2505,6 +2505,37 @@ bool MeshWidget::checkUserdefinedLatexFile(QString *latexTemplate, std::vector<L
     return ( true );
 }
 
+//! Help function for latex PDF Export (cc-license)
+//! Ask for all possible Parameters and Versions of CC-licenses
+//! based on the Latex package doclicense
+//! https://ctan.org/pkg/doclicense?lang=de
+bool MeshWidget::askForCCLicenseParameters(QString *ccParameter, QString *ccVersion)
+{
+     QStringList possibleParameters;
+     possibleParameters.append("by");
+     possibleParameters.append("by-sa");
+     possibleParameters.append("by-nd");
+     possibleParameters.append("by-nc");
+     possibleParameters.append("by-nc-sa");
+     possibleParameters.append("by-nc-nd");
+
+     bool userCancel;
+     SHOW_DIALOG_COMBO_BOX( tr("CC-Attribution"), tr("Which type of CC-License you want to use?"), possibleParameters, *ccParameter, userCancel );
+     if( userCancel ) {
+         return( false );
+     }
+
+     QStringList possibleVersions;
+     possibleVersions.append("3.0");
+     possibleVersions.append("4.0");
+     SHOW_DIALOG_COMBO_BOX( tr("CC-Version"), tr("Which version of CC-License you want to use?"), possibleVersions, *ccVersion, userCancel );
+     if( userCancel ) {
+         return( false );
+     }
+     return( true );
+
+}
+
 //! Render front-views or side-views as
 //! PNGs or PDFs having PNGs embeded created using a LaTeX template.
 //!
@@ -2599,22 +2630,7 @@ bool MeshWidget::screenshotViewsDirectory() {
         }
         //ask for cc license parameters and Version
         if( rTemplate == "Single page with cc-license"){
-            QGMDialogEnterText dlgEnterTxt;
-            dlgEnterTxt.setWindowTitle( "Set CC-Parameters" );
-            dlgEnterTxt.setText(ccParameters);
-            if( dlgEnterTxt.exec() == QDialog::Rejected ) {
-                return( false );
-            }
-            if( !dlgEnterTxt.getText( &ccParameters ) ) {
-                return( false );
-            }
-
-            dlgEnterTxt.setWindowTitle( "Set CC-Version" );
-            dlgEnterTxt.setText(ccVersion);
-            if( dlgEnterTxt.exec() == QDialog::Rejected ) {
-                return( false );
-            }
-            if( !dlgEnterTxt.getText( &ccVersion ) ) {
+            if(!askForCCLicenseParameters(&ccParameters,&ccVersion)){
                 return( false );
             }
         }
@@ -2849,22 +2865,7 @@ bool MeshWidget::screenshotViewsPDFUser() {
     QString ccParameters = "by-sa";
     QString ccVersion = "4.0";
     if( rTemplate == "Single page with cc-license"){
-        QGMDialogEnterText dlgEnterTxt;
-        dlgEnterTxt.setWindowTitle( "Set CC-Parameters" );
-        dlgEnterTxt.setText(ccParameters);
-        if( dlgEnterTxt.exec() == QDialog::Rejected ) {
-            return( false );
-        }
-        if( !dlgEnterTxt.getText( &ccParameters ) ) {
-            return( false );
-        }
-
-        dlgEnterTxt.setWindowTitle( "Set CC-Version" );
-        dlgEnterTxt.setText(ccVersion);
-        if( dlgEnterTxt.exec() == QDialog::Rejected ) {
-            return( false );
-        }
-        if( !dlgEnterTxt.getText( &ccVersion ) ) {
+        if(!askForCCLicenseParameters(&ccParameters,&ccVersion)){
             return( false );
         }
     }
@@ -3587,22 +3588,7 @@ bool MeshWidget::screenshotPDFUser() {
     QString ccParameters = "by-sa";
     QString ccVersion = "4.0";
     if( rTemplate == "Single page with cc-license"){
-        QGMDialogEnterText dlgEnterTxt;
-        dlgEnterTxt.setWindowTitle( "Set CC-Parameters" );
-        dlgEnterTxt.setText(ccParameters);
-        if( dlgEnterTxt.exec() == QDialog::Rejected ) {
-            return( false );
-        }
-        if( !dlgEnterTxt.getText( &ccParameters ) ) {
-            return( false );
-        }
-
-        dlgEnterTxt.setWindowTitle( "Set CC-Version" );
-        dlgEnterTxt.setText(ccVersion);
-        if( dlgEnterTxt.exec() == QDialog::Rejected ) {
-            return( false );
-        }
-        if( !dlgEnterTxt.getText( &ccVersion ) ) {
+        if(!askForCCLicenseParameters(&ccParameters,&ccVersion)){
             return( false );
         }
     }

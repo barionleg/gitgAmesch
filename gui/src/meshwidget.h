@@ -146,6 +146,9 @@ private:
 	bool screenshotViewsDirectoryFiles( QString& rPathChoosen, QStringList& rCurrFiles ); // Internal use only
 
 
+private:
+    //Help functions of PDF Latex export
+
     //structure of all possible Latex Placeholder
     // need for a Helping Text
     struct LatexPlaceholder{
@@ -157,6 +160,7 @@ private:
 
     void setLatexPlaceholderDefinition();
     bool checkUserdefinedLatexFile(QString *latexTemplate,std::vector<LatexPlaceholder> rPlaceHolders);
+    bool askForCCLicenseParameters(QString *ccParameter,QString *ccVersion);
     bool mUserContinue; //needed for the directory function. Don't give for every mesh the information box
 
 public:
