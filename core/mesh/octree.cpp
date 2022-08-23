@@ -332,8 +332,8 @@ bool Octree::initialize(Octnode* cnode, unsigned int clevel) {
 
     //decide if to further subdivide or mark octnode as leaf
     if ( mmaxnr < cnode->mVertices.size() &&
-         clevel < mmaxlevelpermitted &&
-         mEdgeLenMax < cnode->mCube.mscale ) {
+         clevel < mmaxlevelpermitted ){
+         //mEdgeLenMax < cnode->mCube.mscale ) commented out because of problems with small meshes {
 
         //create children
         for ( unsigned int i=0; i<8; ++i ) {
