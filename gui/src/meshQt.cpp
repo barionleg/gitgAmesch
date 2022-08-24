@@ -201,7 +201,6 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	//.
 	QObject::connect( mMainWindow, SIGNAL(sApplyMeltingSphere()),        this, SLOT(applyMeltingSphere())     );
 	//.
-	QObject::connect( mMainWindow, SIGNAL(sApplyNormalShift()),          this, SLOT(applyNormalShift())       );
 
 	// View menu -------------------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( mMainWindow, SIGNAL(polylinesCurvScale()),                         this, SLOT(polylinesCurvScale())               );
@@ -1533,111 +1532,6 @@ bool MeshQt::applyMeltingSphere() {
 	return MeshGL::applyMeltingSphere( radius, 1.0 );
 }
 
-//! Calculate a offset Surface (Shelling) without any selfintersection
-bool MeshQt::applyNormalShift(){
-
-	// call helper function
-	// -> save vertices & faces & border from original object. Which we need later.
-	MeshGL::applyNormalShiftHelper(true, false, false);
-
-	//---------------------------------------
-	//Show QGMDialogEnterText-Window
-	QGMDialogEnterText dlgEnterTextVal;
-	dlgEnterTextVal.setDouble(0.3); // set Default-Value
-	dlgEnterTextVal.setWindowTitle(tr("Set Offset:"));
-
-	QObject::connect(&dlgEnterTextVal,SIGNAL(textEntered(double)),this,SLOT(applyNormalShift(double)));
-
-	if(dlgEnterTextVal.exec()==QDialog::Rejected){
-		emit statusMessage( "[applyNormalShift] CANCELLED." );
-		return false;
-	}
-
-	//---------------------------------------
-	bool userCancel;
-	bool userAnswerYes;
-
-	//Remove Original-Object
-	SHOW_QUESTION( tr("Do you want to remove the original object?"), "", userAnswerYes, userCancel );
-
-	if( userCancel ) {
-		emit statusMessage( "[applyNormalShift] CANCELLED." );
-		return false;
-	}
-
-	if( !userAnswerYes ){
-		//Connect original-border-vertices with offset-border-vertices via mesh
-		SHOW_QUESTION( tr("Do you want to connect original-border-vertices with offset-border-vertices?"), tr("<i>(recommended)</i>"), userAnswerYes, userCancel );
-
-		if( userAnswerYes ){
-			MeshGL::applyNormalShiftHelper(false, false, true);
-		}
-
-		if( userCancel ) {
-			emit statusMessage( "[applyNormalShift] CANCELLED." );
-			return false;
-		}
-
-	}else{
-		MeshGL::applyNormalShiftHelper(false, true, false);
-	}
-
-	//---------------------------------------
-	//Do you want to remove duplicate triangles?
-	SHOW_QUESTION( tr("Do you want to remove duplicate triangles?"), "", userAnswerYes, userCancel );
-
-	if( userAnswerYes ){
-		MeshGL::removeDoubleTriangles();
-	}
-
-	if( userCancel ) {
-		emit statusMessage( "[applyNormalShift] CANCELLED." );
-		return false;
-	}
-
-	//---------------------------------------
-	//Do you want to recalculate the triangle orientation?
-	SHOW_QUESTION( tr("Do you want to recalculate the triangle orientation?"), tr("<i>(recommended)</i>"), userAnswerYes, userCancel );
-
-	if( userAnswerYes ){
-		MeshGL::recalculateTriangleOrientation();
-	}
-
-	if( userCancel ) {
-		emit statusMessage( "[applyNormalShift] CANCELLED." );
-		return false;
-	}
-
-	//---------------------------------------
-	//Do you want to fix triangle intersection?
-	SHOW_QUESTION( tr("Do you want to fix triangle intersection?"), tr("<i>(recommended, but this function may take some time)</i>"), userAnswerYes, userCancel );
-
-	if( userAnswerYes ){
-		cout << "[generateOctree] Start..." << endl;
-        MeshQt::generateOctreeVertex(500);
-		cout << "[generateOctree] Done." << endl;
-
-		cout << "[detectselfintersections] Start..." << endl;
-		MeshQt::detectselfintersections();
-		cout << "[detectselfintersections] Done." << endl;
-
-		cout << "[fixTriangleIntersection] Start..." << endl;
-		MeshGL::fixTriangleIntersection();
-		cout << "[fixTriangleIntersection] Done." << endl;
-	}
-
-	if( userCancel ) {
-		emit statusMessage( "[applyNormalShift] CANCELLED." );
-		return false;
-	}
-
-	emit statusMessage( "[applyNormalShift] DONE." );
-	return true;
-}
-
-bool MeshQt::applyNormalShift(double offset){
-	return MeshGL::applyNormalShift(offset);
-}
 
 // --- Select actions ------------------------------------------------------------------------------------------------------------------------------------------
 

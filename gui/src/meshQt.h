@@ -171,8 +171,6 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		//.
 		virtual bool   applyMeltingSphere();
 		//.
-				bool   applyNormalShift();
-		virtual bool   applyNormalShift(double offset);
 
 		// Select actions ------------------------------------------------------------------------------------------------------------------------------
 		virtual unsigned int  selectedMVertsChanged();

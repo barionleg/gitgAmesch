@@ -235,7 +235,6 @@ signals:
 	//.
 	void sApplyMeltingSphere();                              //!< triggers melting with sqrt(r^2-x^2-y^2)
     //.
-    void sApplyNormalShift();                                //!< Shifts the Vertices along the Normal.
 
 	// --- DeSelect ----------------------------------------------------------------------------------------------------------------------------------------
 	void sDeSelVertsAll();                                   //!< removes all vertices from the selection (SelMVerts).
