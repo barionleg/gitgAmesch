@@ -288,11 +288,6 @@ signals:
 	void screenshotSVG();                                    //!< trigger a screenshot stored as SVG with a PNG embedded.
 	void screenshotRuler();                                  //!< trigger the export of an image of a ruler matching the screenshot resolution (in ortho mode).
 
-	// === LEGACY to be removed! ===========================================================================================================================
-    void generateLatexFile();                                //!< trigger latex file    to be generated
-    void generateLatexCatalog();                             //!< trigger latex catalog to be generated
-	// =====================================================================================================================================================
-
 	//.
 	void sDefaultViewLight();                                //!< signal to restore the default view and lights.
 	void sDefaultViewLightZoom();                            //!< signal to restore the default view, lights and zoom.

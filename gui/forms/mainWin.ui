@@ -78,9 +78,6 @@
      <addaction name="separator"/>
      <addaction name="actionScreenshotRuler"/>
      <addaction name="separator"/>
-     <addaction name="actionGenerateLatexFile"/>
-     <addaction name="actionGenerateLatexCatalog"/>
-     <addaction name="separator"/>
      <addaction name="actionScreenshotsCrop"/>
      <addaction name="separator"/>
      <addaction name="actionVideoFrameSizeSet"/>

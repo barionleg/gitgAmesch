@@ -181,18 +181,6 @@ public slots:
 	                      std::vector<QString>&   rImageFiles,
 	                      std::vector<double>&    rImageSizes );
 
-	// === LEGACY to be removed! ===========================================================================================================================
-	void generateLatexFile();
-	void generateLatexCatalog();
-	QStringList generateLatexCatalog(int depth, const QString& rPath, bool rUseTiled,
-	                                 const QStringList& rFilters, const QList<float>& paperProperties,
-	                                 const QList<QStringList>& pageCombinations, const QString& suffix,
-	                                 float dpiFactorf, const QString& mainPath );
-	QStringList generateLatexCatalogPage(const QString& rFilePath, bool rUseTiled, const QList<float>& paperPropertiesf,
-	                                     const QList<QStringList>& pageCombinations, const QString& suffix,
-	                                     float dpiFactorf, float rDPIf, const QString& mainPath );
-	// =====================================================================================================================================================
-
 private:
 
 	// Helper class to render Screenshots into an OffscreenBuffer => only have one of the class initialized at a time
