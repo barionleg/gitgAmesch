@@ -781,8 +781,6 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="dc:license rdfs:label \"license\"@en .\n";
     infoStr+="wdt:P361 rdf:type owl:ObjectProperty . \n";
     infoStr+="wdt:P361 rdfs:label \"part of\"@en .\n";
-    infoStr+="giga:value rdf:type owl:DatatypeProperty . \n";
-    infoStr+="giga:value rdfs:domain giga:GigameshInfo . \n";
     infoStr+="giga:"+indid+" rdf:type giga:Mesh .\n";
     infoStr+="giga:"+indid+" dc:contributor giga:"+indid+"_contributor .\n";
     infoStr+="giga:"+indid+" dc:license <https://creativecommons.org/licenses/by-sa/4.0/> .\n";
@@ -794,7 +792,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:TotalNumberOfVertices rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_totalNumberOfVertices rdf:type giga:TotalNumberOfVertices .\n";   
     infoStr+="giga:"+indid+"_totalNumberOfVertices rdfs:label \""+indname+" Total Number of Vertices\"@en .\n";   
-    infoStr+="giga:"+indid+"_totalNumberOfVertices giga:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_TOTAL])+"\"^^xsd:integer .\n";   
+    infoStr+="giga:"+indid+"_totalNumberOfVertices rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_TOTAL])+"\"^^xsd:integer .\n";   
     infoStr+="giga:totalNumberOfVertices rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:totalNumberOfVertices rdfs:domain giga:Mesh .\n";
     infoStr+="giga:totalNumberOfVertices rdfs:label \"Total number of vertices\"@en .\n";
@@ -805,7 +803,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:NaNVertices rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_NaNVertices rdf:type giga:NaNVertices .\n";   
     infoStr+="giga:"+indid+"_NaNVertices rdfs:label \""+indname+" Amount of NaN Vertices\"@en .\n";   
-    infoStr+="giga:"+indid+"_NaNVertices giga:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_NAN])+"\"^^xsd:integer .\n";   
+    infoStr+="giga:"+indid+"_NaNVertices rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_NAN])+"\"^^xsd:integer .\n";   
     infoStr+="giga:NaNVertices rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:NaNVertices rdfs:domain giga:Mesh .\n";
     infoStr+="giga:NaNVertices rdfs:label \"NaN Vertices\"@en .\n";
@@ -817,7 +815,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:VertexNormalLength rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_vertexNormalLength rdf:type giga:VertexNormalLength .\n";   
     infoStr+="giga:"+indid+"_vertexNormalLength rdfs:label \""+indname+" Amount of Vertices with normal length\"@en .\n"; 
-    infoStr+="giga:"+indid+"_vertexNormalLength giga:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_NORMAL_LEN_NORMAL])+"\"^^xsd:integer .\n";   
+    infoStr+="giga:"+indid+"_vertexNormalLength rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_NORMAL_LEN_NORMAL])+"\"^^xsd:integer .\n";   
     infoStr+="giga:vertexNormalLength rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:vertexNormalLength rdfs:domain giga:Mesh .\n";
     infoStr+="giga:vertexNormalLength rdfs:label \"Vertex normal vector length normal\"@en .\n";
@@ -828,7 +826,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:VertexIsolated rdf:type owl:Class .\n";    
     infoStr+="giga:VertexIsolated rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_vertexIsolated rdf:type giga:VertexIsolated .\n";   
-    infoStr+="giga:"+indid+"_vertexIsolated giga:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_SOLO])+"\"^^xsd:integer .\n";   
+    infoStr+="giga:"+indid+"_vertexIsolated rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_SOLO])+"\"^^xsd:integer .\n";   
     infoStr+="giga:"+indid+"_vertexIsolated rdfs:label \""+indname+" Isolated Vertices\"@en .\n";
     infoStr+="giga:vertexIsolated rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:vertexIsolated rdfs:domain giga:Mesh .\n";
@@ -841,7 +839,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:BorderVertices rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_borderVertices rdf:type giga:BorderVertices .\n";  
     infoStr+="giga:"+indid+"_borderVertices rdfs:label \""+indname+" Amount of Border Vertices\"@en .\n"; 
-    infoStr+="giga:"+indid+"_borderVertices giga:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_BORDER])+"\"^^xsd:integer .\n";   
+    infoStr+="giga:"+indid+"_borderVertices rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_BORDER])+"\"^^xsd:integer .\n";   
     infoStr+="giga:borderVertices rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:borderVertices rdfs:domain giga:Mesh .\n";
     infoStr+="giga:borderVertices rdfs:label \"Border vertices\"@en .\n";
@@ -853,7 +851,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:NonManifoldVertices rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_nonManifoldVertices rdf:type giga:NonManifoldVertices .\n";   
     infoStr+="giga:"+indid+"_nonManifoldVertices rdfs:label \""+indname+" Amount of Non-Manifold Vertices\"@en .\n"; 
-    infoStr+="giga:"+indid+"_nonManifoldVertices giga:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_NONMANIFOLD])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_nonManifoldVertices rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_NONMANIFOLD])+"\"^^xsd:integer .\n";  
     infoStr+="giga:nonManifoldVertices rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:nonManifoldVertices rdfs:domain giga:Mesh .\n";
     infoStr+="giga:nonManifoldVertices rdfs:label \"Vertices non-manifold\"@en .\n";
@@ -865,7 +863,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:SingularVertices rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_singularVertices rdf:type giga:SingularVertices .\n";   
     infoStr+="giga:"+indid+"_singularVertices rdfs:label \""+indname+" Amount of Singular Vertices\"@en .\n"; 
-    infoStr+="giga:"+indid+"_singularVertices giga:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_SINGULAR])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_singularVertices rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_SINGULAR])+"\"^^xsd:integer .\n";  
     infoStr+="giga:singularVertices rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:singularVertices rdfs:domain giga:Mesh .\n";
     infoStr+="giga:singularVertices rdfs:label \"Vertices singular\"@en .\n";
@@ -877,7 +875,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:VerticesOnInvertedEdge rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_verticesOnInvertedEdge rdf:type giga:VerticesOnInvertedEdge .\n";   
     infoStr+="giga:"+indid+"_verticesOnInvertedEdge rdfs:label \""+indname+" Amount of Vertices on inverted edges\"@en .\n";
-    infoStr+="giga:"+indid+"_verticesOnInvertedEdge giga:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_ON_INVERTED_EDGE])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_verticesOnInvertedEdge rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_ON_INVERTED_EDGE])+"\"^^xsd:integer .\n";  
     infoStr+="giga:verticesOnInvertedEdge rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:verticesOnInvertedEdge rdfs:domain giga:Mesh .\n";
     infoStr+="giga:verticesOnInvertedEdge rdfs:label \"Vertices along an inverted edge\"@en .\n";
@@ -889,7 +887,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:VerticesPartOfZeroAreaFace rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_verticesPartOfZeroAreaFace rdf:type giga:VerticesPartOfZeroAreaFace .\n";   
     infoStr+="giga:"+indid+"_verticesPartOfZeroAreaFace rdfs:label \""+indname+" Amount of Vertices which are part of zero area faces\"@en .\n";
-    infoStr+="giga:"+indid+"_verticesPartOfZeroAreaFace giga:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_PART_OF_ZERO_FACE])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_verticesPartOfZeroAreaFace rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_PART_OF_ZERO_FACE])+"\"^^xsd:integer .\n";  
     infoStr+="giga:verticesPartOfZeroAreaFace rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:verticesPartOfZeroAreaFace rdfs:domain giga:Mesh .\n";
     infoStr+="giga:verticesPartOfZeroAreaFace rdfs:label \"Vertices part of a zero area face\"@en .\n";
@@ -901,7 +899,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:SyntheticVertices rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_syntheticVertices rdf:type giga:SyntheticVertices .\n";   
     infoStr+="giga:"+indid+"_syntheticVertices rdfs:label \""+indname+" Amount of synthetic vertices\"@en .\n";
-    infoStr+="giga:"+indid+"_syntheticVertices giga:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_SYNTHETIC])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_syntheticVertices rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_SYNTHETIC])+"\"^^xsd:integer .\n";  
     infoStr+="giga:syntheticVertices rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:syntheticVertices rdfs:domain giga:Mesh .\n";
     infoStr+="giga:syntheticVertices rdfs:label \"Vertices synthetic\"@en .\n";
@@ -913,7 +911,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:ManuallyAddedVertices rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_manuallyAddedVertices rdf:type giga:ManuallyAddedVertices .\n";   
     infoStr+="giga:"+indid+"_manuallyAddedVertices rdfs:label \""+indname+" Amount of manually added vertices\"@en .\n";
-    infoStr+="giga:"+indid+"_manuallyAddedVertices giga:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_MANUAL])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_manuallyAddedVertices rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_MANUAL])+"\"^^xsd:integer .\n";  
     infoStr+="giga:manuallyAddedVertices rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:manuallyAddedVertices rdfs:domain giga:Mesh .\n";
     infoStr+="giga:manuallyAddedVertices rdfs:label \"Vertices manually added\"@en .\n";
@@ -925,7 +923,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:CircleCenterVertices rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_circleCenterVertices rdf:type giga:CircleCenterVertices .\n";   
     infoStr+="giga:"+indid+"_circleCenterVertices rdfs:label \""+indname+" Amount of circle center vertices\"@en .\n";
-    infoStr+="giga:"+indid+"_circleCenterVertices  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_CIRCLE_CENTER])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_circleCenterVertices rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_CIRCLE_CENTER])+"\"^^xsd:integer .\n";  
     infoStr+="giga:circleCenterVertices rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:circleCenterVertices rdfs:domain giga:Mesh .\n";
     infoStr+="giga:circleCenterVertices rdfs:label \"Vertices circle center\"@en .\n";
@@ -937,7 +935,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:SelectedVertices rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_selectedVertices rdf:type giga:SelectedVertices .\n";   
     infoStr+="giga:"+indid+"_selectedVertices rdfs:label \""+indname+" Amount of selected vertices\"@en .\n";
-    infoStr+="giga:"+indid+"_selectedVertices  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_SELECTED])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_selectedVertices rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_SELECTED])+"\"^^xsd:integer .\n";  
     infoStr+="giga:selectedVertices rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:selectedVertices rdfs:domain giga:Mesh .\n";
     infoStr+="giga:selectedVertices rdfs:label \"Vertices selected\"@en .\n";
@@ -949,7 +947,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:FiniteFunctionValueVertices rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_finiteFunctionValueVertices rdf:type giga:FiniteFunctionValueVertices .\n";   
     infoStr+="giga:"+indid+"_finiteFunctionValueVertices rdfs:label \""+indname+" Amount of finite function value vertices\"@en .\n";
-    infoStr+="giga:"+indid+"_finiteFunctionValueVertices  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_FUNCVAL_FINITE])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_finiteFunctionValueVertices rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_FUNCVAL_FINITE])+"\"^^xsd:integer .\n";  
     infoStr+="giga:finiteFunctionValueVertices rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:finiteFunctionValueVertices rdfs:domain giga:Mesh .\n";
     infoStr+="giga:finiteFunctionValueVertices rdfs:label \"Vertices with finite function value\"@en .\n";
@@ -961,7 +959,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:LocalFunctionMinValueVertices rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_localFunctionMinValueVertices rdf:type giga:LocalFunctionMinValueVertices .\n";   
     infoStr+="giga:"+indid+"_localFunctionMinValueVertices rdfs:label \""+indname+" Amount of local function minimum value vertices\"@en .\n";
-    infoStr+="giga:"+indid+"_localFunctionMinValueVertices  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_FUNCVAL_LOCAL_MIN])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_localFunctionMinValueVertices rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_FUNCVAL_LOCAL_MIN])+"\"^^xsd:integer .\n";  
     infoStr+="giga:localFunctionValueMinVertices rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:localFunctionValueMinVertices rdfs:domain giga:Mesh .\n";
     infoStr+="giga:localFunctionValueMinVertices rdfs:label \"Vertices with local function value minimum\"@en .\n";
@@ -973,7 +971,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:LocalFunctionMaxValueVertices rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_localFunctionMaxValueVertices rdf:type giga:LocalFunctionMaxValueVertices .\n";   
     infoStr+="giga:"+indid+"_localFunctionMaxValueVertices rdfs:label \""+indname+" Amount of local function maximum value vertices\"@en .\n";
-    infoStr+="giga:"+indid+"_localFunctionMaxValueVertices  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_FUNCVAL_LOCAL_MAX])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_localFunctionMaxValueVertices rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_FUNCVAL_LOCAL_MAX])+"\"^^xsd:integer .\n";  
     infoStr+="giga:localFunctionValueMaxVertices rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:localFunctionValueMaxVertices rdfs:domain giga:Mesh .\n";
     infoStr+="giga:localFunctionValueMaxVertices rdfs:label \"Vertices with local function value maximum\"@en .\n";
@@ -985,7 +983,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:TotalNumberOfFaces rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_totalNumberOfFaces rdf:type giga:TotalNumberOfFaces .\n";   
     infoStr+="giga:"+indid+"_totalNumberOfFaces rdfs:label \""+indname+" Total number of faces\"@en .\n";
-    infoStr+="giga:"+indid+"_totalNumberOfFaces  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_TOTAL])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_totalNumberOfFaces rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_TOTAL])+"\"^^xsd:integer .\n";  
     infoStr+="giga:totalNumberOfFaces rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:totalNumberOfFaces rdfs:domain giga:Mesh .\n";
     infoStr+="giga:totalNumberOfFaces rdfs:label \"Total number of faces\"@en .\n";
@@ -996,7 +994,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:SoloFaces rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_soloFaces rdf:type giga:SoloFaces .\n";   
     infoStr+="giga:"+indid+"_soloFaces rdfs:label \""+indname+" Amount of solo faces\"@en .\n";
-    infoStr+="giga:"+indid+"_soloFaces  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_SOLO])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_soloFaces rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_SOLO])+"\"^^xsd:integer .\n";  
     infoStr+="giga:soloFaces rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:soloFaces rdfs:domain giga:Mesh .\n";
     infoStr+="giga:soloFaces rdfs:label \"Solo faces\"@en .\n";
@@ -1008,7 +1006,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:BorderFaces rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_borderFaces rdf:type giga:BorderFaces .\n";   
     infoStr+="giga:"+indid+"_borderFaces rdfs:label \""+indname+" Amount of border faces\"@en .\n";
-    infoStr+="giga:"+indid+"_borderFaces  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_BORDER])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_borderFaces rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_BORDER])+"\"^^xsd:integer .\n";  
     infoStr+="giga:borderFaces rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:borderFaces rdfs:domain giga:Mesh .\n";
     infoStr+="giga:borderFaces rdfs:label \"Border faces\"@en .\n";
@@ -1020,7 +1018,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:ThreeBorderVertexFaces rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_threeBorderVertexFaces rdf:type giga:ThreeBorderVertexFaces .\n";   
     infoStr+="giga:"+indid+"_threeBorderVertexFaces rdfs:label \""+indname+" Amount of three border vertex faces\"@en .\n";
-    infoStr+="giga:"+indid+"_threeBorderVertexFaces  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_BORDER_THREE_VERTICES])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_threeBorderVertexFaces rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_BORDER_THREE_VERTICES])+"\"^^xsd:integer .\n";  
     infoStr+="giga:threeBorderVertexFaces rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:threeBorderVertexFaces rdfs:domain giga:Mesh .\n";
     infoStr+="giga:threeBorderVertexFaces rdfs:label \"Faces with three border vertices\"@en .\n";
@@ -1032,7 +1030,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:BorderFacesBridgeTriConnection rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_borderFacesBridgeTriConnection rdf:type giga:BorderFacesBridgeTriConnection .\n";   
     infoStr+="giga:"+indid+"_borderFacesBridgeTriConnection rdfs:label \""+indname+" Amount of border faces with a bridge tri connection\"@en .\n";
-    infoStr+="giga:"+indid+"_borderFacesBridgeTriConnection  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_BORDER_BRDIGE_TRICONN])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_borderFacesBridgeTriConnection rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_BORDER_BRDIGE_TRICONN])+"\"^^xsd:integer .\n";  
     infoStr+="giga:borderFacesBridgeTriConnection rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:borderFacesBridgeTriConnection rdfs:domain giga:Mesh .\n";
     infoStr+="giga:borderFacesBridgeTriConnection rdfs:label \"Border faces bridge tri-connection\"@en .\n";
@@ -1044,7 +1042,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:BridgeBorderFaces rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_bridgeBorderFaces rdf:type giga:BridgeBorderFaces .\n";   
     infoStr+="giga:"+indid+"_bridgeBorderFaces rdfs:label \""+indname+" Amount of bridge border faces\"@en .\n";
-    infoStr+="giga:"+indid+"_bridgeBorderFaces  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_BORDER_BRDIGE])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_bridgeBorderFaces rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_BORDER_BRDIGE])+"\"^^xsd:integer .\n";  
     infoStr+="giga:bridgeBorderFaces rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:bridgeBorderFaces rdfs:domain giga:Mesh .\n";
     infoStr+="giga:bridgeBorderFaces rdfs:label \"Bridge border faces\"@en .\n";
@@ -1056,7 +1054,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:DanglingBorderFaces rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_danglingBorderFaces rdf:type giga:DanglingBorderFaces .\n";   
     infoStr+="giga:"+indid+"_danglingBorderFaces rdfs:label \""+indname+" Amount of dangling border faces\"@en .\n";
-    infoStr+="giga:"+indid+"_danglingBorderFaces  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_BORDER_DANGLING])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_danglingBorderFaces rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_BORDER_DANGLING])+"\"^^xsd:integer .\n";  
     infoStr+="giga:danglingBorderFaces rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:danglingBorderFaces rdfs:domain giga:Mesh .\n";
     infoStr+="giga:danglingBorderFaces rdfs:label \"Dangling border faces\"@en .\n";
@@ -1068,7 +1066,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:ManifoldFaces rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_manifoldFaces rdf:type giga:ManifoldFaces .\n";   
     infoStr+="giga:"+indid+"_manifoldFaces rdfs:label \""+indname+" Amount of manifold faces\"@en .\n";
-    infoStr+="giga:"+indid+"_manifoldFaces  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_MANIFOLD])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_manifoldFaces rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_MANIFOLD])+"\"^^xsd:integer .\n";  
     infoStr+="giga:manifoldFaces rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:manifoldFaces rdfs:domain giga:Mesh .\n";
     infoStr+="giga:manifoldFaces rdfs:label \"Manifold faces\"@en .\n";
@@ -1080,7 +1078,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:NonManifoldFaces rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_nonManifoldFaces rdf:type giga:ManifoldFaces .\n";   
     infoStr+="giga:"+indid+"_nonManifoldFaces rdfs:label \""+indname+" Amount of non-manifold faces\"@en .\n";
-    infoStr+="giga:"+indid+"_nonManifoldFaces  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_NONMANIFOLD])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_nonManifoldFaces rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_NONMANIFOLD])+"\"^^xsd:integer .\n";  
     infoStr+="giga:nonManifoldFaces rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:nonManifoldFaces rdfs:domain giga:Mesh .\n";
     infoStr+="giga:nonManifoldFaces rdfs:label \"Non-Manifold faces\"@en .\n";
@@ -1092,7 +1090,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:StickyFaces rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_stickyFaces rdf:type giga:StickyFaces .\n";   
     infoStr+="giga:"+indid+"_stickyFaces rdfs:label \""+indname+" Amount of sticky faces\"@en .\n";
-    infoStr+="giga:"+indid+"_stickyFaces  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_STICKY])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_stickyFaces rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_STICKY])+"\"^^xsd:integer .\n";  
     infoStr+="giga:stickyFaces rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:stickyFaces rdfs:domain giga:Mesh .\n";
     infoStr+="giga:stickyFaces rdfs:label \"Sticky faces\"@en .\n";
@@ -1104,7 +1102,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:ZeroAreaFaces rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_zeroAreaFaces rdf:type giga:ZeroAreaFaces .\n";   
     infoStr+="giga:"+indid+"_zeroAreaFaces rdfs:label \""+indname+" Amount of zero area faces\"@en .\n";
-    infoStr+="giga:"+indid+"_zeroAreaFaces  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_ZEROAREA])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_zeroAreaFaces rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_ZEROAREA])+"\"^^xsd:integer .\n";  
     infoStr+="giga:zeroAreaFaces rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:zeroAreaFaces rdfs:domain giga:Mesh .\n";
     infoStr+="giga:zeroAreaFaces rdfs:label \"Faces with zero area\"@en .\n";
@@ -1116,7 +1114,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:InvertedFaces rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_invertedFaces rdf:type giga:InvertedFaces .\n";   
     infoStr+="giga:"+indid+"_invertedFaces rdfs:label \""+indname+" Amount of inverted faces\"@en .\n";
-    infoStr+="giga:"+indid+"_invertedFaces  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_INVERTED])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_invertedFaces rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_INVERTED])+"\"^^xsd:integer .\n";  
     infoStr+="giga:invertedFaces rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:invertedFaces rdfs:domain giga:Mesh .\n";
     infoStr+="giga:invertedFaces rdfs:label \"Inverted Faces\"@en .\n";
@@ -1128,7 +1126,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:SelectedFaces rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_selectedFaces rdf:type giga:SelectedFaces .\n";   
     infoStr+="giga:"+indid+"_selectedFaces rdfs:label \""+indname+" Amount of selected faces\"@en .\n";
-    infoStr+="giga:"+indid+"_selectedFaces  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_SELECTED])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_selectedFaces rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_SELECTED])+"\"^^xsd:integer .\n";  
     infoStr+="giga:selectedFaces rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:selectedFaces rdfs:domain giga:Mesh .\n";
     infoStr+="giga:selectedFaces rdfs:label \"Selected Faces\"@en .\n";
@@ -1140,7 +1138,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:SyntheticVertexFaces rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_syntheticVertexFaces rdf:type giga:SyntheticVertexFaces .\n";   
     infoStr+="giga:"+indid+"_syntheticVertexFaces rdfs:label \""+indname+" Amount of synthetic vertex faces\"@en .\n";
-    infoStr+="giga:"+indid+"_syntheticVertexFaces  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_syntheticVertexFaces rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES])+"\"^^xsd:integer .\n";  
     infoStr+="giga:syntheticVertexFaces rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:syntheticVertexFaces rdfs:domain giga:Mesh .\n";
     infoStr+="giga:syntheticVertexFaces rdfs:label \"Faces with synthetic vertices\"@en .\n";
@@ -1152,7 +1150,7 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:ConnectedComponents rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_connectedComponents rdf:type giga:ConnectedComponents .\n";   
     infoStr+="giga:"+indid+"_connectedComponents rdfs:label \""+indname+" Amount of connected components\"@en .\n";
-    infoStr+="giga:"+indid+"_connectedComponents  giga:value \""+std::to_string(this->mCountULong[MeshInfoData::CONNECTED_COMPONENTS])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:"+indid+"_connectedComponents rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::CONNECTED_COMPONENTS])+"\"^^xsd:integer .\n";  
     infoStr+="giga:amountOfConnectedComponents rdf:type owl:ObjectProperty .\n";
     infoStr+="giga:amountOfConnectedComponents rdfs:domain giga:Mesh .\n";
     infoStr+="giga:amountOfConnectedComponents rdfs:label \"Connected components\"@en .\n";
