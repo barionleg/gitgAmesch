@@ -785,6 +785,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		        bool getSelectedPositionCircleCenters( std::vector<Vertex*>* rCenterVertices );
 		virtual bool getAxisFromCircleCenters();
 		virtual bool getAxisFromCircleCenters( Vector3D &rTop, Vector3D &rBottom );
+                bool getAxisFromEllipseFit();
 
 		// Binary Space Partitioning -- Octree
 	protected:

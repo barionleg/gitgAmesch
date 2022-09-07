@@ -40,6 +40,13 @@ public:
 
 	void dumpInfo();
 
+    // Ellipse definition (in 2D)
+    double mError;
+    double mCenterX;
+    double mCenterY;
+    double mRadius1;
+    double mRadius2;
+    double mTheta;
 private:
 	void AperB_T(double** _A, double** _B, double** _res, int _righA, int _colA, int _righB, int _colB);
 	void A_TperB(double** _A, double**  _B, double** _res, int _righA, int _colA, int _righB, int _colB);
@@ -50,13 +57,7 @@ private:
 	bool solveellipse( std::vector<double> a );
 	void ROTATE(double** a, int i, int j, int k, int l, double tau, double s);
 
-	// Ellipse definition (in 2D)
-	double mError;
-	double mCenterX;
-	double mCenterY; 
-	double mRadius1;
-	double mRadius2;
-	double mTheta;
+
 };
 
 #endif // ELLIPSEDISC_H

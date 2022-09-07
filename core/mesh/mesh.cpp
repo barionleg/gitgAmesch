@@ -57,7 +57,7 @@
 
 #include <GigaMesh/mesh/compfeaturevecs.h>
 
-
+#include <GigaMesh/mesh/ellipsedisc.h>
 #include <GigaMesh/logging/Logging.h>
 
 extern "C"
@@ -818,7 +818,12 @@ bool Mesh::callFunction(
 			}
 			} break;
 		case ELLIPSENFIT_EXPERIMENTAL:
-			//! \todo implement properly - fragments of code are currently in MeshGL.
+            if( mSelectedMVerts.size() < 5){
+                showInformation("To few selected vertices!","For the ellipsefit are 5 selected vertices needed!");
+            }
+            else{
+                getAxisFromEllipseFit();
+            }
 			break;
 		case DRAW_SELF_INTERSECTIONS:
 			selectFaceSelfIntersecting();
@@ -17665,7 +17670,57 @@ bool Mesh::getAxisFromCircleCenters(
 	}
 
 	std::cout << "[Mesh::" << __FUNCTION__ << "] DONE." << std::endl;
-	return( true );
+    return( true );
+}
+//! Use selected Vertices to fit an ellipse.
+//! The first 3 Vertices describe a plane
+//! A axis is calculated with the normal of this plane and the center of the ellipse
+//! @returns false in case of an error. True otherwise.
+bool Mesh::getAxisFromEllipseFit()
+{
+    //get the first 3 vertices of the set to describe a plan
+    vector<Vertex*> planeVertices;
+    for( auto const& selVertex : mSelectedMVerts ) {
+        planeVertices.push_back(selVertex);
+    }
+    //create plane of the ellipse
+    Plane plane = Plane(planeVertices[0]->getPositionVector(),planeVertices[1]->getPositionVector(),planeVertices[2]->getPositionVector());
+
+    //projection of all selected Vertices to one plane
+    vector<pair<double,double> > ellipseCandidatePoints;
+    for( auto const& selVertex : mSelectedMVerts ) {
+        Vector3D selPoint = selVertex->getPositionVector();
+        selPoint.projectOntoPlane(plane.getHNF());
+        double xPos2 = selPoint.getX();
+        double yPos2 = selPoint.getZ(); //changed to Z because the Y axis points upwards
+        ellipseCandidatePoints.emplace_back( std::make_pair(xPos2,yPos2) );
+    }
+
+    EllipseDisc ellipse;
+    ellipse.findEllipseParams( EllipseDisc::CONIC, ellipseCandidatePoints );
+    ellipse.dumpInfo();
+
+    //create a center vertex
+    std::vector<Vertex*> centerVertices; //needed as vector for the insertVertices function
+    double planeY = plane.getY();
+    Vector3D normalPlane = plane.getHNF();
+    Vector3D ellipseCenter(ellipse.mCenterX,planeY,ellipse.mCenterY); //Y and Z changed before
+    Vertex* centerVertex = new Vertex( ellipseCenter );
+    centerVertex->setFlag( FLAG_SYNTHETIC | FLAG_CIRCLE_CENTER);
+    centerVertex->setNormal( &normalPlane );
+
+    // add the synthetic vertex
+    centerVertices.push_back(centerVertex);
+    insertVertices( &centerVertices );
+
+    //create and show the axis
+    Vector3D topPoint;
+    Vector3D bottomPoint;
+    getAxisFromCircleCenters( topPoint, bottomPoint );
+    setConeAxis( &topPoint, &bottomPoint );
+
+
+    return( true );
 }
 
 //! Getter Method of the protected attribute mVertices as set

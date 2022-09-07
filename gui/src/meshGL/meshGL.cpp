@@ -92,24 +92,96 @@ MeshGL::~MeshGL() {
 //! Typically related GUI interaction.
 bool MeshGL::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOptional ) {
 	// Ellipsenfit
-	if( rFunctionID == MeshParams::ELLIPSENFIT_EXPERIMENTAL ) {
-		vector<pair<double,double> > ellipseCandidatePoints;
-		for( auto const& selVertex : mSelectedMVerts ) {
-			double xPos = selVertex->getPositionVector().getX();
-			double yPos = selVertex->getPositionVector().getY();
-			ellipseCandidatePoints.emplace_back( std::make_pair(xPos,yPos) );
-			std::cout << "[MeshGL::" << __FUNCTION__ << "] EPC: " << xPos << " " << yPos << std::endl;
-		}
+    /**
+    if( rFunctionID == MeshParams::ELLIPSENFIT_EXPERIMENTAL ) {
+        vector<Vertex*> testPlanePoints; //Test
+        vector<pair<double,double> > ellipseCandidatePoints;
+        for( auto const& selVertex : mSelectedMVerts ) {
+            testPlanePoints.push_back(selVertex);
+            double xPos = selVertex->getPositionVector().getX();
+            double yPos = selVertex->getPositionVector().getY();
+            ellipseCandidatePoints.emplace_back( std::make_pair(xPos,yPos) );
+            std::cout << "[MeshGL::" << __FUNCTION__ << "] EPC: " << xPos << " " << yPos << std::endl;
+        }
 
-		EllipseDisc bar;
-		bar.findEllipseParams( EllipseDisc::CONIC, ellipseCandidatePoints );
-		bar.dumpInfo();
-		bar.findEllipseParams( EllipseDisc::FPF, ellipseCandidatePoints );
-		bar.dumpInfo();
-		bar.findEllipseParams( EllipseDisc::BOOKSTEIN, ellipseCandidatePoints );
-		bar.dumpInfo();
-	}
+        EllipseDisc bar;
+        bar.findEllipseParams( EllipseDisc::CONIC, ellipseCandidatePoints );
+        bar.dumpInfo();
 
+        //---------------------------------------------------------
+        //test
+
+        //create TestPlane
+        Plane plane = Plane(testPlanePoints[0]->getPositionVector(),testPlanePoints[1]->getPositionVector(),testPlanePoints[2]->getPositionVector());
+
+        //projection onto plane
+        vector<pair<double,double> > ellipseCandidatePoints2;
+        for( auto const& selVertex : mSelectedMVerts ) {
+            Vector3D selPoint = selVertex->getPositionVector();
+            selPoint.projectOntoPlane(plane.getHNF());
+            double xPos2 = selPoint.getX();
+            double yPos2 = selPoint.getZ(); //changed to Z because the Y axis points upwards
+            ellipseCandidatePoints2.emplace_back( std::make_pair(xPos2,yPos2) );
+        }
+        EllipseDisc bar2;
+        bar2.findEllipseParams( EllipseDisc::CONIC, ellipseCandidatePoints2 );
+        bar2.dumpInfo();
+
+        double planeY = plane.getY();
+        double r1Quad = pow(bar2.mRadius1,2.0);
+        double r2Quad = pow(bar2.mRadius2,2.0);
+        for(Vertex* vert : mVertices){
+            if(abs((vert->getY()) - planeY) < 0.5){
+                vert->setLabel(1);
+            }
+            else{
+                vert->setLabel(2);
+            }
+            Vector3D projVert = vert->getPositionVector();
+            projVert.projectOntoPlane(plane.getHNF());
+            double xTerm = pow((vert->getX()-bar2.mCenterX),2.0)/r1Quad;
+            double yTerm = pow((vert->getZ()-bar2.mCenterY),2.0)/r2Quad; //useZ because for the ellipse constructions is used too
+            //double xTerm = pow((projVert.getX()-bar2.mCenterX),2.0)/r1Quad;
+            //double yTerm = pow((projVert.getY()-bar2.mCenterY),2.0)/r2Quad;
+            double mainForm = xTerm+yTerm;
+
+            if(abs(1-(mainForm)) < 0.01 ){
+                vert->setLabel(3);
+            }
+            if(mainForm < 0.99 ){
+                vert->setLabel(4);
+            }
+
+        }
+        labelsChanged();
+
+        //calculate center vertex
+        bool error;
+        //Vector3D normalPlane = plane.getNormal( true );
+        Vector3D normalPlane = plane.getHNF();
+        Vector3D ellipseCenter2(bar2.mCenterX,planeY,bar2.mCenterY); //Y and Z changed before
+        vector<Vertex*> circleCenterVertices;
+        Vertex* centerVertex = new Vertex( ellipseCenter2 );
+        centerVertex->setFlag( FLAG_SYNTHETIC | FLAG_CIRCLE_CENTER);
+        centerVertex->setNormal( &normalPlane );
+        circleCenterVertices.push_back(centerVertex);
+        error = insertVertices( &circleCenterVertices );
+
+        Vector3D topPoint;
+        Vector3D bottomPoint;
+        error  = getAxisFromCircleCenters( topPoint, bottomPoint );
+        error &= setConeAxis( &topPoint, &bottomPoint );
+
+        //------------------------------------------------------------
+
+
+
+        bar.findEllipseParams( EllipseDisc::FPF, ellipseCandidatePoints );
+        bar.dumpInfo();
+        bar.findEllipseParams( EllipseDisc::BOOKSTEIN, ellipseCandidatePoints );
+        bar.dumpInfo();
+    }
+    **/
 	// Show labels after they have been determined.
 	if( rFunctionID == LABELING_LABEL_ALL ) {
 		setParamIntMeshGL( MeshGLParams::SHADER_CHOICE, MeshGLParams::SHADER_MONOLITHIC );
