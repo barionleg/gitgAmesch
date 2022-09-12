@@ -148,12 +148,6 @@ class MeshGL : public Mesh, public MeshGLParams {
 				bool       setParamIntMeshGL(   MeshGLParams::eParamInt  rParamID, int    rValue ) override;
 				bool       setParamFloatMeshGL( MeshGLParams::eParamFlt  rParamID, double rValue ) override;
 
-		// Shelling:
-				bool       applyNormalShift( double offset ) override;
-				bool       applyNormalShiftHelper( bool initCall, bool removeOriginalObject, bool connectBorders ) override;
-		virtual bool       removeDoubleTriangles();
-		virtual bool       recalculateTriangleOrientation();
-		virtual bool       fixTriangleIntersection();
 
 		friend class MeshQtCSVImportExport;
 

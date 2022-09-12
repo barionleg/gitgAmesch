@@ -7,7 +7,12 @@
 	\usepackage{graphicx}      % For inclusions of images
 	\usepackage{caption}       % Figure caption without number
 	\usepackage{numprint}      % Number formatting
-
+        \usepackage[
+        type={CC},
+        modifier={__CC_PARAMETERS__},
+        version={__CC_VERSION__},
+        ]{doclicense}
+        \usepackage{hyperxmp}
 	\usepackage[pdftex,
 	            pdfauthor={__PDF_AUTHOR__},
 	            pdftitle={__OBJECT_ID__ rendered with GigaMesh},
@@ -64,6 +69,7 @@
 			\end{tabular}
 		\end{tabular}
 	\end{center}
-
+\clearpage
+\doclicenseThis
 \end{document}
 

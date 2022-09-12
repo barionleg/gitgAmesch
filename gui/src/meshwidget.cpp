@@ -138,9 +138,6 @@ MeshWidget::MeshWidget( const QGLFormat &format, QWidget *parent )
 	QObject::connect( mMainWindow, SIGNAL(screenshotSVG()),                this, SLOT(screenshotSVG())                );
 	QObject::connect( mMainWindow, SIGNAL(screenshotRuler()),              this, SLOT(screenshotRuler())              );
 
-    QObject::connect( mMainWindow, SIGNAL(generateLatexFile()),            this, SLOT(generateLatexFile())            );
-    QObject::connect( mMainWindow, SIGNAL(generateLatexCatalog()),         this, SLOT(generateLatexCatalog())         );
-	//.
 	QObject::connect( mMainWindow, SIGNAL(rotYaw()),                       this, SLOT(rotYaw())                       );
 	QObject::connect( mMainWindow, SIGNAL(rotRoll()),                      this, SLOT(rotRoll())                      );
 	QObject::connect( mMainWindow, SIGNAL(rotPitch()),                     this, SLOT(rotPitch())                     );
@@ -169,6 +166,9 @@ MeshWidget::MeshWidget( const QGLFormat &format, QWidget *parent )
 	QObject::connect( this, &MeshWidget::sGuideIDSelection, mMainWindow, &QGMMainWindow::sGuideIDSelection );
 	QObject::connect( this, &MeshWidget::sGuideIDCommon,    mMainWindow, &QGMMainWindow::sGuideIDCommon    );
 	// ----------------------------------------------------------------------------------------------------------------
+
+    //set the latex placeholder descriptions (PDF Export)
+    setLatexPlaceholderDefinition();
 
 	cout << "[MeshWidget] ... done." << endl;
 
@@ -1618,319 +1618,7 @@ void MeshWidget::initializeShader( const QString& rFileName, QOpenGLShaderProgra
 // Screenshots -------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool rUseTiled, const QList<float>& paperPropertiesf,
-                                                  const QList<QStringList>& pageCombinations, const QString& suffix,
-                                                  float dpiFactorf, float rDPIf, const QString& mainPath ) {
 
-    QStringList texFiles;
-
-	double left         = paperPropertiesf[0];
-	double right        = paperPropertiesf[1];
-	double top          = paperPropertiesf[2];
-	double bottom       = paperPropertiesf[3];
-	double paperWidth   = paperPropertiesf[4];
-	double paperHeight  = paperPropertiesf[5];
-
-    // all values are experimental (in cm)
-    double tableHeight  = 2.5;
-    double boxes_width  = 3.0;    // size of the free room between boxes in tex (horizontal)
-    double boxes_height = 5.5;    // size of the free room between boxes in tex (vertical)
-
-    paperHeight = paperHeight - top - bottom - tableHeight - boxes_height;
-    paperWidth  = paperWidth  - left - right - boxes_width;
-
-    //mMainWindow->load(rPath+'/'+files.at(i));
-    mMainWindow->load(rFilePath);
-    //mMainWindow->sFileOpen(rPath+'/'+files.at(i));
-    //repaint();
-
-    if( mMeshVisual == nullptr ) {
-        return QStringList();
-    }
-
-    for(int k = 0; k < pageCombinations.size(); k++) {
-
-        QString rColor      = pageCombinations.at(k).at(0);
-        QString rTemplate   = pageCombinations.at(k).at(1);
-        bool    useLight    = pageCombinations.at(k).at(2).toInt();
-
-        // ############## screenshot ###########################
-
-        // set the color of the objects
-        if( rColor == "Solid Color" ) {
-            mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_MONO );
-        }
-        if( rColor == "Vertex Texture" ) {
-            mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_RGB );
-        }
-        if( rColor == "Vertex Func. Values" ) {
-            mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_FUNCVAL );
-        }
-        if( rColor == "Vertex Labels" ) {
-            mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_LABELS );
-        }
-
-        setParamFlagMeshWidget( LIGHT_ENABLED, useLight );
-
-        setParamFlagMeshWidget( SHOW_GRID_RECTANGULAR, false );
-
-        QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation().wstring());
-        string fileNamePattern;
-        getParamStringMeshWidget( FILENAME_EXPORT_VIEWS, &fileNamePattern );
-        // important name change !!!!
-		fileNamePattern.insert( fileNamePattern.find_last_of('.'), to_string(k) + suffix.toStdString() );
-		QString fileName = filePath + QString( fileNamePattern.c_str() );
-		if( fileName.isNull() ) {
-			return QStringList();
-		}
-		double mmPerPixel_Width;
-		double mmPerPixel_Height;
-		getViewPortPixelWorldSize( mmPerPixel_Width, mmPerPixel_Height );
-
-		const double oldDPI = 25.4/mmPerPixel_Width;
-		orthoSetDPI(25.4/mmPerPixel_Width*dpiFactorf);
-
-		std::vector<QString> imageFileNames;
-		std::vector<double> imageSizes;
-        const auto filePrefix = QString::fromStdWString(mMeshVisual->getBaseName().wstring());
-		screenshotViews( fileName.toLatin1(), filePrefix, rUseTiled, imageFileNames, imageSizes );
-
-		getViewPortPixelWorldSize( mmPerPixel_Width, mmPerPixel_Height );
-
-		QString strDPI = "";
-
-		bool appendDPItoFileName = false;
-		getParamFlagMeshWidget(MeshWidgetParams::SCREENSHOT_FILENAME_WITH_DPI, &appendDPItoFileName);
-
-		if(appendDPItoFileName)
-		{
-			strDPI = QString( "_%1DPI" ).arg( round( 25.4/mmPerPixel_Width ) );
-		}
-
-		mmPerPixel_Width = ( mmPerPixel_Width + mmPerPixel_Height ) / 2.0;
-
-        // ############## .tex ###########################
-
-        //! .) Fetch strings and their values. (For the additional Information)
-        vector<pair<string,string> > replacmentStrings;
-        mMeshVisual->latexFetchFigureInfos( &replacmentStrings );
-
-		QString fileNameAbsolute = rFilePath;
-		fileNameAbsolute.truncate( fileNameAbsolute.lastIndexOf( QString('.') ) );
-
-		QString fileNameRelative = fileNameAbsolute;
-		fileNameRelative.replace(mainPath, ".");
-
-		string temp = fileNameRelative.toStdString();
-
-		//! .) Fetch strings and their values. (For the pictures)
-		QString title = QString( mMeshVisual->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID ).c_str() );
-		title = title.replace( QString("-"), QString("\\protect\\-") );
-		title = title.replace( QString("_"), QString("\\protect\\_") );
-		string titleString = title.toStdString();
-
-		if( k==0 ) {
-			replacmentStrings.emplace_back( pair<string,string>( string( "__TITLE__"  ),               titleString ) );
-		} else {
-			replacmentStrings.emplace_back( pair<string,string>( string( "\\section{__TITLE__}"  ),     string( "\\section*{}" ) ) );
-		}
-
-
-		temp = fileNameAbsolute.toStdString();
-		float width = 0;
-		float height = 0;
-		vector<string> widthPictures;
-		vector<string> heightPictures;
-
-		if(mParamFlag[SPHERICAL_VERTICAL])
-		{
-			replacmentStrings.emplace_back( pair<string,string>( string( "__01_HA_TOP__"  ),           string( temp + "_01_va_top" +           to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-			replacmentStrings.emplace_back( pair<string,string>( string( "__02_HA_LEFT__"  ),          string( temp + "_03_va_side" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-			replacmentStrings.emplace_back( pair<string,string>( string( "__03_HA_FRONT__"  ),         string( temp + "_02_va_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-			replacmentStrings.emplace_back( pair<string,string>( string( "__04_HA_RIGHT__"  ),         string( temp + "_05_va_side" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-			replacmentStrings.emplace_back( pair<string,string>( string( "__05_HA_BOTTOM__"  ),        string( temp + "_06_va_bottom" +        to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-			replacmentStrings.emplace_back( pair<string,string>( string( "__06_HA_BACK__"  ),          string( temp + "_04_va_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-
-			//Those do not exist for Vertical rotations:
-			//replacmentStrings.emplace_back( pair<string,string>( string( "__07_HA_BACK_LEFT__"  ),     string( temp + "_07_ha_back_left" +     to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-			//replacmentStrings.emplace_back( pair<string,string>( string( "__08_HA_BACK_RIGHT__"  ),    string( temp + "_08_ha_back_right" +    to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-
-			if( rTemplate == "single-view" ) {
-				heightPictures.push_back(       string( temp + "_02_va_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-				widthPictures.push_back(        string( temp + "_02_va_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-			}
-			else{
-				heightPictures.push_back(       string( temp + "_01_va_top" +           to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-				heightPictures.push_back(       string( temp + "_02_va_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-				heightPictures.push_back(       string( temp + "_06_va_bottom" +        to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-
-				widthPictures.push_back(        string( temp + "_03_va_side" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-				widthPictures.push_back(        string( temp + "_05_va_side" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-
-				if( rTemplate == "vessols" ) {
-					widthPictures.push_back(    string( temp + "_02_va_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-					widthPictures.push_back(    string( temp + "_04_va_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-				}
-				else if( rTemplate == "fatcross-inv" ) {
-					heightPictures.push_back(   string( temp + "_04_va_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-
-					widthPictures.push_back(    string( temp + "_04_va_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-				}
-				else{
-					heightPictures.push_back(   string( temp + "_04_va_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-
-					widthPictures.push_back(    string( temp + "_02_va_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-				}
-			}
-		}
-		else
-		{
-			replacmentStrings.emplace_back( pair<string,string>( string( "__01_HA_TOP__"  ),           string( temp + "_01_ha_top" +           to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-			replacmentStrings.emplace_back( pair<string,string>( string( "__02_HA_LEFT__"  ),          string( temp + "_02_ha_left" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-			replacmentStrings.emplace_back( pair<string,string>( string( "__03_HA_FRONT__"  ),         string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-			replacmentStrings.emplace_back( pair<string,string>( string( "__04_HA_RIGHT__"  ),         string( temp + "_04_ha_right" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-			replacmentStrings.emplace_back( pair<string,string>( string( "__05_HA_BOTTOM__"  ),        string( temp + "_05_ha_bottom" +        to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-			replacmentStrings.emplace_back( pair<string,string>( string( "__07_HA_BACK_LEFT__"  ),     string( temp + "_07_ha_back_left" +     to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-			replacmentStrings.emplace_back( pair<string,string>( string( "__06_HA_BACK__"  ),          string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-			replacmentStrings.emplace_back( pair<string,string>( string( "__08_HA_BACK_RIGHT__"  ),    string( temp + "_08_ha_back_right" +    to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-
-			if( rTemplate == "single-view" ) {
-				heightPictures.push_back(       string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-				widthPictures.push_back(        string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-			}
-			else{
-				heightPictures.push_back(       string( temp + "_01_ha_top" +           to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-				heightPictures.push_back(       string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-				heightPictures.push_back(       string( temp + "_05_ha_bottom" +        to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-
-				widthPictures.push_back(        string( temp + "_02_ha_left" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-				widthPictures.push_back(        string( temp + "_04_ha_right" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-
-				if( rTemplate == "vessols" ) {
-					widthPictures.push_back(    string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-					widthPictures.push_back(    string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-				}
-				else if( rTemplate == "fatcross-inv" ) {
-					heightPictures.push_back(   string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-
-					widthPictures.push_back(    string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-				}
-				else{
-					heightPictures.push_back(   string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-
-					widthPictures.push_back(    string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-				}
-			}
-		}
-
-
-        QImage tempImage;
-		for(const string& heightPicture : heightPictures) {
-			tempImage.load( QString::fromStdString( heightPicture ) );
-            height += tempImage.height();
-        }
-		for(const string& widthPicture : widthPictures) {
-			tempImage.load( QString::fromStdString( widthPicture ) );
-            width += tempImage.width();
-        }
-
-        // Height and width of the Pictures on Latex
-        double mmPerPixel_Latex = 1.0/rDPIf*2.54*10.0;
-        height *= mmPerPixel_Latex/10.0;    // in cm
-        width  *= mmPerPixel_Latex/10.0;    // in cm
-
-        // calculating scaling factor
-
-        double factorHeight = paperHeight / height;
-        double factorWidth  = paperWidth  / width;
-
-        double factor = min(factorHeight, factorWidth);
-
-        double latexToRealFactor = mmPerPixel_Width/mmPerPixel_Latex;
-		factor = 1.0/factor;
-        factor *= latexToRealFactor;
-
-        string scaling;
-
-        if( factor >= 1) {
-            factor = ceil(factor);
-            scaling = "1 : " + to_string(int(factor));
-        }
-        else {
-            int temp = floor(1.0/factor);
-            factor = 1.0/temp;
-            scaling = to_string(temp) + " : 1 ";
-        }
-
-        factor /= latexToRealFactor;
-		factor = 1.0/factor;
-
-        QString factorString = QString::fromStdString(to_string(factor));
-        factorString.replace(",", ".");
-
-		replacmentStrings.emplace_back( pair<string,string>( string( "__FACTOR__"  ),  factorString.toStdString()  ) );
-		replacmentStrings.emplace_back( pair<string,string>( string( "__SCALING__"  ), scaling ) );
-
-        //! .) Fetch template(s).
-        QFile latexTemplateFile( ":/GMGeneric/latextemplates/" + rTemplate + ".tex" );
-
-        if( !latexTemplateFile.open( QIODevice::ReadOnly | QIODevice::Text ) ) {
-            cerr << "[MeshQt::" << __FUNCTION__ << "] Error: could not open file!" << endl;
-            return QStringList();
-        }
-
-        QTextStream latexTemplateFileInStream( &latexTemplateFile );
-        QString fileContent;
-        while( !latexTemplateFileInStream.atEnd() ) {
-			fileContent += latexTemplateFileInStream.readLine() + "\n";
-        }
-        //cout << "[MeshQt::" << __FUNCTION__ << "] File: " << fileContent.toStdString() << endl;
-
-		QString keyDataTableRow = QString() + "__OBJECT_ID__ &" + "\n"
-		                        + "$\\numprint{__BOUNDING_BOX_WIDTH__} \\times \\numprint{__BOUNDING_BOX_HEIGHT__} \\times \\numprint{__BOUNDING_BOX_THICK__}$ &" + "\n"
-		                        + "$\\numprint{__VERTEX_COUNT__}$ &" + "\n"
-		                        + "$\\numprint{__FACE_COUNT__}$ &" + "\n"
-		                        + "$\\numprint{__AREA_TOTAL__}$ &" + "\n"
-		                        + "$\\numprint{__AREA_RESOLUTION_METRIC__}$ &" + "\n"
-		                        + "$\\numprint{__VOLUME_TOTAL__}$ &" + "\n"
-		                        + "__OBJECT_MATERIAL__\\\\" + "\n"
-		                        + "\\hline" + "\n" + "\n";
-
-        //! .) Replace place holder with values.
-		for(pair<string, string>& replacmentString : replacmentStrings) {
-			string placeHolder = replacmentString.first;
-			string content = replacmentString.second;
-			if( content.empty() ) {
-                content = "0";
-            }
-			fileContent.replace( QString::fromStdString( placeHolder ), QString::fromStdString( content ) );
-			keyDataTableRow.replace( QString::fromStdString( placeHolder ) , QString::fromStdString( content ) );
-        }
-        //cout << "[MeshQt::" << __FUNCTION__ << "] File: " << fileContent.toStdString() << endl;
-
-        keyDataTableRow.replace( QString("-"), QString("\\protect\\-") );
-        keyDataTableRow.replace( QString("_"), QString("\\protect\\_") );
-
-		ofstream outfile( fileNameAbsolute.toStdString()+ to_string(k) + suffix.toStdString() + ".tex" );
-        outfile << fileContent.toStdString() << endl;
-        outfile.close();
-
-        orthoSetDPI(oldDPI);
-
-
-
-		QString texNameAndKeyTableData = QString( (fileNameAbsolute.toStdString()+ to_string(k) + suffix.toStdString() + ".tex").c_str() );
-        if( k == 0 ) {
-            texNameAndKeyTableData += "__KEYDATATABLE__" + keyDataTableRow;
-        }
-        else {
-            texNameAndKeyTableData += "__KEYDATATABLE__";
-        }
-
-        texFiles.append( texNameAndKeyTableData );
-    }
-	return texFiles;
-}
 
 void MeshWidget::bindFramebuffer(int framebufferID)
 {
@@ -1939,461 +1627,6 @@ void MeshWidget::bindFramebuffer(int framebufferID)
 	bindFramebuffer(GL_FRAMEBUFFER, framebufferID);
 }
 
-void MeshWidget::generateLatexFile() {
-
-	LOG::debug() << "Begin Latex Page\n";
-
-#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
-#endif
-
-	// get the path chosen by the user
-	QSettings settings;
-	QString lastPath = settings.value( "lastPath" ).toString();
-	QStringList fileNames = QFileDialog::getOpenFileNames( mMainWindow, tr("Select Source File(s)"), lastPath, tr("Meshes") + QString( "(*.ply *.obj)"), nullptr, QFileDialog::DontUseNativeDialog );
-
-    if( fileNames.isEmpty() ) {
-        return;
-    }
-
-    bool userCancel;
-
-    QString suffix;
-	SHOW_INPUT_DIALOG( tr("Your suffix"), tr("Enter your suffix if wished. (Example: _p1)"), "", suffix, userCancel );
-    if( userCancel ) {
-        return;
-    }
-
-    bool rUseTiled = true;
-
-    QString paperProperties = "2.0, 2.0, 2.0, 2.0, 21.0, 29.7";
-	SHOW_INPUT_DIALOG( tr("Your Paper Properties"), tr("Enter your properties here [in cm]. (left, right, top, bottom, paperwidth, paperheight)"), paperProperties, paperProperties, userCancel );
-    if( userCancel ) {
-        return;
-    }
-    paperProperties.remove(" ");
-    QStringList paperPropertiesL = paperProperties.split(",");
-    if( paperPropertiesL.size() != 6 ) {
-        cerr << "[MeshQt::" << __FUNCTION__ << "] Error: Wrong number of parameters - should be 6 but is "<< paperPropertiesL.size() << "!" << endl
-             << "Follow the patten: left, right, top, bottom, paperwidth, paperheight - like 2.0, 2.0, 2.0, 2.0, 21.0, 29.7" << endl;
-        return;
-    }
-    QList<float> paperPropertiesf;
-    for(int i=0; i<paperPropertiesL.size(); i++) {
-        paperPropertiesf.append( paperPropertiesL[i].toFloat() );
-    }
-
-    QString dpiFactor = "1.0";
-	SHOW_INPUT_DIALOG( tr("Zoom factor"), tr("Enter your zoom factor here."), dpiFactor, dpiFactor, userCancel );
-    if( userCancel ) {
-        return;
-    }
-    dpiFactor.remove(" ");
-    float dpiFactorf = dpiFactor.toFloat();
-
-    bool generateMainFile;
-
-	SHOW_QUESTION( tr("Latex Main File"), tr("Do you want to generate a main file for those pages?"), generateMainFile, userCancel );
-    if( userCancel ) {
-        return;
-    }
-
-    bool additionalCombinations = true;
-
-    QList<QStringList> pageCombinations;
-
-    while( additionalCombinations ) {
-
-        QStringList tempCombination;
-
-        QStringList colorOptions;
-        colorOptions.append( "Solid Color" );
-        colorOptions.append( "Vertex Texture" );
-        colorOptions.append( "Vertex Func. Values" );
-        colorOptions.append( "Vertex Labels" );
-
-        QString rColor;
-		SHOW_DIALOG_COMBO_BOX( tr("Object Color"), tr("Which coloring do you want to use?"), colorOptions, rColor, userCancel );
-        if( userCancel ) {
-            return;
-        }
-
-        tempCombination.append(rColor);
-
-        QStringList templates;
-        templates.append( "fatcross" );
-        templates.append( "fatcross+light" );
-        templates.append( "fatcross-inv" );
-        templates.append( "vessols" );
-        templates.append( "single-view" );
-
-        QString rTemplate;
-		SHOW_DIALOG_COMBO_BOX( tr("Template"), tr("Which template do you want to use?"), templates, rTemplate, userCancel );
-        if( userCancel ) {
-            return;
-        }
-
-        tempCombination.append(rTemplate);
-
-        bool useLight;
-		SHOW_QUESTION( tr("Light"), tr("Do you want to use light?"), useLight, userCancel );
-        if( userCancel ) {
-            return;
-        }
-
-        QString useLightS = QString::number(useLight);
-        tempCombination.append(useLightS);
-
-        pageCombinations.append(tempCombination);
-
-		SHOW_QUESTION( tr("Additional Pages"), tr("Do you want to include an additional (color, template, light) combination?"), additionalCombinations, userCancel );
-        if( userCancel ) {
-            return;
-        }
-
-    }
-
-	QString combinationList = tr("These are your combinations:") + QString("\n\n");
-	for(const QStringList& pageCombination : pageCombinations) {
-		combinationList += pageCombination.at(0) + ", " + pageCombination.at(1) + ", " + pageCombination.at(2) + "\n";
-    }
-
-    bool userContinue;
-	SHOW_QUESTION( tr("Do you want to continue?"), combinationList, userContinue, userCancel );
-    if( userCancel || !userContinue ) {
-        return;
-    }
-
-    // ################# generateLatexFile ###############
-
-    QStringList texFiles;
-
-    QString path = fileNames.at(0);
-    path.truncate( fileNames.at(0).lastIndexOf( QString('/') ) );
-
-    for( int i=0; i < fileNames.size(); i++ ) {
-        texFiles.append( generateLatexCatalogPage( fileNames.at(i), rUseTiled, paperPropertiesf, pageCombinations, suffix, dpiFactorf, 72, path ) );
-    }
-
-    QFile latexKeyDataTableTemplateFile( ":/GMGeneric/latextemplates/keydata.tex" );
-
-    if( !latexKeyDataTableTemplateFile.open( QIODevice::ReadOnly | QIODevice::Text ) ) {
-        cerr << "[MeshQt::" << __FUNCTION__ << "] Error: could not open file!" << endl;
-        return;
-    }
-
-    QTextStream latexKeyDataTableTemplateInStream( &latexKeyDataTableTemplateFile );
-    QString latexKeyDataTableFileContent;
-    while( !latexKeyDataTableTemplateInStream.atEnd() ) {
-		latexKeyDataTableFileContent += latexKeyDataTableTemplateInStream.readLine() + "\n";
-    }
-
-    QString keyDataTexFileName = path + '/' + "keyDataTable" + suffix + ".tex";
-
-    QString replacementStringKeyDataTable = "";
-
-    if( generateMainFile ) {
-
-        //! .) Fetch template(s).
-        QFile latexTemplateFile( ":/GMGeneric/latextemplates/skeleton.tex" );
-
-        if( !latexTemplateFile.open( QIODevice::ReadOnly | QIODevice::Text ) ) {
-            cerr << "[MeshQt::" << __FUNCTION__ << "] Error: could not open file!" << endl;
-            return;
-        }
-
-        QTextStream latexTemplateFileInStream( &latexTemplateFile );
-        QString fileContent;
-        while( !latexTemplateFileInStream.atEnd() ) {
-			fileContent += latexTemplateFileInStream.readLine() + "\n";
-        }
-
-        //cout << "[MeshQt::" << __FUNCTION__ << "] File: " << fileContent.toStdString() << endl;
-        //! .) Replace place holder with values.
-        QString replacementString = "";        
-
-        for( int i = 0; i < texFiles.size(); i++ ) {
-            QStringList texFileComponents = texFiles[i].split( "__KEYDATATABLE__" );
-
-			replacementString += "\\input{"+texFileComponents[0].replace( path+'/', "" )+'}' + "\n" + "\\newpage" + "\n";
-            if( pageCombinations.size() % 2 == 1 && (i+1) % pageCombinations.size() == 0 ) {
-				replacementString += QString() + "\n" + "\\thispagestyle{empty}" + "\n" + "\\mbox{}" + "\n" + "\\newpage" + "\n" + "\n";
-            }
-
-            replacementStringKeyDataTable += texFileComponents[1];
-        }
-
-        fileContent.replace( QString( "__INCLUDE__" ), replacementString );
-        fileContent.replace( QString( "__KEYDATATABLE__" ), QString() + "\\input{" + "keyDataTable" + suffix + ".tex" + "}" );
-        fileContent.replace( QString( "__LEFT__"    ),  "left="  + QString::number( paperPropertiesf[0] ) +"cm" );
-        fileContent.replace( QString( "__RIGHT__"   ),  "right=" + QString::number( paperPropertiesf[1] ) +"cm" );
-        fileContent.replace( QString( "__TOP__"     ),  "top="   + QString::number( paperPropertiesf[2] ) +"cm" );
-        fileContent.replace( QString( "__BOTTOM__"  ),  "bottom="+ QString::number( paperPropertiesf[3] ) +"cm" );
-
-        ofstream outfile( path.toStdString() + '/' + "main" + suffix.toStdString() + ".tex" );
-        outfile << fileContent.toStdString() << endl;
-        outfile.close();        
-    }
-    else {
-        for( int i = 0; i < texFiles.size(); i++ ) {
-            QStringList texFileComponents = texFiles[i].split( "__KEYDATATABLE__" );
-            replacementStringKeyDataTable += texFileComponents[1];
-        }
-    }
-
-    latexKeyDataTableFileContent.replace( QString( "__KEYDATATABLE__" ), replacementStringKeyDataTable );
-
-    ofstream outfile2( keyDataTexFileName.toStdString() );
-    outfile2 << latexKeyDataTableFileContent.toStdString() << endl;
-    outfile2.close();
-
-	SHOW_MSGBOX_INFO( tr("Finished"), tr("Your page generation has finished.") );
-}
-
-
-QStringList MeshWidget::generateLatexCatalog( int depth, const QString& rPath, bool rUseTiled,
-                                              const QStringList& rFilters, const QList<float>& paperPropertiesf,
-                                              const QList<QStringList>& pageCombinations, const QString& suffix,
-                                              float dpiFactorf, const QString& mainPath ) {
-
-    if( depth > 9 ) {
-        cout << "maximum recursion depth reached: " << depth << endl;
-        cout << "path: " << rPath.toStdString() << endl;
-        return QStringList();
-    }
-
-    QDir directory      = QDir(rPath);
-    QStringList files   = directory.entryList(rFilters);
-    QFileInfoList fileInfoList = directory.entryInfoList();
-    QStringList directories;
-
-	for (const QFileInfo& fileInfo : fileInfoList) {
-		if( fileInfo.isDir() && fileInfo.absolutePath().contains(rPath) && !fileInfo.isHidden() ) {
-			directories.append( fileInfo.absolutePath() + '/' + fileInfo.completeBaseName() );
-        }
-    }
-
-    QStringList texFiles;
-
-    for (int i = 0; i < files.size(); i++) {
-        texFiles.append( generateLatexCatalogPage( rPath+'/'+files.at(i), rUseTiled, paperPropertiesf, pageCombinations, suffix, dpiFactorf, 72.0, mainPath ) );
-    }
-
-    if( !directories.isEmpty() && depth > -1 ) {
-        for (int i = 0; i < directories.size(); ++i) {
-            texFiles.append( generateLatexCatalog( depth+1, directories[i], rUseTiled, rFilters, paperPropertiesf, pageCombinations, suffix, dpiFactorf, mainPath ) );
-        }
-    }
-
-    return texFiles;
-
-}
-
-
-void MeshWidget::generateLatexCatalog() {
-
-#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
-#endif
-
-	// get the path chosen by the user
-	QSettings settings;
-	QString lastPath = settings.value( "lastPath" ).toString();
-	QString path = QFileDialog::getExistingDirectory( mMainWindow, tr( "Choose the Directory" ), lastPath );
-
-    if( path.isEmpty() ) {
-        return;
-    }
-
-    // Filter files with certain patterns (types copied from load dialog except!!! txt / TXT)
-	QStringList filters;
-    filters << "*.obj" << "*.OBJ" << "*.ply" << "*.PLY";
-
-    bool userCancel;
-
-    QString suffix;
-	SHOW_INPUT_DIALOG( tr("Your suffix"), tr("Enter your suffix if wished. (Example: _p1)"), "", suffix, userCancel );
-    if( userCancel ) {
-        return;
-    }
-
-    bool useRecursion;
-	SHOW_QUESTION( tr("Recursion"), tr("Do you want to use recursion?"), useRecursion, userCancel );
-    if( userCancel ) {
-        return;
-    }
-
-    bool rUseTiled = true;
-
-    QString paperProperties = "2.0, 2.0, 2.0, 2.0, 21.0, 29.7";
-	SHOW_INPUT_DIALOG( tr("Your Paper Properties"), tr("Enter your properties here [in cm]. (left, right, top, bottom, paperwidth, paperheight)"), paperProperties, paperProperties, userCancel );
-    if( userCancel ) {
-        return;
-    }
-    paperProperties.remove(" ");
-    QStringList paperPropertiesL = paperProperties.split(",");
-    if( paperPropertiesL.size() != 6 ) {
-        cerr << "[MeshQt::" << __FUNCTION__ << "] Error: Wrong number of parameters - should be 6 but is "<< paperPropertiesL.size() << "!" << endl
-             << "Follow the patten: left, right, top, bottom, paperwidth, paperheight - like 2.0, 2.0, 2.0, 2.0, 21.0, 29.7" << endl;
-        return;
-    }
-    QList<float> paperPropertiesf;
-    for(int i=0; i<paperPropertiesL.size(); i++) {
-        paperPropertiesf.append( paperPropertiesL[i].toFloat() );
-    }
-
-    QString dpiFactor = "1.0";
-	SHOW_INPUT_DIALOG( tr("Zoom factor"), tr("Enter your zoom factor here."), dpiFactor, dpiFactor, userCancel );
-    if( userCancel ) {
-        return;
-    }
-    dpiFactor.remove(" ");
-    float dpiFactorf = dpiFactor.toFloat();
-
-    bool additionalCombinations = true;
-
-    QList<QStringList> pageCombinations;
-
-    while( additionalCombinations ) {
-
-        QStringList tempCombination;
-
-        QStringList colorOptions;
-        colorOptions.append( "Solid Color" );
-        colorOptions.append( "Vertex Texture" );
-        colorOptions.append( "Vertex Func. Values" );
-        colorOptions.append( "Vertex Labels" );
-
-        QString rColor;
-		SHOW_DIALOG_COMBO_BOX( tr("Object Color"), tr("Which coloring do you want to use?"), colorOptions, rColor, userCancel );
-        if( userCancel ) {
-            return;
-        }
-
-        tempCombination.append(rColor);
-
-        QStringList templates;
-        templates.append( "fatcross" );
-        templates.append( "fatcross+light" );
-        templates.append( "fatcross-inv" );
-        templates.append( "vessols" );
-        templates.append( "single-view" );
-
-        QString rTemplate;
-		SHOW_DIALOG_COMBO_BOX( tr("Template"), tr("Which template do you want to use?"), templates, rTemplate, userCancel );
-        if( userCancel ) {
-            return;
-        }
-
-        tempCombination.append(rTemplate);
-
-        bool useLight;
-		SHOW_QUESTION( tr("Light"), tr("Do you want to use light?"), useLight, userCancel );
-        if( userCancel ) {
-            return;
-        }
-
-        QString useLightS = QString::number(useLight);
-        tempCombination.append(useLightS);
-
-        pageCombinations.append(tempCombination);
-
-		SHOW_QUESTION( tr("Additional Pages"), tr("Do you want to include an additional (color, template, light) combination?"), additionalCombinations, userCancel );
-        if( userCancel ) {
-            return;
-		}
-
-    }
-
-	QString combinationList = tr("These are your combinations:") + QString("\n\n");
-	for(const QStringList& pageCombination : pageCombinations) {
-		combinationList += pageCombination.at(0) + ", " + pageCombination.at(1) + ", " + pageCombination.at(2) + "\n";
-    }
-
-    bool userContinue;
-	SHOW_QUESTION( tr("Do you want to continue?"), combinationList, userContinue, userCancel );
-    if( userCancel || !userContinue ) {
-        return;
-    }
-
-    // ################# generateLatexFile ###############
-
-    QStringList texFiles;
-
-    // execution
-    if( useRecursion ) {
-        texFiles = generateLatexCatalog(  0, path, rUseTiled, filters, paperPropertiesf, pageCombinations, suffix, dpiFactorf, path );
-    }
-    else {
-        texFiles = generateLatexCatalog( -1, path, rUseTiled, filters, paperPropertiesf, pageCombinations, suffix, dpiFactorf, path );
-    }
-
-    // generating the main file
-
-    //! .) Fetch template(s).
-    QFile latexTemplateFile( ":/GMGeneric/latextemplates/skeleton.tex" );
-
-    if( !latexTemplateFile.open( QIODevice::ReadOnly | QIODevice::Text ) ) {
-        cerr << "[MeshQt::" << __FUNCTION__ << "] Error: could not open file!" << endl;
-        return;
-    }
-
-    QTextStream latexTemplateFileInStream( &latexTemplateFile );
-    QString fileContent;
-    while( !latexTemplateFileInStream.atEnd() ) {
-		fileContent += latexTemplateFileInStream.readLine() + "\n";
-    }
-
-    QFile latexKeyDataTableTemplateFile( ":/GMGeneric/latextemplates/keydata.tex" );
-
-    if( !latexKeyDataTableTemplateFile.open( QIODevice::ReadOnly | QIODevice::Text ) ) {
-        cerr << "[MeshQt::" << __FUNCTION__ << "] Error: could not open file!" << endl;
-        return;
-    }
-
-    QTextStream latexKeyDataTableTemplateInStream( &latexKeyDataTableTemplateFile );
-    QString latexKeyDataTableFileContent;
-    while( !latexKeyDataTableTemplateInStream.atEnd() ) {
-		latexKeyDataTableFileContent += latexKeyDataTableTemplateInStream.readLine() + "\n";
-    }
-
-    //cout << "[MeshQt::" << __FUNCTION__ << "] File: " << fileContent.toStdString() << endl;
-    //! .) Replace place holder with values.
-    QString replacementString = "";
-    QString replacementStringKeyDataTable = "";
-
-    for( int i = 0; i < texFiles.size(); i++ ) {
-        QStringList texFileComponents = texFiles[i].split( "__KEYDATATABLE__" );
-
-		replacementString += "\\input{"+texFileComponents[0].replace( path+'/', "" )+'}' + "\n" + "\\newpage" + "\n";
-        if( pageCombinations.size() % 2 == 1 && (i+1) % pageCombinations.size() == 0 ) {
-			replacementString += QString() + "\n" + "\\thispagestyle{empty}" + "\n" + "\\mbox{}" + "\n" + "\\newpage" + "\n" + "\n";
-        }
-
-        replacementStringKeyDataTable += texFileComponents[1];
-    }
-
-    QString keyDataTexFileName = path + '/' + "keyDataTable" + suffix + ".tex";
-
-    fileContent.replace( QString( "__INCLUDE__" ), replacementString );
-    fileContent.replace( QString( "__KEYDATATABLE__" ), QString() + "\\input{" + "keyDataTable" + suffix + ".tex" + "}" );
-    fileContent.replace( QString( "__LEFT__"    ),  "left="  + QString::number( paperPropertiesf[0] ) +"cm" );
-    fileContent.replace( QString( "__RIGHT__"   ),  "right=" + QString::number( paperPropertiesf[1] ) +"cm" );
-    fileContent.replace( QString( "__TOP__"     ),  "top="   + QString::number( paperPropertiesf[2] ) +"cm" );
-    fileContent.replace( QString( "__BOTTOM__"  ),  "bottom="+ QString::number( paperPropertiesf[3] ) +"cm" );
-
-    latexKeyDataTableFileContent.replace( QString( "__KEYDATATABLE__" ), replacementStringKeyDataTable );
-
-    ofstream outfile( path.toStdString() + '/' + "main" + suffix.toStdString() + ".tex" );
-    outfile << fileContent.toStdString() << endl;
-    outfile.close();
-
-    ofstream outfile2( keyDataTexFileName.toStdString() );
-    outfile2 << latexKeyDataTableFileContent.toStdString() << endl;
-    outfile2.close();
-
-	SHOW_MSGBOX_INFO( tr("Finished"), tr("Your catalog generation has finished.") );
-}
 
 // --- Screenshots Side-Views as PDF ---------------------------------------------------------------------------------------------------------------------------
 
@@ -2428,7 +1661,109 @@ bool MeshWidget::screenshotViewsDirectoryFiles(
 //		}
 //	}
 
-	return( true );
+    return( true );
+}
+//! Set all possible Latex placeholder definitions
+//!
+//! placeholders are used to check if a userdefined latextemplate uses all possible values/placeholders
+//! descriptions are used to give the user information about the placeholder value
+void MeshWidget::setLatexPlaceholderDefinition()
+{
+
+    //single page
+    mPdfSinglePlaceholders.clear();
+    mPdfSinglePlaceholders = {
+        {"__PDF_AUTHOR__","username and hostname of the system"},
+        {"__OBJECT_ID__","is the value of 'ModelID' at the Meta information of the PLY"},
+        {"__WEB_REFERENCE__","is the value of 'ModelReferenceWeb' at the Meta information of the PLY"},
+        {"__FIGURE_IMAGE_FILE__","is the Name of the created PNG at the target directory (without '.png')"},
+        {"__BOUNDING_BOX_WIDTH__","bounding box width in cm"},
+        {"__BOUNDING_BOX_HEIGHT__","bounding box height in cm"},
+        {"__BOUNDING_BOX_THICK__","bounding box thick in cm"},
+        {"__VERTEX_COUNT__","number of vertices"},
+        {"__FACE_COUNT__","number of faces"},
+        {"__OBJECT_MATERIAL__","is the value of 'ModelMaterial' at the Meta information of the PLY"},
+        {"__AREA_TOTAL__","surface of the mesh in mm²"},
+        {"__AREA_TOTAL__","surface of the mesh in mm²"},
+        {"__AREA_RESOLUTION_METRIC__","resolution in 1/cm²"},
+        {"__AREA_RESOLUTION_DPI__","resolution in DPI"},
+        {"__VOLUME_TOTAL__","volume in cm³"}
+    };
+
+    //views
+    mPdfViewsPlaceholders.clear();
+    mPdfViewsPlaceholders = {
+        {"__PDF_AUTHOR__","username and hostname of the system"},
+        {"__OBJECT_ID__","is the value of 'ModelID' at the Meta information of the PLY"},
+        {"__WEB_REFERENCE__","is the value of 'ModelReferenceWeb' at the Meta information of the PLY"},
+        {"__FIGURE_PREFIX__","is the Präfix of all generated images in directory figs at the target directory.\n Use in combination with e.g. \figureprefix_01_ha_top to include a image.\n possible Views:_01_ha_top,_02_ha_left,_03_ha_front,_04_ha_right,_05_ha_bottom, _06_ha_back"},
+        {"__BOUNDING_BOX_WIDTH__","bounding box width in cm"},
+        {"__BOUNDING_BOX_HEIGHT__","bounding box height in cm"},
+        {"__BOUNDING_BOX_THICK__","bounding box thick in cm"},
+        {"__VERTEX_COUNT__","number of vertices"},
+        {"__FACE_COUNT__","number of faces"},
+        {"__OBJECT_MATERIAL__","is the value of 'ModelMaterial' at the Meta information of the PLY"},
+        {"__AREA_TOTAL__","surface of the mesh in mm²"},
+        {"__AREA_TOTAL__","surface of the mesh in mm²"},
+        {"__AREA_RESOLUTION_METRIC__","resolution in 1/cm²"},
+        {"__AREA_RESOLUTION_DPI__","resolution in DPI"},
+        {"__VOLUME_TOTAL__","volume in cm³"}
+    };
+
+}
+
+bool MeshWidget::checkUserdefinedLatexFile(QString *latexTemplate, std::vector<LatexPlaceholder> rPlaceHolders)
+{
+    bool notUsedPlaceholderFound = false;
+    QString informationTextPlaceholders;
+    for(LatexPlaceholder placeholder: rPlaceHolders){
+        if(!latexTemplate->contains(QRegExp(placeholder.placeholder))){
+            informationTextPlaceholders = informationTextPlaceholders + placeholder.placeholder;
+            informationTextPlaceholders = informationTextPlaceholders + QString(" | ");
+            informationTextPlaceholders = informationTextPlaceholders + placeholder.descr +  QString("\n");
+            notUsedPlaceholderFound = true;
+        }
+    }
+    if(notUsedPlaceholderFound){
+        bool userCancel;
+        bool userContinue;
+        SHOW_QUESTION( tr("Some Placeholders are not used"), tr("The Latex template contains not all possible Placeholders.\n This additional placeholders are still possible: ") + QString("\n\n") + informationTextPlaceholders + QString("\n\n") + tr("Continue?"), userContinue, userCancel );
+        if( userCancel || !userContinue) {
+            return( false );
+        }
+    }
+    return ( true );
+}
+
+//! Help function for latex PDF Export (cc-license)
+//! Ask for all possible Parameters and Versions of CC-licenses
+//! based on the Latex package doclicense
+//! https://ctan.org/pkg/doclicense?lang=de
+bool MeshWidget::askForCCLicenseParameters(QString *ccParameter, QString *ccVersion)
+{
+     QStringList possibleParameters;
+     possibleParameters.append("by");
+     possibleParameters.append("by-sa");
+     possibleParameters.append("by-nd");
+     possibleParameters.append("by-nc");
+     possibleParameters.append("by-nc-sa");
+     possibleParameters.append("by-nc-nd");
+
+     bool userCancel;
+     SHOW_DIALOG_COMBO_BOX( tr("CC-Attribution"), tr("Which type of CC-License you want to use?"), possibleParameters, *ccParameter, userCancel );
+     if( userCancel ) {
+         return( false );
+     }
+
+     QStringList possibleVersions;
+     possibleVersions.append("3.0");
+     possibleVersions.append("4.0");
+     SHOW_DIALOG_COMBO_BOX( tr("CC-Version"), tr("Which version of CC-License you want to use?"), possibleVersions, *ccVersion, userCancel );
+     if( userCancel ) {
+         return( false );
+     }
+     return( true );
+
 }
 
 //! Render front-views or side-views as
@@ -2496,6 +1831,41 @@ bool MeshWidget::screenshotViewsDirectory() {
 		}
 	}
 
+    //ask for pdf templates
+    QString rTemplate;
+    QString texFileName;
+    //set standard license Values
+    QString ccParameters = "by-sa";
+    QString ccVersion = "4.0";
+    if(!preferPNGoverPDF){
+        QStringList templates;
+        templates.append( "Single page" );
+        templates.append( "Single page with cc-license" );
+        templates.append( "Own template" );
+
+        SHOW_DIALOG_COMBO_BOX( tr("Template"), tr("Which template do you want to use?"), templates, rTemplate, userCancel );
+        if( userCancel ) {
+            return( false );
+        }
+        //load user individual template
+        if( rTemplate == "Own template"){
+            texFileName = QFileDialog::getOpenFileName( this,
+                                                              tr( "Import Latex template" ),
+                                                              nullptr,
+                                                              tr( "tex-file (*.tex)" )
+                                                             );
+            if( texFileName == nullptr) {
+                return( false );
+            }
+        }
+        //ask for cc license parameters and Version
+        if( rTemplate == "Single page with cc-license"){
+            if(!askForCCLicenseParameters(&ccParameters,&ccVersion)){
+                return( false );
+            }
+        }
+    }
+
 	// Let the user choose a path
 	QString     pathChoosen;
 	QStringList currFiles;
@@ -2553,7 +1923,11 @@ bool MeshWidget::screenshotViewsDirectory() {
 				// FRONT View PDF document
 				QString prefixStem( string( std::filesystem::path( currFiles.at(i).toStdString() ).stem().string() ).c_str() );
 				retVal |= screenshotPDF( pathChoosen+'/'+prefixStem+fileNameSuffix+".pdf",
-				                         useTiled ); // Fromt Side
+                                         useTiled,
+                                         rTemplate,
+                                         texFileName,
+                                         ccParameters,
+                                         ccVersion); // Fromt Side
 			}
 		} else {
 			if( preferPNGoverPDF ) {
@@ -2567,7 +1941,11 @@ bool MeshWidget::screenshotViewsDirectory() {
 			} else {
 				// SIDE Views PDF document
 				QString prefixStem( string( std::filesystem::path( currFiles.at(i).toStdString() ).stem().string() ).c_str() );
-				retVal |= screenshotViewsPDF( pathChoosen+'/'+prefixStem+fileNameSuffix+".pdf" ); // TILES always ON
+                retVal |= screenshotViewsPDF( pathChoosen+'/'+prefixStem+fileNameSuffix+".pdf",
+                                              rTemplate,
+                                              texFileName,
+                                              ccParameters,
+                                              ccVersion); // TILES always ON
 			}
 		}
 	} // for all files
@@ -2581,7 +1959,8 @@ bool MeshWidget::screenshotViewsDirectory() {
 		                  tr( "Errors occured creating screenshots for:<br /><br />" ) +
 		                  pathChoosen );
 	}
-
+    //set false, that the userindividual latex template will check next time
+    mUserContinue = false;
 	return( retVal );
 }
 
@@ -2687,8 +2066,42 @@ bool MeshWidget::screenshotViewsPDFUser() {
 		return( false );
 	}
 
+    QStringList templates;
+    templates.append( "Single page" );
+    templates.append( "Single page with cc-license" );
+    templates.append( "Own template" );
+
+    bool userCancel;
+    QString rTemplate;
+    SHOW_DIALOG_COMBO_BOX( tr("Template"), tr("Which template do you want to use?"), templates, rTemplate, userCancel );
+    if( userCancel ) {
+        return( false );
+    }
+
+    //load user individual template
+    QString texFileName;
+    if( rTemplate == "Own template"){
+
+        texFileName = QFileDialog::getOpenFileName( this,
+                                                          tr( "Import Latex template" ),
+                                                          nullptr,
+                                                          tr( "tex-file (*.tex)" )
+                                                         );
+        if( texFileName == nullptr) {
+            return( false );
+        }
+    }
+    //ask for cc license parameters and Version
+    QString ccParameters = "by-sa";
+    QString ccVersion = "4.0";
+    if( rTemplate == "Single page with cc-license"){
+        if(!askForCCLicenseParameters(&ccParameters,&ccVersion)){
+            return( false );
+        }
+    }
+
 	// Execute
-	if( !screenshotViewsPDF( fileName ) ) {
+    if( !screenshotViewsPDF( fileName, rTemplate, texFileName, ccParameters, ccVersion ) ) {
 		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: screenshotViewsPDF( " << fileName.toStdString() << " ) failed!" << std::endl;
 		return( false );
 	}
@@ -2717,7 +2130,8 @@ bool MeshWidget::screenshotViewsPDFUser() {
 
 	}
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
-
+    //set false, that the userindividual latex template will check next time
+    mUserContinue = false;
 	return( true );
 }
 
@@ -2725,8 +2139,9 @@ bool MeshWidget::screenshotViewsPDFUser() {
 //!
 //! Accepts a filename to write a PDF with views for the current mesh (MeshWidget::mMeshVisual).
 //!
+//! @todo GUI Questions for the cc license parameters
 //! @returns false in case of an error. True otherwise.
-bool MeshWidget::screenshotViewsPDF( const QString& rFileName ) {
+bool MeshWidget::screenshotViewsPDF( const QString& rFileName, QString rTemplate, const QString rTexFileName, const QString rCCparameter, const QString rCCversion ) {
 	//! Always use tiled rendering.
 	bool useTiled = true;
 	//! Six views only (for now)
@@ -2784,8 +2199,16 @@ bool MeshWidget::screenshotViewsPDF( const QString& rFileName ) {
 	scaleFactorTex    = "1:" + QString( "%1" ).arg( 1.0/scaleFactor, 'f' ).trimmed() ;
 
 	// Load template
+    //standard = single page
 	QString latexTemplateName( ":/GMLaTeX/report_single_page_template.tex" );
-	QString latexTemplate;
+    //other templates
+    if(rTemplate == "Single page with cc-license"){
+        latexTemplateName = ":/GMLaTeX/report_single_page_cclicense_template.tex";
+    }
+    if( rTemplate == "Own template"){
+        latexTemplateName = rTexFileName;
+    }
+    QString latexTemplate;
 	QFile fileLatexIn( latexTemplateName );
 	if( !fileLatexIn.open( QIODevice::ReadOnly ) ) {
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Template could not be opened!" << endl;
@@ -2794,6 +2217,17 @@ bool MeshWidget::screenshotViewsPDF( const QString& rFileName ) {
 
 	latexTemplate = fileLatexIn.readAll();
 	fileLatexIn.close();
+
+    //check user defined Latex file
+    if( rTemplate == "Own template" && !mUserContinue){
+        if(!checkUserdefinedLatexFile(&latexTemplate,mPdfSinglePlaceholders)){
+            cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: User stopped process" << endl;
+            return( false );
+        }
+        else{
+            mUserContinue = true;
+        }
+    }
 
 	// Fetch strings with information for the table
 	vector<pair<string,string>> replacmentStrings;
@@ -2810,6 +2244,9 @@ bool MeshWidget::screenshotViewsPDF( const QString& rFileName ) {
 		replacmentStrings.emplace_back(pair<string, string>("06_ha_back"  , "04_va_back"));
 	}
 
+    //replace license placeholders
+    latexTemplate.replace( QRegExp( "__CC_PARAMETERS__" ), rCCparameter );
+    latexTemplate.replace( QRegExp( "__CC_VERSION__" ), rCCversion );
 
 	latexTemplate.replace( QRegExp( "__FIGURE_PREFIX__" ), filePrefixImgTex );
 	latexTemplate.replace( QRegExp( "__SCALE_FACTOR_STRING__" ), scaleFactorTex );
@@ -3343,22 +2780,55 @@ bool MeshWidget::screenshotPDFUser() {
 	}
 
 	// Ask for tiled rendering
+    bool userCancel;
 	bool useTiled = false;
 	{
-		bool userCancel;
+
 		SHOW_QUESTION( tr("Tiled rendering"), tr("Do you want to use tiled rendering?") + QString("\n\n") + tr("Recommended: YES"), useTiled, userCancel );
 		if( userCancel ) {
 			return( false );
 		}
 	}
 
+    QStringList templates;
+    templates.append( "Single page" );
+    templates.append( "Single page with cc-license" );
+    templates.append( "Own template" );
+
+    QString rTemplate;
+    SHOW_DIALOG_COMBO_BOX( tr("Template"), tr("Which template do you want to use?"), templates, rTemplate, userCancel );
+    if( userCancel ) {
+        return( false );
+    }
+
+    //load user individual template
+    QString texFileName;
+    if( rTemplate == "Own template"){
+
+        texFileName = QFileDialog::getOpenFileName( this,
+                                                          tr( "Import Latex template" ),
+                                                          nullptr,
+                                                          tr( "tex-file (*.tex)" )
+                                                         );
+        if( texFileName == nullptr) {
+            return( false );
+        }
+    }
+    //ask for cc license parameters and Version
+    QString ccParameters = "by-sa";
+    QString ccVersion = "4.0";
+    if( rTemplate == "Single page with cc-license"){
+        if(!askForCCLicenseParameters(&ccParameters,&ccVersion)){
+            return( false );
+        }
+    }
 	// Execute
-	if( !screenshotPDF( fileName, useTiled ) ) {
+    if( !screenshotPDF( fileName, useTiled, rTemplate, texFileName, ccParameters, ccVersion ) ) {
 		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: screenshotPDF(...) failed!" << std::endl;
 		return( false );
 	}
 
-	// --- Show PDF, when evince is available --------------------------------------------------------------------------------------------------------------
+    // --- Show PDF, when evince, okular or atril is available --------------------------------------------------------------------------------------------------------------
 
 	std::string pdfViewerCommand;
 	getParamStringMeshWidget(MeshWidgetParams::PDF_VIEWER_COMMAND, &pdfViewerCommand);
@@ -3385,7 +2855,8 @@ bool MeshWidget::screenshotPDFUser() {
 
     }
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
-
+    //set false, that the userindividual latex template will check next time
+    mUserContinue = false;
 	return( true );
 }
 
@@ -3393,8 +2864,9 @@ bool MeshWidget::screenshotPDFUser() {
 //!
 //! Accepts a filename to write a PDF with views for the current mesh (MeshWidget::mMeshVisual).
 //!
+//! @todo GUI Questions for the cc license parameters
 //! @returns false in case of an error. True otherwise.
-bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled ) {
+bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled, const QString rTemplate, const QString rTexFileName, const QString rCCparameter, const QString rCCversion ) {
 	// Prepare filename.
 	string prefixPath = std::filesystem::path( rFileName.toStdString() ).parent_path().string();
 	string prefixStem = std::filesystem::path( rFileName.toStdString() ).stem().string();
@@ -3423,7 +2895,15 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled )
 	scaleFactorTex    = "1:" + QString( "%1" ).arg( 1.0/scaleFactor, 'f' ).trimmed() ;
 
 	// Load template
+    //standard = single page
 	QString latexTemplateName( ":/GMLaTeX/report_single_page_single_view_template.tex" );
+    //other templates
+    if(rTemplate == "Single page with cc-license"){
+        latexTemplateName = ":/GMLaTeX/report_single_page_single_view_cclicense_template.tex";
+    }
+    if( rTemplate == "Own template"){
+        latexTemplateName = rTexFileName;
+    }
 	QString latexTemplate;
 	QFile fileLatexIn( latexTemplateName );
 	if( !fileLatexIn.open( QIODevice::ReadOnly ) ) {
@@ -3434,9 +2914,23 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled )
 	}
 	fileLatexIn.close();
 
+    //check user defined Latex file
+    if( rTemplate == "Own template" && !mUserContinue){
+        if(!checkUserdefinedLatexFile(&latexTemplate,mPdfSinglePlaceholders)){
+            cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: User stopped process" << endl;
+            return( false );
+        }
+        else{
+            mUserContinue = true;
+        }
+    }
 	// Fetch strings with information for the table
 	vector<pair<string,string>> replacmentStrings;
 	mMeshVisual->latexFetchFigureInfos( &replacmentStrings );
+
+    //replace license placeholders
+    latexTemplate.replace( QRegExp( "__CC_PARAMETERS__" ), rCCparameter );
+    latexTemplate.replace( QRegExp( "__CC_VERSION__" ), rCCversion );
 
 	// Replace placeholders
 	latexTemplate.replace( QRegExp( "__FIGURE_IMAGE_FILE__" ), "\""+QString( prefixStem.c_str() )+"\"" );

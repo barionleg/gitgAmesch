@@ -78,9 +78,6 @@
      <addaction name="separator"/>
      <addaction name="actionScreenshotRuler"/>
      <addaction name="separator"/>
-     <addaction name="actionGenerateLatexFile"/>
-     <addaction name="actionGenerateLatexCatalog"/>
-     <addaction name="separator"/>
      <addaction name="actionScreenshotsCrop"/>
      <addaction name="separator"/>
      <addaction name="actionVideoFrameSizeSet"/>
@@ -2998,11 +2995,6 @@ p, li { white-space: pre-wrap; }
     <string>Keyboard &amp;Layout</string>
    </property>
   </action>
-  <action name="actionVertApplyNormalShift">
-   <property name="text">
-    <string>&amp;Vertex - Apply Normal Shift</string>
-   </property>
-  </action>
   <action name="actionDetect_Self_Intersections">
    <property name="enabled">
     <bool>true</bool>
@@ -3356,22 +3348,6 @@ p, li { white-space: pre-wrap; }
   <action name="actionScreenshotPNGDirectory">
    <property name="text">
     <string>Screenshot PNG Directory</string>
-   </property>
-  </action>
-  <action name="actionGenerateLatexFile">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>&amp;Generate Latex File</string>
-   </property>
-  </action>
-  <action name="actionGenerateLatexCatalog">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Generate &amp;Latex Catalog</string>
    </property>
   </action>
   <action name="actionTest">

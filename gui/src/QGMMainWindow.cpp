@@ -145,7 +145,6 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	//.
 	QObject::connect( actionApplyMeltingSphere,     SIGNAL(triggered()), this,       SIGNAL(sApplyMeltingSphere())     );
     //.
-    QObject::connect( actionVertApplyNormalShift,   SIGNAL(triggered()), this,       SIGNAL(sApplyNormalShift())       );
 
 	// --- De-Selection ------------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( actionDeSelVertsAll,          SIGNAL(triggered()),         this, SIGNAL(sDeSelVertsAll())         );
@@ -207,11 +206,6 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionScreenshotsCrop,         SIGNAL(toggled(bool)), this,       SIGNAL(screenshotsCrop(bool))  );
 	QObject::connect( actionScreenshotSVG,           SIGNAL(triggered()),   this,       SIGNAL(screenshotSVG())        );
 	QObject::connect( actionScreenshotRuler,         SIGNAL(triggered()),   this,       SIGNAL(screenshotRuler())      );
-
-	// === LEGACY to be removed! ===========================================================================================================================
-    QObject::connect( actionGenerateLatexFile,       SIGNAL(triggered()),   this,       SIGNAL(generateLatexFile()) );
-    QObject::connect( actionGenerateLatexCatalog,    SIGNAL(triggered()),   this,       SIGNAL(generateLatexCatalog()) );
-	// =====================================================================================================================================================
 
 	//.
 	QObject::connect( actionViewDefaultViewLight,     SIGNAL(triggered()),  this,       SIGNAL(sDefaultViewLight())     );

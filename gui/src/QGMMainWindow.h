@@ -235,7 +235,6 @@ signals:
 	//.
 	void sApplyMeltingSphere();                              //!< triggers melting with sqrt(r^2-x^2-y^2)
     //.
-    void sApplyNormalShift();                                //!< Shifts the Vertices along the Normal.
 
 	// --- DeSelect ----------------------------------------------------------------------------------------------------------------------------------------
 	void sDeSelVertsAll();                                   //!< removes all vertices from the selection (SelMVerts).
@@ -287,11 +286,6 @@ signals:
 	void screenshotsCrop(bool);                              //!< toggle croping of screenshots using the z-buffer.
 	void screenshotSVG();                                    //!< trigger a screenshot stored as SVG with a PNG embedded.
 	void screenshotRuler();                                  //!< trigger the export of an image of a ruler matching the screenshot resolution (in ortho mode).
-
-	// === LEGACY to be removed! ===========================================================================================================================
-    void generateLatexFile();                                //!< trigger latex file    to be generated
-    void generateLatexCatalog();                             //!< trigger latex catalog to be generated
-	// =====================================================================================================================================================
 
 	//.
 	void sDefaultViewLight();                                //!< signal to restore the default view and lights.

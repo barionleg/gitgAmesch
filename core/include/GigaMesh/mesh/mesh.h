@@ -579,19 +579,6 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool   insertVertices( std::vector<Vertex*>* rNewVertices );
 		// ---------------------------------------------------------------------------------------------------------------------------------------------
 
-		// --- SHELLING --------------------------------------------------------------------------------------------------------------------------------
-		//        void* detectCriticalPlacesForShelling(void* value);
-				bool delaunyTriangulation( std::vector<Vertex*> vertexList, std::vector<Vertex*>* outputList );
-				Vector3D getInterpolatedNormal( Face* face, Vector3D pos );
-				bool rayTriangleIntersection( Vector3D _origin, Vector3D _direction, Face* _triangle, Vector3D &intersectionPoint );
-				bool triangleIntersectTriangle( Face *triangleA, Face *triangleB, Vector3D &intersectionPointA, Vector3D &intersectionPointB );
-
-				void   flipTriangle(int index);                             // flip triangle orientation
-				void   recalculateTriangleOrientation();                    // recalculate the triangle orientation and flip it if necessary
-				void   removeDoubleTriangles();                             // remove double Triangles
-				void   fixTriangleIntersection();                           // repair Triangle-Intersection -> split off and re-triangulate via delauny-triangulation
-		//----------------------------------------------------------------------------------------------------------------------------------------------
-
 		// mainly used to set the initial view (see objwidget)
 				void     getCenterOfGravity( float* cog );
 				Vector3D getCenterOfGravity();
@@ -697,10 +684,6 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		        bool     normalsVerticesComputeSphere( double rRadius );
 
 		virtual bool     changedBoundingBox();
-
-		virtual bool	applyNormalShift(double offset);
-		virtual bool	applyNormalShiftHelper(bool initCall, bool removeOriginalObject, bool connectBorders);
-
 
 				bool     estBoundingBox();
 

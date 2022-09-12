@@ -2609,54 +2609,7 @@ bool MeshGL::setParamFloatMeshGL( MeshGLParams::eParamFlt rParamID, double rValu
 		return true;
 }
 
-// --- Shelling ------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Calculate a offset Surface(Shelling) without any selfintersection
-bool MeshGL::applyNormalShift(double offset){
-		Mesh::applyNormalShift(offset);
-		glRemove();
-		glPrepare();
-
-		return true;
-}
-
-//! Helper-Function for applyNormalShift
-//! - Remove Original Object
-//! - Connect original-mesh-border with offset-mesh-border via mesh
-bool MeshGL::applyNormalShiftHelper(bool initCall, bool removeOriginalObject, bool connectBorders){
-		Mesh::applyNormalShiftHelper(initCall, removeOriginalObject, connectBorders);
-		glRemove();
-		glPrepare();
-
-		return true;
-}
-
-//! Remove double Triangles
-bool MeshGL::removeDoubleTriangles(){
-		Mesh::removeDoubleTriangles();
-		glRemove();
-		glPrepare();
-
-		return true;
-}
-
-//! Recalculate the triangle orientation and flip it if necessary
-bool MeshGL::recalculateTriangleOrientation(){
-		Mesh::recalculateTriangleOrientation();
-		glRemove();
-		glPrepare();
-
-		return true;
-}
-
-//! Repair Triangle-Intersection -> split off and re-triangulate via delauny-triangulation
-bool MeshGL::fixTriangleIntersection(){
-		Mesh::fixTriangleIntersection();
-		glRemove();
-		glPrepare();
-
-		return true;
-}
 
 // Vertex Buffer Objects ---------------------------------------------------------------------------------------------------------
 
