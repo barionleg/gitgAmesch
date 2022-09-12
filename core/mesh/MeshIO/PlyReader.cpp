@@ -1066,7 +1066,8 @@ bool PlyReader::readFile(const std::filesystem::path& rFilename,
 		                                    );
 		//only add to a max of 10 new textures
 		//otherwise collapse all exessive textures to 1
-		if(maxTexIdFace->textureId >= numTextures)
+        //ignore if there is no texture
+        if(maxTexIdFace->textureId >= numTextures && numTextures != 0)
 		{
 			if (maxTexIdFace->textureId - numTextures < 10)
 			{
