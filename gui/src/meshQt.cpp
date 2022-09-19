@@ -942,6 +942,7 @@ bool MeshQt::removeUncleanSmallUser() {
 	// As the slider dialog will return a value of ] 0.0 ... 100.0 [ we divide by 100.
 	percentArea /= 100.0;
 
+    /**
 	// Optional border erosion
 	bool applyErosion;
 	bool userCancel;
@@ -950,9 +951,13 @@ bool MeshQt::removeUncleanSmallUser() {
 	if( userCancel ) {
 		return( false );
 	}
-
+    **/
+    //get parameters from Settings
+    bool applyErosion;
+    getParamFlagMeshGL(MeshGLParams::REMOVE_DANGLING_FACES, &applyErosion);
 	// Ask if we wan't to store the result, when finished.
 	bool saveFile;
+    bool userCancel;
 	SHOW_QUESTION( tr("Store results"), tr("Do you want to store the result as file?"), saveFile, userCancel );
 	if( userCancel ) {
 		return( false );
@@ -1001,6 +1006,7 @@ bool MeshQt::completeRestore() {
 	percentArea /= 100.0;
 
 	// Ask for largest hole to be left out.
+
 	bool userCancel;
 	bool prevent;
 	SHOW_QUESTION(
@@ -1011,7 +1017,7 @@ bool MeshQt::completeRestore() {
 	if( userCancel ) {
 		return( false );
 	}
-
+     /**
 	// Optional border erosion
 	bool applyErosion;
 	SHOW_QUESTION( tr("Apply border erosion"), tr("Do you want to remove dangling faces along the borders?") +
@@ -1023,7 +1029,7 @@ bool MeshQt::completeRestore() {
 	// Libpsalm has troubles with larger complex holes. It seems to break for holes with more than 3.000 edges.
 	uint64_t maxNrVertices = 3000;
 	showEnterText( maxNrVertices, "Maximum number of vertices for border filling. 0 means no limit." );
-
+    **/
 	// Ask if we wan't to store the result, when finished.
 	bool saveFile;
 	SHOW_QUESTION( tr("Store results"), tr("Do you want to store the result as file?"), saveFile, userCancel );
@@ -1039,6 +1045,11 @@ bool MeshQt::completeRestore() {
 		               fileLocation, tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) \
 		           );
 	}
+    //get parameters from Settings
+    bool applyErosion;
+    int maxNrVertices;
+    getParamIntMeshGL( MeshGLParams::MAX_VERTICES_HOLE_FILLING, &maxNrVertices );
+    getParamFlagMeshGL(MeshGLParams::REMOVE_DANGLING_FACES, &applyErosion);
 
 	// Iterative cleaning is done in the Mesh class.
 	uint64_t iterationCount;

@@ -78,7 +78,9 @@ class MeshGLParams {
 			NPR_HATCHLINE_LIGHT_INFLUENCE,         //!< Mix in Hatchlines based on the light influence, e.g. strong light => hatchline less visible
             NPR_USE_SPECULAR,                      //!< Determine whether specular highlights should be used or not
             SHOW_BADLIT_AREAS,                     //!< Shows areas which are over- oder under-lit
-			PARAMS_FLAG_COUNT                      //!< Number of flags controlling the OpenGL display. Highest ID+1. Lowest ID-1 is determined by SHOW_UNDEFINED.
+            REMOVE_DANGLING_FACES,                  //!< Parameter of Mesh cleaning
+            PARAMS_FLAG_COUNT                     //!< Number of flags controlling the OpenGL display. Highest ID+1. Lowest ID-1 is determined by SHOW_UNDEFINED.
+
 		};
 		// Parameters (integer)
 		enum eParamInt{
@@ -105,6 +107,7 @@ class MeshGLParams {
 			TRANSPARENCY_OVERFLOW_HANDLING,//!< How should a overflow in a k+-buffer be handled: 0 = discard, 1 = multiplicative blend
 			TRANSPARENCY_BUFFER_METHOD,    //!< How fragments should be buffered: 0 = K+ Buffer, 1 = A-Buffer
 			DEFAULT_FRAMEBUFFER_ID,        //!< The default framebuffer for rendering
+            MAX_VERTICES_HOLE_FILLING,     //!< mesh Cleaning parameter, Maximum Number of vertices for hole filling
 			PARAMS_INT_COUNT               //!< Number of integer paramters.
 		};
 		// Parameters (double)
@@ -245,7 +248,7 @@ class MeshGLParams {
 
 	private:
 		// Switches and parameters controlling display of Primitives and other elements:
-		bool     mParamFlag[PARAMS_FLAG_COUNT];  //!< Array handling the flags to show/hide Primitives and other objects.
+        bool     mParamFlag[PARAMS_FLAG_COUNT  ];  //!< Array handling the flags to show/hide Primitives and other objects.
 		int      mParamInt[PARAMS_INT_COUNT];    //!< Parameters (int).
 		double   mParamFlt[PARAMS_FLT_COUNT];    //!< Datum transparency, etc.
 };
