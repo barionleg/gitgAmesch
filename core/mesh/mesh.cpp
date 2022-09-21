@@ -13486,7 +13486,7 @@ bool Mesh::hasDatumObjects()
 //!   .) Axis (used by cone and cylinder)
 //!
 //! @returns false in case of an error. True otherwise.
-bool Mesh::applyTransformationToWholeMesh( Matrix4D rTrans, bool rResetNormals ) {
+bool Mesh::applyTransformationToWholeMesh( Matrix4D rTrans, bool rResetNormals, bool rSaveTransMat ) {
 	// Sanity checks:
 	if( getVertexNr() == 0 ) {
 		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: no vertices found!" << endl;
@@ -13500,7 +13500,7 @@ bool Mesh::applyTransformationToWholeMesh( Matrix4D rTrans, bool rResetNormals )
 	}
 
 	//!\todo Apply to all cone paramters, the sphere and the mesh plane.
-	if(applyTransformation(rTrans, &allVertices, rResetNormals))
+    if(applyTransformation(rTrans, &allVertices, rResetNormals, rSaveTransMat))
 	{
 		//! .) Apply to (cone/cylinder) axis
 		mConeAxisPoints[0] *= rTrans;
@@ -13663,7 +13663,7 @@ bool Mesh::applyTransformationDefaultViewMatrix( Matrix4D* rViewMatrix ) {
 //! and false is returned.
 //!
 //! This method also re-estimates the normals of the faces and the bounding box (for performance reasons).
-bool Mesh::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool rResetNormals ) {
+bool Mesh::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool rResetNormals, bool rSaveTransMat ) {
 	//cout << "[Mesh::" << __FUNCTION__ << "] Start" << endl;
 	//rTrans.dumpInfo();
 	// Sanity checks:
@@ -13717,32 +13717,33 @@ bool Mesh::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool 
 	polyLinesChanged();
 
 	//! .) Write the transformation to the side-car file, because HiWis tend to forget this.
-	std::filesystem::path transMatFName = getFileLocation().wstring() + getBaseName().wstring() + L"_transmat.txt";
-	ofstream transMatFile;
-	transMatFile.open( transMatFName, ios::app );
-	if( transMatFile.is_open() ) {
-		// Fetch time and date as string
-		std::time_t t = std::time(nullptr);
-		char mbstr[100];
-		std::strftime( mbstr, sizeof( mbstr ), "%A %c", std::localtime( &t ) );
-		// Fetch matrix as text
-		string matStr;
-		rTrans.getTextMatrix( &matStr );
-		// Write matrix
-		transMatFile << "#------------------------------------------------------" << endl;
-		transMatFile << "# Transformation applied to " << getBaseName() << endl;
-		transMatFile << "#......................................................" << endl;
-		transMatFile << matStr;
-		transMatFile << "#......................................................" << endl;
-		transMatFile << "# on " << mbstr << endl;
-		transMatFile << "#------------------------------------------------------" << endl;
-		transMatFile << endl;
-		transMatFile.close();
-		wcout << L"[Mesh::" << __FUNCTION__ << "] Transformation matrix written to: " << transMatFName << endl;
-	} else {
-		wcerr << L"[Mesh::" << __FUNCTION__ << "] ERROR: writing transformation matrix to: " << transMatFName << "!" << endl;
-	}
-
+    if (rSaveTransMat){
+        std::filesystem::path transMatFName = getFileLocation().wstring() + getBaseName().wstring() + L"_transmat.txt";
+        ofstream transMatFile;
+        transMatFile.open( transMatFName, ios::app );
+        if( transMatFile.is_open() ) {
+            // Fetch time and date as string
+            std::time_t t = std::time(nullptr);
+            char mbstr[100];
+            std::strftime( mbstr, sizeof( mbstr ), "%A %c", std::localtime( &t ) );
+            // Fetch matrix as text
+            string matStr;
+            rTrans.getTextMatrix( &matStr );
+            // Write matrix
+            transMatFile << "#------------------------------------------------------" << endl;
+            transMatFile << "# Transformation applied to " << getBaseName() << endl;
+            transMatFile << "#......................................................" << endl;
+            transMatFile << matStr;
+            transMatFile << "#......................................................" << endl;
+            transMatFile << "# on " << mbstr << endl;
+            transMatFile << "#------------------------------------------------------" << endl;
+            transMatFile << endl;
+            transMatFile.close();
+            wcout << L"[Mesh::" << __FUNCTION__ << "] Transformation matrix written to: " << transMatFName << endl;
+        } else {
+            wcerr << L"[Mesh::" << __FUNCTION__ << "] ERROR: writing transformation matrix to: " << transMatFName << "!" << endl;
+        }
+    }
 	showProgressStop("Apply Transformation");
 	return ( errCtr == 0 );
 }
@@ -15325,6 +15326,81 @@ bool Mesh::importPolylinesFromFile(const filesystem::path& rFileName)
     return true;
 }
 
+//! Imports the transformation matrices from file
+//! File extension: .txt
+//! the transmat.txt file after transformation with F6 is used
+//! the file can contain more than one matrix
+//! they are devides by
+//! #Transformation ...
+//! #......................................................
+bool Mesh::importApplyTransMatFromFile(const std::filesystem::path &rFileName)
+{
+    ifstream filestr(rFileName);
+
+    filestr.imbue(std::locale("C"));
+
+    if(!filestr.is_open())
+    {
+        LOG::error() << "[Mesh::" << __FUNCTION__ << "] Could not open file: '" << rFileName << "'.\n";
+        return false;
+    }
+    std::string line;
+    std::string elem;
+    std::string substring;
+    int lineCount = 0;
+    vector<double> values;
+    while(std::getline(filestr, line))
+    {
+        if(!line.empty())
+        {
+            //each line of the file without "#" discribes a transfomration matrix
+            //always with 4 lines (4x4 matrix)
+            if(line[0] == '#')
+            {
+                continue;
+            }
+            // matrix line found
+            lineCount++;
+            //variables for the division of the values from String/line
+            // values are seperated by space
+            int start = 0;
+            int end = line.find(" ");
+            while(end != -1){
+                elem = line.substr(start,end-start);
+                start = end + 1;
+                end = line.find(" ",start);
+                values.push_back(stod(elem));
+            }
+            //add last value because the line ends not with space
+            elem = line.substr(start,line.size());
+            values.push_back(stod(elem));
+
+            //matrix values are complete
+            if(lineCount == 4){
+                //transpose values
+                std::array<double,16> transposedValues;
+                unsigned int row = 0;
+                unsigned int column = 0;
+                for(const auto& value : values){
+                    transposedValues[(row*4)+column] = value;
+                    row++;
+                    if( row == 4 ){
+                        column++;
+                        row = 0;
+                    }
+                }
+                vector<double> transposedValuesVec(std::begin(transposedValues),std::end(transposedValues));
+                Matrix4D matrix(transposedValuesVec);
+                applyTransformationToWholeMesh(matrix, true, false);
+                values.clear();
+                lineCount = 0;
+            }
+        }
+    }
+
+    filestr.close();
+    return true;
+}
 //! Exports the faces normals as sphereical coordinates as ASCII file in the format:
 //! Face Number Phi Theta Radius
 //! File extension: .facen

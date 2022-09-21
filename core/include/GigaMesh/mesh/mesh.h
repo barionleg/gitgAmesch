@@ -668,8 +668,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 
 		// mesh transformation
 		        Matrix4D rotateToZ( Vector3D directionVec );          // generate rotation matrix to transform mesh so that the given direction vector is paralllel to the z-axis
-		virtual bool     applyTransformationToWholeMesh( Matrix4D rTrans, bool rResetNormals = true );
-		virtual bool     applyTransformation( Matrix4D rTrans, std::set<Vertex*>* rSomeVerts, bool rResetNormals = true );
+        virtual bool     applyTransformationToWholeMesh( Matrix4D rTrans, bool rResetNormals = true, bool rSaveTransMat = true );
+        virtual bool     applyTransformation( Matrix4D rTrans, std::set<Vertex*>* rSomeVerts, bool rResetNormals = true, bool rSaveTransMat = true );
 		virtual bool     applyTransformationPlacement( eTranslate rType, Matrix4D* rAppliedMat=nullptr );
 		virtual bool     applyTransformationAxisToY( Matrix4D* rAppliedMat=nullptr );
 		virtual bool     applyTransformationDefaultViewMatrix( Matrix4D* rViewMatrix );
@@ -711,6 +711,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool importFuncValsFromFile( const std::filesystem::path& rFileName, bool withVertIdx );
                 bool importLabelsFromFile( const std::filesystem::path& rFileName, bool withVertIdx);
                 bool importPolylinesFromFile( const std::filesystem::path& rFileName );
+                bool importApplyTransMatFromFile( const std::filesystem::path& rFileName );
+
 		virtual bool exportFaceNormalAngles( std::filesystem::path filename );
 
 		// Extra menu

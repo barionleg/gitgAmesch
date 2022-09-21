@@ -99,6 +99,7 @@ public slots:
 	void menuImportFunctionValues();
     void menuImportLabels();
     void menuImportPolylines();
+    void menuImportTransMat ();
 	void menuImportTexMap();
 	void menuImportFeatureVectors();
 	void menuImportNormalVectors();
@@ -182,6 +183,7 @@ signals:
 	void sFileImportFunctionValues( QString );               //!< passes a filename for import of a file with function values per vertices to MeshQt::importFunctionValues
     void sFileImportLabels( QString );                       //!< passes a filename for import of a file with labels per vertices to MeshQt::importLabels
     void sFileImportPolylines( QString );                    //!< passes a filename for import of a file with Polylines to MeshQt::importPolylines
+    void sFileImportTransMat( QString );                    //!< passes a filename for import of a file with transformation matrices (transmat.txt) to MeshQt::importApplyTransMat
 	void sFileImportTexMap( QString );                       //!< passes a filename for import of a file with a colors per verices ("texture map") to MeshQt::importTexMapFromFile
 	void sFileImportFeatureVectors( QString );               //!< passes a filename for import of a file with feature vectors to MeshWidget::importFeatureVectorsFile
 	void sFileImportNormals( QString );                      //!< passes a filename for import of a file with normal vectors to MeshQt::importNormalVectorsFile

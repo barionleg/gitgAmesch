@@ -85,6 +85,8 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionImportFunctionValues,     &QAction::triggered, this,   &QGMMainWindow::menuImportFunctionValues        );
     QObject::connect( actionImportPolylines,     &QAction::triggered, this,   &QGMMainWindow::menuImportPolylines        );
     QObject::connect( actionImportLabels, &QAction::triggered, this,   &QGMMainWindow::menuImportLabels        );
+    QObject::connect( actionImport_and_apply_transformation_matrices, &QAction::triggered, this,   &QGMMainWindow::menuImportTransMat        );
+
 	// connect the main windows menu entries with slots:
 	// --- File ---
 	QObject::connect( actionFileOpen,                 SIGNAL(triggered()), this,       SLOT(load())                      );
@@ -1332,6 +1334,20 @@ void QGMMainWindow::menuImportPolylines() {
                                                      );
     if( fileNames.size() > 0 ) {
         emit sFileImportPolylines( fileNames );
+    }
+}
+
+//! Handles the dialog for importing transformation matrices
+//! see also QGMMainWindow:: and MeshQt::importApplyTransMat
+void QGMMainWindow::menuImportTransMat() {
+    QSettings settings;
+    QString fileNames = QFileDialog::getOpenFileName( this,
+                                                      tr( "Import Transformation matrices" ),
+                                                      settings.value( "lastPath" ).toString(),
+                                                      tr( "ASCII Text (*.txt)" )
+                                                     );
+    if( fileNames.size() > 0 ) {
+        emit sFileImportTransMat( fileNames );
     }
 }
 
