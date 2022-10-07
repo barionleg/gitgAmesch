@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1200</width>
-    <height>810</height>
+    <height>818</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -684,6 +684,13 @@
       <string>Languages</string>
      </property>
     </widget>
+    <widget class="QMenu" name="menuAutomatic_Mesh_Polishing">
+     <property name="title">
+      <string>Automatic Mesh Polishing</string>
+     </property>
+     <addaction name="actionRemove_Dangling_Faces"/>
+     <addaction name="actionMax_Number_of_vertices_for_hole_filling"/>
+    </widget>
     <addaction name="actionSetFOV"/>
     <addaction name="separator"/>
     <addaction name="actionProjectPerspective"/>
@@ -723,6 +730,8 @@
     <addaction name="actionFog"/>
     <addaction name="actionFogLinearDistMin"/>
     <addaction name="actionFogLinearDistMax"/>
+    <addaction name="separator"/>
+    <addaction name="menuAutomatic_Mesh_Polishing"/>
     <addaction name="separator"/>
     <addaction name="actionGigaMeshLogo"/>
     <addaction name="separator"/>
@@ -4521,6 +4530,19 @@ The latter will be shown, when the processing has finished.</string>
   <action name="actionImport_and_apply_transformation_matrices">
    <property name="text">
     <string>Import and Apply transformation-matrices</string>
+   </property>
+  </action>
+  <action name="actionRemove_Dangling_Faces">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Remove Dangling Faces</string>
+   </property>
+  </action>
+  <action name="actionMax_Number_of_vertices_for_hole_filling">
+   <property name="text">
+    <string>Max. Number of vertices for hole filling</string>
    </property>
   </action>
  </widget>
