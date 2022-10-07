@@ -81,8 +81,8 @@ class MeshGL : public Mesh, public MeshGLParams {
 		virtual void       getPolylineExtrema();
 		virtual bool       fillPolyLines( uint64_t& rFilled, uint64_t& rFail, uint64_t& rSkipped );
 
-				bool       applyTransformationToWholeMesh( Matrix4D rTrans, bool rResetNormals = true ) override;
-				bool       applyTransformation( Matrix4D rTrans, std::set<Vertex*>* rSomeVerts, bool rResetNormals = true ) override;
+                bool       applyTransformationToWholeMesh( Matrix4D rTrans, bool rResetNormals = true, bool rSaveTransMat = true ) override;
+                bool       applyTransformation( Matrix4D rTrans, std::set<Vertex*>* rSomeVerts, bool rResetNormals = true, bool rSaveTransMat = true ) override;
 				bool       applyMeltingSphere( double rRadius, double rRel ) override;
 
 				bool       normalsVerticesChanged() override;

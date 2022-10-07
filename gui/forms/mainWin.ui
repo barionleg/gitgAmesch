@@ -106,6 +106,7 @@
      <addaction name="actionImportVertexCoordinatesFromCSV"/>
      <addaction name="actionImportPolylines"/>
      <addaction name="actionImportLabels"/>
+     <addaction name="actionImport_and_apply_transformation_matrices"/>
     </widget>
     <widget class="QMenu" name="menuExport">
      <property name="title">
@@ -4524,6 +4525,11 @@ The latter will be shown, when the processing has finished.</string>
   <action name="actionLabelVertEqualRGB">
    <property name="text">
     <string>Label - Vertices w. Equal RGB</string>
+   </property>
+  </action>
+  <action name="actionImport_and_apply_transformation_matrices">
+   <property name="text">
+    <string>Import and Apply transformation-matrices</string>
    </property>
   </action>
   <action name="actionRemove_Dangling_Faces">

@@ -156,6 +156,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	// File menu -------------------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( mMainWindow, &QGMMainWindow::sFileImportFunctionValues, this, &MeshQt::importFunctionValues );
     QObject::connect( mMainWindow, &QGMMainWindow::sFileImportPolylines, this, &MeshQt::importPolylines );
+    QObject::connect( mMainWindow, &QGMMainWindow::sFileImportTransMat, this, &MeshQt::importApplyTransMat );
     QObject::connect( mMainWindow, &QGMMainWindow::sFileImportLabels, this, &MeshQt::importLabels);
 	// Old Qt Style connections:
 	QObject::connect( mMainWindow, SIGNAL(sFileImportFeatureVectors(QString)), this, SLOT(importFeatureVectors(QString)) );
@@ -4614,7 +4615,17 @@ bool MeshQt::importPolylines( const QString& rFileName ) {
 
     return( true );
 }
-
+//! Import transformation matrices from transmat.txt and emit statusMessage.
+//! See ...
+//! @returns false in case of an error. True otherwise.
+bool MeshQt::importApplyTransMat( const QString& rFileName ) {
+    emit statusMessage( "Importing transformation matrices from " + rFileName );
+    if( !Mesh::importApplyTransMatFromFile( rFileName.toStdString()) ) {
+        emit statusMessage( "ERROR - Reading file " + rFileName );
+        return( false );
+    }
+    return( true );
+}
 //! Export feature vectors and emit statusMessage
 bool MeshQt::exportFeatureVectors()
 {

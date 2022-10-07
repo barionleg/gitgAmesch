@@ -368,9 +368,9 @@ bool MeshGL::fillPolyLines(
 		return true;
 }
 
-bool MeshGL::applyTransformationToWholeMesh(Matrix4D rTrans, bool rResetNormals)
+bool MeshGL::applyTransformationToWholeMesh(Matrix4D rTrans, bool rResetNormals, bool rSaveTransMat)
 {
-	bool retVal = Mesh::applyTransformationToWholeMesh(rTrans, rResetNormals);
+    bool retVal = Mesh::applyTransformationToWholeMesh(rTrans, rResetNormals, rSaveTransMat);
 
 	if(retVal)
 	{
@@ -403,9 +403,9 @@ bool MeshGL::applyTransformationToWholeMesh(Matrix4D rTrans, bool rResetNormals)
 }
 
 //! Takes care about OpenGL stuff, when the Mesh is transformed.
-bool MeshGL::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool rResetNormals ) {
+bool MeshGL::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool rResetNormals, bool rSaveTransMat ) {
 		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
-		bool retVal = Mesh::applyTransformation( rTrans, rSomeVerts, rResetNormals );
+        bool retVal = Mesh::applyTransformation( rTrans, rSomeVerts, rResetNormals, rSaveTransMat );
 		if( !retVal ) {
 				cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: applyTransformation failed!" << endl;
 				return false;
