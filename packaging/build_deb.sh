@@ -7,6 +7,7 @@ STARTDIR=$(pwd)
 P_NAME="gigamesh"
 cd ..
 P_VERSION=$(git log -1 --format=%ci | cut -b3,4,6,7,9,10)
+echo Version is $P_VERSION
 cd packaging
 
 if test "$DEBSIGN_KEYID"; then
@@ -52,6 +53,7 @@ DIST_DIR="$PWD/dist"
 # Unpack and create .orig and source dir.
 #
 
+echo Version is $P_VERSION
 SDIST_FILE="$DIST_DIR/$P_NAME-$P_VERSION.tar.gz"
 ORIG_FILE="$DIST_DIR/${P_NAME}_${P_VERSION}.orig.tar.gz"
 
@@ -90,6 +92,7 @@ test -d "$BUILD_DIR"
 #echo "DEBUG"
 #ls -la
 #echo $PWD
+echo Version is $P_VERSION
 cd dist/gigamesh-$P_VERSION
 
 # If the orig file already exists for this version, check that no source
