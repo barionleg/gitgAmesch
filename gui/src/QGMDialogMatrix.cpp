@@ -147,7 +147,9 @@ void QGMDialogMatrix::fetchClipboard()
 
 	std::array<double,16> tempVals;
 
-	auto matIt = tempVals.begin();
+    unsigned int row = 0;
+    unsigned int column = 0;
+    //auto matIt = tempVals.begin();
 	for(const auto& value : values)
 	{
 		bool ok = false;
@@ -157,8 +159,14 @@ void QGMDialogMatrix::fetchClipboard()
 		{
 			return;
 		}
-
-		(*matIt++) = val;
+        //input matrix from clipboard must be transposed
+        tempVals[(row*4)+column] = val;
+        row++;
+        if( row == 4 ){
+            column++;
+            row = 0;
+        }
+        //(*matIt++) = val;
 	}
 
 	updateMatrixValues(tempVals);
@@ -359,9 +367,18 @@ void QGMDialogMatrix::copyToClipboard() const
 {
 	QString clipBoardText;
 
-	for(auto value : mLineEditPtrs)
+    //transpose matrix to clipboard
+    //needed because the load from clipboard method needs this
+    unsigned int row = 0;
+    unsigned int column = 0;
+    for(unsigned int i = 0; i<mLineEditPtrs.size(); i++)
 	{
-		clipBoardText += QString("%1 ").arg(value->text());
+        clipBoardText += QString("%1 ").arg(mLineEditPtrs[(row*4)+column]->text());
+        row++;
+        if( row == 4 ){
+            column++;
+            row = 0;
+        }
 	}
 
 	QApplication::clipboard()->setText(clipBoardText);

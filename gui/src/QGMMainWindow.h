@@ -99,6 +99,7 @@ public slots:
 	void menuImportFunctionValues();
     void menuImportLabels();
     void menuImportPolylines();
+    void menuImportTransMat ();
 	void menuImportTexMap();
 	void menuImportFeatureVectors();
 	void menuImportNormalVectors();
@@ -182,6 +183,7 @@ signals:
 	void sFileImportFunctionValues( QString );               //!< passes a filename for import of a file with function values per vertices to MeshQt::importFunctionValues
     void sFileImportLabels( QString );                       //!< passes a filename for import of a file with labels per vertices to MeshQt::importLabels
     void sFileImportPolylines( QString );                    //!< passes a filename for import of a file with Polylines to MeshQt::importPolylines
+    void sFileImportTransMat( QString );                    //!< passes a filename for import of a file with transformation matrices (transmat.txt) to MeshQt::importApplyTransMat
 	void sFileImportTexMap( QString );                       //!< passes a filename for import of a file with a colors per verices ("texture map") to MeshQt::importTexMapFromFile
 	void sFileImportFeatureVectors( QString );               //!< passes a filename for import of a file with feature vectors to MeshWidget::importFeatureVectorsFile
 	void sFileImportNormals( QString );                      //!< passes a filename for import of a file with normal vectors to MeshQt::importNormalVectorsFile
@@ -235,7 +237,6 @@ signals:
 	//.
 	void sApplyMeltingSphere();                              //!< triggers melting with sqrt(r^2-x^2-y^2)
     //.
-    void sApplyNormalShift();                                //!< Shifts the Vertices along the Normal.
 
 	// --- DeSelect ----------------------------------------------------------------------------------------------------------------------------------------
 	void sDeSelVertsAll();                                   //!< removes all vertices from the selection (SelMVerts).
@@ -288,11 +289,6 @@ signals:
 	void screenshotSVG();                                    //!< trigger a screenshot stored as SVG with a PNG embedded.
 	void screenshotRuler();                                  //!< trigger the export of an image of a ruler matching the screenshot resolution (in ortho mode).
 
-	// === LEGACY to be removed! ===========================================================================================================================
-    void generateLatexFile();                                //!< trigger latex file    to be generated
-    void generateLatexCatalog();                             //!< trigger latex catalog to be generated
-	// =====================================================================================================================================================
-
 	//.
 	void sDefaultViewLight();                                //!< signal to restore the default view and lights.
 	void sDefaultViewLightZoom();                            //!< signal to restore the default view, lights and zoom.
@@ -308,6 +304,7 @@ signals:
 	void labelFaces();                                       //!< trigger labeling with optional removal of small areas.
 	void labelSelectionToSeeds();                            //!< triggers the storage of selected vertices as seeds for labeling.
 	void labelVerticesEqualFV();                             //!< trigger labeling of vertices having the same function value.
+    void labelVerticesEqualRGB();                            //!< trigger labeling of vertices having the same color values.
 	void sLabelSelMVertsToBack();                            //!< Set the selected vertices label to background.
 	//.
 	void convertSelectedVerticesToPolyline();                //!< trigger conversion from selected vertices to (a) polyline(s).

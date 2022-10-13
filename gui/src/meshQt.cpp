@@ -156,6 +156,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	// File menu -------------------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( mMainWindow, &QGMMainWindow::sFileImportFunctionValues, this, &MeshQt::importFunctionValues );
     QObject::connect( mMainWindow, &QGMMainWindow::sFileImportPolylines, this, &MeshQt::importPolylines );
+    QObject::connect( mMainWindow, &QGMMainWindow::sFileImportTransMat, this, &MeshQt::importApplyTransMat );
     QObject::connect( mMainWindow, &QGMMainWindow::sFileImportLabels, this, &MeshQt::importLabels);
 	// Old Qt Style connections:
 	QObject::connect( mMainWindow, SIGNAL(sFileImportFeatureVectors(QString)), this, SLOT(importFeatureVectors(QString)) );
@@ -201,7 +202,6 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	//.
 	QObject::connect( mMainWindow, SIGNAL(sApplyMeltingSphere()),        this, SLOT(applyMeltingSphere())     );
 	//.
-	QObject::connect( mMainWindow, SIGNAL(sApplyNormalShift()),          this, SLOT(applyNormalShift())       );
 
 	// View menu -------------------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( mMainWindow, SIGNAL(polylinesCurvScale()),                         this, SLOT(polylinesCurvScale())               );
@@ -252,6 +252,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	QObject::connect( mMainWindow, SIGNAL(labelFaces()),                                 this, SLOT(labelFaces())                        );
 	QObject::connect( mMainWindow, SIGNAL(labelSelectionToSeeds()),                      this, SLOT(labelSelectionToSeeds())             );
 	QObject::connect( mMainWindow, SIGNAL(labelVerticesEqualFV()),                       this, SLOT(labelVerticesEqualFV())              );
+    QObject::connect( mMainWindow, SIGNAL(labelVerticesEqualRGB()),                      this, SLOT(labelVerticesEqualRGB())             );
 	QObject::connect( mMainWindow, SIGNAL(sLabelSelMVertsToBack()),                      this, SLOT(labelSelMVertsToBack())              );
 	//.
 	QObject::connect( mMainWindow, SIGNAL(convertSelectedVerticesToPolyline()),          this, SLOT(convertSelectedVerticesToPolyline()) );
@@ -942,6 +943,7 @@ bool MeshQt::removeUncleanSmallUser() {
 	// As the slider dialog will return a value of ] 0.0 ... 100.0 [ we divide by 100.
 	percentArea /= 100.0;
 
+    /**
 	// Optional border erosion
 	bool applyErosion;
 	bool userCancel;
@@ -950,9 +952,13 @@ bool MeshQt::removeUncleanSmallUser() {
 	if( userCancel ) {
 		return( false );
 	}
-
+    **/
+    //get parameters from Settings
+    bool applyErosion;
+    getParamFlagMeshGL(MeshGLParams::REMOVE_DANGLING_FACES, &applyErosion);
 	// Ask if we wan't to store the result, when finished.
 	bool saveFile;
+    bool userCancel;
 	SHOW_QUESTION( tr("Store results"), tr("Do you want to store the result as file?"), saveFile, userCancel );
 	if( userCancel ) {
 		return( false );
@@ -1001,6 +1007,7 @@ bool MeshQt::completeRestore() {
 	percentArea /= 100.0;
 
 	// Ask for largest hole to be left out.
+
 	bool userCancel;
 	bool prevent;
 	SHOW_QUESTION(
@@ -1011,7 +1018,7 @@ bool MeshQt::completeRestore() {
 	if( userCancel ) {
 		return( false );
 	}
-
+     /**
 	// Optional border erosion
 	bool applyErosion;
 	SHOW_QUESTION( tr("Apply border erosion"), tr("Do you want to remove dangling faces along the borders?") +
@@ -1023,7 +1030,7 @@ bool MeshQt::completeRestore() {
 	// Libpsalm has troubles with larger complex holes. It seems to break for holes with more than 3.000 edges.
 	uint64_t maxNrVertices = 3000;
 	showEnterText( maxNrVertices, "Maximum number of vertices for border filling. 0 means no limit." );
-
+    **/
 	// Ask if we wan't to store the result, when finished.
 	bool saveFile;
 	SHOW_QUESTION( tr("Store results"), tr("Do you want to store the result as file?"), saveFile, userCancel );
@@ -1039,6 +1046,11 @@ bool MeshQt::completeRestore() {
 		               fileLocation, tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) \
 		           );
 	}
+    //get parameters from Settings
+    bool applyErosion;
+    int maxNrVertices;
+    getParamIntMeshGL( MeshGLParams::MAX_VERTICES_HOLE_FILLING, &maxNrVertices );
+    getParamFlagMeshGL(MeshGLParams::REMOVE_DANGLING_FACES, &applyErosion);
 
 	// Iterative cleaning is done in the Mesh class.
 	uint64_t iterationCount;
@@ -1532,111 +1544,6 @@ bool MeshQt::applyMeltingSphere() {
 	return MeshGL::applyMeltingSphere( radius, 1.0 );
 }
 
-//! Calculate a offset Surface (Shelling) without any selfintersection
-bool MeshQt::applyNormalShift(){
-
-	// call helper function
-	// -> save vertices & faces & border from original object. Which we need later.
-	MeshGL::applyNormalShiftHelper(true, false, false);
-
-	//---------------------------------------
-	//Show QGMDialogEnterText-Window
-	QGMDialogEnterText dlgEnterTextVal;
-	dlgEnterTextVal.setDouble(0.3); // set Default-Value
-	dlgEnterTextVal.setWindowTitle(tr("Set Offset:"));
-
-	QObject::connect(&dlgEnterTextVal,SIGNAL(textEntered(double)),this,SLOT(applyNormalShift(double)));
-
-	if(dlgEnterTextVal.exec()==QDialog::Rejected){
-		emit statusMessage( "[applyNormalShift] CANCELLED." );
-		return false;
-	}
-
-	//---------------------------------------
-	bool userCancel;
-	bool userAnswerYes;
-
-	//Remove Original-Object
-	SHOW_QUESTION( tr("Do you want to remove the original object?"), "", userAnswerYes, userCancel );
-
-	if( userCancel ) {
-		emit statusMessage( "[applyNormalShift] CANCELLED." );
-		return false;
-	}
-
-	if( !userAnswerYes ){
-		//Connect original-border-vertices with offset-border-vertices via mesh
-		SHOW_QUESTION( tr("Do you want to connect original-border-vertices with offset-border-vertices?"), tr("<i>(recommended)</i>"), userAnswerYes, userCancel );
-
-		if( userAnswerYes ){
-			MeshGL::applyNormalShiftHelper(false, false, true);
-		}
-
-		if( userCancel ) {
-			emit statusMessage( "[applyNormalShift] CANCELLED." );
-			return false;
-		}
-
-	}else{
-		MeshGL::applyNormalShiftHelper(false, true, false);
-	}
-
-	//---------------------------------------
-	//Do you want to remove duplicate triangles?
-	SHOW_QUESTION( tr("Do you want to remove duplicate triangles?"), "", userAnswerYes, userCancel );
-
-	if( userAnswerYes ){
-		MeshGL::removeDoubleTriangles();
-	}
-
-	if( userCancel ) {
-		emit statusMessage( "[applyNormalShift] CANCELLED." );
-		return false;
-	}
-
-	//---------------------------------------
-	//Do you want to recalculate the triangle orientation?
-	SHOW_QUESTION( tr("Do you want to recalculate the triangle orientation?"), tr("<i>(recommended)</i>"), userAnswerYes, userCancel );
-
-	if( userAnswerYes ){
-		MeshGL::recalculateTriangleOrientation();
-	}
-
-	if( userCancel ) {
-		emit statusMessage( "[applyNormalShift] CANCELLED." );
-		return false;
-	}
-
-	//---------------------------------------
-	//Do you want to fix triangle intersection?
-	SHOW_QUESTION( tr("Do you want to fix triangle intersection?"), tr("<i>(recommended, but this function may take some time)</i>"), userAnswerYes, userCancel );
-
-	if( userAnswerYes ){
-		cout << "[generateOctree] Start..." << endl;
-		MeshQt::generateOctree(500, 1000);
-		cout << "[generateOctree] Done." << endl;
-
-		cout << "[detectselfintersections] Start..." << endl;
-		MeshQt::detectselfintersections();
-		cout << "[detectselfintersections] Done." << endl;
-
-		cout << "[fixTriangleIntersection] Start..." << endl;
-		MeshGL::fixTriangleIntersection();
-		cout << "[fixTriangleIntersection] Done." << endl;
-	}
-
-	if( userCancel ) {
-		emit statusMessage( "[applyNormalShift] CANCELLED." );
-		return false;
-	}
-
-	emit statusMessage( "[applyNormalShift] DONE." );
-	return true;
-}
-
-bool MeshQt::applyNormalShift(double offset){
-	return MeshGL::applyNormalShift(offset);
-}
 
 // --- Select actions ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2855,6 +2762,11 @@ bool MeshQt::labelVerticesEqualFV() {
 	return MeshGL::labelVerticesEqualFV();
 }
 
+bool MeshQt::labelVerticesEqualRGB() {
+    //! Labels vertices having the same RGB values - see MeshGL::labelSelectedVertices
+    return MeshGL::labelVerticesEqualRGB();
+}
+
 //! Sets the selected vertices' label to background -- see MeshGL::labelSelMVertsToBack
 bool MeshQt::labelSelMVertsToBack() {
 	return MeshGL::labelSelMVertsToBack();
@@ -2976,9 +2888,10 @@ void MeshQt::createSkeletonLine() {
     emit statusMessage( "ERROR: Converted selected Vertices to Polyline(s) failed!" );
 }
 
-//! Ask the user what kind of Octree to be generated (Vertex/Face)
-//! and how many primitives (maximum) should be contained within a node (cube).
+//! Ask the user how many primitives (maximum) should be contained within a node (cube).
 void MeshQt::generateOctree() {
+    //obsolete: Octree generates automatically the face and the vertex octree
+    /**
 	// Ask user what kind of octree to be generated.
 	QStringList Element;
 	Element << QString("Vertex") << QString("Face");
@@ -2987,9 +2900,9 @@ void MeshQt::generateOctree() {
 	if( !userChoiceValid ) {
 		return;
 	}
-
+    **/
 	// Choice: Vertex
-	if( text == "Vertex" ) {
+    //if( text == "Vertex" ) {
 		QGMDialogEnterText dlgenter;
 		dlgenter.setInt( 500 ); //some useful default value should be set here e.g. 500
 		dlgenter.setWindowTitle( tr("Set maximum number of vertices per cube") );
@@ -3001,7 +2914,9 @@ void MeshQt::generateOctree() {
 				SHOW_MSGBOX_WARN( tr("Wrong value"), tr("Wrong value entered!") );
 			}
 		}
-	}
+
+    //obsolete:
+    /**
 	// Choice: Face
 	if( text == "Face" ) {
 		QGMDialogEnterText dlgenter;
@@ -3016,76 +2931,60 @@ void MeshQt::generateOctree() {
 			}
 		}
 	}
+    **/
 }
 
 void MeshQt::generateOctreeVertex(int maxnr) {
-	MeshGL::generateOctree(maxnr, -1);
-}
-void MeshQt::generateOctreeFace(int maxnr) {
-	MeshGL::generateOctree(-1, maxnr);
-}
-void MeshQt::generateOctree(int vertexmaxnr, int facemaxnr) {
-	MeshGL::generateOctree(vertexmaxnr, facemaxnr);
+    MeshGL::generateOctree(maxnr);
 }
 
 void MeshQt::detectselfintersections() {
 	// Sanity check
-	if( mOctreeface == nullptr ) {
-		cerr << "[MeshQt::" << __FUNCTION__ << "] ERROR: No octree for faces defined!" << endl;
-		SHOW_MSGBOX_WARN( tr("Octree missing"), tr("No octree for faces defined!") );
+    if( mOctree == nullptr ) {
+        cerr << "[MeshQt::" << __FUNCTION__ << "] ERROR: No octree defined!" << endl;
+        SHOW_MSGBOX_WARN( tr("Octree missing"), tr("No octree defined!") );
 		return;
 	}
 
-	vector<Face*> tmp;
-	mOctreeface->detectselfintersections(tmp);
-	mFacesSelected.insert(tmp.begin(), tmp.end());
+    vector<Face*> intersectedFaces;
+    mOctree->detectselfintersections(intersectedFaces);
+    mFacesSelected.insert(intersectedFaces.begin(), intersectedFaces.end());
 	selectedMFacesChanged();
 }
 
 void MeshQt::drawOctree() {
 
-	//actionViewDatumBoxes is used to draw boxes of octree
-	if( ! mMainWindow->actionViewDatumBoxes->isChecked() ) {
-		mMainWindow->actionViewDatumBoxes->trigger();
-	}
+    //actionViewDatumBoxes is used to draw boxes of octree
+    if( ! mMainWindow->actionViewDatumBoxes->isChecked() ) {
+        mMainWindow->actionViewDatumBoxes->trigger();
+    }
 
-	QStringList Element;
-	Element<< QString("Vertex") << QString("Face");
-	bool ok=false;
-	QString text =  QInputDialog::getItem(nullptr, tr("Draw Octree"),tr("Element"), Element, 0, false, &ok);
+    /**
+    QStringList Element;
+    Element<< QString("Vertex") << QString("Face");
+    bool ok=false;
+    QString text =  QInputDialog::getItem(nullptr, tr("Draw Octree"),tr("Element"), Element, 0, false, &ok);
 
-	if(!ok) return;
+    if(!ok) return;
+    **/
 
-	if (text == "Vertex") {
-		if ( mOctree != nullptr ) {
-			cout<<"OCTREE DRAW Vertex"<<endl;
-			vector<Octnode<Vertex*>*> nodelist;
-			mOctree->getnodelist(nodelist);
-			Vector3D cubeboxx(1.0, 0.0, 0.0);
-			Vector3D cubeboxy(0.0, 1.0, 0.0);
-			Vector3D cubeboxz(0.0, 0.0, 1.0);
-			for (Octnode<Vertex*>*& octnode : nodelist) {
-				 RectBox* someBox = new RectBox( octnode->mCube.mcenter, octnode->mCube.mscale * cubeboxx, octnode->mCube.mscale * cubeboxy, octnode->mCube.mscale * cubeboxz );
-				 mDatumBoxes.push_back( someBox );
-			}
-		}
-		else cout << "NO OCTREE CONSTRUCTED: DO THIS FIRST!" << endl;
-	}
-	if (text == "Face") {
-		if(mOctreeface != nullptr) {
-			cout<<"OCTREE DRAW Face"<<endl;
-			vector<Octnode<Face*>*> nodelist;
-			mOctreeface->getnodelist(nodelist);
-			Vector3D cubeboxx(1.0, 0.0, 0.0);
-			Vector3D cubeboxy(0.0, 1.0, 0.0);
-			Vector3D cubeboxz(0.0, 0.0, 1.0);
-			for (Octnode<Face*>*& octnode : nodelist) {
-				 RectBox* someBox = new RectBox( octnode->mCube.mcenter, octnode->mCube.mscale * cubeboxx, octnode->mCube.mscale * cubeboxy, octnode->mCube.mscale * cubeboxz );
-				 mDatumBoxes.push_back( someBox );
-			}
-		}
-		else cout<<"NO OCTREE CONSTRUCTED: DO THIS FIRST!"<<endl;
-	}
+    if ( mOctree != nullptr ) {
+
+        cout<<"OCTREE DRAW Vertex"<<endl;
+        vector<Octnode*> nodelist;
+        mOctree->getnodelist(nodelist,Octree::VERTEX_OCTREE);
+        //mOctree->getleafnodes(nodelist);
+        Vector3D cubeboxx(1.0, 0.0, 0.0);
+        Vector3D cubeboxy(0.0, 1.0, 0.0);
+        Vector3D cubeboxz(0.0, 0.0, 1.0);
+        for (Octnode*& octnode : nodelist) {
+            RectBox* someBox = new RectBox( octnode->mCube.mcenter, octnode->mCube.mscale * cubeboxx, octnode->mCube.mscale * cubeboxy, octnode->mCube.mscale * cubeboxz );
+            mDatumBoxes.push_back( someBox );
+        }
+
+
+    }
+    else cout<<"NO OCTREE CONSTRUCTED: DO THIS FIRST!"<<endl;
 
 }
 
@@ -3101,7 +3000,11 @@ void MeshQt::removeOctreedraw() {
 
 void MeshQt::deleteOctree() {
 	removeOctreedraw();
+    delete mOctree;
+    mOctree = nullptr;
+    cout<<"Octree Vertex deleted"<<endl;
 
+    /**
 	QStringList Element;
 	Element<< QString("Vertex") << QString("Face")<< QString("both");
 	bool ok=false;
@@ -3127,6 +3030,7 @@ void MeshQt::deleteOctree() {
 		cout<<"Octree Vertex deleted"<<endl;
 		cout<<"Octree Face deleted"<<endl;
 	}
+    **/
 
 }
 
@@ -4711,7 +4615,17 @@ bool MeshQt::importPolylines( const QString& rFileName ) {
 
     return( true );
 }
-
+//! Import transformation matrices from transmat.txt and emit statusMessage.
+//! See ...
+//! @returns false in case of an error. True otherwise.
+bool MeshQt::importApplyTransMat( const QString& rFileName ) {
+    emit statusMessage( "Importing transformation matrices from " + rFileName );
+    if( !Mesh::importApplyTransMatFromFile( rFileName.toStdString()) ) {
+        emit statusMessage( "ERROR - Reading file " + rFileName );
+        return( false );
+    }
+    return( true );
+}
 //! Export feature vectors and emit statusMessage
 bool MeshQt::exportFeatureVectors()
 {

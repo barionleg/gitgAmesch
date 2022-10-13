@@ -139,19 +139,38 @@ private:
 
 	// Screenshot - Wrapping methods
 	bool screenshotPDFUser();
-	bool screenshotPDF( const QString& rFileName, const bool rUseTiled );
+    bool screenshotPDF( const QString& rFileName, const bool rUseTiled, const QString rTemplate, const QString rTexFileName, const QString rCCparameter, const QString rCCversion );
 
 private:
 	// Screenshot - Views - Wrapping methods
 	bool screenshotViewsDirectoryFiles( QString& rPathChoosen, QStringList& rCurrFiles ); // Internal use only
+
+
+private:
+    //Help functions of PDF Latex export
+
+    //structure of all possible Latex Placeholder
+    // need for a Helping Text
+    struct LatexPlaceholder{
+        QString placeholder;
+        QString descr; //description for the Helper Text
+    };
+    std::vector<LatexPlaceholder> mPdfViewsPlaceholders;
+
+
+    void setLatexPlaceholderDefinition();
+    bool checkUserdefinedLatexFile(QString *latexTemplate,std::vector<LatexPlaceholder> rPlaceHolders);
+    bool askForCCLicenseParameters(QString *ccParameter,QString *ccVersion);
+    bool mUserContinue; //needed for the directory function. Don't give for every mesh the information box
+
 public:
 	bool screenshotViewsDirectory();
 	bool directoryFuncValToRGB();
 	bool screenshotViewsPDFUser();
-	bool screenshotViewsPDF( const QString& rFileName );
+    bool screenshotViewsPDF( const QString& rFileName, const QString rTemplate, const QString rTexFileName, const QString rCCparameter, const QString rCCversion );
 private:
 	bool screenshotPDFMake( const QString& rPrefixPath, const QString& rFilePrefixTex );
-
+    std::vector<LatexPlaceholder> mPdfSinglePlaceholders;
 public slots:
 	// Screenshot - Views - Rendering
 	void screenshotViews();
@@ -161,18 +180,6 @@ public slots:
 	                      const bool              rUseTiled,
 	                      std::vector<QString>&   rImageFiles,
 	                      std::vector<double>&    rImageSizes );
-
-	// === LEGACY to be removed! ===========================================================================================================================
-	void generateLatexFile();
-	void generateLatexCatalog();
-	QStringList generateLatexCatalog(int depth, const QString& rPath, bool rUseTiled,
-	                                 const QStringList& rFilters, const QList<float>& paperProperties,
-	                                 const QList<QStringList>& pageCombinations, const QString& suffix,
-	                                 float dpiFactorf, const QString& mainPath );
-	QStringList generateLatexCatalogPage(const QString& rFilePath, bool rUseTiled, const QList<float>& paperPropertiesf,
-	                                     const QList<QStringList>& pageCombinations, const QString& suffix,
-	                                     float dpiFactorf, float rDPIf, const QString& mainPath );
-	// =====================================================================================================================================================
 
 private:
 

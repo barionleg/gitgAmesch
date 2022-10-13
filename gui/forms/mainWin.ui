@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1200</width>
-    <height>810</height>
+    <height>818</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -78,9 +78,6 @@
      <addaction name="separator"/>
      <addaction name="actionScreenshotRuler"/>
      <addaction name="separator"/>
-     <addaction name="actionGenerateLatexFile"/>
-     <addaction name="actionGenerateLatexCatalog"/>
-     <addaction name="separator"/>
      <addaction name="actionScreenshotsCrop"/>
      <addaction name="separator"/>
      <addaction name="actionVideoFrameSizeSet"/>
@@ -109,6 +106,7 @@
      <addaction name="actionImportVertexCoordinatesFromCSV"/>
      <addaction name="actionImportPolylines"/>
      <addaction name="actionImportLabels"/>
+     <addaction name="actionImport_and_apply_transformation_matrices"/>
     </widget>
     <widget class="QMenu" name="menuExport">
      <property name="title">
@@ -174,6 +172,7 @@
     <addaction name="actionLabelSelectionToSeeds"/>
     <addaction name="actionLabelSelMVerts"/>
     <addaction name="actionLabelVertEqualFV"/>
+    <addaction name="actionLabelVertEqualRGB"/>
     <addaction name="actionLabelSelMVertsBackground"/>
     <addaction name="actionLabelFaces"/>
     <addaction name="separator"/>
@@ -685,6 +684,13 @@
       <string>Languages</string>
      </property>
     </widget>
+    <widget class="QMenu" name="menuAutomatic_Mesh_Polishing">
+     <property name="title">
+      <string>Automatic Mesh Polishing</string>
+     </property>
+     <addaction name="actionRemove_Dangling_Faces"/>
+     <addaction name="actionMax_Number_of_vertices_for_hole_filling"/>
+    </widget>
     <addaction name="actionSetFOV"/>
     <addaction name="separator"/>
     <addaction name="actionProjectPerspective"/>
@@ -724,6 +730,8 @@
     <addaction name="actionFog"/>
     <addaction name="actionFogLinearDistMin"/>
     <addaction name="actionFogLinearDistMax"/>
+    <addaction name="separator"/>
+    <addaction name="menuAutomatic_Mesh_Polishing"/>
     <addaction name="separator"/>
     <addaction name="actionGigaMeshLogo"/>
     <addaction name="separator"/>
@@ -2997,14 +3005,15 @@ p, li { white-space: pre-wrap; }
     <string>Keyboard &amp;Layout</string>
    </property>
   </action>
-  <action name="actionVertApplyNormalShift">
-   <property name="text">
-    <string>&amp;Vertex - Apply Normal Shift</string>
-   </property>
-  </action>
   <action name="actionDetect_Self_Intersections">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Detect Self-Intersections</string>
+   </property>
+   <property name="visible">
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionImportNormals">
@@ -3349,22 +3358,6 @@ p, li { white-space: pre-wrap; }
   <action name="actionScreenshotPNGDirectory">
    <property name="text">
     <string>Screenshot PNG Directory</string>
-   </property>
-  </action>
-  <action name="actionGenerateLatexFile">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>&amp;Generate Latex File</string>
-   </property>
-  </action>
-  <action name="actionGenerateLatexCatalog">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Generate &amp;Latex Catalog</string>
    </property>
   </action>
   <action name="actionTest">
@@ -4527,6 +4520,29 @@ The latter will be shown, when the processing has finished.</string>
   <action name="actionImportLabels">
    <property name="text">
     <string>Import Labels</string>
+   </property>
+  </action>
+  <action name="actionLabelVertEqualRGB">
+   <property name="text">
+    <string>Label - Vertices w. Equal RGB</string>
+   </property>
+  </action>
+  <action name="actionImport_and_apply_transformation_matrices">
+   <property name="text">
+    <string>Import and Apply transformation-matrices</string>
+   </property>
+  </action>
+  <action name="actionRemove_Dangling_Faces">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Remove Dangling Faces</string>
+   </property>
+  </action>
+  <action name="actionMax_Number_of_vertices_for_hole_filling">
+   <property name="text">
+    <string>Max. Number of vertices for hole filling</string>
    </property>
   </action>
  </widget>

@@ -10,6 +10,8 @@ set(SOURCES_CORE mesh/geodentry.cpp
 	mesh/face.cpp
 	mesh/sphere.cpp
 	mesh/rectbox.cpp
+        mesh/octree.cpp
+        mesh/octnode.cpp
 	mesh/line.cpp
 	mesh/userinteraction.cpp
 	mesh/showprogress.cpp
@@ -97,6 +99,8 @@ set(PUBLIC_HEADERS_CORE ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/printbuildi
 						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/voxelfilter25d.h
 						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/meshinfodata.h
 						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/compfeaturevecs.h
+                                                ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/octree.h
+                                                ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/octnode.h
 						)
 
 add_library(gigameshCore STATIC ${SOURCES_CORE} ${HEADERS_CORE} ${PUBLIC_HEADERS_CORE})

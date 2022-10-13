@@ -255,6 +255,8 @@ void QGMDockSideBar::updateMeshParamInt(
 		case MeshGLParams::TRANSPARENCY_SEL_LABEL:
 		case MeshGLParams::TRANSPARENCY_OVERFLOW_HANDLING:
 		case MeshGLParams::TRANSPARENCY_BUFFER_METHOD:
+        //mesh cleaning parameter
+        case MeshGLParams::MAX_VERTICES_HOLE_FILLING:
 			// nothing to do.
 			break;
 		default:

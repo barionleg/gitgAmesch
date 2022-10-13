@@ -97,7 +97,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 
 	public:
 		// Octree
-		virtual void generateOctree( int vertexmaxnr, int facemaxnr );
+        virtual void generateOctree( int vertexmaxnr);
 
 		// Information retrival - overloaded from Primitive:
 		virtual double   getX() const;
@@ -121,6 +121,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				Vertex*      getVertexPos( uint64_t rPosIdx ) const;
 				bool         orderVertsByIndex();
 				bool         orderVertsByFuncVal();
+                bool         orderVertsByRGB();
 				bool         setVertexPosToIndex();
 				bool         setVertexFlagForAll( ePrimitiveFlags rFlag );
 				bool         clearVertexFlagForAll( ePrimitiveFlags rFlag );
@@ -454,6 +455,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 			    bool labelSelectedVerticesUser();
 				bool labelSelectedVertices( std::set<Vertex *>& rSelectedVertices, bool rSetNotSelectedtoBackGrd );
 		virtual bool labelVerticesEqualFV();
+        virtual bool labelVerticesEqualRGB();
 		virtual bool labelSelMVertsToBack();
 
 		virtual bool compPolylinesIntInvRunLen( double rIIRadius, PolyLine::ePolyIntInvDirection rDirection );
@@ -577,19 +579,6 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool   insertVertices( std::vector<Vertex*>* rNewVertices );
 		// ---------------------------------------------------------------------------------------------------------------------------------------------
 
-		// --- SHELLING --------------------------------------------------------------------------------------------------------------------------------
-		//        void* detectCriticalPlacesForShelling(void* value);
-				bool delaunyTriangulation( std::vector<Vertex*> vertexList, std::vector<Vertex*>* outputList );
-				Vector3D getInterpolatedNormal( Face* face, Vector3D pos );
-				bool rayTriangleIntersection( Vector3D _origin, Vector3D _direction, Face* _triangle, Vector3D &intersectionPoint );
-				bool triangleIntersectTriangle( Face *triangleA, Face *triangleB, Vector3D &intersectionPointA, Vector3D &intersectionPointB );
-
-				void   flipTriangle(int index);                             // flip triangle orientation
-				void   recalculateTriangleOrientation();                    // recalculate the triangle orientation and flip it if necessary
-				void   removeDoubleTriangles();                             // remove double Triangles
-				void   fixTriangleIntersection();                           // repair Triangle-Intersection -> split off and re-triangulate via delauny-triangulation
-		//----------------------------------------------------------------------------------------------------------------------------------------------
-
 		// mainly used to set the initial view (see objwidget)
 				void     getCenterOfGravity( float* cog );
 				Vector3D getCenterOfGravity();
@@ -679,8 +668,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 
 		// mesh transformation
 		        Matrix4D rotateToZ( Vector3D directionVec );          // generate rotation matrix to transform mesh so that the given direction vector is paralllel to the z-axis
-		virtual bool     applyTransformationToWholeMesh( Matrix4D rTrans, bool rResetNormals = true );
-		virtual bool     applyTransformation( Matrix4D rTrans, std::set<Vertex*>* rSomeVerts, bool rResetNormals = true );
+        virtual bool     applyTransformationToWholeMesh( Matrix4D rTrans, bool rResetNormals = true, bool rSaveTransMat = true );
+        virtual bool     applyTransformation( Matrix4D rTrans, std::set<Vertex*>* rSomeVerts, bool rResetNormals = true, bool rSaveTransMat = true );
 		virtual bool     applyTransformationPlacement( eTranslate rType, Matrix4D* rAppliedMat=nullptr );
 		virtual bool     applyTransformationAxisToY( Matrix4D* rAppliedMat=nullptr );
 		virtual bool     applyTransformationDefaultViewMatrix( Matrix4D* rViewMatrix );
@@ -695,10 +684,6 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		        bool     normalsVerticesComputeSphere( double rRadius );
 
 		virtual bool     changedBoundingBox();
-
-		virtual bool	applyNormalShift(double offset);
-		virtual bool	applyNormalShiftHelper(bool initCall, bool removeOriginalObject, bool connectBorders);
-
 
 				bool     estBoundingBox();
 
@@ -726,6 +711,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool importFuncValsFromFile( const std::filesystem::path& rFileName, bool withVertIdx );
                 bool importLabelsFromFile( const std::filesystem::path& rFileName, bool withVertIdx);
                 bool importPolylinesFromFile( const std::filesystem::path& rFileName );
+                bool importApplyTransMatFromFile( const std::filesystem::path& rFileName );
+
 		virtual bool exportFaceNormalAngles( std::filesystem::path filename );
 
 		// Extra menu
@@ -740,7 +727,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool latexFetchFigureInfos( std::vector<std::pair<std::string, std::string>>* rStrings );
 		// Mesh information - Display for the console in plain text and html for the GUI
 				bool showInfoMeshHTML();
-				bool getMeshInfoData( MeshInfoData& rMeshInfos, const bool rAbsolutePath );
+                //! @param[rWithSelfIntersectedFaces] leads to high running time
+                bool getMeshInfoData( MeshInfoData& rMeshInfos, const bool rAbsolutePath, bool rWithSelfIntersectedFaces=false );
 				void dumpMeshInfo( bool avoidSlow=true );
 		virtual bool showInfoSelectionHTML();
 		virtual bool showInfoFuncValHTML();
@@ -782,11 +770,11 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		        bool getSelectedPositionCircleCenters( std::vector<Vertex*>* rCenterVertices );
 		virtual bool getAxisFromCircleCenters();
 		virtual bool getAxisFromCircleCenters( Vector3D &rTop, Vector3D &rBottom );
+                bool getAxisFromEllipseFit();
 
 		// Binary Space Partitioning -- Octree
 	protected:
-		Octree<Vertex*>*   mOctree     = nullptr;          //! Octree handling the Vertices stored in mVertices.
-		Octree<Face*>*     mOctreeface = nullptr;          //! Octree handling the Faces stored in mFaces.
+        Octree*   mOctree     = nullptr;          //! Octree handling the Vertices stored in mParentVertices and the mParentFaces.
 
 		// Primitves describing the Mesh:
 		std::vector<Vertex*> mVertices;   //!< Vertices of the Mesh.

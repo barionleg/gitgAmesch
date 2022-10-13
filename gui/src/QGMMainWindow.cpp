@@ -85,6 +85,8 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionImportFunctionValues,     &QAction::triggered, this,   &QGMMainWindow::menuImportFunctionValues        );
     QObject::connect( actionImportPolylines,     &QAction::triggered, this,   &QGMMainWindow::menuImportPolylines        );
     QObject::connect( actionImportLabels, &QAction::triggered, this,   &QGMMainWindow::menuImportLabels        );
+    QObject::connect( actionImport_and_apply_transformation_matrices, &QAction::triggered, this,   &QGMMainWindow::menuImportTransMat        );
+
 	// connect the main windows menu entries with slots:
 	// --- File ---
 	QObject::connect( actionFileOpen,                 SIGNAL(triggered()), this,       SLOT(load())                      );
@@ -145,7 +147,6 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	//.
 	QObject::connect( actionApplyMeltingSphere,     SIGNAL(triggered()), this,       SIGNAL(sApplyMeltingSphere())     );
     //.
-    QObject::connect( actionVertApplyNormalShift,   SIGNAL(triggered()), this,       SIGNAL(sApplyNormalShift())       );
 
 	// --- De-Selection ------------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( actionDeSelVertsAll,          SIGNAL(triggered()),         this, SIGNAL(sDeSelVertsAll())         );
@@ -208,11 +209,6 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionScreenshotSVG,           SIGNAL(triggered()),   this,       SIGNAL(screenshotSVG())        );
 	QObject::connect( actionScreenshotRuler,         SIGNAL(triggered()),   this,       SIGNAL(screenshotRuler())      );
 
-	// === LEGACY to be removed! ===========================================================================================================================
-    QObject::connect( actionGenerateLatexFile,       SIGNAL(triggered()),   this,       SIGNAL(generateLatexFile()) );
-    QObject::connect( actionGenerateLatexCatalog,    SIGNAL(triggered()),   this,       SIGNAL(generateLatexCatalog()) );
-	// =====================================================================================================================================================
-
 	//.
 	QObject::connect( actionViewDefaultViewLight,     SIGNAL(triggered()),  this,       SIGNAL(sDefaultViewLight())     );
 	QObject::connect( actionViewDefaultViewLightZoom, SIGNAL(triggered()),  this,       SIGNAL(sDefaultViewLightZoom()) );
@@ -228,6 +224,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionLabelFaces,                    SIGNAL(triggered()), this, SIGNAL(labelFaces())            );
 	QObject::connect( actionLabelSelectionToSeeds,         SIGNAL(triggered()), this, SIGNAL(labelSelectionToSeeds()) );
 	QObject::connect( actionLabelVertEqualFV,              SIGNAL(triggered()), this, SIGNAL(labelVerticesEqualFV())  );
+    QObject::connect( actionLabelVertEqualRGB,             SIGNAL(triggered()), this, SIGNAL(labelVerticesEqualRGB()) );
 	QObject::connect( actionLabelSelMVertsBackground,      SIGNAL(triggered()), this, SIGNAL(sLabelSelMVertsToBack()) );
 	//.
 	QObject::connect( actionSelectionToPolyline,           SIGNAL(triggered()), this, SIGNAL(convertSelectedVerticesToPolyline()) );
@@ -269,7 +266,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionRemove_Drawing_of_Octree,SIGNAL(triggered()), this, SIGNAL(removeOctreedraw())            );
 	QObject::connect( actionDraw_Octree,             SIGNAL(triggered()), this, SIGNAL(drawOctree())            );
 	QObject::connect( actionDelete_Octree,           SIGNAL(triggered()), this, SIGNAL(deleteOctree())            );
-
+    QObject::connect( actionDetect_Self_Intersections,           SIGNAL(triggered()), this, SIGNAL(detectselfintersections())            );
 
 	// #####################################################################################################################################################
 	// # FUNCTION VALUE
@@ -590,7 +587,8 @@ void QGMMainWindow::initMeshWidgetSignals() {
 
 	// Connect this exclusive group:
 	QObject::connect( mGroupSelHistType, SIGNAL(triggered(QAction*)), this, SLOT(setMeshWidgetParamInt(QAction*)) );
-	//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 
 	// =====================================================================================================================================================
 
@@ -730,7 +728,7 @@ void QGMMainWindow::initMeshSignals() {
 	actionIsolinesSolid->setProperty(               "gmMeshGLFlag", MeshGLParams::SHOW_FUNC_VALUES_ISOLINES_SOLID );
 	actionRepeatMapWaves->setProperty(              "gmMeshGLFlag", MeshGLParams::SHOW_REPEAT_COLMAP_FUNCVAL );
 	actionBad_Lit_Areas->setProperty(               "gmMeshGLFlag", MeshGLParams::SHOW_BADLIT_AREAS);
-
+    actionRemove_Dangling_Faces->setProperty(       "gmMeshGLFlag", MeshGLParams::REMOVE_DANGLING_FACES);
 	// Setup group of flags for visualization - see MeshGL and MeshQT
 	mMeshGLFlag = new QActionGroup( this );
 	for(QAction*& currAction : allActions) {
@@ -749,7 +747,7 @@ void QGMMainWindow::initMeshSignals() {
 
 	// INT: Add parameter, double IDs for MeshGL class:
 	actionLabelColorShift->setProperty( "gmMeshGLParamInt", MeshGLParams::COLMAP_LABEL_OFFSET );
-
+    actionMax_Number_of_vertices_for_hole_filling->setProperty(    "gmMeshGLParamInt", MeshGLParams::MAX_VERTICES_HOLE_FILLING);
 	// INT: Setup parameter group of menu items
 	mMeshGLParInt = new QActionGroup( this );
 	for(QAction*& currAction : allActions) {
@@ -1337,6 +1335,20 @@ void QGMMainWindow::menuImportPolylines() {
                                                      );
     if( fileNames.size() > 0 ) {
         emit sFileImportPolylines( fileNames );
+    }
+}
+
+//! Handles the dialog for importing transformation matrices
+//! see also QGMMainWindow:: and MeshQt::importApplyTransMat
+void QGMMainWindow::menuImportTransMat() {
+    QSettings settings;
+    QString fileNames = QFileDialog::getOpenFileName( this,
+                                                      tr( "Import Transformation matrices" ),
+                                                      settings.value( "lastPath" ).toString(),
+                                                      tr( "ASCII Text (*.txt)" )
+                                                     );
+    if( fileNames.size() > 0 ) {
+        emit sFileImportTransMat( fileNames );
     }
 }
 

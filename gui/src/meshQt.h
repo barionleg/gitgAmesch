@@ -171,8 +171,6 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		//.
 		virtual bool   applyMeltingSphere();
 		//.
-				bool   applyNormalShift();
-		virtual bool   applyNormalShift(double offset);
 
 		// Select actions ------------------------------------------------------------------------------------------------------------------------------
 		virtual unsigned int  selectedMVertsChanged();
@@ -258,6 +256,7 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 				void intersectSphere();
 		virtual void labelSelectionToSeeds();
 		virtual bool labelVerticesEqualFV();
+        virtual bool labelVerticesEqualRGB();
 		virtual bool labelSelMVertsToBack();
 		virtual bool convertBordersToPolylines();
 		virtual void convertLabelBordersToPolylines();
@@ -283,8 +282,6 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		//.
 		void generateOctree();
 		virtual void generateOctreeVertex(int maxnr);
-		virtual void generateOctreeFace(int maxnr);
-		virtual void generateOctree(int vertexmaxnr, int facemaxnr);
 		virtual void detectselfintersections();
 		void drawOctree();
 		void removeOctreedraw();
@@ -373,6 +370,7 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		virtual bool importFeatureVectors(const QString& rFileName );
 		virtual bool importFunctionValues(const QString& rFileName );
         virtual bool importPolylines(const QString& rFileName );
+        virtual bool importApplyTransMat(const QString& rFileName );
         virtual bool importLabels(const QString& rFileName );
 
 		virtual bool exportFeatureVectors();

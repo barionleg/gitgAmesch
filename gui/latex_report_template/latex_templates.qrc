@@ -2,5 +2,7 @@
     <qresource prefix="/GMLaTeX">
         <file>report_single_page_template.tex</file>
         <file>report_single_page_single_view_template.tex</file>
+        <file>report_single_page_cclicense_template.tex</file>
+        <file>report_single_page_single_view_cclicense_template.tex</file>
     </qresource>
 </RCC>

@@ -92,24 +92,96 @@ MeshGL::~MeshGL() {
 //! Typically related GUI interaction.
 bool MeshGL::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOptional ) {
 	// Ellipsenfit
-	if( rFunctionID == MeshParams::ELLIPSENFIT_EXPERIMENTAL ) {
-		vector<pair<double,double> > ellipseCandidatePoints;
-		for( auto const& selVertex : mSelectedMVerts ) {
-			double xPos = selVertex->getPositionVector().getX();
-			double yPos = selVertex->getPositionVector().getY();
-			ellipseCandidatePoints.emplace_back( std::make_pair(xPos,yPos) );
-			std::cout << "[MeshGL::" << __FUNCTION__ << "] EPC: " << xPos << " " << yPos << std::endl;
-		}
+    /**
+    if( rFunctionID == MeshParams::ELLIPSENFIT_EXPERIMENTAL ) {
+        vector<Vertex*> testPlanePoints; //Test
+        vector<pair<double,double> > ellipseCandidatePoints;
+        for( auto const& selVertex : mSelectedMVerts ) {
+            testPlanePoints.push_back(selVertex);
+            double xPos = selVertex->getPositionVector().getX();
+            double yPos = selVertex->getPositionVector().getY();
+            ellipseCandidatePoints.emplace_back( std::make_pair(xPos,yPos) );
+            std::cout << "[MeshGL::" << __FUNCTION__ << "] EPC: " << xPos << " " << yPos << std::endl;
+        }
 
-		EllipseDisc bar;
-		bar.findEllipseParams( EllipseDisc::CONIC, ellipseCandidatePoints );
-		bar.dumpInfo();
-		bar.findEllipseParams( EllipseDisc::FPF, ellipseCandidatePoints );
-		bar.dumpInfo();
-		bar.findEllipseParams( EllipseDisc::BOOKSTEIN, ellipseCandidatePoints );
-		bar.dumpInfo();
-	}
+        EllipseDisc bar;
+        bar.findEllipseParams( EllipseDisc::CONIC, ellipseCandidatePoints );
+        bar.dumpInfo();
 
+        //---------------------------------------------------------
+        //test
+
+        //create TestPlane
+        Plane plane = Plane(testPlanePoints[0]->getPositionVector(),testPlanePoints[1]->getPositionVector(),testPlanePoints[2]->getPositionVector());
+
+        //projection onto plane
+        vector<pair<double,double> > ellipseCandidatePoints2;
+        for( auto const& selVertex : mSelectedMVerts ) {
+            Vector3D selPoint = selVertex->getPositionVector();
+            selPoint.projectOntoPlane(plane.getHNF());
+            double xPos2 = selPoint.getX();
+            double yPos2 = selPoint.getZ(); //changed to Z because the Y axis points upwards
+            ellipseCandidatePoints2.emplace_back( std::make_pair(xPos2,yPos2) );
+        }
+        EllipseDisc bar2;
+        bar2.findEllipseParams( EllipseDisc::CONIC, ellipseCandidatePoints2 );
+        bar2.dumpInfo();
+
+        double planeY = plane.getY();
+        double r1Quad = pow(bar2.mRadius1,2.0);
+        double r2Quad = pow(bar2.mRadius2,2.0);
+        for(Vertex* vert : mVertices){
+            if(abs((vert->getY()) - planeY) < 0.5){
+                vert->setLabel(1);
+            }
+            else{
+                vert->setLabel(2);
+            }
+            Vector3D projVert = vert->getPositionVector();
+            projVert.projectOntoPlane(plane.getHNF());
+            double xTerm = pow((vert->getX()-bar2.mCenterX),2.0)/r1Quad;
+            double yTerm = pow((vert->getZ()-bar2.mCenterY),2.0)/r2Quad; //useZ because for the ellipse constructions is used too
+            //double xTerm = pow((projVert.getX()-bar2.mCenterX),2.0)/r1Quad;
+            //double yTerm = pow((projVert.getY()-bar2.mCenterY),2.0)/r2Quad;
+            double mainForm = xTerm+yTerm;
+
+            if(abs(1-(mainForm)) < 0.01 ){
+                vert->setLabel(3);
+            }
+            if(mainForm < 0.99 ){
+                vert->setLabel(4);
+            }
+
+        }
+        labelsChanged();
+
+        //calculate center vertex
+        bool error;
+        //Vector3D normalPlane = plane.getNormal( true );
+        Vector3D normalPlane = plane.getHNF();
+        Vector3D ellipseCenter2(bar2.mCenterX,planeY,bar2.mCenterY); //Y and Z changed before
+        vector<Vertex*> circleCenterVertices;
+        Vertex* centerVertex = new Vertex( ellipseCenter2 );
+        centerVertex->setFlag( FLAG_SYNTHETIC | FLAG_CIRCLE_CENTER);
+        centerVertex->setNormal( &normalPlane );
+        circleCenterVertices.push_back(centerVertex);
+        error = insertVertices( &circleCenterVertices );
+
+        Vector3D topPoint;
+        Vector3D bottomPoint;
+        error  = getAxisFromCircleCenters( topPoint, bottomPoint );
+        error &= setConeAxis( &topPoint, &bottomPoint );
+
+        //------------------------------------------------------------
+
+
+
+        bar.findEllipseParams( EllipseDisc::FPF, ellipseCandidatePoints );
+        bar.dumpInfo();
+        bar.findEllipseParams( EllipseDisc::BOOKSTEIN, ellipseCandidatePoints );
+        bar.dumpInfo();
+    }
+    **/
 	// Show labels after they have been determined.
 	if( rFunctionID == LABELING_LABEL_ALL ) {
 		setParamIntMeshGL( MeshGLParams::SHADER_CHOICE, MeshGLParams::SHADER_MONOLITHIC );
@@ -296,9 +368,9 @@ bool MeshGL::fillPolyLines(
 		return true;
 }
 
-bool MeshGL::applyTransformationToWholeMesh(Matrix4D rTrans, bool rResetNormals)
+bool MeshGL::applyTransformationToWholeMesh(Matrix4D rTrans, bool rResetNormals, bool rSaveTransMat)
 {
-	bool retVal = Mesh::applyTransformationToWholeMesh(rTrans, rResetNormals);
+    bool retVal = Mesh::applyTransformationToWholeMesh(rTrans, rResetNormals, rSaveTransMat);
 
 	if(retVal)
 	{
@@ -331,9 +403,9 @@ bool MeshGL::applyTransformationToWholeMesh(Matrix4D rTrans, bool rResetNormals)
 }
 
 //! Takes care about OpenGL stuff, when the Mesh is transformed.
-bool MeshGL::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool rResetNormals ) {
+bool MeshGL::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool rResetNormals, bool rSaveTransMat ) {
 		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
-		bool retVal = Mesh::applyTransformation( rTrans, rSomeVerts, rResetNormals );
+        bool retVal = Mesh::applyTransformation( rTrans, rSomeVerts, rResetNormals, rSaveTransMat );
 		if( !retVal ) {
 				cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: applyTransformation failed!" << endl;
 				return false;
@@ -1419,7 +1491,7 @@ bool MeshGL::selectPrism(
 
 	// Octree required - also time consuming
 	if( mOctree == nullptr ) {
-		generateOctree( 0.05*getVertexNr(), 0 );
+        generateOctree( 0.05*getVertexNr());
 	}
 
 	// Determine processing time - INTERMEDIATE
@@ -1429,8 +1501,8 @@ bool MeshGL::selectPrism(
 	tInterStart = high_resolution_clock::now();
 
 	//vertices in cvertexlist are contained completely, no further check necessary
-	vector<Octnode<Vertex*> *> ilist;  // Vertices of a node, which is partially enclosed by the prism
-	vector<Octnode<Vertex*> *> cilist; // Vertices of a node, which is fully enclosed by the prism
+    vector<Octnode *> ilist;  // Vertices of a node, which is partially enclosed by the prism
+    vector<Octnode *> cilist; // Vertices of a node, which is fully enclosed by the prism
 	Vector3D selectBeam[6];
 
 	for( unsigned int j=0; j<rTri.size(); j+=3 ) {
@@ -1442,7 +1514,7 @@ bool MeshGL::selectPrism(
 		}
 		TriangularPrism tritmp(selectBeam);
 
-		mOctree->gettriangleintersection( ilist, cilist, mLines, tritmp );
+        mOctree->gettriangleintersection( ilist, cilist, mLines, tritmp );
 	}
 
 	// CILIST is often empty. However, it has to be collected.
@@ -1458,12 +1530,12 @@ bool MeshGL::selectPrism(
 	set<Vertex*> vertexlist;
 	set<Vertex*> cvertexlist;
 	//copy Vertex* from Octnode* ilist to vertexlist
-	for(Octnode<Vertex*>*& octnode : ilist) {
-		vertexlist.insert( octnode->mElements.begin(), octnode->mElements.end());
+    for(Octnode*& octnode : ilist) {
+		vertexlist.insert( octnode->mVertices.begin(), octnode->mVertices.end());
 	}
 	//copy Vertex* from Octnode* cilist to cvertexlist
-	for(Octnode<Vertex*>*& octnode : cilist) {
-		cvertexlist.insert( octnode->mElements.begin(), octnode->mElements.end());
+    for(Octnode*& octnode : cilist) {
+		cvertexlist.insert( octnode->mVertices.begin(), octnode->mVertices.end());
 	}
 
 	// Determine processing time - INTERMEDIATE
@@ -2609,54 +2681,7 @@ bool MeshGL::setParamFloatMeshGL( MeshGLParams::eParamFlt rParamID, double rValu
 		return true;
 }
 
-// --- Shelling ------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Calculate a offset Surface(Shelling) without any selfintersection
-bool MeshGL::applyNormalShift(double offset){
-		Mesh::applyNormalShift(offset);
-		glRemove();
-		glPrepare();
-
-		return true;
-}
-
-//! Helper-Function for applyNormalShift
-//! - Remove Original Object
-//! - Connect original-mesh-border with offset-mesh-border via mesh
-bool MeshGL::applyNormalShiftHelper(bool initCall, bool removeOriginalObject, bool connectBorders){
-		Mesh::applyNormalShiftHelper(initCall, removeOriginalObject, connectBorders);
-		glRemove();
-		glPrepare();
-
-		return true;
-}
-
-//! Remove double Triangles
-bool MeshGL::removeDoubleTriangles(){
-		Mesh::removeDoubleTriangles();
-		glRemove();
-		glPrepare();
-
-		return true;
-}
-
-//! Recalculate the triangle orientation and flip it if necessary
-bool MeshGL::recalculateTriangleOrientation(){
-		Mesh::recalculateTriangleOrientation();
-		glRemove();
-		glPrepare();
-
-		return true;
-}
-
-//! Repair Triangle-Intersection -> split off and re-triangulate via delauny-triangulation
-bool MeshGL::fixTriangleIntersection(){
-		Mesh::fixTriangleIntersection();
-		glRemove();
-		glPrepare();
-
-		return true;
-}
 
 // Vertex Buffer Objects ---------------------------------------------------------------------------------------------------------
 
