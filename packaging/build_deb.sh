@@ -41,7 +41,7 @@ NAME=gigamesh$(uuidgen)
 git clone https://gitlab.com/fcgl/GigaMesh.git $NAME
 wait
 cd $NAME
-# git checkout develop # <= Uncomment for testing the package build with the develop branch.
+git checkout develop # <= Uncomment for testing the package build with the develop branch.
 
 DEBIAN_FILES="$PWD/packaging/debian"
 DEBIAN_FILES_VENDOR="$PWD/packaging/$DEBCHANGE_VENDOR"
