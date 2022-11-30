@@ -966,8 +966,27 @@ bool MeshQt::removeUncleanSmallUser() {
 	QString fileName = "";
 	if( saveFile ) {
 		// Show file dialog
-		QString fileLocation = QString::fromStdWString( getFileLocation().wstring() );
-		fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as" ), fileLocation, tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) );
+        QString fileSuggest = QString::fromStdWString( getBaseName().wstring() );
+        //check if the gigamesh name convention is used
+        QRegularExpression nameContainsGMwithSuffix( ".*_GM[cCoOfFpP]*$" );
+        QRegularExpressionMatch match = nameContainsGMwithSuffix.match( fileSuggest );
+        if( match.hasMatch()){
+            //GM or GMO not followed by "C" --> no match
+            QRegularExpression nameContainsC( "(.*_GM*.C)(.*$)" );
+            match = nameContainsC.match( fileSuggest );
+            if( !match.hasMatch() ) {
+                    //regex to add the C after GM or GMO
+                    QRegularExpression nameContainsGM( "(.*_GM[oO]?)(.*$)" );
+                    fileSuggest.replace( nameContainsGM, "\\1C\\2" );
+                }
+          } else {
+                fileSuggest += "_GMC";
+         }
+        fileSuggest += ".ply";
+
+        QString fileLocation = QString::fromStdWString( getFileLocation().wstring() );
+        fileLocation += fileSuggest;
+        fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as" ), fileLocation, tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) );
 	}
 
 	// Store old mesh size to determine the number of changes
@@ -1039,11 +1058,46 @@ bool MeshQt::completeRestore() {
 	}
 	QString fileName = "";
 	if( saveFile ) {
+
+        QString fileSuggest = QString::fromStdWString( getBaseName().wstring() );
+        //check if the gigamesh name convention is used
+        QRegularExpression nameContainsGMwithSuffix( ".*_GM[cCoOfFpP]*$" );
+        QRegularExpressionMatch match = nameContainsGMwithSuffix.match( fileSuggest );
+        if( match.hasMatch()){
+            //check if CF is still used
+            QRegularExpression nameContainsGMCF( ".*_GMC.F*$" );
+            match = nameContainsGMCF.match( fileSuggest );
+            if( !match.hasMatch() ) {
+                //add the CF for cleaned and filled
+                //regex groups with "(....)" are used for the replace methode --> it's possible to copy the groups
+                //with \\... in the replace function
+                //check if the name contains a C (GMOC, GMC)
+                QRegularExpression nameContainsC( "(.*_GM)([cC]|[oO][cC])(.?[^F]*)$" );
+                match = nameContainsC.match( fileSuggest );
+                if( match.hasMatch() ) {
+                    fileSuggest.replace( nameContainsC, "\\1\\2F\\3" );
+                }
+                else{
+                    //have to add a CF in the case with no "C" inside the abbreviation
+                    //GMO followed by a optional character not "C"
+                    QRegularExpression nameContainsNoC( "(.*_GM[oO])(.*)$" );
+                    match = nameContainsNoC.match( fileSuggest );
+                    if( match.hasMatch() ) {
+                        fileSuggest.replace( nameContainsNoC, "\\1CF\\2" );
+                    }
+                }
+          }
+          } else {
+                fileSuggest += "_GMCF";
+         }
+        fileSuggest += ".ply";
+
 		// Show file dialog
-		QString fileLocation = QString::fromStdWString( getFileLocation().wstring() + getBaseName().wstring() + L"_GMxCF.ply" );
+        QString fileLocation = QString::fromStdWString( getFileLocation().wstring() );
+        fileLocation += fileSuggest;
 		fileName = QFileDialog::getSaveFileName( \
 		               mMainWindow, tr( "Save as" ), \
-		               fileLocation, tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) \
+                       fileLocation, tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) \
 		           );
 	}
     //get parameters from Settings
