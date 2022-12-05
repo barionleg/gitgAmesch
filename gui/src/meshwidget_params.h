@@ -85,6 +85,7 @@ class MeshWidgetParams {
 			             SCREENSHOT_PNG_BACKGROUND_OPAQUE, //!< Toggle between transparent background (false) and background color.
 		                 SHOW_MESH_REDUCED,         //!< Is set when the mesh is moved and the option is enabled the mesh should be shown as a reduced pointcloud or not
 		                 ENABLE_SHOW_MESH_REDUCED,  //!< Toggle if the mesh should be shown as a reduced pointcloud or not
+                         EXPORT_TTL_WITH_PNG,  //!< Turn the metadata as ttl during the png export on/off
 		                 PARAMS_FLAG_COUNT               //!< Number of flags available
 		};
 		enum eParamInt{ PARAMS_INT_UNDEFINED,       //!< ID for undefined paramaters.
