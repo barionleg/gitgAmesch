@@ -46,6 +46,7 @@ MeshWidgetParams::MeshWidgetParams() {
 	mParamFlag[CROP_SCREENSHOTS]         = true;
 	mParamFlag[EXPORT_SVG_AXIS_DASHED]   = true;
 	mParamFlag[EXPORT_SIDE_VIEWS_SIX]    = true;
+    mParamFlag[EXPORT_TTL_WITH_PNG] = true;
 
 	// Initalize parameters (int):
 	for(int& paramInt : mParamInt) {
