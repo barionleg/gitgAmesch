@@ -677,6 +677,9 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool     applyInvertOrientationFaces();
 				bool     applyInvertOrientationFaces( std::vector<Face*> rFacesToInvert );
 
+        //automatic Mesh alignment
+                bool     computePCA(std::vector<Vector3D>* principalComponents);
+
 		// Surface normals
 		virtual bool     normalsVerticesChanged();
 		        bool     resetFaceNormals( double* rAreaTotal=nullptr );

@@ -34,6 +34,7 @@
 #include <QFileDialog>
 #include <QInputDialog>
 
+#include <automaticalignmentpyinterface.h>
 // Other includes:
 // none for now.
 
@@ -202,6 +203,9 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	//.
 	QObject::connect( mMainWindow, SIGNAL(sApplyMeltingSphere()),        this, SLOT(applyMeltingSphere())     );
 	//.
+    QObject::connect( mMainWindow, SIGNAL(sAutomaticMeshAlignment()),    this, SLOT(applyAutomaticMeshAlignment())     );
+    //.
+
 
 	// View menu -------------------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( mMainWindow, SIGNAL(polylinesCurvScale()),                         this, SLOT(polylinesCurvScale())               );
@@ -1595,7 +1599,37 @@ bool MeshQt::applyMeltingSphere() {
 	if( !dlgEnterTxt.getText( &radius ) ) {
 		return false;
 	}
-	return MeshGL::applyMeltingSphere( radius, 1.0 );
+    return MeshGL::applyMeltingSphere( radius, 1.0 );
+}
+
+bool MeshQt::applyAutomaticMeshAlignment()
+{
+    std::cout << "[MeshQT::" << __FUNCTION__ << "] Start:Automatic Mesh Alignment" << std::endl;
+    std::vector<Vector3D> principalComponents;
+    AutomaticAlignmentPyInterface pyInterface(&mVertices);
+    pyInterface.startPythonScript(&principalComponents);
+    //set principal components as camera vectors
+    //double transArr[16] = {
+    //       cameraPitchAxis.getX(), mCameraUp.getX(), -cameraRollAxis.getX(),  0.0,
+    //       cameraPitchAxis.getY(), mCameraUp.getY(), -cameraRollAxis.getY(),  0.0,
+    //       cameraPitchAxis.getZ(), mCameraUp.getZ(), -cameraRollAxis.getZ(),  0.0,
+    //                     0.0,             0.0,                    0.0,       1.0
+    //};
+    //use the first component as up vec, second as Pitch and third as roll
+
+    vector<double> transMatVec = {
+        principalComponents[1].getX(), principalComponents[0].getX(), principalComponents[2].getX(), 0.0,
+        principalComponents[1].getY(), principalComponents[0].getY(), principalComponents[2].getY(), 0.0,
+        principalComponents[1].getZ(), principalComponents[0].getZ(), principalComponents[2].getZ(), 0.0,
+        0.0,                            0.0,                               0.0,                       1.0
+    };
+    Matrix4D transMat(transMatVec);
+    applyTransformationDefaultViewMatrix(&transMat);
+    // setup initial view (emit Signal to meshwidget.cpp:
+    emit sDefaultViewLight();
+    //setViewInitial();
+    //setView();
+    //update();
 }
 
 
