@@ -1602,6 +1602,10 @@ bool MeshQt::applyMeltingSphere() {
     return MeshGL::applyMeltingSphere( radius, 1.0 );
 }
 
+//!Automatic Mesh Alignment
+//! calculates principal components (PCA) of the vertices
+//! Sets the PCs as new camera vectors
+//! result should be that the biggest extension of the is equal to the y-axis
 bool MeshQt::applyAutomaticMeshAlignment()
 {
     std::cout << "[MeshQT::" << __FUNCTION__ << "] Start:Automatic Mesh Alignment" << std::endl;
@@ -1627,9 +1631,46 @@ bool MeshQt::applyAutomaticMeshAlignment()
     applyTransformationDefaultViewMatrix(&transMat);
     // setup initial view (emit Signal to meshwidget.cpp:
     emit sDefaultViewLight();
-    //setViewInitial();
-    //setView();
-    //update();
+
+    //Decide which part of the mesh is the front
+    //only for stone tools
+
+    //define the start centroids of k-means
+    //use the points in the middle of the mesh and the minimum and the maximum of the dimension with the smallest extension
+    //0 = x
+    //1 = y
+    //2 = z
+    int smallestExtension = 0;
+    double xExtension = abs(Mesh::getMinX() - Mesh::getMaxX());
+    double yExtension = abs(Mesh::getMinY() - Mesh::getMaxY());
+    double zExtension = abs(Mesh::getMinZ() - Mesh::getMaxZ());
+    if (xExtension > yExtension){
+        smallestExtension = 1;
+    }
+    if (xExtension > zExtension && yExtension > zExtension){
+        smallestExtension = 2;
+    }
+
+    Vector3D centroid1;
+    Vector3D centroid2;
+    switch(smallestExtension){
+        case 0:
+            centroid1 = Vector3D(Mesh::getMinX(),Mesh::getY(),Mesh::getZ());
+            centroid2 = Vector3D(Mesh::getMaxX(),Mesh::getY(),Mesh::getZ());
+            break;
+        case 1:
+            centroid1 = Vector3D(Mesh::getX(),Mesh::getMinY(),Mesh::getZ());
+            centroid2 = Vector3D(Mesh::getX(),Mesh::getMaxY(),Mesh::getZ());
+            break;
+        case 2:
+            centroid1 = Vector3D(Mesh::getX(),Mesh::getY(),Mesh::getMinZ());
+            centroid2 = Vector3D(Mesh::getX(),Mesh::getY(),Mesh::getMaxZ());
+            break;
+    }
+    std::vector<Vector3D> centroids = {centroid1,centroid2};
+    std::vector<std::set<Vertex*>> clusterSets;
+    Mesh::computeVertexKMeans(&centroids,&clusterSets,true);
+
 }
 
 

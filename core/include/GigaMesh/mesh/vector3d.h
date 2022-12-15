@@ -59,7 +59,7 @@ class Vector3D {
 		Vector3D( double rPhi, double rTheta, bool rIsRadiant );
 
 		void set( double setX, double setY, double setZ, double setH=1.0 );
-		void set( Vector3D* vecToCopy );
+        void set( Vector3D* vecToCopy );
 		void set( const Vector3D& vecToCopy );
 		void setX( double setX );
 		void setY( double setY );
@@ -96,6 +96,7 @@ class Vector3D {
 		double sum4();
 		bool   projectOntoPlane( Vector3D rPlaneHNF );
 		double distanceToLine( const Vector3D* rPos1, const Vector3D* rPos2 );
+        double distanceToVectorWithouSqrt( const Vector3D* rPos1, const Vector3D* rPos2 );
 		double angleInLineCoord( const Vector3D* rPosTop, const Vector3D* rPosBottom );
 
 		// Operators
