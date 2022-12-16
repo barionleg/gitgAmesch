@@ -466,9 +466,13 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool labelSelMVertsToBack();
 
                 //kMeans (also used for automatic mesh alignment)
-                bool computeVertexKMeans(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>>*clusterSets, bool labeling);
-                bool assignVerticesToCluster(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>>*clusterSets, bool labeling);
-                Vector3D getCentroid(std::set<Vertex*> *clusterSet);
+                bool computeVertexPositionKMeans(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>>*clusterSets, bool labeling);
+                bool assignVerticesToClusterByPosition(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>>*clusterSets, bool labeling);
+                Vector3D getCentroidByPosition(std::set<Vertex*> *clusterSet);
+                bool computeVertexNormalKMeans(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>>*clusterSets, bool labeling);
+                bool assignVerticesToClusterByNormal(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>>*clusterSets, bool labeling);
+                Vector3D getCentroidByNormal(std::set<Vertex*> *clusterSet);
+
 		virtual bool compPolylinesIntInvRunLen( double rIIRadius, PolyLine::ePolyIntInvDirection rDirection );
 		virtual bool compPolylinesIntInvAngle( double rIIRadius );
 		virtual void getPolylineExtrema( bool absolut );

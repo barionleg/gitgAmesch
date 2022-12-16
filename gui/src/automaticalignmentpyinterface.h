@@ -41,7 +41,7 @@ private:
     void createExportVerticesTextStream(std::vector<Vertex*> *vertices,QTextStream &outputTextStream);
     bool readPCsFromCSV(QString importPath, std::vector<Vector3D> *principalComponents);
     QTemporaryFile mVertexCoordinatesTempFile;
-    //const std::string mVertCSVPath = "./vertExport.csv";
+    const QString mVertCSVPath = "./vertExport.csv";
 };
 
 

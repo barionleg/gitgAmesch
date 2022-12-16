@@ -29,8 +29,13 @@ def main():
     eigvalues, eigvectors = eig(df_cov)
     #print(eigvalues)
     #print(eigvectors)
+    #sort the eigenvectors by the eigenvalues descending
+    sortedEigenvectors = []
+    for sortedIdx in reversed(np.argsort(eigvalues)):
+        sortedEigenvectors.append(eigvectors[sortedIdx])
+    NPSortedEigenvectors = np.array(sortedEigenvectors)
     #overwrite the input csv with the principal components
-    resultDf = pd.DataFrame(eigvectors)
+    resultDf = pd.DataFrame(NPSortedEigenvectors)
     resultDf.to_csv(verticesCsvPath)
 if __name__=="__main__":
     main()

@@ -7000,7 +7000,7 @@ bool Mesh::labelSelMVertsToBack() {
 //!@param centroids as input expected. Contains the start centroids and thus defines the number of the clusters
 //!@param clusterSets returns vertex clusters
 //! @param labeling if true, then the vertecis are labeled with their cluster id
-bool Mesh::computeVertexKMeans(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>> *clusterSets, bool labeling)
+bool Mesh::computeVertexPositionKMeans(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>> *clusterSets, bool labeling)
 {
     cout << "[Mesh::" << __FUNCTION__ << "]" << endl;
     const int cMaxIterations = 50;
@@ -7009,13 +7009,13 @@ bool Mesh::computeVertexKMeans(std::vector<Vector3D> *centroids, std::vector<std
     while(iter < cMaxIterations && centroidsChanged){
         //calculate new cluster sets
         std::vector<std::set<Vertex*>> newClusterSets(centroids->size());
-        if( !assignVerticesToCluster(centroids, &newClusterSets, labeling)){
+        if( !assignVerticesToClusterByPosition(centroids, &newClusterSets, labeling)){
             return false;
         }
         //calculate new centroids
         centroidsChanged = false;
         for(unsigned int i=0; i<newClusterSets.size(); i++){
-            Vector3D newCentroid = getCentroid(&newClusterSets.at(i));
+            Vector3D newCentroid = getCentroidByPosition(&newClusterSets.at(i));
             if( newCentroid != centroids->at(i)){
                 centroids->at(i) = newCentroid;
                 centroidsChanged = true;
@@ -7029,7 +7029,7 @@ bool Mesh::computeVertexKMeans(std::vector<Vector3D> *centroids, std::vector<std
     return true;
 }
 
-bool Mesh::assignVerticesToCluster(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>> *clusterSets, bool labeling)
+bool Mesh::assignVerticesToClusterByPosition(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex *>> *clusterSets, bool labeling)
 {
     for(Vertex *vert: mVertices){
         double minDist = std::numeric_limits<double>::infinity();
@@ -7054,7 +7054,7 @@ bool Mesh::assignVerticesToCluster(std::vector<Vector3D> *centroids, std::vector
 }
 
 
-Vector3D Mesh::getCentroid(std::set<Vertex*> *clusterSet)
+Vector3D Mesh::getCentroidByPosition(std::set<Vertex*> *clusterSet)
 {
     std::set<Vertex*>::iterator itr;
     Vector3D newCentroid(0.0,0.0,0.0);
@@ -7063,6 +7063,78 @@ Vector3D Mesh::getCentroid(std::set<Vertex*> *clusterSet)
     }
     return newCentroid/clusterSet->size();
 }
+
+bool Mesh::computeVertexNormalKMeans(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>> *clusterSets, bool labeling)
+{
+    cout << "[Mesh::" << __FUNCTION__ << "]" << endl;
+    const int cMaxIterations = 50;
+    int iter = 0;
+    bool centroidsChanged = true;
+    while(iter < cMaxIterations && centroidsChanged){
+        //calculate new cluster sets
+        std::vector<std::set<Vertex*>> newClusterSets(centroids->size());
+        if( !assignVerticesToClusterByNormal(centroids, &newClusterSets, labeling)){
+            return false;
+        }
+        //calculate new centroids
+        centroidsChanged = false;
+        for(unsigned int i=0; i<newClusterSets.size(); i++){
+            Vector3D newCentroid = getCentroidByNormal(&newClusterSets.at(i));
+            if( newCentroid != centroids->at(i)){
+                centroids->at(i) = newCentroid;
+                centroidsChanged = true;
+            }
+        }
+        iter++;
+        cout << "[Mesh::" << __FUNCTION__ << "]" << "iteration:" << iter << endl;
+    }
+
+    labelsChanged();
+    return true;
+}
+
+bool Mesh::assignVerticesToClusterByNormal(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex *>> *clusterSets, bool labeling)
+{
+    for(Vertex *vert: mVertices){
+        double minDist = std::numeric_limits<double>::infinity();
+        unsigned int clusterId = 0; //cluster id = index of the centroid or the cluster sets
+        //assign the vertex to the cluster with centroid that has the least distance to the vertex
+        for(unsigned i=0; i<centroids->size(); i++){
+            //I don't use the square root for the distance because it's not necessary for the comparison
+            Vector3D vertNormal = vert->getNormal();
+            double dist = centroids->at(i).distanceToVectorWithouSqrt(&centroids->at(i),&vertNormal);
+            if(minDist > dist){
+                minDist = dist;
+                clusterId = i;
+            }
+        }
+        clusterSets->at(clusterId).insert(vert);
+        if(labeling){
+            vert->setLabel(clusterId+1);
+        }
+
+    }
+    return true;
+}
+
+
+Vector3D Mesh::getCentroidByNormal(std::set<Vertex*> *clusterSet)
+{
+    std::set<Vertex*>::iterator itr;
+    Vector3D newCentroid(0.0,0.0,0.0);
+    int nrOfdefinedNormals = 0;
+    for (itr = clusterSet->begin(); itr != clusterSet->end(); itr++){
+        Vector3D normal = (*itr)->getNormal();
+        //check if normal is defined
+        //some vertices return NaN
+        if (!isnan(normal.getX())){
+            newCentroid = newCentroid + normal;
+            nrOfdefinedNormals++;
+        }
+    }
+    return newCentroid/nrOfdefinedNormals;
+}
+
 
 
 // ---------------------------------------------------------------------------------------------------

@@ -1635,41 +1635,49 @@ bool MeshQt::applyAutomaticMeshAlignment()
     //Decide which part of the mesh is the front
     //only for stone tools
 
-    //define the start centroids of k-means
-    //use the points in the middle of the mesh and the minimum and the maximum of the dimension with the smallest extension
-    //0 = x
-    //1 = y
-    //2 = z
-    int smallestExtension = 0;
-    double xExtension = abs(Mesh::getMinX() - Mesh::getMaxX());
-    double yExtension = abs(Mesh::getMinY() - Mesh::getMaxY());
-    double zExtension = abs(Mesh::getMinZ() - Mesh::getMaxZ());
-    if (xExtension > yExtension){
-        smallestExtension = 1;
+    bool curvatureAlignment = false;
+    bool userCancel = false;
+    SHOW_QUESTION( tr("Front Alignment"), tr( "Do you want to align the front of the mesh based on the curvature?" ), curvatureAlignment, userCancel );
+    if( userCancel ) {
+        return false;
     }
-    if (xExtension > zExtension && yExtension > zExtension){
-        smallestExtension = 2;
-    }
+    if (curvatureAlignment){
+        //define the start centroids of k-means
+        //use the points in the middle of the mesh and the minimum and the maximum of the dimension with the smallest extension
+        //0 = x
+        //1 = y
+        //2 = z
+        int smallestExtension = 0;
+        double xExtension = abs(Mesh::getMinX() - Mesh::getMaxX());
+        double yExtension = abs(Mesh::getMinY() - Mesh::getMaxY());
+        double zExtension = abs(Mesh::getMinZ() - Mesh::getMaxZ());
+        if (xExtension > yExtension){
+            smallestExtension = 1;
+        }
+        if (xExtension > zExtension && yExtension > zExtension){
+            smallestExtension = 2;
+        }
 
-    Vector3D centroid1;
-    Vector3D centroid2;
-    switch(smallestExtension){
-        case 0:
-            centroid1 = Vector3D(Mesh::getMinX(),Mesh::getY(),Mesh::getZ());
-            centroid2 = Vector3D(Mesh::getMaxX(),Mesh::getY(),Mesh::getZ());
-            break;
-        case 1:
-            centroid1 = Vector3D(Mesh::getX(),Mesh::getMinY(),Mesh::getZ());
-            centroid2 = Vector3D(Mesh::getX(),Mesh::getMaxY(),Mesh::getZ());
-            break;
-        case 2:
-            centroid1 = Vector3D(Mesh::getX(),Mesh::getY(),Mesh::getMinZ());
-            centroid2 = Vector3D(Mesh::getX(),Mesh::getY(),Mesh::getMaxZ());
-            break;
+        Vector3D centroid1;
+        Vector3D centroid2;
+        switch(smallestExtension){
+            case 0:
+                centroid1 = Vector3D(1.0,0.0,0.0);
+                centroid2 = Vector3D(-1.0,0.0,0.0);
+                break;
+            case 1:
+                centroid1 = Vector3D(0.0,1.0,0.0);
+                centroid2 = Vector3D(0.0,-1.0,0.0);
+                break;
+            case 2:
+                centroid1 = Vector3D(0.0,0.0,1.0);
+                centroid2 = Vector3D(0.0,0.0,-1.0);
+                break;
+        }
+        std::vector<Vector3D> centroids = {centroid1,centroid2};
+        std::vector<std::set<Vertex*>> clusterSets;
+        Mesh::computeVertexNormalKMeans(&centroids,&clusterSets,true);
     }
-    std::vector<Vector3D> centroids = {centroid1,centroid2};
-    std::vector<std::set<Vertex*>> clusterSets;
-    Mesh::computeVertexKMeans(&centroids,&clusterSets,true);
 
 }
 
