@@ -469,7 +469,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
                 bool computeVertexPositionKMeans(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>>*clusterSets, bool labeling);
                 bool assignVerticesToClusterByPosition(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>>*clusterSets, bool labeling);
                 Vector3D getCentroidByPosition(std::set<Vertex*> *clusterSet);
-                bool computeVertexNormalKMeans(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>>*clusterSets, bool labeling);
+                std::vector<std::set<Vertex*>> computeVertexNormalKMeans(std::vector<Vector3D> *centroids, bool labeling);
                 bool assignVerticesToClusterByNormal(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>>*clusterSets, bool labeling);
                 Vector3D getCentroidByNormal(std::set<Vertex*> *clusterSet);
 
@@ -691,9 +691,6 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool     applyMeltingSphere( double rRadius, double rRel );
 				bool     applyInvertOrientationFaces();
 				bool     applyInvertOrientationFaces( std::vector<Face*> rFacesToInvert );
-
-        //automatic Mesh alignment
-                bool     computePCA(std::vector<Vector3D>* principalComponents);
 
 		// Surface normals
 		virtual bool     normalsVerticesChanged();

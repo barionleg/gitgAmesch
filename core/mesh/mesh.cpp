@@ -664,12 +664,7 @@ bool Mesh::callFunction(
 			}
 			retVal = applyTransformation( valuesMatrix4x4, &mSelectedMVerts );
 	        } break;
-        case APPLY_AUTOMATIC_ALIGNMENT: {
-                std::cout << "[Mesh::" << __FUNCTION__ << "] Start:Automatic Mesh Alignment" << std::endl;
-                std::vector<Vector3D> principalComponents;
-                computePCA(&principalComponents);
-        }
-            break;
+
 		case SELMPRIMS_POS_DESELECT_ALL:
 			mSelectedPositions.clear();
 			selectedMPositionsChanged();
@@ -7064,18 +7059,17 @@ Vector3D Mesh::getCentroidByPosition(std::set<Vertex*> *clusterSet)
     return newCentroid/clusterSet->size();
 }
 
-bool Mesh::computeVertexNormalKMeans(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>> *clusterSets, bool labeling)
+std::vector<std::set<Vertex*>> Mesh::computeVertexNormalKMeans(std::vector<Vector3D> *centroids, bool labeling)
 {
     cout << "[Mesh::" << __FUNCTION__ << "]" << endl;
     const int cMaxIterations = 50;
     int iter = 0;
     bool centroidsChanged = true;
+    std::vector<std::set<Vertex*>> newClusterSets(centroids->size());
     while(iter < cMaxIterations && centroidsChanged){
         //calculate new cluster sets
-        std::vector<std::set<Vertex*>> newClusterSets(centroids->size());
-        if( !assignVerticesToClusterByNormal(centroids, &newClusterSets, labeling)){
-            return false;
-        }
+        newClusterSets = std::vector<std::set<Vertex*>>(centroids->size());
+        assignVerticesToClusterByNormal(centroids, &newClusterSets, labeling);
         //calculate new centroids
         centroidsChanged = false;
         for(unsigned int i=0; i<newClusterSets.size(); i++){
@@ -7090,7 +7084,7 @@ bool Mesh::computeVertexNormalKMeans(std::vector<Vector3D> *centroids, std::vect
     }
 
     labelsChanged();
-    return true;
+    return newClusterSets;
 }
 
 bool Mesh::assignVerticesToClusterByNormal(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex *>> *clusterSets, bool labeling)
@@ -13985,64 +13979,7 @@ bool Mesh::applyInvertOrientationFaces( std::vector<Face*> rFacesToInvert ) {
 	retVal &= changedMesh();
     return( retVal );
 }
-//! Compute Principal components of the vertices positions
-//! inspired from https://github.com/QuantitativeBytes/qbLinAlg
-//! 1. calculate the means of x,y and z
-//! 2.
-//! 3.
-bool Mesh::computePCA(std::vector<Vector3D> *principalComponents)
-{
-    //1:---------------------------
-    //calculate the mean of x, y, z
-    //-----------------------------
-    std::vector<double> means;
-    //calc sums
-    double xSum = 0.0;
-    double ySum = 0.0;
-    double zSum = 0.0;
-    for( Vertex* vert: mVertices  ){
-        double x = vert->getX();
-        double y = vert->getY();
-        double z = vert->getZ();
-        xSum += x;
-        ySum += y;
-        zSum += z;
-    }
-    //calc means
-    means.push_back(xSum/mVertices.size());
-    means.push_back(ySum/mVertices.size());
-    means.push_back(zSum/mVertices.size());
-    //use h due to use the matrix4d class
-    means.push_back(1.0);
 
-
-    //2:------------------------------
-    //caclculate the covariance matrix
-    //--------------------------------
-    //init vector with 16 elements(matrix size)
-    //!\todo Performance: cov(x,y) = cov(y,x)
-    //!\todo Cov(x,h) = 0
-    std::vector<double> coVariances(16,1.0);
-    for(unsigned int i=0; i<means.size();i++){
-        for(unsigned int j=0; j<means.size();j++){
-            //calc cov(i,j)
-            double cov = 0.0;
-            for( Vertex* vert: mVertices ){
-                double vertPos[4];
-                Vector3D vertVec = vert->getPositionVector();
-                vertVec.get(&vertPos[0],&vertPos[1],&vertPos[2],&vertPos[3]);
-                cov += (vertPos[i]-means[i])*(vertPos[j]-means[j]);
-            }
-            cov = cov * (1.0/(mVertices.size()-1.0));
-            coVariances[4*i+j] = cov;
-        }
-    }
-    Matrix4D covMat = Matrix4D(coVariances);
-    //AutomaticAlignmentPyInterface pyInterface(&mVertices);
-
-
-
-}
 
 //! To be called when the normals of the vertices changed
 //! e.g. to refresh the Open GL rendering

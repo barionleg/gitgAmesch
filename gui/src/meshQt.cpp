@@ -1675,8 +1675,48 @@ bool MeshQt::applyAutomaticMeshAlignment()
                 break;
         }
         std::vector<Vector3D> centroids = {centroid1,centroid2};
-        std::vector<std::set<Vertex*>> clusterSets;
-        Mesh::computeVertexNormalKMeans(&centroids,&clusterSets,true);
+        std::vector<std::set<Vertex*>> clusterSets = Mesh::computeVertexNormalKMeans(&centroids,true);
+
+        //calculate ambient occlusion to get some kind of curviture values
+        //the results are stored in vertices as function values
+        //for parameters we use the recommended values of the GUI
+        int depthBuffeRes = 512;
+        unsigned int numberOfDirections = 1000;
+        int maxValueBufferRes = 512;
+        float zTolerance = 0.0;
+        if( !funcVertAmbientOcclusionHW( depthBuffeRes, maxValueBufferRes, numberOfDirections, zTolerance ) ) {
+                return false;
+        }
+
+        //calculate the average curviture of the cluster -> the cluster/mesh-side with the higher curviture should be in front
+        double meanClust1 = 0.0;
+        double meanClust2 = 0.0;
+
+        std::set<Vertex*>::iterator itr;
+        for (itr = clusterSets.at(0).begin(); itr != clusterSets.at(0).end(); itr++){
+            double funcVal = 0.0;
+            (*itr)->getFuncValue(&funcVal);
+            meanClust1 += funcVal;
+        }
+        meanClust1 = meanClust1/clusterSets.at(0).size();
+
+        for (itr = clusterSets.at(1).begin(); itr != clusterSets.at(1).end(); itr++){
+            double funcVal = 0.0;
+            (*itr)->getFuncValue(&funcVal);
+            meanClust2 += funcVal;
+        }
+        meanClust2 = meanClust2/clusterSets.at(1).size();
+        if (meanClust1 > meanClust2){
+            //rotate 180 degree to get the side with higher curviture to front
+            const double s = sin(180 * M_PI / 180.0);
+            const double c = cos(180 * M_PI / 180.0);
+            Matrix4D rotationMatrix( {  c, 0.0,  -s, 0.0,
+                                        0.0, 1.0, 0.0, 0.0,
+                                          s, 0.0,   c, 0.0,
+                                        0.0, 0.0, 0.0, 1.0} );
+            applyTransformationToWholeMesh(rotationMatrix);
+
+        }
     }
 
 }
