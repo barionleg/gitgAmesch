@@ -147,6 +147,8 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	//.
 	QObject::connect( actionApplyMeltingSphere,     SIGNAL(triggered()), this,       SIGNAL(sApplyMeltingSphere())     );
     //.
+    QObject::connect( actionAutomatic_Mesh_Alignment,     SIGNAL(triggered()), this,       SIGNAL(sAutomaticMeshAlignment())     );
+    //.
 
 	// --- De-Selection ------------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( actionDeSelVertsAll,          SIGNAL(triggered()),         this, SIGNAL(sDeSelVertsAll())         );

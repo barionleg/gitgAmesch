@@ -58,6 +58,7 @@ set(GUI_SOURCES src/main.cpp
 				src/normalSphereSelection/NormalSphereSelectionDialog.h
 				src/normalSphereSelection/NormalSphereSelectionRenderWidget.cpp
 				src/normalSphereSelection/NormalSphereSelectionRenderWidget.h
+                                src/automaticalignmentpyinterface.cpp src/automaticalignmentpyinterface.h
 )
 
 

@@ -171,7 +171,7 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		//.
 		virtual bool   applyMeltingSphere();
 		//.
-
+        virtual bool applyAutomaticMeshAlignment();
 		// Select actions ------------------------------------------------------------------------------------------------------------------------------
 		virtual unsigned int  selectedMVertsChanged();
 		virtual unsigned int  selectedMFacesChanged();

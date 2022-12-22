@@ -335,6 +335,7 @@
      <addaction name="actionApplyMatrix4DVertSel"/>
      <addaction name="separator"/>
      <addaction name="actionApplyMeltingSphere"/>
+     <addaction name="actionAutomatic_Mesh_Alignment"/>
     </widget>
     <addaction name="actionEditMeshPolish"/>
     <addaction name="separator"/>
@@ -4543,6 +4544,11 @@ The latter will be shown, when the processing has finished.</string>
   <action name="actionMax_Number_of_vertices_for_hole_filling">
    <property name="text">
     <string>Max. Number of vertices for hole filling</string>
+   </property>
+  </action>
+  <action name="actionAutomatic_Mesh_Alignment">
+   <property name="text">
+    <string>Automatic Mesh Alignment</string>
    </property>
   </action>
  </widget>

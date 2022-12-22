@@ -237,7 +237,7 @@ signals:
 	//.
 	void sApplyMeltingSphere();                              //!< triggers melting with sqrt(r^2-x^2-y^2)
     //.
-
+    void sAutomaticMeshAlignment();                          //! triggers the automatic mesh alignmented with PCA
 	// --- DeSelect ----------------------------------------------------------------------------------------------------------------------------------------
 	void sDeSelVertsAll();                                   //!< removes all vertices from the selection (SelMVerts).
 	void sDeSelVertsNoLabel();                               //!< removes vertices from the selection (SelMVerts) not assigned to a label.
