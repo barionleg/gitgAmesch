@@ -103,9 +103,17 @@ bool AutomaticAlignmentPyInterface::startPythonScript(std::vector<Vector3D> *pri
     runPCAScriptProcess->start(pythonPath,
                                     PCAScriptArguments);
 
+    if(!runPCAScriptProcess->waitForStarted()){
+        return false;
+    }
 
     runPCAScriptProcess->waitForFinished();
 
+    //if error != 0 --> python script doesn't run properly
+    int error = runPCAScriptProcess->exitCode();
+    if (error != 0){
+        return false;
+    }
     //I use the input file of the python script because I didn't find a way to get the Terminal output of the process
     // and the input file is tmp file, that means that the file is deleted after a short time by the OS
     if(!readPCsFromCSV(vertexCsvFilePath, principalComponents)){
