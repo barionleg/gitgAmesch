@@ -939,35 +939,46 @@ size_t PolyLine::compileLine( set<labelLine*>* unsortedLines ) {
 	while( lineFound ) {
 		lineFound = false;
 		// using break or continue to shortcut this procedure will not properly close the polyline
-		for( itLine=unsortedLines->begin(); (itLine!=unsortedLines->end())&&(!lineFound); itLine++ ) {
-			if( (*itLine)->vertA == vertFront ) {
+        //set<labelLine*>::iterator test = next(unsortedLines->begin(),3);
+        //using next because the iterator is not working probably
+        //for( itLine=unsortedLines->begin(); (itLine!=unsortedLines->end())&&(!lineFound); itLine++ ) {
+        for(unsigned int i=0; i<unsortedLines->size();i++){
+            itLine = next(unsortedLines->begin(),i);
+            if( (*itLine)->vertA == vertFront ) {
 				addFront( (*itLine)->vertB, (*itLine)->mFromFace, (*itLine)->mFromEdge );
 				vertFront = (*itLine)->vertB;
 				lineFound = true;
+                delete (*itLine);
+                unsortedLines->erase( itLine );
+                //reset i because the next line could be in the front of the set
+                i = 0;
+                continue;
 			} else
 			if( (*itLine)->vertA == vertBack ) {
 				addBack( (*itLine)->vertB, (*itLine)->mFromFace, (*itLine)->mFromEdge );
 				vertBack = (*itLine)->vertB;
 				lineFound = true;
+                delete (*itLine);
+                unsortedLines->erase( itLine );
+                i = 0;
+                continue;
 			}
-			if( lineFound ) {
-				delete (*itLine);
-				unsortedLines->erase( itLine );
-				continue;
-			}
+
 			if( (*itLine)->vertB == vertFront ) {
 				addFront( (*itLine)->vertA, (*itLine)->mFromFace, (*itLine)->mFromEdge );
 				vertFront = (*itLine)->vertA;
 				lineFound = true;
+                delete (*itLine);
+                unsortedLines->erase( itLine );
+                i = 0;
 			} else
 			if( (*itLine)->vertB == vertBack ) {
 				addBack( (*itLine)->vertA, (*itLine)->mFromFace, (*itLine)->mFromEdge );
 				vertBack = (*itLine)->vertA;
 				lineFound = true;
-			}
-			if( lineFound ) {
-				delete (*itLine);
-				unsortedLines->erase( itLine );
+                delete (*itLine);
+                unsortedLines->erase( itLine );
+                i = 0;
 			}
 		}
 	}

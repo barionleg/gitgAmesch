@@ -7676,7 +7676,7 @@ void Mesh::convertLabelBordersToPolylines() {
 	//! Converts the borders of labels into polylines.
 
 	int               labelLineCollectionNr; //!< Size of labelLineCollection
-	set<labelLine*>** labelLineCollection;   //!< Lines/Edges (experimental) see face.h
+    //set<labelLine*>** labelLineCollection;   //!< Lines/Edges (experimental) see face.h
 	PolyLine*         selectedPoy;           //!< temporary pointer
 	Vector3D*         labelCOGs;             //!< Center of gravities for the labels.
 	Vector3D*         labelNormals;          //!< Average normals for the labels.
@@ -7693,12 +7693,14 @@ void Mesh::convertLabelBordersToPolylines() {
 
 	// Prepare one array per label:
 	labelLineCollectionNr = labelsNr;
-	labelLineCollection   = new set<labelLine*>*[labelsNr];
-	labelCOGs             = new Vector3D[labelsNr];
-	labelNormals          = new Vector3D[labelsNr];
-	faceCountPerLabel     = new uint64_t[labelsNr];
-	for( uint64_t i=0; i<labelsNr; i++ ) {
-		labelLineCollection[i] = new set<labelLine*>;
+    //labelLineCollection   = new set<labelLine*>*[labelsNr];
+    vector<set<labelLine*>> labelLineCollection;//(labelsNr+1);
+    labelCOGs             = new Vector3D[labelsNr+1];
+    labelNormals          = new Vector3D[labelsNr+1];
+    faceCountPerLabel     = new uint64_t[labelsNr+1];
+    for( uint64_t i=0; i<=labelsNr; i++ ) {
+        //labelLineCollection[i] = new set<labelLine*>;
+        labelLineCollection.push_back(*new set<labelLine*>);
 		// per default we get the origin - a position vector:
 		labelNormals[i].setH( 0.0 );
 		// init as calloc might not:
@@ -7710,44 +7712,47 @@ void Mesh::convertLabelBordersToPolylines() {
 	Face* currFace = nullptr;
 	for( uint64_t faceIdx=0; faceIdx<getFaceNr(); faceIdx++ ) {
 		currFace = getFacePos( faceIdx );
-		if( !currFace->getLabel( currentLabel ) ) {
-			continue;
-		}
-		currFace->getLabelLines( labelLineCollection[currentLabel] );
+        if( !currFace->getLabel( currentLabel ) ) {
+            continue;
+        }
+        //currFace->getLabelLines( labelLineCollection[currentLabel] );
+        currFace->getLabelLines( &labelLineCollection.at(currentLabel) );
 		labelCOGs[currentLabel]    += currFace->getCenterOfGravity();
-		labelNormals[currentLabel] += currFace->getNormal( false );
+        labelNormals[currentLabel] += currFace->getNormal( false );
 		faceCountPerLabel[currentLabel]++;
 	}
 
 	// Estimate polylines per label - when a label has more than one polyline, it has one or more holes.
-	for( int i=0; i<labelLineCollectionNr; i++ ) {
+    for( int i=0; i<=labelLineCollectionNr; i++ ) {
 		//cout << "[Mesh::convertSelectedVerticesToPolyline] labelLineCollection[" << i << "]: " << labelLineCollection[i]->size() << endl;
-		if( labelLineCollection[i]->size() <= 0 ) {
+        if( labelLineCollection.at(i).size() <= 0 ) {
 			continue;
 		}
-		//labelCOGs[i].dumpInfo();
+        //labelCOGs[i].dumpInfo();
 		labelCOGs[i] /= static_cast<float>(faceCountPerLabel[i]);
 		int linesLeft;
 		do {
 			selectedPoy = new PolyLine( labelCOGs[i], labelNormals[i], i );
 			//selectedPoy->setLabel( i );
-			linesLeft = selectedPoy->compileLine( labelLineCollection[i] );
+            linesLeft = selectedPoy->compileLine( &labelLineCollection.at(i) );
 			mPolyLines.push_back( selectedPoy );
 		} while( linesLeft > 0 );
 	}
 
 	// Clear labellines
-	if( labelLineCollection != nullptr ) {
+    if( labelLineCollection.size() != 0 ) {
 		for( int i=0; i<labelLineCollectionNr; i++ ) {
 			//! \todo check about cleaning labelLine
-			labelLineCollection[i]->clear();
+            labelLineCollection.at(i).clear();
 		}
-		delete[] labelLineCollection;
+        labelLineCollection.clear();
 	}
-	delete[] labelCOGs;
-	delete[] labelNormals;
-	delete[] faceCountPerLabel;
+    delete[] labelCOGs;
+    delete[] labelNormals;
+    delete[] faceCountPerLabel;
+
 	polyLinesChanged();
+
 }
 
 //! Convertes triangle edges along mesh border to a polyline, e.g. for hole filling.
