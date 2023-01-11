@@ -1611,7 +1611,13 @@ bool MeshQt::applyAutomaticMeshAlignment()
     std::cout << "[MeshQT::" << __FUNCTION__ << "] Start:Automatic Mesh Alignment" << std::endl;
     std::vector<Vector3D> principalComponents;
     AutomaticAlignmentPyInterface pyInterface(&mVertices);
-    pyInterface.startPythonScript(&principalComponents);
+    if(!pyInterface.startPythonScript(&principalComponents)){
+        QMessageBox msgBox;
+        msgBox.setText( tr("There is a problem to run the required Python script! \n The Python Module: Pandas is necessary! \n Check your Python-Path in Settings->External Programs!") );
+        msgBox.setIcon( QMessageBox::Critical );
+        msgBox.exec();
+        return false;
+    }
     //set principal components as camera vectors
     //double transArr[16] = {
     //       cameraPitchAxis.getX(), mCameraUp.getX(), -cameraRollAxis.getX(),  0.0,
