@@ -1627,6 +1627,20 @@ bool MeshQt::applyAutomaticMeshAlignment()
     //};
     //use the first component as up vec, second as Pitch and third as roll
 
+    //switch the the sign of the up vector in case of a negative y
+    //prevent different transformations if the signs of th PCs for the same object are switched
+    if (principalComponents[0].getY() < 0){
+        principalComponents[0] = -principalComponents[0];
+    }
+
+    if (principalComponents[2].getZ() < 0){
+        principalComponents[2] = -principalComponents[2];
+    }
+
+    if (principalComponents[1].getX() < 0){
+        principalComponents[1] = -principalComponents[1];
+    }
+
     vector<double> transMatVec = {
         principalComponents[1].getX(), principalComponents[0].getX(), principalComponents[2].getX(), 0.0,
         principalComponents[1].getY(), principalComponents[0].getY(), principalComponents[2].getY(), 0.0,
@@ -1712,7 +1726,7 @@ bool MeshQt::applyAutomaticMeshAlignment()
             meanClust2 += funcVal;
         }
         meanClust2 = meanClust2/clusterSets.at(1).size();
-        if (meanClust1 > meanClust2){
+        if (meanClust1 < meanClust2){
             //rotate 180 degree to get the side with higher curviture to front
             const double s = sin(180 * M_PI / 180.0);
             const double c = cos(180 * M_PI / 180.0);
