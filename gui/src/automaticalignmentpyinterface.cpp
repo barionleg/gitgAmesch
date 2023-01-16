@@ -103,10 +103,6 @@ bool AutomaticAlignmentPyInterface::startPythonScript(std::vector<Vector3D> *pri
     runPCAScriptProcess->start(pythonPath,
                                     PCAScriptArguments);
 
-    if(!runPCAScriptProcess->waitForStarted()){
-        return false;
-    }
-
     runPCAScriptProcess->waitForFinished();
 
     //if error != 0 --> python script doesn't run properly
