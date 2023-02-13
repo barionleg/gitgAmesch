@@ -104,6 +104,13 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual double   getY() const;
 		virtual double   getZ() const;
 
+        virtual double   getMinX() const;
+        virtual double   getMinY() const;
+        virtual double   getMinZ() const;
+        virtual double   getMaxX() const;
+        virtual double   getMaxY() const;
+        virtual double   getMaxZ() const;
+
 		// IO Operations - overloaded from MeshIO and MeshSeedExt
 		virtual bool     writeFile( const std::filesystem::path& rFileName );
 		        bool     writeFilesForConnectedComponents();
@@ -457,6 +464,14 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool labelVerticesEqualFV();
         virtual bool labelVerticesEqualRGB();
 		virtual bool labelSelMVertsToBack();
+
+                //kMeans (also used for automatic mesh alignment)
+                bool computeVertexPositionKMeans(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>>*clusterSets, bool labeling);
+                bool assignVerticesToClusterByPosition(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>>*clusterSets, bool labeling);
+                Vector3D getCentroidByPosition(std::set<Vertex*> *clusterSet);
+                std::vector<std::set<Vertex*>> computeVertexNormalKMeans(std::vector<Vector3D> *centroids, bool labeling);
+                bool assignVerticesToClusterByNormal(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>>*clusterSets, bool labeling);
+                Vector3D getCentroidByNormal(std::set<Vertex*> *clusterSet);
 
 		virtual bool compPolylinesIntInvRunLen( double rIIRadius, PolyLine::ePolyIntInvDirection rDirection );
 		virtual bool compPolylinesIntInvAngle( double rIIRadius );

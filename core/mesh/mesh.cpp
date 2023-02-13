@@ -60,6 +60,7 @@
 #include <GigaMesh/mesh/ellipsedisc.h>
 #include <GigaMesh/logging/Logging.h>
 
+
 extern "C"
 {
     #include <triangle/triangle.h>
@@ -663,6 +664,7 @@ bool Mesh::callFunction(
 			}
 			retVal = applyTransformation( valuesMatrix4x4, &mSelectedMVerts );
 	        } break;
+
 		case SELMPRIMS_POS_DESELECT_ALL:
 			mSelectedPositions.clear();
 			selectedMPositionsChanged();
@@ -1232,8 +1234,33 @@ double Mesh::getY() const {
 //! Returns the x-coordinate of the position vector of the Vertex
 //! Return not-a-number in case of an error regarding to Primitive::getZ()
 double Mesh::getZ() const {
-	return ( mMaxZ + mMinZ ) / 2.0;
+    return ( mMaxZ + mMinZ ) / 2.0;
 }
+//! the following getter methods return the min and max coordinates of the mesh vertices
+double Mesh::getMinX() const {
+    return mMinX;
+}
+
+double Mesh::getMinY() const {
+    return mMinY;
+}
+
+double Mesh::getMinZ() const {
+    return mMinZ;
+}
+
+double Mesh::getMaxX() const {
+    return mMaxX;
+}
+
+double Mesh::getMaxY() const {
+    return mMaxY;
+}
+
+double Mesh::getMaxZ() const {
+    return mMaxZ;
+}
+
 
 //! Write Mesh to file - overloaded from MeshIO.
 bool Mesh::writeFile(
@@ -6953,7 +6980,7 @@ bool Mesh::labelVerticesEqualRGB() {
     return true;
 }
 
-//! Sets the selected vertices' label to background.
+//! Sets the selected vertices' label to background
 bool Mesh::labelSelMVertsToBack() {
 	cout << "[Mesh::" << __FUNCTION__ << "]" << endl;
 	set<Vertex*>::iterator itVertex;
@@ -6962,8 +6989,147 @@ bool Mesh::labelSelMVertsToBack() {
 		currVertex->setLabelBackGround();
 	}
 	labelsChanged();
-	return true;
+    return true;
 }
+//!K-Means clustering algorithm
+//!@param centroids as input expected. Contains the start centroids and thus defines the number of the clusters
+//!@param clusterSets returns vertex clusters
+//! @param labeling if true, then the vertecis are labeled with their cluster id
+bool Mesh::computeVertexPositionKMeans(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>> *clusterSets, bool labeling)
+{
+    cout << "[Mesh::" << __FUNCTION__ << "]" << endl;
+    const int cMaxIterations = 50;
+    int iter = 0;
+    bool centroidsChanged = true;
+    while(iter < cMaxIterations && centroidsChanged){
+        //calculate new cluster sets
+        std::vector<std::set<Vertex*>> newClusterSets(centroids->size());
+        if( !assignVerticesToClusterByPosition(centroids, &newClusterSets, labeling)){
+            return false;
+        }
+        //calculate new centroids
+        centroidsChanged = false;
+        for(unsigned int i=0; i<newClusterSets.size(); i++){
+            Vector3D newCentroid = getCentroidByPosition(&newClusterSets.at(i));
+            if( newCentroid != centroids->at(i)){
+                centroids->at(i) = newCentroid;
+                centroidsChanged = true;
+            }
+        }
+        iter++;
+        cout << "[Mesh::" << __FUNCTION__ << "]" << "iteration:" << iter << endl;
+    }
+
+    labelsChanged();
+    return true;
+}
+
+bool Mesh::assignVerticesToClusterByPosition(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex *>> *clusterSets, bool labeling)
+{
+    for(Vertex *vert: mVertices){
+        double minDist = std::numeric_limits<double>::infinity();
+        unsigned int clusterId = 0; //cluster id = index of the centroid or the cluster sets
+        //assign the vertex to the cluster with centroid that has the least distance to the vertex
+        for(unsigned i=0; i<centroids->size(); i++){
+            //I don't use the square root for the distance because it's not necessary for the comparison
+            Vector3D vertPos = vert->getPositionVector();
+            double dist = centroids->at(i).distanceToVectorWithouSqrt(&centroids->at(i),&vertPos);
+            if(minDist > dist){
+                minDist = dist;
+                clusterId = i;
+            }
+        }
+        clusterSets->at(clusterId).insert(vert);
+        if(labeling){
+            vert->setLabel(clusterId+1);
+        }
+
+    }
+    return true;
+}
+
+
+Vector3D Mesh::getCentroidByPosition(std::set<Vertex*> *clusterSet)
+{
+    std::set<Vertex*>::iterator itr;
+    Vector3D newCentroid(0.0,0.0,0.0);
+    for (itr = clusterSet->begin(); itr != clusterSet->end(); itr++){
+        newCentroid = newCentroid + (*itr)->getPositionVector();
+    }
+    return newCentroid/clusterSet->size();
+}
+
+std::vector<std::set<Vertex*>> Mesh::computeVertexNormalKMeans(std::vector<Vector3D> *centroids, bool labeling)
+{
+    cout << "[Mesh::" << __FUNCTION__ << "]" << endl;
+    const int cMaxIterations = 50;
+    int iter = 0;
+    bool centroidsChanged = true;
+    std::vector<std::set<Vertex*>> newClusterSets(centroids->size());
+    while(iter < cMaxIterations && centroidsChanged){
+        //calculate new cluster sets
+        newClusterSets = std::vector<std::set<Vertex*>>(centroids->size());
+        assignVerticesToClusterByNormal(centroids, &newClusterSets, labeling);
+        //calculate new centroids
+        centroidsChanged = false;
+        for(unsigned int i=0; i<newClusterSets.size(); i++){
+            Vector3D newCentroid = getCentroidByNormal(&newClusterSets.at(i));
+            if( newCentroid != centroids->at(i)){
+                centroids->at(i) = newCentroid;
+                centroidsChanged = true;
+            }
+        }
+        iter++;
+        cout << "[Mesh::" << __FUNCTION__ << "]" << "iteration:" << iter << endl;
+    }
+
+    labelsChanged();
+    return newClusterSets;
+}
+
+bool Mesh::assignVerticesToClusterByNormal(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex *>> *clusterSets, bool labeling)
+{
+    for(Vertex *vert: mVertices){
+        double minDist = std::numeric_limits<double>::infinity();
+        unsigned int clusterId = 0; //cluster id = index of the centroid or the cluster sets
+        //assign the vertex to the cluster with centroid that has the least distance to the vertex
+        for(unsigned i=0; i<centroids->size(); i++){
+            //I don't use the square root for the distance because it's not necessary for the comparison
+            Vector3D vertNormal = vert->getNormal();
+            double dist = centroids->at(i).distanceToVectorWithouSqrt(&centroids->at(i),&vertNormal);
+            if(minDist > dist){
+                minDist = dist;
+                clusterId = i;
+            }
+        }
+        clusterSets->at(clusterId).insert(vert);
+        if(labeling){
+            vert->setLabel(clusterId+1);
+        }
+
+    }
+    return true;
+}
+
+
+Vector3D Mesh::getCentroidByNormal(std::set<Vertex*> *clusterSet)
+{
+    std::set<Vertex*>::iterator itr;
+    Vector3D newCentroid(0.0,0.0,0.0);
+    int nrOfdefinedNormals = 0;
+    for (itr = clusterSet->begin(); itr != clusterSet->end(); itr++){
+        Vector3D normal = (*itr)->getNormal();
+        //check if normal is defined
+        //some vertices return NaN
+        if (!isnan(normal.getX())){
+            newCentroid = newCentroid + normal;
+            nrOfdefinedNormals++;
+        }
+    }
+    return newCentroid/nrOfdefinedNormals;
+}
+
+
 
 // ---------------------------------------------------------------------------------------------------
 
@@ -7510,7 +7676,7 @@ void Mesh::convertLabelBordersToPolylines() {
 	//! Converts the borders of labels into polylines.
 
 	int               labelLineCollectionNr; //!< Size of labelLineCollection
-	set<labelLine*>** labelLineCollection;   //!< Lines/Edges (experimental) see face.h
+    //set<labelLine*>** labelLineCollection;   //!< Lines/Edges (experimental) see face.h
 	PolyLine*         selectedPoy;           //!< temporary pointer
 	Vector3D*         labelCOGs;             //!< Center of gravities for the labels.
 	Vector3D*         labelNormals;          //!< Average normals for the labels.
@@ -7527,12 +7693,14 @@ void Mesh::convertLabelBordersToPolylines() {
 
 	// Prepare one array per label:
 	labelLineCollectionNr = labelsNr;
-	labelLineCollection   = new set<labelLine*>*[labelsNr];
-	labelCOGs             = new Vector3D[labelsNr];
-	labelNormals          = new Vector3D[labelsNr];
-	faceCountPerLabel     = new uint64_t[labelsNr];
-	for( uint64_t i=0; i<labelsNr; i++ ) {
-		labelLineCollection[i] = new set<labelLine*>;
+    //labelLineCollection   = new set<labelLine*>*[labelsNr];
+    vector<set<labelLine*>> labelLineCollection;//(labelsNr+1);
+    labelCOGs             = new Vector3D[labelsNr+1];
+    labelNormals          = new Vector3D[labelsNr+1];
+    faceCountPerLabel     = new uint64_t[labelsNr+1];
+    for( uint64_t i=0; i<=labelsNr; i++ ) {
+        //labelLineCollection[i] = new set<labelLine*>;
+        labelLineCollection.push_back(*new set<labelLine*>);
 		// per default we get the origin - a position vector:
 		labelNormals[i].setH( 0.0 );
 		// init as calloc might not:
@@ -7544,44 +7712,47 @@ void Mesh::convertLabelBordersToPolylines() {
 	Face* currFace = nullptr;
 	for( uint64_t faceIdx=0; faceIdx<getFaceNr(); faceIdx++ ) {
 		currFace = getFacePos( faceIdx );
-		if( !currFace->getLabel( currentLabel ) ) {
-			continue;
-		}
-		currFace->getLabelLines( labelLineCollection[currentLabel] );
+        if( !currFace->getLabel( currentLabel ) ) {
+            continue;
+        }
+        //currFace->getLabelLines( labelLineCollection[currentLabel] );
+        currFace->getLabelLines( &labelLineCollection.at(currentLabel) );
 		labelCOGs[currentLabel]    += currFace->getCenterOfGravity();
-		labelNormals[currentLabel] += currFace->getNormal( false );
+        labelNormals[currentLabel] += currFace->getNormal( false );
 		faceCountPerLabel[currentLabel]++;
 	}
 
 	// Estimate polylines per label - when a label has more than one polyline, it has one or more holes.
-	for( int i=0; i<labelLineCollectionNr; i++ ) {
+    for( int i=0; i<=labelLineCollectionNr; i++ ) {
 		//cout << "[Mesh::convertSelectedVerticesToPolyline] labelLineCollection[" << i << "]: " << labelLineCollection[i]->size() << endl;
-		if( labelLineCollection[i]->size() <= 0 ) {
+        if( labelLineCollection.at(i).size() <= 0 ) {
 			continue;
 		}
-		//labelCOGs[i].dumpInfo();
+        //labelCOGs[i].dumpInfo();
 		labelCOGs[i] /= static_cast<float>(faceCountPerLabel[i]);
 		int linesLeft;
 		do {
 			selectedPoy = new PolyLine( labelCOGs[i], labelNormals[i], i );
 			//selectedPoy->setLabel( i );
-			linesLeft = selectedPoy->compileLine( labelLineCollection[i] );
+            linesLeft = selectedPoy->compileLine( &labelLineCollection.at(i) );
 			mPolyLines.push_back( selectedPoy );
 		} while( linesLeft > 0 );
 	}
 
 	// Clear labellines
-	if( labelLineCollection != nullptr ) {
+    if( labelLineCollection.size() != 0 ) {
 		for( int i=0; i<labelLineCollectionNr; i++ ) {
 			//! \todo check about cleaning labelLine
-			labelLineCollection[i]->clear();
+            labelLineCollection.at(i).clear();
 		}
-		delete[] labelLineCollection;
+        labelLineCollection.clear();
 	}
-	delete[] labelCOGs;
-	delete[] labelNormals;
-	delete[] faceCountPerLabel;
+    delete[] labelCOGs;
+    delete[] labelNormals;
+    delete[] faceCountPerLabel;
+
 	polyLinesChanged();
+
 }
 
 //! Convertes triangle edges along mesh border to a polyline, e.g. for hole filling.
@@ -13811,8 +13982,9 @@ bool Mesh::applyInvertOrientationFaces( std::vector<Face*> rFacesToInvert ) {
 	}
 	retVal &= resetVertexNormals();
 	retVal &= changedMesh();
-	return( retVal );
+    return( retVal );
 }
+
 
 //! To be called when the normals of the vertices changed
 //! e.g. to refresh the Open GL rendering

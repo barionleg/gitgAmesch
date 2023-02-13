@@ -160,7 +160,7 @@ class MeshParams {
 			APPLY_TRANSMAT_ALL,						   //!< Call to apply a 4x4 transformation matrix to all vertices.
 			APPLY_TRANSMAT_ALL_SCALE,				   //!< Call to apply a 4x4 transformation matrix to all vertices for scaling/skewing.
 			APPLY_TRANSMAT_SELMVERT,				   //!< Call to apply a 4x4 transformation matrix to the selected vertices (SelMVert).
-			SELMPRIMS_POS_DESELECT_ALL,				   //!< Call to de-select all positions.
+            SELMPRIMS_POS_DESELECT_ALL,				   //!< Call to de-select all positions.
 			SELMPRIMS_POS_DISTANCES,				   //!< Show distances of the selected positions.
 			SELMPRIMS_POS_CIRCLE_CENTERS,              //!< Compute circle centers of selected positions.
 			COMPUTE_FEATUREVECTORS_QUICK,              //!< Apply volume integral invariant filtering (MSII) with default options

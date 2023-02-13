@@ -34,6 +34,7 @@
 #include <QFileDialog>
 #include <QInputDialog>
 
+#include <automaticalignmentpyinterface.h>
 // Other includes:
 // none for now.
 
@@ -202,6 +203,9 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	//.
 	QObject::connect( mMainWindow, SIGNAL(sApplyMeltingSphere()),        this, SLOT(applyMeltingSphere())     );
 	//.
+    QObject::connect( mMainWindow, SIGNAL(sAutomaticMeshAlignment()),    this, SLOT(applyAutomaticMeshAlignment())     );
+    //.
+
 
 	// View menu -------------------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( mMainWindow, SIGNAL(polylinesCurvScale()),                         this, SLOT(polylinesCurvScale())               );
@@ -966,8 +970,27 @@ bool MeshQt::removeUncleanSmallUser() {
 	QString fileName = "";
 	if( saveFile ) {
 		// Show file dialog
-		QString fileLocation = QString::fromStdWString( getFileLocation().wstring() );
-		fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as" ), fileLocation, tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) );
+        QString fileSuggest = QString::fromStdWString( getBaseName().wstring() );
+        //check if the gigamesh name convention is used
+        QRegularExpression nameContainsGMwithSuffix( ".*_GM[cCoOfFpP]*$" );
+        QRegularExpressionMatch match = nameContainsGMwithSuffix.match( fileSuggest );
+        if( match.hasMatch()){
+            //GM or GMO not followed by "C" --> no match
+            QRegularExpression nameContainsC( "(.*_GM*.C)(.*$)" );
+            match = nameContainsC.match( fileSuggest );
+            if( !match.hasMatch() ) {
+                    //regex to add the C after GM or GMO
+                    QRegularExpression nameContainsGM( "(.*_GM[oO]?)(.*$)" );
+                    fileSuggest.replace( nameContainsGM, "\\1C\\2" );
+                }
+          } else {
+                fileSuggest += "_GMC";
+         }
+        fileSuggest += ".ply";
+
+        QString fileLocation = QString::fromStdWString( getFileLocation().wstring() );
+        fileLocation += fileSuggest;
+        fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as" ), fileLocation, tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) );
 	}
 
 	// Store old mesh size to determine the number of changes
@@ -1039,11 +1062,46 @@ bool MeshQt::completeRestore() {
 	}
 	QString fileName = "";
 	if( saveFile ) {
+
+        QString fileSuggest = QString::fromStdWString( getBaseName().wstring() );
+        //check if the gigamesh name convention is used
+        QRegularExpression nameContainsGMwithSuffix( ".*_GM[cCoOfFpP]*$" );
+        QRegularExpressionMatch match = nameContainsGMwithSuffix.match( fileSuggest );
+        if( match.hasMatch()){
+            //check if CF is still used
+            QRegularExpression nameContainsGMCF( ".*_GMC.F*$" );
+            match = nameContainsGMCF.match( fileSuggest );
+            if( !match.hasMatch() ) {
+                //add the CF for cleaned and filled
+                //regex groups with "(....)" are used for the replace methode --> it's possible to copy the groups
+                //with \\... in the replace function
+                //check if the name contains a C (GMOC, GMC)
+                QRegularExpression nameContainsC( "(.*_GM)([cC]|[oO][cC])(.?[^F]*)$" );
+                match = nameContainsC.match( fileSuggest );
+                if( match.hasMatch() ) {
+                    fileSuggest.replace( nameContainsC, "\\1\\2F\\3" );
+                }
+                else{
+                    //have to add a CF in the case with no "C" inside the abbreviation
+                    //GMO followed by a optional character not "C"
+                    QRegularExpression nameContainsNoC( "(.*_GM[oO])(.*)$" );
+                    match = nameContainsNoC.match( fileSuggest );
+                    if( match.hasMatch() ) {
+                        fileSuggest.replace( nameContainsNoC, "\\1CF\\2" );
+                    }
+                }
+          }
+          } else {
+                fileSuggest += "_GMCF";
+         }
+        fileSuggest += ".ply";
+
 		// Show file dialog
-		QString fileLocation = QString::fromStdWString( getFileLocation().wstring() + getBaseName().wstring() + L"_GMxCF.ply" );
+        QString fileLocation = QString::fromStdWString( getFileLocation().wstring() );
+        fileLocation += fileSuggest;
 		fileName = QFileDialog::getSaveFileName( \
 		               mMainWindow, tr( "Save as" ), \
-		               fileLocation, tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) \
+                       fileLocation, tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) \
 		           );
 	}
     //get parameters from Settings
@@ -1541,7 +1599,146 @@ bool MeshQt::applyMeltingSphere() {
 	if( !dlgEnterTxt.getText( &radius ) ) {
 		return false;
 	}
-	return MeshGL::applyMeltingSphere( radius, 1.0 );
+    return MeshGL::applyMeltingSphere( radius, 1.0 );
+}
+
+//!Automatic Mesh Alignment
+//! calculates principal components (PCA) of the vertices
+//! Sets the PCs as new camera vectors
+//! result should be that the biggest extension of the is equal to the y-axis
+bool MeshQt::applyAutomaticMeshAlignment()
+{
+    std::cout << "[MeshQT::" << __FUNCTION__ << "] Start:Automatic Mesh Alignment" << std::endl;
+    std::vector<Vector3D> principalComponents;
+    AutomaticAlignmentPyInterface pyInterface(&mVertices);
+    if(!pyInterface.startPythonScript(&principalComponents)){
+        QMessageBox msgBox;
+        msgBox.setText( tr("There is a problem to run the required Python script! \n The Python Module: Pandas is necessary! \n Check your Python-Path in Settings->External Programs!") );
+        msgBox.setIcon( QMessageBox::Critical );
+        msgBox.exec();
+        return false;
+    }
+    //set principal components as camera vectors
+    //double transArr[16] = {
+    //       cameraPitchAxis.getX(), mCameraUp.getX(), -cameraRollAxis.getX(),  0.0,
+    //       cameraPitchAxis.getY(), mCameraUp.getY(), -cameraRollAxis.getY(),  0.0,
+    //       cameraPitchAxis.getZ(), mCameraUp.getZ(), -cameraRollAxis.getZ(),  0.0,
+    //                     0.0,             0.0,                    0.0,       1.0
+    //};
+    //use the first component as up vec, second as Pitch and third as roll
+
+    //switch the the sign of the up vector in case of a negative y
+    //prevent different transformations if the signs of th PCs for the same object are switched
+    if (principalComponents[0].getY() < 0){
+        principalComponents[0] = -principalComponents[0];
+    }
+
+    if (principalComponents[2].getZ() < 0){
+        principalComponents[2] = -principalComponents[2];
+    }
+
+    if (principalComponents[1].getX() < 0){
+        principalComponents[1] = -principalComponents[1];
+    }
+
+    vector<double> transMatVec = {
+        principalComponents[1].getX(), principalComponents[0].getX(), principalComponents[2].getX(), 0.0,
+        principalComponents[1].getY(), principalComponents[0].getY(), principalComponents[2].getY(), 0.0,
+        principalComponents[1].getZ(), principalComponents[0].getZ(), principalComponents[2].getZ(), 0.0,
+        0.0,                            0.0,                               0.0,                       1.0
+    };
+    Matrix4D transMat(transMatVec);
+    applyTransformationDefaultViewMatrix(&transMat);
+    // setup initial view (emit Signal to meshwidget.cpp:
+    emit sDefaultViewLight();
+
+    //Decide which part of the mesh is the front
+    //only for stone tools
+
+    bool curvatureAlignment = false;
+    bool userCancel = false;
+    SHOW_QUESTION( tr("Front Alignment"), tr( "Do you want to align the front of the mesh based on the curvature?" ), curvatureAlignment, userCancel );
+    if( userCancel ) {
+        return false;
+    }
+    if (curvatureAlignment){
+        //define the start centroids of k-means
+        //use the points in the middle of the mesh and the minimum and the maximum of the dimension with the smallest extension
+        //0 = x
+        //1 = y
+        //2 = z
+        int smallestExtension = 0;
+        double xExtension = abs(Mesh::getMinX() - Mesh::getMaxX());
+        double yExtension = abs(Mesh::getMinY() - Mesh::getMaxY());
+        double zExtension = abs(Mesh::getMinZ() - Mesh::getMaxZ());
+        if (xExtension > yExtension){
+            smallestExtension = 1;
+        }
+        if (xExtension > zExtension && yExtension > zExtension){
+            smallestExtension = 2;
+        }
+
+        Vector3D centroid1;
+        Vector3D centroid2;
+        switch(smallestExtension){
+            case 0:
+                centroid1 = Vector3D(1.0,0.0,0.0);
+                centroid2 = Vector3D(-1.0,0.0,0.0);
+                break;
+            case 1:
+                centroid1 = Vector3D(0.0,1.0,0.0);
+                centroid2 = Vector3D(0.0,-1.0,0.0);
+                break;
+            case 2:
+                centroid1 = Vector3D(0.0,0.0,1.0);
+                centroid2 = Vector3D(0.0,0.0,-1.0);
+                break;
+        }
+        std::vector<Vector3D> centroids = {centroid1,centroid2};
+        std::vector<std::set<Vertex*>> clusterSets = Mesh::computeVertexNormalKMeans(&centroids,true);
+
+        //calculate ambient occlusion to get some kind of curviture values
+        //the results are stored in vertices as function values
+        //for parameters we use the recommended values of the GUI
+        int depthBuffeRes = 512;
+        unsigned int numberOfDirections = 1000;
+        int maxValueBufferRes = 512;
+        float zTolerance = 0.0;
+        if( !funcVertAmbientOcclusionHW( depthBuffeRes, maxValueBufferRes, numberOfDirections, zTolerance ) ) {
+                return false;
+        }
+
+        //calculate the average curviture of the cluster -> the cluster/mesh-side with the higher curviture should be in front
+        double meanClust1 = 0.0;
+        double meanClust2 = 0.0;
+
+        std::set<Vertex*>::iterator itr;
+        for (itr = clusterSets.at(0).begin(); itr != clusterSets.at(0).end(); itr++){
+            double funcVal = 0.0;
+            (*itr)->getFuncValue(&funcVal);
+            meanClust1 += funcVal;
+        }
+        meanClust1 = meanClust1/clusterSets.at(0).size();
+
+        for (itr = clusterSets.at(1).begin(); itr != clusterSets.at(1).end(); itr++){
+            double funcVal = 0.0;
+            (*itr)->getFuncValue(&funcVal);
+            meanClust2 += funcVal;
+        }
+        meanClust2 = meanClust2/clusterSets.at(1).size();
+        if (meanClust1 < meanClust2){
+            //rotate 180 degree to get the side with higher curviture to front
+            const double s = sin(180 * M_PI / 180.0);
+            const double c = cos(180 * M_PI / 180.0);
+            Matrix4D rotationMatrix( {  c, 0.0,  -s, 0.0,
+                                        0.0, 1.0, 0.0, 0.0,
+                                          s, 0.0,   c, 0.0,
+                                        0.0, 0.0, 0.0, 1.0} );
+            applyTransformationToWholeMesh(rotationMatrix);
+
+        }
+    }
+
 }
 
 

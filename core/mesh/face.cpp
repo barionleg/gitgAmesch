@@ -1768,34 +1768,39 @@ bool Face::getLabelLines( set<labelLine*>* labelLineCollection ) {
 		return false;
 	}
 	uint64_t nextLabel;
-	if( ( FACE_NEIGHBOUR_AB == nullptr ) || ( !FACE_NEIGHBOUR_AB->getLabel( nextLabel ) ) || ( nextLabel != currentLabel ) ) {
-		labelLine* lineAB = new labelLine();
-		lineAB->vertA      = vertA;
-		lineAB->vertB      = vertB;
-		lineAB->mFromFace  = this;
-		lineAB->mFromEdge  = EDGE_AB;
-		lineAB->labelNr    = currentLabel;
-		labelLineCollection->insert( lineAB );
+
+    if( ( FACE_NEIGHBOUR_AB == nullptr ) || ( !FACE_NEIGHBOUR_AB->getLabel( nextLabel ) ) || ( nextLabel != currentLabel ) ) {
+        labelLine* lineAB = new labelLine();
+        //labelLine lineAB;
+        lineAB->vertA      = vertA;
+        lineAB->vertB      = vertB;
+        lineAB->mFromFace  = this;
+        lineAB->mFromEdge  = EDGE_AB;
+        lineAB->labelNr    = currentLabel;
+        labelLineCollection->insert( lineAB );
 	}
-	if( ( FACE_NEIGHBOUR_BC == nullptr ) || ( !FACE_NEIGHBOUR_BC->getLabel( nextLabel ) ) || ( nextLabel != currentLabel ) ) {
-		labelLine* lineBC = new labelLine();
-		lineBC->vertA      = vertB;
-		lineBC->vertB      = vertC;
-		lineBC->mFromFace  = this;
-		lineBC->mFromEdge  = EDGE_BC;
-		lineBC->labelNr    = currentLabel;
-		labelLineCollection->insert( lineBC );
+
+    if( ( FACE_NEIGHBOUR_BC == nullptr ) || ( !FACE_NEIGHBOUR_BC->getLabel( nextLabel ) ) || ( nextLabel != currentLabel ) ) {
+        labelLine* lineBC = new labelLine();
+        lineBC->vertA      = vertB;
+        lineBC->vertB      = vertC;
+        lineBC->mFromFace  = this;
+        lineBC->mFromEdge  = EDGE_BC;
+        lineBC->labelNr    = currentLabel;
+        labelLineCollection->insert( lineBC );
 	}
-	if( ( FACE_NEIGHBOUR_CA == nullptr ) || ( !FACE_NEIGHBOUR_CA->getLabel( nextLabel ) ) || ( nextLabel != currentLabel ) ) {
-		labelLine* lineCA = new labelLine();
-		lineCA->vertA      = vertC;
-		lineCA->vertB      = vertA;
-		lineCA->mFromFace  = this;
-		lineCA->mFromEdge  = EDGE_CA;
-		lineCA->labelNr    = currentLabel;
-		labelLineCollection->insert( lineCA );
+    if( ( FACE_NEIGHBOUR_CA == nullptr ) || ( !FACE_NEIGHBOUR_CA->getLabel( nextLabel ) ) || ( nextLabel != currentLabel )) {
+        //labelLine* lineCA = new labelLine();
+        labelLine *lineCA = new labelLine();
+        lineCA->vertA      = vertC;
+        lineCA->vertB      = vertA;
+        lineCA->mFromFace  = this;
+        lineCA->mFromEdge  = EDGE_CA;
+        lineCA->labelNr    = currentLabel;
+        labelLineCollection->insert(lineCA );
 	}
-	return true;
+
+    return true;
 }
 
 // Labeling using Vertex labels - specific for Faces! -----------------------------------------------------
