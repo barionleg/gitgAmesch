@@ -1608,47 +1608,30 @@ bool MeshQt::applyMeltingSphere() {
 //! result should be that the biggest extension of the is equal to the y-axis
 bool MeshQt::applyAutomaticMeshAlignment()
 {
+
     std::cout << "[MeshQT::" << __FUNCTION__ << "] Start:Automatic Mesh Alignment" << std::endl;
-    std::vector<Vector3D> principalComponents;
+    Matrix4D pcaTransformationMatrix;
     AutomaticAlignmentPyInterface pyInterface(&mVertices);
-    if(!pyInterface.startPythonScript(&principalComponents)){
+    if(!pyInterface.startPythonScript(&pcaTransformationMatrix)){
         QMessageBox msgBox;
         msgBox.setText( tr("There is a problem to run the required Python script! \n The Python Module: Pandas is necessary! \n Check your Python-Path in Settings->External Programs!") );
         msgBox.setIcon( QMessageBox::Critical );
         msgBox.exec();
         return false;
     }
-    //set principal components as camera vectors
-    //double transArr[16] = {
-    //       cameraPitchAxis.getX(), mCameraUp.getX(), -cameraRollAxis.getX(),  0.0,
-    //       cameraPitchAxis.getY(), mCameraUp.getY(), -cameraRollAxis.getY(),  0.0,
-    //       cameraPitchAxis.getZ(), mCameraUp.getZ(), -cameraRollAxis.getZ(),  0.0,
-    //                     0.0,             0.0,                    0.0,       1.0
-    //};
-    //use the first component as up vec, second as Pitch and third as roll
 
-    //switch the the sign of the up vector in case of a negative y
-    //prevent different transformations if the signs of th PCs for the same object are switched
-    if (principalComponents[0].getY() < 0){
-        principalComponents[0] = -principalComponents[0];
-    }
 
-    if (principalComponents[2].getZ() < 0){
-        principalComponents[2] = -principalComponents[2];
-    }
+    //Matrix4D transMat(transMatVec);
+    applyTransformationToWholeMesh(pcaTransformationMatrix);
 
-    if (principalComponents[1].getX() < 0){
-        principalComponents[1] = -principalComponents[1];
-    }
+    //rotate about z --> it changes the highest pc to y axis
+    std::vector<double> rotationAngle = {90 * M_PI / 180.0};
+    Matrix4D zRotation(Matrix4D::INIT_ROTATE_ABOUT_Z,&rotationAngle);
+    applyTransformationToWholeMesh(zRotation);    
 
-    vector<double> transMatVec = {
-        principalComponents[1].getX(), principalComponents[0].getX(), principalComponents[2].getX(), 0.0,
-        principalComponents[1].getY(), principalComponents[0].getY(), principalComponents[2].getY(), 0.0,
-        principalComponents[1].getZ(), principalComponents[0].getZ(), principalComponents[2].getZ(), 0.0,
-        0.0,                            0.0,                               0.0,                       1.0
-    };
-    Matrix4D transMat(transMatVec);
-    applyTransformationDefaultViewMatrix(&transMat);
+    //the transformation with the identity matrix resets the mesh to the center
+    Matrix4D identity(Matrix4D::INIT_IDENTITY);
+    applyTransformationDefaultViewMatrix(&identity);
     // setup initial view (emit Signal to meshwidget.cpp:
     emit sDefaultViewLight();
 
@@ -1700,6 +1683,7 @@ bool MeshQt::applyAutomaticMeshAlignment()
         //calculate ambient occlusion to get some kind of curviture values
         //the results are stored in vertices as function values
         //for parameters we use the recommended values of the GUI
+        /**
         int depthBuffeRes = 512;
         unsigned int numberOfDirections = 1000;
         int maxValueBufferRes = 512;
@@ -1737,7 +1721,20 @@ bool MeshQt::applyAutomaticMeshAlignment()
             applyTransformationToWholeMesh(rotationMatrix);
 
         }
+        **/
+        if (clusterSets.at(0).size() < clusterSets.at(1).size()){
+            //rotate 180 degree to get the side with higher curviture to front
+            const double s = sin(180 * M_PI / 180.0);
+            const double c = cos(180 * M_PI / 180.0);
+            Matrix4D rotationMatrix( {  c, 0.0,  -s, 0.0,
+                                        0.0, 1.0, 0.0, 0.0,
+                                          s, 0.0,   c, 0.0,
+                                        0.0, 0.0, 0.0, 1.0} );
+            applyTransformationToWholeMesh(rotationMatrix);
+
+        }
     }
+
 
 }
 

@@ -19,23 +19,29 @@ def main():
     #delete indices 
     positions = df.drop([df.columns[0]], axis=1)
     #calculate PCA 
-    #https://www.machinelearningplus.com/machine-learning/principal-components-analysis-pca-better-explained/
-    #without scikit learn because less python modules should be used 
-    posStandardized = positions - positions.mean()
-    #print(posStandardized)
-    df_cov = posStandardized.cov()
-    #print(df_cov)
-    #calculate the eigenvalues and eigenvectors of the covariance matrix 
-    eigvalues, eigvectors = eig(df_cov)
-    #print(eigvalues)
-    #print(eigvectors)
-    #sort the eigenvectors by the eigenvalues descending
-    sortedEigenvectors = []
-    for sortedIdx in reversed(np.argsort(eigvalues)):
-        sortedEigenvectors.append(eigvectors[sortedIdx])
-    NPSortedEigenvectors = np.array(sortedEigenvectors)
+    # calculate the center of mass of the mesh
+    center_of_mass = np.mean(positions, axis=0)
+
+    # calculate the covariance matrix
+    cov_matrix = np.cov(positions, rowvar=False)
+
+    # calculate the eigenvalues and eigenvectors
+    eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
+
+    # sorting eigenvectors based on their eigenvalues
+    eig_values_index = np.argsort(eigenvalues)[::-1]
+    eig_vectors = eigenvectors[:, eig_values_index]
+
+    # save center of mass as np array
+    center_of_mass = np.array(center_of_mass)
+
+    # create the PCA transformation matrix
+    trafomat = np.vstack((np.vstack((eig_vectors,center_of_mass)).T, np.array([0,0,0,1])))
+
+
     #overwrite the input csv with the principal components
-    resultDf = pd.DataFrame(NPSortedEigenvectors)
+    resultDf = pd.DataFrame(trafomat)
     resultDf.to_csv(verticesCsvPath)
+
 if __name__=="__main__":
     main()
