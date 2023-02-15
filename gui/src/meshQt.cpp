@@ -1733,9 +1733,12 @@ bool MeshQt::applyAutomaticMeshAlignment()
             applyTransformationToWholeMesh(rotationMatrix);
 
         }
+
     }
-
-
+    //Recompute the normals
+    //It's necessary to prevent that the mesh is sometimes dark after the transformation
+    resetFaceNormals();
+    resetVertexNormals();
 }
 
 

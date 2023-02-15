@@ -119,8 +119,6 @@ class Matrix4D {
 
 		// Calculation
 		double getDeterminant();
-        bool calculateEigenValues(std::vector<double> *eigenValues);
-        void calcQRDecomposition(Matrix4D *inputMatrix, Matrix4D *Q, Matrix4D *R);
 
 		// Operators
 		void operator *= (Matrix4D multMat);
