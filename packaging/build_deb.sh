@@ -101,11 +101,11 @@ if test -r "$ORIG_FILE"; then
 	ORIG_SOURCES="$TMPDIR/$P_NAME-$P_VERSION"
 	DIFF_OUTPUT="$TMPDIR/orig-diff-$P_VERSION"
 	/bin/tar --extract --gunzip --file "$ORIG_FILE" --directory "$TMPDIR"
-	echo "test before" 
+	
     /usr/bin/diff --recursive --minimal --unified \
 		"$ORIG_SOURCES" "$BUILD_DIR" >"$DIFF_OUTPUT" || true
 	# either way, the sdist archive is no longer useful
-	echo "test"
+	
     /bin/rm --force "$SDIST_FILE"
 	if test -s "$DIFF_OUTPUT"; then
 		/bin/rm --force --recursive "$BUILD_DIR"
