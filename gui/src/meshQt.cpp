@@ -1624,16 +1624,43 @@ bool MeshQt::applyAutomaticMeshAlignment()
     //Matrix4D transMat(transMatVec);
     applyTransformationToWholeMesh(pcaTransformationMatrix);
 
-    //rotate about z --> it changes the highest pc to y axis
-    std::vector<double> rotationAngle = {90 * M_PI / 180.0};
-    Matrix4D zRotation(Matrix4D::INIT_ROTATE_ABOUT_Z,&rotationAngle);
-    applyTransformationToWholeMesh(zRotation);    
 
-    //the transformation with the identity matrix resets the mesh to the center
-    Matrix4D identity(Matrix4D::INIT_IDENTITY);
-    applyTransformationDefaultViewMatrix(&identity);
-    // setup initial view (emit Signal to meshwidget.cpp:
-    emit sDefaultViewLight();
+
+
+    //calculate the determinant of the rotation part inside the transformation matrix
+    //if the determinant is negative then mirror the mesh
+    double det = pcaTransformationMatrix.getX(0)*pcaTransformationMatrix.getY(1)*pcaTransformationMatrix.getZ(2) +
+                pcaTransformationMatrix.getY(0)*pcaTransformationMatrix.getZ(1)*pcaTransformationMatrix.getZ(2) +
+                pcaTransformationMatrix.getZ(0)*pcaTransformationMatrix.getX(1)*pcaTransformationMatrix.getY(2) -
+                pcaTransformationMatrix.getZ(0)*pcaTransformationMatrix.getY(1)*pcaTransformationMatrix.getX(2) -
+                pcaTransformationMatrix.getY(0)*pcaTransformationMatrix.getX(1)*pcaTransformationMatrix.getZ(2) -
+                pcaTransformationMatrix.getX(0)*pcaTransformationMatrix.getZ(1)*pcaTransformationMatrix.getY(2);
+
+
+    std::vector<double> rotationAngle = {-90 * M_PI / 180.0};
+
+    if (det < 0){
+        Matrix4D xyMirror(Matrix4D::INIT_IDENTITY);
+        xyMirror.set(2,2,-1);
+        xyMirror.set(1,1,-1);
+        xyMirror.set(0,0,-1);
+        applyTransformationToWholeMesh(xyMirror);
+        //rotate the mesh clockwise
+        rotationAngle = {90 * M_PI / 180.0};
+
+    }
+
+    //rotate about z --> it changes the highest pc to y axis
+    Matrix4D zRotation(Matrix4D::INIT_ROTATE_ABOUT_Z,&rotationAngle);
+    applyTransformationToWholeMesh(zRotation);
+    changedMesh();
+
+    //Recompute the normals
+    //It's necessary to prevent that the mesh is sometimes dark after the transformation
+    resetFaceNormals();
+    resetVertexNormals();
+
+
 
     //Decide which part of the mesh is the front
     //only for stone tools
@@ -1733,12 +1760,15 @@ bool MeshQt::applyAutomaticMeshAlignment()
             applyTransformationToWholeMesh(rotationMatrix);
 
         }
-
     }
-    //Recompute the normals
-    //It's necessary to prevent that the mesh is sometimes dark after the transformation
-    resetFaceNormals();
-    resetVertexNormals();
+    //the transformation with the identity matrix resets the mesh to the center
+    Matrix4D identity(Matrix4D::INIT_IDENTITY);
+    applyTransformationDefaultViewMatrix(&identity);
+
+    // setup initial view (emit Signal to meshwidget.cpp:
+    emit sDefaultViewLight();
+
+    return true;
 }
 
 
