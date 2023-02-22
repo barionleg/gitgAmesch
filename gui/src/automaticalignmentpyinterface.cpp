@@ -27,7 +27,7 @@
 #include <QTextStream>
 #include <iostream>
 #include <QSettings>
-#include "MeshQtCSVImportExport.h"
+//#include <MeshQtCSVImportExport.h>
 
 AutomaticAlignmentPyInterface::AutomaticAlignmentPyInterface(std::vector<Vertex*> *meshVertices)
 {
