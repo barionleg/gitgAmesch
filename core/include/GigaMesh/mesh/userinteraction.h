@@ -41,7 +41,7 @@ class UserInteraction
 		virtual bool showEnterText( std::string&         rSomeStrg,  const char* rTitle );
 		virtual bool showEnterText( uint64_t&            rULongInt,  const char* rTitle );
 		virtual bool showEnterText( double&              rDoubleVal, const char* rTitle );
-		virtual bool showEnterText( std::set<long>&      rIntegers,  const char* rTitle );
+		virtual bool showEnterText( std::set<int64_t>&   rIntegers,  const char* rTitle );
 		virtual bool showEnterText( std::vector<long>&   rIntegers,  const char* rTitle );
 		virtual bool showEnterText( std::vector<double>& rDoubles,   const char* rTitle );
 		virtual bool showEnterText( Matrix4D* rMatrix4x4, bool selectedVerticesOnly = false );

@@ -45,6 +45,7 @@ set(GUI_SOURCES src/main.cpp
 				src/meshGL/PinRenderer.cpp            src/meshGL/PinRenderer.h
 				src/meshGL/TexturedMesh.cpp           src/meshGL/TexturedMesh.h
 				src/meshGL/TexturedMeshRenderer.cpp   src/meshGL/TexturedMeshRenderer.h
+                                src/meshGL/ShaderManager.cpp          src/meshGL/ShaderManager.h
 				src/svg/SvgWriter.cpp                 src/svg/SvgWriter.h
 				src/svg/SvgCircle.cpp                 src/svg/SvgCircle.h
 				src/svg/SvgImage.cpp                  src/svg/SvgImage.h
@@ -57,6 +58,7 @@ set(GUI_SOURCES src/main.cpp
 				src/normalSphereSelection/NormalSphereSelectionDialog.h
 				src/normalSphereSelection/NormalSphereSelectionRenderWidget.cpp
 				src/normalSphereSelection/NormalSphereSelectionRenderWidget.h
+                                src/automaticalignmentpyinterface.cpp src/automaticalignmentpyinterface.h
 )
 
 

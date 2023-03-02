@@ -59,7 +59,7 @@ class QGMDialogPlaneParam : public QDialog, private Ui::dialogPlaneParam {
 
 public:
 	// Constructor and Destructor:
-	QGMDialogPlaneParam( QWidget *parent = 0, Qt::WindowFlags flags = 0 );
+    QGMDialogPlaneParam( QWidget *parent = nullptr, Qt::WindowFlags flags = {} );
 
 public slots:
 	bool setPlaneHNF( Vector3D rPlaneHNF );

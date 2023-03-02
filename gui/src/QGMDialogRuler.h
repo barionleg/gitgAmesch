@@ -52,7 +52,7 @@ class QGMDialogRuler : public QDialog, private Ui::dialogRuler {
 
 public:
 	// Constructor and Destructor:
-	QGMDialogRuler( QWidget *parent = 0, Qt::WindowFlags flags = 0 );
+    QGMDialogRuler( QWidget *parent = 0, Qt::WindowFlags flags = {} );
 
 public slots:
 	void setFileName(const QString& fileName );

@@ -113,7 +113,7 @@ class Matrix4D {
 		double& getH( int idx );
 		double  getSumX();
 		double  getSumY();
-		double  getSumZ();
+        double  getSumZ();
 		double  getSumH();
 		void    getArray( double* array4by4 );
 

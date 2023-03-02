@@ -90,32 +90,32 @@ class Face : public Primitive {
 				bool     getVertABC( std::set<Vertex*>* rSomeVerts );
 
 		// Indexing:
-		virtual bool     setIndex( unsigned int rIndex );
-		virtual int      getIndex() const;
+				bool     setIndex( int rIndex ) override;
+				int      getIndex() const override;
 		virtual void     getIndexOffsetBit( uint64_t* rBitOffset, uint64_t* rBitNr );
 		        void     getIndexOffsetBitEdge( int* bitOffset, int* bitNr, int edgeIdx );
 				bool     markVertsVisited( uint64_t* rVertBitArrayVisited );
 				bool     addAndTagUntaggedVerts( std::vector<Vertex*>* rSomeVerts, uint64_t* rVertBitArrayVisited );
 
 		// Information retrival:
-		virtual double   getX() const;
-		virtual double   getY() const;
-		virtual double   getZ() const;
-		virtual double   getNormalX();
-		virtual double   getNormalY();
-		virtual double   getNormalZ();
-		virtual bool     copyNormalXYZTo( float*  rNormalXYZ, bool rNormalized=true );
-		virtual bool     copyNormalXYZTo( double* rNormalXYZ, bool rNormalized=true );
+				double   getX() const override;
+				double   getY() const override;
+				double   getZ() const override;
+				double   getNormalX() override;
+				double   getNormalY() override;
+				double   getNormalZ() override;
+				bool     copyNormalXYZTo( float*  rNormalXYZ, bool rNormalized=true ) override;
+				bool     copyNormalXYZTo( double* rNormalXYZ, bool rNormalized=true ) override;
 		// Colors:
-		virtual bool     copyRGBTo( unsigned char* rColorRGB );
-		virtual bool     copyRGBATo( unsigned char* rColorRGBA );
+				bool     copyRGBTo( unsigned char* rColorRGB )   override;
+				bool     copyRGBATo( unsigned char* rColorRGBA ) override;
 
 		        bool     getMaxAngle( double* rMaxAngle );
 		        bool     getMinAngle( double* rMaxAngle );
 
 		// Function value
-		virtual bool     setFuncValue( double  setVal );
-		virtual bool     getFuncValue( double* rSetVal ) const;
+				bool     setFuncValue( double  setVal ) override;
+				bool     getFuncValue( double* rSetVal ) const override;
 		// Comparison of function value - Heap/sorting related
 		static  bool     funcValLower( Face* rPrim1, Face* rPrim2 );
 		static  bool     funcValLowerLabled( Face* rPrim1, Face* rPrim2 );
@@ -123,8 +123,8 @@ class Face : public Primitive {
 		static  bool     sortByIndex( Face* rPrim1, Face* rPrim2 );
 
 		        double   getAngleAtVertex( const Vertex* vertABC ) const;            // retrieve the angle next to an arbitrary vertex
-		        bool     requiresVertex( Vertex* vertexRequired ) const;                   // returns true if vertexRequired matches A, B or C
-				bool     requiresOneOrMoreVerticesOf( std::set<Vertex*>* vertexList );    // returns true if A,B or C is within the list (set)
+		        bool     requiresVertex( const Vertex* vertexRequired ) const;                   // returns true if vertexRequired matches A, B or C
+		        bool     requiresOneOrMoreVerticesOf( const std::set<Vertex*>& rVertexList ) const;    // returns true if A,B or C is within the list (set)
 		        bool     getMinDistTo( double const rSomePos[3], double* rDist );
 		        double   getMinDistTo( double x, double y, double z );                  // minimum Distance of the Distances of A, B and C to (x,y,z)
 		        double   getMaxDistTo( double x, double y, double z );                  // maximum Distance of the Distances of A, B and C to (x,y,z)
@@ -156,7 +156,7 @@ class Face : public Primitive {
 		        bool     getAltitudeMin( double* rAltitudeMin );
 
 		// ...
-		virtual int      getType();
+			int      getType() override;
 			bool     surfaceintegralinvariant( int nradii, double* radii, double* area, Vertex* rseed1 );
 			//check if p is in triangle or on border of triangle
 			bool     pointontriangle(const Vector3D* p) const;
@@ -165,20 +165,20 @@ class Face : public Primitive {
 			double   csecarea(double r, Vector3D* s1, Vector3D* s2, Vertex* rseed);
 
 		// Transformation
-		virtual bool     applyTransfrom( Matrix4D* transMat );
+		virtual bool     applyTransfrom( Matrix4D* transMat ) override;
 		        bool     applyReOrient();
 
 		// Labeling - common functions, inherited from Primitive.
-		virtual bool     setLabel( uint64_t rSetLabelNr );
-		virtual bool     setLabelNone();
-		virtual bool     getLabel( uint64_t& rGetLabelNr ) const;
-		virtual bool     isLabled() const;
-		virtual bool     isLabelBackGround();
+				bool     setLabel( uint64_t rSetLabelNr ) override;
+				bool     setLabelNone() override;
+				bool     getLabel( uint64_t& rGetLabelNr ) const override;
+				bool     isLabled() const override;
+				bool     isLabelBackGround() override;
 		        bool     isLabelMix();
 		        bool     isLabelVoronoiCorner();
 				bool     getLabelLines( std::set<labelLine*>* labelLineCollection );
 		// Labeling using Vertex labels - specific for Faces!
-				bool     vertLabelGet( uint64_t& rGetLabelNr ) const;
+		        bool     vertLabelGet( uint64_t& rGetLabelNr ) const;
 		        bool     vertLabelBackGround();
 		        bool     vertLabelLabelBorder( bool* isLabelLabelBorder, int* labelFromBorder );
 
@@ -295,7 +295,7 @@ class Face : public Primitive {
 		unsigned char mTextureId = 0;        //!< id of the texture-file assiciated to this face
 
 		// Indexing - required for bit arrays and to be maintained properly!
-		unsigned int mIndex;      //!< Stores the actual index, which may change due to manipulation, while idxOri stores the original index.
+		int mIndex;      //!< Stores the actual index, which may change due to manipulation, while idxOri stores the original index.
 		// Function Value:
 		double       mFuncValue;         //!< Function value.
 

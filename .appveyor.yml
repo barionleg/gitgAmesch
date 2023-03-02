@@ -8,17 +8,18 @@ image:
   - macOS
   - Ubuntu
 
-
-
 for:
 -
   matrix:
     only:
       - image: Ubuntu
   install:
+  - export Qt5_DIR="$HOME/Qt/latest/gcc_64"
+  - export PATH="$Qt5_DIR/bin:$PATH"
+  - export QT_SELECT=qt5
   - sudo apt-get update -qq
   - sudo apt-get -y install build-essential libtiff5-dev
-  - sudo apt-get -y install qtbase5-dev libqt5opengl5-dev libgl-dev g++-8
+  - sudo apt-get -y install libgl-dev g++-8
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 90 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
   after_build:
   - mv install GigaMesh
@@ -35,12 +36,12 @@ for:
     only:
       - image: Visual Studio 2019
   install:
-  - cmd: set QTDIR=C:\Qt\5.14\msvc2017_64
-  - cmd: set PATH=%QTDIR%\bin;C:\Qt\Tools\msvc2017_64\bin;%PATH%;
+  - cmd: set QTDIR=C:\Qt\5.15.2\msvc2019_64
+  - cmd: set PATH=%QTDIR%\bin;C:\Qt\Tools\msvc2019_64\bin;%PATH%;
   after_build:
   - windeployqt install/bin/gigamesh.exe
   - mv install GigaMesh
-  - ls tests\Release
+  - ps: cp C:\OpenSSL-v111-Win64\bin\*.dll GigaMesh\bin
   - cd ..
   test_script:
   - .\build\tests\Release\gigameshCore_tests.exe -o test_reportWin.xml -r junit & exit 0
@@ -51,11 +52,14 @@ for:
   matrix:
     only:
       - image: macOS
+      
   install:
-  - brew update > /dev/null
-  - brew install qt5
-  - chmod -R 755 /usr/local/opt/qt5/*
-  - export QTDIR="/usr/local/opt/qt5"
+  #- brew update > /dev/null
+  #- brew install qt5
+  #- chmod -R 755 /usr/local/opt/qt5/*
+  - export CMAKE_PREFIX_PATH="$HOME/Qt/5.15.2/lib/cmake"
+  - export Qt5_DIR="$HOME/Qt/5.15.2/clang_64"
+  - export QTDIR="$HOME/Qt/5.15.2/clang_64"
   - export PATH="$QTDIR/bin:$PATH"
   - export QT_SELECT=qt5
   after_build:

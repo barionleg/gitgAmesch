@@ -52,7 +52,7 @@ class MockMesh : public Mesh
 		{
 			return true;
 		}
-		bool showEnterText(std::set<long>& rIntegers, const char* rTitle) override
+		bool showEnterText(std::set<int64_t>& rIntegers, const char* rTitle) override
 		{
 			return true;
 		}

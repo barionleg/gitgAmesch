@@ -413,7 +413,16 @@ bool Vector3D::projectOntoPlane( Vector3D rPlaneHNF ) {
 //! @returns the distance to the line.
 double Vector3D::distanceToLine( const Vector3D* rPos1, const Vector3D* rPos2 ) {
 	double dist = abs3( ( (*this) - (*rPos1) ) % ( (*this) - (*rPos2) ) ) / abs3( (*rPos2) - (*rPos1) );
-	return( dist );
+    return( dist );
+}
+
+double Vector3D::distanceToVectorWithouSqrt(const Vector3D *rPos1, const Vector3D *rPos2)
+{
+    double distance = 0.0;
+    distance += (rPos1->getX()-rPos2->getX())*(rPos1->getX()-rPos2->getX());
+    distance += (rPos1->getY()-rPos2->getY())*(rPos1->getY()-rPos2->getY());
+    distance += (rPos1->getZ()-rPos2->getZ())*(rPos1->getZ()-rPos2->getZ());
+    return distance;
 }
 
 

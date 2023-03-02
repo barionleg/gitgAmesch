@@ -28,15 +28,6 @@
 
 #include <GigaMesh/logging/Logging.h>
 
-//helper RAII class for the file-stream
-class FStreamGuard {
-	public:
-		FStreamGuard(std::ifstream& fstream) : mFStream(fstream) {}
-		~FStreamGuard() {mFStream.close();}
-	private:
-		std::ifstream& mFStream;
-};
-
 enum class MtlToken {
 	NEWMTL,
 	KA,
@@ -178,22 +169,46 @@ void parseFloatValue(std::stringstream& sStream, float& val)
 }
 
 /*
- * Syntax is: -options args filename
+ * Syntax is: <-options args> filename
  */
 
 void parseTextureValue(std::stringstream& sStream, std::string& str)
 {
-	std::string temp;
-
 	//skip the options, just get the texture-name, which is the last argument
-	while(sStream.good())
+	for(std::string temp; sStream >> temp;)
 	{
-		sStream >> temp;
-	}
+		if(temp == "-blendu" ||
+		   temp == "-blendv" ||
+		   temp == "-cc"     ||
+		   temp == "-clamp"  ||
+		   temp == "-texres")
+		{
+			sStream >> temp;
+		}
+		else if(temp == "-mm")
+		{
+			sStream >> temp;
+			sStream >> temp;
+		}
+		else if(temp == "-o" ||
+		        temp == "-s" ||
+		        temp == "-t")
+		{
+			sStream >> temp;
+			sStream >> temp;
+			sStream >> temp;
+		}
 
-	if(std::filesystem::exists(temp))
-	{
-		str = temp;
+		//handle fileName
+		else
+		{
+			str = temp;
+			//fileName may contain whitespaces
+			while(sStream >> temp)
+			{
+				str += " " + temp;
+			}
+		}
 	}
 }
 
@@ -201,7 +216,6 @@ void parseTextureValue(std::stringstream& sStream, std::string& str)
 bool MtlParser::parseFile(const std::filesystem::path& fileName)
 {
 	std::ifstream fStream;
-	FStreamGuard streamGuard(fStream);
 
 	fStream.imbue(std::locale("C"));
 	fStream.open(fileName);

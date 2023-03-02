@@ -7,6 +7,7 @@ STARTDIR=$(pwd)
 P_NAME="gigamesh"
 cd ..
 P_VERSION=$(git log -1 --format=%ci | cut -b3,4,6,7,9,10)
+echo Version is $P_VERSION
 cd packaging
 
 if test "$DEBSIGN_KEYID"; then
@@ -41,6 +42,7 @@ NAME=gigamesh$(uuidgen)
 git clone https://gitlab.com/fcgl/GigaMesh.git $NAME
 wait
 cd $NAME
+git checkout develop # <= Uncomment for testing the package build with the develop branch.
 
 DEBIAN_FILES="$PWD/packaging/debian"
 DEBIAN_FILES_VENDOR="$PWD/packaging/$DEBCHANGE_VENDOR"
@@ -51,6 +53,7 @@ DIST_DIR="$PWD/dist"
 # Unpack and create .orig and source dir.
 #
 
+echo Version is $P_VERSION
 SDIST_FILE="$DIST_DIR/$P_NAME-$P_VERSION.tar.gz"
 ORIG_FILE="$DIST_DIR/${P_NAME}_${P_VERSION}.orig.tar.gz"
 
@@ -89,6 +92,7 @@ test -d "$BUILD_DIR"
 #echo "DEBUG"
 #ls -la
 #echo $PWD
+echo Version is $P_VERSION
 cd dist/gigamesh-$P_VERSION
 
 # If the orig file already exists for this version, check that no source
@@ -97,11 +101,11 @@ if test -r "$ORIG_FILE"; then
 	ORIG_SOURCES="$TMPDIR/$P_NAME-$P_VERSION"
 	DIFF_OUTPUT="$TMPDIR/orig-diff-$P_VERSION"
 	/bin/tar --extract --gunzip --file "$ORIG_FILE" --directory "$TMPDIR"
-	echo "test before" 
+	
     /usr/bin/diff --recursive --minimal --unified \
 		"$ORIG_SOURCES" "$BUILD_DIR" >"$DIFF_OUTPUT" || true
 	# either way, the sdist archive is no longer useful
-	echo "test"
+	
     /bin/rm --force "$SDIST_FILE"
 	if test -s "$DIFF_OUTPUT"; then
 		/bin/rm --force --recursive "$BUILD_DIR"

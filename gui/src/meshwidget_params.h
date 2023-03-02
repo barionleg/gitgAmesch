@@ -81,9 +81,11 @@ class MeshWidgetParams {
 		                 VIDEO_FRAME_FIXED,         //!< Switch between resizeable and fixed window size.
 		                 EXPORT_SVG_AXIS_DASHED,    //!< Export the rotational axis with(out) dashes to a SVG.
 		                 EXPORT_SIDE_VIEWS_SIX,     //!< Toggle between six and eigth side-views. The latter is typically only interesting for cuneiform tablets.
-		                 SCREENSHOT_FILENAME_WITH_DPI,   //!< Add the DPI for ortho images to the filename.
+			             SCREENSHOT_FILENAME_WITH_DPI,    //!< Add the DPI for ortho images to the filename.
+			             SCREENSHOT_PNG_BACKGROUND_OPAQUE, //!< Toggle between transparent background (false) and background color.
 		                 SHOW_MESH_REDUCED,         //!< Is set when the mesh is moved and the option is enabled the mesh should be shown as a reduced pointcloud or not
 		                 ENABLE_SHOW_MESH_REDUCED,  //!< Toggle if the mesh should be shown as a reduced pointcloud or not
+                         EXPORT_TTL_WITH_PNG,  //!< Turn the metadata as ttl during the png export on/off
 		                 PARAMS_FLAG_COUNT               //!< Number of flags available
 		};
 		enum eParamInt{ PARAMS_INT_UNDEFINED,       //!< ID for undefined paramaters.
@@ -131,6 +133,7 @@ class MeshWidgetParams {
 		                RULER_UNIT,                 //!< Ruler unit in world units (typically: mm or meter).
 		                RULER_UNIT_TICKS,           //!< Ruler unit tickmarks in world units (typically: mm or meter).
 		                SVG_SCALE,                  //!< DPI assumed for SVG file. e.g. Inkscape expects 72 DPI as default.
+		                HIGHDPI_ZOOM_FACTOR,        //!< For HighDPI displays with magnification enabled. (Linux only?)
 		                PARAMS_FLT_COUNT            //!< Number of float paramters.
 		};
 
@@ -143,7 +146,9 @@ class MeshWidgetParams {
 			RULER_WIDTH_UNIT,                 //!< Unit of Ruler
 			INKSCAPE_COMMAND,                 //!< path to run inkscape
 			PDF_LATEX_COMMAND,                //!< path to run pdflatex
-			PDF_VIEWER_COMMAND,               //!< program to view pdf's, for (e.g. evince)
+            PDF_VIEWER_COMMAND,               //!< program to view pdf's (evince)
+            PDF_VIEWER_COMMAND_ALT1,          //!< program to view pdf's, first alternative (okular)
+            PDF_VIEWER_COMMAND_ALT2,          //!< program to view pdf's, second alternative (atril)
 			PYTHON3_COMMAND,                  //!< path to python3
 			PARAMS_STR_COUNT                  //!< Number of integer paramters.
 		};
@@ -193,17 +198,22 @@ class MeshWidgetParams {
 			SCREENSHOT_VIEWS_IMAGES,            //!< Side-views of the mesh as PNGs or TIFFs.
 			SCREENSHOT_VIEWS_PDF,               //!< Side-views of the mesh as PNGs embedded into a PDF.
 			SCREENSHOT_VIEWS_DIRECTORY,         //!< Side-views or front-view of all meshes in a given directory as PNGs with or without embeding via LaTeX into PDFs (one per mesh).
+			DIRECTORY_FUNCVAL_TO_RGB,           //!< Apply function value rendering settings to multiple files and store the coloring as RGB.
 			EDIT_SET_CONEAXIS_CENTRALPIXEL,     //!< Use the central pixel of the viewport to set the axis of the cone. See Mesh::setConeAxis
 			SET_CURRENT_VIEW_TO_DEFAULT,        //!< Use the current view (matrix) to set the default view of the object.
 			SET_ORTHO_DPI,                      //!< Set the screen resolution for the orthographic rendering.
-			SET_RENDER_DEFAULT,            //!< Use predefined default settings for objects i.e. high contrast for cuneiform tablets.
-			SET_RENDER_MATTED,             //!< Use predefined settings for objects made from wood or clay.
-			SET_RENDER_METALLIC,           //!< Use predefined settings for objects made metal or having a shiny surface.
-			SET_RENDER_LIGHT_SHADING,      //!< Use predefined settings for landscape or in combination with ambient occlusion.
-			SET_RENDER_FLAT_AND_EDGES,     //!< Use predefined settings for inspection of mesh details.
-			SET_GRID_NONE,                 //!< Turn off grid.
-			SET_GRID_RASTER,               //!< Switch to mm-grid - see SHOW_GRID_RECTANGULAR
-			SET_GRID_POLAR,                //!< Switch to polar grid - see SHOW_GRID_POLAR_LINES and SHOW_GRID_POLAR_CIRCLES
+			SET_RENDER_DEFAULT,                 //!< Use predefined default settings for objects i.e. high contrast for cuneiform tablets.
+			SET_RENDER_MATTED,                  //!< Use predefined settings for objects made from wood or clay.
+			SET_RENDER_METALLIC,                //!< Use predefined settings for objects made metal or having a shiny surface.
+			SET_RENDER_LIGHT_SHADING,           //!< Use predefined settings for landscape or in combination with ambient occlusion.
+			SET_RENDER_FLAT_AND_EDGES,          //!< Use predefined settings for inspection of mesh details.
+			SET_GRID_NONE,                      //!< Turn off grid.
+			SET_GRID_RASTER,                    //!< Switch to mm-grid - see SHOW_GRID_RECTANGULAR
+			SET_GRID_POLAR,                     //!< Switch to polar grid - see SHOW_GRID_POLAR_LINES and SHOW_GRID_POLAR_CIRCLES
+			SET_VIEW_AXIS_UP,                   //!< Set the view aligned to the mesh axis.
+			SET_VIEW_PARAMETERS,                //!< Set the view parameters.
+			SHOW_VIEW_PARAMETERS,               //!< Show the view parameters.
+			SHOW_VIEW_2D_BOUNDING_BOX,          //!< Show the 2D bounding box of the (projected) mesh. Not to be confused with the mesh's bounding box in 3D!
 		};
 
 		// ENumerator for user guidance in selection mode:

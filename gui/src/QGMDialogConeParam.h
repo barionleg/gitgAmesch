@@ -46,7 +46,7 @@ class QGMDialogConeParam : public QDialog, private Ui::dialogConeParam {
 	Q_OBJECT
 
 public:
-	QGMDialogConeParam(QWidget* parent = 0, Qt::WindowFlags flags = 0);
+    QGMDialogConeParam( QWidget* parent = nullptr, Qt::WindowFlags flags = {} );
 
 	void setAxis(const Vector3D& upperAxis, const Vector3D& lowerAxis);
 	void setRadii(double upperRadius, double lowerRadius);

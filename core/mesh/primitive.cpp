@@ -607,6 +607,18 @@ Vector3D Primitive::getCenterOfGravity() {
 	return Vector3D( getX(), getY(), getZ(), 1.0 );
 }
 
+//! Returns the center of gravity having the given transformation matrix applied.
+//!
+//! @returns false in case of an error. True otherwise.
+bool Primitive::getTransformedCenterOfGravity(
+		const Matrix4D& rTransMat,   //!< Input: Matrix to be applied.
+		Vector3D& rCoGTrans          //!< Output: transformed center of gravity.
+) {
+	//! \todo properly test!
+	rCoGTrans = getCenterOfGravity() * rTransMat;
+	return( true );
+}
+
 Vector3D Primitive::getNormal( bool normalized ) {
 	//! Returns the normal vector.
 	//! Returns (nan,nan,nan,0.0) in case of an error.

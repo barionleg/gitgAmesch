@@ -606,7 +606,7 @@ double Matrix4D::getDeterminant() {
 	       get(0, 2)*getMinorDeterminant(0, 2) -
 	       get(0, 3)*getMinorDeterminant(0, 3);
 
-	return(mDet);
+    return(mDet);
 }
 
 //! Calculates determinant of minor, i.e. of a matrix where a line and a column

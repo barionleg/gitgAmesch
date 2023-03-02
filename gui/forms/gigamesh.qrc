@@ -12,16 +12,6 @@
         <file>select_sphere_p3.png</file>
         <file>select_sphere_p4.png</file>
         <file>keyboard_layout/keyboard_move_camera.png</file>
-        <file>latextemplates/test.tex</file>
-        <file>latextemplates/cross.tex</file>
-        <file>latextemplates/skeleton.tex</file>
-        <file>latextemplates/fatcross.tex</file>
-        <file>latextemplates/fatcross-inv.tex</file>
-        <file>latextemplates/fatcross+light.tex</file>
-        <file>latextemplates/vessols.tex</file>
-        <file>latextemplates/single-view.tex</file>
-        <file>latextemplates/keydata.tex</file>
-        <file>latextemplates/manual_report.tex</file>
         <file>select_cone_axis.svg</file>
         <file>select_cone_pr1.svg</file>
         <file>select_cone_pr2.svg</file>
@@ -77,6 +67,11 @@
         <file>gigamesh_icon_screenshot.svg</file>
         <file>gigamesh_icon_screenshot_pdf.svg</file>
         <file>gigamesh_icon_screenshot_svg.svg</file>
+        <file>gigamesh_icon_export_metadata_xml.svg</file>
+        <file>gigamesh_icon_export_metadata_ttl.svg</file>
+        <file>gigamesh_icon_export_metadata_json.svg</file>
+        <file>gigamesh_icon_export_metadata_html.svg</file>
+        <file>gigamesh_icon_export_metadata_all.svg</file>
     </qresource>
     <qresource prefix="/GMToolTipImages">
         <file>tooltips/rendering_flat_smooth_egde_on.png</file>

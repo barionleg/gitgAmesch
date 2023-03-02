@@ -283,9 +283,24 @@ bool Cube::PointisinCube(Vector3D& p) {
 	if (    (fabs( p.getX() - mcenter.getX() ) <= mscale+DBL_EPSILON)
 		 && (fabs( p.getY() - mcenter.getY() ) <= mscale+DBL_EPSILON)
 		 && (fabs( p.getZ() - mcenter.getZ() ) <= mscale+DBL_EPSILON) ) {
-		return true;
-	}
-	return false;
+        return true;
+    }
+    return false;
+}
+
+bool Cube::isFaceCompletelyInCube(Face *face){
+    Vector3D posA;
+    Vector3D posB;
+    Vector3D posC;
+    face->getVertA()->getPositionVector(&posA);
+    face->getVertB()->getPositionVector(&posB);
+    face->getVertC()->getPositionVector(&posC);
+    if( PointisinCube(posA)
+        && PointisinCube(posB)
+        && PointisinCube(posC)){
+        return true;
+    }
+    return false;
 }
 
 

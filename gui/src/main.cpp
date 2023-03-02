@@ -85,8 +85,8 @@ int main( int argc, char *argv[] ) {
 	parser.addOption( showHiDPI20Option );
 
 	QCommandLineOption setLogLevelOption( "log-level",
-									QCoreApplication::translate( "main", "Sets the applications logging level [0-4]."),
-									"level", "1");
+	                                      QCoreApplication::translate( "main", "Sets the applications logging level [0-4]."),
+	                                      "level", "1");
 	parser.addOption( setLogLevelOption);
 
 	// File name(s)
@@ -101,7 +101,7 @@ int main( int argc, char *argv[] ) {
 		QString param = parser.value(setLogLevelOption);
 		if(param.size() != 1 || param[0] < '0' || param[0] > '4')
 		{
-			cerr << "The logging level has to be in the range of [0-4].\n";
+			std::cerr << "The logging level has to be in the range of [0-4]." << std::endl;
 		}
 		else
 		{
@@ -155,9 +155,7 @@ int main( int argc, char *argv[] ) {
 	mainWindow.show();
 	mainWindow.setupMeshWidget( glFormat );
 	if( hidpi20 ) {
-		QSize winSize = mainWindow.size();
-		winSize *= 2.0;
-		mainWindow.resize( winSize );
+		mainWindow.setupHighDPI20();
 	}
 
 	// Pass arguments to the main window

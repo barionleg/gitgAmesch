@@ -97,17 +97,25 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 
 	public:
 		// Octree
-		virtual void generateOctree( int vertexmaxnr, int facemaxnr );
+        virtual void generateOctree( int vertexmaxnr);
 
 		// Information retrival - overloaded from Primitive:
 		virtual double   getX() const;
 		virtual double   getY() const;
 		virtual double   getZ() const;
 
+        virtual double   getMinX() const;
+        virtual double   getMinY() const;
+        virtual double   getMinZ() const;
+        virtual double   getMaxX() const;
+        virtual double   getMaxY() const;
+        virtual double   getMaxZ() const;
+
 		// IO Operations - overloaded from MeshIO and MeshSeedExt
 		virtual bool     writeFile( const std::filesystem::path& rFileName );
+		        bool     writeFilesForConnectedComponents();
 		virtual bool     importFeatureVectorsFromFile( const std::filesystem::path& rFileName );
-		virtual bool     exportFeatureVectors(const std::filesystem::path& rFileName);
+		virtual bool     exportFeatureVectors( const std::filesystem::path& rFileName );
 	private:
 		        bool     assignFeatureVectors( const std::vector<double>& rFeatureVecs, const uint64_t& rMaxFeatVecLen );
 
@@ -116,10 +124,11 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool     getVertNormal( int rVertIdx, double* rNormal );
 
 		// Vertex navigation:
-				uint64_t     getVertexNr();
-				Vertex*      getVertexPos( uint64_t rPosIdx );
+				uint64_t     getVertexNr() const;
+				Vertex*      getVertexPos( uint64_t rPosIdx ) const;
 				bool         orderVertsByIndex();
 				bool         orderVertsByFuncVal();
+                bool         orderVertsByRGB();
 				bool         setVertexPosToIndex();
 				bool         setVertexFlagForAll( ePrimitiveFlags rFlag );
 				bool         clearVertexFlagForAll( ePrimitiveFlags rFlag );
@@ -131,8 +140,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				const std::vector<Face*>*   getPrimitiveListFaces();
 
 		// Face navigation:
-		uint64_t     getFaceNr();
-		Face*        getFacePos( uint64_t posIdx );
+		uint64_t     getFaceNr() const;
+		Face*        getFacePos( uint64_t posIdx ) const;
 		bool         getFaceList( std::set<Face*>* rFaces );
 		bool         getFaceList( std::vector<Face*>* rFaces );
 
@@ -143,9 +152,9 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual uint64_t getPolyLineLabel( unsigned int rPolyIdx );
 		virtual PrimitiveInfo getPolyLinePrimInfo( unsigned int rPolyIdx );
 		        PolyLine*     getPolyLinePos( unsigned int rPosIdx );
-				bool          getPolyLineBoundingBoxFromAll( double* rMinX, double* rMinY, double* rMinZ, \
-				                                             double* rMaxX, double* rMaxY, double* rMaxZ, \
-				                                             bool rProjectToPlane );
+		        bool          getPolyLineBoundingBoxFromAll( double* rMinX, double* rMinY, double* rMinZ, \
+		                                                     double* rMaxX, double* rMaxY, double* rMaxZ, \
+		                                                     bool rProjectToPlane );
 
 		// Data retrival:
 				Vertex* getVertexByIdxOriginal( int findIdx ); // overloaded from Primitive
@@ -228,7 +237,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool   selectVertFaceMaxAngleGT( double rMinAngle );
 		virtual bool   selectVertLabelNo();
 		        bool   selectVertLabelBackGrd();
-		virtual bool   selectVertLabelNo( std::set<long>& rLabelNrs );
+		virtual bool   selectVertLabelNo( std::set<int64_t> &rLabelNrs );
+		virtual bool   selectVertLabelNo( std::set<uint64_t> &rLabelNrs );
 		virtual bool   selVertLabeledNot();
 		virtual bool   selVertByFlag( ePrimitiveFlags rFlag );
 		virtual bool   selectVertInvert();
@@ -399,9 +409,12 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool         getVertBorder( std::set<Vertex*>* rSomeVerts );
 				bool         getVertFaceMinAngleLT( double rMaxAngle, std::set<Vertex*>* rSomeVerts );
 				bool         getVertFaceMaxAngleGT( double rMinAngle, std::set<Vertex*>* rSomeVerts );
-				bool         getVertLabelNo( std::set<long>& rLabelNrs, std::set<Vertex*>* rSomeVerts );
+				bool         getVertLabelNoSingle( long rLabelNr, std::set<Vertex*>& rSomeVerts );
+				bool         getVertLabelNoMulti( const std::set<int64_t> &rLabelNrs, std::set<Vertex*>& rSomeVerts );
+				bool         getVertLabelNoMulti( const std::set<uint64_t> &rLabelNrs, std::set<Vertex*>& rSomeVerts );
 				bool         getVertLabelBackGrd( std::set<Vertex*>& rSomeVerts );
 				bool         getVertLabeledNot( std::set<Vertex*>* rSomeVerts );
+				bool         getVertLabelIdFrom( const std::set<Vertex*>& rSomeVerts, std::set<uint64_t>& rLabelNrs );
 				bool         getVertWithFlag( std::set<Vertex*>* rSomeVerts, ePrimitiveFlags rFlag );
 				bool         getVertInverted( std::set<Vertex*>& rSomeVerts );
 		//.
@@ -413,6 +426,9 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool         getFaceBorderVertsEdges( std::set<Face*>& rSomeFaces, unsigned int rHasBorderVertices, unsigned int rHasBorderEdges );
 				bool         getFaceLabeledVerticesCorner( std::set<Face*>& rSomeFaces );
 				bool         getFaceZeroArea( std::set<Face*>* rSomeFaces );
+				bool         getFaceContainsVert( const std::set<Vertex*>& rSomeVerts, std::set<Face*>& rSomeFaces );
+				bool         getFaceHasVertLabelNo( const uint64_t rLabelNr, std::set<Face*>& rSomeFaces );
+				bool         getFaceHasVertLabelNo( const std::set<uint64_t>& rLabelNrs, std::set<Face*>& rSomeFaces );
 		//.
 				bool         getPolyNoLabel( std::set<PolyLine*>* rSomePolyLines );
 				bool         getPolyRunLenGT( std::set<PolyLine*>* rSomePolyLines, double rValue );
@@ -446,7 +462,16 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 			    bool labelSelectedVerticesUser();
 				bool labelSelectedVertices( std::set<Vertex *>& rSelectedVertices, bool rSetNotSelectedtoBackGrd );
 		virtual bool labelVerticesEqualFV();
+        virtual bool labelVerticesEqualRGB();
 		virtual bool labelSelMVertsToBack();
+
+                //kMeans (also used for automatic mesh alignment)
+                bool computeVertexPositionKMeans(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>>*clusterSets, bool labeling);
+                bool assignVerticesToClusterByPosition(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>>*clusterSets, bool labeling);
+                Vector3D getCentroidByPosition(std::set<Vertex*> *clusterSet);
+                std::vector<std::set<Vertex*>> computeVertexNormalKMeans(std::vector<Vector3D> *centroids, bool labeling);
+                bool assignVerticesToClusterByNormal(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>>*clusterSets, bool labeling);
+                Vector3D getCentroidByNormal(std::set<Vertex*> *clusterSet);
 
 		virtual bool compPolylinesIntInvRunLen( double rIIRadius, PolyLine::ePolyIntInvDirection rDirection );
 		virtual bool compPolylinesIntInvAngle( double rIIRadius );
@@ -549,8 +574,12 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		// --- Mesh manipulation - REMOVAL -------------------------------------------------------------------------------------------------------------
 		virtual bool   removeVertices( std::set<Vertex*>* verticesToRemove );    // removal of a list of vertices
 		virtual bool   removeVerticesSelected();
-		virtual bool   removeUncleanSmall( double rPercentArea, bool rApplyErosion, const std::filesystem::path& rFileName );
-		virtual bool   removeSyntheticComponents( std::set<Vertex*>* rVerticesSeeds );
+		        bool   removeUncleanSmall( const std::filesystem::path& rFileName, double rPercentArea, bool rApplyErosion );
+		private:
+		        bool   removeUncleanSmallCore( const std::filesystem::path& rFileName, double rPercentArea, bool rApplyErosion, 
+		                                       uint64_t& rIterationCount );
+		public:
+		virtual bool   removeSyntheticComponents( const std::set<Vertex *> &rVerticesSeeds );
 		virtual bool   removeFacesSelected();
 				bool   removeFaces( std::set<Face*>* facesToRemove );            // removal of a list of faces
 		virtual bool   removeFacesZeroArea();
@@ -558,33 +587,22 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		// --- Mesh manipulation - MESH POLISHING ------------------------------------------------------------------------------------------------------
 		virtual bool   completeRestore(); // AKA Mesh polishing
 		virtual bool   completeRestore( const std::filesystem::path& rFilename, double rPercentArea, bool rApplyErosion,
-				                        bool rPrevent, uint64_t rMaxNumberVertices, std::string* rResultMsg );
+		                                bool rPrevent, uint64_t rMaxNumberVertices, std::string* rResultMsg, uint64_t& rIterationCount );
 		// --- Mesh manipulation - Manuall adding primitives -------------------------------------------------------------------------------------------
 		virtual bool   insertVerticesEnterManual();
 		virtual bool   insertVerticesCoordTriplets( std::vector<double>* rCoordTriplets );
 		virtual bool   insertVertices( std::vector<Vertex*>* rNewVertices );
 		// ---------------------------------------------------------------------------------------------------------------------------------------------
 
-		// --- SHELLING --------------------------------------------------------------------------------------------------------------------------------
-		//        void* detectCriticalPlacesForShelling(void* value);
-				bool delaunyTriangulation( std::vector<Vertex*> vertexList, std::vector<Vertex*>* outputList );
-				Vector3D getInterpolatedNormal( Face* face, Vector3D pos );
-				bool rayTriangleIntersection( Vector3D _origin, Vector3D _direction, Face* _triangle, Vector3D &intersectionPoint );
-				bool triangleIntersectTriangle( Face *triangleA, Face *triangleB, Vector3D &intersectionPointA, Vector3D &intersectionPointB );
-
-				void   flipTriangle(int index);                             // flip triangle orientation
-				void   recalculateTriangleOrientation();                    // recalculate the triangle orientation and flip it if necessary
-				void   removeDoubleTriangles();                             // remove double Triangles
-				void   fixTriangleIntersection();                           // repair Triangle-Intersection -> split off and re-triangulate via delauny-triangulation
-		//----------------------------------------------------------------------------------------------------------------------------------------------
-
 		// mainly used to set the initial view (see objwidget)
 				void     getCenterOfGravity( float* cog );
 				Vector3D getCenterOfGravity();
 				Vector3D getBoundingBoxCenter();
-				bool     getBoundingBoxSize( Vector3D& rBbSize );
+				bool     getBoundingBoxSize( Vector3D& rBbSize ) const;
 				double   getBoundingBoxRadius();
 				float    getPerimeterRadius();
+		// Additional geometric helper functions
+				bool     getDistanceToPlaneMinMax( const Plane &rPlane, double& rMinDist, double& rMaxDist, bool rAbsDist );
 		// Bounding Box Corners:
 				Vector3D getBoundingBoxA();
 				Vector3D getBoundingBoxB();
@@ -594,6 +612,10 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				Vector3D getBoundingBoxF();
 				Vector3D getBoundingBoxG();
 				Vector3D getBoundingBoxH();
+		        bool     getBoundingBoxProjected( const Matrix4D& rTransMat,
+		                                          double& rMinX, double& rMaxX,
+		                                          double& rMinY, double& rMaxY,
+		                                          double& rMinZ, double& rMaxZ ) const;
 
 		// Bit arrays for labeling, fetch in sphere, etc.
 		enum eBitArrayFlags{
@@ -661,8 +683,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 
 		// mesh transformation
 		        Matrix4D rotateToZ( Vector3D directionVec );          // generate rotation matrix to transform mesh so that the given direction vector is paralllel to the z-axis
-		virtual bool     applyTransformationToWholeMesh( Matrix4D rTrans, bool rResetNormals = true );
-		virtual bool     applyTransformation( Matrix4D rTrans, std::set<Vertex*>* rSomeVerts, bool rResetNormals = true );
+        virtual bool     applyTransformationToWholeMesh( Matrix4D rTrans, bool rResetNormals = true, bool rSaveTransMat = true );
+        virtual bool     applyTransformation( Matrix4D rTrans, std::set<Vertex*>* rSomeVerts, bool rResetNormals = true, bool rSaveTransMat = true );
 		virtual bool     applyTransformationPlacement( eTranslate rType, Matrix4D* rAppliedMat=nullptr );
 		virtual bool     applyTransformationAxisToY( Matrix4D* rAppliedMat=nullptr );
 		virtual bool     applyTransformationDefaultViewMatrix( Matrix4D* rViewMatrix );
@@ -677,10 +699,6 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		        bool     normalsVerticesComputeSphere( double rRadius );
 
 		virtual bool     changedBoundingBox();
-
-		virtual bool	applyNormalShift(double offset);
-		virtual bool	applyNormalShiftHelper(bool initCall, bool removeOriginalObject, bool connectBorders);
-
 
 				bool     estBoundingBox();
 
@@ -706,6 +724,10 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool exportPolyLinesFuncVals( std::filesystem::path rFileName );
 				bool exportFuncVals( std::filesystem::path rFileName, bool rWithVertIdx );
 				bool importFuncValsFromFile( const std::filesystem::path& rFileName, bool withVertIdx );
+                bool importLabelsFromFile( const std::filesystem::path& rFileName, bool withVertIdx);
+                bool importPolylinesFromFile( const std::filesystem::path& rFileName );
+                bool importApplyTransMatFromFile( const std::filesystem::path& rFileName );
+
 		virtual bool exportFaceNormalAngles( std::filesystem::path filename );
 
 		// Extra menu
@@ -720,13 +742,16 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool latexFetchFigureInfos( std::vector<std::pair<std::string, std::string>>* rStrings );
 		// Mesh information - Display for the console in plain text and html for the GUI
 				bool showInfoMeshHTML();
-				bool getMeshInfoData( MeshInfoData& rMeshInfos, bool rAbsolutePath );
+                //! @param[rWithSelfIntersectedFaces] leads to high running time
+                bool getMeshInfoData( MeshInfoData& rMeshInfos, const bool rAbsolutePath, bool rWithSelfIntersectedFaces=false );
 				void dumpMeshInfo( bool avoidSlow=true );
 		virtual bool showInfoSelectionHTML();
 		virtual bool showInfoFuncValHTML();
 				bool showInfoLabelPropsHTML();
 		virtual bool showInfoAxisHTML();
 
+        //getter methods for protected area
+               std::set<Vertex*> getVertices();
 	protected:
 		// Bounding Box:
 		double             mMinX = 0.0;               //!< Bounding Box - minimum X
@@ -759,12 +784,12 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		        bool getSelectedPositionDistancesHTML( std::string& rDistanceText );
 		        bool getSelectedPositionCircleCenters( std::vector<Vertex*>* rCenterVertices );
 		virtual bool getAxisFromCircleCenters();
-		virtual bool getAxisFromCircleCenters( Vector3D* rTop, Vector3D* rBottom );
+		virtual bool getAxisFromCircleCenters( Vector3D &rTop, Vector3D &rBottom );
+                bool getAxisFromEllipseFit();
 
 		// Binary Space Partitioning -- Octree
 	protected:
-		Octree<Vertex*>*   mOctree     = nullptr;          //! Octree handling the Vertices stored in mVertices.
-		Octree<Face*>*     mOctreeface = nullptr;          //! Octree handling the Faces stored in mFaces.
+        Octree*   mOctree     = nullptr;          //! Octree handling the Vertices stored in mParentVertices and the mParentFaces.
 
 		// Primitves describing the Mesh:
 		std::vector<Vertex*> mVertices;   //!< Vertices of the Mesh.

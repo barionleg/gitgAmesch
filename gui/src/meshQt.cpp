@@ -34,6 +34,7 @@
 #include <QFileDialog>
 #include <QInputDialog>
 
+#include <automaticalignmentpyinterface.h>
 // Other includes:
 // none for now.
 
@@ -155,6 +156,9 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 
 	// File menu -------------------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( mMainWindow, &QGMMainWindow::sFileImportFunctionValues, this, &MeshQt::importFunctionValues );
+    QObject::connect( mMainWindow, &QGMMainWindow::sFileImportPolylines, this, &MeshQt::importPolylines );
+    QObject::connect( mMainWindow, &QGMMainWindow::sFileImportTransMat, this, &MeshQt::importApplyTransMat );
+    QObject::connect( mMainWindow, &QGMMainWindow::sFileImportLabels, this, &MeshQt::importLabels);
 	// Old Qt Style connections:
 	QObject::connect( mMainWindow, SIGNAL(sFileImportFeatureVectors(QString)), this, SLOT(importFeatureVectors(QString)) );
 	QObject::connect( mMainWindow, SIGNAL(sExportFeatureVectors()), this, SLOT(exportFeatureVectors()) );
@@ -199,7 +203,9 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	//.
 	QObject::connect( mMainWindow, SIGNAL(sApplyMeltingSphere()),        this, SLOT(applyMeltingSphere())     );
 	//.
-	QObject::connect( mMainWindow, SIGNAL(sApplyNormalShift()),          this, SLOT(applyNormalShift())       );
+    QObject::connect( mMainWindow, SIGNAL(sAutomaticMeshAlignment()),    this, SLOT(applyAutomaticMeshAlignment())     );
+    //.
+
 
 	// View menu -------------------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( mMainWindow, SIGNAL(polylinesCurvScale()),                         this, SLOT(polylinesCurvScale())               );
@@ -250,6 +256,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	QObject::connect( mMainWindow, SIGNAL(labelFaces()),                                 this, SLOT(labelFaces())                        );
 	QObject::connect( mMainWindow, SIGNAL(labelSelectionToSeeds()),                      this, SLOT(labelSelectionToSeeds())             );
 	QObject::connect( mMainWindow, SIGNAL(labelVerticesEqualFV()),                       this, SLOT(labelVerticesEqualFV())              );
+    QObject::connect( mMainWindow, SIGNAL(labelVerticesEqualRGB()),                      this, SLOT(labelVerticesEqualRGB())             );
 	QObject::connect( mMainWindow, SIGNAL(sLabelSelMVertsToBack()),                      this, SLOT(labelSelMVertsToBack())              );
 	//.
 	QObject::connect( mMainWindow, SIGNAL(convertSelectedVerticesToPolyline()),          this, SLOT(convertSelectedVerticesToPolyline()) );
@@ -536,8 +543,8 @@ bool MeshQt::showEnterText(
 //! Let the user enter integer values.
 //! @returns false in case of a bad value or user cancel.
 bool MeshQt::showEnterText(
-                set<long>& rIntegers,       //!< Pointer to a set for passing values.
-                const char* rTitle          //!< Title to be shown for the dialog.
+		std::set<int64_t> &rIntegers,   //!< Pointer to a set for passing values.
+		const char* rTitle              //!< Title to be shown for the dialog.
 ) {
 	QGMDialogEnterText dlgEnterTxt;
 	if( rTitle == nullptr ) {
@@ -551,12 +558,12 @@ bool MeshQt::showEnterText(
 		dlgEnterTxt.fetchClipboard( QGMDialogEnterText::CHECK_INTEGER_MULTIPLE );
 	}
 	if( dlgEnterTxt.exec() == QDialog::Rejected ) {
-		return false;
+		return( false );
 	}
 	if( !dlgEnterTxt.getText( rIntegers ) ) {
-		return false;
+		return( false );
 	}
-	return true;
+	return( true );
 }
 
 //! Let the user enter integer values.
@@ -702,20 +709,22 @@ bool MeshQt::exportPolyLinesCoords() {
 		return false;
 	}
 
-	bool userCancel;
+   //27.04. E. Stoetzner deconstruct questions
+
+    //bool userCancel;
 	// Ask for vertex normals
-	bool withNormals;
-	SHOW_QUESTION( tr("Export vertex normals"), tr("Export polylines with vertex normals"), withNormals, userCancel );
-	if( userCancel ) {
-		return false;
-	}
+    bool withNormals = true;
+//	SHOW_QUESTION( tr("Export vertex normals"), tr("Export polylines with vertex normals"), withNormals, userCancel );
+//	if( userCancel ) {
+//		return false;
+//	}
 
 	// Ask for vertex indices
-	bool withVertIdx;
-	SHOW_QUESTION( tr("Export vertex indices"), tr("Export polylines with indices of the vertices"), withVertIdx, userCancel );
-	if( userCancel ) {
-		return false;
-	}
+    bool withVertIdx = true;
+//	SHOW_QUESTION( tr("Export vertex indices"), tr("Export polylines with indices of the vertices"), withVertIdx, userCancel );
+//	if( userCancel ) {
+//		return false;
+//	}
 
 	if( !MeshGL::exportPolyLinesCoords( fileName.toStdString(), withNormals, withVertIdx ) ) {
 		SHOW_MSGBOX_CRIT( tr("Export polylines"), tr("Failed") );
@@ -938,17 +947,22 @@ bool MeshQt::removeUncleanSmallUser() {
 	// As the slider dialog will return a value of ] 0.0 ... 100.0 [ we divide by 100.
 	percentArea /= 100.0;
 
+    /**
 	// Optional border erosion
 	bool applyErosion;
 	bool userCancel;
 	SHOW_QUESTION( tr("Apply border erosion"), tr("Do you want to remove dangling faces along the borders?") +
-										   QString("<br /><br />") + tr("Recommended: YES"), applyErosion, userCancel );
+	               QString("<br /><br />") + tr("Recommended: YES"), applyErosion, userCancel );
 	if( userCancel ) {
 		return( false );
 	}
-
+    **/
+    //get parameters from Settings
+    bool applyErosion;
+    getParamFlagMeshGL(MeshGLParams::REMOVE_DANGLING_FACES, &applyErosion);
 	// Ask if we wan't to store the result, when finished.
 	bool saveFile;
+    bool userCancel;
 	SHOW_QUESTION( tr("Store results"), tr("Do you want to store the result as file?"), saveFile, userCancel );
 	if( userCancel ) {
 		return( false );
@@ -956,14 +970,33 @@ bool MeshQt::removeUncleanSmallUser() {
 	QString fileName = "";
 	if( saveFile ) {
 		// Show file dialog
+        QString fileSuggest = QString::fromStdWString( getBaseName().wstring() );
+        //check if the gigamesh name convention is used
+        QRegularExpression nameContainsGMwithSuffix( ".*_GM[cCoOfFpP]*$" );
+        QRegularExpressionMatch match = nameContainsGMwithSuffix.match( fileSuggest );
+        if( match.hasMatch()){
+            //GM or GMO not followed by "C" --> no match
+            QRegularExpression nameContainsC( "(.*_GM*.C)(.*$)" );
+            match = nameContainsC.match( fileSuggest );
+            if( !match.hasMatch() ) {
+                    //regex to add the C after GM or GMO
+                    QRegularExpression nameContainsGM( "(.*_GM[oO]?)(.*$)" );
+                    fileSuggest.replace( nameContainsGM, "\\1C\\2" );
+                }
+          } else {
+                fileSuggest += "_GMC";
+         }
+        fileSuggest += ".ply";
+
         QString fileLocation = QString::fromStdWString( getFileLocation().wstring() );
-		fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as" ), fileLocation, tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) );
+        fileLocation += fileSuggest;
+        fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as" ), fileLocation, tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) );
 	}
 
 	// Store old mesh size to determine the number of changes
 	uint64_t oldVertexNr = getVertexNr();
 	uint64_t oldFaceNr   = getFaceNr();
-	bool retVal = MeshGL::removeUncleanSmall( percentArea, applyErosion, fileName.toStdString() );
+	bool retVal = removeUncleanSmall( fileName.toStdString(), percentArea, applyErosion );
 	SHOW_MSGBOX_INFO( tr("Primitives removed"), tr( "%1 Vertices\n%2 Faces" ).arg( oldVertexNr - getVertexNr() ).arg( oldFaceNr - getFaceNr() ) );
 	return retVal;
 }
@@ -997,6 +1030,7 @@ bool MeshQt::completeRestore() {
 	percentArea /= 100.0;
 
 	// Ask for largest hole to be left out.
+
 	bool userCancel;
 	bool prevent;
 	SHOW_QUESTION(
@@ -1007,11 +1041,11 @@ bool MeshQt::completeRestore() {
 	if( userCancel ) {
 		return( false );
 	}
-
+     /**
 	// Optional border erosion
 	bool applyErosion;
 	SHOW_QUESTION( tr("Apply border erosion"), tr("Do you want to remove dangling faces along the borders?") +
-										   QString("<br /><br />") + tr("Recommended: YES"), applyErosion, userCancel );
+	               QString("<br /><br />") + tr("Recommended: YES"), applyErosion, userCancel );
 	if( userCancel ) {
 		return( false );
 	}
@@ -1019,29 +1053,72 @@ bool MeshQt::completeRestore() {
 	// Libpsalm has troubles with larger complex holes. It seems to break for holes with more than 3.000 edges.
 	uint64_t maxNrVertices = 3000;
 	showEnterText( maxNrVertices, "Maximum number of vertices for border filling. 0 means no limit." );
-
+    **/
 	// Ask if we wan't to store the result, when finished.
 	bool saveFile;
 	SHOW_QUESTION( tr("Store results"), tr("Do you want to store the result as file?"), saveFile, userCancel );
 	if( userCancel ) {
-		return false;
+		return( false );
 	}
 	QString fileName = "";
 	if( saveFile ) {
+
+        QString fileSuggest = QString::fromStdWString( getBaseName().wstring() );
+        //check if the gigamesh name convention is used
+        QRegularExpression nameContainsGMwithSuffix( ".*_GM[cCoOfFpP]*$" );
+        QRegularExpressionMatch match = nameContainsGMwithSuffix.match( fileSuggest );
+        if( match.hasMatch()){
+            //check if CF is still used
+            QRegularExpression nameContainsGMCF( ".*_GMC.F*$" );
+            match = nameContainsGMCF.match( fileSuggest );
+            if( !match.hasMatch() ) {
+                //add the CF for cleaned and filled
+                //regex groups with "(....)" are used for the replace methode --> it's possible to copy the groups
+                //with \\... in the replace function
+                //check if the name contains a C (GMOC, GMC)
+                QRegularExpression nameContainsC( "(.*_GM)([cC]|[oO][cC])(.?[^F]*)$" );
+                match = nameContainsC.match( fileSuggest );
+                if( match.hasMatch() ) {
+                    fileSuggest.replace( nameContainsC, "\\1\\2F\\3" );
+                }
+                else{
+                    //have to add a CF in the case with no "C" inside the abbreviation
+                    //GMO followed by a optional character not "C"
+                    QRegularExpression nameContainsNoC( "(.*_GM[oO])(.*)$" );
+                    match = nameContainsNoC.match( fileSuggest );
+                    if( match.hasMatch() ) {
+                        fileSuggest.replace( nameContainsNoC, "\\1CF\\2" );
+                    }
+                }
+          }
+          } else {
+                fileSuggest += "_GMCF";
+         }
+        fileSuggest += ".ply";
+
 		// Show file dialog
-		QString fileLocation = QString::fromStdWString( getFileLocation().wstring() + getBaseName().wstring() + L"_GMxCF.ply" );
+        QString fileLocation = QString::fromStdWString( getFileLocation().wstring() );
+        fileLocation += fileSuggest;
 		fileName = QFileDialog::getSaveFileName( \
-					   mMainWindow, tr( "Save as" ), \
-					   fileLocation, tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) \
+		               mMainWindow, tr( "Save as" ), \
+                       fileLocation, tr( "3D-Files (*.obj *.ply *.wrl *.txt *.xyz)" ) \
 		           );
 	}
+    //get parameters from Settings
+    bool applyErosion;
+    int maxNrVertices;
+    getParamIntMeshGL( MeshGLParams::MAX_VERTICES_HOLE_FILLING, &maxNrVertices );
+    getParamFlagMeshGL(MeshGLParams::REMOVE_DANGLING_FACES, &applyErosion);
 
 	// Iterative cleaning is done in the Mesh class.
-	string resultMsg;
-	MeshGL::completeRestore( fileName.toStdString(), percentArea, applyErosion, prevent, maxNrVertices, &resultMsg );
+	uint64_t iterationCount;
+	std::string resultMsg;
+	MeshGL::completeRestore( fileName.toStdString(), percentArea,
+	                         applyErosion, prevent, maxNrVertices,
+	                         &resultMsg, iterationCount );
 	SHOW_MSGBOX_INFO( tr("Complete Restore finished"), QString( resultMsg.c_str() ) );
 
-	return true;
+	return( true );
 }
 
 //! Manually insert vertices by entering triplets of coordinates.
@@ -1522,114 +1599,178 @@ bool MeshQt::applyMeltingSphere() {
 	if( !dlgEnterTxt.getText( &radius ) ) {
 		return false;
 	}
-	return MeshGL::applyMeltingSphere( radius, 1.0 );
+    return MeshGL::applyMeltingSphere( radius, 1.0 );
 }
 
-//! Calculate a offset Surface (Shelling) without any selfintersection
-bool MeshQt::applyNormalShift(){
+//!Automatic Mesh Alignment
+//! calculates principal components (PCA) of the vertices
+//! Sets the PCs as new camera vectors
+//! result should be that the biggest extension of the is equal to the y-axis
+bool MeshQt::applyAutomaticMeshAlignment()
+{
 
-	// call helper function
-	// -> save vertices & faces & border from original object. Which we need later.
-	MeshGL::applyNormalShiftHelper(true, false, false);
+    std::cout << "[MeshQT::" << __FUNCTION__ << "] Start:Automatic Mesh Alignment" << std::endl;
+    Matrix4D pcaTransformationMatrix;
+    AutomaticAlignmentPyInterface pyInterface(&mVertices);
+    if(!pyInterface.startPythonScript(&pcaTransformationMatrix)){
+        QMessageBox msgBox;
+        msgBox.setText( tr("There is a problem to run the required Python script! \n The Python Module: Pandas is necessary! \n Check your Python-Path in Settings->External Programs!") );
+        msgBox.setIcon( QMessageBox::Critical );
+        msgBox.exec();
+        return false;
+    }
 
-	//---------------------------------------
-	//Show QGMDialogEnterText-Window
-	QGMDialogEnterText dlgEnterTextVal;
-	dlgEnterTextVal.setDouble(0.3); // set Default-Value
-	dlgEnterTextVal.setWindowTitle(tr("Set Offset:"));
 
-	QObject::connect(&dlgEnterTextVal,SIGNAL(textEntered(double)),this,SLOT(applyNormalShift(double)));
+    //Matrix4D transMat(transMatVec);
+    applyTransformationToWholeMesh(pcaTransformationMatrix);
 
-	if(dlgEnterTextVal.exec()==QDialog::Rejected){
-		emit statusMessage( "[applyNormalShift] CANCELLED." );
-		return false;
-	}
 
-	//---------------------------------------
-	bool userCancel;
-	bool userAnswerYes;
 
-	//Remove Original-Object
-	SHOW_QUESTION( tr("Do you want to remove the original object?"), "", userAnswerYes, userCancel );
 
-	if( userCancel ) {
-		emit statusMessage( "[applyNormalShift] CANCELLED." );
-		return false;
-	}
+    //calculate the determinant of the rotation part inside the transformation matrix
+    //if the determinant is negative then mirror the mesh
+    double det = pcaTransformationMatrix.getX(0)*pcaTransformationMatrix.getY(1)*pcaTransformationMatrix.getZ(2) +
+                pcaTransformationMatrix.getY(0)*pcaTransformationMatrix.getZ(1)*pcaTransformationMatrix.getZ(2) +
+                pcaTransformationMatrix.getZ(0)*pcaTransformationMatrix.getX(1)*pcaTransformationMatrix.getY(2) -
+                pcaTransformationMatrix.getZ(0)*pcaTransformationMatrix.getY(1)*pcaTransformationMatrix.getX(2) -
+                pcaTransformationMatrix.getY(0)*pcaTransformationMatrix.getX(1)*pcaTransformationMatrix.getZ(2) -
+                pcaTransformationMatrix.getX(0)*pcaTransformationMatrix.getZ(1)*pcaTransformationMatrix.getY(2);
 
-	if( !userAnswerYes ){
-		//Connect original-border-vertices with offset-border-vertices via mesh
-		SHOW_QUESTION( tr("Do you want to connect original-border-vertices with offset-border-vertices?"), tr("<i>(recommended)</i>"), userAnswerYes, userCancel );
 
-		if( userAnswerYes ){
-			MeshGL::applyNormalShiftHelper(false, false, true);
-		}
+    std::vector<double> rotationAngle = {-90 * M_PI / 180.0};
 
-		if( userCancel ) {
-			emit statusMessage( "[applyNormalShift] CANCELLED." );
-			return false;
-		}
+    if (det < 0){
+        Matrix4D xyMirror(Matrix4D::INIT_IDENTITY);
+        xyMirror.set(2,2,-1);
+        xyMirror.set(1,1,-1);
+        xyMirror.set(0,0,-1);
+        applyTransformationToWholeMesh(xyMirror);
+        //rotate the mesh clockwise
+        rotationAngle = {90 * M_PI / 180.0};
 
-	}else{
-		MeshGL::applyNormalShiftHelper(false, true, false);
-	}
+    }
 
-	//---------------------------------------
-	//Do you want to remove duplicate triangles?
-	SHOW_QUESTION( tr("Do you want to remove duplicate triangles?"), "", userAnswerYes, userCancel );
+    //rotate about z --> it changes the highest pc to y axis
+    Matrix4D zRotation(Matrix4D::INIT_ROTATE_ABOUT_Z,&rotationAngle);
+    applyTransformationToWholeMesh(zRotation);
+    changedMesh();
 
-	if( userAnswerYes ){
-		MeshGL::removeDoubleTriangles();
-	}
+    //Recompute the normals
+    //It's necessary to prevent that the mesh is sometimes dark after the transformation
+    resetFaceNormals();
+    resetVertexNormals();
 
-	if( userCancel ) {
-		emit statusMessage( "[applyNormalShift] CANCELLED." );
-		return false;
-	}
 
-	//---------------------------------------
-	//Do you want to recalculate the triangle orientation?
-	SHOW_QUESTION( tr("Do you want to recalculate the triangle orientation?"), tr("<i>(recommended)</i>"), userAnswerYes, userCancel );
 
-	if( userAnswerYes ){
-		MeshGL::recalculateTriangleOrientation();
-	}
+    //Decide which part of the mesh is the front
+    //only for stone tools
 
-	if( userCancel ) {
-		emit statusMessage( "[applyNormalShift] CANCELLED." );
-		return false;
-	}
+    bool curvatureAlignment = false;
+    bool userCancel = false;
+    SHOW_QUESTION( tr("Front Alignment"), tr( "Do you want to align the front of the mesh based on the curvature?" ), curvatureAlignment, userCancel );
+    if( userCancel ) {
+        return false;
+    }
+    if (curvatureAlignment){
+        //define the start centroids of k-means
+        //use the points in the middle of the mesh and the minimum and the maximum of the dimension with the smallest extension
+        //0 = x
+        //1 = y
+        //2 = z
+        int smallestExtension = 0;
+        double xExtension = abs(Mesh::getMinX() - Mesh::getMaxX());
+        double yExtension = abs(Mesh::getMinY() - Mesh::getMaxY());
+        double zExtension = abs(Mesh::getMinZ() - Mesh::getMaxZ());
+        if (xExtension > yExtension){
+            smallestExtension = 1;
+        }
+        if (xExtension > zExtension && yExtension > zExtension){
+            smallestExtension = 2;
+        }
 
-	//---------------------------------------
-	//Do you want to fix triangle intersection?
-	SHOW_QUESTION( tr("Do you want to fix triangle intersection?"), tr("<i>(recommended, but this function may take some time)</i>"), userAnswerYes, userCancel );
+        Vector3D centroid1;
+        Vector3D centroid2;
+        switch(smallestExtension){
+            case 0:
+                centroid1 = Vector3D(1.0,0.0,0.0);
+                centroid2 = Vector3D(-1.0,0.0,0.0);
+                break;
+            case 1:
+                centroid1 = Vector3D(0.0,1.0,0.0);
+                centroid2 = Vector3D(0.0,-1.0,0.0);
+                break;
+            case 2:
+                centroid1 = Vector3D(0.0,0.0,1.0);
+                centroid2 = Vector3D(0.0,0.0,-1.0);
+                break;
+        }
+        std::vector<Vector3D> centroids = {centroid1,centroid2};
+        std::vector<std::set<Vertex*>> clusterSets = Mesh::computeVertexNormalKMeans(&centroids,true);
 
-	if( userAnswerYes ){
-		cout << "[generateOctree] Start..." << endl;
-		MeshQt::generateOctree(500, 1000);
-		cout << "[generateOctree] Done." << endl;
+        //calculate ambient occlusion to get some kind of curviture values
+        //the results are stored in vertices as function values
+        //for parameters we use the recommended values of the GUI
+        /**
+        int depthBuffeRes = 512;
+        unsigned int numberOfDirections = 1000;
+        int maxValueBufferRes = 512;
+        float zTolerance = 0.0;
+        if( !funcVertAmbientOcclusionHW( depthBuffeRes, maxValueBufferRes, numberOfDirections, zTolerance ) ) {
+                return false;
+        }
 
-		cout << "[detectselfintersections] Start..." << endl;
-		MeshQt::detectselfintersections();
-		cout << "[detectselfintersections] Done." << endl;
+        //calculate the average curviture of the cluster -> the cluster/mesh-side with the higher curviture should be in front
+        double meanClust1 = 0.0;
+        double meanClust2 = 0.0;
 
-		cout << "[fixTriangleIntersection] Start..." << endl;
-		MeshGL::fixTriangleIntersection();
-		cout << "[fixTriangleIntersection] Done." << endl;
-	}
+        std::set<Vertex*>::iterator itr;
+        for (itr = clusterSets.at(0).begin(); itr != clusterSets.at(0).end(); itr++){
+            double funcVal = 0.0;
+            (*itr)->getFuncValue(&funcVal);
+            meanClust1 += funcVal;
+        }
+        meanClust1 = meanClust1/clusterSets.at(0).size();
 
-	if( userCancel ) {
-		emit statusMessage( "[applyNormalShift] CANCELLED." );
-		return false;
-	}
+        for (itr = clusterSets.at(1).begin(); itr != clusterSets.at(1).end(); itr++){
+            double funcVal = 0.0;
+            (*itr)->getFuncValue(&funcVal);
+            meanClust2 += funcVal;
+        }
+        meanClust2 = meanClust2/clusterSets.at(1).size();
+        if (meanClust1 < meanClust2){
+            //rotate 180 degree to get the side with higher curviture to front
+            const double s = sin(180 * M_PI / 180.0);
+            const double c = cos(180 * M_PI / 180.0);
+            Matrix4D rotationMatrix( {  c, 0.0,  -s, 0.0,
+                                        0.0, 1.0, 0.0, 0.0,
+                                          s, 0.0,   c, 0.0,
+                                        0.0, 0.0, 0.0, 1.0} );
+            applyTransformationToWholeMesh(rotationMatrix);
 
-	emit statusMessage( "[applyNormalShift] DONE." );
-	return true;
+        }
+        **/
+        if (clusterSets.at(0).size() < clusterSets.at(1).size()){
+            //rotate 180 degree to get the side with higher curviture to front
+            const double s = sin(180 * M_PI / 180.0);
+            const double c = cos(180 * M_PI / 180.0);
+            Matrix4D rotationMatrix( {  c, 0.0,  -s, 0.0,
+                                        0.0, 1.0, 0.0, 0.0,
+                                          s, 0.0,   c, 0.0,
+                                        0.0, 0.0, 0.0, 1.0} );
+            applyTransformationToWholeMesh(rotationMatrix);
+
+        }
+    }
+    //the transformation with the identity matrix resets the mesh to the center
+    Matrix4D identity(Matrix4D::INIT_IDENTITY);
+    applyTransformationDefaultViewMatrix(&identity);
+
+    // setup initial view (emit Signal to meshwidget.cpp:
+    emit sDefaultViewLight();
+
+    return true;
 }
 
-bool MeshQt::applyNormalShift(double offset){
-	return MeshGL::applyNormalShift(offset);
-}
 
 // --- Select actions ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2307,6 +2448,7 @@ bool MeshQt::setConeAxis( const Vector3D& rUpper, const Vector3D& rLower ) {
 	if( !MeshGL::setConeAxis( rUpper, rLower ) ) {
 		return( false );
 	}
+	setParamFlagMeshGL( MeshGLParams::SHOW_MESH_AXIS, true );
 	emit updateGL();
 
 	// Ask what to do next: Selection of a cone for rollouts OR postions for profile lines.
@@ -2847,6 +2989,11 @@ bool MeshQt::labelVerticesEqualFV() {
 	return MeshGL::labelVerticesEqualFV();
 }
 
+bool MeshQt::labelVerticesEqualRGB() {
+    //! Labels vertices having the same RGB values - see MeshGL::labelSelectedVertices
+    return MeshGL::labelVerticesEqualRGB();
+}
+
 //! Sets the selected vertices' label to background -- see MeshGL::labelSelMVertsToBack
 bool MeshQt::labelSelMVertsToBack() {
 	return MeshGL::labelSelMVertsToBack();
@@ -2968,9 +3115,10 @@ void MeshQt::createSkeletonLine() {
     emit statusMessage( "ERROR: Converted selected Vertices to Polyline(s) failed!" );
 }
 
-//! Ask the user what kind of Octree to be generated (Vertex/Face)
-//! and how many primitives (maximum) should be contained within a node (cube).
+//! Ask the user how many primitives (maximum) should be contained within a node (cube).
 void MeshQt::generateOctree() {
+    //obsolete: Octree generates automatically the face and the vertex octree
+    /**
 	// Ask user what kind of octree to be generated.
 	QStringList Element;
 	Element << QString("Vertex") << QString("Face");
@@ -2979,9 +3127,9 @@ void MeshQt::generateOctree() {
 	if( !userChoiceValid ) {
 		return;
 	}
-
+    **/
 	// Choice: Vertex
-	if( text == "Vertex" ) {
+    //if( text == "Vertex" ) {
 		QGMDialogEnterText dlgenter;
 		dlgenter.setInt( 500 ); //some useful default value should be set here e.g. 500
 		dlgenter.setWindowTitle( tr("Set maximum number of vertices per cube") );
@@ -2993,7 +3141,9 @@ void MeshQt::generateOctree() {
 				SHOW_MSGBOX_WARN( tr("Wrong value"), tr("Wrong value entered!") );
 			}
 		}
-	}
+
+    //obsolete:
+    /**
 	// Choice: Face
 	if( text == "Face" ) {
 		QGMDialogEnterText dlgenter;
@@ -3008,76 +3158,60 @@ void MeshQt::generateOctree() {
 			}
 		}
 	}
+    **/
 }
 
 void MeshQt::generateOctreeVertex(int maxnr) {
-	MeshGL::generateOctree(maxnr, -1);
-}
-void MeshQt::generateOctreeFace(int maxnr) {
-	MeshGL::generateOctree(-1, maxnr);
-}
-void MeshQt::generateOctree(int vertexmaxnr, int facemaxnr) {
-	MeshGL::generateOctree(vertexmaxnr, facemaxnr);
+    MeshGL::generateOctree(maxnr);
 }
 
 void MeshQt::detectselfintersections() {
 	// Sanity check
-	if( mOctreeface == nullptr ) {
-		cerr << "[MeshQt::" << __FUNCTION__ << "] ERROR: No octree for faces defined!" << endl;
-		SHOW_MSGBOX_WARN( tr("Octree missing"), tr("No octree for faces defined!") );
+    if( mOctree == nullptr ) {
+        cerr << "[MeshQt::" << __FUNCTION__ << "] ERROR: No octree defined!" << endl;
+        SHOW_MSGBOX_WARN( tr("Octree missing"), tr("No octree defined!") );
 		return;
 	}
 
-	vector<Face*> tmp;
-	mOctreeface->detectselfintersections(tmp);
-	mFacesSelected.insert(tmp.begin(), tmp.end());
+    vector<Face*> intersectedFaces;
+    mOctree->detectselfintersections(intersectedFaces);
+    mFacesSelected.insert(intersectedFaces.begin(), intersectedFaces.end());
 	selectedMFacesChanged();
 }
 
 void MeshQt::drawOctree() {
 
-	//actionViewDatumBoxes is used to draw boxes of octree
-	if( ! mMainWindow->actionViewDatumBoxes->isChecked() ) {
-		mMainWindow->actionViewDatumBoxes->trigger();
-	}
+    //actionViewDatumBoxes is used to draw boxes of octree
+    if( ! mMainWindow->actionViewDatumBoxes->isChecked() ) {
+        mMainWindow->actionViewDatumBoxes->trigger();
+    }
 
-	QStringList Element;
-	Element<< QString("Vertex") << QString("Face");
-	bool ok=false;
-	QString text =  QInputDialog::getItem(nullptr, tr("Draw Octree"),tr("Element"), Element, 0, false, &ok);
+    /**
+    QStringList Element;
+    Element<< QString("Vertex") << QString("Face");
+    bool ok=false;
+    QString text =  QInputDialog::getItem(nullptr, tr("Draw Octree"),tr("Element"), Element, 0, false, &ok);
 
-	if(!ok) return;
+    if(!ok) return;
+    **/
 
-	if (text == "Vertex") {
-		if ( mOctree != nullptr ) {
-			cout<<"OCTREE DRAW Vertex"<<endl;
-			vector<Octnode<Vertex*>*> nodelist;
-			mOctree->getnodelist(nodelist);
-			Vector3D cubeboxx(1.0, 0.0, 0.0);
-			Vector3D cubeboxy(0.0, 1.0, 0.0);
-			Vector3D cubeboxz(0.0, 0.0, 1.0);
-			for (Octnode<Vertex*>*& octnode : nodelist) {
-				 RectBox* someBox = new RectBox( octnode->mCube.mcenter, octnode->mCube.mscale * cubeboxx, octnode->mCube.mscale * cubeboxy, octnode->mCube.mscale * cubeboxz );
-				 mDatumBoxes.push_back( someBox );
-			}
-		}
-		else cout << "NO OCTREE CONSTRUCTED: DO THIS FIRST!" << endl;
-	}
-	if (text == "Face") {
-		if(mOctreeface != nullptr) {
-			cout<<"OCTREE DRAW Face"<<endl;
-			vector<Octnode<Face*>*> nodelist;
-			mOctreeface->getnodelist(nodelist);
-			Vector3D cubeboxx(1.0, 0.0, 0.0);
-			Vector3D cubeboxy(0.0, 1.0, 0.0);
-			Vector3D cubeboxz(0.0, 0.0, 1.0);
-			for (Octnode<Face*>*& octnode : nodelist) {
-				 RectBox* someBox = new RectBox( octnode->mCube.mcenter, octnode->mCube.mscale * cubeboxx, octnode->mCube.mscale * cubeboxy, octnode->mCube.mscale * cubeboxz );
-				 mDatumBoxes.push_back( someBox );
-			}
-		}
-		else cout<<"NO OCTREE CONSTRUCTED: DO THIS FIRST!"<<endl;
-	}
+    if ( mOctree != nullptr ) {
+
+        cout<<"OCTREE DRAW Vertex"<<endl;
+        vector<Octnode*> nodelist;
+        mOctree->getnodelist(nodelist,Octree::VERTEX_OCTREE);
+        //mOctree->getleafnodes(nodelist);
+        Vector3D cubeboxx(1.0, 0.0, 0.0);
+        Vector3D cubeboxy(0.0, 1.0, 0.0);
+        Vector3D cubeboxz(0.0, 0.0, 1.0);
+        for (Octnode*& octnode : nodelist) {
+            RectBox* someBox = new RectBox( octnode->mCube.mcenter, octnode->mCube.mscale * cubeboxx, octnode->mCube.mscale * cubeboxy, octnode->mCube.mscale * cubeboxz );
+            mDatumBoxes.push_back( someBox );
+        }
+
+
+    }
+    else cout<<"NO OCTREE CONSTRUCTED: DO THIS FIRST!"<<endl;
 
 }
 
@@ -3093,7 +3227,11 @@ void MeshQt::removeOctreedraw() {
 
 void MeshQt::deleteOctree() {
 	removeOctreedraw();
+    delete mOctree;
+    mOctree = nullptr;
+    cout<<"Octree Vertex deleted"<<endl;
 
+    /**
 	QStringList Element;
 	Element<< QString("Vertex") << QString("Face")<< QString("both");
 	bool ok=false;
@@ -3119,6 +3257,7 @@ void MeshQt::deleteOctree() {
 		cout<<"Octree Vertex deleted"<<endl;
 		cout<<"Octree Face deleted"<<endl;
 	}
+    **/
 
 }
 
@@ -3899,49 +4038,71 @@ void MeshQt::visualizeDistanceToCone( bool rAbsDist ) {
 //!
 //! @returns false in case of an error or user cancel.
 bool MeshQt::editMetaData() {
-
 	//! .) Edit Model ID.
-	string modelID = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
+	std::string modelID = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
 	if( modelID.empty() ) {
 		// Prepare suggestion
-        QString suggestId( QString::fromStdWString(getBaseName().wstring()) );
-		cout << "[MeshQt::" << __FUNCTION__ << "] Basename: " << suggestId.toStdString().c_str() << endl;
+		QString suggestId( QString::fromStdWString(getBaseName().wstring()) );
+		std::cout << "[MeshQt::" << __FUNCTION__ << "] Basename: " << suggestId.toStdString().c_str() << std::endl;
 		suggestId.replace( "_", " " );
 		suggestId.replace( QRegularExpression( "GM[oOcCfFpPxX]*$" ), "" );
-		cout << "[MeshQt::" << __FUNCTION__ << "] Suggest Id: " << suggestId.toStdString().c_str() << endl;
+		std::cout << "[MeshQt::" << __FUNCTION__ << "] Suggest Id: " << suggestId.toStdString().c_str() << std::endl;
 		// Show dialog
 		QGMDialogEnterText dlgEnterTxt;
 		dlgEnterTxt.setText( suggestId );
 		dlgEnterTxt.setWindowTitle( tr("Model ID") );
 		if( dlgEnterTxt.exec() == QDialog::Rejected ) {
-			cout << "[MeshQt::" << __FUNCTION__ << "] CANCELED by USER!" << endl;
+			std::cout << "[MeshQt::" << __FUNCTION__ << "] CANCELED by USER!" << std::endl;
 			return( false );
 		}
 		QString newModelId;
 		if( !dlgEnterTxt.getText( &newModelId ) ) {
-			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: bad input (1)!" << endl;
-			return false;
+			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: bad input (1)!" << std::endl;
+			return( false );
 		}
 		getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_ID, newModelId.toStdString() );
 	}
 
 	//! .) Edit Model Material.
-	string modelMaterial = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
+	std::string modelMaterial = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
 	if( modelMaterial.empty() ) {
 		QGMDialogEnterText dlgEnterTxt;
 		dlgEnterTxt.setText( tr( "original, clay" ) );
 		dlgEnterTxt.setWindowTitle( tr("Model Material") );
 		if( dlgEnterTxt.exec() == QDialog::Rejected ) {
-			cout << "[MeshQt::" << __FUNCTION__ << "] CANCELED by USER!" << endl;
+			std::cout << "[MeshQt::" << __FUNCTION__ << "] CANCELED by USER!" << std::endl;
 			return( false );
 		}
 		QString newMaterial;
 		if( !dlgEnterTxt.getText( &newMaterial ) ) {
-			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: bad input (1)!" << endl;
-			return false;
+			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: bad input (1)!" << std::endl;
+			return( false );
 		}
 		getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_MATERIAL, newMaterial.toStdString() );
 	}
+
+	//! .) Edit Model Unit.
+	/*
+	std::string modelUnit = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_UNIT );
+	std::string modelUnitLabel;
+	getModelMetaDataRef().getModelMetaStringLabel( ModelMetaData::META_MODEL_UNIT, modelUnitLabel );
+	if( modelUnit.empty() ) {
+		//getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_UNIT, "mm" );
+		QGMDialogEnterText dlgEnterTxt;
+		dlgEnterTxt.setText( tr( "mm" ) );
+		dlgEnterTxt.setWindowTitle( tr("Model Unit") );
+		if( dlgEnterTxt.exec() == QDialog::Rejected ) {
+			std::cout << "[MeshQt::" << __FUNCTION__ << "] CANCELED by USER!" << std::endl;
+			return( false );
+		}
+		QString newUnit;
+		if( !dlgEnterTxt.getText( &newUnit ) ) {
+			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: bad input (1)!" << std::endl;
+			return( false );
+		}
+		getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_UNIT, newUnit.toStdString() );
+	}*/
+	getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_UNIT, "mm" );
 
 	return( true );
 }
@@ -4494,13 +4655,14 @@ bool MeshQt::writeFile( const QString& rFileName ) {
 	emit statusMessage( "Saving 3D-data to " + rFileName );
 	if( !writeFile( rFileName.toStdString() ) ) {
 		emit statusMessage( "ERROR - File " + rFileName + " NOT saved." );
-		return false;
+		return( false );
 	}
+
 	QSettings settings;
 	settings.setValue( "lastPath", rFileName );
-    emit sFileChanged( QString::fromStdWString( getFullName().wstring() ), QString::fromStdWString( getBaseName().wstring() ) );
+	emit sFileChanged( QString::fromStdWString( getFullName().wstring() ), QString::fromStdWString( getBaseName().wstring() ) );
 	emit statusMessage( "3D-data saved to " + rFileName );
-	return true;
+	return( true );
 }
 
 //! Write 3D-data to file
@@ -4510,12 +4672,12 @@ bool MeshQt::writeFile( const filesystem::path& rFileName ) {
 		return( false );
 	}
 
-	cout << "[MeshQt::" << __FUNCTION__ << "] to: " << rFileName << endl;
+	std::cout << "[MeshQt::" << __FUNCTION__ << "] to: " << rFileName << std::endl;
 	if( !MeshGL::writeFile( rFileName ) ) {
-		cerr << "[MeshQt::" << __FUNCTION__ << "] could not write to file '" << rFileName << "'! " << endl;
-		return false;
+		std::cerr << "[MeshQt::" << __FUNCTION__ << "] could not write to file '" << rFileName << "'! " << std::endl;
+		return( false );
 	}
-	return true;
+	return( true );
 }
 
 // Set Flags ---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -4643,6 +4805,54 @@ bool MeshQt::importFunctionValues( const QString& rFileName ) {
 	return( true );
 }
 
+//! Import labels and emit statusMessage.
+//! See ...
+//! @returns false in case of an error. True otherwise.
+bool MeshQt::importLabels( const QString& rFileName ) {
+
+    emit statusMessage( "Importing labels from " + rFileName );
+
+    // Ask for vertex index within the first colum
+    bool hasVertexIndex = true;
+    if( !showQuestion( &hasVertexIndex, "First Column", "Does the first column contain the vertex index?<br /><br />"
+                       "YES for files with index label columns." ) ) {
+        std::cout << "[Mesh::" << __FUNCTION__ << "] User cancled." << std::endl;
+        return( false );
+    }
+
+    if( !Mesh::importLabelsFromFile( rFileName.toStdString(), hasVertexIndex ) ) {
+        emit statusMessage( "ERROR - Reading file " + rFileName );
+        return( false );
+    }
+    emit primitiveSelected( mPrimSelected );
+    emit statusMessage( "Labels assigned and imported from " + rFileName );
+    return( true );
+}
+
+//! Import Polylines and emit statusMessage.
+//! See ...
+//! @returns false in case of an error. True otherwise.
+bool MeshQt::importPolylines( const QString& rFileName ) {
+    emit statusMessage( "Importing Polylines from " + rFileName );
+    if( !Mesh::importPolylinesFromFile( rFileName.toStdString()) ) {
+        emit statusMessage( "ERROR - Reading file " + rFileName );
+        return( false );
+    }
+
+
+    return( true );
+}
+//! Import transformation matrices from transmat.txt and emit statusMessage.
+//! See ...
+//! @returns false in case of an error. True otherwise.
+bool MeshQt::importApplyTransMat( const QString& rFileName ) {
+    emit statusMessage( "Importing transformation matrices from " + rFileName );
+    if( !Mesh::importApplyTransMatFromFile( rFileName.toStdString()) ) {
+        emit statusMessage( "ERROR - Reading file " + rFileName );
+        return( false );
+    }
+    return( true );
+}
 //! Export feature vectors and emit statusMessage
 bool MeshQt::exportFeatureVectors()
 {

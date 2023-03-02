@@ -71,7 +71,7 @@ class QGMMainWindow : public QMainWindow, public Ui::MainWindow {
 
 public:
 	// Constructor and Destructor:
-	QGMMainWindow( QWidget *parent = 0, Qt::WindowFlags flags = 0 );
+    QGMMainWindow( QWidget *parent = nullptr, Qt::WindowFlags flags = {} );
 	~QGMMainWindow();
 private:
 	void initMeshWidgetSignals(); // to be called ONLY from the constructor.
@@ -79,13 +79,14 @@ private:
 
 public:
 	bool setupMeshWidget( const QGLFormat& rGLFormat );
+	bool setupHighDPI20();
 
 protected:
-	virtual void closeEvent( QCloseEvent* rEvent );
-	virtual bool event( QEvent* rEvent );
+	virtual void closeEvent( QCloseEvent* rEvent ) override;
+	virtual bool event( QEvent* rEvent ) override;
 
-    virtual void dragEnterEvent(QDragEnterEvent *e);
-    virtual void dropEvent(QDropEvent *e);
+	virtual void dragEnterEvent( QDragEnterEvent *e ) override;
+	virtual void dropEvent( QDropEvent *e ) override;
 
 	//  === SLOTS === The main windows slots should be kept as simple as possible. =========================================================================
 public slots:
@@ -96,6 +97,9 @@ public slots:
 	bool loadLast();
 	bool fileOpen( QAction* rFileAction );
 	void menuImportFunctionValues();
+    void menuImportLabels();
+    void menuImportPolylines();
+    void menuImportTransMat ();
 	void menuImportTexMap();
 	void menuImportFeatureVectors();
 	void menuImportNormalVectors();
@@ -169,14 +173,17 @@ private slots:
 	void openGridPositionDialog();
 private:
 	// --- Extra Keys --------------------------------------------------------------------------------------------------------------------------------------
-	void keyPressEvent( QKeyEvent *rEvent );
-	void keyReleaseEvent( QKeyEvent *rEvent );
+	void keyPressEvent( QKeyEvent *rEvent ) override;
+	void keyReleaseEvent( QKeyEvent *rEvent ) override;
 
 signals:
 	// --- File --------------------------------------------------------------------------------------------------------------------------------------------
 	void sFileOpen(QString);                                 //!< causes MeshWidget to load and show a Mesh from a file (see MeshWidget::loadMeshFromFile)
 	void sFileReload();                                      //!< causes MeshWidget to reload the file
 	void sFileImportFunctionValues( QString );               //!< passes a filename for import of a file with function values per vertices to MeshQt::importFunctionValues
+    void sFileImportLabels( QString );                       //!< passes a filename for import of a file with labels per vertices to MeshQt::importLabels
+    void sFileImportPolylines( QString );                    //!< passes a filename for import of a file with Polylines to MeshQt::importPolylines
+    void sFileImportTransMat( QString );                    //!< passes a filename for import of a file with transformation matrices (transmat.txt) to MeshQt::importApplyTransMat
 	void sFileImportTexMap( QString );                       //!< passes a filename for import of a file with a colors per verices ("texture map") to MeshQt::importTexMapFromFile
 	void sFileImportFeatureVectors( QString );               //!< passes a filename for import of a file with feature vectors to MeshWidget::importFeatureVectorsFile
 	void sFileImportNormals( QString );                      //!< passes a filename for import of a file with normal vectors to MeshQt::importNormalVectorsFile
@@ -230,8 +237,7 @@ signals:
 	//.
 	void sApplyMeltingSphere();                              //!< triggers melting with sqrt(r^2-x^2-y^2)
     //.
-    void sApplyNormalShift();                                //!< Shifts the Vertices along the Normal.
-
+    void sAutomaticMeshAlignment();                          //! triggers the automatic mesh alignmented with PCA
 	// --- DeSelect ----------------------------------------------------------------------------------------------------------------------------------------
 	void sDeSelVertsAll();                                   //!< removes all vertices from the selection (SelMVerts).
 	void sDeSelVertsNoLabel();                               //!< removes vertices from the selection (SelMVerts) not assigned to a label.
@@ -276,9 +282,6 @@ signals:
 	void selectPolyLabelNo();                                //!< select polylines by label IDs.
 
 	// --- View --------------------------------------------------------------------------------------------------------------------------------------------
-	void showViewMatrix();                                   //!< trigger infobox showing the view matrix.
-	void setViewMatrix();                                    //!< trigger dialog to enter the view matrix.
-	void sSetViewAxisUp();                                   //!< Request to set the view using the axis as up vector of the OpenGL camera.
 	// ... Vertices
 	void polylinesCurvScale();                               //!< trigger selection of scale for polyline normals.
 	//.
@@ -286,15 +289,11 @@ signals:
 	void screenshotSVG();                                    //!< trigger a screenshot stored as SVG with a PNG embedded.
 	void screenshotRuler();                                  //!< trigger the export of an image of a ruler matching the screenshot resolution (in ortho mode).
 
-	// === LEGACY to be removed! ===========================================================================================================================
-    void generateLatexFile();                                //!< trigger latex file    to be generated
-    void generateLatexCatalog();                             //!< trigger latex catalog to be generated
-	// =====================================================================================================================================================
-
 	//.
 	void sDefaultViewLight();                                //!< signal to restore the default view and lights.
 	void sDefaultViewLightZoom();                            //!< signal to restore the default view, lights and zoom.
-	//.
+    void sSetDefaultView();                                  //!< signal to meshWidget -> set the mesh after transformation to the camera center and ask for saving the transformation as default.
+    //.
 	void rotYaw();                                           //!< trigger manual entry of a yaw angle for changing the camera position.
 	void rotPitch();                                         //!< trigger manual entry of a pitch angle for changing the camera position.
 	void rotRoll();                                          //!< trigger manual entry of a roll angle for changing the camera position.
@@ -306,6 +305,7 @@ signals:
 	void labelFaces();                                       //!< trigger labeling with optional removal of small areas.
 	void labelSelectionToSeeds();                            //!< triggers the storage of selected vertices as seeds for labeling.
 	void labelVerticesEqualFV();                             //!< trigger labeling of vertices having the same function value.
+    void labelVerticesEqualRGB();                            //!< trigger labeling of vertices having the same color values.
 	void sLabelSelMVertsToBack();                            //!< Set the selected vertices label to background.
 	//.
 	void convertSelectedVerticesToPolyline();                //!< trigger conversion from selected vertices to (a) polyline(s).

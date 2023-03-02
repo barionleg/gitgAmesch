@@ -720,16 +720,16 @@ double Vertex::get1RingSumAngles() {
 	return 0.0f;
 }
 
+//! Compute (one-dimensional) index of this vertex within the smallest cube of an octree.
 unsigned int Vertex::getOctreeIndex( Vector3D rCubeTopLeft, double rEdgeLen, unsigned int rXyzCubes ) {
-	//! Compute (one-dimensional) index of this vertex within the smallest cube of an octree.
 	if( rXyzCubes & 0x1 ) {
 		LOG::debug() << "[Vertex::" << __FUNCTION__ << "] ERROR: expects an even number!\n";
 		return 0;
 	}
 	Vector3D distToCenter = ( getPositionVector() - rCubeTopLeft ) / rEdgeLen;
-	unsigned int octInd1D = static_cast<unsigned int>(ceil( distToCenter.getX() ) +
-	                                                  ceil( distToCenter.getY() ) * rXyzCubes +
-	                                                  ceil( distToCenter.getZ() )) * rXyzCubes * rXyzCubes;
+	unsigned int octInd1D = static_cast<unsigned int>( ceil( distToCenter.getX() ) +
+	                                                   ceil( distToCenter.getY() ) * rXyzCubes +
+	                                                   ceil( distToCenter.getZ() ) * rXyzCubes * rXyzCubes );
 	return octInd1D;
 }
 
@@ -941,11 +941,47 @@ bool Vertex::sortByIndex( Vertex* vert1, Vertex* vert2 ) {
 	return false;
 }
 
+//! Used for sorting e.g. a heap.
+//! @returns false, when one of the vertices has no rgb values.
+bool Vertex::RGBLower( Vertex* vert1, Vertex* vert2 ) {
+    unsigned char RGB1[3];
+    if( !vert1->copyRGBTo( RGB1 ) ) {
+        LOG::debug() << "[Vertex::" << __FUNCTION__ << "] no function value!\n";
+        return false;
+    }
+    unsigned char RGB2[3];
+    if( !vert2->copyRGBTo( RGB2 ) ) {
+        LOG::debug() << "[Vertex::" << __FUNCTION__ << "] no function value!\n";
+        return false;
+    }
+
+    if( RGB1[0] < RGB2[0] ) {
+        // red value smaller
+        return true;
+    }
+    else if( RGB1[0] == RGB2[0] ) {
+        if( RGB1[1] < RGB2[1] ) {
+            // red value equal, green value smaller
+            return true;
+        }
+        else if( RGB1[1] == RGB2[1] ) {
+            if( RGB1[2] < RGB2[2] ) {
+                // red and green value equal, blue smaller
+                return true;
+            }
+        }
+    }
+    // red or green is larger, or red and green are equal and blue is equal or larger
+    return false;
+}
+
 // --- Transformation --------------------------------------------------------
 
+//! Applies (multiplies) a given homogenous transformation matrix.
+//! Returns false, when the application fails.
+//!
+//! @returns false in case of an error. True otherwise.
 bool Vertex::applyTransfrom( Matrix4D* transMat ) {
-	//! Applies (multiplies) a given homogenous transformation matrix.
-	//! Returns false, when the application fails.
 	Vector3D posVecNew = getPositionVector() * (*transMat);
 	POS_X = posVecNew.getX();
 	POS_Y = posVecNew.getY();
@@ -954,7 +990,7 @@ bool Vertex::applyTransfrom( Matrix4D* transMat ) {
 	NORMAL_X = normalNew.getX();
 	NORMAL_Y = normalNew.getY();
 	NORMAL_Z = normalNew.getZ();
-	return true;
+	return( true );
 }
 
 bool Vertex::applyMeltingSphere( double rRadius, double rRel ) {
@@ -1254,19 +1290,18 @@ double Vertex::estDistanceToPlane( double* planeHNF, bool absDist ) {
 
 //! Estimates distance of vertex to a plane given in Hessian normal form (the last component
 //! of the HNF is contained within the homogenous coordinate of the vector).
-double Vertex::estDistanceToPlane(Vector3D* planeHNF, bool absDist) {
-	if(!planeHNF) {
-		return(0);
-	}
+double Vertex::estDistanceToPlane(
+		const Vector3D& rPlaneHNF,
+		bool            rAbsDist
+) const {
+	double dist = dot3( rPlaneHNF, this->getPositionVector() )
+	              + rPlaneHNF.getH();
 
-	double dist = dot3(planeHNF, this->getPositionVector()) + planeHNF->getH();
-
-	if(absDist) {
-		return(abs(dist));
+	if( rAbsDist ) {
+		return( abs( dist ) );
 	}
-	else {
-		return(dist);
-	}
+	// Otherwise:
+	return( dist );
 }
 
 //! Estimates distance to a cone given by an axis and two radii -- an upper radius

@@ -54,7 +54,7 @@ class QGMDialogEnterText : public QDialog, private Ui::QGMDialogEnterText {
 
 public:
 	// Constructor and Destructor:
-	QGMDialogEnterText( QWidget *parent = nullptr, Qt::WindowFlags flags = nullptr );
+    QGMDialogEnterText( QWidget *parent = nullptr, Qt::WindowFlags flags = {} );
 
 	enum eStringCheck {
 		CHECK_DOUBLE_MULTIPLE,
@@ -68,7 +68,7 @@ public:
 	void setID( int rID );
 	void setText( const std::string& rText );
 	void setText( const QString& rText );
-	void setText( const std::set<long>& rValues );
+	void setText( const std::set<int64_t>& rValues );
 	void setText( std::vector<double>& rValues );
 	void fetchClipboard( eStringCheck rExpectedType );
 	void setDouble( double rValue );
@@ -82,13 +82,13 @@ public:
 	bool getText( unsigned int* rValue );
 	bool getText( uint64_t* rValue );
 	bool getText( double* rValue );
-	bool getText( std::set<long>&      rSet    );
+	bool getText( std::set<int64_t>&   rSet    );
 	bool getText( std::vector<long>&   rVector );
 	bool getText( std::vector<double>& rVector );
 	bool checkAndConvertTextVecDouble( const QString& rEnteredText, std::vector<double>* rValuesReturn=nullptr );
 
 public slots:
-	void accept();
+	void accept() override;
 
 signals:
 	// Simple signals - new Qt5 style: no overloading allowed/possible.

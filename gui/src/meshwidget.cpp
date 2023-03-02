@@ -21,7 +21,6 @@
 //
 
 #include "meshwidget.h"
-
 #include "meshGL/glmacros.h"
 
 // generic Qt includes:
@@ -32,6 +31,7 @@
 #include "QGMDialogEnterText.h"
 #include "QGMDialogSliderHD.h"
 #include "QGMDialogRuler.h"
+
 
 #include <filesystem>
 #include <cctype>
@@ -135,16 +135,9 @@ MeshWidget::MeshWidget( const QGLFormat &format, QWidget *parent )
 	// ---------------------------------------------------------------------------------------------------------------
 
 	// View menu ------------------------------------------------------------------------------------------------------
-	QObject::connect( mMainWindow, SIGNAL(showViewMatrix()),               this, SLOT(showViewMatrix())               );
-	QObject::connect( mMainWindow, SIGNAL(setViewMatrix()),                this, SLOT(setViewMatrix())                );
-	QObject::connect( mMainWindow, &QGMMainWindow::sSetViewAxisUp,         this, &MeshWidget::setViewAxisUp           );
-	//.
 	QObject::connect( mMainWindow, SIGNAL(screenshotSVG()),                this, SLOT(screenshotSVG())                );
 	QObject::connect( mMainWindow, SIGNAL(screenshotRuler()),              this, SLOT(screenshotRuler())              );
 
-    QObject::connect( mMainWindow, SIGNAL(generateLatexFile()),            this, SLOT(generateLatexFile())            );
-    QObject::connect( mMainWindow, SIGNAL(generateLatexCatalog()),         this, SLOT(generateLatexCatalog())         );
-	//.
 	QObject::connect( mMainWindow, SIGNAL(rotYaw()),                       this, SLOT(rotYaw())                       );
 	QObject::connect( mMainWindow, SIGNAL(rotRoll()),                      this, SLOT(rotRoll())                      );
 	QObject::connect( mMainWindow, SIGNAL(rotPitch()),                     this, SLOT(rotPitch())                     );
@@ -152,7 +145,8 @@ MeshWidget::MeshWidget( const QGLFormat &format, QWidget *parent )
 	//.
 	QObject::connect( mMainWindow, SIGNAL(sDefaultViewLight()),            this, SLOT(defaultViewLight())             );
 	QObject::connect( mMainWindow, SIGNAL(sDefaultViewLightZoom()),        this, SLOT(defaultViewLightZoom())         );
-	//.
+    QObject::connect( mMeshVisual, SIGNAL(sSetDefaultView()),              this, SLOT(currentViewToDefault())         );
+    //.
 	QObject::connect( mMainWindow, SIGNAL(sSelPrimViewReference()),        this, SLOT(selPrimViewReference())         );
 
 	// Settings menu --------------------------------------------------------------------------------------------------
@@ -173,6 +167,9 @@ MeshWidget::MeshWidget( const QGLFormat &format, QWidget *parent )
 	QObject::connect( this, &MeshWidget::sGuideIDSelection, mMainWindow, &QGMMainWindow::sGuideIDSelection );
 	QObject::connect( this, &MeshWidget::sGuideIDCommon,    mMainWindow, &QGMMainWindow::sGuideIDCommon    );
 	// ----------------------------------------------------------------------------------------------------------------
+
+    //set the latex placeholder descriptions (PDF Export)
+    setLatexPlaceholderDefinition();
 
 	cout << "[MeshWidget] ... done." << endl;
 
@@ -217,7 +214,7 @@ MeshWidget::~MeshWidget() {
 bool MeshWidget::getViewPortResolution(
                 double& rRealWidth,
                 double& rRealHeight
-) {
+) const {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << __PRETTY_FUNCTION__ << endl;
 #endif
@@ -274,7 +271,7 @@ bool MeshWidget::getViewPortResolution(
 bool MeshWidget::getViewPortPixelWorldSize(
                 double& rPixelWidth,
                 double& rPixelHeight
-) {
+) const {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << __PRETTY_FUNCTION__ << endl;
 #endif
@@ -313,9 +310,10 @@ bool MeshWidget::getViewPortPixelWorldSize(
 }
 
 //! Returns the DPI of the viewport
+//! 
 //! @param rDPI return value of the DPI.
 //! @returns false in case of an error
-bool MeshWidget::getViewPortDPI(double& rDPI)
+bool MeshWidget::getViewPortDPI( double& rDPI ) const
 {
 	double pixelWidth;
 	double pixelHeight;
@@ -327,9 +325,10 @@ bool MeshWidget::getViewPortDPI(double& rDPI)
 }
 
 //! Returns the dots per meter of the viewport
+//! 
 //! @param rDPM return value of the DPM
 //! @returns false in case of an error
-bool MeshWidget::getViewPortDPM(double& rDPM)
+bool MeshWidget::getViewPortDPM( double& rDPM ) const
 {
 	double pixelWidth;
 	double pixelHeight;
@@ -472,7 +471,7 @@ bool MeshWidget::setParamFloatMeshWidget( MeshWidgetParams::eParamFlt rParamID, 
 bool MeshWidget::setParamFloatMeshWidget( MeshWidgetParams::eParamFlt rParamID ) {
 	double currValue;
 	if( !getParamFloatMeshWidget( rParamID, &currValue ) ) {
-		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Could not get the current value for '" << rParamID << "'!" << endl;
+		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Could not get the current value for '" << rParamID << "'!" << std::endl;
 		return false;
 	}
 	// Handle exception i.e. log
@@ -490,7 +489,7 @@ bool MeshWidget::setParamFloatMeshWidget( MeshWidgetParams::eParamFlt rParamID )
 	}
 	double newValue;
 	if( !dlgEnterText.getText( &newValue ) ) {
-		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Could not get the new value for '" << rParamID << "'!" << endl;
+		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Could not get the new value for '" << rParamID << "'!" << std::endl;
 		return false;
 	}
 	bool retVal = setParamFloatMeshWidget( rParamID, newValue );
@@ -583,10 +582,11 @@ bool MeshWidget::setParamFloatMeshWidgetSlider( int rParamID, double rValue ) {
 
 
 //! New style function call by signal.
+//!
 //! @returns false in case of an error. True otherwise.
 bool MeshWidget::callFunctionMeshWidget( MeshWidgetParams::eFunctionCall rFunctionID, bool rFlagOptional ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshWidget::" << __FUNCTION__ << "] ID: " << rFunctionID << endl;
+	std::cout << "[MeshWidget::" << __FUNCTION__ << "] ID: " << rFunctionID << std::endl;
 #endif
 	bool retVal = true;
 
@@ -608,6 +608,9 @@ bool MeshWidget::callFunctionMeshWidget( MeshWidgetParams::eFunctionCall rFuncti
 			break;
 		case SCREENSHOT_VIEWS_DIRECTORY:
 			retVal &= screenshotViewsDirectory();
+			break;
+		case DIRECTORY_FUNCVAL_TO_RGB:
+			retVal &= directoryFuncValToRGB();
 			break;
 		case EDIT_SET_CONEAXIS_CENTRALPIXEL:
 			retVal &= userSetConeAxisCentralPixel();
@@ -681,12 +684,24 @@ bool MeshWidget::callFunctionMeshWidget( MeshWidgetParams::eFunctionCall rFuncti
 			retVal &= setParamFlagMeshWidget( SHOW_GRID_POLAR_LINES,   true  );
 			retVal &= setParamFlagMeshWidget( SHOW_GRID_POLAR_CIRCLES, true  );
 			break;
+		case SET_VIEW_AXIS_UP:
+			retVal &= setViewAxisUp();
+			break;
+		case SET_VIEW_PARAMETERS:
+			retVal &= setViewMatrix();
+			break;
+		case SHOW_VIEW_PARAMETERS:
+			retVal &= showViewMatrix();
+			break;
+		case SHOW_VIEW_2D_BOUNDING_BOX:
+			retVal &= showView2DBoundingBox();
+			break;
 		default:
-			cerr << "[MeshWidget::" << __FUNCTION__ << "] Function Call Id: " << rFunctionID << endl;
+			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] Function Call Id: " << rFunctionID << std::endl;
 			retVal = false;
 	}
 
-	return retVal;
+	return( retVal );
 }
 
 
@@ -862,6 +877,7 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 	QObject::connect( this,        SIGNAL(sApplyTransfromToPlane(Matrix4D)), mMeshVisual, SLOT(applyTransfromToPlane(Matrix4D)) );
 	QObject::connect( mMeshVisual, &MeshQt::sDefaultViewLight,               this,        &MeshWidget::defaultViewLight         );
 	QObject::connect( mMeshVisual, &MeshQt::sDefaultViewLightZoom,           this,        &MeshWidget::defaultViewLightZoom     );
+    QObject::connect( mMeshVisual, &MeshQt::sSetDefaultView,                 this,        &MeshWidget::currentViewToDefault    );
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
 
 	// cheks mesh for problems and fix them
@@ -963,6 +979,10 @@ bool MeshWidget::saveStillImagesSettings() {
 				setParamFlagMeshWidget( SHOW_GRID_POLAR_LINES, false );
 				setParamFlagMeshWidget( SHOW_GRID_POLAR_CIRCLES, false );
 			}
+            else{
+                //render the images with the grid --> no transparency
+                setParamFlagMeshWidget( SCREENSHOT_PNG_BACKGROUND_OPAQUE, true );
+            }
 		}
 	}
 	//! .) Ask for Cropping (if on)
@@ -979,7 +999,18 @@ bool MeshWidget::saveStillImagesSettings() {
 			setParamFlagMeshWidget( CROP_SCREENSHOTS, false );
 		}
 	}
-	return true;
+
+
+    //ask for ttl metadata export
+    bool ttlMetadataExport;
+    bool userCancel;
+    SHOW_QUESTION( tr("TTL Metadata"), tr("Do you want to save the metadata per image as .ttl ?"), ttlMetadataExport, userCancel );
+    if( userCancel ) {
+        return false;
+    }
+    setParamFlagMeshWidget( EXPORT_TTL_WITH_PNG, ttlMetadataExport );
+
+    return true;
 }
 
 //! Screenshots for a video - 360° rotation about a given center and a given normal.
@@ -1026,6 +1057,10 @@ void MeshWidget::saveStillImages360( Vector3D rotCenter, Vector3D rotAxis ) {
 		screenshotSingle( fileName, useTiled, realWidth, realHeigth );
 	}
 	delete[] stepAngles;
+    //reset the png transparency setting
+    setParamFlagMeshWidget( SCREENSHOT_PNG_BACKGROUND_OPAQUE, false );
+    //reset the ttl export setting
+    setParamFlagMeshWidget( EXPORT_TTL_WITH_PNG, true );
 }
 
 //! Screenshots for a video - 360° horizonal rotation from left to right.
@@ -1036,7 +1071,8 @@ void MeshWidget::saveStillImages360HLR() {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
-	saveStillImages360( mCenterView, mCameraUp );
+    Vector3D cameraPitchAxis( mMatModelView(0,0), mMatModelView(0,1), mMatModelView(0,2), 0.0 );
+    saveStillImages360( mCenterView, cameraPitchAxis );
 }
 
 //! Screenshots for a video - 360° vertical rotation upwards.
@@ -1045,8 +1081,8 @@ void MeshWidget::saveStillImages360VUp() {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
-	Vector3D cameraPitchAxis( mMatModelView(0,0), mMatModelView(0,1), mMatModelView(0,2), 0.0 );
-	saveStillImages360( mCenterView, cameraPitchAxis );
+    //05.12.22 E.S code changed with saveStillImages360HLR
+    saveStillImages360( mCenterView, mCameraUp );
 }
 
 //! Screenshots for a video - 360° vertical rotation about
@@ -1604,273 +1640,7 @@ void MeshWidget::initializeShader( const QString& rFileName, QOpenGLShaderProgra
 // Screenshots -------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-QStringList MeshWidget::generateLatexCatalogPage( const QString& rFilePath, bool rUseTiled, const QList<float>& paperPropertiesf,
-                                                  const QList<QStringList>& pageCombinations, const QString& suffix,
-                                                  float dpiFactorf, float rDPIf, const QString& mainPath ) {
 
-    QStringList texFiles;
-
-	double left         = paperPropertiesf[0];
-	double right        = paperPropertiesf[1];
-	double top          = paperPropertiesf[2];
-	double bottom       = paperPropertiesf[3];
-	double paperWidth   = paperPropertiesf[4];
-	double paperHeight  = paperPropertiesf[5];
-
-    // all values are experimental (in cm)
-    double tableHeight  = 2.5;
-    double boxes_width  = 3.0;    // size of the free room between boxes in tex (horizontal)
-    double boxes_height = 5.5;    // size of the free room between boxes in tex (vertical)
-
-    paperHeight = paperHeight - top - bottom - tableHeight - boxes_height;
-    paperWidth  = paperWidth  - left - right - boxes_width;
-
-    //mMainWindow->load(rPath+'/'+files.at(i));
-    mMainWindow->load(rFilePath);
-    //mMainWindow->sFileOpen(rPath+'/'+files.at(i));
-    //repaint();
-
-    if( mMeshVisual == nullptr ) {
-        return QStringList();
-    }
-
-    for(int k = 0; k < pageCombinations.size(); k++) {
-
-        QString rColor      = pageCombinations.at(k).at(0);
-        QString rTemplate   = pageCombinations.at(k).at(1);
-        bool    useLight    = pageCombinations.at(k).at(2).toInt();
-
-        // ############## screenshot ###########################
-
-        // set the color of the objects
-        if( rColor == "Solid Color" ) {
-            mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_MONO );
-        }
-        if( rColor == "Vertex Texture" ) {
-            mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_RGB );
-        }
-        if( rColor == "Vertex Func. Values" ) {
-            mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_FUNCVAL );
-        }
-        if( rColor == "Vertex Labels" ) {
-            mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_LABELS );
-        }
-
-        setParamFlagMeshWidget( LIGHT_ENABLED, useLight );
-
-        setParamFlagMeshWidget( SHOW_GRID_RECTANGULAR, false );
-
-        QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation().wstring());
-        string fileNamePattern;
-        getParamStringMeshWidget( FILENAME_EXPORT_VIEWS, &fileNamePattern );
-        // important name change !!!!
-		fileNamePattern.insert( fileNamePattern.find_last_of('.'), to_string(k) + suffix.toStdString() );
-		QString fileName = filePath + QString( fileNamePattern.c_str() );
-		if( fileName.isNull() ) {
-			return QStringList();
-		}
-		double mmPerPixel_Width;
-		double mmPerPixel_Height;
-		getViewPortPixelWorldSize( mmPerPixel_Width, mmPerPixel_Height );
-
-		const double oldDPI = 25.4/mmPerPixel_Width;
-		orthoSetDPI(25.4/mmPerPixel_Width*dpiFactorf);
-
-		std::vector<QString> imageFileNames;
-		std::vector<double> imageSizes;
-        const auto filePrefix = QString::fromStdWString(mMeshVisual->getBaseName().wstring());
-		screenshotViews( fileName.toLatin1(), filePrefix, rUseTiled, imageFileNames, imageSizes );
-
-		getViewPortPixelWorldSize( mmPerPixel_Width, mmPerPixel_Height );
-
-		QString strDPI = "";
-
-		bool appendDPItoFileName = false;
-		getParamFlagMeshWidget(MeshWidgetParams::SCREENSHOT_FILENAME_WITH_DPI, &appendDPItoFileName);
-
-		if(appendDPItoFileName)
-		{
-			strDPI = QString( "_%1DPI" ).arg( round( 25.4/mmPerPixel_Width ) );
-		}
-
-		mmPerPixel_Width = ( mmPerPixel_Width + mmPerPixel_Height ) / 2.0;
-
-        // ############## .tex ###########################
-
-        //! .) Fetch strings and their values. (For the additional Information)
-        vector<pair<string,string> > replacmentStrings;
-        mMeshVisual->latexFetchFigureInfos( &replacmentStrings );
-
-		QString fileNameAbsolute = rFilePath;
-		fileNameAbsolute.truncate( fileNameAbsolute.lastIndexOf( QString('.') ) );
-
-		QString fileNameRelative = fileNameAbsolute;
-		fileNameRelative.replace(mainPath, ".");
-
-		string temp = fileNameRelative.toStdString();
-
-		//! .) Fetch strings and their values. (For the pictures)
-		QString title = QString( mMeshVisual->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID ).c_str() );
-		title = title.replace( QString("-"), QString("\\protect\\-") );
-		title = title.replace( QString("_"), QString("\\protect\\_") );
-		string titleString = title.toStdString();
-
-		if( k==0 ) {
-			replacmentStrings.emplace_back( pair<string,string>( string( "__TITLE__"  ),               titleString ) );
-		} else {
-			replacmentStrings.emplace_back( pair<string,string>( string( "\\section{__TITLE__}"  ),     string( "\\section*{}" ) ) );
-		}
-
-		replacmentStrings.emplace_back( pair<string,string>( string( "__01_HA_TOP__"  ),           string( temp + "_01_ha_top" +           to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-		replacmentStrings.emplace_back( pair<string,string>( string( "__02_HA_LEFT__"  ),          string( temp + "_02_ha_left" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-		replacmentStrings.emplace_back( pair<string,string>( string( "__03_HA_FRONT__"  ),         string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-		replacmentStrings.emplace_back( pair<string,string>( string( "__04_HA_RIGHT__"  ),         string( temp + "_04_ha_right" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-		replacmentStrings.emplace_back( pair<string,string>( string( "__05_HA_BOTTOM__"  ),        string( temp + "_05_ha_bottom" +        to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-		replacmentStrings.emplace_back( pair<string,string>( string( "__07_HA_BACK_LEFT__"  ),     string( temp + "_07_ha_back_left" +     to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-		replacmentStrings.emplace_back( pair<string,string>( string( "__06_HA_BACK__"  ),          string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-		replacmentStrings.emplace_back( pair<string,string>( string( "__08_HA_BACK_RIGHT__"  ),    string( temp + "_08_ha_back_right" +    to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) ) );
-
-		temp = fileNameAbsolute.toStdString();
-        float width = 0;
-        float height = 0;
-        vector<string> widthPictures;
-        vector<string> heightPictures;
-
-        if( rTemplate == "single-view" ) {
-            heightPictures.push_back(       string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-            widthPictures.push_back(        string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-        }
-        else{
-            heightPictures.push_back(       string( temp + "_01_ha_top" +           to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-            heightPictures.push_back(       string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-            heightPictures.push_back(       string( temp + "_05_ha_bottom" +        to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-
-            widthPictures.push_back(        string( temp + "_02_ha_left" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-            widthPictures.push_back(        string( temp + "_04_ha_right" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-
-            if( rTemplate == "vessols" ) {
-                widthPictures.push_back(    string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-				widthPictures.push_back(    string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-            }
-            else if( rTemplate == "fatcross-inv" ) {
-				heightPictures.push_back(   string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-
-				widthPictures.push_back(    string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-            }
-            else{
-				heightPictures.push_back(   string( temp + "_06_ha_back" +          to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-
-                widthPictures.push_back(    string( temp + "_03_ha_front" +         to_string(k) + suffix.toStdString() + strDPI.toStdString() + ".png" ) );
-            }
-        }
-
-        QImage tempImage;
-		for(const string& heightPicture : heightPictures) {
-			tempImage.load( QString::fromStdString( heightPicture ) );
-            height += tempImage.height();
-        }
-		for(const string& widthPicture : widthPictures) {
-			tempImage.load( QString::fromStdString( widthPicture ) );
-            width += tempImage.width();
-        }
-
-        // Height and width of the Pictures on Latex
-        double mmPerPixel_Latex = 1.0/rDPIf*2.54*10.0;
-        height *= mmPerPixel_Latex/10.0;    // in cm
-        width  *= mmPerPixel_Latex/10.0;    // in cm
-
-        // calculating scaling factor
-
-        double factorHeight = paperHeight / height;
-        double factorWidth  = paperWidth  / width;
-
-        double factor = min(factorHeight, factorWidth);
-
-        double latexToRealFactor = mmPerPixel_Width/mmPerPixel_Latex;
-		factor = 1.0/factor;
-        factor *= latexToRealFactor;
-
-        string scaling;
-
-        if( factor >= 1) {
-            factor = ceil(factor);
-            scaling = "1 : " + to_string(int(factor));
-        }
-        else {
-            int temp = floor(1.0/factor);
-            factor = 1.0/temp;
-            scaling = to_string(temp) + " : 1 ";
-        }
-
-        factor /= latexToRealFactor;
-		factor = 1.0/factor;
-
-        QString factorString = QString::fromStdString(to_string(factor));
-        factorString.replace(",", ".");
-
-		replacmentStrings.emplace_back( pair<string,string>( string( "__FACTOR__"  ),  factorString.toStdString()  ) );
-		replacmentStrings.emplace_back( pair<string,string>( string( "__SCALING__"  ), scaling ) );
-
-        //! .) Fetch template(s).
-        QFile latexTemplateFile( ":/GMGeneric/latextemplates/" + rTemplate + ".tex" );
-
-        if( !latexTemplateFile.open( QIODevice::ReadOnly | QIODevice::Text ) ) {
-            cerr << "[MeshQt::" << __FUNCTION__ << "] Error: could not open file!" << endl;
-            return QStringList();
-        }
-
-        QTextStream latexTemplateFileInStream( &latexTemplateFile );
-        QString fileContent;
-        while( !latexTemplateFileInStream.atEnd() ) {
-			fileContent += latexTemplateFileInStream.readLine() + "\n";
-        }
-        //cout << "[MeshQt::" << __FUNCTION__ << "] File: " << fileContent.toStdString() << endl;
-
-		QString keyDataTableRow = QString() + "__OBJECT_ID__ &" + "\n"
-		                        + "$\\numprint{__BOUNDING_BOX_WIDTH__} \\times \\numprint{__BOUNDING_BOX_HEIGHT__} \\times \\numprint{__BOUNDING_BOX_THICK__}$ &" + "\n"
-		                        + "$\\numprint{__VERTEX_COUNT__}$ &" + "\n"
-		                        + "$\\numprint{__FACE_COUNT__}$ &" + "\n"
-		                        + "$\\numprint{__AREA_TOTAL__}$ &" + "\n"
-		                        + "$\\numprint{__AREA_RESOLUTION_METRIC__}$ &" + "\n"
-		                        + "$\\numprint{__VOLUME_TOTAL__}$ &" + "\n"
-		                        + "__OBJECT_MATERIAL__\\\\" + "\n"
-		                        + "\\hline" + "\n" + "\n";
-
-        //! .) Replace place holder with values.
-		for(pair<string, string>& replacmentString : replacmentStrings) {
-			string placeHolder = replacmentString.first;
-			string content = replacmentString.second;
-			if( content.empty() ) {
-                content = "0";
-            }
-			fileContent.replace( QString::fromStdString( placeHolder ), QString::fromStdString( content ) );
-			keyDataTableRow.replace( QString::fromStdString( placeHolder ) , QString::fromStdString( content ) );
-        }
-        //cout << "[MeshQt::" << __FUNCTION__ << "] File: " << fileContent.toStdString() << endl;
-
-        keyDataTableRow.replace( QString("-"), QString("\\protect\\-") );
-        keyDataTableRow.replace( QString("_"), QString("\\protect\\_") );
-
-		ofstream outfile( fileNameAbsolute.toStdString()+ to_string(k) + suffix.toStdString() + ".tex" );
-        outfile << fileContent.toStdString() << endl;
-        outfile.close();
-
-        orthoSetDPI(oldDPI);
-
-
-
-		QString texNameAndKeyTableData = QString( (fileNameAbsolute.toStdString()+ to_string(k) + suffix.toStdString() + ".tex").c_str() );
-        if( k == 0 ) {
-            texNameAndKeyTableData += "__KEYDATATABLE__" + keyDataTableRow;
-        }
-        else {
-            texNameAndKeyTableData += "__KEYDATATABLE__";
-        }
-
-        texFiles.append( texNameAndKeyTableData );
-    }
-	return texFiles;
-}
 
 void MeshWidget::bindFramebuffer(int framebufferID)
 {
@@ -1879,461 +1649,6 @@ void MeshWidget::bindFramebuffer(int framebufferID)
 	bindFramebuffer(GL_FRAMEBUFFER, framebufferID);
 }
 
-void MeshWidget::generateLatexFile() {
-
-	LOG::debug() << "Begin Latex Page\n";
-
-#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
-#endif
-
-	// get the path chosen by the user
-	QSettings settings;
-	QString lastPath = settings.value( "lastPath" ).toString();
-	QStringList fileNames = QFileDialog::getOpenFileNames( mMainWindow, tr("Select Source File(s)"), lastPath, tr("Meshes") + QString( "(*.ply *.obj)"), nullptr, QFileDialog::DontUseNativeDialog );
-
-    if( fileNames.isEmpty() ) {
-        return;
-    }
-
-    bool userCancel;
-
-    QString suffix;
-	SHOW_INPUT_DIALOG( tr("Your suffix"), tr("Enter your suffix if wished. (Example: _p1)"), "", suffix, userCancel );
-    if( userCancel ) {
-        return;
-    }
-
-    bool rUseTiled = true;
-
-    QString paperProperties = "2.0, 2.0, 2.0, 2.0, 21.0, 29.7";
-	SHOW_INPUT_DIALOG( tr("Your Paper Properties"), tr("Enter your properties here [in cm]. (left, right, top, bottom, paperwidth, paperheight)"), paperProperties, paperProperties, userCancel );
-    if( userCancel ) {
-        return;
-    }
-    paperProperties.remove(" ");
-    QStringList paperPropertiesL = paperProperties.split(",");
-    if( paperPropertiesL.size() != 6 ) {
-        cerr << "[MeshQt::" << __FUNCTION__ << "] Error: Wrong number of parameters - should be 6 but is "<< paperPropertiesL.size() << "!" << endl
-             << "Follow the patten: left, right, top, bottom, paperwidth, paperheight - like 2.0, 2.0, 2.0, 2.0, 21.0, 29.7" << endl;
-        return;
-    }
-    QList<float> paperPropertiesf;
-    for(int i=0; i<paperPropertiesL.size(); i++) {
-        paperPropertiesf.append( paperPropertiesL[i].toFloat() );
-    }
-
-    QString dpiFactor = "1.0";
-	SHOW_INPUT_DIALOG( tr("Zoom factor"), tr("Enter your zoom factor here."), dpiFactor, dpiFactor, userCancel );
-    if( userCancel ) {
-        return;
-    }
-    dpiFactor.remove(" ");
-    float dpiFactorf = dpiFactor.toFloat();
-
-    bool generateMainFile;
-
-	SHOW_QUESTION( tr("Latex Main File"), tr("Do you want to generate a main file for those pages?"), generateMainFile, userCancel );
-    if( userCancel ) {
-        return;
-    }
-
-    bool additionalCombinations = true;
-
-    QList<QStringList> pageCombinations;
-
-    while( additionalCombinations ) {
-
-        QStringList tempCombination;
-
-        QStringList colorOptions;
-        colorOptions.append( "Solid Color" );
-        colorOptions.append( "Vertex Texture" );
-        colorOptions.append( "Vertex Func. Values" );
-        colorOptions.append( "Vertex Labels" );
-
-        QString rColor;
-		SHOW_DIALOG_COMBO_BOX( tr("Object Color"), tr("Which coloring do you want to use?"), colorOptions, rColor, userCancel );
-        if( userCancel ) {
-            return;
-        }
-
-        tempCombination.append(rColor);
-
-        QStringList templates;
-        templates.append( "fatcross" );
-        templates.append( "fatcross+light" );
-        templates.append( "fatcross-inv" );
-        templates.append( "vessols" );
-        templates.append( "single-view" );
-
-        QString rTemplate;
-		SHOW_DIALOG_COMBO_BOX( tr("Template"), tr("Which template do you want to use?"), templates, rTemplate, userCancel );
-        if( userCancel ) {
-            return;
-        }
-
-        tempCombination.append(rTemplate);
-
-        bool useLight;
-		SHOW_QUESTION( tr("Light"), tr("Do you want to use light?"), useLight, userCancel );
-        if( userCancel ) {
-            return;
-        }
-
-        QString useLightS = QString::number(useLight);
-        tempCombination.append(useLightS);
-
-        pageCombinations.append(tempCombination);
-
-		SHOW_QUESTION( tr("Additional Pages"), tr("Do you want to include an additional (color, template, light) combination?"), additionalCombinations, userCancel );
-        if( userCancel ) {
-            return;
-        }
-
-    }
-
-	QString combinationList = tr("These are your combinations:") + QString("\n\n");
-	for(const QStringList& pageCombination : pageCombinations) {
-		combinationList += pageCombination.at(0) + ", " + pageCombination.at(1) + ", " + pageCombination.at(2) + "\n";
-    }
-
-    bool userContinue;
-	SHOW_QUESTION( tr("Do you want to continue?"), combinationList, userContinue, userCancel );
-    if( userCancel || !userContinue ) {
-        return;
-    }
-
-    // ################# generateLatexFile ###############
-
-    QStringList texFiles;
-
-    QString path = fileNames.at(0);
-    path.truncate( fileNames.at(0).lastIndexOf( QString('/') ) );
-
-    for( int i=0; i < fileNames.size(); i++ ) {
-        texFiles.append( generateLatexCatalogPage( fileNames.at(i), rUseTiled, paperPropertiesf, pageCombinations, suffix, dpiFactorf, 72, path ) );
-    }
-
-    QFile latexKeyDataTableTemplateFile( ":/GMGeneric/latextemplates/keydata.tex" );
-
-    if( !latexKeyDataTableTemplateFile.open( QIODevice::ReadOnly | QIODevice::Text ) ) {
-        cerr << "[MeshQt::" << __FUNCTION__ << "] Error: could not open file!" << endl;
-        return;
-    }
-
-    QTextStream latexKeyDataTableTemplateInStream( &latexKeyDataTableTemplateFile );
-    QString latexKeyDataTableFileContent;
-    while( !latexKeyDataTableTemplateInStream.atEnd() ) {
-		latexKeyDataTableFileContent += latexKeyDataTableTemplateInStream.readLine() + "\n";
-    }
-
-    QString keyDataTexFileName = path + '/' + "keyDataTable" + suffix + ".tex";
-
-    QString replacementStringKeyDataTable = "";
-
-    if( generateMainFile ) {
-
-        //! .) Fetch template(s).
-        QFile latexTemplateFile( ":/GMGeneric/latextemplates/skeleton.tex" );
-
-        if( !latexTemplateFile.open( QIODevice::ReadOnly | QIODevice::Text ) ) {
-            cerr << "[MeshQt::" << __FUNCTION__ << "] Error: could not open file!" << endl;
-            return;
-        }
-
-        QTextStream latexTemplateFileInStream( &latexTemplateFile );
-        QString fileContent;
-        while( !latexTemplateFileInStream.atEnd() ) {
-			fileContent += latexTemplateFileInStream.readLine() + "\n";
-        }
-
-        //cout << "[MeshQt::" << __FUNCTION__ << "] File: " << fileContent.toStdString() << endl;
-        //! .) Replace place holder with values.
-        QString replacementString = "";        
-
-        for( int i = 0; i < texFiles.size(); i++ ) {
-            QStringList texFileComponents = texFiles[i].split( "__KEYDATATABLE__" );
-
-			replacementString += "\\input{"+texFileComponents[0].replace( path+'/', "" )+'}' + "\n" + "\\newpage" + "\n";
-            if( pageCombinations.size() % 2 == 1 && (i+1) % pageCombinations.size() == 0 ) {
-				replacementString += QString() + "\n" + "\\thispagestyle{empty}" + "\n" + "\\mbox{}" + "\n" + "\\newpage" + "\n" + "\n";
-            }
-
-            replacementStringKeyDataTable += texFileComponents[1];
-        }
-
-        fileContent.replace( QString( "__INCLUDE__" ), replacementString );
-        fileContent.replace( QString( "__KEYDATATABLE__" ), QString() + "\\input{" + "keyDataTable" + suffix + ".tex" + "}" );
-        fileContent.replace( QString( "__LEFT__"    ),  "left="  + QString::number( paperPropertiesf[0] ) +"cm" );
-        fileContent.replace( QString( "__RIGHT__"   ),  "right=" + QString::number( paperPropertiesf[1] ) +"cm" );
-        fileContent.replace( QString( "__TOP__"     ),  "top="   + QString::number( paperPropertiesf[2] ) +"cm" );
-        fileContent.replace( QString( "__BOTTOM__"  ),  "bottom="+ QString::number( paperPropertiesf[3] ) +"cm" );
-
-        ofstream outfile( path.toStdString() + '/' + "main" + suffix.toStdString() + ".tex" );
-        outfile << fileContent.toStdString() << endl;
-        outfile.close();        
-    }
-    else {
-        for( int i = 0; i < texFiles.size(); i++ ) {
-            QStringList texFileComponents = texFiles[i].split( "__KEYDATATABLE__" );
-            replacementStringKeyDataTable += texFileComponents[1];
-        }
-    }
-
-    latexKeyDataTableFileContent.replace( QString( "__KEYDATATABLE__" ), replacementStringKeyDataTable );
-
-    ofstream outfile2( keyDataTexFileName.toStdString() );
-    outfile2 << latexKeyDataTableFileContent.toStdString() << endl;
-    outfile2.close();
-
-	SHOW_MSGBOX_INFO( tr("Finished"), tr("Your page generation has finished.") );
-}
-
-
-QStringList MeshWidget::generateLatexCatalog( int depth, const QString& rPath, bool rUseTiled,
-                                              const QStringList& rFilters, const QList<float>& paperPropertiesf,
-                                              const QList<QStringList>& pageCombinations, const QString& suffix,
-                                              float dpiFactorf, const QString& mainPath ) {
-
-    if( depth > 9 ) {
-        cout << "maximum recursion depth reached: " << depth << endl;
-        cout << "path: " << rPath.toStdString() << endl;
-        return QStringList();
-    }
-
-    QDir directory      = QDir(rPath);
-    QStringList files   = directory.entryList(rFilters);
-    QFileInfoList fileInfoList = directory.entryInfoList();
-    QStringList directories;
-
-	for (const QFileInfo& fileInfo : fileInfoList) {
-		if( fileInfo.isDir() && fileInfo.absolutePath().contains(rPath) && !fileInfo.isHidden() ) {
-			directories.append( fileInfo.absolutePath() + '/' + fileInfo.completeBaseName() );
-        }
-    }
-
-    QStringList texFiles;
-
-    for (int i = 0; i < files.size(); i++) {
-        texFiles.append( generateLatexCatalogPage( rPath+'/'+files.at(i), rUseTiled, paperPropertiesf, pageCombinations, suffix, dpiFactorf, 72.0, mainPath ) );
-    }
-
-    if( !directories.isEmpty() && depth > -1 ) {
-        for (int i = 0; i < directories.size(); ++i) {
-            texFiles.append( generateLatexCatalog( depth+1, directories[i], rUseTiled, rFilters, paperPropertiesf, pageCombinations, suffix, dpiFactorf, mainPath ) );
-        }
-    }
-
-    return texFiles;
-
-}
-
-
-void MeshWidget::generateLatexCatalog() {
-
-#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
-#endif
-
-	// get the path chosen by the user
-	QSettings settings;
-	QString lastPath = settings.value( "lastPath" ).toString();
-	QString path = QFileDialog::getExistingDirectory( mMainWindow, tr( "Choose the Directory" ), lastPath );
-
-    if( path.isEmpty() ) {
-        return;
-    }
-
-    // Filter files with certain patterns (types copied from load dialog except!!! txt / TXT)
-	QStringList filters;
-    filters << "*.obj" << "*.OBJ" << "*.ply" << "*.PLY";
-
-    bool userCancel;
-
-    QString suffix;
-	SHOW_INPUT_DIALOG( tr("Your suffix"), tr("Enter your suffix if wished. (Example: _p1)"), "", suffix, userCancel );
-    if( userCancel ) {
-        return;
-    }
-
-    bool useRecursion;
-	SHOW_QUESTION( tr("Recursion"), tr("Do you want to use recursion?"), useRecursion, userCancel );
-    if( userCancel ) {
-        return;
-    }
-
-    bool rUseTiled = true;
-
-    QString paperProperties = "2.0, 2.0, 2.0, 2.0, 21.0, 29.7";
-	SHOW_INPUT_DIALOG( tr("Your Paper Properties"), tr("Enter your properties here [in cm]. (left, right, top, bottom, paperwidth, paperheight)"), paperProperties, paperProperties, userCancel );
-    if( userCancel ) {
-        return;
-    }
-    paperProperties.remove(" ");
-    QStringList paperPropertiesL = paperProperties.split(",");
-    if( paperPropertiesL.size() != 6 ) {
-        cerr << "[MeshQt::" << __FUNCTION__ << "] Error: Wrong number of parameters - should be 6 but is "<< paperPropertiesL.size() << "!" << endl
-             << "Follow the patten: left, right, top, bottom, paperwidth, paperheight - like 2.0, 2.0, 2.0, 2.0, 21.0, 29.7" << endl;
-        return;
-    }
-    QList<float> paperPropertiesf;
-    for(int i=0; i<paperPropertiesL.size(); i++) {
-        paperPropertiesf.append( paperPropertiesL[i].toFloat() );
-    }
-
-    QString dpiFactor = "1.0";
-	SHOW_INPUT_DIALOG( tr("Zoom factor"), tr("Enter your zoom factor here."), dpiFactor, dpiFactor, userCancel );
-    if( userCancel ) {
-        return;
-    }
-    dpiFactor.remove(" ");
-    float dpiFactorf = dpiFactor.toFloat();
-
-    bool additionalCombinations = true;
-
-    QList<QStringList> pageCombinations;
-
-    while( additionalCombinations ) {
-
-        QStringList tempCombination;
-
-        QStringList colorOptions;
-        colorOptions.append( "Solid Color" );
-        colorOptions.append( "Vertex Texture" );
-        colorOptions.append( "Vertex Func. Values" );
-        colorOptions.append( "Vertex Labels" );
-
-        QString rColor;
-		SHOW_DIALOG_COMBO_BOX( tr("Object Color"), tr("Which coloring do you want to use?"), colorOptions, rColor, userCancel );
-        if( userCancel ) {
-            return;
-        }
-
-        tempCombination.append(rColor);
-
-        QStringList templates;
-        templates.append( "fatcross" );
-        templates.append( "fatcross+light" );
-        templates.append( "fatcross-inv" );
-        templates.append( "vessols" );
-        templates.append( "single-view" );
-
-        QString rTemplate;
-		SHOW_DIALOG_COMBO_BOX( tr("Template"), tr("Which template do you want to use?"), templates, rTemplate, userCancel );
-        if( userCancel ) {
-            return;
-        }
-
-        tempCombination.append(rTemplate);
-
-        bool useLight;
-		SHOW_QUESTION( tr("Light"), tr("Do you want to use light?"), useLight, userCancel );
-        if( userCancel ) {
-            return;
-        }
-
-        QString useLightS = QString::number(useLight);
-        tempCombination.append(useLightS);
-
-        pageCombinations.append(tempCombination);
-
-		SHOW_QUESTION( tr("Additional Pages"), tr("Do you want to include an additional (color, template, light) combination?"), additionalCombinations, userCancel );
-        if( userCancel ) {
-            return;
-		}
-
-    }
-
-	QString combinationList = tr("These are your combinations:") + QString("\n\n");
-	for(const QStringList& pageCombination : pageCombinations) {
-		combinationList += pageCombination.at(0) + ", " + pageCombination.at(1) + ", " + pageCombination.at(2) + "\n";
-    }
-
-    bool userContinue;
-	SHOW_QUESTION( tr("Do you want to continue?"), combinationList, userContinue, userCancel );
-    if( userCancel || !userContinue ) {
-        return;
-    }
-
-    // ################# generateLatexFile ###############
-
-    QStringList texFiles;
-
-    // execution
-    if( useRecursion ) {
-        texFiles = generateLatexCatalog(  0, path, rUseTiled, filters, paperPropertiesf, pageCombinations, suffix, dpiFactorf, path );
-    }
-    else {
-        texFiles = generateLatexCatalog( -1, path, rUseTiled, filters, paperPropertiesf, pageCombinations, suffix, dpiFactorf, path );
-    }
-
-    // generating the main file
-
-    //! .) Fetch template(s).
-    QFile latexTemplateFile( ":/GMGeneric/latextemplates/skeleton.tex" );
-
-    if( !latexTemplateFile.open( QIODevice::ReadOnly | QIODevice::Text ) ) {
-        cerr << "[MeshQt::" << __FUNCTION__ << "] Error: could not open file!" << endl;
-        return;
-    }
-
-    QTextStream latexTemplateFileInStream( &latexTemplateFile );
-    QString fileContent;
-    while( !latexTemplateFileInStream.atEnd() ) {
-		fileContent += latexTemplateFileInStream.readLine() + "\n";
-    }
-
-    QFile latexKeyDataTableTemplateFile( ":/GMGeneric/latextemplates/keydata.tex" );
-
-    if( !latexKeyDataTableTemplateFile.open( QIODevice::ReadOnly | QIODevice::Text ) ) {
-        cerr << "[MeshQt::" << __FUNCTION__ << "] Error: could not open file!" << endl;
-        return;
-    }
-
-    QTextStream latexKeyDataTableTemplateInStream( &latexKeyDataTableTemplateFile );
-    QString latexKeyDataTableFileContent;
-    while( !latexKeyDataTableTemplateInStream.atEnd() ) {
-		latexKeyDataTableFileContent += latexKeyDataTableTemplateInStream.readLine() + "\n";
-    }
-
-    //cout << "[MeshQt::" << __FUNCTION__ << "] File: " << fileContent.toStdString() << endl;
-    //! .) Replace place holder with values.
-    QString replacementString = "";
-    QString replacementStringKeyDataTable = "";
-
-    for( int i = 0; i < texFiles.size(); i++ ) {
-        QStringList texFileComponents = texFiles[i].split( "__KEYDATATABLE__" );
-
-		replacementString += "\\input{"+texFileComponents[0].replace( path+'/', "" )+'}' + "\n" + "\\newpage" + "\n";
-        if( pageCombinations.size() % 2 == 1 && (i+1) % pageCombinations.size() == 0 ) {
-			replacementString += QString() + "\n" + "\\thispagestyle{empty}" + "\n" + "\\mbox{}" + "\n" + "\\newpage" + "\n" + "\n";
-        }
-
-        replacementStringKeyDataTable += texFileComponents[1];
-    }
-
-    QString keyDataTexFileName = path + '/' + "keyDataTable" + suffix + ".tex";
-
-    fileContent.replace( QString( "__INCLUDE__" ), replacementString );
-    fileContent.replace( QString( "__KEYDATATABLE__" ), QString() + "\\input{" + "keyDataTable" + suffix + ".tex" + "}" );
-    fileContent.replace( QString( "__LEFT__"    ),  "left="  + QString::number( paperPropertiesf[0] ) +"cm" );
-    fileContent.replace( QString( "__RIGHT__"   ),  "right=" + QString::number( paperPropertiesf[1] ) +"cm" );
-    fileContent.replace( QString( "__TOP__"     ),  "top="   + QString::number( paperPropertiesf[2] ) +"cm" );
-    fileContent.replace( QString( "__BOTTOM__"  ),  "bottom="+ QString::number( paperPropertiesf[3] ) +"cm" );
-
-    latexKeyDataTableFileContent.replace( QString( "__KEYDATATABLE__" ), replacementStringKeyDataTable );
-
-    ofstream outfile( path.toStdString() + '/' + "main" + suffix.toStdString() + ".tex" );
-    outfile << fileContent.toStdString() << endl;
-    outfile.close();
-
-    ofstream outfile2( keyDataTexFileName.toStdString() );
-    outfile2 << latexKeyDataTableFileContent.toStdString() << endl;
-    outfile2.close();
-
-	SHOW_MSGBOX_INFO( tr("Finished"), tr("Your catalog generation has finished.") );
-}
 
 // --- Screenshots Side-Views as PDF ---------------------------------------------------------------------------------------------------------------------------
 
@@ -2368,7 +1683,109 @@ bool MeshWidget::screenshotViewsDirectoryFiles(
 //		}
 //	}
 
-	return( true );
+    return( true );
+}
+//! Set all possible Latex placeholder definitions
+//!
+//! placeholders are used to check if a userdefined latextemplate uses all possible values/placeholders
+//! descriptions are used to give the user information about the placeholder value
+void MeshWidget::setLatexPlaceholderDefinition()
+{
+
+    //single page
+    mPdfSinglePlaceholders.clear();
+    mPdfSinglePlaceholders = {
+        {"__PDF_AUTHOR__","username and hostname of the system"},
+        {"__OBJECT_ID__","is the value of 'ModelID' at the Meta information of the PLY"},
+        {"__WEB_REFERENCE__","is the value of 'ModelReferenceWeb' at the Meta information of the PLY"},
+        {"__FIGURE_IMAGE_FILE__","is the Name of the created PNG at the target directory (without '.png')"},
+        {"__BOUNDING_BOX_WIDTH__","bounding box width in cm"},
+        {"__BOUNDING_BOX_HEIGHT__","bounding box height in cm"},
+        {"__BOUNDING_BOX_THICK__","bounding box thick in cm"},
+        {"__VERTEX_COUNT__","number of vertices"},
+        {"__FACE_COUNT__","number of faces"},
+        {"__OBJECT_MATERIAL__","is the value of 'ModelMaterial' at the Meta information of the PLY"},
+        {"__AREA_TOTAL__","surface of the mesh in mm²"},
+        {"__AREA_TOTAL__","surface of the mesh in mm²"},
+        {"__AREA_RESOLUTION_METRIC__","resolution in 1/cm²"},
+        {"__AREA_RESOLUTION_DPI__","resolution in DPI"},
+        {"__VOLUME_TOTAL__","volume in cm³"}
+    };
+
+    //views
+    mPdfViewsPlaceholders.clear();
+    mPdfViewsPlaceholders = {
+        {"__PDF_AUTHOR__","username and hostname of the system"},
+        {"__OBJECT_ID__","is the value of 'ModelID' at the Meta information of the PLY"},
+        {"__WEB_REFERENCE__","is the value of 'ModelReferenceWeb' at the Meta information of the PLY"},
+        {"__FIGURE_PREFIX__","is the Präfix of all generated images in directory figs at the target directory.\n Use in combination with e.g. \figureprefix_01_ha_top to include a image.\n possible Views:_01_ha_top,_02_ha_left,_03_ha_front,_04_ha_right,_05_ha_bottom, _06_ha_back"},
+        {"__BOUNDING_BOX_WIDTH__","bounding box width in cm"},
+        {"__BOUNDING_BOX_HEIGHT__","bounding box height in cm"},
+        {"__BOUNDING_BOX_THICK__","bounding box thick in cm"},
+        {"__VERTEX_COUNT__","number of vertices"},
+        {"__FACE_COUNT__","number of faces"},
+        {"__OBJECT_MATERIAL__","is the value of 'ModelMaterial' at the Meta information of the PLY"},
+        {"__AREA_TOTAL__","surface of the mesh in mm²"},
+        {"__AREA_TOTAL__","surface of the mesh in mm²"},
+        {"__AREA_RESOLUTION_METRIC__","resolution in 1/cm²"},
+        {"__AREA_RESOLUTION_DPI__","resolution in DPI"},
+        {"__VOLUME_TOTAL__","volume in cm³"}
+    };
+
+}
+
+bool MeshWidget::checkUserdefinedLatexFile(QString *latexTemplate, std::vector<LatexPlaceholder> rPlaceHolders)
+{
+    bool notUsedPlaceholderFound = false;
+    QString informationTextPlaceholders;
+    for(LatexPlaceholder placeholder: rPlaceHolders){
+        if(!latexTemplate->contains(QRegExp(placeholder.placeholder))){
+            informationTextPlaceholders = informationTextPlaceholders + placeholder.placeholder;
+            informationTextPlaceholders = informationTextPlaceholders + QString(" | ");
+            informationTextPlaceholders = informationTextPlaceholders + placeholder.descr +  QString("\n");
+            notUsedPlaceholderFound = true;
+        }
+    }
+    if(notUsedPlaceholderFound){
+        bool userCancel;
+        bool userContinue;
+        SHOW_QUESTION( tr("Some Placeholders are not used"), tr("The Latex template contains not all possible Placeholders.\n This additional placeholders are still possible: ") + QString("\n\n") + informationTextPlaceholders + QString("\n\n") + tr("Continue?"), userContinue, userCancel );
+        if( userCancel || !userContinue) {
+            return( false );
+        }
+    }
+    return ( true );
+}
+
+//! Help function for latex PDF Export (cc-license)
+//! Ask for all possible Parameters and Versions of CC-licenses
+//! based on the Latex package doclicense
+//! https://ctan.org/pkg/doclicense?lang=de
+bool MeshWidget::askForCCLicenseParameters(QString *ccParameter, QString *ccVersion)
+{
+     QStringList possibleParameters;
+     possibleParameters.append("by");
+     possibleParameters.append("by-sa");
+     possibleParameters.append("by-nd");
+     possibleParameters.append("by-nc");
+     possibleParameters.append("by-nc-sa");
+     possibleParameters.append("by-nc-nd");
+
+     bool userCancel;
+     SHOW_DIALOG_COMBO_BOX( tr("CC-Attribution"), tr("Which type of CC-License you want to use?"), possibleParameters, *ccParameter, userCancel );
+     if( userCancel ) {
+         return( false );
+     }
+
+     QStringList possibleVersions;
+     possibleVersions.append("3.0");
+     possibleVersions.append("4.0");
+     SHOW_DIALOG_COMBO_BOX( tr("CC-Version"), tr("Which version of CC-License you want to use?"), possibleVersions, *ccVersion, userCancel );
+     if( userCancel ) {
+         return( false );
+     }
+     return( true );
+
 }
 
 //! Render front-views or side-views as
@@ -2436,6 +1853,41 @@ bool MeshWidget::screenshotViewsDirectory() {
 		}
 	}
 
+    //ask for pdf templates
+    QString rTemplate;
+    QString texFileName;
+    //set standard license Values
+    QString ccParameters = "by-sa";
+    QString ccVersion = "4.0";
+    if(!preferPNGoverPDF){
+        QStringList templates;
+        templates.append( "Single page" );
+        templates.append( "Single page with cc-license" );
+        templates.append( "Own template" );
+
+        SHOW_DIALOG_COMBO_BOX( tr("Template"), tr("Which template do you want to use?"), templates, rTemplate, userCancel );
+        if( userCancel ) {
+            return( false );
+        }
+        //load user individual template
+        if( rTemplate == "Own template"){
+            texFileName = QFileDialog::getOpenFileName( this,
+                                                              tr( "Import Latex template" ),
+                                                              nullptr,
+                                                              tr( "tex-file (*.tex)" )
+                                                             );
+            if( texFileName == nullptr) {
+                return( false );
+            }
+        }
+        //ask for cc license parameters and Version
+        if( rTemplate == "Single page with cc-license"){
+            if(!askForCCLicenseParameters(&ccParameters,&ccVersion)){
+                return( false );
+            }
+        }
+    }
+
 	// Let the user choose a path
 	QString     pathChoosen;
 	QStringList currFiles;
@@ -2443,7 +1895,7 @@ bool MeshWidget::screenshotViewsDirectory() {
 		return( false );
 	}
 
-	// Enter a suffox
+	// Enter a suffix
 	QString fileNameSuffix( "_Uniform");
 	QGMDialogEnterText dlgEnterTxt;
 	dlgEnterTxt.setWindowTitle( "Filename Suffix" );
@@ -2457,16 +1909,16 @@ bool MeshWidget::screenshotViewsDirectory() {
 
 	bool retVal = true;
 	for( int i=0; i<currFiles.size(); ++i ) {
-		// mMainWindow->load( pathChoosen+'/'+currFiles.at(i) );
-		if( !fileOpen( pathChoosen+'/'+currFiles.at(i) ) ) {
+		QString currentFile = pathChoosen + '/' + currFiles.at(i);
+		if( !fileOpen( currentFile ) ) {
 			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: File open failed for '"
-			          << (pathChoosen+'/'+currFiles.at(i)).toStdString() << "'!" << std::endl;
+			          << currentFile.toStdString() << "'!" << std::endl;
 			retVal = false;
 			continue;
 		}
 		if( mMeshVisual == nullptr ) {
 			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: No mesh loaded for '"
-			          << (pathChoosen+'/'+currFiles.at(i)).toStdString() << "'!" << std::endl;
+			          << currentFile.toStdString() << "'!" << std::endl;
 			retVal = false;
 			continue;
 		}
@@ -2493,7 +1945,11 @@ bool MeshWidget::screenshotViewsDirectory() {
 				// FRONT View PDF document
 				QString prefixStem( string( std::filesystem::path( currFiles.at(i).toStdString() ).stem().string() ).c_str() );
 				retVal |= screenshotPDF( pathChoosen+'/'+prefixStem+fileNameSuffix+".pdf",
-				                         useTiled ); // Fromt Side
+                                         useTiled,
+                                         rTemplate,
+                                         texFileName,
+                                         ccParameters,
+                                         ccVersion); // Fromt Side
 			}
 		} else {
 			if( preferPNGoverPDF ) {
@@ -2507,61 +1963,14 @@ bool MeshWidget::screenshotViewsDirectory() {
 			} else {
 				// SIDE Views PDF document
 				QString prefixStem( string( std::filesystem::path( currFiles.at(i).toStdString() ).stem().string() ).c_str() );
-				retVal |= screenshotViewsPDF( pathChoosen+'/'+prefixStem+fileNameSuffix+".pdf" ); // TILES always ON
+                retVal |= screenshotViewsPDF( pathChoosen+'/'+prefixStem+fileNameSuffix+".pdf",
+                                              rTemplate,
+                                              texFileName,
+                                              ccParameters,
+                                              ccVersion); // TILES always ON
 			}
 		}
-
-		//! \todo clean-up.
-//		//===============================================================================================================
-//		// Set properties - HEURISTIC for cuneiform tablets
-//		//===============================================================================================================
-//		// Set ligth and fixed resolution
-//		setParamFlagMeshWidget( EXPORT_SIDE_VIEWS_SIX, false );
-//		setParamFlagMeshWidget( LIGHT_ENABLED, true );
-//		mMeshVisual->setParamIntMeshGL( MeshGLParams::TEXMAP_CHOICE_FACES, MeshGLParams::TEXMAP_VERT_MONO );
-//		// Turn of vertex sprite rendering -- COPY+PASTE from BELOW!
-//		mMeshVisual->callFunctionMeshGL( MeshGLParams::SET_SHOW_VERTICES_NONE, false ); // False has NO influence.
-//		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_SELECTION, false );
-//		.......
-//		//===============================================================================================================
-//		// Set properties - HEURISTIC for cuneiform tablets
-//		//===============================================================================================================
-//		// Set ligth and fixed resolution
-//		setParamFlagMeshWidget( EXPORT_SIDE_VIEWS_SIX, true );
-//		setParamFlagMeshWidget( LIGHT_ENABLED, false );
-//		orthoSetDPI( printResDPI );
-//		// Compute function value and choose grayscale
-//		//double minFuncValue = -0.12910306806; // Values used for HeiCuBeDa 1%
-//		//double maxFuncValue = +0.48764927169; // Values used for HeiCuBeDa 99%
-//		double minFuncValue = -0.061743971965; // Values used for ErKon3D Springer LNCS 5%
-//		double maxFuncValue = 0.205966176870; // Values used for ErKon3D Springer LNCS 98%
-//		//double maxFuncValue = +0.554183392987; // Values used for ErKon3D Springer LNCS
-//		mMeshVisual->callFunctionMesh( MeshParams::FUNCVAL_FEATUREVECTOR_MAX_ELEMENT, false ); // False has NO influence.
-//		mMeshVisual->setParamIntMeshGL( MeshGLParams::GLSL_COLMAP_CHOICE, MeshGLParams::GLSL_COLMAP_GRAYSCALE );
-//		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_COLMAP_INVERT, true );
-//		// Set fixed range for the function value for all renderings to achieve uniform coloring
-//		mMeshVisual->setParamIntMeshGL( MeshGLParams::FUNCVAL_CUTOFF_CHOICE, MeshGLParams::FUNCVAL_CUTOFF_MINMAX_USER );
-//		mMeshVisual->setParamFloatMeshGL( MeshGLParams::TEXMAP_FIXED_MIN, minFuncValue );
-//		mMeshVisual->setParamFloatMeshGL( MeshGLParams::TEXMAP_FIXED_MAX, maxFuncValue );
-//		// Turn of vertex sprite rendering
-//		mMeshVisual->callFunctionMeshGL( MeshGLParams::SET_SHOW_VERTICES_NONE, false ); // False has NO influence.
-//		mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_SELECTION, false );
-//		//===============================================================================================================
-
-//		// Create PNGs
-//		// SIDE Views
-//		//screenshotViews( fileNamePattern, ( pathChoosen+"/"+prefixStem ).toStdString(),
-//		//                 useTiled, imageFiles, imageSizes );
-//		// FRONT View
-//		screenshotSingle( ( pathChoosen+"/"+prefixStem+".png" ),
-//		                  useTiled, widthReal, heigthReal );
-
-//		// THIS is really QUICK and DIRTY
-//		// Save file with function value and the created color.
-//		// stops because of confirmation: mMeshVisual->callFunctionMeshGL( MeshGLParams::TRANSFORM_FUNCTION_VALUES_TO_RGB, false );
-//		mMeshVisual->runFunctionValueToRGBTransformation();
-//		mMeshVisual->writeFile( pathChoosen+"/"+prefixStem+"_FtElMax-as_VertexColor.ply" );
-	}
+	} // for all files
 
 	if( retVal ) {
 		SHOW_MSGBOX_INFO( tr( "Directory Schreenshots" ),
@@ -2570,6 +1979,84 @@ bool MeshWidget::screenshotViewsDirectory() {
 	} else {
 		SHOW_MSGBOX_WARN( tr( "ERROR - Directory Schreenshots" ),
 		                  tr( "Errors occured creating screenshots for:<br /><br />" ) +
+		                  pathChoosen );
+	}
+    //set false, that the userindividual latex template will check next time
+    mUserContinue = false;
+	return( retVal );
+}
+
+//! Render front-views or side-views as
+//! PNGs or PDFs having PNGs embeded created using a LaTeX template.
+//!
+//! User interaction: select a path to load the meshes consecutively
+//! and generate views for each 3D-file found.
+//!
+//! @returns false in case of an error or user cancel. True otherwise.
+bool MeshWidget::directoryFuncValToRGB() {
+	// Store settings from current Mesh and MeshWidget
+	MeshGLParams storeMeshGLParams( (MeshGLParams)mMeshVisual );
+	MeshWidgetParams storeMeshWidgetParams( (MeshWidgetParams)this );
+
+	// Let the user choose a path
+	QString     pathChoosen;
+	QStringList currFiles;
+	if( !screenshotViewsDirectoryFiles( pathChoosen, currFiles ) ) {
+		return( false );
+	}
+
+	// Enter a suffix
+	QString fileNameSuffix( "_FuncValColor");
+	QGMDialogEnterText dlgEnterTxt;
+	dlgEnterTxt.setWindowTitle( "Filename Suffix" );
+	dlgEnterTxt.setText( fileNameSuffix );
+	if( dlgEnterTxt.exec() == QDialog::Rejected ) {
+		return( false );
+	}
+	if( !dlgEnterTxt.getText( &fileNameSuffix ) ) {
+		return( false );
+	}
+
+	bool retVal = true;
+	for( int i=0; i<currFiles.size(); ++i ) {
+		QString currentFile = pathChoosen + '/' + currFiles.at(i);
+		if( !fileOpen( currentFile ) ) {
+			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: File open failed for '"
+			          << currentFile.toStdString() << "'!" << std::endl;
+			retVal = false;
+			continue;
+		}
+		if( mMeshVisual == nullptr ) {
+			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: No mesh loaded for '"
+			          << currentFile.toStdString() << "'!" << std::endl;
+			retVal = false;
+			continue;
+		}
+
+		//double minFuncValue = -0.12910306806; // Values used for HeiCuBeDa 1%
+		//double maxFuncValue = +0.48764927169; // Values used for HeiCuBeDa 99%
+		//double minFuncValue = -0.061743971965; // Values used for ErKon3D Springer LNCS 5%
+		//double maxFuncValue = 0.205966176870; // Values used for ErKon3D Springer LNCS 98%
+		//double maxFuncValue = +0.554183392987; // Values used for ErKon3D Springer LNCS
+
+		// Setup Mesh
+		this->setParamAllMeshWidget( storeMeshWidgetParams );
+		mMeshVisual->setParamAllMeshWidget( storeMeshGLParams );
+		mMeshVisual->runFunctionValueToRGBTransformation();
+
+		// Write with suffix inserted
+		int lastDot = currentFile.lastIndexOf( '.' );
+		currentFile.insert( lastDot, fileNameSuffix );
+		mMeshVisual->writeFile( currentFile );
+	}
+
+	if( retVal ) {
+		SHOW_MSGBOX_INFO( tr( "3D files in directory" ),
+		                  tr( "All files have been recolored:<br /><br />" ) +
+		                  pathChoosen );
+	} else {
+		SHOW_MSGBOX_WARN( tr( "3D files in directory" ),
+		                  tr( "Errors occured during recoloring for:<br /><br />" ) +
 		                  pathChoosen );
 	}
 
@@ -2601,13 +2088,47 @@ bool MeshWidget::screenshotViewsPDFUser() {
 		return( false );
 	}
 
+    QStringList templates;
+    templates.append( "Single page" );
+    templates.append( "Single page with cc-license" );
+    templates.append( "Own template" );
+
+    bool userCancel;
+    QString rTemplate;
+    SHOW_DIALOG_COMBO_BOX( tr("Template"), tr("Which template do you want to use?"), templates, rTemplate, userCancel );
+    if( userCancel ) {
+        return( false );
+    }
+
+    //load user individual template
+    QString texFileName;
+    if( rTemplate == "Own template"){
+
+        texFileName = QFileDialog::getOpenFileName( this,
+                                                          tr( "Import Latex template" ),
+                                                          nullptr,
+                                                          tr( "tex-file (*.tex)" )
+                                                         );
+        if( texFileName == nullptr) {
+            return( false );
+        }
+    }
+    //ask for cc license parameters and Version
+    QString ccParameters = "by-sa";
+    QString ccVersion = "4.0";
+    if( rTemplate == "Single page with cc-license"){
+        if(!askForCCLicenseParameters(&ccParameters,&ccVersion)){
+            return( false );
+        }
+    }
+
 	// Execute
-	if( !screenshotViewsPDF( fileName ) ) {
+    if( !screenshotViewsPDF( fileName, rTemplate, texFileName, ccParameters, ccVersion ) ) {
 		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: screenshotViewsPDF( " << fileName.toStdString() << " ) failed!" << std::endl;
 		return( false );
 	}
 
-	// --- Show PDF, when evince is available --------------------------------------------------------------------------------------------------------------
+    // --- Show PDF, when evince, okular or atril is available --------------------------------------------------------------------------------------------------------------
 	std::string pdfViewerCommand;
 	getParamStringMeshWidget(MeshWidgetParams::PDF_VIEWER_COMMAND, &pdfViewerCommand);
 #ifdef WIN32
@@ -2615,9 +2136,24 @@ bool MeshWidget::screenshotViewsPDFUser() {
 #endif
 	if( !QProcess::startDetached( QString(pdfViewerCommand.c_str()) + " \"" + fileName + "\"" ) ) {
 		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Program " + pdfViewerCommand + " not found!" << std::endl;
+        //Try okular
+        getParamStringMeshWidget(MeshWidgetParams::PDF_VIEWER_COMMAND_ALT1, &pdfViewerCommand);
+
+        if( !QProcess::startDetached( QString(pdfViewerCommand.c_str()) + " \"" + fileName + "\"" ) ) {
+            std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Program " + pdfViewerCommand + " not found!" << std::endl;
+
+            //Try atril
+            getParamStringMeshWidget(MeshWidgetParams::PDF_VIEWER_COMMAND_ALT2, &pdfViewerCommand);
+
+            if( !QProcess::startDetached( QString(pdfViewerCommand.c_str()) + " \"" + fileName + "\"" ) ) {
+                std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Program " + pdfViewerCommand + " not found!" << std::endl;
+            }
+        }
+
 	}
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
-
+    //set false, that the userindividual latex template will check next time
+    mUserContinue = false;
 	return( true );
 }
 
@@ -2625,8 +2161,9 @@ bool MeshWidget::screenshotViewsPDFUser() {
 //!
 //! Accepts a filename to write a PDF with views for the current mesh (MeshWidget::mMeshVisual).
 //!
+//! @todo GUI Questions for the cc license parameters
 //! @returns false in case of an error. True otherwise.
-bool MeshWidget::screenshotViewsPDF( const QString& rFileName ) {
+bool MeshWidget::screenshotViewsPDF( const QString& rFileName, QString rTemplate, const QString rTexFileName, const QString rCCparameter, const QString rCCversion ) {
 	//! Always use tiled rendering.
 	bool useTiled = true;
 	//! Six views only (for now)
@@ -2684,8 +2221,16 @@ bool MeshWidget::screenshotViewsPDF( const QString& rFileName ) {
 	scaleFactorTex    = "1:" + QString( "%1" ).arg( 1.0/scaleFactor, 'f' ).trimmed() ;
 
 	// Load template
+    //standard = single page
 	QString latexTemplateName( ":/GMLaTeX/report_single_page_template.tex" );
-	QString latexTemplate;
+    //other templates
+    if(rTemplate == "Single page with cc-license"){
+        latexTemplateName = ":/GMLaTeX/report_single_page_cclicense_template.tex";
+    }
+    if( rTemplate == "Own template"){
+        latexTemplateName = rTexFileName;
+    }
+    QString latexTemplate;
 	QFile fileLatexIn( latexTemplateName );
 	if( !fileLatexIn.open( QIODevice::ReadOnly ) ) {
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Template could not be opened!" << endl;
@@ -2695,11 +2240,36 @@ bool MeshWidget::screenshotViewsPDF( const QString& rFileName ) {
 	latexTemplate = fileLatexIn.readAll();
 	fileLatexIn.close();
 
+    //check user defined Latex file
+    if( rTemplate == "Own template" && !mUserContinue){
+        if(!checkUserdefinedLatexFile(&latexTemplate,mPdfSinglePlaceholders)){
+            cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: User stopped process" << endl;
+            return( false );
+        }
+        else{
+            mUserContinue = true;
+        }
+    }
+
 	// Fetch strings with information for the table
 	vector<pair<string,string>> replacmentStrings;
 	mMeshVisual->latexFetchFigureInfos( &replacmentStrings );
 
 	// Replace placeholders
+	if (mParamFlag[SPHERICAL_VERTICAL])
+	{
+		replacmentStrings.emplace_back(pair<string, string>("01_ha_top"   , "01_va_top"));
+		replacmentStrings.emplace_back(pair<string, string>("02_ha_left"  , "03_va_side"));
+		replacmentStrings.emplace_back(pair<string, string>("03_ha_front" , "02_va_front"));
+		replacmentStrings.emplace_back(pair<string, string>("04_ha_right" , "05_va_side"));
+		replacmentStrings.emplace_back(pair<string, string>("05_ha_bottom", "06_va_bottom"));
+		replacmentStrings.emplace_back(pair<string, string>("06_ha_back"  , "04_va_back"));
+	}
+
+    //replace license placeholders
+    latexTemplate.replace( QRegExp( "__CC_PARAMETERS__" ), rCCparameter );
+    latexTemplate.replace( QRegExp( "__CC_VERSION__" ), rCCversion );
+
 	latexTemplate.replace( QRegExp( "__FIGURE_PREFIX__" ), filePrefixImgTex );
 	latexTemplate.replace( QRegExp( "__SCALE_FACTOR_STRING__" ), scaleFactorTex );
 	latexTemplate.replace( QRegExp( "__SCALE_FACTOR__" ), QString( "%1" ).arg( scaleFactor, 'f' ).trimmed() );
@@ -3232,22 +2802,55 @@ bool MeshWidget::screenshotPDFUser() {
 	}
 
 	// Ask for tiled rendering
+    bool userCancel;
 	bool useTiled = false;
 	{
-		bool userCancel;
+
 		SHOW_QUESTION( tr("Tiled rendering"), tr("Do you want to use tiled rendering?") + QString("\n\n") + tr("Recommended: YES"), useTiled, userCancel );
 		if( userCancel ) {
 			return( false );
 		}
 	}
 
+    QStringList templates;
+    templates.append( "Single page" );
+    templates.append( "Single page with cc-license" );
+    templates.append( "Own template" );
+
+    QString rTemplate;
+    SHOW_DIALOG_COMBO_BOX( tr("Template"), tr("Which template do you want to use?"), templates, rTemplate, userCancel );
+    if( userCancel ) {
+        return( false );
+    }
+
+    //load user individual template
+    QString texFileName;
+    if( rTemplate == "Own template"){
+
+        texFileName = QFileDialog::getOpenFileName( this,
+                                                          tr( "Import Latex template" ),
+                                                          nullptr,
+                                                          tr( "tex-file (*.tex)" )
+                                                         );
+        if( texFileName == nullptr) {
+            return( false );
+        }
+    }
+    //ask for cc license parameters and Version
+    QString ccParameters = "by-sa";
+    QString ccVersion = "4.0";
+    if( rTemplate == "Single page with cc-license"){
+        if(!askForCCLicenseParameters(&ccParameters,&ccVersion)){
+            return( false );
+        }
+    }
 	// Execute
-	if( !screenshotPDF( fileName, useTiled ) ) {
+    if( !screenshotPDF( fileName, useTiled, rTemplate, texFileName, ccParameters, ccVersion ) ) {
 		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: screenshotPDF(...) failed!" << std::endl;
 		return( false );
 	}
 
-	// --- Show PDF, when evince is available --------------------------------------------------------------------------------------------------------------
+    // --- Show PDF, when evince, okular or atril is available --------------------------------------------------------------------------------------------------------------
 
 	std::string pdfViewerCommand;
 	getParamStringMeshWidget(MeshWidgetParams::PDF_VIEWER_COMMAND, &pdfViewerCommand);
@@ -3256,11 +2859,26 @@ bool MeshWidget::screenshotPDFUser() {
 	fileName.replace( QString("/") , QString("\\"));
 #endif
 
-	if( !QProcess::startDetached( QString(pdfViewerCommand.c_str()) + " \"" + fileName + "\"") ) {
-		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Program " + pdfViewerCommand + " not found!" << std::endl;
-	}
-	// -----------------------------------------------------------------------------------------------------------------------------------------------------
+    if( !QProcess::startDetached( QString(pdfViewerCommand.c_str()) + " \"" + fileName + "\"" ) ) {
+        std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Program " + pdfViewerCommand + " not found!" << std::endl;
+        //Try okular
+        getParamStringMeshWidget(MeshWidgetParams::PDF_VIEWER_COMMAND_ALT1, &pdfViewerCommand);
 
+        if( !QProcess::startDetached( QString(pdfViewerCommand.c_str()) + " \"" + fileName + "\"" ) ) {
+            std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Program " + pdfViewerCommand + " not found!" << std::endl;
+
+            //Try atril
+            getParamStringMeshWidget(MeshWidgetParams::PDF_VIEWER_COMMAND_ALT2, &pdfViewerCommand);
+
+            if( !QProcess::startDetached( QString(pdfViewerCommand.c_str()) + " \"" + fileName + "\"" ) ) {
+                std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Program " + pdfViewerCommand + " not found!" << std::endl;
+            }
+        }
+
+    }
+	// -----------------------------------------------------------------------------------------------------------------------------------------------------
+    //set false, that the userindividual latex template will check next time
+    mUserContinue = false;
 	return( true );
 }
 
@@ -3268,8 +2886,9 @@ bool MeshWidget::screenshotPDFUser() {
 //!
 //! Accepts a filename to write a PDF with views for the current mesh (MeshWidget::mMeshVisual).
 //!
+//! @todo GUI Questions for the cc license parameters
 //! @returns false in case of an error. True otherwise.
-bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled ) {
+bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled, const QString rTemplate, const QString rTexFileName, const QString rCCparameter, const QString rCCversion ) {
 	// Prepare filename.
 	string prefixPath = std::filesystem::path( rFileName.toStdString() ).parent_path().string();
 	string prefixStem = std::filesystem::path( rFileName.toStdString() ).stem().string();
@@ -3298,7 +2917,15 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled )
 	scaleFactorTex    = "1:" + QString( "%1" ).arg( 1.0/scaleFactor, 'f' ).trimmed() ;
 
 	// Load template
+    //standard = single page
 	QString latexTemplateName( ":/GMLaTeX/report_single_page_single_view_template.tex" );
+    //other templates
+    if(rTemplate == "Single page with cc-license"){
+        latexTemplateName = ":/GMLaTeX/report_single_page_single_view_cclicense_template.tex";
+    }
+    if( rTemplate == "Own template"){
+        latexTemplateName = rTexFileName;
+    }
 	QString latexTemplate;
 	QFile fileLatexIn( latexTemplateName );
 	if( !fileLatexIn.open( QIODevice::ReadOnly ) ) {
@@ -3309,9 +2936,23 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled )
 	}
 	fileLatexIn.close();
 
+    //check user defined Latex file
+    if( rTemplate == "Own template" && !mUserContinue){
+        if(!checkUserdefinedLatexFile(&latexTemplate,mPdfSinglePlaceholders)){
+            cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: User stopped process" << endl;
+            return( false );
+        }
+        else{
+            mUserContinue = true;
+        }
+    }
 	// Fetch strings with information for the table
 	vector<pair<string,string>> replacmentStrings;
 	mMeshVisual->latexFetchFigureInfos( &replacmentStrings );
+
+    //replace license placeholders
+    latexTemplate.replace( QRegExp( "__CC_PARAMETERS__" ), rCCparameter );
+    latexTemplate.replace( QRegExp( "__CC_VERSION__" ), rCCversion );
 
 	// Replace placeholders
 	latexTemplate.replace( QRegExp( "__FIGURE_IMAGE_FILE__" ), "\""+QString( prefixStem.c_str() )+"\"" );
@@ -3439,13 +3080,13 @@ bool MeshWidget::fetchFrameAndZBufferTile( unsigned int rTilesX,    //!< Number 
 //! Typically used for PNGs, which support transparency.
 //!
 //! Optional flag: crop using the z-buffer.
-bool MeshWidget::fetchFrameAndZBuffer(
-                unsigned char*&   rImRGBA,          //!< Image as RGBA byte array (return value)
+bool MeshWidget::fetchFrameAndZBuffer(unsigned char*&   rImRGBA,          //!< Image as RGBA byte array (return value)
                 uint64_t&    rImWidth,         //!< Image heigth (return value)
                 uint64_t&    rImHeight,        //!< Image width (return value)
-				bool              rCropUsingZBuffer, //!< Crop image using the z-buffer
-				OffscreenBuffer*  offscreenBuffer	//!< Offscreenbuffer to fetch the render-result from
-) {
+                bool              rCropUsingZBuffer, //!< Crop image using the z-buffer
+                OffscreenBuffer*  offscreenBuffer,	//!< Offscreenbuffer to fetch the render-result from
+                bool keepBackground  //!< keep background or replace it by transparency
+                                      ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
@@ -3490,26 +3131,29 @@ bool MeshWidget::fetchFrameAndZBuffer(
 			rImRGBA[(ix+iy*rImWidth)*4]   = imArrayGL[ix*3+  (rImHeight-1-iy)*rImWidth*3];
 			rImRGBA[(ix+iy*rImWidth)*4+1] = imArrayGL[ix*3+1+(rImHeight-1-iy)*rImWidth*3];
 			rImRGBA[(ix+iy*rImWidth)*4+2] = imArrayGL[ix*3+2+(rImHeight-1-iy)*rImWidth*3];
-			if( pixelZBuffer[ix+(rImHeight-1-iy)*rImWidth] < 1.0f ) {
-				rImRGBA[(ix+iy*rImWidth)*4+3] = 255;
-				if( ix < xMin ) {
-					xMin = ix;
+			rImRGBA[(ix+iy*rImWidth)*4+3] = 255;
+			if(!keepBackground)
+			{
+				if( pixelZBuffer[ix+(rImHeight-1-iy)*rImWidth] < 1.0f ) {
+					if( ix < xMin ) {
+						xMin = ix;
+					}
+					if( ix > xMax ) {
+						xMax = ix;
+					}
+					if( iy < yMin ) {
+						yMin = iy;
+					}
+					if( iy > yMax ) {
+						yMax = iy;
+					}
+				} else {
+					// Use white color together with full transparency
+					rImRGBA[(ix+iy*rImWidth)*4]   = 255; //! \todo fetch background color used by the widget
+					rImRGBA[(ix+iy*rImWidth)*4+1] = 255;
+					rImRGBA[(ix+iy*rImWidth)*4+2] = 255;
+					rImRGBA[(ix+iy*rImWidth)*4+3] =   0;
 				}
-				if( ix > xMax ) {
-					xMax = ix;
-				}
-				if( iy < yMin ) {
-					yMin = iy;
-				}
-				if( iy > yMax ) {
-					yMax = iy;
-				}
-			} else {
-				// Use white color together with full transparency
-				rImRGBA[(ix+iy*rImWidth)*4]   = 255; //! \todo fetch background color used by the widget
-				rImRGBA[(ix+iy*rImWidth)*4+1] = 255;
-				rImRGBA[(ix+iy*rImWidth)*4+2] = 255;
-				rImRGBA[(ix+iy*rImWidth)*4+3] =   0;
 			}
 		}
 	}
@@ -3696,7 +3340,11 @@ bool MeshWidget::screenshotPNG(const QString& rFileName,
 	uint64_t imWidth;
 	uint64_t imHeight;
 	unsigned char* imRGBA;
-	if( !fetchFrameAndZBuffer( imRGBA, imWidth, imHeight, mParamFlag[CROP_SCREENSHOTS], offscreenBuffer ) ) {
+
+	bool opaqueBackground = false;
+	MeshWidgetParams::getParamFlagMeshWidget(MeshWidgetParams::SCREENSHOT_PNG_BACKGROUND_OPAQUE, &opaqueBackground);
+
+	if( !fetchFrameAndZBuffer( imRGBA, imWidth, imHeight, mParamFlag[CROP_SCREENSHOTS], offscreenBuffer, opaqueBackground ) ) {
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: fetchFrameAndZBuffer failed!" << endl;
 		return( false );
 	}
@@ -3755,25 +3403,307 @@ void MeshWidget::selectColorBackground() {
 
 // View menu -----------------------------------------------------------------
 
-//! Show view matrix and copy it to the clipboard.
-bool MeshWidget::showViewMatrix() {
-#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
-#endif
-	QString viewMatrixClip;
-	viewMatrixClip += QString("%1 ").arg( mCenterView.getX() );
-	viewMatrixClip += QString("%1 ").arg( mCenterView.getY() );
-	viewMatrixClip += QString("%1  ").arg( mCenterView.getZ() );
-	viewMatrixClip += QString("%1 ").arg( mCameraCenter.getX() );
-	viewMatrixClip += QString("%1 ").arg( mCameraCenter.getY() );
-	viewMatrixClip += QString("%1  ").arg( mCameraCenter.getZ() );
-	viewMatrixClip += QString("%1 ").arg( mCameraUp.getX() );
-	viewMatrixClip += QString("%1 ").arg( mCameraUp.getY() );
-	viewMatrixClip += QString("%1  ").arg( mCameraUp.getZ() );
-	if( mParamFlag[ORTHO_MODE] ) {
-		viewMatrixClip += QString("%1  ").arg( mParamFlt[ORTHO_SHIFT_HORI] );
-		viewMatrixClip += QString("%1  ").arg( mParamFlt[ORTHO_SHIFT_VERT] );
+//! Get the current view settings including the view matrix as plain text.
+//! 
+//! @returns false in case of an error. True otherwise.
+bool MeshWidget::getViewSettingsTxt( 
+        QString& rSettingsStr
+) const {
+	//! \todo Revise to more descriptive format below as perpared for meta-data export.
+	//-------------------------------------------------------------------------------------
+	// Old style view settings format as one line. 
+	//-------------------------------------------------------------------------------------
+	rSettingsStr += QString( "%1"   ).arg( mCenterView.getX() );    // LookAt point X
+	rSettingsStr += QString( " %1"  ).arg( mCenterView.getY() );    // LookAt point Y
+	rSettingsStr += QString( " %1"  ).arg( mCenterView.getZ() );    // LookAt point Z
+	rSettingsStr += QString( "  %1" ).arg( mCameraCenter.getX() );  // Camera center X
+	rSettingsStr += QString( " %1"  ).arg( mCameraCenter.getY() );  // Camera center Y
+	rSettingsStr += QString( " %1"  ).arg( mCameraCenter.getZ() );  // Camera center Z
+	rSettingsStr += QString( "  %1" ).arg( mCameraUp.getX() );      // Camera orientation / up vector X
+	rSettingsStr += QString( " %1"  ).arg( mCameraUp.getY() );      // Camera orientation / up vector Y
+	rSettingsStr += QString( " %1"  ).arg( mCameraUp.getZ() );      // Camera orientation / up vector Z
+
+	bool orthoMode;
+	getParamFlagMeshWidget( ORTHO_MODE, &orthoMode );
+	rSettingsStr += QString( "  %1").arg( orthoMode );            // Orthographic or perspective view
+
+	if( orthoMode ) {
+		double paramFloat;
+		getParamFloatMeshWidget( ORTHO_SHIFT_HORI, &paramFloat );
+		rSettingsStr += QString( "  %1" ).arg( paramFloat );       // Vertical offset in orthograpic projection
+		getParamFloatMeshWidget( ORTHO_SHIFT_VERT, &paramFloat );
+		rSettingsStr += QString( " %1" ).arg( paramFloat );       // Horizontal offset in orthograpic projection
+		getViewPortDPI( paramFloat );
+		rSettingsStr += QString( " %1" ).arg( paramFloat );       // Zoom factor (in DPI)
+		// ORTHO_ZOOM does not work as expected, when the viewport is different!
+		// getParamFloatMeshWidget( ORTHO_ZOOM, &paramFloat );
+		// rSettingsStr += QString( " %1" ).arg( paramFloat );       // Zoom factor (relates to DPI)
 	}
+	rSettingsStr += "\n\nAbove old style formating: LookAt(x,y,z) Camera center(x,y,z) and orientation (x,y,z) "
+	                "Orthographic projection(bool) ...shift (horizontal,vertical) ...zoom(float) in DPI\n";
+
+	//-------------------------------------------------------------------------------------
+	// Preparation for meta-data export
+	//-------------------------------------------------------------------------------------
+	// Additionally fetch the actual matrices:
+	rSettingsStr += QString( "\nProjection matrix:" );
+	const float* matProjection = mMatProjection.constData();
+	for( unsigned int i=0; i<16; i++ ) {
+		rSettingsStr += QString(" %1").arg( matProjection[i] );
+	}
+	rSettingsStr += QString( "\nModelview matrix:" );
+	const float* matModelView = mMatModelView.constData();
+	for( unsigned int i=0; i<16; i++ ) {
+		rSettingsStr += QString(" %1").arg( matModelView[i] );
+	}
+	// As well as further parameters (again):
+	double resolutionDPI = 0.0;
+	double bBoxRadius = mMeshVisual->getBoundingBoxRadius(); // used together with ORTHO_ZOOM for the scaling (multiplication)
+	double orthoZoom;
+	double shiftHori;
+	double shiftVert;
+	getParamFloatMeshWidget( ORTHO_ZOOM, &orthoZoom );
+	getParamFloatMeshWidget( ORTHO_SHIFT_HORI, &shiftHori );
+	getParamFloatMeshWidget( ORTHO_SHIFT_VERT, &shiftVert );
+	getViewPortDPI( resolutionDPI );
+	rSettingsStr += QString( "\nDPI: %1" ).arg( resolutionDPI );
+	rSettingsStr += QString( "\nShift, horizontally: %1" ).arg( shiftHori );
+	rSettingsStr += QString( "\nShift, vertically: %1" ).arg( shiftVert );
+	rSettingsStr += QString( "\nOrtho zoom: %1" ).arg( orthoZoom );
+	rSettingsStr += QString( "\nBounding box radius: %1" ).arg( bBoxRadius );
+
+	return( true );
+}
+
+//! Get the current view settings including the view matrix as JSON.
+//! 
+//! @returns false in case of an error. True otherwise.
+bool MeshWidget::getViewSettingsJSON( 
+        QString& rSettingsStr
+) const {
+	//! \todo Revise to more descriptive format below as perpared for meta-data export.
+	//-------------------------------------------------------------------------------------
+	// Old style view settings format as one line. 
+	//-------------------------------------------------------------------------------------
+	rSettingsStr += QString( "%1"   ).arg( mCenterView.getX() );    // LookAt point X
+	rSettingsStr += QString( " %1"  ).arg( mCenterView.getY() );    // LookAt point Y
+	rSettingsStr += QString( " %1"  ).arg( mCenterView.getZ() );    // LookAt point Z
+	rSettingsStr += QString( "  %1" ).arg( mCameraCenter.getX() );  // Camera center X
+	rSettingsStr += QString( " %1"  ).arg( mCameraCenter.getY() );  // Camera center Y
+	rSettingsStr += QString( " %1"  ).arg( mCameraCenter.getZ() );  // Camera center Z
+	rSettingsStr += QString( "  %1" ).arg( mCameraUp.getX() );      // Camera orientation / up vector X
+	rSettingsStr += QString( " %1"  ).arg( mCameraUp.getY() );      // Camera orientation / up vector Y
+	rSettingsStr += QString( " %1"  ).arg( mCameraUp.getZ() );      // Camera orientation / up vector Z
+
+	bool orthoMode;
+	getParamFlagMeshWidget( ORTHO_MODE, &orthoMode );
+	rSettingsStr += QString( "  %1").arg( orthoMode );            // Orthographic or perspective view
+
+	if( orthoMode ) {
+		double paramFloat;
+		getParamFloatMeshWidget( ORTHO_SHIFT_HORI, &paramFloat );
+		rSettingsStr += QString( "  %1" ).arg( paramFloat );       // Vertical offset in orthograpic projection
+		getParamFloatMeshWidget( ORTHO_SHIFT_VERT, &paramFloat );
+		rSettingsStr += QString( " %1" ).arg( paramFloat );       // Horizontal offset in orthograpic projection
+		getViewPortDPI( paramFloat );
+		rSettingsStr += QString( " %1" ).arg( paramFloat );       // Zoom factor (in DPI)
+		// ORTHO_ZOOM does not work as expected, when the viewport is different!
+		// getParamFloatMeshWidget( ORTHO_ZOOM, &paramFloat );
+		// rSettingsStr += QString( " %1" ).arg( paramFloat );       // Zoom factor (relates to DPI)
+	}
+	rSettingsStr += "\n\nAbove old style formating: LookAt(x,y,z) Camera center(x,y,z) and orientation (x,y,z) "
+	                "Orthographic projection(bool) ...shift (horizontal,vertical) ...zoom(float) in DPI\n";
+
+	//-------------------------------------------------------------------------------------
+	// Preparation for meta-data export
+	//-------------------------------------------------------------------------------------
+	// Additionally fetch the actual matrices:
+	rSettingsStr += QString( "\nProjection matrix:" );
+	const float* matProjection = mMatProjection.constData();
+	for( unsigned int i=0; i<16; i++ ) {
+		rSettingsStr += QString(" %1").arg( matProjection[i] );
+	}
+	rSettingsStr += QString( "\nModelview matrix:" );
+	const float* matModelView = mMatModelView.constData();
+	for( unsigned int i=0; i<16; i++ ) {
+		rSettingsStr += QString(" %1").arg( matModelView[i] );
+	}
+	// As well as further parameters (again):
+	double resolutionDPI = 0.0;
+	double bBoxRadius = mMeshVisual->getBoundingBoxRadius(); // used together with ORTHO_ZOOM for the scaling (multiplication)
+	double orthoZoom;
+	double shiftHori;
+	double shiftVert;
+	getParamFloatMeshWidget( ORTHO_ZOOM, &orthoZoom );
+	getParamFloatMeshWidget( ORTHO_SHIFT_HORI, &shiftHori );
+	getParamFloatMeshWidget( ORTHO_SHIFT_VERT, &shiftVert );
+	getViewPortDPI( resolutionDPI );
+	rSettingsStr += QString( "\nDPI: %1" ).arg( resolutionDPI );
+	rSettingsStr += QString( "\nShift, horizontally: %1" ).arg( shiftHori );
+	rSettingsStr += QString( "\nShift, vertically: %1" ).arg( shiftVert );
+	rSettingsStr += QString( "\nOrtho zoom: %1" ).arg( orthoZoom );
+	rSettingsStr += QString( "\nBounding box radius: %1" ).arg( bBoxRadius );
+
+	return( true );
+}
+
+
+//! Get the current view settings including the view matrix as turtle.
+//! 
+//! @returns false in case of an error. True otherwise.
+bool MeshWidget::getViewSettingsTTL( 
+        QString& rSettingsStr, QString& uri
+) const {
+	//! \todo Revise to more descriptive format below as perpared for meta-data export.
+	//-------------------------------------------------------------------------------------
+	// Old style view settings format as one line. 
+	//-------------------------------------------------------------------------------------
+    //QString uri=QString("giga:123"); //Where do we get the Mesh ID?
+    rSettingsStr += uri+" rdf:type giga:Mesh .\n";    
+    rSettingsStr += "giga:lookAtPointX rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:lookAtPointX rdfs:label \"LookAt point X\"@en .\n";
+    rSettingsStr += uri+" giga:lookAtPointX \""+QString( "%1"   ).arg( mCenterView.getX() )+"\"^^xsd:double .\n";    // LookAt point X
+    rSettingsStr += "giga:lookAtPointY rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:lookAtPointY rdfs:label \"LookAt point Y\"@en .\n";
+    rSettingsStr += uri+" giga:lookAtPointY \""+QString( "%1"   ).arg( mCenterView.getY() )+"\"^^xsd:double .\n";   
+    rSettingsStr += "giga:lookAtPointZ rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:lookAtPointZ rdfs:label \"LookAt point Z\"@en .\n";
+    rSettingsStr += uri+" giga:lookAtPointZ \""+QString( "%1"   ).arg( mCenterView.getZ() )+"\"^^xsd:double .\n";   
+    rSettingsStr += "giga:cameraCenterX rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:cameraCenterX rdfs:label \"Camera Center X\"@en .\n";
+    rSettingsStr += uri+" giga:cameraCenterX \""+QString( "%1"   ).arg( mCameraCenter.getX() )+"\"^^xsd:double .\n";   
+    rSettingsStr += "giga:cameraCenterY rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:cameraCenterY rdfs:label \"Camera Center Y\"@en .\n";
+    rSettingsStr += uri+" giga:cameraCenterY \""+QString( "%1"   ).arg( mCameraCenter.getY() )+"\"^^xsd:double .\n";   
+    rSettingsStr += "giga:cameraCenterZ rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:cameraCenterZ rdfs:label \"Camera Center Z\"@en .\n";
+    rSettingsStr += uri+" giga:cameraCenterZ \""+QString( "%1"   ).arg( mCameraCenter.getZ() )+"\"^^xsd:double .\n";   
+    rSettingsStr += "giga:cameraUpX rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:cameraUpX rdfs:label \"Camera orientation / up vector X\"@en .\n";
+    rSettingsStr += uri+" giga:cameraUpX \""+QString( "%1"   ).arg( mCameraUp.getX() )+"\"^^xsd:double .\n";   
+    rSettingsStr += "giga:cameraUpY rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:cameraUpY rdfs:label \"Camera orientation / up vector Y\"@en .\n";
+    rSettingsStr += uri+" giga:cameraUpY \""+QString( "%1"   ).arg( mCameraUp.getY() )+"\"^^xsd:double .\n";  
+    rSettingsStr += "giga:cameraUpZ rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:cameraUpZ rdfs:label \"Camera orientation / up vector Z\"@en .\n";
+    rSettingsStr += uri+" giga:cameraUpZ \""+QString( "%1"   ).arg( mCameraUp.getZ() )+"\"^^xsd:double .\n"; 
+    rSettingsStr += "giga:orthoMode rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:orthoMode rdfs:label \"Orthographic view\"@en .\n";
+    rSettingsStr += "giga:perspectiveView rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:perspectiveView rdfs:label \"Perspective view\"@en .\n";
+    bool orthoMode;
+	getParamFlagMeshWidget( ORTHO_MODE, &orthoMode );
+    if(orthoMode){
+        rSettingsStr += uri+" giga:orthoMode \"true\"^^xsd:boolean .\n"; 
+        rSettingsStr += uri+" giga:perspectiveView \"false\"^^xsd:boolean .\n";     
+    }else{
+        rSettingsStr += uri+" giga:orthoMode \"false\"^^xsd:boolean .\n"; 
+        rSettingsStr += uri+" giga:perspectiveView \"true\"^^xsd:boolean .\n";   
+    }
+
+	if( orthoMode ) {
+		double paramFloat;
+		getParamFloatMeshWidget( ORTHO_SHIFT_HORI, &paramFloat );
+        rSettingsStr += "giga:orthographicProjectionVerticalOffset rdf:type owl:DatatypeProperty .\n";
+        rSettingsStr += "giga:orthographicProjectionVerticalOffset rdfs:label \"Vertical offset in orthographic projection\"@en .\n";
+        rSettingsStr += uri+" giga:orthographicProjectionVerticalOffset \""+QString( "%1" ).arg( paramFloat )+"\"^^xsd:double .\n"; 
+		getParamFloatMeshWidget( ORTHO_SHIFT_VERT, &paramFloat );
+        rSettingsStr += "giga:orthographicProjectionHorizontalOffset rdf:type owl:DatatypeProperty .\n";
+        rSettingsStr += "giga:orthographicProjectionHorizontalOffset rdfs:label \"Horizontal offset in orthographic projection\"@en .\n";
+        rSettingsStr += uri+" giga:orthographicProjectionHorizontalOffset \""+QString( "%1" ).arg( paramFloat )+"\"^^xsd:double .\n"; 
+		getViewPortDPI( paramFloat );
+        rSettingsStr += "giga:zoomFactor rdf:type owl:DatatypeProperty .\n";
+        rSettingsStr += "giga:zoomFactor rdfs:label \"Zoom factor\"@en .\n";
+        rSettingsStr += QString(uri+" giga:zoomFactor \""+QString( "%1" ).arg( paramFloat )+"\"^^xsd:double .\n"); 
+		// ORTHO_ZOOM does not work as expected, when the viewport is different!
+		// getParamFloatMeshWidget( ORTHO_ZOOM, &paramFloat );
+		// rSettingsStr += QString( " %1" ).arg( paramFloat );       // Zoom factor (relates to DPI)
+	}
+    //rSettingsStr += "\n\nAbove old style formating: LookAt(x,y,z) Camera center(x,y,z) and orientation (x,y,z) "
+	//                "Orthographic projection(bool) ...shift (horizontal,vertical) ...zoom(float) in DPI\n";
+
+	//-------------------------------------------------------------------------------------
+	// Preparation for meta-data export
+	//-------------------------------------------------------------------------------------
+	// Additionally fetch the actual matrices:
+	const float* matProjection = mMatProjection.constData();
+	rSettingsStr += "giga:projectionMatrix rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:projectionMatrix rdfs:label \"Projection Matrix\"@en .\n";
+    rSettingsStr += QString(uri+" giga:projectionMatrix \"");
+    for( unsigned int i=0; i<16; i++ ) {
+		rSettingsStr += QString("%1").arg( matProjection[i] );
+	}
+	rSettingsStr+="\"^^xsd:string .\n"; 
+	rSettingsStr += "giga:modelViewMatrix rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:modelViewMatrix rdfs:label \"Modelview Matrix\"@en .\n";
+    rSettingsStr += QString(uri+" giga:modelViewMatrix \"");
+	const float* matModelView = mMatModelView.constData();
+	for( unsigned int i=0; i<16; i++ ) {
+		rSettingsStr += QString("%1").arg( matModelView[i] );
+	}
+	rSettingsStr+="\"^^xsd:string .\n"; 
+	// As well as further parameters (again):
+	double resolutionDPI = 0.0;
+	double bBoxRadius = mMeshVisual->getBoundingBoxRadius(); // used together with ORTHO_ZOOM for the scaling (multiplication)
+	double orthoZoom;
+	double shiftHori;
+	double shiftVert;
+	getParamFloatMeshWidget( ORTHO_ZOOM, &orthoZoom );
+	getParamFloatMeshWidget( ORTHO_SHIFT_HORI, &shiftHori );
+	getParamFloatMeshWidget( ORTHO_SHIFT_VERT, &shiftVert );
+	getViewPortDPI( resolutionDPI );
+    rSettingsStr += "giga:resolutionDPI rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:resolutionDPI rdfs:label \"Resolution DPI\"@en .\n";
+    rSettingsStr += uri+" giga:resolutionDPI \""+QString( "%1" ).arg( resolutionDPI )+"\"^^xsd:double .\n"; 
+    rSettingsStr += "giga:horizontalShift rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:horizontalShift rdfs:label \"Horizontal Shift\"@en .\n";
+    rSettingsStr += uri+" giga:horizontalShift \""+QString( "%1" ).arg( shiftHori )+"\"^^xsd:double .\n"; 
+    rSettingsStr += "giga:verticalShift rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:verticalShift rdfs:label \"Vertical Shift\"@en .\n";
+    rSettingsStr += uri+" giga:verticalShift \""+QString( "%1" ).arg( shiftHori )+"\"^^xsd:double .\n"; 
+    rSettingsStr += "giga:orthoZoom rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:orthoZoom rdfs:label \"Ortho Zoom\"@en .\n";
+    rSettingsStr += uri+" giga:orthoZoom \""+QString( "%1" ).arg( orthoZoom )+"\"^^xsd:double .\n"; 
+    rSettingsStr += "giga:bboxRadius rdf:type owl:DatatypeProperty .\n";
+    rSettingsStr += "giga:bboxRadius rdfs:label \"Bounding Box Radius\"@en .\n";
+    rSettingsStr += uri+" giga:bboxRadius \""+QString( "%1" ).arg( bBoxRadius )+"\"^^xsd:double .\n"; 
+	return( true );
+}
+
+
+//! Show the 2D bounding box of the projected mesh.
+//!
+//! @returns false in case of an error. True otherwise.
+bool MeshWidget::showView2DBoundingBox() {
+	// Sanity check
+	if( mMeshVisual == nullptr ) {
+		return( false );
+	}
+
+	// Fetch 2D bounding box
+	double minX, maxX, minY, maxY, minZ, maxZ;
+	// Matrix4D matView( ( mMatProjection * mMatModelView ).constData() );
+	Matrix4D matView( ( mMatModelView ).constData() );
+	if( !mMeshVisual->getBoundingBoxProjected( matView, minX, maxX, minY, maxY, minZ, maxZ ) ) {
+		return( false );
+	}
+
+	SHOW_MSGBOX_INFO( tr( "Bounding Box of the projection" ),
+	                  tr( "%1 %2<br />" ).arg( minX ).arg( maxX ) +
+	                  tr( "%1 %2<br />" ).arg( minY ).arg( maxY ) +
+	                  tr( "%1 %2<br />" ).arg( minZ ).arg( maxZ )
+	                );
+
+	return( true );
+}
+
+
+//! Show view matrix and copy it to the clipboard.
+//! 
+//! @returns false in case of an error. True otherwise.
+bool MeshWidget::showViewMatrix() {
+	QString viewMatrixClip;
+	getViewSettingsTxt( viewMatrixClip );
 
 	QClipboard *clipboard = QApplication::clipboard();
 	clipboard->setText( viewMatrixClip );
@@ -3795,82 +3725,91 @@ bool MeshWidget::showViewMatrix() {
 	viewMatrixInfo += QString("<td>&nbsp;%1</td>").arg( mCameraUp.getY() );
 	viewMatrixInfo += QString("<td>&nbsp;%1</td>").arg( mCameraUp.getZ() );
 	if( mParamFlag[ORTHO_MODE] ) {
+		double paramFloat;
+		getViewPortDPI( paramFloat );
 		viewMatrixInfo += "</tr><tr>";
 		viewMatrixInfo += QString( "<td>")+ tr("Shift&nbsp;Hori/Vert:") + QString("</td>" );
 		viewMatrixInfo += QString("<td>&nbsp;%1</td>").arg( mParamFlt[ORTHO_SHIFT_HORI] );
 		viewMatrixInfo += QString("<td>&nbsp;%1</td>").arg( mParamFlt[ORTHO_SHIFT_VERT] );
-		viewMatrixInfo += QString("<td></td>");
+		viewMatrixInfo += QString("<td>&nbsp;%1&nbsp;DPI</td>").arg( paramFloat );
 	}
-	viewMatrixInfo += "</tr></table>";
+	viewMatrixInfo += "</tr></table>\n"
+	                  "<br /><br />\n";
 
-	SHOW_MSGBOX_INFO( tr("View Matrix"), viewMatrixInfo + QString("\n") + tr("Already copied to clipboard!") );
-	return true;
+	SHOW_MSGBOX_INFO( tr("View Matrix"), viewMatrixInfo + tr("Already copied to clipboard!") );
+	return( true );
 }
 
 //! Dialog to set the viewport/camera.
+//! 
+//! @returns false in case of an error or user cancel. True otherwise.
 bool MeshWidget::setViewMatrix() {
-#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
-#endif
+	// Fetch clipboard
 	QClipboard *clipboard = QApplication::clipboard();
 	QString clipBoardStr = clipboard->text( QClipboard::Clipboard );
+	// Fetch first line only and therefore ignore any additional data
+	QTextStream tempStream( &clipBoardStr );
+	QString clipBoardFristLineOnly = tempStream.readLine();
 
+	// Setup dialog:
 	QGMDialogEnterText dlgEnterTxt;
-	dlgEnterTxt.setWindowTitle( tr("Enter camera vectors (9/11 values)") );
-	dlgEnterTxt.setText( clipBoardStr );
+	dlgEnterTxt.setWindowTitle( tr( "Enter view parameters (9 to 13)" ) );
+	dlgEnterTxt.setText( clipBoardFristLineOnly );
 	if( dlgEnterTxt.exec() == QDialog::Rejected ) {
-		return false;
+		std::cout << "[MeshWidget::" << __FUNCTION__ << "] WARNING: User cancel!" << std::endl;
+		return( false );
 	}
+
+	// User interaction:
 	vector<double> camMatrix;
 	if( !dlgEnterTxt.getText( camMatrix ) ) {
-		return false;
+		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Wrong user input!" << std::endl;
+		return( false );
 	}
-	setViewMatrix( camMatrix );
-	return true;
+
+	// Finally set the view:
+	if( !setViewMatrix( camMatrix ) ) {
+		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: setViewMatrix failed!" << std::endl;
+		return( false );
+	}
+
+	// Done.
+	return( true );
 }
 
 //! Set the viewport/camera using
-//! 9 camera parameters for perspective projection
-//! and 11 params for orhtographic projection.
+//! 9 camera parameters for the camera setup and
+//! additional parameters for the orhtographic or prespective projection.
+//! 
+//! @returns false in case of an error or user cancel. True otherwise.
 bool MeshWidget::setViewMatrix( vector<double> rMatrix ) {
-#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
-#endif
-	if( ( rMatrix.size() != 9 ) && ( rMatrix.size() != 11 ) ) {
-		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Wrong number of values: " << rMatrix.size() << " - expected: 9 or 11!" << endl;
-		return false;
+	if( ( rMatrix.size() < 9 ) && ( rMatrix.size() > 13 ) ) {
+		std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Wrong number of values: " 
+		          << rMatrix.size() << " - expected (9 to 13)!" << std::endl;
+		return( false );
 	}
 	mCenterView   = Vector3D( rMatrix.at( 0 ), rMatrix.at( 1 ), rMatrix.at( 2 ), 1.0 );
 	mCameraCenter = Vector3D( rMatrix.at( 3 ), rMatrix.at( 4 ), rMatrix.at( 5 ), 1.0 );
 	mCameraUp     = Vector3D( rMatrix.at( 6 ), rMatrix.at( 7 ), rMatrix.at( 8 ), 1.0 );
-	if( rMatrix.size() == 11 ) {
-		mParamFlt[ORTHO_SHIFT_HORI] = rMatrix.at( 9 );
-		mParamFlt[ORTHO_SHIFT_VERT] = rMatrix.at( 10 );
+	if( rMatrix.size() > 9 ) {
+		bool orthoMode = rMatrix.at( 9 );
+		setParamFlagMeshWidget( ORTHO_MODE, orthoMode );
+		std::cout << "[MeshWidget::" << __FUNCTION__ << "] Ortho mode set." << std::endl;
+	}
+	if( rMatrix.size() == 13 ) {
+		double paramFloat = rMatrix.at( 10 );
+		setParamFloatMeshWidget( ORTHO_SHIFT_HORI, paramFloat );
+		paramFloat = rMatrix.at( 11 );
+		setParamFloatMeshWidget( ORTHO_SHIFT_VERT, paramFloat );
+		paramFloat = rMatrix.at( 12 );
+		orthoSetDPI( paramFloat );
+		std::cout << "[MeshWidget::" << __FUNCTION__ << "] Ortho parameters set." << std::endl;
 	}
 	setView();
 	update();
-	return true;
 
-	//! \todo use GL_MODELVIEW instead
-	//double transArr[16] = {
-	//       cameraPitchAxis.getX(), mCameraUp.getX(), -cameraRollAxis.getX(),  0.0,
-	//       cameraPitchAxis.getY(), mCameraUp.getY(), -cameraRollAxis.getY(),  0.0,
-	//       cameraPitchAxis.getZ(), mCameraUp.getZ(), -cameraRollAxis.getZ(),  0.0,
-	//                     0.0,             0.0,                    0.0,       1.0
-	//};
-
-	//double transArr[16];
-	//for( int i=0; i<16; i++ ) {
-	//	transArr[i] = rMatrix.at( i );
-	//}
-	//glMatrixMode( GL_MODELVIEW ); // Select The Modelview Matrix
-	//glLoadIdentity();
-	//glMultMatrixd( transArr );
-	//mCameraUp     = Vector3D(  transArr[1],  transArr[5],  transArr[9], 1.0 );
-	//mCameraCenter = Vector3D( transArr[12], transArr[13], transArr[14], 1.0 );
-	//// obsolete: setView();
-	//update();
-	//return true;
+	// Done.
+	return( true );
 }
 
 //! Use the axis as up vector of the OpenGL camera setup.
@@ -5361,8 +5300,66 @@ bool MeshWidget::writePNG( const QString& rFileName,        //!< Filename for wr
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
+    //get TTL export setting
+    bool ttlExport;
+    getParamFlagMeshWidget( EXPORT_TTL_WITH_PNG, &ttlExport );
+
 	cout << "[MeshWidget::" << __FUNCTION__ << "] Image size: " << rImWidth << " x " << rImHeight << " pixel." << endl;
 	QImage imageToWrite( rImRGBA, static_cast<int>(rImWidth), static_cast<int>(rImHeight), QImage::Format_RGBA8888 );
+    //QMetaData meta(rFileName);
+    QDateTime current=QDateTime::currentDateTime();
+    //QExifImageHeader header;
+    QString exifttl="@prefix exif:<https://www.w3.org/2003/12/exif/> .\n@prefix rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix foaf:<http://xmlns.com/foaf/0.1/> . \n@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n@prefix xsd:<http://www.w3.org/2001/XMLSchema#> .\n@prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#> .\n@prefix owl:<http://www.w3.org/2002/07/owl#> .\n@prefix dcat:<http://www.w3.org/ns/dcat#> .\n@prefix prov:<http://www.w3.org/ns/prov#> .\n@prefix giga:<http://www.gigamesh.eu/ont#> .\n@prefix dc:<http://purl.org/dc/terms/> .\n@prefix ex:<http://purl.org/net/ns/ex#> .\n@prefix geo:<http://www.opengis.net/ont/geosparql#> .\n@prefix wdt:<http://www.wikidata.org/prop/direct/> .\n@prefix om:<http://www.ontology-of-units-of-measure.org/resource/om-2/>.\n";
+    QString id=(rFileName);
+    if (ttlExport){
+        id = "giga:"+id.replace(0,rFileName.lastIndexOf("/")+1,"");
+        getViewSettingsTTL(exifttl,id);
+        exifttl+=id+" rdf:type foaf:Image .\n";
+        exifttl+=id+" dc:license <https://creativecommons.org/licenses/by-sa/4.0/> .\n";
+        exifttl+= "exif:make rdf:type owl:DatatypeProperty .\n";
+        exifttl+=id+" exif:make \"Gigamesh Software\"^^xsd:string .\n";
+        exifttl+= "exif:makerNote rdf:type owl:DatatypeProperty .\n";
+        exifttl+=id+" exif:makerNote \"Generated by Gigamesh\"^^xsd:string .\n";
+        exifttl+= "exif:model rdf:type owl:DatatypeProperty .\n";
+        exifttl+=id+" exif:model \"Gigamesh Software Current Version\"^^xsd:string .\n";
+        exifttl+= "exif:software rdf:type owl:DatatypeProperty .\n";
+        exifttl+=id+" exif:software \"Gigamesh\"^^xsd:string .\n";
+        exifttl+= "exif:dateTime rdf:type owl:DatatypeProperty .\n";
+        exifttl+=id+" exif:dateTime \""+current.toString(Qt::ISODate)+"\"^^xsd:dateTime .\n";
+        exifttl+= "exif:dateTimeOriginal rdf:type owl:DatatypeProperty .\n";
+        exifttl+=id+" exif:dateTimeOriginal \""+current.toString(Qt::ISODate)+"\"^^xsd:dateTime .\n";
+        exifttl+= "exif:dateTimeDigitized rdf:type owl:DatatypeProperty .\n";
+        exifttl+=id+" exif:dateTimeDigitized \""+current.toString(Qt::ISODate)+"\"^^xsd:dateTime .\n";
+        exifttl+= "exif:exifVersion rdf:type owl:DatatypeProperty .\n";
+        exifttl+=id+" exif:exifVersion \"2.20\"^^xsd:string .\n";
+        exifttl+= "exif:fileSource rdf:type owl:DatatypeProperty .\n";
+        exifttl+=id+" exif:fileSource \""+(rFileName)+"\"^^xsd:string .\n";
+        exifttl+= "exif:colorSpace rdf:type owl:DatatypeProperty .\n";
+        exifttl+=id+" exif:colorSpace \"\"^^xsd:string .\n";
+        exifttl+= "exif:width rdf:type owl:DatatypeProperty .\n";
+        exifttl+=id+" exif:width \""+QString::number(rImWidth)+"\"^^xsd:integer .\n";
+        exifttl+= "exif:height rdf:type owl:DatatypeProperty .\n";
+        exifttl+=id+" exif:height \""+QString::number(rImHeight)+"\"^^xsd:integer .\n";
+        exifttl+= "exif:resolutionUnit rdf:type owl:ObjectProperty .\n";
+        exifttl+=id+" exif:resolutionUnit om:millimeter .\n";
+        exifttl+= "exif:xResolution rdf:type owl:DatatypeProperty .\n";
+        exifttl+=id+" exif:xResolution \""+QString::number(rImWidth*1000/static_cast<uint64_t>(rDotsPerMeterWidth))+"\"^^xsd:integer .\n";
+        exifttl+= "exif:yResolution rdf:type owl:DatatypeProperty .\n";
+        exifttl+=id+" exif:yResolution \""+QString::number(rImHeight*1000/static_cast<uint64_t>(rDotsPerMeterHeight))+"\"^^xsd:integer .\n";
+    }
+    //TODO exif:userComment, exif:copyright und exif:artist mit User infos, Lizenz und Kommentar füllen
+    //This part may be reused if a library to write EXIF information which is GPL compatible is found
+    /*QExifValue value_ImageWidth = header.value(QExifImageHeader::ImageWidth);
+    
+    QExifValue value_GpsLatitude = header.value(QExifImageHeader::GpsLatitude);
+    QExifValue value_Make = header.value(QExifImageHeader::Make);
+    QExifValue value_Model = header.value(QExifImageHeader::Model);
+    header.setValue(QExifImageHeader::GpsLatitude, value_GpsLatitude);
+    header.setValue(QExifImageHeader::ImageWidth, (int)rImWidth);
+    header.setValue(QExifImageHeader::ImageWidth, (int)rImHeight);
+    header.setValue(QExifImageHeader::Make, value_Make);
+    header.setValue(QExifImageHeader::Model, value_Model);
+    header.saveToJpeg("C:/myfile.jpg");*/
 	// Set print resolution
 	imageToWrite.setDotsPerMeterX( rDotsPerMeterWidth  );
 	imageToWrite.setDotsPerMeterY( rDotsPerMeterHeight );
@@ -5371,7 +5368,9 @@ bool MeshWidget::writePNG( const QString& rFileName,        //!< Filename for wr
 	imageWriter.setFileName( rFileName );
 	imageWriter.setFormat( "png" );
 	imageWriter.setText( "Description", "Generated by GigaMesh" );
-	if( !imageWriter.write( imageToWrite ) ) {
+    exifttl+= "exif:compression rdf:type owl:DatatypeProperty .\n";
+    exifttl+=id+" exif:compression \""+QString::number(imageWriter.compression())+"\"^^xsd:integer .\n";
+    if( !imageWriter.write( imageToWrite ) ) {
 		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: QImageWriter failed!" << endl;
 		return( false );
 	}
@@ -5385,6 +5384,15 @@ bool MeshWidget::writePNG( const QString& rFileName,        //!< Filename for wr
 		cout << "[MeshWidget::" << __FUNCTION__ << "] Print resolution: "
 		     << " NONE - typical for perspective renderings." << endl;
 	}
+    if(ttlExport){
+        QFile file(rFileName+".ttl");
+
+        if( file.open( QIODevice::ReadWrite ) ){
+            QTextStream stream( &file );
+            stream << exifttl << Qt::endl;
+        }
+        file.close();
+    }
 	return( true );
 }
 
@@ -6364,7 +6372,11 @@ void MeshWidget::mousePressEvent( QMouseEvent *rEvent ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
-	mLastPos = rEvent->pos();
+	// HighDPI Support
+	double scaleFactor = 1.0;
+	getParamFloatMeshWidget( HIGHDPI_ZOOM_FACTOR, &scaleFactor );
+
+	mLastPos = rEvent->pos() * scaleFactor;
 
 	Qt::MouseButtons mouseButtonsPressed = rEvent->buttons();
 
@@ -6376,20 +6388,20 @@ void MeshWidget::mousePressEvent( QMouseEvent *rEvent ) {
 
 	//! Selection of a point of a polyline (left click):
 	if( ( mouseButtonsPressed == Qt::LeftButton ) &&
-		( currMouseMode == MOUSE_MODE_SELECT ) &&
+	    ( currMouseMode == MOUSE_MODE_SELECT ) &&
 	    ( currSelectionMode == MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO )
 	  ) {
-		mSelectionPoly.push_back( rEvent->pos() );
+		mSelectionPoly.push_back( mLastPos );
 		if( mSelectionPoly.size() == 1 ) {
-			mSelectionPoly.push_back( rEvent->pos() );
+			mSelectionPoly.push_back( mLastPos );
 		}
 		return;
 	}
 
 	//! Close the selection of a polyline by right-click:
 	if( ( mouseButtonsPressed == Qt::RightButton ) &&
-		( currMouseMode == MOUSE_MODE_SELECT ) &&
-		( currSelectionMode == MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO ) &&
+	    ( currMouseMode == MOUSE_MODE_SELECT ) &&
+	    ( currSelectionMode == MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO ) &&
 	    ( mSelectionPoly.size() > 1 )
 	  ) {
 		// Check if the last two points are the same, as this can cause a segmentation fault.
@@ -6412,27 +6424,36 @@ void MeshWidget::mousePressEvent( QMouseEvent *rEvent ) {
 	    ( currMouseMode == MOUSE_MODE_SELECT )
 	  ) {
 		if( currSelectionMode == MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO ) {
-			cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Wrong selection mode (SELECTION_MODE_POLYLINE)!" << endl;
+			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Wrong selection mode (SELECTION_MODE_POLYLINE)!" << std::endl;
 			return;
 		}
-		userSelectByMouseClick( rEvent->pos(), mouseButtonsPressed );
+		userSelectByMouseClick( mLastPos, mouseButtonsPressed );
 		return;
 	}
 }
 
-void MeshWidget::mouseDoubleClickEvent( QMouseEvent* rEvent)
+//! Double click event of the mouse, which will set the point of rotation
+//! (lookAt) for the virtual camera.
+void MeshWidget::mouseDoubleClickEvent( QMouseEvent* rEvent )
 {
-	if(rEvent->button() == Qt::LeftButton)
-	{
+	// Sanity check
+	if( mMeshVisual == nullptr ) {
+		return;
+	}
+
+	// HighDPI Support
+	double scaleFactor = 1.0;
+	getParamFloatMeshWidget( HIGHDPI_ZOOM_FACTOR, &scaleFactor );
+
+	if( rEvent->button() == Qt::LeftButton ) {
 		// Correct for OpenGL:
 		GLint viewport[4];
 		glGetIntegerv( GL_VIEWPORT, viewport );
-		const int yPixel = viewport[3] - rEvent->pos().y();
-		const int xPixel = rEvent->pos().x();
+		const int yPixel = viewport[3] - rEvent->pos().y()*scaleFactor;
+		const int xPixel = rEvent->pos().x()*scaleFactor;
 		Vector3D clickPos;
 
-		if(mMeshVisual->getWorldPointOnMesh(xPixel, yPixel, &clickPos))
-		{
+		if( mMeshVisual->getWorldPointOnMesh( xPixel, yPixel, &clickPos ) ) {
 			const Vector3D transVec = clickPos - mCenterView;
 			mCenterView = clickPos;
 			mCameraCenter += transVec;
@@ -6445,13 +6466,13 @@ void MeshWidget::mouseDoubleClickEvent( QMouseEvent* rEvent)
 //! Handles the event when the mouse button is released again
 void MeshWidget::mouseReleaseEvent(QMouseEvent *rEvent)
 {
-
 	auto mouseButtonsPressed = rEvent->buttons();
-	if(mouseButtonsPressed & ( Qt::LeftButton | Qt::MiddleButton | Qt::RightButton ))
+	if( mouseButtonsPressed &
+	    ( Qt::LeftButton | Qt::MiddleButton | Qt::RightButton ) ) {
 		return;
+	}
 
 	setParamFlagMeshWidget(MeshWidgetParams::SHOW_MESH_REDUCED, false);
-
 }
 
 //! Handles the event when the mouse is moved.
@@ -6461,9 +6482,14 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
-	GLfloat dx = GLfloat( rEvent->x() - mLastPos.x() ) / 2.0;
-	GLfloat dy = GLfloat( rEvent->y() - mLastPos.y() ) / 2.0;
-	mLastPos = rEvent->pos();
+	// HighDPI Support
+	double scaleFactor = 1.0;
+	getParamFloatMeshWidget( HIGHDPI_ZOOM_FACTOR, &scaleFactor );
+
+	GLfloat dx = GLfloat( rEvent->x()*scaleFactor - mLastPos.x() ) / 2.0;
+	GLfloat dy = GLfloat( rEvent->y()*scaleFactor - mLastPos.y() ) / 2.0;
+
+	mLastPos = rEvent->pos() * scaleFactor;
 
 	eMouseModes currMouseMode;
 	getParamIntegerMeshWidget( MOUSE_MODE, reinterpret_cast<int*>(&currMouseMode) );
@@ -6473,12 +6499,12 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 
 	//! Display the selection of a polyline:
 	if( ( rEvent->buttons() == Qt::NoButton ) &&
-		( currMouseMode == MOUSE_MODE_SELECT ) &&
+	    ( currMouseMode == MOUSE_MODE_SELECT ) &&
 	    ( currSelectionMode == MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO )
 	  ) {
 		if( mSelectionPoly.size()>0 ) {
 			mSelectionPoly.pop_back();
-			mSelectionPoly.push_back( rEvent->pos() );
+			mSelectionPoly.push_back( mLastPos );
 			update();
 			return;
 		}
@@ -6533,7 +6559,7 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 	//! Move lightFixedWorld, when the Left Mouse Button is pressed and the lights are on.
 	if( ( rEvent->buttons() == Qt::LeftButton ) &&
 	    ( currMouseMode == MOUSE_MODE_MOVE_LIGHT_FIXED_OBJECT ) &&
-		( lightEnabled ) &&
+	    ( lightEnabled ) &&
 	    ( lightFixedWorld )
 	  ) {
 		double lightAnglePhi;
@@ -6573,7 +6599,7 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 
 	//! Move/Rotate the plane, when the Left Mouse Button is pressed.
 	if( ( rEvent->buttons() == Qt::LeftButton ) &&
-		( currMouseMode == MOUSE_MODE_MOVE_PLANE ) &&
+	    ( currMouseMode == MOUSE_MODE_MOVE_PLANE ) &&
 	    ( planeShown )
 	  ) {
 		double moveAngleLeftRight =  dx * M_PI / ( 180.0 * 2.0 );
@@ -6687,14 +6713,6 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 		planeZPoint = rotMat * planeZPoint;
 
 		mMeshVisual->setPlaneAxisPos(axisTop, axisBottom, planeZPoint);
-
-		/*
-		 //Alternative: use old plane-Axis for Rotations:
-		 Vector3D planeXPoint(&planePositions[0], 1.0);
-		 Vector3D planeYPoint(&planePositions[3], 1.0);
-
-		 mMeshVisual->setPlaneAxisPos(planeXPoint, planeYPoint, planeZPoint);
-		*/
 
 		setView();
 		update();
@@ -6942,7 +6960,6 @@ bool MeshWidget::userSetConeAxisCentralPixel() {
 	rayTop.normalizeW();
 	rayBot.normalizeW();
 
-	mMeshVisual->setParamFlagMeshGL( MeshGLParams::SHOW_MESH_AXIS, true );
 	return mMeshVisual->setConeAxis( &rayTop, &rayBot );
 }
 
@@ -7287,7 +7304,8 @@ void MeshWidget::wheelEventZoom(
 //! Takes care to properly resize this OpenGL widget.
 void MeshWidget::resizeEvent( [[maybe_unused]] QResizeEvent * event  ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshWidget::" << __FUNCTION__ << "] " << event->size().width() << " x " << event->size().height() << endl;
+	std::cout << "[MeshWidget::" << __FUNCTION__ << "] " << event->size().width()
+	          << " x " << event->size().height() << std::endl;
 #endif
 	//QGLWidget::resizeEvent( event );
 	if( mMeshVisual == nullptr ) {
@@ -7377,6 +7395,7 @@ void MeshWidget::setView( GLdouble* rOrthoViewPort //!< position and dimension o
 //	PRINT_OPENGL_ERROR( "glMatrixMode( GL_PROJECTION )" );
 //	glLoadIdentity();
 //	PRINT_OPENGL_ERROR( "glLoadIdentity()" );
+
 
 	//! Setup Viewport
 	GLfloat windowRatio = static_cast<GLfloat>(width())/static_cast<GLfloat>(height());
@@ -7487,6 +7506,24 @@ void MeshWidget::setViewModelMat() {
 	QVector3D vecUp(     mCameraUp.getX(),     mCameraUp.getY(),     mCameraUp.getZ() );
 	mMatModelView.setToIdentity();
 	mMatModelView.lookAt( vecEye, vecCenter, vecUp );
+}
+
+//! Overwritten method using a manual set zoom factor.
+//! Sort of a fix for HighDPI displays with scaling.
+//! Windows does not seem to be affected.
+int MeshWidget::height() const {
+	double scaleFactor = 1.0;
+	getParamFloatMeshWidget( HIGHDPI_ZOOM_FACTOR, &scaleFactor );
+	return QGLWidget::height()*scaleFactor;
+}
+
+//! Overwritten method using a manual set zoom factor.
+//! Sort of a fix for HighDPI displays with scaling.
+//! Windows does not seem to be affected.
+int MeshWidget::width() const {
+	double scaleFactor = 1.0;
+	getParamFloatMeshWidget( HIGHDPI_ZOOM_FACTOR, &scaleFactor );
+	return QGLWidget::width()*scaleFactor;
 }
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------

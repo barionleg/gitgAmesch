@@ -57,8 +57,9 @@
 
 #include <GigaMesh/mesh/compfeaturevecs.h>
 
-
+#include <GigaMesh/mesh/ellipsedisc.h>
 #include <GigaMesh/logging/Logging.h>
+
 
 extern "C"
 {
@@ -286,11 +287,12 @@ Mesh::~Mesh() {
 		delete mOctree;
 		mOctree = nullptr;
 	}
+    /**
 	if(mOctreeface != nullptr) {
 		delete mOctreeface;
 		mOctreeface = nullptr;
 	}
-
+    **/
 	showProgressStop( string( "Destruct Mesh" ) );
 	LOG::debug() << "[Mesh::" << __FUNCTION__ << "] Done.\n";
 }
@@ -305,12 +307,79 @@ bool Mesh::setParamFloatMesh( MeshParams::eParamFlt rParam, double rValue ) {
 
 //! Call requested method/function.
 //! See MeshParams::eFunctionCall
-bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOptional  ) {
+bool Mesh::callFunction(
+		MeshParams::eFunctionCall rFunctionID,
+		bool rFlagOptional // [[maybe_unused]] should be here, but causes troubles with qt creator finding references
+) {
 	bool retVal = false;
 	switch( rFunctionID ) {
 		case FILE_SAVE_AS:
 			retVal = writeFileUserInteract();
 			break;
+		case EXPORT_CONNECTED_COMPONENTS:
+			retVal = writeFilesForConnectedComponents();
+			break;
+		case EXPORT_METADATA_HTML: {
+				MeshInfoData metaInfo;
+				getMeshInfoData( metaInfo, true );
+				std::filesystem::path htmlFileName = getFullName().replace_extension( ".html" );
+				if( metaInfo.writeMeshInfo( htmlFileName ) ) {
+					showInformation( "Meta-Data HTML page", std::string("Sidecar file saved as:<br />")+htmlFileName.string() );
+				}
+			} break;
+		case EXPORT_METADATA_JSON: {
+				MeshInfoData metaInfo;
+				getMeshInfoData( metaInfo, true );
+				std::filesystem::path jsonFileName = getFullName().replace_extension( ".json" );
+				if( metaInfo.writeMeshInfo( jsonFileName ) ) {
+					showInformation( "Meta-Data JSON", std::string("Sidecar file saved as:<br />")+jsonFileName.string() );
+				}
+			} break;
+		case EXPORT_METADATA_TTL: {
+				MeshInfoData metaInfo;
+				getMeshInfoData( metaInfo, true );
+				std::filesystem::path ttlFileName = getFullName().replace_extension( ".ttl" );
+				if( metaInfo.writeMeshInfo( ttlFileName ) ) {
+					showInformation( "Meta-Data TTL (Turtle, RDF)", std::string("Sidecar file saved as:<br />")+ttlFileName.string() );
+				}
+			} break;
+		case EXPORT_METADATA_XML: {
+				MeshInfoData metaInfo;
+				getMeshInfoData( metaInfo, true );
+				std::filesystem::path xmlFileName = getFullName().replace_extension( ".xml" );
+				if( metaInfo.writeMeshInfo( xmlFileName ) ) {
+					showInformation( "Meta-Data XML", std::string("Sidecar file saved as:<br />")+xmlFileName.string() );
+				}
+			} break;
+		case EXPORT_METADATA_ALL: {
+				MeshInfoData metaInfo;
+				getMeshInfoData( metaInfo, true );
+				std::filesystem::path htmlFileName = getFullName().replace_extension( ".html" );
+				std::filesystem::path jsonFileName = getFullName().replace_extension( ".json" );
+				std::filesystem::path ttlFileName = getFullName().replace_extension( ".ttl" );
+				std::filesystem::path xmlFileName = getFullName().replace_extension( ".xml" );
+				if( !metaInfo.writeMeshInfo( htmlFileName ) ) {
+					showWarning( "Meta-Data HTML page", std::string("Could NOT be saved!") );
+					break;
+				}
+				if( !metaInfo.writeMeshInfo( jsonFileName ) ) {
+					showWarning( "Meta-Data JSON", std::string("Could NOT be saved!") );
+					break;
+				}
+				if( !metaInfo.writeMeshInfo( ttlFileName ) ) {
+					showWarning( "Meta-Data TTL (Turtle, RDF)", std::string("Could NOT be saved!") );
+					break;
+				}
+				if( !metaInfo.writeMeshInfo( xmlFileName ) ) {
+					showWarning( "Meta-Data XML", std::string("Could NOT be saved!") );
+					break;
+				}
+				showInformation( "Meta-Data", std::string("Sidecar files saved as:<br />") +
+				                              htmlFileName.string() + "<br />" +
+				                              jsonFileName.string() + "<br />" +
+				                              ttlFileName.string() + "<br />" +
+				                              xmlFileName.string() + "<br />" );
+			} break;
 		case PLANE_FLIP:
 			retVal = flipPlane();
 			break;
@@ -382,7 +451,7 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 				retVal = selectPolyVertexCount( valMin, valMax );
 			}
 			retVal = true;
-		    } break;
+			} break;
 		case SELECT_MESH_PLANE_AXIS_SELPRIM:
 			retVal = setPlaneHNFbyAxisSelPrim();
 			break;
@@ -407,7 +476,7 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 				break;
 			}
 			retVal |= setVertFuncValCorrTo( &refernceVector );
-		    } break;
+	        } break;
 		case FUNCVAL_FEATUREVECTOR_APPLY_PNORM:
 			retVal = funcVertFeatureVecPNorm();
 			break;
@@ -529,7 +598,7 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			retVal = completeRestore();
 			break;
 		case EDIT_REMOVE_SEEDED_SYNTHETIC_COMPONENTS:
-			retVal = removeSyntheticComponents( &mSelectedMVerts );
+			retVal = removeSyntheticComponents( mSelectedMVerts );
 			break;
 		case EDIT_VERTICES_RECOMPUTE_NORMALS: {
 			double radiusNormals{0.0};
@@ -577,7 +646,7 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			}
 			LOG::error() << "[Mesh::" << __FUNCTION__ << "] ERROR: Bad number of values given. Expecting one or three values, but "<< valuesScaleSkew.size() << " were given!\n";
 			retVal = false;
-		    } break;
+	        } break;
 		case APPLY_TRANSMAT_SELMVERT: {
 			if(hasDatumObjects())
 			{
@@ -594,7 +663,8 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 				break;
 			}
 			retVal = applyTransformation( valuesMatrix4x4, &mSelectedMVerts );
-		    } break;
+	        } break;
+
 		case SELMPRIMS_POS_DESELECT_ALL:
 			mSelectedPositions.clear();
 			selectedMPositionsChanged();
@@ -645,12 +715,12 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 		case AXIS_FROM_CIRCLE_CENTERS: {
 			Vector3D topPoint;
 			Vector3D bottomPoint;
-			retVal  = getAxisFromCircleCenters( &topPoint, &bottomPoint );
+			retVal  = getAxisFromCircleCenters( topPoint, bottomPoint );
 			retVal &= setConeAxis( &topPoint, &bottomPoint );
-		    } break;
+			} break;
 		case AXIS_ENTER_PRIMEMERIDIAN_ROTATION: {
 			// IMPLEMENTED on GUI level due to user interaction.
-		    } break;
+			} break;
 		case AXIS_SET_PRIMEMERIDIAN_SELPRIM:
 			if( mPrimSelected != nullptr ) {
 				Vector3D posSel = mPrimSelected->getCenterOfGravity();
@@ -750,27 +820,30 @@ bool Mesh::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOption
 			}
 			} break;
 		case ELLIPSENFIT_EXPERIMENTAL:
-			//! \todo implement properly - fragments of code are currently in MeshGL.
+            if( mSelectedMVerts.size() < 5){
+                showInformation("To few selected vertices!","For the ellipsefit are 5 selected vertices needed!");
+            }
+            else{
+                getAxisFromEllipseFit();
+            }
 			break;
 		case DRAW_SELF_INTERSECTIONS:
 			selectFaceSelfIntersecting();
 			break;
-		case SELMVERTS_SET_ALPHA:
-		{
+	    case SELMVERTS_SET_ALPHA: {
 			uint64_t alphaVal = 255;
 			if(!showEnterText(alphaVal, "Enter Value [0-255]"))
 			{
 				return false;
 			}
 			assignAlphaToSelectedVertices(static_cast<unsigned char>(alphaVal));
-		}
-			break;
+	        } break;
 		default:
 			LOG::error() << "[Mesh::" << __FUNCTION__ << "] ERROR: Unknown rFunctionID "<< rFunctionID << " !\n";
-			return false;
+		    return( false );
 	}
 
-	return retVal;
+	return( retVal );
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1102,9 +1175,6 @@ void Mesh::establishStructure(
     delete mOctree;
 	mOctree = nullptr;
 
-    delete mOctreeface;
-	mOctreeface = nullptr;
-
 	//timeStart = clock(); // for performance mesurement
 	// TODO: provide better estimate for small meshes
 	//generateOctree( 0.05*mVertices.size(), 0.05*mFaces.size() );
@@ -1115,13 +1185,11 @@ void Mesh::establishStructure(
 //! Generates Octree(s)
 //! @param[in] vertexmaxnr maximum number of vertices per cube
 //!            if vertexmaxnr==-1 no new octree vertex will be constructed
-//! @param[in] facemaxnr maximum number of faces per cube
-//!            if facemaxnr==-1 no new octree face will be constructed
-void Mesh::generateOctree(int vertexmaxnr,int facemaxnr) {
+void Mesh::generateOctree(int vertexmaxnr) {
 
 	//if bad estimate for a small mesh suggests to choose 0 elements per cube
 	if(vertexmaxnr == 0) vertexmaxnr = 5;
-	if(facemaxnr == 0) facemaxnr = 7;
+    //if(facemaxnr == 0) facemaxnr = 7;
 
 	//get boundingbox size for largest cube of octree
 	double h=getEdgeLenMax();
@@ -1131,15 +1199,23 @@ void Mesh::generateOctree(int vertexmaxnr,int facemaxnr) {
 	double edgelen = max( size.getX(), max( size.getY(), size.getZ() ) );
 
 	if (vertexmaxnr > 0) {
+        if (vertexmaxnr > mVertices.size()){
+            vertexmaxnr = round(mVertices.size()/4);
+        }
         delete mOctree;
-		mOctree = new Octree<Vertex*>(mVertices, &center, vertexmaxnr, edgelen, h);
+        mOctree = new Octree(mVertices, mFaces, &center, vertexmaxnr, edgelen, h, false);
 		mOctree->dumpInfo();
+
+
 	}
+    /**
 	if (facemaxnr > 0) {
         delete mOctreeface;
 		mOctreeface = new Octree<Face*>(mFaces, &center, facemaxnr, edgelen, h);
+
 		mOctreeface->dumpInfo();
 	}
+    **/
 }
 
 
@@ -1158,8 +1234,33 @@ double Mesh::getY() const {
 //! Returns the x-coordinate of the position vector of the Vertex
 //! Return not-a-number in case of an error regarding to Primitive::getZ()
 double Mesh::getZ() const {
-	return ( mMaxZ + mMinZ ) / 2.0;
+    return ( mMaxZ + mMinZ ) / 2.0;
 }
+//! the following getter methods return the min and max coordinates of the mesh vertices
+double Mesh::getMinX() const {
+    return mMinX;
+}
+
+double Mesh::getMinY() const {
+    return mMinY;
+}
+
+double Mesh::getMinZ() const {
+    return mMinZ;
+}
+
+double Mesh::getMaxX() const {
+    return mMaxX;
+}
+
+double Mesh::getMaxY() const {
+    return mMaxY;
+}
+
+double Mesh::getMaxZ() const {
+    return mMaxZ;
+}
+
 
 //! Write Mesh to file - overloaded from MeshIO.
 bool Mesh::writeFile(
@@ -1202,10 +1303,86 @@ bool Mesh::writeFile(
 		currFace->copyFacePropsTo( faceProps[faceIdx] );
 	}
 	//! 3. Write arrays to file.
-	bool retVal = MeshIO::writeFile( rFileName, vertexProps, faceProps );
+	bool retVal = MeshIO::writeFilePrimProps( rFileName, vertexProps, faceProps );
 	//! 4. Remove arrays.
 	MeshSeedExt::clear();
 	return retVal;
+}
+
+//! Write connected components into one file per component.
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::writeFilesForConnectedComponents() {
+	// Check if vertices have been selected
+	if( mSelectedMVerts.size() == 0 ) {
+		showWarning( "No selection", "No selection of multiple vertices (SelMVerts) present!" );
+		return( false );
+	}
+
+	bool userChoice;
+	if( !showQuestion( &userChoice,
+	                   "Apply labeling",
+	                   "Do you want to compute the connected components (lables)?<br /><br />Recommended: YES" ) ) {
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: User cancel!" << std::endl;
+		return( false );
+	}
+	if( userChoice ) {
+		if( !labelVerticesAll() ) {
+			std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: labeling failed!" << std::endl;
+			return( false );
+		}
+	}
+
+	std::set<uint64_t> labelNrs;
+	if( !getVertLabelIdFrom( mSelectedMVerts, labelNrs ) ) {
+		std::cout << "[Mesh::" << __FUNCTION__ << "] ERROR: getVertLabelIdFrom failed!" << std::endl;
+		return( false );
+	}
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Amount of labels: " << labelNrs.size() << std::endl;
+
+	// Inform the user if there are no connected components defined
+	if( labelNrs.size() == 0 ) {
+		showWarning( "Lables missing", "No connected components (labels) defined!" );
+		return( false );
+	}
+
+	uint fileError = 0;
+	uint fileOkay = 0;
+	for( auto const& labelNr: labelNrs ) {
+		std::set<Face*> facesWithLabel;
+		bool retVal = getFaceHasVertLabelNo( labelNr, facesWithLabel );
+		if( retVal ) {
+			filesystem::path fileName = getFullName();
+
+			// The following looks wired due to Windows build
+			std::string oriExtension = fileName.extension().string();
+			std::string suffixExtension = "comp.";
+			suffixExtension += std::to_string( labelNr );
+			suffixExtension += oriExtension;
+
+			fileName.replace_extension( filesystem::path( suffixExtension ) );
+			Mesh meshToWrite( &facesWithLabel );
+			meshToWrite.getModelMetaDataRef().setModelMeta( getModelMetaDataRef() );
+			if( meshToWrite.writeFile( fileName ) ) {
+				std::cout << "[Mesh::" << __FUNCTION__ << "] Connected component written to file: " << fileName.string() << std::endl;
+				fileOkay++;
+			} else {
+				std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Connected component NOT written to file " << fileName.string() << "!" << std::endl;
+				fileError++;
+			}
+		}
+	}
+
+	// Notify the user about errors.
+	if( fileError > 0 ) {
+		showWarning( "File write error(s)", "Error writing files occured!" );
+		return( false );
+	}
+
+	// Notify user about success.
+	showInformation( "Files written", "Selected connected components written to separate files." );
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Done." << std::endl;
+	return( true );
 }
 
 //! Import AND assign feature vectors - overloaded from MeshSeedExt.
@@ -1362,13 +1539,13 @@ bool Mesh::getVertNormal( int rVertIdx, double* rNormal ) {
 
 //! Returns the actual number of vertices, excluding vertices marked for removal, including new vertices.
 //! See also Mesh::getVertexPos
-uint64_t Mesh::getVertexNr() {
+uint64_t Mesh::getVertexNr() const {
 	return mVertices.size();
 }
 
 //! Retrieves the n-th Vertex, excluding vertices marked for removal, including new vertices.
 //! @returns the nullptr in case of an error.
-Vertex* Mesh::getVertexPos( uint64_t rPosIdx ) {
+Vertex* Mesh::getVertexPos( uint64_t rPosIdx ) const {
 	if( rPosIdx >= getVertexNr() ) {
 		std::cerr << "[Mesh::" << __FUNCTION__ << "] Index too large!" << std::endl;
 		return( nullptr );
@@ -1390,6 +1567,14 @@ bool Mesh::orderVertsByFuncVal() {
 	sort( mVertices.begin(), mVertices.end(), Vertex::funcValLower );
 	cout << "[Mesh::" << __FUNCTION__ << "] time: " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
 	return true;
+}
+
+//! Order Vertices ascending by Function Value.
+bool Mesh::orderVertsByRGB() {
+    int timeStart = clock();
+    sort( mVertices.begin(), mVertices.end(), Vertex::RGBLower );
+    cout << "[Mesh::" << __FUNCTION__ << "] time: " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
+    return true;
 }
 
 //! Set a given flag for all vertices.
@@ -1523,16 +1708,16 @@ const vector<Face*>* Mesh::getPrimitiveListFaces() {
 //! See also Mesh::getFacePos
 //!
 //! @returns the actual number of faces.
-uint64_t Mesh::getFaceNr() {
+uint64_t Mesh::getFaceNr() const {
 	return mFaces.size();
 }
 
 //! Retrieves the n-th Face, excluding faces marked for removal, including new faces.
 //!
 //! @returns NULL in case of an error.
-Face* Mesh::getFacePos( uint64_t posIdx ) {
+Face* Mesh::getFacePos( uint64_t posIdx ) const {
 	if( posIdx >= getFaceNr() ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] Index (" << posIdx << ") too large - Max: " << getFaceNr() << "!" << endl;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] Index (" << posIdx << ") too large - Max: " << getFaceNr() << "!" << std::endl;
 		return nullptr;
 	}
 	return mFaces.at( posIdx );
@@ -2341,15 +2526,15 @@ bool Mesh::selectVertFaceMaxAngleGT( double rMinAngle ) {
 //! Adds all vertices with the given label numbers to the selection - see getVertLabelNo().
 //! @returns true, when vertices were added.
 bool Mesh::selectVertLabelNo() {
-	set<long> selectedLabelIds;
+	std::set<int64_t> selectedLabelIds;
 	for( auto const& currVertex: mSelectedMVerts ) {
 		uint64_t currLabelId = _NOT_A_NUMBER_INT_;
 		if( currVertex->getLabel( currLabelId ) ) {
 			selectedLabelIds.insert( currLabelId );
-			// cout << "[Mesh::" << __FUNCTION__ << "] Label for selection: " << currLabelId << endl;
+			// std::cout << "[Mesh::" << __FUNCTION__ << "] Label for selection: " << currLabelId << std::endl;
 		}
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] Number labels selected: " << selectedLabelIds.size() << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Number labels selected: " << selectedLabelIds.size() << std::endl;
 
 	if( !showEnterText( selectedLabelIds, "Enter label numbers - negative for inverting" ) ) {
 		return( false );
@@ -2368,13 +2553,26 @@ bool Mesh::selectVertLabelBackGrd() {
 }
 
 //! Adds all vertices with the given label numbers to the selection - see getVertLabelNo().
+//! Allows negative indicies for inverted selection.
+//!
 //! @returns true, when vertices were added.
 bool Mesh::selectVertLabelNo(
-                set<long>& rLabelNrs
+		std::set<int64_t>& rLabelNrs
 ) {
-	bool retVal = getVertLabelNo( rLabelNrs, &mSelectedMVerts );
+	bool retVal = getVertLabelNoMulti( rLabelNrs, mSelectedMVerts );
 	selectedMVertsChanged();
-	return retVal;
+	return( retVal );
+}
+
+//! Adds all vertices with the given label numbers to the selection - see getVertLabelNo().
+//!
+//! @returns true, when vertices were added.
+bool Mesh::selectVertLabelNo(
+		std::set<uint64_t>& rLabelNrs
+) {
+	bool retVal = getVertLabelNoMulti( rLabelNrs, mSelectedMVerts );
+	selectedMVertsChanged();
+	return( retVal );
 }
 
 //! Add vertices having no label no. set, which are also not background!.
@@ -3166,31 +3364,15 @@ bool Mesh::selectFaceRandom( double rRatio ) {
 //! Selects self-intersecting faces.
 //! @returns true if successful.
 bool Mesh::selectFaceSelfIntersecting() {
-	Face* current_face = nullptr;
-	Face* compare_face = nullptr;
-
 	// Progress - Start
-	showProgressStart( "Detect self-intersecting trianlges" );
-
-	uint64_t faceCount = getFaceNr();
-	for( uint64_t faceIdx0 = 0; faceIdx0 < faceCount; ++faceIdx0 ) {
-		current_face = getFacePos( faceIdx0 );
-		for( uint64_t faceIdx1 = faceIdx0; faceIdx1 < faceCount; ++faceIdx1) {
-			compare_face = getFacePos( faceIdx1 );
-			if( current_face->intersectsFace( compare_face ) ) {
-				mFacesSelected.insert( current_face );
-				mFacesSelected.insert( compare_face );
-			}
-			// Progress in inner loop
-			showProgress( static_cast<double>(faceIdx0*faceCount+faceIdx1)/static_cast<double>(faceCount*faceCount),
-			              "Detect self-intersecting trianlges" );
-		}
-	}
-
-	// Progress - End
-	showProgressStop( "Detect self-intersecting trianlges" );
-
-	selectedMFacesChanged();
+    // Octree required - also time consuming
+    if( mOctree == nullptr ) {
+        generateOctree( 1000 );
+    }
+    vector<Face*> intersectedFaces;
+    mOctree->detectselfintersections(intersectedFaces);
+    mFacesSelected.insert(intersectedFaces.begin(), intersectedFaces.end());
+    selectedMFacesChanged();
 	return( true );
 }
 
@@ -4234,20 +4416,11 @@ bool Mesh::setConeCoverMesh() {
 	coneAxis.normalize3();
 
 	Plane coneTipPlane( coneTip, coneAxis );
-	Vector3D coneTipPlaneHNF;
-	coneTipPlane.getPlaneHNF( &coneTipPlaneHNF );
 
-	Vertex* currVertex;
 	double minDist = +INFINITY;
 	double maxDist = -INFINITY;
 	bool   absDist = true; // Works with the order of points ensured (setConeConsistentPointOrder).
-	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
-		currVertex = getVertexPos( vertIdx );
-		double dist = currVertex->estDistanceToPlane( &coneTipPlaneHNF, absDist );
-		minDist = min( dist, minDist );
-		maxDist = max( dist, maxDist );
-	}
-	cout << "[Mesh::" << __FUNCTION__ << "] dist: " << minDist << " " << maxDist << endl;
+	getDistanceToPlaneMinMax( coneTipPlane, minDist, maxDist, absDist );
 
 	double angleCone;
 	this->calcConeAngle( &angleCone );
@@ -6774,7 +6947,40 @@ bool Mesh::labelVerticesEqualFV() {
 	return true;
 }
 
-//! Sets the selected vertices' label to background.
+//! Labels vertices having the same color.
+//! Nan-values become background label.
+bool Mesh::labelVerticesEqualRGB() {
+    cout << "[Mesh::" << __FUNCTION__ << "]" << endl;
+    orderVertsByRGB();
+
+    uint64_t labelNr = 0; // was -1 in older versions.
+                               // Now the first label id has to be one (for inverted selection)
+    unsigned char RGBLast[3] = {255,255,255}; // since we order from low to high, this should work
+    unsigned char RGB[3];
+    Vertex* currVertex;
+    for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
+        currVertex = getVertexPos( vertIdx );
+        if( !currVertex->copyRGBTo( RGB ) ) {
+            cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: copyRGBto failed!" << endl;
+            continue;
+        }
+
+        // as vertices are order - a new function value means a new label
+        // RGBLast is set to 255,255,255, so if all vertices have only 255,255,255 as color, all will get label 0 (unlabeld)
+        if( RGBLast[0] != RGB[0] || RGBLast[1] != RGB[1] || RGBLast[2] != RGB[2] ) {
+            RGBLast[0] = RGB[0];
+            RGBLast[1] = RGB[1];
+            RGBLast[2] = RGB[2];
+            labelNr++;
+        }
+        currVertex->setLabel( labelNr );
+    }
+    orderVertsByIndex();
+    labelsChanged();
+    return true;
+}
+
+//! Sets the selected vertices' label to background
 bool Mesh::labelSelMVertsToBack() {
 	cout << "[Mesh::" << __FUNCTION__ << "]" << endl;
 	set<Vertex*>::iterator itVertex;
@@ -6783,8 +6989,147 @@ bool Mesh::labelSelMVertsToBack() {
 		currVertex->setLabelBackGround();
 	}
 	labelsChanged();
-	return true;
+    return true;
 }
+//!K-Means clustering algorithm
+//!@param centroids as input expected. Contains the start centroids and thus defines the number of the clusters
+//!@param clusterSets returns vertex clusters
+//! @param labeling if true, then the vertecis are labeled with their cluster id
+bool Mesh::computeVertexPositionKMeans(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>> *clusterSets, bool labeling)
+{
+    cout << "[Mesh::" << __FUNCTION__ << "]" << endl;
+    const int cMaxIterations = 50;
+    int iter = 0;
+    bool centroidsChanged = true;
+    while(iter < cMaxIterations && centroidsChanged){
+        //calculate new cluster sets
+        std::vector<std::set<Vertex*>> newClusterSets(centroids->size());
+        if( !assignVerticesToClusterByPosition(centroids, &newClusterSets, labeling)){
+            return false;
+        }
+        //calculate new centroids
+        centroidsChanged = false;
+        for(unsigned int i=0; i<newClusterSets.size(); i++){
+            Vector3D newCentroid = getCentroidByPosition(&newClusterSets.at(i));
+            if( newCentroid != centroids->at(i)){
+                centroids->at(i) = newCentroid;
+                centroidsChanged = true;
+            }
+        }
+        iter++;
+        cout << "[Mesh::" << __FUNCTION__ << "]" << "iteration:" << iter << endl;
+    }
+
+    labelsChanged();
+    return true;
+}
+
+bool Mesh::assignVerticesToClusterByPosition(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex *>> *clusterSets, bool labeling)
+{
+    for(Vertex *vert: mVertices){
+        double minDist = std::numeric_limits<double>::infinity();
+        unsigned int clusterId = 0; //cluster id = index of the centroid or the cluster sets
+        //assign the vertex to the cluster with centroid that has the least distance to the vertex
+        for(unsigned i=0; i<centroids->size(); i++){
+            //I don't use the square root for the distance because it's not necessary for the comparison
+            Vector3D vertPos = vert->getPositionVector();
+            double dist = centroids->at(i).distanceToVectorWithouSqrt(&centroids->at(i),&vertPos);
+            if(minDist > dist){
+                minDist = dist;
+                clusterId = i;
+            }
+        }
+        clusterSets->at(clusterId).insert(vert);
+        if(labeling){
+            vert->setLabel(clusterId+1);
+        }
+
+    }
+    return true;
+}
+
+
+Vector3D Mesh::getCentroidByPosition(std::set<Vertex*> *clusterSet)
+{
+    std::set<Vertex*>::iterator itr;
+    Vector3D newCentroid(0.0,0.0,0.0);
+    for (itr = clusterSet->begin(); itr != clusterSet->end(); itr++){
+        newCentroid = newCentroid + (*itr)->getPositionVector();
+    }
+    return newCentroid/clusterSet->size();
+}
+
+std::vector<std::set<Vertex*>> Mesh::computeVertexNormalKMeans(std::vector<Vector3D> *centroids, bool labeling)
+{
+    cout << "[Mesh::" << __FUNCTION__ << "]" << endl;
+    const int cMaxIterations = 50;
+    int iter = 0;
+    bool centroidsChanged = true;
+    std::vector<std::set<Vertex*>> newClusterSets(centroids->size());
+    while(iter < cMaxIterations && centroidsChanged){
+        //calculate new cluster sets
+        newClusterSets = std::vector<std::set<Vertex*>>(centroids->size());
+        assignVerticesToClusterByNormal(centroids, &newClusterSets, labeling);
+        //calculate new centroids
+        centroidsChanged = false;
+        for(unsigned int i=0; i<newClusterSets.size(); i++){
+            Vector3D newCentroid = getCentroidByNormal(&newClusterSets.at(i));
+            if( newCentroid != centroids->at(i)){
+                centroids->at(i) = newCentroid;
+                centroidsChanged = true;
+            }
+        }
+        iter++;
+        cout << "[Mesh::" << __FUNCTION__ << "]" << "iteration:" << iter << endl;
+    }
+
+    labelsChanged();
+    return newClusterSets;
+}
+
+bool Mesh::assignVerticesToClusterByNormal(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex *>> *clusterSets, bool labeling)
+{
+    for(Vertex *vert: mVertices){
+        double minDist = std::numeric_limits<double>::infinity();
+        unsigned int clusterId = 0; //cluster id = index of the centroid or the cluster sets
+        //assign the vertex to the cluster with centroid that has the least distance to the vertex
+        for(unsigned i=0; i<centroids->size(); i++){
+            //I don't use the square root for the distance because it's not necessary for the comparison
+            Vector3D vertNormal = vert->getNormal();
+            double dist = centroids->at(i).distanceToVectorWithouSqrt(&centroids->at(i),&vertNormal);
+            if(minDist > dist){
+                minDist = dist;
+                clusterId = i;
+            }
+        }
+        clusterSets->at(clusterId).insert(vert);
+        if(labeling){
+            vert->setLabel(clusterId+1);
+        }
+
+    }
+    return true;
+}
+
+
+Vector3D Mesh::getCentroidByNormal(std::set<Vertex*> *clusterSet)
+{
+    std::set<Vertex*>::iterator itr;
+    Vector3D newCentroid(0.0,0.0,0.0);
+    int nrOfdefinedNormals = 0;
+    for (itr = clusterSet->begin(); itr != clusterSet->end(); itr++){
+        Vector3D normal = (*itr)->getNormal();
+        //check if normal is defined
+        //some vertices return NaN
+        if (!isnan(normal.getX())){
+            newCentroid = newCentroid + normal;
+            nrOfdefinedNormals++;
+        }
+    }
+    return newCentroid/nrOfdefinedNormals;
+}
+
+
 
 // ---------------------------------------------------------------------------------------------------
 
@@ -7157,7 +7502,7 @@ bool Mesh::isolineToPolyline(
 			mPolyLines.push_back( isoLine );
 		}
 	}
-	polyLinesChanged();
+    polyLinesChanged();
 	delete[] facesVisitedBitArray;
 	return( true );
 }
@@ -7331,7 +7676,7 @@ void Mesh::convertLabelBordersToPolylines() {
 	//! Converts the borders of labels into polylines.
 
 	int               labelLineCollectionNr; //!< Size of labelLineCollection
-	set<labelLine*>** labelLineCollection;   //!< Lines/Edges (experimental) see face.h
+    //set<labelLine*>** labelLineCollection;   //!< Lines/Edges (experimental) see face.h
 	PolyLine*         selectedPoy;           //!< temporary pointer
 	Vector3D*         labelCOGs;             //!< Center of gravities for the labels.
 	Vector3D*         labelNormals;          //!< Average normals for the labels.
@@ -7348,12 +7693,14 @@ void Mesh::convertLabelBordersToPolylines() {
 
 	// Prepare one array per label:
 	labelLineCollectionNr = labelsNr;
-	labelLineCollection   = new set<labelLine*>*[labelsNr];
-	labelCOGs             = new Vector3D[labelsNr];
-	labelNormals          = new Vector3D[labelsNr];
-	faceCountPerLabel     = new uint64_t[labelsNr];
-	for( uint64_t i=0; i<labelsNr; i++ ) {
-		labelLineCollection[i] = new set<labelLine*>;
+    //labelLineCollection   = new set<labelLine*>*[labelsNr];
+    vector<set<labelLine*>> labelLineCollection;//(labelsNr+1);
+    labelCOGs             = new Vector3D[labelsNr+1];
+    labelNormals          = new Vector3D[labelsNr+1];
+    faceCountPerLabel     = new uint64_t[labelsNr+1];
+    for( uint64_t i=0; i<=labelsNr; i++ ) {
+        //labelLineCollection[i] = new set<labelLine*>;
+        labelLineCollection.push_back(*new set<labelLine*>);
 		// per default we get the origin - a position vector:
 		labelNormals[i].setH( 0.0 );
 		// init as calloc might not:
@@ -7365,44 +7712,47 @@ void Mesh::convertLabelBordersToPolylines() {
 	Face* currFace = nullptr;
 	for( uint64_t faceIdx=0; faceIdx<getFaceNr(); faceIdx++ ) {
 		currFace = getFacePos( faceIdx );
-		if( !currFace->getLabel( currentLabel ) ) {
-			continue;
-		}
-		currFace->getLabelLines( labelLineCollection[currentLabel] );
+        if( !currFace->getLabel( currentLabel ) ) {
+            continue;
+        }
+        //currFace->getLabelLines( labelLineCollection[currentLabel] );
+        currFace->getLabelLines( &labelLineCollection.at(currentLabel) );
 		labelCOGs[currentLabel]    += currFace->getCenterOfGravity();
-		labelNormals[currentLabel] += currFace->getNormal( false );
+        labelNormals[currentLabel] += currFace->getNormal( false );
 		faceCountPerLabel[currentLabel]++;
 	}
 
 	// Estimate polylines per label - when a label has more than one polyline, it has one or more holes.
-	for( int i=0; i<labelLineCollectionNr; i++ ) {
+    for( int i=0; i<=labelLineCollectionNr; i++ ) {
 		//cout << "[Mesh::convertSelectedVerticesToPolyline] labelLineCollection[" << i << "]: " << labelLineCollection[i]->size() << endl;
-		if( labelLineCollection[i]->size() <= 0 ) {
+        if( labelLineCollection.at(i).size() <= 0 ) {
 			continue;
 		}
-		//labelCOGs[i].dumpInfo();
+        //labelCOGs[i].dumpInfo();
 		labelCOGs[i] /= static_cast<float>(faceCountPerLabel[i]);
 		int linesLeft;
 		do {
 			selectedPoy = new PolyLine( labelCOGs[i], labelNormals[i], i );
 			//selectedPoy->setLabel( i );
-			linesLeft = selectedPoy->compileLine( labelLineCollection[i] );
+            linesLeft = selectedPoy->compileLine( &labelLineCollection.at(i) );
 			mPolyLines.push_back( selectedPoy );
 		} while( linesLeft > 0 );
 	}
 
 	// Clear labellines
-	if( labelLineCollection != nullptr ) {
+    if( labelLineCollection.size() != 0 ) {
 		for( int i=0; i<labelLineCollectionNr; i++ ) {
 			//! \todo check about cleaning labelLine
-			labelLineCollection[i]->clear();
+            labelLineCollection.at(i).clear();
 		}
-		delete[] labelLineCollection;
+        labelLineCollection.clear();
 	}
-	delete[] labelCOGs;
-	delete[] labelNormals;
-	delete[] faceCountPerLabel;
+    delete[] labelCOGs;
+    delete[] labelNormals;
+    delete[] faceCountPerLabel;
+
 	polyLinesChanged();
+
 }
 
 //! Convertes triangle edges along mesh border to a polyline, e.g. for hole filling.
@@ -8183,11 +8533,14 @@ bool Mesh::setVertFuncVal1RSumAngles() {
 	return( true );
 }
 
+//! Use the function value to store a sequential index for binary space
+//! partitioning (BSP) the 3D-model by an edge length of rEdgeLen.
+//!
+//! @returns false in case of an error. True otherwise.
 bool Mesh::setVertFuncValOctreeIdx( double rEdgeLen ) {
-	//! Use the function value to store a sequential index for an octree dividing the 3D-model by an edge length of rEdgeLen.
 	if( rEdgeLen <= 0.0 ) {
-		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: zero and negative value not allowed!" << endl;
-		return false;
+		std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: zero and negative value not allowed!" << std::endl;
+		return( false );
 	}
 
 	unsigned int xCubes = ceil( ( mMaxX - mMinX ) / rEdgeLen );
@@ -8198,7 +8551,7 @@ bool Mesh::setVertFuncValOctreeIdx( double rEdgeLen ) {
 		// odd number => round to even
 		xyzCubes++;
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] Cubes: " << xyzCubes << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Cubes: " << xyzCubes << std::endl;
 	Vector3D cubeTopLeft = getBoundingBoxCenter() - Vector3D( xyzCubes*rEdgeLen, xyzCubes*rEdgeLen, xyzCubes*rEdgeLen, 0.0 );
 	Vertex* currVertex;
 	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
@@ -8208,7 +8561,7 @@ bool Mesh::setVertFuncValOctreeIdx( double rEdgeLen ) {
 	}
 
 	changedVertFuncVal();
-	return true;
+	return( true );
 }
 
 bool Mesh::setVertFuncValFaceSphereAngleMax( double rRadius ) {
@@ -9909,9 +10262,6 @@ bool Mesh::removeVertices( set<Vertex*>* verticesToRemove ) {
 	delete mOctree;
 	mOctree = nullptr;
 	cout << "[Mesh::" << __FUNCTION__ << "] Octree for vertices removed." << endl;
-	delete mOctreeface;
-	mOctreeface = nullptr;
-	cout << "[Mesh::" << __FUNCTION__ << "] Octree for faces removed." << endl;
 
 	return true;
 }
@@ -9930,19 +10280,69 @@ bool Mesh::removeVerticesSelected() {
 //! Select and remove solo, non-manifold, double-cones and small area vertices.
 //! Optional: save result to rFileName.
 //! This method has to follow a strict order to achieve a clean Mesh.
+//! 
+//! Public version writing meta-data.
 //!
 //! \returns false in case of an error. True otherwise.
 bool Mesh::removeUncleanSmall(
-                double          rPercentArea,   //!< Area relative to the whole mesh.
-                bool            rApplyErosion,  //!< Add extra border cleaning.
-                const filesystem::path&   rFileName       //!< Filename to store intermediate results and the final mesh.
+        const filesystem::path&   rFileName,      //!< Filename to store intermediate results and the final mesh.
+        double                    rPercentArea,   //!< Area relative to the whole mesh.
+        bool                      rApplyErosion   //!< Add extra border cleaning.
 ) {
+	bool retVal = false;
 
+	// Track changes for meta-data
+	//----------------------------------------------------------
+	MeshInfoData rFileInfosPrevious;
+	this->getMeshInfoData( rFileInfosPrevious, true );
+	uint64_t iterationCount = 0;
+
+	// Measure compute time
+	//----------------------------------------------------------
+	std::chrono::system_clock::time_point tStart = std::chrono::system_clock::now();
+
+	// CLEAN the mesh
+	//----------------------------------------------------------
+	retVal = removeUncleanSmallCore( rFileName, rPercentArea, rApplyErosion, iterationCount );
+
+	// Measure compute time
+	//----------------------------------------------------------
+	std::chrono::system_clock::time_point tStop = std::chrono::system_clock::now();
+
+	// Dump Meta-Data about the cleaning process.
+	//----------------------------------------------------------
+	MeshInfoData rFileInfos;
+	this->getMeshInfoData( rFileInfos, true );
+	if( !rFileInfos.writeMeshInfoProcess( rFileInfosPrevious, rFileName, "mesh_clean", iterationCount,
+	                                 tStart, tStop ) ) {
+		LOG::error() << "[Mesh::" << __FUNCTION__ << "] Writing meta-data failed!\n";
+		return( false );
+	}
+
+	return( retVal );
+
+}
+
+//! Select and remove solo, non-manifold, double-cones and small area vertices.
+//! Optional: save result to rFileName.
+//! This method has to follow a strict order to achieve a clean Mesh.
+//! 
+//! Core version without writing meta-data.
+//!
+//! \returns false in case of an error. True otherwise.
+bool Mesh::removeUncleanSmallCore(
+        const filesystem::path&   rFileName,      //!< Filename to store intermediate results and the final mesh.
+        double                    rPercentArea,   //!< Area relative to the whole mesh.
+        bool                      rApplyErosion,  //!< Add extra border cleaning.
+        uint64_t&                 rIteration      //!< Returns the number of iterations in step #7.
+) {
 	uint64_t vertNoPrev = getVertexNr();
 	uint64_t faceNoPrev = getFaceNr();
+	// Reset counter
+	rIteration = 0;
 
-	set<Vertex*> verticesToRemove;
-	set<Face*> facesToRemove;
+	std::set<Vertex*> verticesToRemove;
+	std::set<Face*> facesToRemove;
 
 	//! 0.) Remove all polylines.
 	//!     \todo this has to be done as the polylines will cause a segementation fault, when written to the VBO.
@@ -9951,56 +10351,58 @@ bool Mesh::removeUncleanSmall(
 
 	//! 1a.) Select and remove vertices with not-a-number coordinates and ...
 	//!     These vertices have to be removed before Non-Manifold and Double-Cones (Singularities) as they may introduce these other types.
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Not-A-Number Vertices -----------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Not-A-Number Vertices -----------------------" << std::endl;
 	getVertNotANumber( &verticesToRemove );
 	Mesh::removeVertices( &verticesToRemove );
 	//! 1b.) Select and remove vertices of faces having an areo of zero.
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Zero area faces -----------------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Zero area faces -----------------------------" << std::endl;
 	getVertPartOfZeroFace( &verticesToRemove );
 	Mesh::removeVertices( &verticesToRemove );
 	//! 2.) Select and remove sticky faces.
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Sticky --------------------------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Sticky --------------------------------------" << std::endl;
 	getFaceSticky( &facesToRemove );
 	removeFaces( &facesToRemove );
 	//! 3.) Select and remove non-manifold faces.
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Non-Manifold --------------------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Non-Manifold --------------------------------" << std::endl;
 	getFaceNonManifold( &facesToRemove );
 	removeFaces( &facesToRemove );
 	// more agressive removal: getVertNonManifoldFaces( &verticesToRemove );
 	//! 4.) Select and remove vertices on edges connecting faces with inverted orientation.
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Inverted ------------------------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Inverted ------------------------------------" << std::endl;
 	getVertInverted( verticesToRemove );
 	Mesh::removeVertices( &verticesToRemove );
 	//! 5.) OPTIONAL apply erosion to remove 'dangling' faces.
 	if( rApplyErosion ) {
-		cout << "[Mesh::" << __FUNCTION__ << "] --- Border Erosion ------------------------------" << endl;
+		std::cout << "[Mesh::" << __FUNCTION__ << "] --- Border Erosion ------------------------------" << std::endl;
 		if( !removeFacesBorderErosion() ) {
-			cout << "[Mesh::" << __FUNCTION__ << "] ERROR: removeFacesBorderErosion failed!" << endl;
+			std::cout << "[Mesh::" << __FUNCTION__ << "] ERROR: removeFacesBorderErosion failed!" << std::endl;
 		}
 	}
 	//! 6.) Select double cones.
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Double Cones --------------------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Double Cones --------------------------------" << std::endl;
 	getDoubleCones( &verticesToRemove );
 	//! 7.) Remove and select double-cones until there are no more showing up.
 	do {
 		Mesh::removeVertices( &verticesToRemove ); // "Mesh::" avoids the unnecessary regeneration of OpenGL VBOs within the GUI version - will be taken care of in step 7.
 		getDoubleCones( &verticesToRemove );
+		rIteration++;
 	} while( verticesToRemove.size() > 0 );
 	//!     In very rare cases there may be new 'dangling' faces at this point, but no further optional
 	//!     erosion will be applied as it requires another slow loop over 4., 5. and 6.
 	//! 8.) ... solo vertices and ...
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Solo Vertices -------------------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Solo Vertices -------------------------------" << std::endl;
 	getVertSolo( &verticesToRemove );
 	Mesh::removeVertices( &verticesToRemove );
 	//! 9.) ... label and select small areas.
-	cout << "[Mesh::" << __FUNCTION__ << "] --- Small Areas ---------------------------------" << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] --- Small Areas ---------------------------------" << std::endl;
 	// first we reset the label and set all NOT to be labled.
 	labelVerticesAll();
 	getVertLabelAreaRelativeLT( rPercentArea, &verticesToRemove );
 	//! 10.) Final remove (including reloading OpenGL buffers and lists.
 	removeVertices( &verticesToRemove );
 
-	cout << "[Mesh::" << __FUNCTION__ << "] removed " << vertNoPrev - getVertexNr() << " vertices and " << faceNoPrev - getFaceNr() << " faces." << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] removed " << vertNoPrev - getVertexNr() << " vertices and " 
+	          << faceNoPrev - getFaceNr() << " faces." << std::endl;
 	if( rFileName.empty() ) {
 		return( true );
 	}
@@ -10012,52 +10414,42 @@ bool Mesh::removeUncleanSmall(
 //! Removes synthetic connected components using given seed vertices typicall SelMVerts.
 //! This function helps to remove falsely filled holes after automatic mesh polishing.
 //! @returns false in case of an error or warning. True otherwise.
-bool Mesh::removeSyntheticComponents( set<Vertex*>* rVerticesSeeds ) {
-	// Sanity check
-	if( rVerticesSeeds == nullptr ) {
-		return false;
-	}
-	cout << "[Mesh::" << __FUNCTION__ << "] Seeds: " << rVerticesSeeds->size() << endl;
+bool Mesh::removeSyntheticComponents(
+		const std::set<Vertex *> &rVerticesSeeds
+) {
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Seeds: " << rVerticesSeeds.size() << std::endl;
 
 	//! 1.) Select all synthetic vertices and label them.
 	set<Vertex*> verticesSynthetic;
 	getVertWithFlag( &verticesSynthetic, FLAG_SYNTHETIC );
 	if( verticesSynthetic.size() <= 0 ) {
-		cout << "[Mesh::" << __FUNCTION__ << "] WARNING: No synthetic vertices detected." << endl;
-		return false;
+		std::cout << "[Mesh::" << __FUNCTION__ << "] WARNING: No synthetic vertices detected." << std::endl;
+		return( false );
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] Synthetic: " << verticesSynthetic.size() << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Synthetic: " << verticesSynthetic.size() << std::endl;
 	if( !labelSelectedVertices( verticesSynthetic, true ) ) {
-		cout << "[Mesh::" << __FUNCTION__ << "] ERROR: Labeling failed." << endl;
-		return false;
+		std::cout << "[Mesh::" << __FUNCTION__ << "] ERROR: Labeling failed." << std::endl;
+		return( false );
 	}
 
 	//! 2.) Fetch all label ids of SelMVerts.
 	//!     Ignore SelMVerts not being part of a label, because these might be wrong choices
 	//!     and would remove most of the mesh.
-	set<long> selectedLabelIds;
-	for( auto const& currVertex: mVertices ) {
-		if( rVerticesSeeds->count( currVertex ) > 0 ) {
-			uint64_t currLabelId = _NOT_A_NUMBER_UINT_;
-			if( currVertex->getLabel( currLabelId ) ) {
-				selectedLabelIds.insert( currLabelId );
-				cout << "[Mesh::" << __FUNCTION__ << "] Number of synthetic components for selection: " << currLabelId << endl;
-			}
-		}
-	}
-	cout << "[Mesh::" << __FUNCTION__ << "] Number of synthetic components selected: " << selectedLabelIds.size() << endl;
+	std::set<uint64_t> selectedLabelIds;
+	getVertLabelIdFrom( rVerticesSeeds, selectedLabelIds );
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Number of synthetic components selected: " << selectedLabelIds.size() << std::endl;
 
 	//! 3.) Select all connected components with the label ids determined in the previous step.
 	if( !selectVertLabelNo( selectedLabelIds ) ) {
-		return false;
+		return( false );
 	}
 
 	//! 4.) Remove the selection.
 	if( !removeVerticesSelected() ) {
-		return false;
+		return( false );
 	}
 
-	return true;
+	return( true );
 }
 
 //! Removes selected faces.
@@ -10191,21 +10583,33 @@ bool Mesh::completeRestore() {
 //!
 //! @returns false in case of an error. True otherwise.
 bool Mesh::completeRestore(
-                const filesystem::path& rFilename,            //!< Optional filname for storing the mesh after each operation. An empty string will prevent saving the mesh.
-                double        rPercentArea,         //!< Connected components with an area smaller are removed. See Mesh::removeUncleanSmall
-                bool          rApplyErosion,        //!< Optional border erosion.
-                bool          rPrevent,             //!< Prevent longest polyline from filling.
-                uint64_t rMaxNumberVertices,   //!< Maximum number of vertices/edges used for filling holes as libpsalm has troubles with larger/complex holes.
-                string*       rResultMsg            //!< String to be passed up for displayed as messagebox.
+        const filesystem::path& rFilename,            //!< Optional filname for storing the mesh after each operation. An empty string will prevent saving the mesh.
+        double                  rPercentArea,         //!< Connected components with an area smaller are removed. See Mesh::removeUncleanSmall
+        bool                    rApplyErosion,        //!< Optional border erosion.
+        bool                    rPrevent,             //!< Prevent longest polyline from filling.
+        uint64_t                rMaxNumberVertices,   //!< Maximum number of vertices/edges used for filling holes as libpsalm has troubles with larger/complex holes.
+        string*                 rResultMsg,           //!< Returns string for display in e.g. a messagebox.
+        uint64_t&               rIterationCount       //!< Returns number of iterations.
 ) {
+	// Measure compute time
+	//----------------------------------------------------------
+	std::chrono::system_clock::time_point tStart = std::chrono::system_clock::now();
+
+	bool retVal = true;
 	// Store old mesh size to determine the number of changes
-	uint64_t polishIterations = 0;
-	uint64_t holesFilled = 0;
-	uint64_t holesFail = 0;
-	uint64_t holesSkipped = 0;
 	uint64_t oldVertexNr;
 	uint64_t oldFaceNr;
-	bool retVal = true;
+
+	// Track changes for meta-data
+	MeshInfoData rFileInfosPrevious;
+	this->getMeshInfoData( rFileInfosPrevious, true );
+
+	// Track iterations and changes to so-called holes
+	rIterationCount = 0;
+	uint64_t totalHolesFilled = 0;
+	uint64_t totalHolesFail = 0;
+	uint64_t totalHolesSkipped = 0;
+	bool someHolesFilled = true; // Exit condition for the following do-while loop
 
 	do {
 		// Track changes to the number of vertices and faces.
@@ -10213,7 +10617,8 @@ bool Mesh::completeRestore(
 
 		oldVertexNr = getVertexNr();
 		oldFaceNr = getFaceNr();
-		removeUncleanSmall( rPercentArea, rApplyErosion, rFilename );
+		uint64_t subIterationCount = 0;
+		removeUncleanSmallCore( rFilename, rPercentArea, rApplyErosion, subIterationCount );
 		convertBordersToPolylines();
 
 		if( rPrevent ) {
@@ -10221,41 +10626,49 @@ bool Mesh::completeRestore(
 			removePolylinesSelected();
 		}
 
+		// Fill so-called holes
+		uint64_t holesFilled  = 0;
+		uint64_t holesFail    = 0;
+		uint64_t holesSkipped = 0;
 		fillPolyLines( rMaxNumberVertices, holesFilled, holesFail, holesSkipped );
-//		holesFailTotal += holesFail;
+		totalHolesFilled  += holesFilled;
+		totalHolesFail    += holesFail;
+		totalHolesSkipped += holesSkipped;
+		someHolesFilled = ( holesFilled != 0 );
+		// Cleanup after filling holes
 		removePolylinesAll();
 
-		polishIterations++;
+		rIterationCount++;
 
 	} while( ( oldVertexNr - getVertexNr() ) != 0 ||
-		 ( oldFaceNr - getFaceNr() ) !=0      ||
-		 ( holesFilled != 0 ) );
+	         ( oldFaceNr - getFaceNr() ) !=0      ||
+	         ( someHolesFilled ) );
 
 	string tempstr;
-	if( ( holesFail == 0 ) && ( holesSkipped == 0 ) ) {
+	if( ( totalHolesFail == 0 ) && ( totalHolesSkipped == 0 ) ) {
 		tempstr = "All holes were filled.";
 	}
-	if( holesFail>1 ) {
-		tempstr = to_string( holesFail ) + " holes were NOT filled.";
+	if( totalHolesFail>1 ) {
+		tempstr = to_string( totalHolesFail ) + " holes were NOT filled.";
 		retVal = false;
 	}
-	if( holesFail==1 ) {
-		tempstr = to_string( holesFail ) + " holes were NOT filled.";
+	if( totalHolesFail==1 ) {
+		tempstr = to_string( totalHolesFail ) + " holes were NOT filled.";
 		retVal = false;
 	}
-	if( holesSkipped>1 ) {
-		tempstr = to_string( holesSkipped ) + " holes were SKIPPED filled.";
+	if( totalHolesSkipped>1 ) {
+		tempstr = to_string( totalHolesSkipped ) + " holes were SKIPPED filled.";
 		retVal = false;
 	}
-	if( holesSkipped==1 ) {
-		tempstr = to_string( holesSkipped ) + " holes were SKIPPED filled.";
+	if( totalHolesSkipped==1 ) {
+		tempstr = to_string( totalHolesSkipped ) + " holes were SKIPPED filled.";
 		retVal = false;
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] " << tempstr << endl;
-	cout << "[Mesh::" << __FUNCTION__ << "] " << to_string( polishIterations ) << " iterations." << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] " << tempstr << std::endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] " << std::to_string( rIterationCount ) << " iterations." << std::endl;
 
 	if( rResultMsg != nullptr ) {
-		(*rResultMsg) = tempstr + "\n\n" + to_string( polishIterations ) + " iterations.";
+		(*rResultMsg) = tempstr + "\n\n" + std::to_string( rIterationCount ) + " iterations.";
 	}
 
 	// Adjust/refresh selected vertices:
@@ -10276,6 +10689,22 @@ bool Mesh::completeRestore(
 	}
 	selectedMFacesChanged();
 
+	// Measure compute time
+	//----------------------------------------------------------
+	std::chrono::system_clock::time_point tStop = std::chrono::system_clock::now();
+
+	// Dump Meta-Data about the cleaning process.
+	//----------------------------------------------------------
+	MeshInfoData rFileInfos;
+	this->getMeshInfoData( rFileInfos, true );
+	if( !rFileInfos.writeMeshInfoProcess( rFileInfosPrevious, rFilename, "mesh_polish", rIterationCount,
+	                                 tStart, tStop ) ) {
+		LOG::error() << "[Mesh::" << __FUNCTION__ << "] Writing meta-data failed!\n";
+		return( false );
+	}
+
+	// Done
+	//----------------------------------------------------------
 	return( retVal );
 }
 
@@ -10387,7 +10816,7 @@ Vector3D Mesh::getBoundingBoxCenter() {
 }
 
 //! Compute and returns the size of the bounding box.
-bool Mesh::getBoundingBoxSize( Vector3D& rBbSize ) {
+bool Mesh::getBoundingBoxSize( Vector3D& rBbSize ) const {
 	rBbSize.setX( mMaxX - mMinX );
 	rBbSize.setY( mMaxY - mMinY );
 	rBbSize.setZ( mMaxZ - mMinZ );
@@ -10423,6 +10852,33 @@ float Mesh::getPerimeterRadius() {
 	}
 	return perimeterRadiusMax;
 }
+
+bool Mesh::getDistanceToPlaneMinMax(
+		const Plane& rPlane,
+		double&   rMinDist,
+		double&   rMaxDist,
+		bool      rAbsDist
+) {
+	double minDist = +INFINITY;
+	double maxDist = -INFINITY;
+
+	Vector3D planeHNF = rPlane.getHNF();
+
+	Vertex* currVertex;
+	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
+		currVertex = getVertexPos( vertIdx );
+		double dist = currVertex->estDistanceToPlane( planeHNF, rAbsDist );
+		minDist = min( dist, minDist );
+		maxDist = max( dist, maxDist );
+	}
+
+	rMinDist = minDist;
+	rMaxDist = maxDist;
+
+	std::cout << "[Mesh::" << __FUNCTION__ << "] dist: " << minDist << " " << maxDist << std::endl;
+	return( true );
+}
+
 
 // Bounding Box Corners --------------------------------------------------------
 
@@ -10464,6 +10920,40 @@ Vector3D Mesh::getBoundingBoxG() {
 Vector3D Mesh::getBoundingBoxH() {
 	//! Returns a corner from the bounding boxes top plane.
 	return Vector3D( mMaxX, mMinY, mMaxZ, 1.0 );
+}
+
+//! Get the Bounding Box of a projection.
+//! Typically used to determine the size in camera coordinates.
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::getBoundingBoxProjected(
+		const Matrix4D& rTransMat,
+		double& rMinX, double& rMaxX,
+		double& rMinY, double& rMaxY,
+		double& rMinZ, double& rMaxZ
+) const {
+	bool retVal = true;
+	rMinX = std::numeric_limits<double>::max();
+	rMaxX = std::numeric_limits<double>::min();
+	rMinY = std::numeric_limits<double>::max();
+	rMaxY = std::numeric_limits<double>::min();
+	rMinZ = std::numeric_limits<double>::max();
+	rMaxZ = std::numeric_limits<double>::min();
+	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
+		Vertex* curVertex = getVertexPos( vertIdx );
+		Vector3D curPosProjected;
+		if( curVertex->getTransformedCenterOfGravity( rTransMat, curPosProjected ) ) {
+			rMinX = min( rMinX, curPosProjected.getX() );
+			rMaxX = max( rMaxX, curPosProjected.getX() );
+			rMinY = min( rMinY, curPosProjected.getY() );
+			rMaxY = max( rMaxY, curPosProjected.getY() );
+			rMinZ = min( rMinZ, curPosProjected.getZ() );
+			rMaxZ = max( rMaxZ, curPosProjected.getZ() );
+		} else {
+			retVal = false;
+		}
+	}
+	return( retVal );
 }
 
 // mesh information ----------------------------------------------------------------------------
@@ -10788,18 +11278,44 @@ bool Mesh::getVertFaceMaxAngleGT( double rMinAngle, set<Vertex*>* rSomeVerts ) {
 	return true;
 }
 
+//! Adds all vertices with a given label number to the given set.
+//! Accepts a negative index for inverted selection.
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::getVertLabelNoSingle(
+		long rLabelNr,
+		std::set<Vertex*>& rSomeVerts
+) {
+	// Step thru the vertices:
+	Vertex* currVertex;
+	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
+		currVertex = getVertexPos( vertIdx );
+		uint64_t labelNr;
+		if( currVertex->getLabel( labelNr ) ) {
+			if( ( rLabelNr < 0 ) && ( labelNr != static_cast<uint64_t>(-rLabelNr) ) ) {
+				rSomeVerts.insert( currVertex );
+			}
+			if( ( rLabelNr >= 0 ) && ( labelNr == static_cast<uint64_t>(rLabelNr) ) ) {
+				rSomeVerts.insert( currVertex );
+			}
+		}
+	}
+	return( true );
+}
+
 //! Adds all vertices with the given label numbers to the given set.
 //! Accepts negative indices for inverted selection.
 //! Attention: all numbers have to be either positive or negative!
 //! A mixture of positive and negative values will result in an error.
+//!
 //! @returns false in case of an error. True otherwise.
-bool Mesh::getVertLabelNo(
-                set<long>& rLabelNrs,
-                set<Vertex*>* rSomeVerts
+bool Mesh::getVertLabelNoMulti(
+		const std::set<int64_t>& rLabelNrs,
+		std::set<Vertex*>& rSomeVerts
 ) {
 	// Convert vector to set, which will provide the find method.
-	set<long> labelsToSelect;
-	set<long>::iterator itLabelNo;
+	set<int64_t> labelsToSelect;
+	set<int64_t>::iterator itLabelNo;
 	bool labelNrsNegative = false;
 	bool labelNrsPositive = false;
 	for( itLabelNo=rLabelNrs.begin(); itLabelNo!=rLabelNrs.end(); itLabelNo++ ) {
@@ -10812,24 +11328,44 @@ bool Mesh::getVertLabelNo(
 		}
 	}
 	if( labelNrsPositive && labelNrsNegative ) {
-		cout << "[Mesh::" << __FUNCTION__ << "] ERROR: Mixture of Negative and positive values is not applicable and therefore not allowed." << endl;
-		return false;
+		std::cout << "[Mesh::" << __FUNCTION__ << "] ERROR: Mixture of Negative and positive values is not applicable and therefore not allowed." << std::endl;
+		return( false );
 	}
 	// Step thru the vertices:
-	Vertex* currVertex;
 	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
-		currVertex = getVertexPos( vertIdx );
+		Vertex* currVertex = getVertexPos( vertIdx );
 		uint64_t labelNr;
 		if( currVertex->getLabel( labelNr ) ) {
 			if( labelNrsPositive && ( labelsToSelect.find( labelNr ) != labelsToSelect.end() ) ) {
-				rSomeVerts->insert( currVertex );
+				rSomeVerts.insert( currVertex );
 			}
 			if( labelNrsNegative && ( labelsToSelect.find( -static_cast<int64_t>(labelNr) ) == labelsToSelect.end() ) ) {
-				rSomeVerts->insert( currVertex );
+				rSomeVerts.insert( currVertex );
 			}
 		}
 	}
-	return true;
+	return( true );
+}
+
+//! Adds all vertices with the given label numbers to the given set.
+//! Does NOT accept negative indices for inverted selection.
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::getVertLabelNoMulti(
+		const std::set<uint64_t>& rLabelNrs,
+		std::set<Vertex*>& rSomeVerts
+) {
+	// Step thru the vertices:
+	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
+		Vertex* currVertex = getVertexPos( vertIdx );
+		uint64_t labelNr;
+		if( currVertex->getLabel( labelNr ) ) {
+			if( rLabelNrs.find( labelNr ) != rLabelNrs.end() ) {
+				rSomeVerts.insert( currVertex );
+			}
+		}
+	}
+	return( true );
 }
 
 //! Adds vertices, which are labeled background, to a given set.
@@ -10854,6 +11390,24 @@ bool Mesh::getVertLabeledNot( set<Vertex*>* rSomeVerts ) {
 		}
 	}
 	return true;
+}
+
+//! Fetch the label ids from a given set of vertices.
+//! @returns false in case of an error. True otherwise.
+bool Mesh::getVertLabelIdFrom(
+		const std::set<Vertex*>& rSomeVerts,
+		std::set<uint64_t>& rLabelNrs
+) {
+	for( auto const& currVertex: mVertices ) {
+		if( rSomeVerts.count( currVertex ) > 0 ) {
+			uint64_t currLabelId = _NOT_A_NUMBER_UINT_;
+			if( currVertex->getLabel( currLabelId ) ) {
+				rLabelNrs.insert( currLabelId );
+				std::cout << "[Mesh::" << __FUNCTION__ << "] Component Id for selection: " << currLabelId << std::endl;
+			}
+		}
+	}
+	return( true );
 }
 
 //! Adds vertices, which have one or more flags set.
@@ -11003,7 +11557,7 @@ bool Mesh::getFaceLabeledVerticesCorner(
 			rSomeFaces.insert( currFace );
 		}
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] in set:    " << rSomeFaces.size() << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] in set:    " << rSomeFaces.size() << std::endl;
 	return( true );
 }
 
@@ -11013,6 +11567,77 @@ bool Mesh::getFaceLabeledVerticesCorner(
 //! @returns false in case of an error. True otherwise.
 bool Mesh::getFaceZeroArea( set<Face*>* rSomeFaces ) {
 	return getFaceFlag( rSomeFaces, FLAG_FACE_ZERO_AREA );
+}
+
+//! Adds all faces containing the at least one of the vertices
+//! within the given set.
+//!
+//! Attention: this might become slow, when the vertex set is large!
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::getFaceContainsVert(
+		const std::set<Vertex*>& rSomeVerts,
+		std::set<Face*>& rSomeFaces
+) {
+	for( uint64_t faceIdx = 0; faceIdx < getFaceNr(); faceIdx++ ) {
+		Face* currFace = getFacePos( faceIdx );
+		if( currFace->requiresOneOrMoreVerticesOf( rSomeVerts ) ) {
+			rSomeFaces.insert( currFace );
+		}
+	}
+	std::cout << "[Mesh::" << __FUNCTION__ << "] in set:    " << rSomeFaces.size() << std::endl;
+	return( true );
+}
+
+//! Adds all faces containing vertices with a given label number
+//! to the given set.
+//!
+//! Note: only face with all vertices having the same label number will be added.
+//! Due to the use of Face::getLabel
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::getFaceHasVertLabelNo(
+		const uint64_t rLabelNr,
+		std::set<Face*>& rSomeFaces
+) {
+	for( uint64_t faceIdx = 0; faceIdx < getFaceNr(); faceIdx++ ) {
+		Face* currFace = getFacePos( faceIdx );
+		uint64_t currLabel;
+		if( currFace->getLabel( currLabel ) ) {
+			if( rLabelNr == currLabel ) {
+				rSomeFaces.insert( currFace );
+			}
+		}
+	}
+	std::cout << "[Mesh::" << __FUNCTION__ << "] in set: " << rSomeFaces.size() << std::endl;
+	return( true );
+}
+
+//! Adds all faces containing vertices with the given label numbers
+//! to the given set.
+//!
+//! Note: only face with all vertices having the same label number will be added.
+//! Due to the use of Face::getLabel
+//!
+//! @returns false in case of an error. True otherwise.
+bool Mesh::getFaceHasVertLabelNo(
+		const std::set<uint64_t>& rLabelNrs,
+		std::set<Face*>& rSomeFaces
+) {
+	for( uint64_t faceIdx = 0; faceIdx < getFaceNr(); faceIdx++ ) {
+		Face* currFace = getFacePos( faceIdx );
+		uint64_t currLabel;
+		if( currFace->getLabel( currLabel ) ) {
+			// search for the iterator of given numbers in set
+			std::set<uint64_t>::iterator it = rLabelNrs.find( currLabel );
+			// Check if iterator it is valid
+			if( it != rLabelNrs.end() ) {
+				rSomeFaces.insert( currFace );
+			}
+		}
+	}
+	std::cout << "[Mesh::" << __FUNCTION__ << "] in set: " << rSomeFaces.size() << std::endl;
+	return( true );
 }
 
 // --- Polylines -----------------------------------------------------------------------------------------------------------------------------------------------
@@ -11982,7 +12607,7 @@ bool Mesh::estGeodesicPatch( map<Vertex*,GeodEntry*>* geoDistList,              
 		double vCB = ( vertBPos - vertCPos ).getLength3();
 		double vBA = ( vertAPos - vertBPos ).getLength3();
 		// Add optional weight
-		Vertex* vertA = edgeToProc->getVertA();
+		// Vertex* vertA = edgeToProc->getVertA(); // <- unused
 		// Vertex* vertB = edgeToProc->getVertB(); // <- unused
 		if( weightFuncVal ) {
 		//if( ( weightFuncVal ) && (!badAngle) ) {
@@ -13032,7 +13657,7 @@ bool Mesh::hasDatumObjects()
 //!   .) Axis (used by cone and cylinder)
 //!
 //! @returns false in case of an error. True otherwise.
-bool Mesh::applyTransformationToWholeMesh( Matrix4D rTrans, bool rResetNormals ) {
+bool Mesh::applyTransformationToWholeMesh( Matrix4D rTrans, bool rResetNormals, bool rSaveTransMat ) {
 	// Sanity checks:
 	if( getVertexNr() == 0 ) {
 		cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: no vertices found!" << endl;
@@ -13046,7 +13671,7 @@ bool Mesh::applyTransformationToWholeMesh( Matrix4D rTrans, bool rResetNormals )
 	}
 
 	//!\todo Apply to all cone paramters, the sphere and the mesh plane.
-	if(applyTransformation(rTrans, &allVertices, rResetNormals))
+    if(applyTransformation(rTrans, &allVertices, rResetNormals, rSaveTransMat))
 	{
 		//! .) Apply to (cone/cylinder) axis
 		mConeAxisPoints[0] *= rTrans;
@@ -13209,7 +13834,7 @@ bool Mesh::applyTransformationDefaultViewMatrix( Matrix4D* rViewMatrix ) {
 //! and false is returned.
 //!
 //! This method also re-estimates the normals of the faces and the bounding box (for performance reasons).
-bool Mesh::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool rResetNormals ) {
+bool Mesh::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool rResetNormals, bool rSaveTransMat ) {
 	//cout << "[Mesh::" << __FUNCTION__ << "] Start" << endl;
 	//rTrans.dumpInfo();
 	// Sanity checks:
@@ -13263,32 +13888,33 @@ bool Mesh::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool 
 	polyLinesChanged();
 
 	//! .) Write the transformation to the side-car file, because HiWis tend to forget this.
-	std::filesystem::path transMatFName = getFileLocation().wstring() + getBaseName().wstring() + L"_transmat.txt";
-	ofstream transMatFile;
-	transMatFile.open( transMatFName, ios::app );
-	if( transMatFile.is_open() ) {
-		// Fetch time and date as string
-		std::time_t t = std::time(nullptr);
-		char mbstr[100];
-		std::strftime( mbstr, sizeof( mbstr ), "%A %c", std::localtime( &t ) );
-		// Fetch matrix as text
-		string matStr;
-		rTrans.getTextMatrix( &matStr );
-		// Write matrix
-		transMatFile << "#------------------------------------------------------" << endl;
-		transMatFile << "# Transformation applied to " << getBaseName() << endl;
-		transMatFile << "#......................................................" << endl;
-		transMatFile << matStr;
-		transMatFile << "#......................................................" << endl;
-		transMatFile << "# on " << mbstr << endl;
-		transMatFile << "#------------------------------------------------------" << endl;
-		transMatFile << endl;
-		transMatFile.close();
-		wcout << L"[Mesh::" << __FUNCTION__ << "] Transformation matrix written to: " << transMatFName << endl;
-	} else {
-		wcerr << L"[Mesh::" << __FUNCTION__ << "] ERROR: writing transformation matrix to: " << transMatFName << "!" << endl;
-	}
-
+    if (rSaveTransMat){
+        std::filesystem::path transMatFName = getFileLocation().wstring() + getBaseName().wstring() + L"_transmat.txt";
+        ofstream transMatFile;
+        transMatFile.open( transMatFName, ios::app );
+        if( transMatFile.is_open() ) {
+            // Fetch time and date as string
+            std::time_t t = std::time(nullptr);
+            char mbstr[100];
+            std::strftime( mbstr, sizeof( mbstr ), "%A %c", std::localtime( &t ) );
+            // Fetch matrix as text
+            string matStr;
+            rTrans.getTextMatrix( &matStr );
+            // Write matrix
+            transMatFile << "#------------------------------------------------------" << endl;
+            transMatFile << "# Transformation applied to " << getBaseName() << endl;
+            transMatFile << "#......................................................" << endl;
+            transMatFile << matStr;
+            transMatFile << "#......................................................" << endl;
+            transMatFile << "# on " << mbstr << endl;
+            transMatFile << "#------------------------------------------------------" << endl;
+            transMatFile << endl;
+            transMatFile.close();
+            wcout << L"[Mesh::" << __FUNCTION__ << "] Transformation matrix written to: " << transMatFName << endl;
+        } else {
+            wcerr << L"[Mesh::" << __FUNCTION__ << "] ERROR: writing transformation matrix to: " << transMatFName << "!" << endl;
+        }
+    }
 	showProgressStop("Apply Transformation");
 	return ( errCtr == 0 );
 }
@@ -13356,8 +13982,9 @@ bool Mesh::applyInvertOrientationFaces( std::vector<Face*> rFacesToInvert ) {
 	}
 	retVal &= resetVertexNormals();
 	retVal &= changedMesh();
-	return( retVal );
+    return( retVal );
 }
+
 
 //! To be called when the normals of the vertices changed
 //! e.g. to refresh the Open GL rendering
@@ -13478,870 +14105,8 @@ bool Mesh::normalsVerticesComputeSphere(
 	return( retVal );
 }
 
-// --- SHELLING ------------------------------------------------------------------------------------------------------------------------------------------------
 
-struct shellingDetectionParam{
-	int mFromIndex,mToIndex;
-	float mOffset;
-	Mesh* mMeshObj;
-};
-
-void* detectCriticalPlacesForShelling(void* value){
-	shellingDetectionParam* param = static_cast<shellingDetectionParam*>(value) ;
-	std::vector<int> possibleCrossVertices;
-	std::vector<std::set<int> >* criticalPoints = new std::vector<std::set<int> >();
-	int sizeVert = param->mMeshObj->getVertexNr();
-	for(int i=param->mFromIndex;i<param->mToIndex;i++){
-		for(int j = 0;j < sizeVert;j++){
-			Vector3D diff = param->mMeshObj->getVertexPos(i)->getPositionVector() - param->mMeshObj->getVertexPos(j)->getPositionVector();
-			if(diff.getLength3() < param->mOffset && i!=j){
-				possibleCrossVertices.push_back(j);
-			}
-		}
-		Vector3D newPos = param->mMeshObj->getVertexPos(i)->getPositionVector() + param->mOffset * param->mMeshObj->getVertexPos(i)->getNormal();
-		for(const int index : possibleCrossVertices){
-			    Vector3D diff = newPos - param->mMeshObj->getVertexPos(index)->getPositionVector();
-			if(diff.getLength3() < param->mOffset){
-				bool isInCluster = false;
-				for(std::vector<std::set<int> >::iterator k = criticalPoints->begin();k<criticalPoints->end();k++){
-					for(std::set<int>::iterator iter = k->begin();iter!=k->end();iter++){
-						std::set<Vertex*> adjacentVertices;
-						param->mMeshObj->getVertexPos(*iter)->getNeighbourVertices(&adjacentVertices);
-						std::set<Vertex*>::iterator placeVertice = adjacentVertices.find(param->mMeshObj->getVertexPos(i));
-						if(placeVertice!=adjacentVertices.end()){
-							isInCluster = true;
-							k->insert(i);
-							break;
-						}
-					}
-					if(isInCluster){
-						break;
-					}
-				}
-				if(!isInCluster){
-					std::set<int> temp;
-					temp.insert(i);
-					criticalPoints->push_back(temp);
-				}
-				break;
-			}
-		}
-		possibleCrossVertices.clear();
-	}
-	return criticalPoints;
-}
-
-//! Triangulate via Delauny
-bool Mesh::delaunyTriangulation(
-        vector<Vertex *> vertexList, //!< input: input as vertex-List
-        vector<Vertex *>* outputList //!< input: output as vertex-List
-        ){
-
-	//check if vertexList greater than 3
-	if(vertexList.size() >= 3){
-		struct triangulateio in, mid;
-
-		/* Define input points. */
-		in.numberofpoints = vertexList.size();
-		in.numberofpointattributes = 0;
-
-		in.pointlist = static_cast<REAL*>(malloc(in.numberofpoints * 2 * sizeof(REAL)));
-
-		for(unsigned int i=0; i<vertexList.size(); ++i) {
-			//set x&y-Values to Pointlist
-			//it can be possible that more than one vertices can have the same x,y-position
-			//in this case I add the z-position to the x and y-position
-			in.pointlist[2*i]	= vertexList[i]->getX() + vertexList[i]->getZ();
-			in.pointlist[2*i+1] = vertexList[i]->getY() + vertexList[i]->getZ();
-			//alternatively you could also project the positions to a plane...
-		 }
-
-		in.numberofsegments = vertexList.size();
-		in.numberofholes = 0;
-		in.numberofregions = 0;
-
-		in.pointmarkerlist = nullptr;
-		in.segmentmarkerlist = nullptr;
-
-		//initialize line segments
-		in.segmentlist = static_cast<int*>(malloc(in.numberofsegments*2*sizeof(int)));
-
-		for(unsigned int i=0; i<vertexList.size(); ++i) {
-			in.segmentlist[2*i] = i+1;
-			in.segmentlist[2*i+1] = i+2;
-		}
-
-		//last point is connected with first point
-		in.segmentlist[2*(vertexList.size()-1)] = vertexList.size();
-		in.segmentlist[2*vertexList.size() - 1] = 1;
-
-
-		/* Make necessary initializations so that Triangle can return a */
-		/*   triangulation in `mid' and a voronoi diagram in `vorout'.  */
-		mid.pointlist = nullptr;            /* Not needed if -N switch used. */
-		/* Not needed if -N switch used or number of point attributes is zero: */
-		mid.pointattributelist = nullptr;
-		mid.pointmarkerlist = nullptr; /* Not needed if -N or -B switch used. */
-		mid.trianglelist = nullptr;          /* Not needed if -E switch used. */
-		/* Not needed if -E switch used or number of triangle attributes is zero: */
-		mid.triangleattributelist = nullptr;
-
-		/* Needed only if segments are output (-p or -c) and -P not used: */
-		 mid.segmentlist = nullptr;
-		/* Needed only if segments are output (-p or -c) and -P and -B not used: */
-		mid.segmentmarkerlist = nullptr;
-
-		//use triangulate-function
-		triangulate("", &in, &mid, nullptr);
-
-
-		vector<Vector3D *> points2Triangulate;
-		// create any new points that are necessary
-		for (int i=0; i< mid.numberofpoints; i++) {
-			    points2Triangulate.push_back(new Vector3D(mid.pointlist[i*2],mid.pointlist[i*2+1],0,1));
-				mid.pointmarkerlist[i]= points2Triangulate.size()-1;
-		}
-
-		// create the vertices-pos in List
-		for (int i = 0; i < mid.numberoftriangles; i++) {
-			printf("Triangle %4d points:", i);
-			for (int j = 0; j < mid.numberofcorners; j++) {
-				printf("  %4d", mid.trianglelist[i * mid.numberofcorners + j]);
-				outputList->push_back(vertexList[mid.trianglelist[i * mid.numberofcorners + j]-1]);
-			}
-			printf("\n");
-		}
-
-		free(in.pointlist);
-		free(in.pointmarkerlist);
-		free(in.segmentlist);
-		free(in.segmentmarkerlist);
-		free(mid.pointlist);
-		free(mid.pointattributelist);
-		free(mid.pointmarkerlist);
-		free(mid.trianglelist);
-		free(mid.triangleattributelist);
-		free(mid.segmentlist);
-		free(mid.segmentmarkerlist);
-   }
-
-	return true;
-}
-
-//! Returns Interpolated Normal at given Position
-Vector3D Mesh::getInterpolatedNormal(
-        Face* face, //!< input: Face
-        Vector3D pos //!< input: Position within the Face
-        ){
-
-	//inspired by Barycentric Interpolation
-
-	//get Corner-Position from Face
-	Vector3D p0, p1, p2;
-	p0 = face->getVertA()->getPositionVector();
-	p1 = face->getVertB()->getPositionVector();
-	p2 = face->getVertC()->getPositionVector();
-
-	Vector3D ab = p1-p0;
-	Vector3D ac = p2-p0;
-	Vector3D ap = pos-p0;
-
-	//calc Area
-	float area = operator%(ab, ac).getLength3();
-
-	//calc Gamma
-	float gamma = operator%(ab, ap).getLength3() / area;
-
-	//calc Beta
-	float beta = operator%(ap, ac).getLength3() / area;
-
-	//calc Alpha
-	float alpha = 1.0f - beta - gamma;
-
-	//get Normal from Face
-	Vector3D normalp0, normalp1, normalp2;
-	normalp0 = face->getVertA()->getNormal();
-	normalp1 = face->getVertB()->getNormal();
-	normalp2 = face->getVertC()->getNormal();
-
-	//calc interpolated Normal and return it
-	return normalp0 * alpha + normalp1 * beta + normalp2 * gamma;
-}
-
-//! Ray-Triangle-Intersection-Function
-bool Mesh::rayTriangleIntersection(
-        Vector3D _origin, //!< input: Origin from Ray
-        Vector3D _direction, //!< input: Direction from Ray
-        Face* _triangle, //!< input: Triangle
-        Vector3D &intersectionPoint //!< output: intersection-point
-        ){
-
-	//see MathLab-Code: http://www.mathworks.com/matlabcentral/fileexchange/25058-raytriangle-intersection/content/rayTriangleIntersection/rayTriangleIntersection.m
-
-	//init intersectionPoint
-	intersectionPoint = Vector3D(0.0f,0.0f,0.0f);
-
-	//check if ray intersect triangle
-	Vector3D _endPos = _direction + _origin;
-	//In this case, we use this function only for testing if intersection is true.
-	//The problem here is that these functions returns an incorrect intersection.
-	if(_triangle->getIntersectionFacePlaneEdge(&_origin, &_endPos, &intersectionPoint)){
-		return true;
-	}else{
-		return false;
-	}
-
-	//save the Vertices form Triangle into three variables
-	Vector3D p0, p1, p2;
-	p0 = _triangle->getVertA()->getPositionVector();
-	p1 = _triangle->getVertB()->getPositionVector();
-	p2 = _triangle->getVertC()->getPositionVector();
-
-	double t = 0;
-	Vector3D u, v;
-
-	double epsilon = 0.00001;
-
-	Vector3D e1 = p1-p0;
-	Vector3D e2 = p2-p0;
-
-	Vector3D q = operator%(_direction, e2);
-
-	double a = dot3(e1, q); //determinant of the matrix M
-
-	if (a>-epsilon && a<epsilon){
-		    //the vector is parallel to the plane (the intersection is at infinity)
-		    return false;
-	}
-
-	double f = 1/a;
-	Vector3D s = _origin-p0;
-	u = f* dot3(s, q);
-
-	if (u.getX() < 0.0 && u.getY() < 0.0 && u.getZ() < 0.0){
-		    //the intersection is outside of the triangle
-		    return false;
-	}
-
-	Vector3D r = operator%(s, e1);
-	v = f* dot3(_direction, r);
-
-	Vector3D uv = u+v;
-
-	if ((v.getX()<0.0 && v.getY()<0.0 && v.getZ()<0.0) || (uv.getX()>1.0 && uv.getY()>1.0 && uv.getZ()>1.0)){
-		    //the intersection is outside of the triangle
-		    return false;
-	}
-
-   t = f * dot3(e2, r);
-   //calc intersection-point
-   intersectionPoint = _origin + t*_direction;
-   return true;
-}
-
-
-//! Wrapper for "tri_tri_intersect_with_isectline" function
-bool Mesh::triangleIntersectTriangle(
-        Face *triangleA, //!< input: Triangle A or Face A
-        Face *triangleB, //!< input: Triangle B or Face B
-        Vector3D &intersectionPointA, //!< output: return first intersection-Point
-        Vector3D &intersectionPointB  //!< output: return second intersection-Point
-        ){
-
-	//init both intersection-Point-Vector
-	intersectionPointA = Vector3D(0.0f,0.0f,0.0f);
-	intersectionPointB = Vector3D(0.0f,0.0f,0.0f);
-
-	//get both faces
-	Face *currentFace = triangleA;
-	Face *secondFace = triangleB;
-	//get corner-points from both edges (V0-2 -> currentFace & U0-2 -> secondFace)
-	float V0[3] = { static_cast<float>(currentFace->getVertA()->getPositionVector().getX()),
-	                static_cast<float>(currentFace->getVertA()->getPositionVector().getY()),
-	                static_cast<float>(currentFace->getVertA()->getPositionVector().getZ()) };
-
-	float V1[3] = { static_cast<float>(currentFace->getVertB()->getPositionVector().getX()),
-	                static_cast<float>(currentFace->getVertB()->getPositionVector().getY()),
-	                static_cast<float>(currentFace->getVertB()->getPositionVector().getZ()) };
-
-	float V2[3] = { static_cast<float>(currentFace->getVertC()->getPositionVector().getX()),
-	                static_cast<float>(currentFace->getVertC()->getPositionVector().getY()),
-	                static_cast<float>(currentFace->getVertC()->getPositionVector().getZ()) };
-
-	float U0[3] = { static_cast<float>(secondFace->getVertA()->getPositionVector().getX()),
-	                static_cast<float>(secondFace->getVertA()->getPositionVector().getY()),
-	                static_cast<float>(secondFace->getVertA()->getPositionVector().getZ()) };
-
-	float U1[3] = { static_cast<float>(secondFace->getVertB()->getPositionVector().getX()),
-	                static_cast<float>(secondFace->getVertB()->getPositionVector().getY()),
-	                static_cast<float>(secondFace->getVertB()->getPositionVector().getZ()) };
-
-	float U2[3] = { static_cast<float>(secondFace->getVertC()->getPositionVector().getX()),
-	                static_cast<float>(secondFace->getVertC()->getPositionVector().getY()),
-	                static_cast<float>(secondFace->getVertC()->getPositionVector().getZ()) };
-
-	//Variable if both triangles are coplanar (lie on a plane)
-	int coplanar;
-
-	//init intersection-Point-Arrays with default-values
-	float isectpt1[3] = {2.0f,2.0f,2.0f};
-	float isectpt2[3] = {2.0f,2.0f,2.0f};
-
-	//init intersection-Variable (if both triangles intersect or not)
-	int triangleIntersect = 0;
-	//calc intersection-points and returns if both intersect
-	//see triangleTriangleIntersection.h & triangleTriangleIntersection.cpp
-	triangleIntersect = tri_tri_intersect_with_isectline(V0, V1, V2,U0, U1, U2, &coplanar, isectpt1, isectpt2);
-
-	//if both triangle intesect
-	if(triangleIntersect == 1){
-		//convert both arrays to Vector3D
-		intersectionPointA = Vector3D(isectpt1[0], isectpt1[1], isectpt1[2]);
-		intersectionPointB = Vector3D(isectpt2[0], isectpt2[1], isectpt2[2]);
-		return true; //both triangle intersect
-	}
-	    return false; //no intersection
-}
-
-//! Repair Triangle-Intersection -> split off and re-triangulate via delauny-triangulation
-void Mesh::fixTriangleIntersection(){
-	showProgressStart(__FUNCTION__);
-
-	int timeStart = clock();
-	int progressCount = 0;
-
-	//facesToRemove-List
-	set <Face*> facesToRemove;
-
-	//detect intersection-Points and re-triangulate it...
-	for( Face* currentFace : mFacesSelected) {
-		//get currentFace
-		    //set Intersection-Point-Detection-Function ------------------
-		bool useTriangleTriangleIntersectionMode = true; //more reliable than the RayTriangleIntersectionMode
-		bool useRayTriangleIntersectionMode = false;
-		//------------------------------------------------------------
-
-		//store corner-vertices to triangulate later
-		vector<Vertex *> vertices2triangulate;
-		vertices2triangulate.push_back(currentFace->getVertA());
-		vertices2triangulate.push_back(currentFace->getVertB());
-		vertices2triangulate.push_back(currentFace->getVertC());
-
-		//get intersection points ------------------------------------------------------------------------------
-		for( Face* face2 : mFacesSelected) {
-			//check if currentFace is not the same face from the list
-			if(currentFace->getIndex() != face2->getIndex()){
-				Face *secondFace = face2;
-
-				//convert corner-points from both faces to arrays, each for one vertex
-				float V0[3] = { static_cast<float>(currentFace->getVertA()->getPositionVector().getX()),
-				                static_cast<float>(currentFace->getVertA()->getPositionVector().getY()),
-				                static_cast<float>(currentFace->getVertA()->getPositionVector().getZ()) };
-
-				float V1[3] = { static_cast<float>(currentFace->getVertB()->getPositionVector().getX()),
-				                static_cast<float>(currentFace->getVertB()->getPositionVector().getY()),
-				                static_cast<float>(currentFace->getVertB()->getPositionVector().getZ()) };
-
-				float V2[3] = { static_cast<float>(currentFace->getVertC()->getPositionVector().getX()),
-				                static_cast<float>(currentFace->getVertC()->getPositionVector().getY()),
-				                static_cast<float>(currentFace->getVertC()->getPositionVector().getZ()) };
-
-				float U0[3] = { static_cast<float>(secondFace->getVertA()->getPositionVector().getX()),
-				                static_cast<float>(secondFace->getVertA()->getPositionVector().getY()),
-				                static_cast<float>(secondFace->getVertA()->getPositionVector().getZ()) };
-
-				float U1[3] = { static_cast<float>(secondFace->getVertB()->getPositionVector().getX()),
-				                static_cast<float>(secondFace->getVertB()->getPositionVector().getY()),
-				                static_cast<float>(secondFace->getVertB()->getPositionVector().getZ()) };
-
-				float U2[3] = { static_cast<float>(secondFace->getVertC()->getPositionVector().getX()),
-				                static_cast<float>(secondFace->getVertC()->getPositionVector().getY()),
-				                static_cast<float>(secondFace->getVertC()->getPositionVector().getZ()) };
-
-				//Quick check, if triangle intersect with currentFace
-				if(NoDivTriTriIsect(V0, V1, V2,U0, U1, U2) == 1){
-					//use Triangle-Triangle-Intersection-Mode
-					if(useTriangleTriangleIntersectionMode){
-						//init both intersection-points
-						Vector3D intersectionPointA = Vector3D(0.0, 0.0, 0.0);
-						Vector3D intersectionPointB = Vector3D(0.0, 0.0, 0.0);
-
-						//calc intersection-points
-						if(triangleIntersectTriangle(currentFace, secondFace, intersectionPointA, intersectionPointB)){
-
-							//check if intersection-point is on one face
-							if(currentFace->pointontriangle(&intersectionPointA) || secondFace->pointontriangle(&intersectionPointA)){
-								//create new Vertex form intersection-point
-								Vertex* vert = new Vertex(Vector3D(intersectionPointA.getX(), intersectionPointA.getY(), intersectionPointA.getZ()));
-								//set Vertex-Index
-								vert->setIndex(getVertexNr());
-								//calc interpolated Normal at Pos
-								Vector3D interpolNormal = getInterpolatedNormal(currentFace, intersectionPointA);
-								vert->setNormal(interpolNormal.getX(), interpolNormal.getY(), interpolNormal.getZ());
-								//push the new Vertex to mVertices
-								this->mVertices.push_back(vert);
-								//push the new Vertex to triangulate-list
-								vertices2triangulate.push_back(vert);
-							    }
-
-							//check if intersection-point is on one face
-							if(currentFace->pointontriangle(&intersectionPointB) || secondFace->pointontriangle(&intersectionPointB)){
-								//create new Vertex form intersection-point
-								Vertex* vert = new Vertex(Vector3D(intersectionPointB.getX(), intersectionPointB.getY(), intersectionPointB.getZ()));
-								//set Vertex-Index
-								vert->setIndex(getVertexNr());
-								//calc interpolated Normal at Pos
-								Vector3D interpolNormal = getInterpolatedNormal(currentFace, intersectionPointB);
-								vert->setNormal(interpolNormal.getX(), interpolNormal.getY(), interpolNormal.getZ());
-								//push the new Vertex to mVertices
-								this->mVertices.push_back(vert);
-								//push the new Vertex to triangulate-list
-								vertices2triangulate.push_back(vert);
-							}
-						}
-					}
-				}
-
-				if(useRayTriangleIntersectionMode){
-					// see Möller and Trumbore (1997) http://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
-					// MathLab-Code: http://www.mathworks.com/matlabcentral/fileexchange/25058-raytriangle-intersection/content/rayTriangleIntersection/rayTriangleIntersection.m
-
-					//get Ray from all edges
-					//0-2 -> Edges from (*faceIt2)
-					//3-5 -> Edges from currentFace
-					for(int i = 0; i<6; i++){
-						Vector3D rayVecA, rayVecB;
-						if(i==0){
-							rayVecA = face2->getVertA()->getPositionVector(); //Star-Point from Ray
-							rayVecB = face2->getVertB()->getPositionVector(); //End-Point from Ray
-						}else if(i==1){
-							rayVecA = face2->getVertB()->getPositionVector();
-							rayVecB = face2->getVertC()->getPositionVector();
-						}else if(i==2){
-							rayVecA = face2->getVertA()->getPositionVector();
-							rayVecB = face2->getVertC()->getPositionVector();
-						}else if(i==3){
-							rayVecA = currentFace->getVertA()->getPositionVector();
-							rayVecB = currentFace->getVertB()->getPositionVector();
-						}else if(i==4){
-							rayVecA = currentFace->getVertB()->getPositionVector();
-							rayVecB = currentFace->getVertC()->getPositionVector();
-						}else if(i==5){
-							rayVecA = currentFace->getVertA()->getPositionVector();
-							rayVecB = currentFace->getVertC()->getPositionVector();
-						}
-
-						Vector3D o = rayVecA; //Origin-Point from Ray
-						Vector3D d = rayVecB - o; //Direction-Vector from Ray
-
-						//intersection Face
-						//(0-2) select currentFace and intersect with Rays from (*faceIt2)
-						//(3-5) select (*faceIt2) and intersect with Rays from currentFace
-						Face* f;
-						if(i>= 0 && i<=2){
-							f = currentFace;
-						}else{
-							f = face2;
-						}
-
-						//init intersection-Pos
-						Vector3D intersection;
-
-						//check if ray from currentFace intersect with (*faceIt2) or
-						//(*faceIt2)-ray intersect with currentFace
-						//and retun intersection-pos
-						if(rayTriangleIntersection(o, d, f, intersection)){
-							//check if intersection-point is on one face
-							if(currentFace->pointontriangle(&intersection)){
-								//create new Vertex form intersection-point
-								Vertex* vert = new Vertex(Vector3D(intersection.getX(), intersection.getY(), intersection.getZ(), 1));
-								//set Vertex-Index
-								vert->setIndex(getVertexNr());
-								//calc interpolated Normal at Pos
-								Vector3D interpolNormal = getInterpolatedNormal(currentFace, intersection);
-								vert->setNormal(interpolNormal.getX(), interpolNormal.getY(), interpolNormal.getZ());
-								//push the new Vertex to mVertices
-								this->mVertices.push_back(vert);
-								//push the new Vertex to triangulate-list
-								vertices2triangulate.push_back(vert);
-							}
-						}
-					}
-				}
-			}
-		}
-
-
-		//Delauny Triangulation ------------------------------------------------
-		//init output-triangle-variable
-		vector<Vertex*> output_triangulatedVertices;
-		//start re-triangulation
-		delaunyTriangulation(vertices2triangulate, &output_triangulatedVertices);
-		//----------------------------------------------------------------------
-
-		//if output-points greater than 3
-		if(output_triangulatedVertices.size() > 3){
-			for(unsigned int i=0; i< output_triangulatedVertices.size(); i++){
-
-				//generate VerticesOfFaces from output-points
-				Vertex* vertex = this->mVertices[output_triangulatedVertices[i]->getIndex()];
-				VertexOfFace* Vert1 = new VertexOfFace(vertex->getPositionVector());
-				Vert1->setNormal(vertex->getNormal().getX(), vertex->getNormal().getY(), vertex->getNormal().getZ());
-				Vert1->setIndex(vertex->getIndex());
-
-				i++;
-				vertex = this->mVertices[output_triangulatedVertices[i]->getIndex()];
-				VertexOfFace* Vert2 = new VertexOfFace(vertex->getPositionVector());
-				Vert2->setNormal(vertex->getNormal().getX(), vertex->getNormal().getY(), vertex->getNormal().getZ());
-				Vert2->setIndex(vertex->getIndex());
-
-				i++;
-				vertex = this->mVertices[output_triangulatedVertices[i]->getIndex()];
-				VertexOfFace* Vert3 = new VertexOfFace(vertex->getPositionVector());
-				Vert3->setNormal(vertex->getNormal().getX(), vertex->getNormal().getY(), vertex->getNormal().getZ());
-				Vert3->setIndex(vertex->getIndex());
-
-				//generate 2 new faces
-				Face* FaceOptA = new Face(getFaceNr(),Vert1, Vert2, Vert3);
-				Face* FaceOptB = new Face(getFaceNr(),Vert3, Vert2, Vert1);
-
-				//Calc Normal-difference from the two faces to currentFace->normal
-				Vector3D DiffFaceOptA = FaceOptA->getNormal() - currentFace->getNormal();
-				Vector3D DiffFaceOptB = FaceOptB->getNormal() - currentFace->getNormal();
-
-				//get vertices and save the positions-vectors to variable
-				Vector3D p1 = Vert1->getPositionVector();
-				Vector3D p2 = Vert2->getPositionVector();
-				Vector3D p3 = Vert3->getPositionVector();
-
-				//check if the new points from re-triangulation are on triangle
-				bool p1IsOnTriangle = false;
-				bool p2IsOnTriangle = false;
-				bool p3IsOnTriangle = false;
-				p1IsOnTriangle = currentFace->pointontriangle(&p1);
-				p2IsOnTriangle = currentFace->pointontriangle(&p2);
-				p3IsOnTriangle = currentFace->pointontriangle(&p3);
-
-				//calc the longest distance from the corner (original-triangle) to the center-point and save it
-				double longestDistanceCurrentFaceEdgePoints = 0;
-
-				double distance =  sqrt( pow(currentFace->getVertA()->getPositionVector().getX() - currentFace->getCenterOfGravity().getX(), 2) +
-				                         pow(currentFace->getVertA()->getPositionVector().getY() - currentFace->getCenterOfGravity().getY(), 2) +
-				                         pow(currentFace->getVertA()->getPositionVector().getZ() - currentFace->getCenterOfGravity().getZ(), 2));
-
-				if( distance > longestDistanceCurrentFaceEdgePoints) longestDistanceCurrentFaceEdgePoints = distance;
-
-				distance =  sqrt( pow(currentFace->getVertB()->getPositionVector().getX() - currentFace->getCenterOfGravity().getX(), 2) +
-				                         pow(currentFace->getVertB()->getPositionVector().getY() - currentFace->getCenterOfGravity().getY(), 2) +
-				                         pow(currentFace->getVertB()->getPositionVector().getZ() - currentFace->getCenterOfGravity().getZ(), 2));
-
-				if( distance > longestDistanceCurrentFaceEdgePoints) longestDistanceCurrentFaceEdgePoints = distance;
-
-				distance =  sqrt( pow(currentFace->getVertC()->getPositionVector().getX() - currentFace->getCenterOfGravity().getX(), 2) +
-				                         pow(currentFace->getVertC()->getPositionVector().getY() - currentFace->getCenterOfGravity().getY(), 2) +
-				                         pow(currentFace->getVertC()->getPositionVector().getZ() - currentFace->getCenterOfGravity().getZ(), 2));
-
-				if( distance > longestDistanceCurrentFaceEdgePoints) longestDistanceCurrentFaceEdgePoints = distance;
-
-				//calc the distance from new points to center-point
-				double distanceP1 =  sqrt(  pow(p1.getX() - currentFace->getCenterOfGravity().getX(), 2) +
-				                            pow(p1.getY() - currentFace->getCenterOfGravity().getY(), 2) +
-				                            pow(p1.getZ() - currentFace->getCenterOfGravity().getZ(), 2));
-				double distanceP2 =  sqrt(  pow(p2.getX() - currentFace->getCenterOfGravity().getX(), 2) +
-				                            pow(p2.getY() - currentFace->getCenterOfGravity().getY(), 2) +
-				                            pow(p2.getZ() - currentFace->getCenterOfGravity().getZ(), 2));
-				double distanceP3 =  sqrt(  pow(p3.getX() - currentFace->getCenterOfGravity().getX(), 2) +
-				                            pow(p3.getY() - currentFace->getCenterOfGravity().getY(), 2) +
-				                            pow(p3.getZ() - currentFace->getCenterOfGravity().getZ(), 2));
-
-				longestDistanceCurrentFaceEdgePoints += 0.1;
-
-				//check if point is on triangle and
-				//the distance is not longer than the longest-distance form the triangle
-				if(!p1IsOnTriangle && (distanceP1 > longestDistanceCurrentFaceEdgePoints)){
-					break;
-				}else if(!p2IsOnTriangle && (distanceP2 > longestDistanceCurrentFaceEdgePoints)){
-					break;
-				}else if(!p3IsOnTriangle && (distanceP3 > longestDistanceCurrentFaceEdgePoints)){
-					break;
-				}else{
-					//if both are true, than point is inside the triangle
-					facesToRemove.insert(currentFace);
-					//select which face has the same orientation like the currentFace and than use it
-					if(DiffFaceOptA.getLength3() > DiffFaceOptB.getLength3()){
-						this->mFaces.push_back(FaceOptB);
-					}else{
-						this->mFaces.push_back(FaceOptA);
-					}
-				}
-			}
-		}
-
-		cout << "[Mesh::" << __FUNCTION__ << "] ["<< static_cast<int>((static_cast<float>(progressCount) / mFacesSelected.size())*100) << "%]"  << endl;
-		showProgress(static_cast<float>(progressCount) / mFacesSelected.size(), __FUNCTION__);
-		progressCount++;
-	 }
-
-	mFacesSelected.clear();
-	selectedMFacesChanged();
-
-	//Remove Faces
-	if(facesToRemove.size() > 0){
-		this->removeFaces(&facesToRemove);
-		facesToRemove.clear();
-	}
-
-	cout << "[Mesh::" << __FUNCTION__ << "] time: " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
-	showProgressStop(__FUNCTION__);
-}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Remove double Triangles
-void Mesh::removeDoubleTriangles(){
-	showProgressStart(__FUNCTION__);
-
-	int timeStart = clock();
-
-	set <Face*> facesToRemove;
-
-	// Remove double triangles with the same position
-	for( uint64_t i=0;i<getFaceNr();i++ ) {
-		Face *currentFace = this->mFaces[i];
-
-		for( uint64_t j=i;j<getFaceNr();j++ ) {
-			//if it the same triangle then skip...
-			if(i == j){continue;}
-
-			//get second face
-			Face *secondFace = this->mFaces[j];
-
-			//calc differenz between the positions
-			double diffX = fabs(currentFace->getX() - secondFace->getX());
-			double diffY = fabs(currentFace->getY() - secondFace->getY());
-			double diffZ = fabs(currentFace->getZ() - secondFace->getZ());
-
-			//check if distance between the two faces ist lower than 0.001
-			if(diffX < 0.001 && diffY < 0.001 && diffZ < 0.001){
-				//then check, which face can be removed
-
-				//check if it has the same normals, then remove the second face
-				if(currentFace->getNormal() == secondFace->getNormal()){
-					facesToRemove.insert(secondFace);
-				}else{
-					//get two lists of Neighbour Faces
-					set <Face*> currentFaceNeighbourFaces;
-					set <Face*> secondFaceNeighbourFaces;
-					currentFace->getNeighbourFaces(&currentFaceNeighbourFaces);
-					secondFace->getNeighbourFaces(&secondFaceNeighbourFaces);
-
-
-					//check which face/triangle is more relevant
-					int normalCount_currentFace = 0;
-					int normalCount_secondFace = 0;
-
-					for(Face* currentFaceNeighbourFace : currentFaceNeighbourFaces) {
-						//check how much NeighbourFaces has the same orientation like the triangle
-						Vector3D DiffFaceOptA = currentFaceNeighbourFace->getNormal() - currentFace->getNormal();
-						Vector3D DiffFaceOptB = currentFaceNeighbourFace->getNormal() - secondFace->getNormal();
-
-						if(DiffFaceOptA.getLength3() > DiffFaceOptB.getLength3()){
-							//different orientation
-							normalCount_secondFace++;
-						}else{
-							//same orientation
-							normalCount_currentFace++;
-						}
-					}
-
-					for(Face* secondFaceNeighbourFace : secondFaceNeighbourFaces) {
-						//check how much NeighbourFaces has the same orientation like the triangle
-						Vector3D DiffFaceOptA = secondFaceNeighbourFace->getNormal() - currentFace->getNormal();
-						Vector3D DiffFaceOptB = secondFaceNeighbourFace->getNormal() - secondFace->getNormal();
-
-						if(DiffFaceOptA.getLength3() > DiffFaceOptB.getLength3()){
-							//same orientation
-							normalCount_secondFace++;
-						}else{
-							//different orientation
-							normalCount_currentFace++;
-						}
-					}
-
-					//check which face is more relevant or which orientation is required
-					if(normalCount_currentFace >= normalCount_secondFace){
-						//currentFace is more relevant, because the most neighbourFaces has the same orientation
-						facesToRemove.insert(secondFace);
-					}else{
-						//secondFace is more relevant, because the most neighbourFaces has the same orientation
-						facesToRemove.insert(currentFace);
-					}
-				}
-			}
-		}
-
-		cout << "[Mesh::" << __FUNCTION__ << "] ["<< static_cast<int>((static_cast<float>(i)/getFaceNr())*100) << "%]"  << endl;
-		showProgress(static_cast<float>(i)/getFaceNr(), __FUNCTION__);
-	}
-
-	//remove the doublicate triangle, which can be removed
-	if(facesToRemove.size() > 0){
-		this->removeFaces(&facesToRemove);
-		facesToRemove.clear();
-	}
-
-	cout << "[Mesh::" << __FUNCTION__ << "] time: " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
-	showProgressStop(__FUNCTION__);
-}
-
-//! Flip triangle orientation
-void Mesh::flipTriangle( int index //!< input: Face-Index
-    ){
-	//get Face from index
-	Face *currentFace = this->mFaces[index];
-	//get Corner-Vertices from Face
-	VertexOfFace* Vert1 = static_cast<VertexOfFace*>(this->mVertices[currentFace->getVertA()->getIndex()]);
-	VertexOfFace* Vert2 = static_cast<VertexOfFace*>(this->mVertices[currentFace->getVertB()->getIndex()]);
-	VertexOfFace* Vert3 = static_cast<VertexOfFace*>(this->mVertices[currentFace->getVertC()->getIndex()]);
-
-	//get Normal from face
-	Vector3D currFaceNormal = currentFace->getNormal();
-
-	//generate two faces with both orientations
-	Face* FaceOptA = new Face(currentFace->getIndex(),Vert1, Vert2, Vert3);
-	Face* FaceOptB = new Face(currentFace->getIndex(),Vert3, Vert2, Vert1);
-
-	if(FaceOptA->getNormal() == currFaceNormal){
-		//if FaceOptA has the same orientation like the currentFace -> then use FaceOptB (with a different orientation)
-		auto uvs = currentFace->getUVs();
-
-		//swap uvs of Vert1 and Vert2
-		std::swap(uvs[0],uvs[4]);
-		std::swap(uvs[1], uvs[5]);
-		FaceOptB->setUVs(uvs);
-
-		this->mFaces.insert(this->mFaces.begin()+index+1, FaceOptB);
-		delete (FaceOptA);
-	}else if(FaceOptB->getNormal() == currFaceNormal){
-		//if FaceOptB has the same orientation like the currentFace -> then use FaceOptA (with a different orientation)
-
-		FaceOptA->setUVs( currentFace->getUVs() );
-		this->mFaces.insert(this->mFaces.begin()+index+1, FaceOptA);
-		delete (FaceOptB);
-	}
-
-	//remove currentFace
-	set <Face*> facesToRemove;
-	facesToRemove.insert(currentFace);
-	if(facesToRemove.size() > 0){
-		this->removeFaces(&facesToRemove);
-		facesToRemove.clear();
-	}
-}
-
-//! Recalculate the triangle orientation and flip it if necessary
-void Mesh::recalculateTriangleOrientation(){
-	showProgressStart(__FUNCTION__);
-
-	int timeStart = clock();
-
-	//Reset Face and Vertex Normals
-	this->resetVertexNormals();
-	this->resetFaceNormals();
-
-	//Save the Number of Faces
-	int currentFaceCount = getFaceNr();
-	for(int faceNum = 0; faceNum < currentFaceCount; faceNum++) {
-		bool pleaseFlipTriangle = false;
-		Face *currentFace = this->mFaces[faceNum];
-		currentFace->reconnectToFaces(); //Reconnect current face, if it required
-
-		// Check Orientation
-		// see http://gamedev.stackexchange.com/questions/26974/repairing-back-facing-triangles-without-user-input/26979#26979
-		// see http://stackoverflow.com/questions/17036970/how-to-correct-winding-of-triangles-to-counter-clockwise-direction-of-a-3d-mesh
-		if(currentFace->getNeighbourFaceCount() >= 1){
-			int flipCount = 0;
-			int neighbourCount = 0;
-
-			//get Vertices from triangle
-			int indexVertexA = currentFace->getVertA()->getIndex();
-			int indexVertexB = currentFace->getVertB()->getIndex();
-			int indexVertexC = currentFace->getVertC()->getIndex();
-
-			//get Neighbour-Triangle from Edge AB
-			Face *neighbourAB = currentFace->getNeighbourFace(currentFace->EDGE_AB);
-			if(neighbourAB != nullptr){
-				neighbourCount++;
-				//get Vertices from neighbourAB
-				int P1 = neighbourAB->getVertA()->getIndex();
-				int P2 = neighbourAB->getVertB()->getIndex();
-				int P3 = neighbourAB->getVertC()->getIndex();
-
-				//Check if the neighbor has on edge AB the same points
-				if( (indexVertexA == P1 && indexVertexB == P2) ||
-				    (indexVertexA == P2 && indexVertexB == P3) ||
-				    (indexVertexA == P3 && indexVertexB == P1)){
-					    //If it true then neighbor has a different orientation like the triangle it true then neighbor has a different orientation like the triangle
-					    flipCount++;
-				}
-			}
-
-			//get Neighbour-Triangle from Edge BC
-			Face *neighbourBC = currentFace->getNeighbourFace(currentFace->EDGE_BC);
-			if(neighbourBC != nullptr){
-				neighbourCount++;
-				//get Vertices from neighbourBC
-				int P1 = neighbourBC->getVertA()->getIndex();
-				int P2 = neighbourBC->getVertB()->getIndex();
-				int P3 = neighbourBC->getVertC()->getIndex();
-
-				//Check if the neighbor has on edge BC the same points
-				if( (indexVertexB == P1 && indexVertexC == P2) ||
-				    (indexVertexB == P2 && indexVertexC == P3) ||
-				    (indexVertexB == P3 && indexVertexC == P1)){
-					    //If it true then neighbor has a different orientation like the triangle it true then neighbor has a different orientation like the triangle
-					    flipCount++;
-				}
-			}
-
-			//get Neighbour-Triangle from Edge CA
-			Face *neighbourCA = currentFace->getNeighbourFace(currentFace->EDGE_CA);
-			if(neighbourCA != nullptr){
-				neighbourCount++;
-				//get Vertices from neighbourCA
-				int P1 = neighbourCA->getVertA()->getIndex();
-				int P2 = neighbourCA->getVertB()->getIndex();
-				int P3 = neighbourCA->getVertC()->getIndex();
-
-				//Check if the neighbor has on edge CA the same points
-				if( (indexVertexC == P1 && indexVertexA == P2) ||
-				    (indexVertexC == P2 && indexVertexA == P3) ||
-				    (indexVertexC == P3 && indexVertexA == P1)){
-					    //If it true then neighbor has a different orientation like the triangle it true then neighbor has a different orientation like the triangle
-					    flipCount++;
-				}
-			}
-
-			//Has more than half neighbors a different orientation, then flip triangle
-			if(flipCount >= neighbourCount*0.5){
-				pleaseFlipTriangle = true;
-			}
-		}
-
-		if(pleaseFlipTriangle){
-			//Flip triangle by given faceId
-			this->flipTriangle(faceNum);
-			cout << "The Triangle [" << faceNum << "] was flipped." << endl;
-		}
-
-		cout << "[Mesh::" << __FUNCTION__ << "] ["<< static_cast<int>((static_cast<float>(faceNum)/currentFaceCount)*100) << "%]"  << endl;
-		showProgress(static_cast<float>(faceNum)/currentFaceCount, __FUNCTION__);
-	}
-	cout << "[Mesh::" << __FUNCTION__ << "] time: " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
-	showProgressStop(__FUNCTION__);
-	cout << "LÄUFT1" << endl;
-}
-
+//! \todo Move the following sets and numbers to appropriate places. It seems that at least some don't need to be global.
 set <Face*> originalFaces;
 set <Vertex*> originalVertices;
 vector <PolyLine*> originalBorderLine;
@@ -14350,501 +14115,6 @@ double offsetDistance;
 int numFaces;
 int numVertices;
 
-//! Helper-Function for applyNormalShift
-//! - Remove Original Object
-//! - Connect original-mesh-border with offset-mesh-border via mesh
-bool Mesh::applyNormalShiftHelper( bool initCall, //!< input: set for the first call to true
-                                   bool removeOriginalObject, //!< input: set true, if you want to remove the original Object
-                                   bool connectBorders //!< input: set true, if you want to connect original-mesh-border with offset-mesh-border
-) {
-	showProgressStart(__FUNCTION__);
-
-	//init-call
-	if(initCall){
-		originalFaces.clear();
-		originalVertices.clear();
-		//Save all Vertices and Faces form "original" Mesh
-		originalFaces.insert(this->mFaces.begin(), mFaces.end());
-		originalVertices.insert(this->mVertices.begin(), mVertices.end());
-
-		//generate Border-Line from "original" Mesh and save it
-		this->convertBordersToPolylines();
-		originalBorderLine.clear();
-		originalBorderLine.swap(mPolyLines);
-		this->removePolylinesAll(); // Remove all Polylines
-	}else{
-
-		//remove the "original"-Part from the Mesh
-		if(removeOriginalObject){
-			//remove "original"-Faces
-			if(originalFaces.size() > 0){
-				this->removeFaces(&originalFaces);
-				originalFaces.clear();
-			}
-			//remove "original"-Vertices
-			if(originalVertices.size() > 0){
-				this->removeVertices(&originalVertices);
-				originalVertices.clear();
-			}
-		}
-
-		// Connect original-mesh-border with offset-mesh-border via mesh
-		if(!removeOriginalObject && connectBorders){
-			vector<PolyLine*>::iterator itPoly;
-			Vertex* vertexRef;
-			for( itPoly=originalBorderLine.begin(); itPoly!=originalBorderLine.end(); itPoly++ ) {
-				int VertCount   = ((*itPoly)->length())-1;
-
-				for( int j=0; j<VertCount; j++ ) {
-
-					//get VertexReference from Polyline
-					vertexRef = (*itPoly)->getVertexRef( j );
-
-					int a = 0;
-					int b = 0;
-
-					if(offsetDistance >= 0){
-						//if offsetDistance positive
-						a = vertexRef->getIndex();
-					}
-					else{
-						//if offsetDistance negative
-						b = vertexRef->getIndex();
-					}
-
-					if(j+1 >= numVertices){
-						//if Polyline-Vertex-List is to end it, then start at 0
-						vertexRef = (*itPoly)->getVertexRef( 0 );
-					}else{
-						vertexRef = (*itPoly)->getVertexRef( j+1 );
-					}
-
-					if(offsetDistance >= 0){
-						//if offsetDistance positive
-						b = vertexRef->getIndex();
-					}
-					else{
-						//if offsetDistance negative
-						a = vertexRef->getIndex();
-					}
-
-					//generate "connection"-Triangles
-					mFaces.push_back(new Face(getFaceNr(),static_cast<VertexOfFace*>(mVertices[b]),
-					                                        static_cast<VertexOfFace*>(mVertices[a]),
-					                                        static_cast<VertexOfFace*>(mVertices[b+numVertices])));
-
-					mFaces.push_back(new Face(getFaceNr(), static_cast<VertexOfFace*>(mVertices[a]),
-					                                        static_cast<VertexOfFace*>(mVertices[a+numVertices]),
-					                                        static_cast<VertexOfFace*>(mVertices[b+numVertices])));
-
-					showProgress(j/VertCount, __FUNCTION__);
-				}
-			}
-		}
-	}
-
-	showProgressStop(__FUNCTION__);
-	return true;
-}
-
-
-//! Calculate a offset Surface(Shelling) without any selfintersection
-bool Mesh::applyNormalShift(
-        double offset //!< input: Offset-Distance
-        ){
-
-	showProgressStart(__FUNCTION__);
-
-	//Variable for Time measuring
-	int timeStart = clock();
-
-	offsetDistance = offset;
-	//get Number of Faces and Number of Vertices
-	numFaces = getFaceNr();
-	numVertices = getVertexNr();
-
-	double currentProgressValue = 0;
-	double maxProgressValue = numVertices+numFaces;
-
-	//local Variable for the modified normals
-	std::vector<Vector3D> normal(numVertices);
-	for(size_t vertexCount = 0; vertexCount < numVertices; vertexCount++) {
-		normal.at(vertexCount) = mVertices[vertexCount]->getNormal();
-	}
-
-	clock_t current1,current2;
-	current1 = clock();
-
-    std::vector<std::set<Vertex*>> clusterSetVector;
-
-//#define _SHELLING_DETECTION_
-#ifdef _SHELLING_DETECTION_
-
-#ifdef THREADS
-	//Normal based Method
-
-	pthread_t* thread = new pthread_t[NUM_THREADS];
-	shellingDetectionParam** param;
-	param = new shellingDetectionParam*[NUM_THREADS];
-	//Start threads
-	for(int i=0;i<NUM_THREADS;i++)
-	{
-		//Giving parameter for the threads
-		param[i] = new shellingDetectionParam();
-		param[i]->mFromIndex = i*(numVertices/NUM_THREADS);
-		param[i]->mToIndex = (i+1) * (numVertices/NUM_THREADS);
-		param[i]->mOffset = offset;
-		param[i]->mMeshObj = this;
-		pthread_create(&thread[i], nullptr, &detectCriticalPlacesForShelling, reinterpret_cast<void*>(param[i]));
-		std::cout << "[Starting Thread Nr." << i << "]" << std::endl;
-	}
-
-	//finishing Threads
-	std::vector<std::set<int>> criticalIndizes;
-	for(int i=0;i<NUM_THREADS;i++){
-		std::vector<std::set<int> >* buffer;
-		void* result = new std::vector<int>;
-		int retNum = pthread_join(thread[i],&result);
-		if(retNum != 0){
-			printf("join failed\n");
-			return false;
-		}
-		else{
-			std::cout << "[Thread Nr. "<< i << " finished]" << std::endl;
-		}
-		//Returning the critical Vertices
-		buffer = static_cast<std::vector<std::set<int> >*>(result);
-		//and merg with the other found critical Vertices
-		criticalIndizes.insert(criticalIndizes.end(),buffer->begin(),buffer->end());
-		delete param[i];
-	}
-	delete[] thread;
-	delete[] param;
-
-//	std::vector<std::set<Vertex*>> clusterSetVector.resize(criticalIndizes.size());
-//	int numLoops = 0;
-//	for(std::vector<std::set<int> >::iterator i=criticalIndizes.begin(); i < criticalIndizes.end();i++){
-//		clusterSetVector.push_back(std::set<Vertex*>());
-//		for(std::set<int>::iterator j = (*i).begin();j!=(*i).end();j++){
-//			clusterSetVector[numLoops].insert(this->getVertexPos(*j));
-//		}
-//		numLoops++;
-//	}
-
-	//Clustering the Vertices
-    std::vector<std::set<Vertex*>> clusterSetVector(criticalIndizes.size());
-	int numLoops = 0;
-	for(const std::set<int>& criticalIndex : criticalIndizes){
-        clusterSetVector.at(numLoops).clear();
-		for(const int vertexPos : criticalIndex){
-            clusterSetVector[numLoops].insert(getVertexPos(vertexPos));
-		}
-		numLoops++;
-	}
-
-	showProgress(currentProgressValue+=0.5/maxProgressValue, __FUNCTION__);
-#else // THREADS
-	cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Not implemented for single threads!" << endl;
-	return false;
-#endif // THREADS
-
-#else // _SHELLING_DETECTION_
-	//Angle based Method
-
-	for(int i=0;i<numVertices;i++){
-		normal.push_back(this->mVertices[i]->getNormal());
-		std::set<Vertex*> neighbourVert;
-		Vector3D vertexPosShelling = this->mVertices[i]->getPositionVector()+offsetDistance*this->mVertices[i]->getNormal();
-		this->mVertices[i]->getNeighbourVertices(&neighbourVert);
-		for(std::set<Vertex*>::iterator j = neighbourVert.begin();j!=neighbourVert.end();j++){
-			for(std::set<Vertex*>::iterator k = neighbourVert.begin();k!=neighbourVert.end();k++){
-				if(j==k){
-					continue;
-				}
-				Vector3D buffer1 = (*j)->getPositionVector()+offsetDistance * (*j)->getNormal();
-				buffer1 = buffer1 - vertexPosShelling;
-				Vector3D buffer2 = (*k)->getPositionVector()+offsetDistance * (*k)->getNormal();
-				buffer2 = buffer2 - vertexPosShelling;
-				Vector3D buffer3 = (*j)->getPositionVector() - this->mVertices[i]->getPositionVector();
-				Vector3D buffer4 = (*k)->getPositionVector() - this->mVertices[i]->getPositionVector();
-
-				//Check change of angle > threshold
-				if(abs(1-angle(buffer3,buffer4)/angle(buffer1,buffer2))>1.0){
-					//merge them together to a cluster
-					bool isInCluster = false;
-                    for(std::set<Vertex*>& clusterSet : clusterSetVector){
-                        for(std::set<Vertex*>::iterator clusterVertex = clusterSet.begin();clusterVertex!= clusterSet.end();clusterVertex++){
-							std::set<Vertex*> adjacentVertices;
-							(*clusterVertex)->getNeighbourVertices(&adjacentVertices);
-							std::set<Vertex*>::iterator placeOfVertice = adjacentVertices.find(this->mVertices[i]);
-							if(placeOfVertice != adjacentVertices.end()){
-								isInCluster = true;
-                                clusterSet.insert(this->mVertices[i]);
-								break;
-							}
-						}
-						if(isInCluster){
-							break;
-						}
-					}
-					if(!isInCluster){
-						std::set<Vertex*> buffer;
-						buffer.insert(this->mVertices[i]);
-                        clusterSetVector.push_back(buffer);
-					}
-					break;
-				}
-			}
-		}
-        showProgress(currentProgressValue++/maxProgressValue, __PRETTY_FUNCTION__);
-	}
-#endif // _SHELLING_DETECTION_
-	current2 = clock();
-	int time = (current2-current1)/CLOCKS_PER_SEC;
-	std::cout << "[Time for Detection: "<< time <<"]"<<std::endl;
-
-	//merge neighbour cluster together
-	//go through cluster1
-    for(std::vector<std::set<Vertex*> >::iterator i = clusterSetVector.begin();i<clusterSetVector.end();i++){
-		//go through vertices of cluster 1
-		for(std::set<Vertex*>::iterator clusterVertex = (*i).begin();clusterVertex!=(*i).end();clusterVertex++){
-			//go thourgh cluster2
-            for(std::vector<std::set<Vertex*> >::iterator j = i;j!=clusterSetVector.end();j++){
-				if(i==j){
-					continue;
-				}
-				bool isConnected = false;
-				std::set<Vertex*> adjacentVertices;
-				(*clusterVertex)->getNeighbourVertices(&adjacentVertices);
-				for(Vertex* adjacentVertex : adjacentVertices){
-					std::set<Vertex*>::iterator foundVertex = (*j).find(adjacentVertex);
-					if(foundVertex != (*j).end()){
-						isConnected = true;
-						break;
-					}
-				}
-				//if the loop finds a neighbour cluster then it merge the two Clusters
-                if(isConnected){
-					(*i).insert((*j).begin(),(*j).end());
-                    j=clusterSetVector.erase(j);
-					j--;
-				}
-			}
-		}
-	}
-
-	current1 = clock();
-	time = (current1-current2)/CLOCKS_PER_SEC;
-	std::cout << "[Time for Clustering: "<< time <<"]"<<std::endl;
-
-	//identify the points around the cluster to measure the size of the cluster
-	std::vector<std::set<Vertex*> > borderPoints;
-	std::vector<std::vector<Vector3D> > newBorderPoints;
-	//go through all clusters
-    for(std::set<Vertex*>& currentClusterSet : clusterSetVector){
-		std::set<Vertex*>clusterBorderPoints;
-		std::vector<Vector3D>clusterNewBorderPoints;
-		//go through all Vertices in the cluster
-		for(std::set<Vertex*>::iterator clusterVertex = currentClusterSet.begin();clusterVertex!= currentClusterSet.end();clusterVertex++){
-			std::set<Vertex*> adjacentVertices;
-			(*clusterVertex)->getNeighbourVertices(&adjacentVertices);
-			//go through all neighbours of this Vertice
-			for( Vertex* adjacentVertex : adjacentVertices){
-				std::set<Vertex*>::iterator foundVerticeInCluster = currentClusterSet.find(adjacentVertex);
-				//if the neighbour Vertice isn't in the Cluster then its a border Point
-				if(foundVerticeInCluster == currentClusterSet.end()){
-					clusterBorderPoints.insert(adjacentVertex);
-					Vector3D vertPos = adjacentVertex->getPositionVector();
-					Vector3D vertNormal = adjacentVertex->getNormal();
-					//border Point translated into the offset Surface
-					clusterNewBorderPoints.push_back(vertPos+vertNormal*offsetDistance);
-				}
-			}
-		}
-		borderPoints.push_back(clusterBorderPoints);
-		newBorderPoints.push_back(clusterNewBorderPoints);
-		clusterBorderPoints.clear();
-	}
-//Calculate the normals
-	for(unsigned int i=0;i<borderPoints.size();i++){
-        Vector3D sizeCluster{0.0};
-        Vector3D sizeNewCluster{0.0};
-		//calculate the size of the cluster
-		for(std::set<Vertex*>::iterator pointOfBorder = borderPoints[i].begin();pointOfBorder != borderPoints[i].end();pointOfBorder++){
-			for(std::set<Vertex*>::iterator pointOfBorder2 = borderPoints[i].begin();pointOfBorder2 != borderPoints[i].end();pointOfBorder2++){
-				if(pointOfBorder == pointOfBorder2){
-					continue;
-				}
-				//Calculate Size of the cluster
-				Vector3D pos1 = (*pointOfBorder)->getPositionVector();
-				Vector3D pos2 = (*pointOfBorder2)->getPositionVector();
-				Vector3D difference = pos1-pos2;
-				//determinate the larges distance of two cluster points
-				if(abs(difference.getX())>sizeCluster.getX()){
-					sizeCluster.setX(abs(difference.getX()));
-				}
-				if(abs(difference.getY())>sizeCluster.getY()){
-					sizeCluster.setY(abs(difference.getY()));
-				}
-				if(abs(difference.getZ())>sizeCluster.getZ()){
-					sizeCluster.setZ(abs(difference.getZ()));
-				}
-			}
-		}
-		//calculate the size of the offset cluster(equal to the size of the cluster alogrithm)
-		for(std::vector<Vector3D>::iterator pointOfNewBorder = newBorderPoints[i].begin();pointOfNewBorder!= newBorderPoints[i].end();pointOfNewBorder++){
-			for(std::vector<Vector3D>::iterator pointOfNewBorder2 = newBorderPoints[i].begin();pointOfNewBorder2 != newBorderPoints[i].end();pointOfNewBorder2++){
-				if(pointOfNewBorder == pointOfNewBorder2){
-					continue;
-				}
-				Vector3D difference = (*pointOfNewBorder)-(*pointOfNewBorder2);
-				if(abs(difference.getX()) > sizeNewCluster.getX()){
-					sizeNewCluster.setX(abs(difference.getX()));
-				}
-				if(abs(difference.getY()) > sizeNewCluster.getY()){
-					sizeNewCluster.setY(abs(difference.getY()));
-				}
-				if(abs(difference.getZ()) > sizeNewCluster.getZ()){
-					sizeNewCluster.setZ(abs(difference.getZ()));
-				}
-			}
-		}
-		if(sizeCluster.getX() < 0.1){
-			sizeCluster.setX(0);
-		}
-		if(sizeCluster.getY() < 0.1){
-			sizeCluster.setY(0);
-		}
-		if(sizeCluster.getZ() < 0.1){
-			sizeCluster.setZ(0);
-		}
-
-        std::vector<Vector3D> sumPoints = std::vector<Vector3D>(clusterSetVector[i].size(),Vector3D(0.0));
-		//go through all borderPoints
-		for(std::set<Vertex*>::iterator pointOfBorder = borderPoints[i].begin();pointOfBorder!=borderPoints[i].end();pointOfBorder++){
-			Vertex* point = (*(borderPoints[i].begin()));
-			Vector3D newPointPos = point->getPositionVector() + offsetDistance * point->getNormal();
-
-			int counter = 0;
-			//go through all cluster Points
-            for(auto clusterPoint : clusterSetVector[i]){
-				//Calculate the weights
-				Vector3D buffer = point->getPositionVector() - clusterPoint->getPositionVector();
-				//to prevent from an exception if some Value is equal 0
-				if(sizeCluster.getX() != 0 && sizeNewCluster.getX() != 0){
-					buffer.setX(buffer.getX()/sizeCluster.getX());
-				}
-				if(sizeCluster.getY() != 0 && sizeNewCluster.getY() != 0){
-					buffer.setY(buffer.getY()/sizeCluster.getY());
-				}
-				if(sizeCluster.getZ() != 0 && sizeNewCluster.getZ() != 0){
-					buffer.setZ(buffer.getZ()/sizeCluster.getZ());
-				}
-				Vector3D weight = buffer;
-				//calculate the Offset Pos of the Cluster Vertices
-				Vector3D newPos;
-				if(sizeCluster.getX() != 0 && sizeNewCluster.getX() != 0){
-					newPos.setX(weight.getX() * sizeNewCluster.getX());
-					newPos.setX(newPointPos.getX() - newPos.getX());
-				}else{
-					newPos.setX(newPointPos.getX());
-				}
-				if(sizeCluster.getY() != 0 && sizeNewCluster.getY() != 0){
-					newPos.setY(weight.getY() * sizeNewCluster.getY());
-					newPos.setY(newPointPos.getY() - newPos.getY());
-				}else{
-					newPos.setY(newPointPos.getY());
-				}
-				if(sizeCluster.getZ() != 0 && sizeNewCluster.getZ() != 0){
-					newPos.setZ(weight.getZ() * sizeNewCluster.getZ());
-					newPos.setZ(newPointPos.getZ() - newPos.getZ());
-				}else{
-					newPos.setZ(newPointPos.getZ());
-				}
-				sumPoints[counter]+=newPos;
-				counter++;
-			}
-		}
-		int counter = 0;
-		//calculate the Normal
-        for(std::set<Vertex*>::iterator clusterPoint = clusterSetVector[i].begin();clusterPoint!=clusterSetVector[i].end();clusterPoint++){
-			sumPoints[counter] /= borderPoints[i].size();
-			normal[(*clusterPoint)->getIndex()] = sumPoints[counter] - (*clusterPoint)->getPositionVector();
-			normal[(*clusterPoint)->getIndex()].normalize3();
-			counter++;
-		}
-		sumPoints.clear();
-	}
-
-	current2 = clock();
-	time = (current2-current1)/CLOCKS_PER_SEC;
-	std::cout << "[Time for recalculation the Normals: "<< time <<"]"<<std::endl;
-
-	//smooth the border Points between cluster and non critical Points
-	for(std::set<Vertex*> & borderPoint : borderPoints){
-		for(Vertex* vertex : borderPoint){
-			std::set<Vertex*> neighbourVertices;
-			vertex->getNeighbourVertices(&neighbourVertices);
-			Vector3D newNormal = Vector3D(0.0);
-			int numVertices = 0;
-			for(auto neighbourVertex : neighbourVertices){
-				if(borderPoint.find(neighbourVertex) == borderPoint.end()){
-					newNormal += normal[neighbourVertex->getIndex()];
-					numVertices++;
-				}
-			}
-			newNormal /= numVertices;
-			normal[vertex->getIndex()] = newNormal;
-		}
-	}
-
-	//Create VerticesmSelectedMVerts
-	for(int i=0;i<numVertices;i++){
-		Vector3D pos = this->mVertices[i]->getPositionVector();
-		Vector3D newNormal = normal[i];
-		Vector3D newPos = pos + offsetDistance * newNormal;
-		Vertex* vert = new VertexOfFace(newPos);
-		vert->setIndex(i+numVertices);
-		vert->setNormal(newNormal.getX(),newNormal.getY(),newNormal.getZ());
-		this->mVertices.push_back(vert);
-	}
-
-
-	//Create "Shelled" Faces
-	for(int i=0;i<numFaces;i++) {
-		int a = this->mFaces[i]->getVertA()->getIndex();
-		int b = this->mFaces[i]->getVertB()->getIndex();
-		int c = this->mFaces[i]->getVertC()->getIndex();
-		this->mFaces.push_back(new Face(getFaceNr(), static_cast<VertexOfFace*>(this->mVertices[a+numVertices]),
-		                                           static_cast<VertexOfFace*>(this->mVertices[b+numVertices]),
-		                                           static_cast<VertexOfFace*>(this->mVertices[c+numVertices])));
-	}
-
-	//Flip original-mesh or offset-mesh
-	if(offsetDistance >= 0){
-		//if offsetDistance positive -> flip original-object
-		for(int i=0;i<numFaces;i++) {
-			this->flipTriangle(this->mFaces[i]->getIndex()); //flip Triangle by Index
-			showProgress(static_cast<float>(i)/numFaces, __FUNCTION__);
-		}
-	}
-	else{
-		//if offsetDistance negative -> flip offset-object
-		for( uint64_t i=numFaces;i<getFaceNr();i++ ) {
-			this->flipTriangle(this->mFaces[i]->getIndex()); //flip Triangle by Index
-			showProgress(static_cast<float>(i)/getFaceNr(), __FUNCTION__);
-		}
-	}
-
-	//Reset Vertex Normals & Face Normals
-	this->resetVertexNormals();
-	this->resetFaceNormals();
-
-
-	cout << "[Mesh::" << __FUNCTION__ << "] time: " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
-	showProgressStop(__FUNCTION__);
-	return true;
-}
 
 
 //! This method has to be called, when the mesh was geometrically modified resulting in a new bounding box.
@@ -15299,19 +14569,21 @@ uint8_t* Mesh::rasterToVolume( const float* rasterArray, const int xDim, const i
 // --- IMPORT / EXPORT -----------------------------------------------------------------------------------
 
 //! Uses PSALM as library to fill (closed!) polygonal lines e.g from holes.
+//! 
+//! In case the polygonal lines are non-manifold the results will be unexpected.
 //!
 //! @returns false in case of an error. True otherwise.
 bool Mesh::fillPolyLines(
-                const uint64_t& rMaxNrVertices,	//!< Maximum numbers of vertices within a border for processing. 0 means no limit.
-                uint64_t& rFilled,										//!< Number of holes filled.
-                uint64_t& rFail,										//!< Number of holes failed to fill by libpsalm.
-                uint64_t& rSkipped				//!< Number of holes skipped.
+        const uint64_t&   rMaxNrVertices,   //!< Maximum numbers of vertices within a border for processing. 0 means no limit.
+        uint64_t&         rFilled,          //!< Returns number of holes filled.
+        uint64_t&         rFail,            //!< Returns number of holes failed to fill by libpsalm.
+        uint64_t&         rSkipped          //!< Returns number of holes skipped.
 ) {
 #ifndef LIBPSALM
 	rFilled = 0;
 	rFail   = mPolyLines.size();
-	cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: libpsalm missing!" << endl;
-	cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: All " << rFail << " holes ignored!" << endl;
+	std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: libpsalm missing!" << std::endl;
+	std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: All " << rFail << " holes ignored!" << std::endl;
 	return( false );
 #else
 	// (Re)Set counters:
@@ -15333,9 +14605,9 @@ bool Mesh::fillPolyLines(
 		currFace = getFacePos( faceIdx );
 		currFace->setIndex( faceIdx );
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] set indices took " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds. " << endl;
-	cout << "[Mesh::" << __FUNCTION__ << "] Total number of polylines/holes: " << mPolyLines.size() << endl;
-	cout << "[Mesh::" << __FUNCTION__ << "] Maximum number of vertices/edges: " << rMaxNrVertices << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] set indices took " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds. " << std::endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Total number of polylines/holes: " << mPolyLines.size() << std::endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Maximum number of vertices/edges: " << rMaxNrVertices << std::endl;
 
 	Vertex* vertexRef;
 	float holeCtr = 0.0;
@@ -15350,12 +14622,12 @@ bool Mesh::fillPolyLines(
 		uint64_t numVertices   = ((*itPoly)->length())-1;
 		// Take care about smallest holes
 		if( numVertices < 3 ) {
-			cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Hole has to have more than three vertices. It has only " << numVertices << "!" << endl;
+			std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Hole has to have more than three vertices. It has only " << numVertices << "!" << std::endl;
 			continue;
 		}
 		// Skip holes larger than ... given by user.
 		if( ( rMaxNrVertices > 0 ) && ( rMaxNrVertices < numVertices ) ) {
-			cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " SKIPPED: to many vertices; " << numVertices << endl;
+			std::cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " SKIPPED: to many vertices; " << numVertices << std::endl;
 			rSkipped++;
 			continue;
 		}
@@ -15373,7 +14645,7 @@ bool Mesh::fillPolyLines(
 			mFaces.push_back( newFace );
 			borderAndNewFaces.insert( newFace );
 			rFilled++;
-			cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " ADD vertices: none faces: 1" << endl;
+			std::cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " ADD vertices: none faces: 1" << std::endl;
 		} else if( numVertices == 4 ) { // Quadtriangular hole. Attention: concave quadtriangles!
 			VertexOfFace* vertA = static_cast<VertexOfFace*>((*itPoly)->getVertexRef( 0 ));
 			VertexOfFace* vertB = static_cast<VertexOfFace*>((*itPoly)->getVertexRef( 1 ));
@@ -15409,7 +14681,7 @@ bool Mesh::fillPolyLines(
 			borderAndNewFaces.insert( newFaceA );
 			borderAndNewFaces.insert( newFaceB );
 			rFilled += 2;
-			cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " ADD vertices: none faces: 2" << endl;
+			std::cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " ADD vertices: none faces: 2" << std::endl;
 		} else {
 			// Apply libpsalm:
 			vector<long>   vertexIDs;
@@ -15462,7 +14734,8 @@ bool Mesh::fillPolyLines(
 			// Estimate average density:
 			borderDensity = numVertices / borderDensity;
 			// Alternative:
-			cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " BORDER vertices: " << numVertices << " density: " << borderDensity << " faces: " << borderAndNewFaces.size() << endl;
+			std::cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " BORDER vertices: " << numVertices << " density: " 
+			          << borderDensity << " faces: " << borderAndNewFaces.size() << std::endl;
 			//--------------------------------------------------------------------------------------------------------------------------------------
 			// Variable for the return values of fillhole:
 			size_t        numNewVertices = 0;
@@ -15473,12 +14746,13 @@ bool Mesh::fillPolyLines(
 			if( !fill_hole( numVertices, vertexIDs.data(), coordinates.data(),
 			                nullptr, nullptr, // was normals along the border (optional)
 			                &numNewVertices, &newCoordinates, &numNewFaces, &newVertexIDs ) ) {
-				cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Hole No. " << holeCtr << " having " << numVertices << "vertices FAILED!" << endl;
+				std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Hole No. " << holeCtr << " having " 
+				          << numVertices << "vertices FAILED!" << std::endl;
 				rFail++;
 				continue;
 			}
 			// Add the new vertices and faces
-			cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " ADD vertices: " << numNewVertices << " faces: " << numNewFaces << endl;
+			std::cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " ADD vertices: " << numNewVertices << " faces: " << numNewFaces << std::endl;
 			vector<VertexOfFace*> tmpRefNewVertices; // We need this temporarly for connecting the faces.
 			tmpRefNewVertices.resize( numNewVertices, nullptr );
 			for( size_t i=0; i<numNewVertices; ++i ) {
@@ -15532,7 +14806,7 @@ bool Mesh::fillPolyLines(
 				// Tag as synthetic:
 				newFace->setFlag( FLAG_SYNTHETIC );
 			}
-			cout << "[Mesh::" << __FUNCTION__ << "] New density: " << (numNewVertices+numVertices)/newArea << endl;
+			std::cout << "[Mesh::" << __FUNCTION__ << "] New density: " << (numNewVertices+numVertices)/newArea << std::endl;
 			delete[] newCoordinates; // created in libpsalm
 			delete[] newVertexIDs;   // created in libpsalm
 			rFilled++;
@@ -15550,7 +14824,7 @@ bool Mesh::fillPolyLines(
 	    //(*itFace)->connectToFaces();
 	//}
 	showProgressStop( "Fill holes" );
-	cout << "[Mesh::" << __FUNCTION__ << "] took " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds. " << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] took " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds. " << std::endl;
 	return( true );
 #endif
 }
@@ -15606,12 +14880,20 @@ bool Mesh::exportPolyLinesCoords( filesystem::path rFileName, bool rWithNormals,
 	strHeader << "# | Polylines:  " << mPolyLines.size() << std::endl;
 	strHeader << "# | Timestamp:  " << timeInfoStr << std::endl;
 	filestr << strHeader.str();
-	//! \todo fix file header - vertices indices!
-	if( rWithNormals ) {
+
+    if ( rWithNormals && rWithVertIdx) {
+        filestr << "# +------------------------------------------------------------------------------------------------------------------------" << endl;
+        filestr << "# | Format: Label No. | Number of Vertices | id1 x1 y1 z1 nx1 ny1 nz1 id2 x2 y2 z2 nx2 ny2 nz2 ... idN xN yN zN nxN nyN nzN" << endl;
+        filestr << "# +------------------------------------------------------------------------------------------------------------------------" << endl;
+    } else if( rWithNormals && !rWithVertIdx ) {
 		filestr << "# +------------------------------------------------------------------------------------------------------------" << endl;
 		filestr << "# | Format: Label No. | Number of Vertices | x1 y1 z1 nx1 ny1 nz1 x2 y2 z2 nx2 ny2 nz2 ... xN yN zN nxN nyN nzN" << endl;
 		filestr << "# +------------------------------------------------------------------------------------------------------------" << endl;
-	} else {
+    } else if ( rWithVertIdx && !rWithNormals) {
+        filestr << "# +------------------------------------------------------------------------------------" << endl;
+        filestr << "# | Format: Label No. | Number of Vertices | id1 x1 y1 z1 id2 x2 y2 z2 ... idN xN yN zN" << endl;
+        filestr << "# +------------------------------------------------------------------------------------" << endl;
+    } else {
 		filestr << "# +------------------------------------------------------------------------" << endl;
 		filestr << "# | Format: Label No. | Number of Vertices | x1 y1 z1 x2 y2 z2 ... xN yN zN" << endl;
 		filestr << "# +------------------------------------------------------------------------" << endl;
@@ -16021,6 +15303,276 @@ bool Mesh::importFuncValsFromFile(const filesystem::path& rFileName, bool withVe
 	return true;
 }
 
+//! Imports labels of the vertices
+//! File extension: .txt or .mat
+//! assumes that the files are either single column with the labels, or double column with index + label
+//! lines starting with # are treated as comments
+//! labels are expected to be integers
+bool Mesh::importLabelsFromFile(const filesystem::path& rFileName, bool withVertIdx)
+{
+    ifstream filestr(rFileName);
+
+    filestr.imbue(std::locale("C"));
+
+    if(!filestr.is_open())
+    {
+        LOG::error() << "[Mesh::" << __FUNCTION__ << "] Could not open file: '" << rFileName << "'.\n";
+        return false;
+    }
+
+    auto numVerts = getVertexNr();
+    std::string line;
+    uint64_t labelNr = 0;
+
+    //importing with index
+    if(withVertIdx)
+    {
+        uint64_t currIndex = 0;
+        while(std::getline(filestr, line))
+        {
+            if(!line.empty())
+            {
+                if(line[0] == '#')
+                {
+                    continue;
+                }
+
+                std::stringstream lineStream(line);
+                if(!(lineStream >> currIndex >> labelNr))
+                {
+                    LOG::warn() << "[Mesh::" << __FUNCTION__ << "] File: '" << rFileName << "' contains invalid values!\n";
+                    continue;
+                }
+                if(currIndex < numVerts)
+                {
+                    mVertices[currIndex]->setLabel(labelNr);
+                }
+                else
+                {
+                    LOG::warn() << "[Mesh::" << __FUNCTION__ << "] warning: function value out of range: " << currIndex << "\n";
+                }
+            }
+        }
+    }
+    //importing without index
+    else
+    {
+        uint64_t currIndex = 0;
+        while(std::getline(filestr, line))
+        {
+            if(!line.empty())
+            {
+                if(line[0] == '#')
+                {
+                    continue;
+                }
+
+                if(currIndex > numVerts)
+                {
+                    LOG::warn() << "[Mesh::" << __FUNCTION__ << "] warning: function value out of range: " << currIndex - 1 << "\n";
+                    break;
+                }
+                try {
+                    labelNr = std::stod(line);
+                }
+                catch (std::exception& e)
+                {
+                    LOG::warn() << "[Mesh::" << __FUNCTION__ << "] File: '" << rFileName << "' contains invalid values!\n";
+                    mVertices[currIndex++]->setLabel(0);
+                    continue;
+                }
+
+                mVertices[currIndex++]->setLabel(labelNr);
+            }
+        }
+    }
+
+    filestr.close();
+    labelsChanged();
+    return true;
+}
+
+//! Imports the polylines coordinates from file
+//! File extension: .pline
+//! each line of the file is a line definition with coordinates
+//! lines starting with # are treated as comments
+//! currently only takes lines where the points are given as id, x, y, z, nx, ny, nz
+bool Mesh::importPolylinesFromFile(const filesystem::path& rFileName)
+{
+    ifstream filestr(rFileName);
+
+    filestr.imbue(std::locale("C"));
+
+    if(!filestr.is_open())
+    {
+        LOG::error() << "[Mesh::" << __FUNCTION__ << "] Could not open file: '" << rFileName << "'.\n";
+        return false;
+    }
+    std::string line;
+    std::string elem;
+    std::string substring;
+    while(std::getline(filestr, line))
+    {
+        if(!line.empty())
+        {
+            //each line of the file without "#" is a polyline
+            if(line[0] == '#')
+            {
+                continue;
+            }
+            PolyLine* tmpPolyLine = new PolyLine();
+            //PolyLine* tmpPolyLine = new PolyLine( Vector3D( _NOT_A_NUMBER_, _NOT_A_NUMBER_, _NOT_A_NUMBER_, 1.0 ),
+            //                                              Vector3D( _NOT_A_NUMBER_, _NOT_A_NUMBER_, _NOT_A_NUMBER_, 0.0 ) );
+            int valueCount = 0;
+			// need flag to only add tmpPolyline or delete it, otherwise can cause bugs if more 0 polylines are added than >3 polylines
+            bool flag_add = true;
+            double x = 0.0;
+            double y = 0.0;
+            double z = 0.0;
+            double normalX = 0.0;
+            double normalY = 0.0;
+            double normalZ = 0.0;
+            //variables for the division of the values from String/line
+            // values are seperated by space
+            int start = 0;
+            int end = line.find(" ");
+            //create polyline
+            while(end != -1){
+                elem = line.substr(start,end-start);
+                start = end + 1;
+                end = line.find(" ",start);
+                // check if polyline is at least 2 vertices long
+                if(valueCount == 1){
+                    if(stod(elem) < 3){
+                        flag_add = false;
+                        break;
+                    }
+                }
+                //ignore the first 2 values id and number of vertices
+                if(valueCount > 1){
+                    //extract vertex coordinate
+                    //each vertex has 7 elments of information: seperator, x,y,z normal x, ny,nz
+                    //ignore the seperator "-1"
+                    //separator often also is the index of the point in the mesh it was taken from
+
+                    // -2 on the count because of the first 2 ignored values
+                    if((valueCount-2) % 7 == 1){
+                        x = stod(elem);
+                    }
+                    if((valueCount-2) % 7 == 2){
+                        y = stod(elem);
+                    }
+                    if((valueCount-2) % 7 == 3){
+                        z = stod(elem);
+                    }
+                    if((valueCount-2) % 7 == 4){
+                        normalX = stod(elem);
+                    }
+                    if((valueCount-2) % 7 == 5){
+                        normalY = stod(elem);
+                    }
+                    if((valueCount-2) % 7 == 6){
+                        normalZ  = stod(elem);
+
+                        //add vertex to polyline
+                        Vertex* newVertex = new Vertex(Vector3D(x,y,z),Vector3D(normalX,normalY,normalZ));
+                        tmpPolyLine->addBack( newVertex );
+                    }
+                }
+                //count the extracted values of the string
+                valueCount++;
+            }
+
+            //add the new polyline to the mesh
+            if (flag_add){
+                mPolyLines.push_back( tmpPolyLine );
+            } else {
+                delete tmpPolyLine;
+            }
+        }
+    }
+
+    filestr.close();
+
+    polyLinesChanged();
+    return true;
+}
+
+//! Imports the transformation matrices from file
+//! File extension: .txt
+//! the transmat.txt file after transformation with F6 is used
+//! the file can contain more than one matrix
+//! they are devides by
+//! #Transformation ...
+//! #......................................................
+bool Mesh::importApplyTransMatFromFile(const std::filesystem::path &rFileName)
+{
+    ifstream filestr(rFileName);
+
+    filestr.imbue(std::locale("C"));
+
+    if(!filestr.is_open())
+    {
+        LOG::error() << "[Mesh::" << __FUNCTION__ << "] Could not open file: '" << rFileName << "'.\n";
+        return false;
+    }
+    std::string line;
+    std::string elem;
+    std::string substring;
+    int lineCount = 0;
+    vector<double> values;
+    while(std::getline(filestr, line))
+    {
+        if(!line.empty())
+        {
+            //each line of the file without "#" discribes a transfomration matrix
+            //always with 4 lines (4x4 matrix)
+            if(line[0] == '#')
+            {
+                continue;
+            }
+            // matrix line found
+            lineCount++;
+            //variables for the division of the values from String/line
+            // values are seperated by space
+            int start = 0;
+            int end = line.find(" ");
+            while(end != -1){
+                elem = line.substr(start,end-start);
+                start = end + 1;
+                end = line.find(" ",start);
+                values.push_back(stod(elem));
+            }
+            //add last value because the line ends not with space
+            elem = line.substr(start,line.size());
+            values.push_back(stod(elem));
+
+            //matrix values are complete
+            if(lineCount == 4){
+                //transpose values
+                std::array<double,16> transposedValues;
+                unsigned int row = 0;
+                unsigned int column = 0;
+                for(const auto& value : values){
+                    transposedValues[(row*4)+column] = value;
+                    row++;
+                    if( row == 4 ){
+                        column++;
+                        row = 0;
+                    }
+                }
+                vector<double> transposedValuesVec(std::begin(transposedValues),std::end(transposedValues));
+                Matrix4D matrix(transposedValuesVec);
+                applyTransformationToWholeMesh(matrix, true, false);
+                values.clear();
+                lineCount = 0;
+            }
+        }
+    }
+
+    filestr.close();
+    return true;
+}
 //! Exports the faces normals as sphereical coordinates as ASCII file in the format:
 //! Face Number Phi Theta Radius
 //! File extension: .facen
@@ -16217,9 +15769,11 @@ bool Mesh::latexFetchFigureInfos( vector<pair<string,string>>* rStrings ) {
 	rStrings->push_back( pair<string,string>( string( "__BOUNDING_BOX_THICK__"  ), to_string( bbThick  ) ) ); //! __BOUNDING_BOX_THICK__
 
 	//! Primitive count:
-	int vertexCount = getVertexNr();
+    //have to be double otherwise the trailing zeros will be deleted
+    double vertexCount = getVertexNr();
+    double faceNr = getFaceNr();
 	rStrings->push_back( pair<string,string>( string( "__VERTEX_COUNT__" ), to_string( vertexCount )   ) ); //! __VERTEX_COUNT__
-	rStrings->push_back( pair<string,string>( string( "__FACE_COUNT__"  ),  to_string( getFaceNr()   ) ) ); //! __FACE_COUNT__
+    rStrings->push_back( pair<string,string>( string( "__FACE_COUNT__"  ),  to_string( faceNr  ) ) ); //! __FACE_COUNT__
 
 	//! Meta-data:
 	std::string metaObjectId       = getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
@@ -16329,7 +15883,12 @@ bool Mesh::latexFetchFigureInfos( vector<pair<string,string>>* rStrings ) {
 //! @returns false in case of an error. True otherwise.
 bool Mesh::showInfoMeshHTML() {
 	MeshInfoData infoData;
-	if( !getMeshInfoData( infoData, true ) ) {
+    bool withSelfIntersection = false;
+    if(!showQuestion(&withSelfIntersection, "Selfintersection Detection", "Do you want to calculate the number of self-intersecting faces?\n This could take several minutes!"))
+        return false;
+
+
+    if( !getMeshInfoData( infoData, true, withSelfIntersection ) ) {
 		return( false );
 	}
 	std::string infoString;
@@ -16338,6 +15897,7 @@ bool Mesh::showInfoMeshHTML() {
 	}
 	showInformation( "Mesh Information", infoString );
 	return true;
+
 }
 
 //! Fetch mesh information as Numbers.
@@ -16347,8 +15907,9 @@ bool Mesh::showInfoMeshHTML() {
 //!
 //! @returns false in case of an error. True otherwise.
 bool Mesh::getMeshInfoData(
-                MeshInfoData& rMeshInfos,
-                bool          rAbsolutePath
+        MeshInfoData& rMeshInfos,
+        const bool    rAbsolutePath,
+        bool rWithSelfIntersectedFaces
 ) {
 	// Initialize
 	rMeshInfos.reset();
@@ -16454,6 +16015,10 @@ bool Mesh::getMeshInfoData(
 		showProgress( static_cast<double>(vertIdx)/progressSteps, "Mesh information" );
 	}
 
+	// Set initial values
+	rMeshInfos.mCountDouble[MeshInfoData::FACES_AREA_SMALLEST] = std::numeric_limits<double>::infinity();
+	rMeshInfos.mCountDouble[MeshInfoData::FACES_AREA_LARGEST]  = 0.0;
+
 	Face* currFace;
 	for( uint64_t faceIdx=0; faceIdx<getFaceNr(); faceIdx++ ) {
 		currFace = getFacePos( faceIdx );
@@ -16504,8 +16069,35 @@ bool Mesh::getMeshInfoData(
 		if( currFace->getFlag( FLAG_SELECTED ) ) {
 			rMeshInfos.mCountULong[MeshInfoData::FACES_SELECTED]++;
 		}
+		// floating point properties
+		double faceArea = currFace->getAreaNormal();
+		if( faceArea < rMeshInfos.mCountDouble[MeshInfoData::FACES_AREA_SMALLEST] ) {
+			rMeshInfos.mCountDouble[MeshInfoData::FACES_AREA_SMALLEST] = faceArea;
+		}
+		if( faceArea > rMeshInfos.mCountDouble[MeshInfoData::FACES_AREA_LARGEST] ) {
+			rMeshInfos.mCountDouble[MeshInfoData::FACES_AREA_LARGEST] = faceArea;
+		}
 		showProgress( static_cast<double>( faceIdx+getVertexNr() )/progressSteps, "Mesh information" );
 	}
+    //detect self itersection
+    if(rWithSelfIntersectedFaces){
+        // Octree required - time consuming
+        if( mOctree == nullptr ) {
+            generateOctree( 1000 );
+        }
+        vector<Face*> intersectedFaces;
+        mOctree->detectselfintersections(intersectedFaces);
+        //delete duplicates
+        sort(intersectedFaces.begin(),intersectedFaces.end());
+        intersectedFaces.erase( unique( intersectedFaces.begin(),intersectedFaces.end()),intersectedFaces.end());
+        rMeshInfos.mCountULong[MeshInfoData::FACES_SELFINTERSECTED] = intersectedFaces.size();
+    }
+    else{
+        rMeshInfos.mCountULong[MeshInfoData::FACES_SELFINTERSECTED] = -1;
+    }
+
+	// Labeled connected components
+	labelCount( Primitive::IS_VERTEX, rMeshInfos.mCountULong[MeshInfoData::CONNECTED_COMPONENTS] );
 
 	// Done.
 	showProgressStop( "Mesh information" );
@@ -16894,21 +16486,19 @@ bool Mesh::getAxisFromCircleCenters() {
 
 //! Use vertices tagged as circle centers to estimate an axis.
 //! @returns false in case of an error. True otherwise.
-bool Mesh::getAxisFromCircleCenters( Vector3D* rTop, Vector3D* rBottom ) {
-	// Sanity check.
-	if( ( rTop == nullptr ) || ( rBottom == nullptr ) ) {
-		return false;
-	}
-
+bool Mesh::getAxisFromCircleCenters(
+		Vector3D& rTop,
+		Vector3D& rBottom
+) {
 	// Fetch circle centers
 	set<Vertex*> verticesCircleCenters;
 	if( !getVertWithFlag( &verticesCircleCenters, FLAG_CIRCLE_CENTER ) ) {
-		return false;
+		return( false );
 	}
 	// Stop if there is nothing to do.
-    if( verticesCircleCenters.empty()) {
-		cout << "[Mesh::" << __FUNCTION__ << "] No circle centers present - DONE." << endl;
-		return true;
+	if( verticesCircleCenters.empty()) {
+		std::cout << "[Mesh::" << __FUNCTION__ << "] No circle centers present - DONE." << std::endl;
+		return( true );
 	}
 
 	// Compute average orientation using the (weighted) normals.
@@ -16919,7 +16509,7 @@ bool Mesh::getAxisFromCircleCenters( Vector3D* rTop, Vector3D* rBottom ) {
 		avgOrientation += currOrient;
 	}
 	avgOrientation.normalize3();
-	cout << "[Mesh::" << __FUNCTION__ << "] Average orientation: " << avgOrientation << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Average orientation: " << avgOrientation << std::endl;
 
 	// Compute average position.
 	Vector3D originPos( 0.0, 0.0, 0.0, 1.0 );
@@ -16936,28 +16526,96 @@ bool Mesh::getAxisFromCircleCenters( Vector3D* rTop, Vector3D* rBottom ) {
 		posInAxisOrient.setZ( 0.0 );
 		avgPosition += ( weight * posInAxisOrient );
 	}
-	cout << "[Mesh::" << __FUNCTION__ << "] Average position in Axis: " << avgPosition << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Average position in Axis: " << avgPosition << std::endl;
 	avgPosition.normalizeW();
-	cout << "[Mesh::" << __FUNCTION__ << "] Average position in Axis normalized: " << avgPosition << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Average position in Axis normalized: " << avgPosition << std::endl;
 	// Transform from axis coordinates to world coordinates.
 	baseChange.invert();
 	avgPosition *= baseChange;
-	cout << "[Mesh::" << __FUNCTION__ << "] Average position: " << avgPosition << endl;
+	std::cout << "[Mesh::" << __FUNCTION__ << "] Average position: " << avgPosition << std::endl;
 
-	// Compute top and bottom points by intersecting the axis with the bounding sphere.
-	Vector3D bbCenter = getBoundingBoxCenter();
-	double   bbRadius = getBoundingBoxRadius();
-	// Line-Sphere intersection -- see also: https://en.wikipedia.org/wiki/Line%E2%80%93sphere_intersection
-	double b = 2.0*( avgOrientation * ( avgPosition - bbCenter ) );
-	double c = ( avgPosition - bbCenter ) * ( avgPosition - bbCenter ) - pow( bbRadius, 2.0 );
-	double d1 = -b + sqrt( pow( b, 2.0 ) - c );
-	double d2 = -b - sqrt( pow( b, 2.0 ) - c );
+//	This was a bad idea, because the axis can be very well outside the bounding sphere:
+//	However, the code might be usefull for other tasks.
+//------------------------------------------------------------------------------
+//	// Compute top and bottom points by intersecting the axis with the bounding sphere.
+//	Vector3D bbCenter = getBoundingBoxCenter();
+//	double   bbRadius = getBoundingBoxRadius();
+//	// Line-Sphere intersection -- see also: https://en.wikipedia.org/wiki/Line%E2%80%93sphere_intersection
+//	double b = 2.0*( avgOrientation * ( avgPosition - bbCenter ) );
+//	double c = ( avgPosition - bbCenter ) * ( avgPosition - bbCenter ) - pow( bbRadius, 2.0 );
+//	double d1 = -b + sqrt( pow( b, 2.0 ) - c );
+//	double d2 = -b - sqrt( pow( b, 2.0 ) - c );
 
-	(*rTop)    = avgPosition + d1 * avgOrientation;
-	(*rBottom) = avgPosition + d2 * avgOrientation;
+	Plane planeOrthoToAxis( avgPosition, avgOrientation );
+	double distMin, distMax;
+	getDistanceToPlaneMinMax( planeOrthoToAxis, distMin, distMax, false );
 
-	cout << "[Mesh::" << __FUNCTION__ << "] DONE." << endl;
-	return true;
+	// Distance may be flipped!
+	if( abs(distMin) > abs(distMax) ) {
+		rTop    = avgPosition - distMax * avgOrientation;
+		rBottom = avgPosition - distMin * avgOrientation;
+	} else {
+		rTop    = avgPosition + distMax * avgOrientation;
+		rBottom = avgPosition + distMin * avgOrientation;
+	}
+
+	std::cout << "[Mesh::" << __FUNCTION__ << "] DONE." << std::endl;
+    return( true );
+}
+//! Use selected Vertices to fit an ellipse.
+//! The first 3 Vertices describe a plane
+//! A axis is calculated with the normal of this plane and the center of the ellipse
+//! @returns false in case of an error. True otherwise.
+bool Mesh::getAxisFromEllipseFit()
+{
+    //get the first 3 vertices of the set to describe a plan
+    vector<Vertex*> planeVertices;
+    for( auto const& selVertex : mSelectedMVerts ) {
+        planeVertices.push_back(selVertex);
+    }
+    //create plane of the ellipse
+    Plane plane = Plane(planeVertices[0]->getPositionVector(),planeVertices[1]->getPositionVector(),planeVertices[2]->getPositionVector());
+
+    //projection of all selected Vertices to one plane
+    vector<pair<double,double> > ellipseCandidatePoints;
+    for( auto const& selVertex : mSelectedMVerts ) {
+        Vector3D selPoint = selVertex->getPositionVector();
+        selPoint.projectOntoPlane(plane.getHNF());
+        double xPos2 = selPoint.getX();
+        double yPos2 = selPoint.getZ(); //changed to Z because the Y axis points upwards
+        ellipseCandidatePoints.emplace_back( std::make_pair(xPos2,yPos2) );
+    }
+
+    EllipseDisc ellipse;
+    ellipse.findEllipseParams( EllipseDisc::CONIC, ellipseCandidatePoints );
+    ellipse.dumpInfo();
+
+    //create a center vertex
+    std::vector<Vertex*> centerVertices; //needed as vector for the insertVertices function
+    double planeY = plane.getY();
+    Vector3D normalPlane = plane.getHNF();
+    Vector3D ellipseCenter(ellipse.mCenterX,planeY,ellipse.mCenterY); //Y and Z changed before
+    Vertex* centerVertex = new Vertex( ellipseCenter );
+    centerVertex->setFlag( FLAG_SYNTHETIC | FLAG_CIRCLE_CENTER);
+    centerVertex->setNormal( &normalPlane );
+
+    // add the synthetic vertex
+    centerVertices.push_back(centerVertex);
+    insertVertices( &centerVertices );
+
+    //create and show the axis
+    Vector3D topPoint;
+    Vector3D bottomPoint;
+    getAxisFromCircleCenters( topPoint, bottomPoint );
+    setConeAxis( &topPoint, &bottomPoint );
+
+
+    return( true );
 }
 
+//! Getter Method of the protected attribute mVertices as set
+std::set<Vertex*> Mesh::getVertices(){
+    return std::set<Vertex*>(mVertices.begin(), mVertices.end());
+    //return mSelectedMVerts;
+}
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------

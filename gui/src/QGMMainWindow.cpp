@@ -83,6 +83,10 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 
 	// === SIGNALS & SLOTS =================================================================================================================================
 	QObject::connect( actionImportFunctionValues,     &QAction::triggered, this,   &QGMMainWindow::menuImportFunctionValues        );
+    QObject::connect( actionImportPolylines,     &QAction::triggered, this,   &QGMMainWindow::menuImportPolylines        );
+    QObject::connect( actionImportLabels, &QAction::triggered, this,   &QGMMainWindow::menuImportLabels        );
+    QObject::connect( actionImport_and_apply_transformation_matrices, &QAction::triggered, this,   &QGMMainWindow::menuImportTransMat        );
+
 	// connect the main windows menu entries with slots:
 	// --- File ---
 	QObject::connect( actionFileOpen,                 SIGNAL(triggered()), this,       SLOT(load())                      );
@@ -143,7 +147,8 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	//.
 	QObject::connect( actionApplyMeltingSphere,     SIGNAL(triggered()), this,       SIGNAL(sApplyMeltingSphere())     );
     //.
-    QObject::connect( actionVertApplyNormalShift,   SIGNAL(triggered()), this,       SIGNAL(sApplyNormalShift())       );
+    QObject::connect( actionAutomatic_Mesh_Alignment,     SIGNAL(triggered()), this,       SIGNAL(sAutomaticMeshAlignment())     );
+    //.
 
 	// --- De-Selection ------------------------------------------------------------------------------------------------------------------------------------
 	QObject::connect( actionDeSelVertsAll,          SIGNAL(triggered()),         this, SIGNAL(sDeSelVertsAll())         );
@@ -197,10 +202,6 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionToolbar,       &QAction::toggled,     uiMainToolBar, &QToolBar::setVisible              );
 	QObject::connect( actionStatusbar,     &QAction::toggled,     statusbar,     &QStatusBar::setVisible            );
 
-	QObject::connect( actionViewMatrix,                  SIGNAL(triggered()),   this, SIGNAL(showViewMatrix())                   );
-	QObject::connect( actionViewMatrixSet,               SIGNAL(triggered()),   this, SIGNAL(setViewMatrix())                    );
-	QObject::connect( actionViewAxisUp,    &QAction::triggered,   this,          &QGMMainWindow::sSetViewAxisUp     );
-
 	QObject::connect( actionViewActivateInspectionOptions,      SIGNAL(triggered()), this, SLOT(activateInspectionOptions())     );
 
 	// ... Vertices 
@@ -209,11 +210,6 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionScreenshotsCrop,         SIGNAL(toggled(bool)), this,       SIGNAL(screenshotsCrop(bool))  );
 	QObject::connect( actionScreenshotSVG,           SIGNAL(triggered()),   this,       SIGNAL(screenshotSVG())        );
 	QObject::connect( actionScreenshotRuler,         SIGNAL(triggered()),   this,       SIGNAL(screenshotRuler())      );
-
-	// === LEGACY to be removed! ===========================================================================================================================
-    QObject::connect( actionGenerateLatexFile,       SIGNAL(triggered()),   this,       SIGNAL(generateLatexFile()) );
-    QObject::connect( actionGenerateLatexCatalog,    SIGNAL(triggered()),   this,       SIGNAL(generateLatexCatalog()) );
-	// =====================================================================================================================================================
 
 	//.
 	QObject::connect( actionViewDefaultViewLight,     SIGNAL(triggered()),  this,       SIGNAL(sDefaultViewLight())     );
@@ -230,6 +226,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionLabelFaces,                    SIGNAL(triggered()), this, SIGNAL(labelFaces())            );
 	QObject::connect( actionLabelSelectionToSeeds,         SIGNAL(triggered()), this, SIGNAL(labelSelectionToSeeds()) );
 	QObject::connect( actionLabelVertEqualFV,              SIGNAL(triggered()), this, SIGNAL(labelVerticesEqualFV())  );
+    QObject::connect( actionLabelVertEqualRGB,             SIGNAL(triggered()), this, SIGNAL(labelVerticesEqualRGB()) );
 	QObject::connect( actionLabelSelMVertsBackground,      SIGNAL(triggered()), this, SIGNAL(sLabelSelMVertsToBack()) );
 	//.
 	QObject::connect( actionSelectionToPolyline,           SIGNAL(triggered()), this, SIGNAL(convertSelectedVerticesToPolyline()) );
@@ -271,7 +268,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionRemove_Drawing_of_Octree,SIGNAL(triggered()), this, SIGNAL(removeOctreedraw())            );
 	QObject::connect( actionDraw_Octree,             SIGNAL(triggered()), this, SIGNAL(drawOctree())            );
 	QObject::connect( actionDelete_Octree,           SIGNAL(triggered()), this, SIGNAL(deleteOctree())            );
-
+    QObject::connect( actionDetect_Self_Intersections,           SIGNAL(triggered()), this, SIGNAL(detectselfintersections())            );
 
 	// #####################################################################################################################################################
 	// # FUNCTION VALUE
@@ -357,7 +354,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	timeLast = settings.value( "lastVersionCheck" ).toLongLong();
 	double daysSinceLastCheck = difftime( timeNow, timeLast ) / ( 24.0 * 3600.0 );
 	// daysSinceLastCheck = 356.0; // for testing (1/2)
-	cout << "[QGMMainWindow::" << __FUNCTION__ << "] Last check " << daysSinceLastCheck << " days ago." << endl;
+	std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] Last check " << daysSinceLastCheck << " days ago." << std::endl;
 	if( daysSinceLastCheck > 3.0 ) {
 		mNetworkManager = new QNetworkAccessManager( this );
 		QObject::connect( mNetworkManager, &QNetworkAccessManager::finished, this, &QGMMainWindow::slotHttpCheckVersion );
@@ -465,6 +462,7 @@ void QGMMainWindow::initMeshWidgetSignals() {
 	actionExportScreenShotsViewsSix->setProperty( "gmMeshWidgetFlag",       MeshWidgetParams::EXPORT_SIDE_VIEWS_SIX );
 	actionExportSVGDashedAxis->setProperty(       "gmMeshWidgetFlag",       MeshWidgetParams::EXPORT_SVG_AXIS_DASHED );
 	actionScreenshotDPISuffix->setProperty(       "gmMeshWidgetFlag",       MeshWidgetParams::SCREENSHOT_FILENAME_WITH_DPI );
+	actionReplaceTransparencyBgColor->setProperty("gmMeshWidgetFlag",       MeshWidgetParams::SCREENSHOT_PNG_BACKGROUND_OPAQUE);
 	actionDisplay_as_pointcloud_when_moving->setProperty( "gmMeshWidgetFlag", MeshWidgetParams::ENABLE_SHOW_MESH_REDUCED);
 
 	mMeshWidgetFlag = new QActionGroup( this );
@@ -591,7 +589,8 @@ void QGMMainWindow::initMeshWidgetSignals() {
 
 	// Connect this exclusive group:
 	QObject::connect( mGroupSelHistType, SIGNAL(triggered(QAction*)), this, SLOT(setMeshWidgetParamInt(QAction*)) );
-	//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 
 	// =====================================================================================================================================================
 
@@ -649,9 +648,10 @@ void QGMMainWindow::initMeshWidgetSignals() {
 	actionFogLinearDistMax->setProperty( "gmMeshWidgetParamFloat", MeshWidgetParams::FOG_LINEAR_END );
 
 	actionSaveStillImages360DurationSlow->setProperty( "gmMeshWidgetParamFloat", MeshWidgetParams::VIDEO_SLOW_STARTSTOP );
+	actionHighDPIZoomFactor->setProperty( "gmMeshWidgetParamFloat", MeshWidgetParams::HIGHDPI_ZOOM_FACTOR );
 
 	mMeshWidgetFloat = new QActionGroup( this );
-	for(QAction*& currAction : allActions) {
+	for( QAction*& currAction : allActions ) {
 		    QVariant someFlag = currAction->property( "gmMeshWidgetParamFloat" );
 		if( !someFlag.isValid() ) {
 			continue;
@@ -730,7 +730,7 @@ void QGMMainWindow::initMeshSignals() {
 	actionIsolinesSolid->setProperty(               "gmMeshGLFlag", MeshGLParams::SHOW_FUNC_VALUES_ISOLINES_SOLID );
 	actionRepeatMapWaves->setProperty(              "gmMeshGLFlag", MeshGLParams::SHOW_REPEAT_COLMAP_FUNCVAL );
 	actionBad_Lit_Areas->setProperty(               "gmMeshGLFlag", MeshGLParams::SHOW_BADLIT_AREAS);
-
+    actionRemove_Dangling_Faces->setProperty(       "gmMeshGLFlag", MeshGLParams::REMOVE_DANGLING_FACES);
 	// Setup group of flags for visualization - see MeshGL and MeshQT
 	mMeshGLFlag = new QActionGroup( this );
 	for(QAction*& currAction : allActions) {
@@ -749,7 +749,7 @@ void QGMMainWindow::initMeshSignals() {
 
 	// INT: Add parameter, double IDs for MeshGL class:
 	actionLabelColorShift->setProperty( "gmMeshGLParamInt", MeshGLParams::COLMAP_LABEL_OFFSET );
-
+    actionMax_Number_of_vertices_for_hole_filling->setProperty(    "gmMeshGLParamInt", MeshGLParams::MAX_VERTICES_HOLE_FILLING);
 	// INT: Setup parameter group of menu items
 	mMeshGLParInt = new QActionGroup( this );
 	for(QAction*& currAction : allActions) {
@@ -1026,6 +1026,12 @@ void QGMMainWindow::initMeshSignals() {
 	// === MeshGL/MeshQt - Function/Method CALL ============================================================================================================
 	// ... File load, save, import, export  ................................................................................................................
 	actionFileSaveAs->setProperty(                                "gmMeshFunctionCall", MeshParams::FILE_SAVE_AS                                 );
+	actionSaveLabelsSeparated->setProperty(                       "gmMeshFunctionCall", MeshParams::EXPORT_CONNECTED_COMPONENTS                  );
+	actionExportMetaDataHTML->setProperty(                        "gmMeshFunctionCall", MeshParams::EXPORT_METADATA_HTML                         );
+	actionExportMetaDataJSON->setProperty(                        "gmMeshFunctionCall", MeshParams::EXPORT_METADATA_JSON                         );
+	actionExportMetaDataTTL->setProperty(                         "gmMeshFunctionCall", MeshParams::EXPORT_METADATA_TTL                          );
+	actionExportMetaDataXML->setProperty(                         "gmMeshFunctionCall", MeshParams::EXPORT_METADATA_XML                          );
+	actionExportMetaDataAll->setProperty(                         "gmMeshFunctionCall", MeshParams::EXPORT_METADATA_ALL                          );
 	actionImportVertexCoordinatesFromCSV->setProperty(            "gmMeshGLFunctionCall", MeshGLParams::IMPORT_COORDINATES_OF_VERTICES           );
 	actionExportCoordinatesOfAllVerticesAsCSV->setProperty(       "gmMeshFunctionCall", MeshParams::EXPORT_COORDINATES_OF_VERTICES               );
 	actionExportCoordinatesOfSelectedVerticesAsCSV->setProperty(  "gmMeshFunctionCall", MeshParams::EXPORT_COORDINATES_OF_SELECTED_VERTICES      );
@@ -1153,24 +1159,29 @@ void QGMMainWindow::initMeshSignals() {
 	actionEllipsenFit->setProperty(                               "gmMeshFunctionCall", MeshParams::ELLIPSENFIT_EXPERIMENTAL                     );
 	actionSelFaceSelfIntersecting->setProperty(                   "gmMeshFunctionCall", MeshParams::DRAW_SELF_INTERSECTIONS                      );
 	// =======================================================================================================================================================
-	//! \todo MeshWidget Function calls - here is a first try:
-	actionExportPlaneIntersectSVG->setProperty(                   "gmMeshWidgetFunctionCall", MeshWidgetParams::EXPORT_POLYLINES_INTERSECT_PLANE );
-	actionScreenshot->setProperty(                                "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_CURRENT_VIEW_SINGLE   );
+	//! \todo MeshWidget Function calls - more to be converted:
+	actionExportPlaneIntersectSVG->setProperty(                   "gmMeshWidgetFunctionCall", MeshWidgetParams::EXPORT_POLYLINES_INTERSECT_PLANE     );
+	actionScreenshot->setProperty(                                "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_CURRENT_VIEW_SINGLE       );
 	actionScreenshotPDF->setProperty(                             "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_CURRENT_VIEW_SINGLE_PDF   );
-	actionScreenshotViews->setProperty(                           "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_IMAGES          );
-	actionScreenshotViewsPDF->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_PDF             );
+	actionScreenshotViews->setProperty(                           "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_IMAGES              );
+	actionScreenshotViewsPDF->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_PDF                 );
 	actionScreenshotViewsDirectory->setProperty(                  "gmMeshWidgetFunctionCall", MeshWidgetParams::SCREENSHOT_VIEWS_DIRECTORY           );
-	actionCurrentViewToDefault->setProperty(                      "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_CURRENT_VIEW_TO_DEFAULT      );
+	actionDirectoryFuncValToRGB->setProperty(                     "gmMeshWidgetFunctionCall", MeshWidgetParams::DIRECTORY_FUNCVAL_TO_RGB             );
+	actionCurrentViewToDefault->setProperty(                      "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_CURRENT_VIEW_TO_DEFAULT          );
 	actionSetConeAxisCentralPixel->setProperty(                   "gmMeshWidgetFunctionCall", MeshWidgetParams::EDIT_SET_CONEAXIS_CENTRALPIXEL       );
-	actionOrthoSetDPI->setProperty(                               "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_ORTHO_DPI                    );
-	actionRenderDefault->setProperty(                             "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_RENDER_DEFAULT               );
-	actionRenderMatted->setProperty(                              "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_RENDER_MATTED                );
-	actionRenderMetallic->setProperty(                            "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_RENDER_METALLIC              );
-	actionRenderLightShading->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_RENDER_LIGHT_SHADING         );
-	actionRenderFlatAndEdges->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_RENDER_FLAT_AND_EDGES        );
-	actionBackGroundGridRaster->setProperty(                      "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_GRID_RASTER                  );
-	actionBackGroundGridPolar->setProperty(                       "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_GRID_POLAR                   );
-	actionBackGroundGridNone->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_GRID_NONE                    );
+	actionOrthoSetDPI->setProperty(                               "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_ORTHO_DPI                        );
+	actionRenderDefault->setProperty(                             "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_RENDER_DEFAULT                   );
+	actionRenderMatted->setProperty(                              "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_RENDER_MATTED                    );
+	actionRenderMetallic->setProperty(                            "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_RENDER_METALLIC                  );
+	actionRenderLightShading->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_RENDER_LIGHT_SHADING             );
+	actionRenderFlatAndEdges->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_RENDER_FLAT_AND_EDGES            );
+	actionBackGroundGridRaster->setProperty(                      "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_GRID_RASTER                      );
+	actionBackGroundGridPolar->setProperty(                       "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_GRID_POLAR                       );
+	actionBackGroundGridNone->setProperty(                        "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_GRID_NONE                        );
+	actionViewAxisUp->setProperty(                                "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_VIEW_AXIS_UP                     );
+	actionViewMatrixSet->setProperty(                             "gmMeshWidgetFunctionCall", MeshWidgetParams::SET_VIEW_PARAMETERS                  );
+	actionViewMatrix->setProperty(                                "gmMeshWidgetFunctionCall", MeshWidgetParams::SHOW_VIEW_PARAMETERS                 );
+	actionViewShow2DBoundingBox->setProperty(                     "gmMeshWidgetFunctionCall", MeshWidgetParams::SHOW_VIEW_2D_BOUNDING_BOX            );
 
 	mMeshFunctionCalls = new QActionGroup( this );
 	for(QAction*& currAction : allActions) {
@@ -1211,6 +1222,15 @@ bool QGMMainWindow::setupMeshWidget( const QGLFormat& rGLFormat ) {
 
     cout << "[QGMMainWindow::" << __FUNCTION__ << "] ... End" << endl;
 	return true;
+}
+
+//! HighDPI Support for 2x scaled windows - fix for Linux.
+//! @returns false in case of an error. True otherwise.
+bool QGMMainWindow::setupHighDPI20() {
+	// HighDPI Support
+	this->resize( this->size() * 1.1 );
+	bool retVal = mMeshWidget->setParamFloatMeshWidget( MeshWidgetParams::HIGHDPI_ZOOM_FACTOR, 2.0 );
+	return( retVal );
 }
 
 //! Overloaded from QGMMainWindow
@@ -1302,8 +1322,50 @@ void QGMMainWindow::menuImportFunctionValues() {
 													  tr( "ASCII Text (*.mat *.txt)" )
 	                                                 );
 	if( fileNames.size() > 0 ) {
-		emit sFileImportFunctionValues( fileNames );
+        emit sFileImportFunctionValues( fileNames );
 	}
+}
+
+//! Handles the dialog for importing Polylines
+//! see also QGMMainWindow:: and MeshQt::importPolylines
+void QGMMainWindow::menuImportPolylines() {
+    QSettings settings;
+    QString fileNames = QFileDialog::getOpenFileName( this,
+                                                      tr( "Import Polylines)" ),
+                                                      settings.value( "lastPath" ).toString(),
+                                                      tr( "ASCII Polyline (*.pline)" )
+                                                     );
+    if( fileNames.size() > 0 ) {
+        emit sFileImportPolylines( fileNames );
+    }
+}
+
+//! Handles the dialog for importing transformation matrices
+//! see also QGMMainWindow:: and MeshQt::importApplyTransMat
+void QGMMainWindow::menuImportTransMat() {
+    QSettings settings;
+    QString fileNames = QFileDialog::getOpenFileName( this,
+                                                      tr( "Import Transformation matrices" ),
+                                                      settings.value( "lastPath" ).toString(),
+                                                      tr( "ASCII Text (*.txt)" )
+                                                     );
+    if( fileNames.size() > 0 ) {
+        emit sFileImportTransMat( fileNames );
+    }
+}
+
+//! Handles the dialog for importing labels (per vertex).
+//! see also QGMMainWindow:: and MeshQt::importLabels
+void QGMMainWindow::menuImportLabels() {
+    QSettings settings;
+    QString fileNames = QFileDialog::getOpenFileName( this,
+                                                      tr( "Import Labels (per Vertex)" ),
+                                                      settings.value( "lastPath" ).toString(),
+                                                      tr( "ASCII Text (*.mat *.txt)" )
+                                                     );
+    if( fileNames.size() > 0 ) {
+        emit sFileImportLabels( fileNames );
+    }
 }
 
 //! Handles the dialog for importing a texture map (color per vertex).
@@ -1431,7 +1493,7 @@ bool QGMMainWindow::setMeshWidgetParamInt( QAction* rAction ) {
 //! Set view parameters (float) of the mMeshWidget.
 bool QGMMainWindow::setMeshWidgetParamFloat( QAction* rAction ) {
 	if( rAction == nullptr ) {
-		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: NULL pointer given!" << endl;
+		std::cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: NULL pointer given!" << std::endl;
 		return false;
 	}
 
@@ -1440,7 +1502,7 @@ bool QGMMainWindow::setMeshWidgetParamFloat( QAction* rAction ) {
 	double paramValueMax;
 	bool   noMinMaxPresent = false;
 	if ( !getParamID( rAction, "gmMeshWidgetParamFloat", &paramID ) ) {
-		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: fetching paramID failed!" << endl;
+		std::cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: fetching paramID failed!" << std::endl;
 		return false;
 	}
 	if ( !getParamValue( rAction, "gmMeshWidgetParamValueMin", &paramValueMin ) ) {
@@ -1454,11 +1516,11 @@ bool QGMMainWindow::setMeshWidgetParamFloat( QAction* rAction ) {
 
 	// Sanity checks
 	if( paramID <= MeshWidget::PARAMS_FLT_UNDEFINED ) {
-		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Parameter ID out of range (low)!" << endl;
+		std::cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Parameter ID out of range (low)!" << std::endl;
 		return false;
 	}
 	if( paramID >= MeshWidget::PARAMS_FLT_COUNT ) {
-		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Parameter ID out of range (high)!" << endl;
+		std::cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Parameter ID out of range (high)!" << std::endl;
 		return false;
 	}
 
@@ -2016,6 +2078,8 @@ void QGMMainWindow::updateWidgetShowFlag(MeshWidgetParams::eParamFlag rFlag, boo
 		break;
 	case MeshWidgetParams::SCREENSHOT_FILENAME_WITH_DPI:
 		break;
+	case MeshWidgetParams::SCREENSHOT_PNG_BACKGROUND_OPAQUE:
+		break;
 	case MeshWidgetParams::SHOW_MESH_REDUCED:
 		break;
 	case MeshWidgetParams::ENABLE_SHOW_MESH_REDUCED:
@@ -2023,7 +2087,7 @@ void QGMMainWindow::updateWidgetShowFlag(MeshWidgetParams::eParamFlag rFlag, boo
 	case MeshWidgetParams::PARAMS_FLAG_COUNT:
 		break;
 	default:
-		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: unsupported/unimplemented flag no: " << rFlag << "!" << endl;
+		std::cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: unsupported/unimplemented flag no: " << rFlag << "!" << std::endl;
 		break;
 	}
 }
@@ -2174,18 +2238,37 @@ void QGMMainWindow::setMenuContextToSelection( Primitive* primitive ) {
 //! Slot taking care about successfull http-request to fetch the
 //! latest version number of GigaMesh from the WebSite.
 void QGMMainWindow::slotHttpCheckVersion( QNetworkReply* rReply ) {
-	cout << "[QGMMainWindow::" << __FUNCTION__ << "] Current version is   " << QString( "%1" ).arg( VERSION_PACKAGE ).toStdString() << endl;
+	std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] Current version is   " << QString( "%1" ).arg( VERSION_PACKAGE ).toStdString() << std::endl;
 	if( rReply->error() != QNetworkReply::NoError ) {
-		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Code " << rReply->error() << ": " << rReply->errorString().toStdString() << endl;
+		std::cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Code " << rReply->error() << ": " << rReply->errorString().toStdString() << std::endl;
+		// Before we exit we check if the last access was more than a year ago:
+		time_t timeNow, timeLast;
+		time( &timeNow );
+		QSettings settings;
+		timeLast = settings.value( "lastVersionCheck" ).toLongLong();
+		double daysSinceLastCheck = difftime( timeNow, timeLast ) / ( 24.0 * 3600.0 );
+		// daysSinceLastCheck = 400.0; // for testing
+		std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] Last check " << daysSinceLastCheck << " days ago." << std::endl;
+		if( daysSinceLastCheck > 365.0 ) {
+			QString msgStr = tr( "There might be a newer version of GigaMesh available for download at: <br /><br />"
+			                     "<a href='https://gigamesh.eu/download'>https://gigamesh.eu/download</a> <br /><br />"
+			                     "See the CHANGELOG file within the new package for updates. "
+			                     "Additional info is typically provided "
+			                     "in our <a href='https://gigamesh.eu/news'>WebSite's news section</a> and "
+			                     "in the <a href='https://gigamesh.eu/researchgate'>ResearchGate project log</a>."
+			                   );
+			SHOW_MSGBOX_WARN( tr( "Check for updates!" ), msgStr.toStdString().c_str() );
+		}
+		settings.setValue( "lastVersionCheck", qlonglong( timeNow ) );
 		return;
 	}
 	QByteArray responseBytes = rReply->readAll();
-	cout << "[QGMMainWindow::" << __FUNCTION__ << "] Available Version is " << responseBytes.constData() << endl;
+	std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] Available Version is " << responseBytes.constData() << std::endl;
 
 	bool convOk = false;
 	unsigned int versionOnline = responseBytes.toUInt( &convOk );
 	if( !convOk ) {
-		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Version (online) is not an unsigned integer!" << endl;
+		std::cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Version (online) is not an unsigned integer!" << std::endl;
 		return;
 	}
 	
@@ -2193,28 +2276,28 @@ void QGMMainWindow::slotHttpCheckVersion( QNetworkReply* rReply ) {
 	
 	unsigned int versionCurrent = QString( "%1" ).arg( VERSION_PACKAGE ).toUInt( &convOk );
 	if( !convOk ) {
-		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Version (current) is not an unsigned integer!" << endl;
+		std::cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: Version (current) is not an unsigned integer!" << std::endl;
 		return;
 	}
 
 	// versionCurrent = 170101; // for testing (2/2)
 
 	if( versionOnline == versionCurrent ) {
-		cout << "[QGMMainWindow::" << __FUNCTION__ << "] You are using the latest offical version." << endl;
+		std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] You are using the latest offical version." << std::endl;
 	} else if ( versionOnline < versionCurrent ) {
-		cout << "[QGMMainWindow::" << __FUNCTION__ << "] You are using a NEWER version than the offical version." << endl;
+		std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] You are using a NEWER version than the offical version." << std::endl;
 	} else {
-		cout << "[QGMMainWindow::" << __FUNCTION__ << "] There is a newer version of GigaMesh available for" << endl;
-		cout << "[QGMMainWindow::" << __FUNCTION__ << "] download at: https://gigamesh.eu/download" << endl;
+		std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] There is a newer version of GigaMesh available for" << std::endl;
+		std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] download at: https://gigamesh.eu/download" << std::endl;
 		QString msgStr = tr( "There is a newer version (%1) of GigaMesh available for download at: <br /><br />"
-		                          "<a href='https://gigamesh.eu/download'>https://gigamesh.eu/download</a> <br /><br />"
-		                          "The version you are using is&nbsp;%2.<br /><br />"
-		                          "See the CHANGELOG file within the new package for updates. "
-		                          "Additional info is typically provided "
-		                          "in our <a href='https://gigamesh.eu/news'>WebSite's news section</a> and "
-		                          "in the <a href='https://gigamesh.eu/researchgate'>ResearchGate project log</a>."
-		                        ).arg( versionOnline ).arg( versionCurrent );
-		SHOW_MSGBOX_WARN( tr("NEW Version available"), msgStr.toStdString().c_str() );
+		                     "<a href='https://gigamesh.eu/download'>https://gigamesh.eu/download</a> <br /><br />"
+		                     "The version you are using is&nbsp;%2.<br /><br />"
+		                     "See the CHANGELOG file within the new package for updates. "
+		                     "Additional info is typically provided "
+		                     "in our <a href='https://gigamesh.eu/news'>WebSite's news section</a> and "
+		                     "in the <a href='https://gigamesh.eu/researchgate'>ResearchGate project log</a>."
+		                   ).arg( versionOnline ).arg( versionCurrent );
+		SHOW_MSGBOX_WARN( tr( "NEW Version available" ), msgStr.toStdString().c_str() );
 	}
 
 	// Store the current timestamp for the last successful attempt
@@ -2294,7 +2377,7 @@ void QGMMainWindow::createLanguageMenu()
 		if(defaultLocale == locale)
 		{
 			localeSet = true;
-			action->setChecked(true);
+			action->setChecked( localeSet );
 			//call slot manually, as the menu is created in QGMMainWindow's constructor. remove if it is done elsewhere in the future,
 			//because then it is handled via signal/slots by setChecked
 			slotChangeLanguage(action);

@@ -69,32 +69,32 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 
 		~MeshQt();
 
-		virtual bool readIsRegularGrid( bool* rIsGrid ); // overloaded from MeshIO
+		virtual bool readIsRegularGrid( bool* rIsGrid ) override; // overloaded from MeshIO
 
-		virtual void   polyLinesChanged();
+		virtual void polyLinesChanged() override;
 
-		virtual void   changedFaceFuncVal();
-		virtual void   changedVertFuncVal();
+		virtual void changedFaceFuncVal() override;
+		virtual void changedVertFuncVal() override;
 
 		// Progress bar - overloaded from Primitive:
-		virtual void showProgressStart( const std::string& rMsg );
-		virtual bool showProgress( double rVal, const std::string& rMsg );
-		virtual void showProgressStop( const std::string& rMsg );
+		virtual void showProgressStart( const std::string& rMsg ) override;
+		virtual bool showProgress( double rVal, const std::string& rMsg ) override;
+		virtual void showProgressStop( const std::string& rMsg ) override;
 
 		// Warnings and info from base classes:
 		virtual void showInformation( const std::string& rHead, const std::string& rMsg,
-		                              const std::string& rToClipboard="" );
-		virtual void showWarning( const std::string& rHead, const std::string& rMsg );
+		                              const std::string& rToClipboard="" ) override;
+		virtual void showWarning( const std::string& rHead, const std::string& rMsg ) override;
 		// Entering values:
-		virtual bool showEnterText( std::string&    rSomeStrg,  const char* rTitle );
-		virtual bool showEnterText( uint64_t&  rULongInt,  const char* rTitle );
-		virtual bool showEnterText( double&         rDoubleVal, const char* rTitle );
-		virtual bool showEnterText( std::set<long>&      rIntegers,  const char* rTitle );
-		virtual bool showEnterText( std::vector<long>&   rIntegers,  const char* rTitle );
-		virtual bool showEnterText( std::vector<double>& rDoubles,   const char* rTitle );
-		virtual bool showEnterText( Matrix4D* rMatrix4x4, bool selectedVerticesOnly = false );
-		virtual bool showSlider( double* rValueToChange, double rMin, double rMax, const char* rTitle );
-		virtual bool showQuestion( bool* rUserChoice, const std::string& rHead, const std::string& rMsg );
+		virtual bool showEnterText( std::string&    rSomeStrg,  const char* rTitle ) override;
+		virtual bool showEnterText( uint64_t&  rULongInt,  const char* rTitle ) override;
+		virtual bool showEnterText( double&         rDoubleVal, const char* rTitle ) override;
+		virtual bool showEnterText( std::set<int64_t>&   rIntegers,  const char* rTitle ) override;
+		virtual bool showEnterText( std::vector<long>&   rIntegers,  const char* rTitle ) override;
+		virtual bool showEnterText( std::vector<double>& rDoubles,   const char* rTitle ) override;
+		virtual bool showEnterText( Matrix4D* rMatrix4x4, bool selectedVerticesOnly = false ) override;
+		virtual bool showSlider( double* rValueToChange, double rMin, double rMax, const char* rTitle ) override;
+		virtual bool showQuestion( bool* rUserChoice, const std::string& rHead, const std::string& rMsg ) override;
 
 	public slots:
 		// Paramters:
@@ -171,9 +171,7 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		//.
 		virtual bool   applyMeltingSphere();
 		//.
-				bool   applyNormalShift();
-		virtual bool   applyNormalShift(double offset);
-
+        virtual bool applyAutomaticMeshAlignment();
 		// Select actions ------------------------------------------------------------------------------------------------------------------------------
 		virtual unsigned int  selectedMVertsChanged();
 		virtual unsigned int  selectedMFacesChanged();
@@ -258,6 +256,7 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 				void intersectSphere();
 		virtual void labelSelectionToSeeds();
 		virtual bool labelVerticesEqualFV();
+        virtual bool labelVerticesEqualRGB();
 		virtual bool labelSelMVertsToBack();
 		virtual bool convertBordersToPolylines();
 		virtual void convertLabelBordersToPolylines();
@@ -283,8 +282,6 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		//.
 		void generateOctree();
 		virtual void generateOctreeVertex(int maxnr);
-		virtual void generateOctreeFace(int maxnr);
-		virtual void generateOctree(int vertexmaxnr, int facemaxnr);
 		virtual void detectselfintersections();
 		void drawOctree();
 		void removeOctreedraw();
@@ -355,10 +352,10 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 	// Overloaded from MeshIO
 	//============================
 	public slots:
-		virtual bool writeFileUserInteract();
-		virtual bool writeFile(const QString& rFileName );
-	    virtual bool writeFile(const std::filesystem::path& rFileName ) override;
-		// Set flags:
+	    virtual bool writeFileUserInteract() override;
+	    virtual bool writeFile( const QString& rFileName );
+	    virtual bool writeFile( const std::filesystem::path& rFileName ) override;
+	// Set flags:
 		virtual bool setFileSaveFlagBinary( bool rSetTo );
 		virtual bool setFileSaveFlagGMExtras( bool rSetTo );
 		virtual bool setFileSaveFlagExportTextures( bool setTo );
@@ -372,6 +369,9 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 	//============================
 		virtual bool importFeatureVectors(const QString& rFileName );
 		virtual bool importFunctionValues(const QString& rFileName );
+        virtual bool importPolylines(const QString& rFileName );
+        virtual bool importApplyTransMat(const QString& rFileName );
+        virtual bool importLabels(const QString& rFileName );
 
 		virtual bool exportFeatureVectors();
 
@@ -379,7 +379,8 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		void updateGL();                             //!< requests an update from the MeshWidget.
 		void sDefaultViewLight();                    //!< signal to restore the default view and lights of the MeshWidget.
 		void sDefaultViewLightZoom();                //!< signal to restore the default view, lights and zoom of the MeshWidget.
-		void sFileChanged(QString,QString);          //!< emitted when a mesh file was opened or stored (path,basename,extension)
+        void sSetDefaultView();                      //!< signal to meshWidget -> set the mesh after transformation to the camera center and ask for saving the transformation as default.
+        void sFileChanged(QString,QString);          //!< emitted when a mesh file was opened or stored (path,basename,extension)
 		void statusMessage(QString);                 //!< emitted when the status changed.
 		//.
 		void visualizeFeatureDist(int,double*);  //!< emitted when the distance to a feature vector has to be estimated and reflected as texture-map (see menuVisualizeFeatDistSelected() ).

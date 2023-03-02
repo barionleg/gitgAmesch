@@ -23,6 +23,7 @@
 #define QGMMACROS_H
 
 #include <QMessageBox>
+#include <QSizeGrip>
 #include <QInputDialog>
 #include <QPushButton>
 #include <QTimer>

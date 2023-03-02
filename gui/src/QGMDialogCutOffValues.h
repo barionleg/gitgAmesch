@@ -53,7 +53,7 @@ class QGMDialogCutOffValues : public QDialog, private Ui::dialogCutOffValues {
 
 public:
 	// Constructor and Destructor:
-	QGMDialogCutOffValues( QWidget *parent = 0, Qt::WindowFlags flags = 0 );
+        QGMDialogCutOffValues( QWidget *parent = nullptr, Qt::WindowFlags flags = {} );
 
 public slots:
 	void accept();

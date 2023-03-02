@@ -45,10 +45,8 @@ MeshWidgetParams::MeshWidgetParams() {
 	mParamFlag[LIGHT_AMBIENT]            = true;
 	mParamFlag[CROP_SCREENSHOTS]         = true;
 	mParamFlag[EXPORT_SVG_AXIS_DASHED]   = true;
-	mParamFlag[EXPORT_SIDE_VIEWS_SIX]          = true;
-	mParamFlag[SCREENSHOT_FILENAME_WITH_DPI]   = false;
-	mParamFlag[SHOW_MESH_REDUCED]        = false;
-	mParamFlag[ENABLE_SHOW_MESH_REDUCED] = false;
+	mParamFlag[EXPORT_SIDE_VIEWS_SIX]    = true;
+    mParamFlag[EXPORT_TTL_WITH_PNG] = true;
 
 	// Initalize parameters (int):
 	for(int& paramInt : mParamInt) {
@@ -102,6 +100,7 @@ MeshWidgetParams::MeshWidgetParams() {
 	mParamFlt[RULER_UNIT]           =  10.0; //1.0;
 	mParamFlt[RULER_UNIT_TICKS]     =   1.0; //0.0;
 	mParamFlt[SVG_SCALE]            =  72.0 / 25.4; // 72 DPInch is the default expected by Inkscape
+	mParamFlt[HIGHDPI_ZOOM_FACTOR]  =   1.0;
 
 	// Initalize parameters (string):
 	mParamStr[FILENAME_EXPORT_VR]          = "gigamesh_still_image_%05i_%05i_%02i.png";
@@ -130,6 +129,18 @@ MeshWidgetParams::MeshWidgetParams() {
 		mParamStr[PDF_VIEWER_COMMAND] = "evince";
 	else
 		mParamStr[PDF_VIEWER_COMMAND] = tmpString;
+
+    tmpString = settings.value("PdfViewer_Path", "").toString().toStdString();
+    if(tmpString.length() == 0)
+        mParamStr[PDF_VIEWER_COMMAND_ALT1] = "okular";
+    else
+        mParamStr[PDF_VIEWER_COMMAND_ALT1] = tmpString;
+
+    tmpString = settings.value("PdfViewer_Path", "").toString().toStdString();
+    if(tmpString.length() == 0)
+        mParamStr[PDF_VIEWER_COMMAND_ALT2] = "atril";
+    else
+        mParamStr[PDF_VIEWER_COMMAND_ALT2] = tmpString;
 
 	tmpString = settings.value("Python3_Path", "").toString().toStdString();
 	if(tmpString.length() == 0)
@@ -372,9 +383,14 @@ bool MeshWidgetParams::setParamFloatMeshWidget( eParamFlt rParamID, double rValu
 		case ORTHO_SHIFT_VERT:
 			// Nothing to do
 			break;
+		case HIGHDPI_ZOOM_FACTOR:
+			if( rValue <= 0.0 ) {
+				return false;
+			}
+			break;
 		case PARAMS_FLT_COUNT:
 		default:
-			cerr << "[MeshWidgetParams::" << __FUNCTION__ << "] unknown paramNr: " << rParamID << " val: " << rValue << endl;
+			std::cerr << "[MeshWidgetParams::" << __FUNCTION__ << "] unknown paramNr: " << rParamID << " val: " << rValue << std::endl;
 			break;
 	}
 	mParamFlt[rParamID] = rValue;

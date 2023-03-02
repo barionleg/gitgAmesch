@@ -160,6 +160,7 @@ virtual bool     setAlpha(unsigned char alpha);
 		static  bool     funcValLowerLabled( Vertex* vert1, Vertex* vert2 );
 		static  bool     sortLabelsFirst( Vertex* vert1, Vertex* vert2 );
 		static  bool     sortByIndex( Vertex* vert1, Vertex* vert2 );
+        static  bool     RGBLower( Vertex* vert1, Vertex* vert2 );
 		
 		
 		// Coordinate Setter:
@@ -181,7 +182,7 @@ virtual bool     setAlpha(unsigned char alpha);
 		
 		// Transformation:
 		        bool     applyTransfrom( Matrix4D* transMat ) override;
-				bool     applyMeltingSphere( double rRadius, double rRel=1.0 ) override;
+		        bool     applyMeltingSphere( double rRadius, double rRel=1.0 ) override;
         virtual Vertex*  applyNormalShift(float offsetDistance,int index);
 
 		// Labeling:
@@ -222,7 +223,7 @@ virtual bool     setAlpha(unsigned char alpha);
 			double   estDistanceToLine( const Vertex* rPosTip, const Vertex* rPosBottom );
 		        double   estDistanceToLineDir( const Vector3D* rPos, const Vector3D* rDir );
 		        double   estDistanceToPlane( double* planeHNF, bool absDist );
-				double   estDistanceToPlane( Vector3D* planeHNF, bool absDist = false );
+				double   estDistanceToPlane( const Vector3D& rPlaneHNF, bool rAbsDist = false ) const;
 		        double   estDistanceToCone(Vector3D* axisTop,
 		                                   Vector3D* axisBot,
 		                                   Vector3D* coneTip,

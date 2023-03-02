@@ -27,11 +27,6 @@
 #include "line.h"
 #include "cube.h"
 
-// IMPORTANT lesson about templates:
-//==================================
-// "The only portable way of using templates at the moment is to implement them in header files by using inline functions."
-// -- C++ standard library: a tutorial and handbook.
-
 // Sets default values
 // ----------------------------------------------------
 #define OCTNODEDEFAULTS   \
@@ -39,29 +34,24 @@
 	mchildren()
 
 
-template <class T>
 
 class Octnode {
 
 public:
 	// Constructor for the root node.
-	Octnode( Vector3D* center, double scale ) : \
-	        OCTNODEDEFAULTS,                    \
-	        mparent( nullptr ),                    \
-	        mlevel( 0 ),                        \
-	        mCube( *center, scale ) {
-		// do nothing
-	};
+    Octnode( Vector3D* center, double scale );
 
 	// Constructor for a child node.
-	Octnode( Octnode* parent, int nr ) : \
-	       OCTNODEDEFAULTS,              \
-	       mparent( parent ),            \
-	       mlevel( parent->mlevel+1 ),   \
-	       mCube( Cube(mparent->mCube.mcenter, 0.5*mparent->mCube.mscale).getVertex(nr), 0.5*mparent->mCube.mscale ) {
-		// do nothing
-	};
+    Octnode( Octnode* parent, int nr );
 
+    //copy constructor
+    Octnode( Octnode &copy);
+
+    std::vector<Octnode*> getLeafNodes();
+    std::vector<Octnode*> getNodeList();
+    bool isFaceInside(Face *face);
+    ///is the octnode neighbor of the @param[node]?
+    bool isNeighbor(Octnode* node);
 	// Destructor
 //	~Octnode();
 
@@ -75,14 +65,16 @@ public:
 	unsigned int mlevel;
 	 /// the centerpoint of this node
 	Cube mCube;
+    ///position at the parent --> look at figure in cube.cpp
+    int mPosNr = -1;
 
 	/// vertices inside this node
-	std::vector<T> mElements;
+    std::vector<Vertex*> mVertices;
 
-	/// comparison function to sort nodes by level
-	static bool compareoctnode( Octnode<T>* rNode1, Octnode<T>* rNode2 ) {
-		return ( rNode1->mlevel < rNode2->mlevel );
-	}
+    /// faces inside the node
+    std::set<Face*> mFaces;
+
+    static bool compareoctnode( Octnode* rNode1, Octnode* rNode2 );
 };
 
 

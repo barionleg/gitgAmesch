@@ -83,10 +83,10 @@ public:
 	MeshWidget( const QGLFormat& format, QWidget* parent );
 	~MeshWidget() override;
 
-	bool    getViewPortResolution( double& rRealWidth, double& rRealHeight );
-	bool    getViewPortPixelWorldSize( double& rPixelWidth, double& rPixelHeight );
-	bool    getViewPortDPI(double& rDPI);
-	bool    getViewPortDPM(double& rDPM);
+	bool    getViewPortResolution( double& rRealWidth, double& rRealHeight ) const;
+	bool    getViewPortPixelWorldSize( double& rPixelWidth, double& rPixelHeight ) const;
+	bool    getViewPortDPI( double& rDPI ) const;
+	bool    getViewPortDPM( double& rDPM ) const;
 
 public slots: // ... overloaded from MeshWidgetParams:
 	bool    setParamFlagMeshWidget(    MeshWidgetParams::eParamFlag rFlagNr,  bool   rState  ) override;
@@ -139,18 +139,38 @@ private:
 
 	// Screenshot - Wrapping methods
 	bool screenshotPDFUser();
-	bool screenshotPDF( const QString& rFileName, const bool rUseTiled );
+    bool screenshotPDF( const QString& rFileName, const bool rUseTiled, const QString rTemplate, const QString rTexFileName, const QString rCCparameter, const QString rCCversion );
 
 private:
 	// Screenshot - Views - Wrapping methods
 	bool screenshotViewsDirectoryFiles( QString& rPathChoosen, QStringList& rCurrFiles ); // Internal use only
+
+
+private:
+    //Help functions of PDF Latex export
+
+    //structure of all possible Latex Placeholder
+    // need for a Helping Text
+    struct LatexPlaceholder{
+        QString placeholder;
+        QString descr; //description for the Helper Text
+    };
+    std::vector<LatexPlaceholder> mPdfViewsPlaceholders;
+
+
+    void setLatexPlaceholderDefinition();
+    bool checkUserdefinedLatexFile(QString *latexTemplate,std::vector<LatexPlaceholder> rPlaceHolders);
+    bool askForCCLicenseParameters(QString *ccParameter,QString *ccVersion);
+    bool mUserContinue; //needed for the directory function. Don't give for every mesh the information box
+
 public:
 	bool screenshotViewsDirectory();
+	bool directoryFuncValToRGB();
 	bool screenshotViewsPDFUser();
-	bool screenshotViewsPDF( const QString& rFileName );
+    bool screenshotViewsPDF( const QString& rFileName, const QString rTemplate, const QString rTexFileName, const QString rCCparameter, const QString rCCversion );
 private:
 	bool screenshotPDFMake( const QString& rPrefixPath, const QString& rFilePrefixTex );
-
+    std::vector<LatexPlaceholder> mPdfSinglePlaceholders;
 public slots:
 	// Screenshot - Views - Rendering
 	void screenshotViews();
@@ -160,18 +180,6 @@ public slots:
 	                      const bool              rUseTiled,
 	                      std::vector<QString>&   rImageFiles,
 	                      std::vector<double>&    rImageSizes );
-
-	// === LEGACY to be removed! ===========================================================================================================================
-	void generateLatexFile();
-	void generateLatexCatalog();
-	QStringList generateLatexCatalog(int depth, const QString& rPath, bool rUseTiled,
-	                                 const QStringList& rFilters, const QList<float>& paperProperties,
-	                                 const QList<QStringList>& pageCombinations, const QString& suffix,
-	                                 float dpiFactorf, const QString& mainPath );
-	QStringList generateLatexCatalogPage(const QString& rFilePath, bool rUseTiled, const QList<float>& paperPropertiesf,
-	                                     const QList<QStringList>& pageCombinations, const QString& suffix,
-	                                     float dpiFactorf, float rDPIf, const QString& mainPath );
-	// =====================================================================================================================================================
 
 private:
 
@@ -210,22 +218,26 @@ private:
 	// Fetch screenshots:
 	bool prepareTile(uint64_t rTilesX, uint64_t rTilesY, unsigned char** rImRGBA, uint64_t* rImWidth, uint64_t* rImHeight, uint64_t rBorderSize = 0 );
 	bool fetchFrameAndZBufferTile(unsigned int rTilesX, unsigned int rTilesY, unsigned int rTX, unsigned int rTY, unsigned char* rImRGBA, uint64_t rImWidth, uint64_t rImHeight, OffscreenBuffer* offscreenBuffer, long rBorderSize = 0 );
-	bool fetchFrameAndZBuffer( unsigned char*& rImRGBA, uint64_t& rImWidth, uint64_t& rImHeight, bool rCropUsingZBuffer, OffscreenBuffer* offscreenBuffer );
+	bool fetchFrameAndZBuffer( unsigned char*& rImRGBA, uint64_t& rImWidth, uint64_t& rImHeight, bool rCropUsingZBuffer, OffscreenBuffer* offscreenBuffer, bool keepBackground = false );
 	bool fetchFrameBuffer( unsigned char** rImArray, int* rImWidth, int* rImHeight, bool rCropUsingZBuffer, OffscreenBuffer* offscreenBuffer );
 	// Write screenshots:
 	bool screenshotTIFF(const QString& rFileName , OffscreenBuffer *offscreenBuffer);
 	bool screenshotPNG(const QString& rFileName, double& rWidthReal, double& rHeigthReal , OffscreenBuffer *offscreenBuffer);
 
+	// View menu
+	bool getViewSettingsTxt( QString& rSettingsStr ) const;
+	bool getViewSettingsTTL( QString& rSettingsStr, QString& uri) const;
+	bool getViewSettingsJSON( QString& rSettingsStr ) const;
+	bool showView2DBoundingBox();
+	bool showViewMatrix();
+	bool setViewMatrix();
+	bool setViewMatrix( std::vector<double> rMatrix );
+	bool setViewAxisUp();
 
 public slots:
 	void selectColorBackground();
 
 	// View menu
-	bool showViewMatrix();
-	bool setViewMatrix();
-	bool setViewMatrix( std::vector<double> rMatrix );
-	bool setViewAxisUp();
-	//.
 	bool orthoSetDPI();
 	bool orthoSetDPI( double rSetTo );
 	//.
@@ -326,20 +338,23 @@ private:
 	void setViewInitialZoom();
 	void setView( GLdouble* rOrthoViewPort=nullptr );
 	void setViewModelMat();
+	int height() const;
+	int width() const;
 
 	// Camera parameters (OpenGL)
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
 	Vector3D   mCenterView;            //!< the central point we(=camera/eye) are looking at.
 	Vector3D   mCameraCenter;          //!< center of the camera(=eye) (X-coordinate).
 	Vector3D   mCameraUp;              //!< camera orientation.
-	// Matrices for OpenGL:
+
+	// Matrices for OpenGL computed using the camera parameters (above):
+	//------------------------------------------------------------------------------------------------------------------------------------------------------
 	QMatrix4x4 mMatProjection;      //!< OpenGL projection matrix.
 	QMatrix4x4 mMatModelView;       //!< OpenGL modelview matrix.
 
 	// Mouse and keyboard interaction
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
 	QPoint  mLastPos;                 //!< Stores the last cursor position. Used to determine movement of the mouse for interaction.
-	QPoint  mLastPosRelease;          //!< Stores the last cursor position when mouse is clicked, for selection if we know position where mouse is released
 	std::vector<QPoint> mSelectionPoly;    //!< Screen coordinates of the selection poylgon.
 
 	// performance evaluation (frames per second):
@@ -383,7 +398,7 @@ private:
 	void initializeShader(const QString& rFileName, QOpenGLShaderProgram** rShaderProgram );
 	bool paintBackgroundShader( QOpenGLShaderProgram** rShaderProgram );
 	bool paintRasterImage( eTextureMaps rTexMap, int rPixelX, int rPixelY, int rPixelWidth, int rPixelHeight );
-    //------------------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	//! Checkes if mesh might cause problems. E.g. too small or georeferenced (far away from origin)
 	void checkMeshSanity();

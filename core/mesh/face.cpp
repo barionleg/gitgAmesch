@@ -269,7 +269,7 @@ bool Face::getVertABC( set<Vertex*>* rSomeVerts ) {
 
 // Indexing -------------------------------------------------------------------
 
-bool Face::setIndex( unsigned int rIndex ) {
+bool Face::setIndex( int rIndex ) {
 	//! Setes the index of a Primitive. Additionally it preserves the very first
 	//! index set. Returns false in case the index has not been set.
 	mIndex = rIndex;
@@ -576,25 +576,33 @@ double Face::getAngleAtVertex( const Vertex* vertABC ) const {
 	return( 0.0 );
 }
 
-bool Face::requiresVertex( Vertex* vertexRequired ) const {
-	//! Returns true if vertexRequired matches A, B or C.
+//! Determine if the given vertex is part of this face.
+//!
+//! @returns true if vertexRequired matches A, B or C.
+bool Face::requiresVertex(
+		const Vertex *vertexRequired
+) const {
 	return vertA == vertexRequired ||
-		vertB == vertexRequired ||
-		vertC == vertexRequired;
+	       vertB == vertexRequired ||
+	       vertC == vertexRequired;
 }
 
-//! Returns true if A,B or C is within the list (set).
-bool Face::requiresOneOrMoreVerticesOf( set<Vertex*>* vertexList ) {
-	if( vertexList->find( vertA ) != vertexList->end() ) {
-		return true;
+//! Determine if one or more of the given vertices is part of this face.
+//!
+//! @returns true if A, B or C is within the list (set).
+bool Face::requiresOneOrMoreVerticesOf(
+		const std::set<Vertex*>& rVertexList
+) const {
+	if( rVertexList.find( vertA ) != rVertexList.end() ) {
+		return( true );
 	}
-	if( vertexList->find( vertB ) != vertexList->end() ) {
-		return true;
+	if( rVertexList.find( vertB ) != rVertexList.end() ) {
+		return( true );
 	}
-	if( vertexList->find( vertC ) != vertexList->end() ) {
-		return true;
+	if( rVertexList.find( vertC ) != rVertexList.end() ) {
+		return( true );
 	}
-	return false;
+	return( false );
 }
 
 //! Minimum Distance of the Distances of A, B and C to a given position.
@@ -1760,64 +1768,71 @@ bool Face::getLabelLines( set<labelLine*>* labelLineCollection ) {
 		return false;
 	}
 	uint64_t nextLabel;
-	if( ( FACE_NEIGHBOUR_AB == nullptr ) || ( !FACE_NEIGHBOUR_AB->getLabel( nextLabel ) ) || ( nextLabel != currentLabel ) ) {
-		labelLine* lineAB = new labelLine();
-		lineAB->vertA      = vertA;
-		lineAB->vertB      = vertB;
-		lineAB->mFromFace  = this;
-		lineAB->mFromEdge  = EDGE_AB;
-		lineAB->labelNr    = currentLabel;
-		labelLineCollection->insert( lineAB );
+
+    if( ( FACE_NEIGHBOUR_AB == nullptr ) || ( !FACE_NEIGHBOUR_AB->getLabel( nextLabel ) ) || ( nextLabel != currentLabel ) ) {
+        labelLine* lineAB = new labelLine();
+        //labelLine lineAB;
+        lineAB->vertA      = vertA;
+        lineAB->vertB      = vertB;
+        lineAB->mFromFace  = this;
+        lineAB->mFromEdge  = EDGE_AB;
+        lineAB->labelNr    = currentLabel;
+        labelLineCollection->insert( lineAB );
 	}
-	if( ( FACE_NEIGHBOUR_BC == nullptr ) || ( !FACE_NEIGHBOUR_BC->getLabel( nextLabel ) ) || ( nextLabel != currentLabel ) ) {
-		labelLine* lineBC = new labelLine();
-		lineBC->vertA      = vertB;
-		lineBC->vertB      = vertC;
-		lineBC->mFromFace  = this;
-		lineBC->mFromEdge  = EDGE_BC;
-		lineBC->labelNr    = currentLabel;
-		labelLineCollection->insert( lineBC );
+
+    if( ( FACE_NEIGHBOUR_BC == nullptr ) || ( !FACE_NEIGHBOUR_BC->getLabel( nextLabel ) ) || ( nextLabel != currentLabel ) ) {
+        labelLine* lineBC = new labelLine();
+        lineBC->vertA      = vertB;
+        lineBC->vertB      = vertC;
+        lineBC->mFromFace  = this;
+        lineBC->mFromEdge  = EDGE_BC;
+        lineBC->labelNr    = currentLabel;
+        labelLineCollection->insert( lineBC );
 	}
-	if( ( FACE_NEIGHBOUR_CA == nullptr ) || ( !FACE_NEIGHBOUR_CA->getLabel( nextLabel ) ) || ( nextLabel != currentLabel ) ) {
-		labelLine* lineCA = new labelLine();
-		lineCA->vertA      = vertC;
-		lineCA->vertB      = vertA;
-		lineCA->mFromFace  = this;
-		lineCA->mFromEdge  = EDGE_CA;
-		lineCA->labelNr    = currentLabel;
-		labelLineCollection->insert( lineCA );
+    if( ( FACE_NEIGHBOUR_CA == nullptr ) || ( !FACE_NEIGHBOUR_CA->getLabel( nextLabel ) ) || ( nextLabel != currentLabel )) {
+        //labelLine* lineCA = new labelLine();
+        labelLine *lineCA = new labelLine();
+        lineCA->vertA      = vertC;
+        lineCA->vertB      = vertA;
+        lineCA->mFromFace  = this;
+        lineCA->mFromEdge  = EDGE_CA;
+        lineCA->labelNr    = currentLabel;
+        labelLineCollection->insert(lineCA );
 	}
-	return true;
+
+    return true;
 }
 
 // Labeling using Vertex labels - specific for Faces! -----------------------------------------------------
 
+//! Returns true, when all vertices of the face belong to the same label.
+//! In this case the label id will be written to getLabelNr.
+//! Returns false otherwise - also when all vertices are tagged as "no labled".
+//! To use this method to detect label bordes, you will have to use vertLabelNoLabel().
+//!
+//! @returns true, when all vertices of the face belong to the same label.
 bool Face::vertLabelGet( uint64_t& rGetLabelNr ) const {
-	//! Returns true, when all vertices of the face belong to the same label.
-	//! In this case the label id will be written to getLabelNr.
-	//! Returns false otherwise - also when all vertices are tagged as "no labled".
-	//! To use this method to detect label bordes, you will have to use vertLabelNoLabel().
 	uint64_t labelA;
 	uint64_t labelB;
 	uint64_t labelC;
 	if( !vertA->getLabel( labelA ) ) {
 		// no label =>
-		return false;
+		return( false );
 	}
 	if( !vertB->getLabel( labelB ) ) {
 		// no label =>
-		return false;
+		return( false );
 	}
 	if( !vertC->getLabel( labelC ) ) {
 		// no label =>
-		return false;
+		return( false );
 	}
 	if( ( labelA != labelB ) || ( labelB != labelC ) || ( labelC != labelA ) ) {
 		// mixed labels =>
-		return false;
+		return( false );
 	}
 	rGetLabelNr = labelA;
-	return true;
+	return( true );
 }
 
 bool Face::vertLabelBackGround() {
@@ -2892,7 +2907,7 @@ double Face::getAreaNormal() {
 	vCAx = vertC->getX() - vertA->getX();
 	vCAy = vertC->getY() - vertA->getY();
 	vCAz = vertC->getZ() - vertA->getZ();
-	
+
 	// cross product using xyzzy - see: http://en.wikipedia.org/wiki/Cross_product#Mnemonic
 	// divided by half => | NORMAL | = sqrt( x^2 + y^2 + z^2 ) == area
 	NORMAL_X = ( ( vBAy * vCAz ) - ( vBAz * vCAy ) );

@@ -30,21 +30,16 @@
 #include <cstdio>
 #include <cstdlib> // calloc
 
-#ifdef _MSC_VER	//windows version for hostname and login
-#include <winsock.h>
-#include <WinBase.h>
-#include <lmcons.h>
+#ifdef _MSC_VER // windows version for getopt
 #include "getoptwin.h"
 #elif defined(__MINGW32__) || defined(__MINGW64__)
-#include <windows.h>
-#include <lmcons.h>
 #include "getoptwin.h"
 #else
-#include <unistd.h> // gethostname, getlogin_r
-
 #include <getopt.h>
 #endif
+
 #include <GigaMesh/printbuildinfo.h>
+#include <GigaMesh/getuserandhostname.h>
 #include <GigaMesh/mesh/compfeaturevecs.h>
 
 //#include "voxelcuboid.h"
@@ -86,8 +81,11 @@ bool generateFeatureVectors(
 		return( false );
 	}
 
+    //get absolute path, is necessary to save the texture paths correct in the new PLY File
+    std::filesystem::path absoluteInPath = std::filesystem::absolute( fileNameIn );
+
 	// Fileprefix for output
-	std::filesystem::path fileNameOut( fileNameIn );
+    std::filesystem::path fileNameOut( absoluteInPath );
 	fileNameOut.replace_extension( "" );
 
 	// Prepare suffix for the output file
@@ -590,51 +588,6 @@ bool generateFeatureVectors(
 	delete[] multiscaleRadii;
 
 	return( retVal );
-}
-
-//! System indipendent retrieval of username and hostname
-//! as part of the technical meta-data
-void getUserAndHostName(
-        std::string& rUserName,
-        std::string& rHostName
-) {
-#ifdef WIN32
-	WSAData wsaData;
-	WSAStartup(MAKEWORD(2,2),&wsaData);
-	char hostname[256] = {0};
-	auto error = gethostname(hostname, 256);
-
-	if(error != 0)
-	{
-		std::cerr << "[GigaMesh] ERROR: Could not get hostname!" << std::endl;
-	}
-	char username[UNLEN- 1] = {0};
-	DWORD len = UNLEN - 1;
-	if(!GetUserNameA(username,&len))
-	{
-		std::cerr << "[GigaMesh] ERROR: Could not get username!" << std::endl;
-	}
-	WSACleanup();
-#else
-    #ifndef HOST_NAME_MAX
-	    const size_t HOST_NAME_MAX = 256;
-    #endif
-    #ifndef LOGIN_NAME_MAX
-		const size_t LOGIN_NAME_MAX = 256;
-    #endif
-	// Write hostname and username - see: https://stackoverflow.com/questions/27914311/get-computer-name-and-logged-user-name
-	char hostname[HOST_NAME_MAX] = {0};
-	char username[LOGIN_NAME_MAX] = {0};
-	gethostname( hostname, HOST_NAME_MAX );
-	auto error = getlogin_r( username, LOGIN_NAME_MAX );
-
-	if(error != 0)
-	{
-		std::cerr << "[GigaMesh] ERROR: Could not get username!" << std::endl;
-	}
-#endif
-	rUserName = username;
-	rHostName = hostname;
 }
 
 //! Show software version.

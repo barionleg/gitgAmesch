@@ -27,6 +27,8 @@ cd $NAME
 #uncomment to specifiy commit to build
 #git reset 937b4ca963ade717e1 --hard
 
+git checkout develop
+
 # Get NUM_PROCESSORS and CURRENT_VERSION
 NUM_PROCESSORS=$(nproc)
 if [ $# -eq 1 ]; then
@@ -73,7 +75,7 @@ else
 	echo \'makepg\' missing - seems this is not a Manjaro system.
 fi
 
-# Step out of the subdirectory
-echo "Copying gigamesh-${CURRENT_VERSION}-*.pkg.tar.xz to $STARTDIR"
-mv gigamesh-${CURRENT_VERSION}-*.pkg.tar.xz $STARTDIR
+# Step out of the subdirectory (extension in older version was .xz, now: .zst)
+echo "Copying gigamesh-${CURRENT_VERSION}-*.pkg.tar.zst to $STARTDIR"
+mv gigamesh-${CURRENT_VERSION}-*.pkg.tar.zst $STARTDIR
 cd ..

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1200</width>
-    <height>810</height>
+    <height>818</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -78,9 +78,6 @@
      <addaction name="separator"/>
      <addaction name="actionScreenshotRuler"/>
      <addaction name="separator"/>
-     <addaction name="actionGenerateLatexFile"/>
-     <addaction name="actionGenerateLatexCatalog"/>
-     <addaction name="separator"/>
      <addaction name="actionScreenshotsCrop"/>
      <addaction name="separator"/>
      <addaction name="actionVideoFrameSizeSet"/>
@@ -89,6 +86,7 @@
      <addaction name="actionExportSVGDashedAxis"/>
      <addaction name="actionScreenshotDPISuffix"/>
      <addaction name="actionExportScreenShotsViewsSix"/>
+     <addaction name="actionReplaceTransparencyBgColor"/>
     </widget>
     <widget class="QMenu" name="menuFileRecent">
      <property name="title">
@@ -106,6 +104,9 @@
      <addaction name="actionImportTexMap"/>
      <addaction name="separator"/>
      <addaction name="actionImportVertexCoordinatesFromCSV"/>
+     <addaction name="actionImportPolylines"/>
+     <addaction name="actionImportLabels"/>
+     <addaction name="actionImport_and_apply_transformation_matrices"/>
     </widget>
     <widget class="QMenu" name="menuExport">
      <property name="title">
@@ -125,10 +126,22 @@
      <addaction name="actionExportPolylinesProjected"/>
      <addaction name="actionExportPolylinesFuncVals"/>
     </widget>
+    <widget class="QMenu" name="menuExport_Meta_Data">
+     <property name="title">
+      <string>Export Meta-Data</string>
+     </property>
+     <addaction name="actionExportMetaDataHTML"/>
+     <addaction name="actionExportMetaDataTTL"/>
+     <addaction name="actionExportMetaDataJSON"/>
+     <addaction name="actionExportMetaDataXML"/>
+     <addaction name="separator"/>
+     <addaction name="actionExportMetaDataAll"/>
+    </widget>
     <addaction name="actionFileOpen"/>
     <addaction name="menuFileRecent"/>
     <addaction name="actionFileReload"/>
     <addaction name="actionFileSaveAs"/>
+    <addaction name="actionSaveLabelsSeparated"/>
     <addaction name="actionSaveFlagBinary"/>
     <addaction name="actionSaveFlagGMExtras"/>
     <addaction name="actionSaveFlagTextureExport"/>
@@ -142,6 +155,9 @@
     <addaction name="menuExportImageStack"/>
     <addaction name="separator"/>
     <addaction name="actionScreenshotViewsDirectory"/>
+    <addaction name="actionDirectoryFuncValToRGB"/>
+    <addaction name="separator"/>
+    <addaction name="menuExport_Meta_Data"/>
     <addaction name="separator"/>
     <addaction name="actionUnloadFeatureVectors"/>
     <addaction name="actionUnload3D"/>
@@ -156,6 +172,7 @@
     <addaction name="actionLabelSelectionToSeeds"/>
     <addaction name="actionLabelSelMVerts"/>
     <addaction name="actionLabelVertEqualFV"/>
+    <addaction name="actionLabelVertEqualRGB"/>
     <addaction name="actionLabelSelMVertsBackground"/>
     <addaction name="actionLabelFaces"/>
     <addaction name="separator"/>
@@ -318,6 +335,7 @@
      <addaction name="actionApplyMatrix4DVertSel"/>
      <addaction name="separator"/>
      <addaction name="actionApplyMeltingSphere"/>
+     <addaction name="actionAutomatic_Mesh_Alignment"/>
     </widget>
     <addaction name="actionEditMeshPolish"/>
     <addaction name="separator"/>
@@ -448,6 +466,7 @@
     <addaction name="separator"/>
     <addaction name="actionViewActivateInspectionOptions"/>
     <addaction name="separator"/>
+    <addaction name="actionViewShow2DBoundingBox"/>
     <addaction name="actionViewMatrix"/>
     <addaction name="actionViewMatrixSet"/>
     <addaction name="separator"/>
@@ -666,6 +685,13 @@
       <string>Languages</string>
      </property>
     </widget>
+    <widget class="QMenu" name="menuAutomatic_Mesh_Polishing">
+     <property name="title">
+      <string>Automatic Mesh Polishing</string>
+     </property>
+     <addaction name="actionRemove_Dangling_Faces"/>
+     <addaction name="actionMax_Number_of_vertices_for_hole_filling"/>
+    </widget>
     <addaction name="actionSetFOV"/>
     <addaction name="separator"/>
     <addaction name="actionProjectPerspective"/>
@@ -706,6 +732,8 @@
     <addaction name="actionFogLinearDistMin"/>
     <addaction name="actionFogLinearDistMax"/>
     <addaction name="separator"/>
+    <addaction name="menuAutomatic_Mesh_Polishing"/>
+    <addaction name="separator"/>
     <addaction name="actionGigaMeshLogo"/>
     <addaction name="separator"/>
     <addaction name="actionSelDatSphereTransp"/>
@@ -719,6 +747,8 @@
     <addaction name="actionExternal_Programs"/>
     <addaction name="separator"/>
     <addaction name="menuLanguages"/>
+    <addaction name="separator"/>
+    <addaction name="actionHighDPIZoomFactor"/>
    </widget>
    <widget class="QMenu" name="menuColors">
     <property name="title">
@@ -2976,14 +3006,15 @@ p, li { white-space: pre-wrap; }
     <string>Keyboard &amp;Layout</string>
    </property>
   </action>
-  <action name="actionVertApplyNormalShift">
-   <property name="text">
-    <string>&amp;Vertex - Apply Normal Shift</string>
-   </property>
-  </action>
   <action name="actionDetect_Self_Intersections">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Detect Self-Intersections</string>
+   </property>
+   <property name="visible">
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionImportNormals">
@@ -3328,22 +3359,6 @@ p, li { white-space: pre-wrap; }
   <action name="actionScreenshotPNGDirectory">
    <property name="text">
     <string>Screenshot PNG Directory</string>
-   </property>
-  </action>
-  <action name="actionGenerateLatexFile">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>&amp;Generate Latex File</string>
-   </property>
-  </action>
-  <action name="actionGenerateLatexCatalog">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Generate &amp;Latex Catalog</string>
    </property>
   </action>
   <action name="actionTest">
@@ -4181,7 +4196,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionScreenshotViewsDirectory">
    <property name="text">
-    <string>Screenshot Directory</string>
+    <string>Directory: Screenshot for all files</string>
    </property>
   </action>
   <action name="actionScreenshotPDF">
@@ -4420,6 +4435,120 @@ The latter will be shown, when the processing has finished.</string>
    </property>
    <property name="toolTip">
     <string>Set the alpha value of the selected vertices to value. Apply to all, if no vertex is selected.</string>
+   </property>
+  </action>
+  <action name="actionReplaceTransparencyBgColor">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>PNG - Keep Background</string>
+   </property>
+  </action>
+  <action name="actionExportMetaDataHTML">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_export_metadata_html.svg</normaloff>:/GMToolBar/gigamesh_icon_export_metadata_html.svg</iconset>
+   </property>
+   <property name="text">
+    <string>HTML page</string>
+   </property>
+  </action>
+  <action name="actionExportMetaDataXML">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_export_metadata_xml.svg</normaloff>:/GMToolBar/gigamesh_icon_export_metadata_xml.svg</iconset>
+   </property>
+   <property name="text">
+    <string>XML</string>
+   </property>
+  </action>
+  <action name="actionExportMetaDataJSON">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_export_metadata_json.svg</normaloff>:/GMToolBar/gigamesh_icon_export_metadata_json.svg</iconset>
+   </property>
+   <property name="text">
+    <string>JSON-LD</string>
+   </property>
+   <property name="toolTip">
+    <string>JSON for Linking Data</string>
+   </property>
+  </action>
+  <action name="actionExportMetaDataTTL">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_export_metadata_ttl.svg</normaloff>:/GMToolBar/gigamesh_icon_export_metadata_ttl.svg</iconset>
+   </property>
+   <property name="text">
+    <string>TTL (Turtle, RDF)</string>
+   </property>
+  </action>
+  <action name="actionExportMetaDataAll">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_export_metadata_all.svg</normaloff>:/GMToolBar/gigamesh_icon_export_metadata_all.svg</iconset>
+   </property>
+   <property name="text">
+    <string>All above (HTML, TTL, JSON and XML)</string>
+   </property>
+  </action>
+  <action name="actionHighDPIZoomFactor">
+   <property name="text">
+    <string>HighDPI Zoom Factor</string>
+   </property>
+  </action>
+  <action name="actionDirectoryFuncValToRGB">
+   <property name="text">
+    <string>Directory: FuncVal to RGB</string>
+   </property>
+  </action>
+  <action name="actionSaveLabelsSeparated">
+   <property name="text">
+    <string>Save Labels separated</string>
+   </property>
+  </action>
+  <action name="actionViewShow2DBoundingBox">
+   <property name="text">
+    <string>Bounding Box Size in Camera Coordinates</string>
+   </property>
+  </action>
+  <action name="actionImportPolylines">
+   <property name="text">
+    <string>Import Polylines</string>
+   </property>
+  </action>
+  <action name="actionImportLabels">
+   <property name="text">
+    <string>Import Labels</string>
+   </property>
+  </action>
+  <action name="actionLabelVertEqualRGB">
+   <property name="text">
+    <string>Label - Vertices w. Equal RGB</string>
+   </property>
+  </action>
+  <action name="actionImport_and_apply_transformation_matrices">
+   <property name="text">
+    <string>Import and Apply transformation-matrices</string>
+   </property>
+  </action>
+  <action name="actionRemove_Dangling_Faces">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Remove Dangling Faces</string>
+   </property>
+  </action>
+  <action name="actionMax_Number_of_vertices_for_hole_filling">
+   <property name="text">
+    <string>Max. Number of vertices for hole filling</string>
+   </property>
+  </action>
+  <action name="actionAutomatic_Mesh_Alignment">
+   <property name="text">
+    <string>Automatic Mesh Alignment</string>
    </property>
   </action>
  </widget>

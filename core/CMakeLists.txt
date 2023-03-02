@@ -10,10 +10,13 @@ set(SOURCES_CORE mesh/geodentry.cpp
 	mesh/face.cpp
 	mesh/sphere.cpp
 	mesh/rectbox.cpp
+        mesh/octree.cpp
+        mesh/octnode.cpp
 	mesh/line.cpp
 	mesh/userinteraction.cpp
 	mesh/showprogress.cpp
 	mesh/printbuildinfo.cpp
+	mesh/getuserandhostname.cpp
 	mesh/compfeaturevecs.cpp
 	mesh/polyline.cpp
 	mesh/polyedge.cpp
@@ -66,6 +69,7 @@ set(HEADERS_CORE
 	)
 
 set(PUBLIC_HEADERS_CORE ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/printbuildinfo.h
+						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/getuserandhostname.h
 						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/logging/Logging.h
 						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/logging/Logger.h
 						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/mesh.h
@@ -95,6 +99,8 @@ set(PUBLIC_HEADERS_CORE ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/printbuildi
 						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/voxelfilter25d.h
 						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/meshinfodata.h
 						${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/compfeaturevecs.h
+                                                ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/octree.h
+                                                ${CMAKE_CURRENT_SOURCE_DIR}/include/GigaMesh/mesh/octnode.h
 						)
 
 add_library(gigameshCore STATIC ${SOURCES_CORE} ${HEADERS_CORE} ${PUBLIC_HEADERS_CORE})

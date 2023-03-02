@@ -23,6 +23,7 @@
 #define MESHINFODATA_H
 
 #include <string>
+#include <filesystem>
 
 class MeshInfoData {
 	public:
@@ -75,6 +76,7 @@ class MeshInfoData {
 			FACES_INVERTED,
 			FACES_SELECTED,
 			FACES_WITH_SYNTH_VERTICES,     //!< Number of faces having only synthetic vertices i.e. all three vertices are synthetic.
+            FACES_SELFINTERSECTED,         //! Number of faces which intersect a other face (self-intersection)
 			CONNECTED_COMPONENTS,          //!< Number of connected components
 			ULONG_COUNT,                   //!< Number of elements.
 		};
@@ -94,6 +96,8 @@ class MeshInfoData {
 			BOUNDINGBOX_WIDTH,                  //!< Bounding box width.
 			BOUNDINGBOX_HEIGHT,                 //!< Bounding box height.
 			BOUNDINGBOX_THICK,                  //!< Bounding box thickness.
+			FACES_AREA_SMALLEST,                //!< Area of the smallest face.
+			FACES_AREA_LARGEST,                 //!< Area of the largest face.
 			TOTAL_AREA,                         //!< Total area.
 			TOTAL_VOLUME_DX,                    //!< Total volume in dx.
 			TOTAL_VOLUME_DY,                    //!< Total volume in dy.
@@ -107,8 +111,21 @@ class MeshInfoData {
 
 	public:
 		void reset();
-		bool getMeshInfoHTML( std::string& rInfoHTML );
 
+		// Fetch formatted text
+		bool getMeshInfoTTL(  std::string& rInfoTTL  );
+		bool getMeshInfoHTML( std::string& rInfoHTML );
+		bool getMeshInfoJSON( std::string& rInfoJSON );
+		bool getMeshInfoXML(  std::string& rInfoXML  );
+
+		// Write formatted text
+		bool writeMeshInfo( std::filesystem::path rFilenameInfo, bool rReplace=true );
+		bool writeMeshInfoProcess( const MeshInfoData& rMeshInfoPrevious, const std::filesystem::path& rFileNameOut,
+		                           const std::string& rFunctionExecuted, const uint64_t& rIterationCount,
+		                           const std::chrono::system_clock::time_point& rTimeStart, 
+		                           const std::chrono::system_clock::time_point& rTimeStop );
+
+		// Property names
 		bool getMeshInfoPropertyName( const MeshInfoData::eMeshPropertyString     rPropId, std::string& rPropName );
 		bool getMeshInfoPropertyName( const MeshInfoData::eMeshPropertyULongCount rPropId, std::string& rPropName );
 		bool getMeshInfoPropertyName( const MeshInfoData::eMeshPropertyDouble     rPropId, std::string& rPropName );

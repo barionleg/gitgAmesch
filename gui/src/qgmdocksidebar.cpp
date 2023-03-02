@@ -169,12 +169,50 @@ void QGMDockSideBar::shaderChoiceTextured(bool rState)
 }
 
 //! Sets menu items according to the flags of MeshGL::viewParamsIntArr
-void QGMDockSideBar::updateMeshParamInt( MeshGLParams::eParamInt rParamNr, int rSetValue ) {
+void QGMDockSideBar::updateMeshParamInt( 
+        MeshGLParams::eParamInt rParamNr, 
+        int rSetValue 
+) {
+	// Setup radio buttons
 	ui->radioButtonFuncValVertTex->setEnabled(true);
 	ui->radioButtonVertexLabel->setEnabled(true);
 	ui->radioButtonVertexTex->setEnabled(true);
 	ui->radioButtonSolidColor->setEnabled(true);
+
+	// Setup parameters
 	switch( rParamNr ) {
+	case MeshGLParams::SHADER_CHOICE:
+		switch( static_cast<MeshGLParams::eShaderChoice>(rSetValue) ) {
+			case MeshGLParams::SHADER_MONOLITHIC:
+				ui->radioButton_Solid->setChecked( true );
+				break;
+			case MeshGLParams::SHADER_WIREFRAME:
+				ui->radioButtonWireframe->setChecked( true );
+				ui->radioButtonFuncValVertTex->setEnabled( false );
+				ui->radioButtonVertexLabel->setEnabled( false );
+				ui->radioButtonVertexTex->setEnabled( false );
+				ui->radioButtonSolidColor->setEnabled( false );
+				break;
+			case MeshGLParams::SHADER_NPR:
+				ui->radioButtonNPRendering->setChecked( true );
+				ui->radioButtonFuncValVertTex->setEnabled( false );
+				ui->radioButtonVertexLabel->setEnabled( false );
+				ui->radioButtonVertexTex->setEnabled( false );
+				ui->radioButtonSolidColor->setEnabled( false );
+				break;
+		case MeshGLParams::SHADER_POINTCLOUD:
+				ui->radioButtonPointcloud->setChecked ( true );
+				break;
+		case MeshGLParams::SHADER_TRANSPARENCY:
+				ui->radioButtonTransparency->setChecked( true );
+				break;
+		case MeshGLParams::SHADER_TEXTURED:
+				ui->radioButtonTextured->setChecked( true );
+				break;
+			default:
+				std::cerr << "[QGMDockSideBar::" << __FUNCTION__ << "] ERROR: parameter SHADER_CHOICE has an unknown choice: " << rSetValue << "!" << std::endl;
+		}
+		break;
 		case MeshGLParams::TEXMAP_CHOICE_FACES:
 			switch( static_cast<MeshGLParams::eTexMapType>(rSetValue) ) {
 				case MeshGLParams::TEXMAP_VERT_MONO:
@@ -190,41 +228,10 @@ void QGMDockSideBar::updateMeshParamInt( MeshGLParams::eParamInt rParamNr, int r
 					ui->radioButtonVertexLabel->setChecked( true );
 					break;
 				default:
-					cerr << "[QGMDockSideBar::" << __FUNCTION__ << "] ERROR: parameter TEXMAP_CHOICE has an unknown choice: " << rSetValue << "!" << endl;
+					std::cerr << "[QGMDockSideBar::" << __FUNCTION__ << "] ERROR: parameter TEXMAP_CHOICE has an unknown choice: " << rSetValue << "!" << std::endl;
 			}
 			break;
-		case MeshGLParams::SHADER_CHOICE:
-			switch( static_cast<MeshGLParams::eShaderChoice>(rSetValue) ) {
-				case MeshGLParams::SHADER_MONOLITHIC:
-					ui->radioButton_Solid->setChecked( true );
-					break;
-				case MeshGLParams::SHADER_WIREFRAME:
-					ui->radioButtonWireframe->setChecked( true );
-					ui->radioButtonFuncValVertTex->setEnabled(false);
-					ui->radioButtonVertexLabel->setEnabled(false);
-					ui->radioButtonVertexTex->setEnabled(false);
-					ui->radioButtonSolidColor->setEnabled(false);
-					break;
-				case MeshGLParams::SHADER_NPR:
-					ui->radioButtonNPRendering->setChecked( true );
-					ui->radioButtonFuncValVertTex->setEnabled(false);
-					ui->radioButtonVertexLabel->setEnabled(false);
-					ui->radioButtonVertexTex->setEnabled(false);
-					ui->radioButtonSolidColor->setEnabled(false);
-					break;
-			case MeshGLParams::SHADER_POINTCLOUD:
-					ui->radioButtonPointcloud->setChecked ( true );
-					break;
-			case MeshGLParams::SHADER_TRANSPARENCY:
-					ui->radioButtonTransparency->setChecked( true );
-					break;
-			case MeshGLParams::SHADER_TEXTURED:
-					ui->radioButtonTextured->setChecked( true );
-					break;
-				default:
-					cerr << "[QGMDockSideBar::" << __FUNCTION__ << "] ERROR: parameter SHADER_CHOICE has an unknown choice: " << rSetValue << "!" << endl;
-			}
-			break;
+		case MeshGLParams::TEXMAP_CHOICE_VERETX_SPRITES:
 		case MeshGLParams::GLSL_COLMAP_CHOICE:
 		case MeshGLParams::FUNCVAL_CUTOFF_CHOICE:
 		case MeshGLParams::VERTEX_SPRITE_SHAPE:
@@ -248,11 +255,12 @@ void QGMDockSideBar::updateMeshParamInt( MeshGLParams::eParamInt rParamNr, int r
 		case MeshGLParams::TRANSPARENCY_SEL_LABEL:
 		case MeshGLParams::TRANSPARENCY_OVERFLOW_HANDLING:
 		case MeshGLParams::TRANSPARENCY_BUFFER_METHOD:
-
+        //mesh cleaning parameter
+        case MeshGLParams::MAX_VERTICES_HOLE_FILLING:
 			// nothing to do.
 			break;
 		default:
-			cerr << "[QGMDockSideBar::" << __FUNCTION__ << "] ERROR: unsupported/unimplemented parameter no: " << rParamNr << "!" << endl;
+			std::cerr << "[QGMDockSideBar::" << __FUNCTION__ << "] ERROR: unsupported/unimplemented parameter no: " << rParamNr << "!" << std::endl;
 	}
 }
 

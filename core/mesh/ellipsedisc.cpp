@@ -428,7 +428,7 @@ bool EllipseDisc::toconic( vector<pair<double,double> > rFivePoints ) {
 
 	// polynom to standard parameter
 	bool retVal = solveellipse(params);
-	return retVal;
+    return retVal;
 }
 
 //! transposes second matrix and then multipies first matrix with second matrix

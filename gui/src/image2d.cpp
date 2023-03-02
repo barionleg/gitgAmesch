@@ -263,7 +263,8 @@ int Image2D::writeTIFF(filesystem::path filename, //!< Name of the file to be wr
 	}
 
 	QImage img(raster, static_cast<int>(width),
-	           static_cast<int>(height),
+	           static_cast<int>(height), 
+			   (isRGB ? 3 * width * sizeof(unsigned char) : width * sizeof(unsigned char)),
 	           (isRGB ? QImage::Format_RGB888 : QImage::Format_Grayscale8));
 
     if(!img.save(QString::fromStdWString(filename.wstring())))
