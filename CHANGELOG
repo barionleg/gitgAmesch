@@ -1,4 +1,7 @@
 Current Version
++) ....
+
+Version 230302 (incomplete)
 +) New: Automatic mesh alignment based on PCA 
 +) New: Export and Import Polylines
 +) New: Export of mesh meta-data as HTML, JSON, XML and TTL (Terse RDF Triple Language).
