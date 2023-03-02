@@ -27,7 +27,7 @@
 #include <QTextStream>
 #include <iostream>
 #include <QSettings>
-#include "MeshQtCSVImportExport.h"
+//#include <MeshQtCSVImportExport.h>
 
 AutomaticAlignmentPyInterface::AutomaticAlignmentPyInterface(std::vector<Vertex*> *meshVertices)
 {
@@ -36,7 +36,7 @@ AutomaticAlignmentPyInterface::AutomaticAlignmentPyInterface(std::vector<Vertex*
 
 }
 
-bool AutomaticAlignmentPyInterface::startPythonScript(std::vector<Vector3D> *principalComponents)
+bool AutomaticAlignmentPyInterface::startPythonScript(Matrix4D *pcaTransformationMatrix)
 {
 
     QTemporaryFile PCAScriptTempFile;
@@ -112,7 +112,7 @@ bool AutomaticAlignmentPyInterface::startPythonScript(std::vector<Vector3D> *pri
     }
     //I use the input file of the python script because I didn't find a way to get the Terminal output of the process
     // and the input file is tmp file, that means that the file is deleted after a short time by the OS
-    if(!readPCsFromCSV(vertexCsvFilePath, principalComponents)){
+    if(!readPCsFromCSV(vertexCsvFilePath, pcaTransformationMatrix)){
         return false;
     }
     delete runPCAScriptProcess;
@@ -153,6 +153,7 @@ bool AutomaticAlignmentPyInterface::exportVerticesAsCSV(std::vector<Vertex *> *v
 
     mVertexCoordinatesTempFile.flush();
     mVertexCoordinatesTempFile.close();
+
     /**
     if(QFile::exists(mVertCSVPath))
     {
@@ -214,8 +215,9 @@ void AutomaticAlignmentPyInterface::createExportVerticesTextStream(std::vector<V
 }
 
 //!read the principal components/result of the python script
+//! the whole transformation matrix based on the PCs
 //! input file = CSV
-bool AutomaticAlignmentPyInterface::readPCsFromCSV(QString importPath, std::vector<Vector3D> *principalComponents)
+bool AutomaticAlignmentPyInterface::readPCsFromCSV(QString importPath, Matrix4D *pcaTranfMatrix)
 {
     if(importPath.isEmpty() ||
                     importPath.isNull())
@@ -244,7 +246,7 @@ bool AutomaticAlignmentPyInterface::readPCsFromCSV(QString importPath, std::vect
     //read data from CSV
     //-------------------------------------------------
     const QRegExp matchDelimitersRegex(",");
-    std::vector<std::pair<int, std::array<double, 3>>> indexPrincipalComponentsValueVector;
+    std::vector<std::pair<int, std::array<double, 4>>> indexPrincipalComponentsMatrix;
     QStringList matrixRowStringList;
     QByteArray lineBuffer;
 
@@ -265,9 +267,9 @@ bool AutomaticAlignmentPyInterface::readPCsFromCSV(QString importPath, std::vect
         // Remove all empty strings
         matrixRowStringList.removeAll(QString(""));
         //assign all seperated values to pair and to the result vector
-        if(matrixRowStringList.size() == 4)
+        if(matrixRowStringList.size() == 5)
         {
-            std::pair<int, std::array<double, 3>> indexPrincipalComponentsValuePair;
+            std::pair<int, std::array<double, 4>> indexPrincipalComponentsValuePair;
 
             indexPrincipalComponentsValuePair.first =
                                 matrixRowStringList.at(0).toInt();
@@ -281,18 +283,24 @@ bool AutomaticAlignmentPyInterface::readPCsFromCSV(QString importPath, std::vect
             indexPrincipalComponentsValuePair.second.at(2) =
                                 matrixRowStringList.at(3).toDouble();
 
-            indexPrincipalComponentsValueVector.push_back(indexPrincipalComponentsValuePair);
+            indexPrincipalComponentsValuePair.second.at(3) =
+                                matrixRowStringList.at(4).toDouble();
+
+            indexPrincipalComponentsMatrix.push_back(indexPrincipalComponentsValuePair);
 
         }
     }
 
-    //convert the imported values to Vector3d
-    for(std::pair<int, std::array<double, 3>> vectorEntry: indexPrincipalComponentsValueVector ){
-        Vector3D principalComponent(vectorEntry.second.at(0),vectorEntry.second.at(1),vectorEntry.second.at(2));
-        principalComponents->push_back(principalComponent);
+    //convert the imported values to Matrix
+    //transposed to the python matrix
+    std::vector<double> transfMatrixVec;
+    for(std::pair<int, std::array<double, 4>> vectorEntry: indexPrincipalComponentsMatrix ){
+       transfMatrixVec.insert(transfMatrixVec.begin()+vectorEntry.first,vectorEntry.second.at(0));
+       transfMatrixVec.insert(transfMatrixVec.begin()+2*vectorEntry.first+1,vectorEntry.second.at(1));
+       transfMatrixVec.insert(transfMatrixVec.begin()+3*vectorEntry.first+2,vectorEntry.second.at(2));
+       transfMatrixVec.insert(transfMatrixVec.begin()+4*vectorEntry.first+3,vectorEntry.second.at(3));
     }
-
-
+    Matrix4D newTransformationMatrix(transfMatrixVec);
+    pcaTranfMatrix->set(newTransformationMatrix);
     return true;
-
 }

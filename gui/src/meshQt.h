@@ -379,7 +379,8 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		void updateGL();                             //!< requests an update from the MeshWidget.
 		void sDefaultViewLight();                    //!< signal to restore the default view and lights of the MeshWidget.
 		void sDefaultViewLightZoom();                //!< signal to restore the default view, lights and zoom of the MeshWidget.
-		void sFileChanged(QString,QString);          //!< emitted when a mesh file was opened or stored (path,basename,extension)
+        void sSetDefaultView();                      //!< signal to meshWidget -> set the mesh after transformation to the camera center and ask for saving the transformation as default.
+        void sFileChanged(QString,QString);          //!< emitted when a mesh file was opened or stored (path,basename,extension)
 		void statusMessage(QString);                 //!< emitted when the status changed.
 		//.
 		void visualizeFeatureDist(int,double*);  //!< emitted when the distance to a feature vector has to be estimated and reflected as texture-map (see menuVisualizeFeatDistSelected() ).

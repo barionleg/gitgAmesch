@@ -40,7 +40,7 @@ extern "C"
 }
 #include <triangle/triangleTriangleIntersection.h>
 
-#include "../MeshQtCSVImportExport.h"
+//#include "../MeshQtCSVImportExport.h"
 
 // #define DEBUG_SHOW_ALL_METHOD_CALLS
 
@@ -58,33 +58,33 @@ MeshGL::MeshGL(QGLContext* rGLContext,
                 bool& rReadSuccess
 ) : Mesh( rFileName, rReadSuccess ), mVBOPrepared( false ), mOpenGLContext( rGLContext ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 #ifdef OPENGL_VBO_SHOW_MEMORY_USAGE
 		mVboMemoryUsage = 0;
 #endif
 		// Initalize pointers to buffer objects:
 		for(QOpenGLBuffer*& mVertBufObj : mVertBufObjs) {
-			    mVertBufObj = nullptr;
+                mVertBufObj = nullptr;
 		}
 
-		cout << "[MeshGL::" << __FUNCTION__ << "] ------------------------------------------------------------------------" << endl;
-		cout << "[MeshGL::" << __FUNCTION__ << "] " << glGetString( GL_VERSION ) << endl;
-		cout << "[MeshGL::" << __FUNCTION__ << "] " << glGetString( GL_RENDERER ) << endl;
-		cout << "[MeshGL::" << __FUNCTION__ << "] " << glGetString( GL_VENDOR ) << endl;
-		cout << "[MeshGL::" << __FUNCTION__ << "] " << glGetString( GL_SHADING_LANGUAGE_VERSION ) << endl;
-		cout << "[MeshGL::" << __FUNCTION__ << "] ------------------------------------------------------------------------" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] ------------------------------------------------------------------------" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] " << glGetString( GL_VERSION ) << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] " << glGetString( GL_RENDERER ) << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] " << glGetString( GL_VENDOR ) << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] " << glGetString( GL_SHADING_LANGUAGE_VERSION ) << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] ------------------------------------------------------------------------" << endl;
 }
 
 //! Destructor.
 MeshGL::~MeshGL() {
 		// nothing to do :)
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 		glRemove();
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << __PRETTY_FUNCTION__ << " Done. " << endl;
+        cout << __PRETTY_FUNCTION__ << " Done. " << endl;
 #endif
 }
 
@@ -197,16 +197,16 @@ bool MeshGL::callFunction( MeshParams::eFunctionCall rFunctionID, bool rFlagOpti
 //!
 //! @returns false in case of an error. True otherwise.
 bool MeshGL::callFunction( MeshGLParams::eFunctionCall rFunctionID, bool rFlagOptional ) {
-	std::cout << "[MeshGL::" << __FUNCTION__ << "] with MeshGLParam: "   << rFunctionID   << std::endl;
-	std::cout << "[MeshGL::" << __FUNCTION__ << "] with optional flag: " << rFlagOptional << std::endl;
+    std::cout << "[MeshGL::" << __FUNCTION__ << "] with MeshGLParam: "   << rFunctionID   << std::endl;
+    std::cout << "[MeshGL::" << __FUNCTION__ << "] with optional flag: " << rFlagOptional << std::endl;
 	bool retVal = false;
 	switch( rFunctionID ) {
-		case TEXMAP_FIXED_SET_NORMALIZED:
+        case TEXMAP_FIXED_SET_NORMALIZED:
 			setParamIntMeshGL( MeshGLParams::FUNCVAL_CUTOFF_CHOICE, MeshGLParams::FUNCVAL_CUTOFF_MINMAX_USER );
 			setParamFloatMeshGL( MeshGLParams::TEXMAP_FIXED_MIN, 0.0 );
 			setParamFloatMeshGL( MeshGLParams::TEXMAP_FIXED_MAX, 1.0 );
 			break;
-		case SET_SHOW_VERTICES_NONE:
+        case SET_SHOW_VERTICES_NONE:
 			setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_ALL,              false );
 			setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_SOLO,             false );
 			setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_BORDER,           false );
@@ -216,10 +216,10 @@ bool MeshGL::callFunction( MeshGLParams::eFunctionCall rFunctionID, bool rFlagOp
 			setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_LOCAL_MAX,        false );
 			setParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_SYNTHETIC,        false );
 			break;
-		case ISOLINES_SET_BY_NUMBER:
+        case ISOLINES_SET_BY_NUMBER:
 			retVal = setFuncValIsoSteppingByNumberUI();
 			break;
-		case ISOLINES_SET_TEN_ZEROED:
+        case ISOLINES_SET_TEN_ZEROED:
 			retVal = setFuncValIsoSteppingByNumber( 10, true );
 			break;
 		case FUNCVAL_AMBIENT_OCCLUSION:
@@ -279,7 +279,7 @@ bool MeshGL::callFunction( MeshGLParams::eFunctionCall rFunctionID, bool rFlagOp
 			}
 			break;
 		default:
-			std::cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: Unknown rFunctionID "<< rFunctionID << " !" << std::endl;
+            std::cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: Unknown rFunctionID "<< rFunctionID << " !" << std::endl;
 			return( false );
 	}
 	// Done:
@@ -289,7 +289,7 @@ bool MeshGL::callFunction( MeshGLParams::eFunctionCall rFunctionID, bool rFlagOp
 //! Remove OpenGL lists and VBOs related to labels.
 //! Typically called, whem labels and/or their colormap were changed.
 bool MeshGL::labelsChanged() {
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 		// Polylines, which are often colored like the labels have to be reset too:
 		polyLinesChanged();
 		vboRemoveBuffer( VBUFF_VERTICES_STRIPED,  __FUNCTION__ );
@@ -299,7 +299,7 @@ bool MeshGL::labelsChanged() {
 
 //! Removes OpenGL lists, so that they are regenerated.
 void MeshGL::polyLinesChanged() {
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 		Mesh::polyLinesChanged();
 		// In case there are (new) polylines - show them:
 		bool showPolylines = ( getPolyLineNr() > 0 );
@@ -312,20 +312,20 @@ void MeshGL::polyLinesChanged() {
 //! Remove VBO related to selection and therefore trigger the generation of a new one.
 //! @returns the number of selected vertices.
 unsigned int MeshGL::selectedMVertsChanged() {
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 		vboRemoveBuffer( VBUFF_VERTICES_FLAG_SELECTED, __FUNCTION__ );
 		// Function value range will change too, when vertices go missing:
-		setParamFloatMeshGL( TEXMAP_AUTO_MIN, _NOT_A_NUMBER_DBL_ ); // Nan means not set.
-		setParamFloatMeshGL( TEXMAP_AUTO_MAX, _NOT_A_NUMBER_DBL_ ); // Nan means not set.
-		setParamFloatMeshGL( TEXMAP_QUANTIL_MIN_ABSOLUT, _NOT_A_NUMBER_DBL_ ); // Nan means not set.
-		setParamFloatMeshGL( TEXMAP_QUANTIL_MAX_ABSOLUT, _NOT_A_NUMBER_DBL_ ); // Nan means not set.
+        setParamFloatMeshGL( TEXMAP_AUTO_MIN, _NOT_A_NUMBER_DBL_ ); // Nan means not set.
+        setParamFloatMeshGL( TEXMAP_AUTO_MAX, _NOT_A_NUMBER_DBL_ ); // Nan means not set.
+        setParamFloatMeshGL( TEXMAP_QUANTIL_MIN_ABSOLUT, _NOT_A_NUMBER_DBL_ ); // Nan means not set.
+        setParamFloatMeshGL( TEXMAP_QUANTIL_MAX_ABSOLUT, _NOT_A_NUMBER_DBL_ ); // Nan means not set.
 		return Mesh::selectedMVertsChanged();
 }
 
 //! Remove VBO related to selection and therefore trigger the generation of a new one.
 //! @returns the number of selected vertices.
 unsigned int MeshGL::selectedMFacesChanged() {
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 		vboRemoveBuffer( VBUFF_FACES_FLAG_SELECTED, __FUNCTION__ );
 		return Mesh::selectedMFacesChanged();
 }
@@ -339,7 +339,7 @@ bool MeshGL::compPolylinesIntInvRunLen( double rIIRadius, PolyLine::ePolyIntInvD
 
 //! Clears the polyline curvature/integral invariant visualization before its estimated.
 bool MeshGL::compPolylinesIntInvAngle(  double rIIRadius ) {
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 		bool retVal = Mesh::compPolylinesIntInvAngle( rIIRadius );
 		vboRemoveBuffer( VBUFF_VERTICES_POLYLINES, __FUNCTION__ );
 		return retVal;
@@ -404,10 +404,10 @@ bool MeshGL::applyTransformationToWholeMesh(Matrix4D rTrans, bool rResetNormals,
 
 //! Takes care about OpenGL stuff, when the Mesh is transformed.
 bool MeshGL::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, bool rResetNormals, bool rSaveTransMat ) {
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
         bool retVal = Mesh::applyTransformation( rTrans, rSomeVerts, rResetNormals, rSaveTransMat );
 		if( !retVal ) {
-				cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: applyTransformation failed!" << endl;
+                cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: applyTransformation failed!" << endl;
 				return false;
 		}
 		glRemove();
@@ -419,7 +419,7 @@ bool MeshGL::applyTransformation( Matrix4D rTrans, set<Vertex*>* rSomeVerts, boo
 bool MeshGL::applyMeltingSphere( double rRadius, double rRel ) {
 		bool retVal = Mesh::applyMeltingSphere( rRadius, rRel );
 		if( !retVal ) {
-				cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: applyMeltingSphere failed!" << endl;
+                cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: applyMeltingSphere failed!" << endl;
 				return false;
 		}
 		glRemove();
@@ -449,10 +449,10 @@ void MeshGL::changedVertFuncVal() {
 		vboRemoveBuffer( VBUFF_VERTICES_STRIPED,         __FUNCTION__ );
 		vboRemoveBuffer( VBUFF_VERTICES_FLAG_LOCAL_MIN,  __FUNCTION__ );
 		vboRemoveBuffer( VBUFF_VERTICES_FLAG_LOCAL_MAX,  __FUNCTION__ );
-		setParamFloatMeshGL( TEXMAP_AUTO_MIN, _NOT_A_NUMBER_DBL_ ); // Nan means not set.
-		setParamFloatMeshGL( TEXMAP_AUTO_MAX, _NOT_A_NUMBER_DBL_ ); // Nan means not set.
-		setParamFloatMeshGL( TEXMAP_QUANTIL_MIN_ABSOLUT, _NOT_A_NUMBER_DBL_ ); // Nan means not set.
-		setParamFloatMeshGL( TEXMAP_QUANTIL_MAX_ABSOLUT, _NOT_A_NUMBER_DBL_ ); // Nan means not set.
+        setParamFloatMeshGL( TEXMAP_AUTO_MIN, _NOT_A_NUMBER_DBL_ ); // Nan means not set.
+        setParamFloatMeshGL( TEXMAP_AUTO_MAX, _NOT_A_NUMBER_DBL_ ); // Nan means not set.
+        setParamFloatMeshGL( TEXMAP_QUANTIL_MIN_ABSOLUT, _NOT_A_NUMBER_DBL_ ); // Nan means not set.
+        setParamFloatMeshGL( TEXMAP_QUANTIL_MAX_ABSOLUT, _NOT_A_NUMBER_DBL_ ); // Nan means not set.
 }
 
 //! Handles changes of texture map, when a new one is imported.
@@ -461,7 +461,7 @@ bool MeshGL::assignImportedTexture( int              rLineCount,
 									unsigned char*   rTexMap
 ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 		bool retVal = Mesh::assignImportedTexture( rLineCount, rRefToPrimitves, rTexMap );
 		vboRemoveBuffer( VBUFF_VERTICES_STRIPED, __FUNCTION__ );
@@ -480,7 +480,7 @@ bool MeshGL::assignImportedNormalsToVertices(
                 const vector<MeshIO::grVector3ID>& rNormals
 ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 		bool retVal = Mesh::assignImportedNormalsToVertices( rNormals );
 		vboRemoveBuffer( VBUFF_VERTICES_STRIPED, __FUNCTION__ );
@@ -499,7 +499,7 @@ bool MeshGL::assignImportedNormalsToVertices(
 //! \return
 bool MeshGL::multiplyColorWithFuncVal() {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 		bool retVal = Mesh::multiplyColorWithFuncVal();
 		vboRemoveBuffer( VBUFF_VERTICES_STRIPED, __FUNCTION__ );
@@ -510,7 +510,7 @@ bool MeshGL::multiplyColorWithFuncVal() {
 
 bool MeshGL::multiplyColorWithFuncVal( const double rMin, double rMax ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 		bool retVal = Mesh::multiplyColorWithFuncVal( rMin, rMax );
 		vboRemoveBuffer( VBUFF_VERTICES_STRIPED, __FUNCTION__ );
@@ -558,7 +558,7 @@ bool MeshGL::selectConePoints( int rXPixel, int rYPixel ) {
 	else if(    this->getConeStatus() == CONE_DEFINED_AXIS
 	         || this->getConeStatus() == CONE_DEFINED_UPPER_RADIUS )
 	{
-		// Set next radius of cone. This _also_ changes the previously defined
+        // Set next radius of cone. This _also_ changes the previously defined
 		// axis. Namely, the upper/lower point of the axis is changed to the
 		// appropriat point on the axis where the user selected the radius
 		// (perpendicular foot)
@@ -1379,7 +1379,7 @@ bool MeshGL::normalizeFunctionValues()
 	showProgressStop( "Vertex function value normalization" );
 
 	changedVertFuncVal();
-	callFunction( MeshGLParams::TEXMAP_FIXED_SET_NORMALIZED );
+    callFunction( MeshGLParams::TEXMAP_FIXED_SET_NORMALIZED );
 
 	return( allSet );
 }
@@ -1497,7 +1497,7 @@ bool MeshGL::selectPrism(
 	// Determine processing time - INTERMEDIATE
 	tInterEnd = high_resolution_clock::now();
 	time_span = duration_cast<duration<double>>( tInterEnd - tInterStart );
-	cout << "[Mesh::" << __FUNCTION__ << "] TIME segmemt " << segmentNr++ << ": " << time_span.count() << " seconds." << std::endl;
+    cout << "[Mesh::" << __FUNCTION__ << "] TIME segmemt " << segmentNr++ << ": " << time_span.count() << " seconds." << std::endl;
 	tInterStart = high_resolution_clock::now();
 
 	//vertices in cvertexlist are contained completely, no further check necessary
@@ -1506,11 +1506,11 @@ bool MeshGL::selectPrism(
 	Vector3D selectBeam[6];
 
 	for( unsigned int j=0; j<rTri.size(); j+=3 ) {
-		cout << "[Mesh::" << __FUNCTION__ << "] ---------------------------------------------" << endl;
-		cout << "[Mesh::" << __FUNCTION__ << "] THIS PRISM"<<endl;
+        cout << "[Mesh::" << __FUNCTION__ << "] ---------------------------------------------" << endl;
+        cout << "[Mesh::" << __FUNCTION__ << "] THIS PRISM"<<endl;
 		for( int i=0; i<3; ++i ) {
 			getRayWorld( rTri[j+i].x, rTri[j+i].y, &selectBeam[2*i], &selectBeam[2*i+1] );
-			cout<<selectBeam[2*i]<<"\t"<<selectBeam[2*i+1]<<endl;
+            cout<<selectBeam[2*i]<<"\t"<<selectBeam[2*i+1]<<endl;
 		}
 		TriangularPrism tritmp(selectBeam);
 
@@ -1518,17 +1518,17 @@ bool MeshGL::selectPrism(
 	}
 
 	// CILIST is often empty. However, it has to be collected.
-	cout << "[Mesh::" << __FUNCTION__ << "] CILIST size: " << cilist.size() << endl;
+    cout << "[Mesh::" << __FUNCTION__ << "] CILIST size: " << cilist.size() << endl;
 
 	// Determine processing time - INTERMEDIATE
 	tInterEnd = high_resolution_clock::now();
 	time_span = duration_cast<duration<double>>( tInterEnd - tInterStart );
-	cout << "[Mesh::" << __FUNCTION__ << "] TIME segmemt " << segmentNr++ << ": " << time_span.count() << " seconds." << std::endl;
+    cout << "[Mesh::" << __FUNCTION__ << "] TIME segmemt " << segmentNr++ << ": " << time_span.count() << " seconds." << std::endl;
 	tInterStart = high_resolution_clock::now();
 
 	// vertexlist needs to be checked later
-	set<Vertex*> vertexlist;
-	set<Vertex*> cvertexlist;
+    set<Vertex*> vertexlist;
+    set<Vertex*> cvertexlist;
 	//copy Vertex* from Octnode* ilist to vertexlist
     for(Octnode*& octnode : ilist) {
 		vertexlist.insert( octnode->mVertices.begin(), octnode->mVertices.end());
@@ -1541,7 +1541,7 @@ bool MeshGL::selectPrism(
 	// Determine processing time - INTERMEDIATE
 	tInterEnd = high_resolution_clock::now();
 	time_span = duration_cast<duration<double>>( tInterEnd - tInterStart );
-	cout << "[Mesh::" << __FUNCTION__ << "] TIME segmemt " << segmentNr++ << ": " << time_span.count() << " seconds." << std::endl;
+    cout << "[Mesh::" << __FUNCTION__ << "] TIME segmemt " << segmentNr++ << ": " << time_span.count() << " seconds." << std::endl;
 	tInterStart = high_resolution_clock::now();
 
 	// This has to be done faster
@@ -1584,7 +1584,7 @@ bool MeshGL::selectPrism(
 	// Determine processing time - INTERMEDIATE
 	tInterEnd = high_resolution_clock::now();
 	time_span = duration_cast<duration<double>>( tInterEnd - tInterStart );
-	cout << "[Mesh::" << __FUNCTION__ << "] TIME segmemt " << segmentNr++ << ": " << time_span.count() << " seconds." << std::endl;
+    cout << "[Mesh::" << __FUNCTION__ << "] TIME segmemt " << segmentNr++ << ": " << time_span.count() << " seconds." << std::endl;
 	tInterStart = high_resolution_clock::now();
 
 	// Add to selection
@@ -1594,14 +1594,14 @@ bool MeshGL::selectPrism(
 	// Determine processing time - INTERMEDIATE
 	tInterEnd = high_resolution_clock::now();
 	time_span = duration_cast<duration<double>>( tInterEnd - tInterStart );
-	cout << "[Mesh::" << __FUNCTION__ << "] TIME segmemt " << segmentNr++ << ": " << time_span.count() << " seconds." << std::endl;
+    cout << "[Mesh::" << __FUNCTION__ << "] TIME segmemt " << segmentNr++ << ": " << time_span.count() << " seconds." << std::endl;
 	tInterStart = high_resolution_clock::now();
 
 	// Determine processing time - STOP
 	high_resolution_clock::time_point tEnd = high_resolution_clock::now();
 	time_span = duration_cast<duration<double>>( tEnd - tStart );
-	cout << "[Mesh::" << __FUNCTION__ << "] TIME Total: " << time_span.count() << " seconds." << std::endl;
-	cout << "[Mesh::" << __FUNCTION__ << "] ======================================================" << std::endl;
+    cout << "[Mesh::" << __FUNCTION__ << "] TIME Total: " << time_span.count() << " seconds." << std::endl;
+    cout << "[Mesh::" << __FUNCTION__ << "] ======================================================" << std::endl;
 
 	return( true );
 }
@@ -1609,16 +1609,16 @@ bool MeshGL::selectPrism(
 //! Polygonal/prismatic selection of vertices.
 bool MeshGL::selectPoly( vector<PixCoord> &rPixels ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 		//do triangulation of Planar straight-line graph (PSLG) using TRIANGLE lib
 		//be careful TRIANGLE LIB crash if p.size <= 2
 		if( rPixels.size()>2 ) {
 				vector<PixCoord> tri;
-		//	cout<<"SIZE OF TRIANGULATION VECTOR p  "<<p.size()<<endl<<endl;
+        //	cout<<"SIZE OF TRIANGULATION VECTOR p  "<<p.size()<<endl<<endl;
 
 				callTriangle( rPixels, tri );
-		//	cout<<"SIZE OF TRIANGULATION VECTOR tri  "<<tri.size()<<endl<<endl;
+        //	cout<<"SIZE OF TRIANGULATION VECTOR tri  "<<tri.size()<<endl<<endl;
 				return selectPrism( tri );
 		}
 
@@ -1628,7 +1628,7 @@ bool MeshGL::selectPoly( vector<PixCoord> &rPixels ) {
 //! Select a Primitve of a certain type at a given position within the Viewport.
 Primitive* MeshGL::selectPrimitiveAt( int primitiveTypeToSelect, int xPixel, int yPixel, bool addToList ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 		mPrimSelected = nullptr;
 		if( primitiveTypeToSelect == Primitive::IS_VERTEX ) {
@@ -1652,7 +1652,7 @@ Vertex* MeshGL::getVertexAt( int xPixel, int yPixel ) {
 		// Fetch value from Z-Buffer entry:
 		GLfloat zDepth;
 		glReadPixels( xPixel, yPixel, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &zDepth );
-		//cout << "[MeshGL::" << __FUNCTION__ << "] Pixel ( " << xPixel << ", " << yPixel << " ) has depth " << zDepth << endl;
+        //cout << "[MeshGL::" << __FUNCTION__ << "] Pixel ( " << xPixel << ", " << yPixel << " ) has depth " << zDepth << endl;
 
 		Vector3D vecPointSel;
 		getWorldPoint( xPixel, yPixel, zDepth, &vecPointSel );
@@ -1668,7 +1668,7 @@ Face* MeshGL::getFaceAt( int rPixelX, int rPixelY, Vector3D* rPointIntersect ) {
 		// Fetch value from Z-Buffer entry:
 		GLfloat zDepth;
 		glReadPixels( rPixelX, rPixelY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &zDepth );
-		//cout << "[MeshGL] Pixel ( " << xPixel << ", " << yPixel << " ) has depth " << zDepth << endl;
+        //cout << "[MeshGL] Pixel ( " << xPixel << ", " << yPixel << " ) has depth " << zDepth << endl;
 
 		Vector3D vecPointSel;
 		getWorldPoint( rPixelX, rPixelY, zDepth, &vecPointSel );
@@ -1676,7 +1676,7 @@ Face* MeshGL::getFaceAt( int rPixelX, int rPixelY, Vector3D* rPointIntersect ) {
 		Vector3D selectBeamTop;
 		Vector3D selectBeamBot;
 		getRayWorld( rPixelX, rPixelY, &selectBeamTop, &selectBeamBot );
-		cout << "[MeshGL::" << __FUNCTION__ << "] time using depth buffer: " << ( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] time using depth buffer: " << ( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
 		return getFaceAt( selectBeamTop, selectBeamBot, vecPointSel, rPointIntersect );
 }
 
@@ -1699,18 +1699,18 @@ Face* MeshGL::getFaceAt(
 	for( auto const& currFace: faceCandidates ) {
 		currFace->getIntersectionFacePlaneLinePos( rRayTop, rRayBot, pointIntersectionTemp );
 		if( currFace->pointintriangle( &pointIntersectionTemp ) ) {
-			//cout << "[MeshGL::" << __FUNCTION__ << "] Face found:" << currFace->getIndex() << endl;
+            //cout << "[MeshGL::" << __FUNCTION__ << "] Face found:" << currFace->getIndex() << endl;
 			faceSelected = currFace;
 			if( rPointIntersect != nullptr ) {
-				rPointIntersect->set( &pointIntersectionTemp );
+                rPointIntersect->set( &pointIntersectionTemp );
 			}
 			faceSelectedCtr++;
 		}
 	}
 	if( faceSelectedCtr == 0 ) {
-		cout << "[MeshGL::" << __FUNCTION__ << "] No face selected."  << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] No face selected."  << endl;
 	} else if( faceSelectedCtr > 1 ) {
-		cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: More than one faces selected (" << faceSelectedCtr << ") -- the last was choosen!"  << endl;
+        cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: More than one faces selected (" << faceSelectedCtr << ") -- the last was choosen!"  << endl;
 	}
 
 	return faceSelected;
@@ -1719,9 +1719,9 @@ Face* MeshGL::getFaceAt(
 //! Gets the line of view in world-coordinates for a given pixel (-> raytracing).
 bool MeshGL::getRayWorld( int xPixel, int yPixel, Vector3D* rayTop, Vector3D* rayBot ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
-		//cout << "[MeshGL::" << __FUNCTION__ << "] x: " << xPixel << " y: " << yPixel << endl;
+        //cout << "[MeshGL::" << __FUNCTION__ << "] x: " << xPixel << " y: " << yPixel << endl;
 		//OPENGL_UNPROJECT( (*rayTop), xPixel, yPixel, 0.0 ); // Schaft
 		//OPENGL_UNPROJECT( (*rayBot), xPixel, yPixel, 1.0 ); // Spitze
 
@@ -1734,12 +1734,12 @@ bool MeshGL::getRayWorld( int xPixel, int yPixel, Vector3D* rayTop, Vector3D* ra
 
 		GLint viewport[4];
 		glGetIntegerv( GL_VIEWPORT, viewport );
-		//cout << "[MeshGL::" << __FUNCTION__ << "] Viewport: " << viewport[0] << " " << viewport[1] << " " << viewport[2] << " " << viewport[3] << endl;
+        //cout << "[MeshGL::" << __FUNCTION__ << "] Viewport: " << viewport[0] << " " << viewport[1] << " " << viewport[2] << " " << viewport[3] << endl;
 
 		Vector3D vecTop( (static_cast<double>(xPixel*2)/static_cast<double>(viewport[2]))-1.0, (static_cast<double>(yPixel*2)/static_cast<double>(viewport[3]))-1.0, -1.0, 1.0 );
 		Vector3D vecBot( (static_cast<double>(xPixel*2)/static_cast<double>(viewport[2]))-1.0, (static_cast<double>(yPixel*2)/static_cast<double>(viewport[3]))-1.0, +1.0, 1.0 );
-		rayTop->set( modvMatInv * ( projMatInv * vecTop ) );
-		rayBot->set( modvMatInv * ( projMatInv * vecBot ) );
+        rayTop->set( modvMatInv * ( projMatInv * vecTop ) );
+        rayBot->set( modvMatInv * ( projMatInv * vecBot ) );
 		rayTop->normalizeW();
 		rayBot->normalizeW();
 
@@ -1753,15 +1753,15 @@ bool MeshGL::getWorldPoint( int rPixelX,       //!< Horizontal screencoordinate.
 							Vector3D* rPosVec  //!< Corresponding position vector in real world coordinates.
 						  ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 		// Sanity check
 		if( rPosVec == nullptr ) {
-				cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: Null pointer given!" << endl;
+                cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: Null pointer given!" << endl;
 				return false;
 		}
 		if( ( rDepth < 0.0f ) || ( rDepth > 1.0f ) ) {
-				cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: rDepth out of range " << rDepth << " != [0..1]!" << endl;
+                cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: rDepth out of range " << rDepth << " != [0..1]!" << endl;
 		}
 		float projInv[16];
 		float modvInv[16];
@@ -1772,12 +1772,12 @@ bool MeshGL::getWorldPoint( int rPixelX,       //!< Horizontal screencoordinate.
 
 		GLint viewport[4];
 		glGetIntegerv( GL_VIEWPORT, viewport );
-		//cout << "[MeshGL::" << __FUNCTION__ << "] Viewport: " << viewport[0] << " " << viewport[1] << " " << viewport[2] << " " << viewport[3] << endl;
+        //cout << "[MeshGL::" << __FUNCTION__ << "] Viewport: " << viewport[0] << " " << viewport[1] << " " << viewport[2] << " " << viewport[3] << endl;
 
 		rDepth = (rDepth-0.5f) * 2.0f;
 
 		Vector3D posVec( (static_cast<double>(rPixelX*2)/static_cast<double>(viewport[2]))-1.0, (static_cast<double>(rPixelY*2)/static_cast<double>(viewport[3]))-1.0, rDepth, 1.0 );
-		rPosVec->set( modvMatInv * ( projMatInv * posVec ) );
+        rPosVec->set( modvMatInv * ( projMatInv * posVec ) );
 		rPosVec->normalizeW();
 
 		return true;
@@ -1790,14 +1790,14 @@ bool MeshGL::getWorldPointOnMesh(int rPixelX, int rPixelY, Vector3D* rPosVec)
 }
 
 bool MeshGL::setVertexFuncValues( Vertex** vertices, double* values, int verticesNr, const string& setName ) {
-		//! Set a value array to be visualized with a colormap.
+        //! Set a value array to be visualized with a colormap.
 		//! values will be copied and normalized to [0.0...1.0] - be aware of numeric errors!
 		//! Returns false in case of an error.
 		//! See Mesh::setVertexFuncValues
 
 	for( int i=0; i<verticesNr; i++ ) {
 		if( vertices[i] == nullptr ) {
-			cerr << "[MeshGL::" << __FUNCTION__ << "] Bad vertex reference (NULL) at pos " << i << "!" << endl;
+            cerr << "[MeshGL::" << __FUNCTION__ << "] Bad vertex reference (NULL) at pos " << i << "!" << endl;
 			continue;
 		}
 		vertices[i]->setFunctionValue( values[i] );
@@ -1856,27 +1856,27 @@ bool MeshGL::funcVertAmbientOcclusion() {
 		}
 
 		if( parameters.size() != 4 ) {
-				cerr << "[MeshGL::" << __FUNCTION__ << "] Wrong number of elements (" << parameters.size() << ") given 4 expected!" << endl;
+                cerr << "[MeshGL::" << __FUNCTION__ << "] Wrong number of elements (" << parameters.size() << ") given 4 expected!" << endl;
 				return false;
 		}
 
 		if ( parameters[0] < 1 ) {
-				cerr << "[MeshGL::" << __FUNCTION__ << "] Depth buffer resolution has to be >= 1 (given depth buffer resolution: " << parameters[0] << ")" << endl;
+                cerr << "[MeshGL::" << __FUNCTION__ << "] Depth buffer resolution has to be >= 1 (given depth buffer resolution: " << parameters[0] << ")" << endl;
 				return false;
 		}
 
 		if ( parameters[1] < 0 ) {
-				cerr << "[MeshGL::" << __FUNCTION__ << "] Number of directions has to be >= 0 (given number of directions: " << parameters[1] << ")" << endl;
+                cerr << "[MeshGL::" << __FUNCTION__ << "] Number of directions has to be >= 0 (given number of directions: " << parameters[1] << ")" << endl;
 				return false;
 		}
 
 		if ( parameters[2] < 0 ) {
-				cerr << "[MeshGL::" << __FUNCTION__ << "] Maximum value buffer resolution hast to be >= 0 (given maximum texture resolution: " << parameters[2] << ")" << endl;
+                cerr << "[MeshGL::" << __FUNCTION__ << "] Maximum value buffer resolution hast to be >= 0 (given maximum texture resolution: " << parameters[2] << ")" << endl;
 				return false;
 		}
 
 		if ( parameters[3] < 0 || parameters[3] > 1) {
-				cerr << "[MeshGL::" << __FUNCTION__ << "] Tolerance has to be >= 0 and <= 1 (given tolerance: " << parameters[3] << ")" << endl;
+                cerr << "[MeshGL::" << __FUNCTION__ << "] Tolerance has to be >= 0 and <= 1 (given tolerance: " << parameters[3] << ")" << endl;
 				return false;
 		}
 
@@ -1896,7 +1896,7 @@ bool MeshGL::funcVertAmbientOcclusion() {
 				}
 		}
 
-		//set parameters for suitable visualization
+        //set parameters for suitable visualization
 		float minAOValue = 0.0f;
 		float maxAOValue = numberOfDirections / 4.0f; // normalized surface integral over hemisphere: 1/(4*pi) int_0^{2*pi} int_0^{pi/2} cos(x) sin(x) dx dy = 1/4
 		setParamIntMeshGL( MeshGLParams::GLSL_COLMAP_CHOICE, MeshGLParams::GLSL_COLMAP_GRAYSCALE );
@@ -1927,7 +1927,7 @@ bool MeshGL::funcVertAmbientOcclusion() {
 //! @param rZTolerance tolerance that is used during occlusion checks. The values are relative to 2r where r denotes the bojects bounding box radius
 //! @returns False in case of an error. True otherwise.
 bool MeshGL::funcVertAmbientOcclusion( int rResolution, unsigned int rNumberOfDirections, float rZTolerance ) {
-		cout << "[MeshGL::" << __FUNCTION__ << "] Calculating Ambient Occlusion..." << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] Calculating Ambient Occlusion..." << endl;
 		showProgressStart( "Ambient Occlusion" );
 
 		setVertFuncVal(0.0);
@@ -2011,7 +2011,7 @@ bool MeshGL::funcVertAmbientOcclusion( int rResolution, unsigned int rNumberOfDi
 		changedVertFuncVal();
 
 		showProgressStop( "Ambient Occlusion" );
-		cout << "[MeshGL::" << __FUNCTION__ << "] Done." << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] Done." << endl;
 
 		return true;
 }
@@ -2024,7 +2024,7 @@ bool MeshGL::funcVertAmbientOcclusion( int rResolution, unsigned int rNumberOfDi
 //! @param rZTolerance tolerance that is used during occlusion checks. The values are relative to 2r where r denotes the bojects bounding box radius
 //! @returns False in case of an error. True otherwise.
 bool MeshGL::funcVertAmbientOcclusionHW( int rDepthBufferRes, int rMaxValueBufferRes, unsigned int rNumberOfDirections, float rZTolerance ) {
-		cout << "[MeshGL::" << __FUNCTION__ << "] Calculating hardware accelerated Ambient Occlusion..." << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] Calculating hardware accelerated Ambient Occlusion..." << endl;
 
 		Vector3D center = getBoundingBoxCenter();
 
@@ -2097,7 +2097,7 @@ bool MeshGL::funcVertAmbientOcclusionHW( int rDepthBufferRes, int rMaxValueBuffe
 		unsigned int nrOfPasses = (getVertexNr() / (valueBufferRes * valueBufferRes)) + 1;
 		showProgressStart( "Ambient occlusion to Function Value" );
 		for (unsigned int passNr = 0; passNr < nrOfPasses; passNr++) {
-				cout << "[MeshGL::" << __FUNCTION__ << "] Hardware accelerated ambient occlusion pass " << (passNr + 1) << " of " << nrOfPasses << endl;
+                cout << "[MeshGL::" << __FUNCTION__ << "] Hardware accelerated ambient occlusion pass " << (passNr + 1) << " of " << nrOfPasses << endl;
 				if( !valueFBO.bind() ) {
 						return false;
 				}
@@ -2139,7 +2139,7 @@ bool MeshGL::funcVertAmbientOcclusionHW( int rDepthBufferRes, int rMaxValueBuffe
 
 		changedVertFuncVal();
 
-		cout << "[MeshGL::" << __FUNCTION__ << "] Done." << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] Done." << endl;
 
 		return true;
 }
@@ -2234,12 +2234,12 @@ bool MeshGL::getFuncValMinMaxUser( double* rMin, double* rMax ) {
 		if( !getFuncValuesMinMax( valMin, valMax ) ) {
 			// Suppress error for meshes having no finite function value.
 			if( !std::isfinite( valMin ) || !std::isfinite( valMax ) ) {
-				cout << "[MeshGL::" << __FUNCTION__ << "] ERROR: getFuncValuesMinMax failed!" << endl;
+                cout << "[MeshGL::" << __FUNCTION__ << "] ERROR: getFuncValuesMinMax failed!" << endl;
 			}
 			return( false );
 		}
-		cout << "[MeshGL::" << __FUNCTION__ << "] min Value:        " << valMin << endl;
-		cout << "[MeshGL::" << __FUNCTION__ << "] max Value:        " << valMax << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] min Value:        " << valMin << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] max Value:        " << valMax << endl;
 		setParamFloatMeshGL( TEXMAP_AUTO_MIN, valMin );
 		setParamFloatMeshGL( TEXMAP_AUTO_MAX, valMax );
 	}
@@ -2251,9 +2251,9 @@ bool MeshGL::getFuncValMinMaxUser( double* rMin, double* rMax ) {
 	double texmapFixedMax;
 	getParamFloatMeshGL( TEXMAP_FIXED_MIN, &texmapFixedMin );
 	getParamFloatMeshGL( TEXMAP_FIXED_MAX, &texmapFixedMax );
-	// Set a default for manual/fixed function value range.
+    // Set a default for manual/fixed function value range.
 	if( ( !std::isfinite( texmapFixedMin ) ) || ( !std::isfinite( texmapFixedMax ) ) ) {
-		// Set only if there is a valid range:
+        // Set only if there is a valid range:
 		if( isnormal( texmapAutoMax - texmapAutoMin ) ) {
 			texmapFixedMin = texmapAutoMin;
 			texmapFixedMax = texmapAutoMax;
@@ -2280,17 +2280,17 @@ bool MeshGL::getFuncValMinMaxUser( double* rMin, double* rMax ) {
 			getParamFloatMeshGL( TEXMAP_QUANTIL_MAX, &texmapQuantilMax );
 
 			if( !getFuncValuesMinMaxQuantil( texmapQuantilMin, texmapQuantilMax, valMin, valMax ) ) {
-					cout << "[MeshGL::" << __FUNCTION__ << "] ERROR: getFuncValuesMinMax failed!" << endl;
+                    cout << "[MeshGL::" << __FUNCTION__ << "] ERROR: getFuncValuesMinMax failed!" << endl;
 					return( false );
 			}
 
-			cout << "[MeshGL::" << __FUNCTION__ << "] min Value:    " << valMin << " (Quantile)" << endl;
-			cout << "[MeshGL::" << __FUNCTION__ << "] max Value:    " << valMax << " (Quantile)" << endl;
+            cout << "[MeshGL::" << __FUNCTION__ << "] min Value:    " << valMin << " (Quantile)" << endl;
+            cout << "[MeshGL::" << __FUNCTION__ << "] max Value:    " << valMax << " (Quantile)" << endl;
 			setParamFloatMeshGL( TEXMAP_QUANTIL_MIN_ABSOLUT, valMin );
 			setParamFloatMeshGL( TEXMAP_QUANTIL_MAX_ABSOLUT, valMax );
 	}
 
-	// Set cutoff value on the users choice for the shader.
+    // Set cutoff value on the users choice for the shader.
 	eFuncValCutoff cutoffChoice;
 	getParamIntMeshGL( FUNCVAL_CUTOFF_CHOICE, reinterpret_cast<int*>(&cutoffChoice) );
 	switch( cutoffChoice ) {
@@ -2307,7 +2307,7 @@ bool MeshGL::getFuncValMinMaxUser( double* rMin, double* rMax ) {
 					getParamFloatMeshGL( TEXMAP_AUTO_MAX, rMax );
 			        break;
 		    default:
-			        cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: Invalid choice for cutoff value." << endl;
+                    cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: Invalid choice for cutoff value." << endl;
 			        return( false );
 	}
 
@@ -2338,7 +2338,7 @@ bool MeshGL::setFuncValIsoSteppingByNumberUI() {
 				return( false );
 		}
 		bool setIsoOffsetZero = true;
-		if( !showQuestion( &setIsoOffsetZero, string( "Reset Isovalue Offset" ), string( "Set the offset of the isolines to zero?" ) ) ) {
+        if( !showQuestion( &setIsoOffsetZero, string( "Reset Isovalue Offset" ), string( "Set the offset of the isolines to zero?" ) ) ) {
 				return( false );
 		}
 		// Execute, when no user cancel:
@@ -2366,12 +2366,12 @@ bool MeshGL::setFuncValIsoSteppingByNumber(
 //! Load some initial Vertex Buffer Objects (VBOs).
 void MeshGL::glPrepare() {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 		PRINT_OPENGL_ERROR( "OLD_ERROR" );
 
 		if( mVBOPrepared ) {
-				cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: Buffers were already prepared!" << endl;
+                cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: Buffers were already prepared!" << endl;
 				return;
 		}
 
@@ -2381,7 +2381,7 @@ void MeshGL::glPrepare() {
 
 		PglGenVertexArrays glGenVertexArrays = reinterpret_cast<PglGenVertexArrays>(mOpenGLContext->getProcAddress( "glGenVertexArrays" ));
 		glGenVertexArrays( 1, &mVAO );
-		cout << "[MeshGL::" << __FUNCTION__ << "] glGenVertexArrays --- mVAO = " << mVAO << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] glGenVertexArrays --- mVAO = " << mVAO << endl;
 		for(QOpenGLBuffer*& mVertBufObj : mVertBufObjs) {
 			    mVertBufObj = nullptr;
 		}
@@ -2416,10 +2416,10 @@ void MeshGL::glPrepare() {
 								vertexNonManifoldTmp.push_back( static_cast<GLuint>(vertexCtr) );
 						break;
 				default:
-						cerr << "[MeshGL::" << __FUNCTION__ << "] unknown Vertex state at index " << curVertex->getIndexOriginal() << "!" << endl;
+                        cerr << "[MeshGL::" << __FUNCTION__ << "] unknown Vertex state at index " << curVertex->getIndexOriginal() << "!" << endl;
 				}
 		}
-		cout << "[MeshGL::" << __FUNCTION__ << "] Time Vertices: " << static_cast<float>( clock() - timeStartSub ) / CLOCKS_PER_SEC << " seconds."  << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] Time Vertices: " << static_cast<float>( clock() - timeStartSub ) / CLOCKS_PER_SEC << " seconds."  << endl;
 
 		// --- Extra infos -------------------------------------------------------------------------------------------------------------------------------------
 		mVertBufObjs[VBUFF_VERTICES_SOLO]        = new QOpenGLBuffer( QOpenGLBuffer::IndexBuffer );
@@ -2447,7 +2447,7 @@ void MeshGL::glPrepare() {
 				faceIndices.push_back( static_cast<GLuint>(currFace->getVertA()->getIndex()) );
 				faceIndices.push_back( static_cast<GLuint>(currFace->getVertB()->getIndex()) );
 				faceIndices.push_back( static_cast<GLuint>(currFace->getVertC()->getIndex()) );
-				//cout << "[MeshGL::prepareVBOs] Face: " << faces[faceCtr*3] << " - " << faces[faceCtr*3+1] << " - " << faces[faceCtr*3+2] << endl;
+                //cout << "[MeshGL::prepareVBOs] Face: " << faces[faceCtr*3] << " - " << faces[faceCtr*3+1] << " - " << faces[faceCtr*3+2] << endl;
 		}
 
 		mVertBufObjs[VBUFF_FACES] = new QOpenGLBuffer( QOpenGLBuffer::IndexBuffer );
@@ -2455,16 +2455,16 @@ void MeshGL::glPrepare() {
 
 		const auto timeStop = clock();
 #ifdef OPENGL_VBO_SHOW_MEMORY_USAGE
-		cout << "[MeshGL::" << __FUNCTION__ << "] Memory: " << mVboMemoryUsage << " Bytes = " << mVboMemoryUsage/(1024*1024) << " MB" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] Memory: " << mVboMemoryUsage << " Bytes = " << mVboMemoryUsage/(1024*1024) << " MB" << endl;
 #endif
-		cout << "[MeshGL::" << __FUNCTION__ << "] Time: " << static_cast<float>( timeStop - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] Time: " << static_cast<float>( timeStop - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
 		mVBOPrepared = true;
 }
 
 //! Paints the Mesh using OpenGL.
 void MeshGL::glPaint() {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 		//! *) Prepare VBOs if necessary.
 		if( !mVBOPrepared ) {
@@ -2475,9 +2475,9 @@ void MeshGL::glPaint() {
 //! Removes Mesh data from the graphic card.
 void MeshGL::glRemove() {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
-		// no general free as not all arrays might not be set!: glDeleteBuffers( VBO_ARRAY_COUNT, vboId );
+        // no general free as not all arrays might not be set!: glDeleteBuffers( VBO_ARRAY_COUNT, vboId );
 		for( int i=0; i<VBUFF_COUNT; i++ ) {
 				vboRemoveBuffer( static_cast<eVertBufObjs>(i), __FUNCTION__ );
 		}
@@ -2489,7 +2489,7 @@ void MeshGL::glRemove() {
 		}
 #ifdef OPENGL_VBO_SHOW_MEMORY_USAGE
 		mVboMemoryUsage = 0;
-		cout << "[MeshGL::" << __FUNCTION__ << "] VBOs deleted." << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] VBOs deleted." << endl;
 #endif
 		mVBOPrepared = false;
 }
@@ -2497,7 +2497,7 @@ void MeshGL::glRemove() {
 //! Preparation for painting the mesh
 void MeshGL::glPaintDepth( const QMatrix4x4 &rTransformMat  ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 		//! *) Prepare VBOs if necessary.
 		if( !mVBOPrepared ) {
@@ -2513,14 +2513,14 @@ void MeshGL::glPaintFrontalLightPerVertex( const QMatrix4x4 &rTransformMat ,
                                                                                    GLfloat rZTolerance ,
                                                                                    GLint rFirstVertIdx  ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 		//! *) Prepare VBOs if necessary.
 		if( !mVBOPrepared ) {
 				glPrepare();
 		}
 		if ( !vboPrepareVerticesStriped() ) {
-				cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: Preparing Vertices and related data as VBO stripe failed!" << endl;
+                cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: Preparing Vertices and related data as VBO stripe failed!" << endl;
 		}
 }
 
@@ -2566,7 +2566,7 @@ bool MeshGL::insertVertices( vector<Vertex*>* rNewVertices ) {
 //! Set flag controlling the display of Primitives, etc.
 bool MeshGL::setParamFlagMeshGL( MeshGLParams::eParamFlag rParamID, bool rState ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 	if( !MeshGLParams::setParamFlagMeshGL( rParamID, rState ) ) {
 		// Prevent infinite loops and unnecessary changes.
@@ -2580,7 +2580,7 @@ bool MeshGL::setParamFlagMeshGL( MeshGLParams::eParamFlag rParamID, bool rState 
 //! @returns true when a change was made -- false otherwise.
 bool MeshGL::setParamIntMeshGL( MeshGLParams::eParamInt rParamID, int rValue ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "] rParamID: " << rParamID << " rValue: " << rValue << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] rParamID: " << rParamID << " rValue: " << rValue << endl;
 #endif
 		// Prevent infinite loops and unnecessary changes.
 		if( !MeshGLParams::setParamIntMeshGL( rParamID, rValue ) ) {
@@ -2611,7 +2611,7 @@ bool MeshGL::setParamIntMeshGL( MeshGLParams::eParamInt rParamID, int rValue ) {
 //! @returns true when the value was changed. false otherwise.
 bool MeshGL::setParamFloatMeshGL( MeshGLParams::eParamFlt rParamID, double rValue ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 		// Prevent infinite loops:
 		if( !MeshGLParams::setParamFloatMeshGL( rParamID, rValue ) ) {
@@ -2640,14 +2640,14 @@ bool MeshGL::setParamFloatMeshGL( MeshGLParams::eParamFlt rParamID, double rValu
 				case POLYLINE_WIDTH:
 						break;
 				case FUNC_VALUE_LOG_GAMMA:
-						//cout << "[MeshGLParams::" << __FUNCTION__ << "] : " << rValue << endl;
+                        //cout << "[MeshGLParams::" << __FUNCTION__ << "] : " << rValue << endl;
 						break;
 				case ISOLINES_DISTANCE: {
 						double funcValMin;
 						double funcValMax;
 						getFuncValMinMaxUser( &funcValMin, &funcValMax );
 						int numberOfIsoLines = floor( (funcValMax-funcValMin) / rValue );
-						cout << "[MeshGLParams::" << __FUNCTION__ << "] Number of Isolines: " << numberOfIsoLines << endl;
+                        cout << "[MeshGLParams::" << __FUNCTION__ << "] Number of Isolines: " << numberOfIsoLines << endl;
 						} break;
 				case ISOLINES_OFFSET: // Should be lower than ISOLINES_DISTANCE. However, nothing happens when not. => freedom of choice.
 						break;
@@ -2675,7 +2675,7 @@ bool MeshGL::setParamFloatMeshGL( MeshGLParams::eParamFlt rParamID, double rValu
 			break;
 				// Not defined = error:
 				default:
-						cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: Unknown parameter ID: " << rParamID << endl;
+                        cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: Unknown parameter ID: " << rParamID << endl;
 						break;
 		}
 		return true;
@@ -3139,12 +3139,12 @@ void MeshGL::vboPrepareSphere() {
 //! Returns false, when no buffer was prepared.
 bool MeshGL::vboPrepareDoubleCone() {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 		bool drawVerticesSingular;
 		getParamFlagMeshGL( MeshGLParams::SHOW_VERTICES_SINGULAR, &drawVerticesSingular );
 		if( !drawVerticesSingular ) {
-				// flag not set - so there is nothing to do.
+                // flag not set - so there is nothing to do.
 				return false;
 		}
 
@@ -3179,7 +3179,7 @@ bool MeshGL::vboPrepareDoubleCone() {
 		vboAddBuffer( sizeof(GLuint)*vboSize, vertexDoubleCone, QOpenGLBuffer::StaticDraw, VBUFF_VERTICES_SINGULAR, __FUNCTION__ );
 		delete[] vertexDoubleCone;
 
-		cout << "[MeshGL::" << __FUNCTION__ << "] Time: " << static_cast<float>( clock() - timeStartSub ) / CLOCKS_PER_SEC << " seconds."  << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] Time: " << static_cast<float>( clock() - timeStartSub ) / CLOCKS_PER_SEC << " seconds."  << endl;
 		return true;
 }
 
@@ -3190,7 +3190,7 @@ bool MeshGL::vboPrepareVerticesWithFlag( unsigned int rFlagNr,   //!< See Primit
 										 eVertBufObjs rBufferID  //!< ID of a Vertex Buffer Object
 									   ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 		if( mVertBufObjs[rBufferID] == nullptr ) {
 				mVertBufObjs[rBufferID] = new QOpenGLBuffer( QOpenGLBuffer::IndexBuffer );
@@ -3223,8 +3223,8 @@ bool MeshGL::vboPrepareVerticesWithFlag( unsigned int rFlagNr,   //!< See Primit
 		vboAddBuffer( sizeof(GLuint)*vboSize, vertexIndices, QOpenGLBuffer::StaticDraw, rBufferID, __FUNCTION__ );
 		delete[] vertexIndices;
 
-		cout << "[MeshGL::" << __FUNCTION__ << "] Time: " << static_cast<float>( clock() - timeStartSub ) / CLOCKS_PER_SEC << " seconds."  << endl;
-		cout << "[MeshGL::" << __FUNCTION__ << "] Elements: " << vboSize << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] Time: " << static_cast<float>( clock() - timeStartSub ) / CLOCKS_PER_SEC << " seconds."  << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] Elements: " << vboSize << endl;
 		return true;
 }
 
@@ -3235,7 +3235,7 @@ bool MeshGL::vboPrepareFacesWithFlag( unsigned int rFlagNr,   //!< See Primitive
 									  eVertBufObjs rBufferID  //!< ID of a Vertex Buffer Object
 									) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 		if( mVertBufObjs[rBufferID] == nullptr ) {
 				mVertBufObjs[rBufferID] = new QOpenGLBuffer( QOpenGLBuffer::IndexBuffer );
@@ -3268,15 +3268,15 @@ bool MeshGL::vboPrepareFacesWithFlag( unsigned int rFlagNr,   //!< See Primitive
 		vboAddBuffer( sizeof(GLuint)*vboSize, vertexIndices, QOpenGLBuffer::StaticDraw, rBufferID, __FUNCTION__ );
 		delete[] vertexIndices;
 
-		cout << "[MeshGL::" << __FUNCTION__ << "] Time: " << static_cast<float>( clock() - timeStartSub ) / CLOCKS_PER_SEC << " seconds."  << endl;
-		cout << "[MeshGL::" << __FUNCTION__ << "] Elements: " << vboSize << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] Time: " << static_cast<float>( clock() - timeStartSub ) / CLOCKS_PER_SEC << " seconds."  << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] Elements: " << vboSize << endl;
 		return true;
 }
 
 //! Prepare OpenGL VBOs for polygonal lines.
 bool MeshGL::vboPreparePolylines() {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 		PRINT_OPENGL_ERROR( "OLD_ERROR" );
 
@@ -3339,7 +3339,7 @@ bool MeshGL::vboPreparePolylines() {
 //! @returns false in case of an error.
 bool MeshGL::vboPrepareVerticesStriped() {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 		bool noError = true;
 
@@ -3351,7 +3351,7 @@ bool MeshGL::vboPrepareVerticesStriped() {
 				// Already prepared => nothing to do.
 				return true;
 		}
-		cout << "[MeshGL::" << __FUNCTION__ << "] sizeof( grVertexStripeElment ): " << sizeof( grVertexStripeElment ) << " bytes." << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] sizeof( grVertexStripeElment ): " << sizeof( grVertexStripeElment ) << " bytes." << endl;
 
 		// Prepare data for the buffer
 		int timeStart = clock(); // for performance mesurement
@@ -3370,7 +3370,7 @@ bool MeshGL::vboPrepareVerticesStriped() {
 		}
 
 		vboAddBuffer( sizeof(grVertexStripeElment)*bufferData.size(), bufferData.data(), QOpenGLBuffer::StaticDraw, VBUFF_VERTICES_STRIPED, __FUNCTION__ );
-		cout << "[MeshGL::" << __FUNCTION__ << "] Time Vertices: " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] Time Vertices: " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
 
 		return noError;
 }
@@ -3378,7 +3378,7 @@ bool MeshGL::vboPrepareVerticesStriped() {
 //! Fetch one vertex into a strided array.
 bool MeshGL::vboPrepareVerticesStripedFetchVertex( Vertex* rVertex, grVertexStripeElment* rWriteTo ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 		bool noError = true;
 
@@ -3397,7 +3397,7 @@ bool MeshGL::vboPrepareVerticesStripedFetchVertex( Vertex* rVertex, grVertexStri
 		}
 		rWriteTo->mFuncVal = funcVal;  //! \todo change from GLfloat to GLdouble.
 		uint64_t labelID;
-		rVertex->getLabel( labelID ); // No ERROR check, here as getLabels also returns false, when no label is set!
+        rVertex->getLabel( labelID ); // No ERROR check, here as getLabels also returns false, when no label is set!
 		rWriteTo->mLabelID = static_cast<GLfloat>(labelID);  // This is INTENTIONAL - to determine faces along the border of a label!
 		// Flags -- these should be UINT, but thanks to fixed normalization this does not work -- see: http://qt-project.org/forums/viewthread/38929
 		rWriteTo->mFlags = 0.0f;
@@ -3428,14 +3428,14 @@ void MeshGL::vboRemoveBuffer( const eVertBufObjs rBufferID, const string& rCalli
 void MeshGL::vboRemoveBuffer( eVertBufObjs rBufferID, string rCallingFunc  ) {
 #endif
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 		if( mVertBufObjs[rBufferID] == nullptr ) {
-				cout << "[MeshGL::" << __FUNCTION__ << "] Buffer " << rBufferID << " already removed - called by " << rCallingFunc << endl;
+                cout << "[MeshGL::" << __FUNCTION__ << "] Buffer " << rBufferID << " already removed - called by " << rCallingFunc << endl;
 				return;
 		}
 		if( !mVertBufObjs[rBufferID]->isCreated() ) {
-				cout << "[MeshGL::" << __FUNCTION__ << "] Buffer " << rBufferID << " exist, but is not created - called by " << rCallingFunc << endl;
+                cout << "[MeshGL::" << __FUNCTION__ << "] Buffer " << rBufferID << " exist, but is not created - called by " << rCallingFunc << endl;
 				delete mVertBufObjs[rBufferID];
 				mVertBufObjs[rBufferID] = nullptr;
 				return;
@@ -3444,8 +3444,8 @@ void MeshGL::vboRemoveBuffer( eVertBufObjs rBufferID, string rCallingFunc  ) {
 		mVertBufObjs[rBufferID]->bind();
 		int bufferSizeDeleted = mVertBufObjs[rBufferID]->size();
 		mVertBufObjs[rBufferID]->release();
-		cout << "[MeshGL::" << __FUNCTION__ << "] will delete " << bufferSizeDeleted << " bytes (" << bufferSizeDeleted/(static_cast<double>(1024)*1024) << " MBytes) ";
-		cout << "by " << rCallingFunc << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "] will delete " << bufferSizeDeleted << " bytes (" << bufferSizeDeleted/(static_cast<double>(1024)*1024) << " MBytes) ";
+        cout << "by " << rCallingFunc << endl;
 		mVboMemoryUsage -= bufferSizeDeleted;
 #endif
 		delete mVertBufObjs[rBufferID];
@@ -3466,11 +3466,11 @@ void MeshGL::vboAddBuffer( GLsizeiptr                   rTotalSize,   //!< Size 
 #endif
 		) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-		cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
+        cout << "[MeshGL::" << __FUNCTION__ << "]" << endl;
 #endif
 		GLint currentVAO;
 		glGetIntegerv( GL_VERTEX_ARRAY_BINDING, &currentVAO );
-		//cout << "[MeshGL::" << __FUNCTION__ << "] currentVAO: " << currentVAO << endl;
+        //cout << "[MeshGL::" << __FUNCTION__ << "] currentVAO: " << currentVAO << endl;
 
 		PglBindVertexArray glBindVertexArray = reinterpret_cast<PglBindVertexArray>( mOpenGLContext->getProcAddress( "glBindVertexArray" ) );
 		if( static_cast<GLuint>(currentVAO) != mVAO ) {
@@ -3483,12 +3483,12 @@ void MeshGL::vboAddBuffer( GLsizeiptr                   rTotalSize,   //!< Size 
 		mVertBufObjs[rBufferID]->create();
 		mVertBufObjs[rBufferID]->setUsagePattern( rUsage );
 		if( !mVertBufObjs[rBufferID]->bind() ) {
-				cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: Could not bind vertex buffer VBO_VERTICES_STRIPED to the context!" << endl;
+                cerr << "[MeshGL::" << __FUNCTION__ << "] ERROR: Could not bind vertex buffer VBO_VERTICES_STRIPED to the context!" << endl;
 		}
 		mVertBufObjs[rBufferID]->allocate( rData, rTotalSize );
 #ifdef OPENGL_VBO_SHOW_MEMORY_USAGE
 		int bufferSizeAdded = mVertBufObjs[rBufferID]->size();
-		cout << "[MeshGL::" << __FUNCTION__ << "] add " << bufferSizeAdded << " bytes - " << bufferSizeAdded/(1024*1024) << " MBytes by " << rCallingFunc << endl; \
+        cout << "[MeshGL::" << __FUNCTION__ << "] add " << bufferSizeAdded << " bytes - " << bufferSizeAdded/(1024*1024) << " MBytes by " << rCallingFunc << endl; \
 		mVboMemoryUsage += bufferSizeAdded;
 #endif
 		mVertBufObjs[rBufferID]->release();

@@ -292,7 +292,8 @@ signals:
 	//.
 	void sDefaultViewLight();                                //!< signal to restore the default view and lights.
 	void sDefaultViewLightZoom();                            //!< signal to restore the default view, lights and zoom.
-	//.
+    void sSetDefaultView();                                  //!< signal to meshWidget -> set the mesh after transformation to the camera center and ask for saving the transformation as default.
+    //.
 	void rotYaw();                                           //!< trigger manual entry of a yaw angle for changing the camera position.
 	void rotPitch();                                         //!< trigger manual entry of a pitch angle for changing the camera position.
 	void rotRoll();                                          //!< trigger manual entry of a roll angle for changing the camera position.

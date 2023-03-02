@@ -32,14 +32,14 @@ class AutomaticAlignmentPyInterface final : public QDialog
     Q_OBJECT
 public:
     AutomaticAlignmentPyInterface(std::vector<Vertex*> *meshVertices);
-    bool startPythonScript(std::vector<Vector3D> *principalComponents);
+    bool startPythonScript(Matrix4D *pcaTransformationMatrix);
 
 
 
 private:
     bool exportVerticesAsCSV(std::vector<Vertex*> *meshVertices);
     void createExportVerticesTextStream(std::vector<Vertex*> *vertices,QTextStream &outputTextStream);
-    bool readPCsFromCSV(QString importPath, std::vector<Vector3D> *principalComponents);
+    bool readPCsFromCSV(QString importPath, Matrix4D *pcaTranfMatrix);
     QTemporaryFile mVertexCoordinatesTempFile;
     const QString mVertCSVPath = "./vertExport.csv";
 };
