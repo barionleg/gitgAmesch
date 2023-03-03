@@ -121,6 +121,8 @@ class MeshParams {
 			FUNCVAL_FEATUREVECTOR_APPLY_MAHALANOBIS,   //!< Compute a Mahalanobis inspired distance between feature vectors.
 			FUNCVAL_FEATUREVECTOR_MIN_ELEMENT,         //!< Fetch the smallest element of the feature vector for each vertex.
 			FUNCVAL_FEATUREVECTOR_MAX_ELEMENT,         //!< Fetch the largest element of the feature vector for each vertex - this is different from the Maximum Norm.
+			FUNCVAL_FEATUREVECTOR_MIN_ELEMENT_SIGNED,  //!< Fetch the smallest positive or negative element of the feature vector for each vertex.
+			FUNCVAL_FEATUREVECTOR_MAX_ELEMENT_SIGNED,  //!< Fetch the largest positive or negative element of the feature vector for each vertex - this is different from the Maximum Norm.
 			FUNCVAL_FEATUREVECTOR_ELEMENT_BY_INDEX,    //!< Fetch one element of a feature vector by its index.
 			FUNCVAL_DISTANCE_TO_SELPRIM,               //!< Compute the euclidean distance to the center of gravity of a single primitive (SelPrim).
 			FUNCVAL_PLANE_ANGLE,                       //!< Use the mesh plane to compute a slope angle.
@@ -160,7 +162,7 @@ class MeshParams {
 			APPLY_TRANSMAT_ALL,						   //!< Call to apply a 4x4 transformation matrix to all vertices.
 			APPLY_TRANSMAT_ALL_SCALE,				   //!< Call to apply a 4x4 transformation matrix to all vertices for scaling/skewing.
 			APPLY_TRANSMAT_SELMVERT,				   //!< Call to apply a 4x4 transformation matrix to the selected vertices (SelMVert).
-            SELMPRIMS_POS_DESELECT_ALL,				   //!< Call to de-select all positions.
+			SELMPRIMS_POS_DESELECT_ALL,				   //!< Call to de-select all positions.
 			SELMPRIMS_POS_DISTANCES,				   //!< Show distances of the selected positions.
 			SELMPRIMS_POS_CIRCLE_CENTERS,              //!< Compute circle centers of selected positions.
 			COMPUTE_FEATUREVECTORS_QUICK,              //!< Apply volume integral invariant filtering (MSII) with default options

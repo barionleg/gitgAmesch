@@ -1740,13 +1740,13 @@ bool Vertex::getFeatureVecLenEuc( double* rFeatureVecLenEuc ) {
 	return true;
 }
 
-//! Compute the maximum element of the feature vector.
-//! This is not the infinity-Norm or Maximum Norm as this requires the use of absoulut values.
+//! Compute the minimum element of the feature vector.
+//!
 //! @returns false in case of an error i.e. no feature vector present. True otherwise.
 bool Vertex::getFeatureVecMin( double* rFeatureVecMin ) {
 	// Sanity check
 	if( ( mFeatureVecLen == 0 ) || ( mFeatureVec == nullptr ) || ( rFeatureVecMin == nullptr ) ) {
-		return false;
+		return( false );
 	}
 	double minValue = +_INFINITE_DBL_;
 	for( unsigned int i=0; i<mFeatureVecLen; i++ ) {
@@ -1755,16 +1755,17 @@ bool Vertex::getFeatureVecMin( double* rFeatureVecMin ) {
 		}
 	}
 	(*rFeatureVecMin) = minValue;
-	return true;
+	return( true );
 }
 
 //! Compute the maximum element of the feature vector.
 //! This is not the infinity-Norm or Maximum Norm as this requires the use of absoulut values.
+//!
 //! @returns false in case of an error i.e. no feature vector present. True otherwise.
 bool Vertex::getFeatureVecMax( double* rFeatureVecMax ) {
 	// Sanity check
 	if( ( mFeatureVecLen == 0 ) || ( mFeatureVec == nullptr ) || ( rFeatureVecMax == nullptr ) ) {
-		return false;
+		return( false );
 	}
 	double maxValue = -_INFINITE_DBL_;
 	for( unsigned int i=0; i<mFeatureVecLen; i++ ) {
@@ -1773,6 +1774,42 @@ bool Vertex::getFeatureVecMax( double* rFeatureVecMax ) {
 		}
 	}
 	(*rFeatureVecMax) = maxValue;
+	return( true );
+}
+
+//! Compute the minimal positive or negative element of the feature vector.
+//!
+//! @returns false in case of an error i.e. no feature vector present. True otherwise.
+bool Vertex::getFeatureVecMinSigned( double* rFeatureVecMinSigned ) {
+	// Sanity check
+	if( ( mFeatureVecLen == 0 ) || ( mFeatureVec == nullptr ) || ( rFeatureVecMinSigned == nullptr ) ) {
+		return( false );
+	}
+	double minValue = +_INFINITE_DBL_;
+	for( unsigned int i=0; i<mFeatureVecLen; i++ ) {
+		if( abs( minValue ) > abs( mFeatureVec[i] ) ) {
+			minValue = mFeatureVec[i];
+		}
+	}
+	(*rFeatureVecMinSigned) = minValue;
+	return( true );
+}
+
+//! Compute the maximum positive or negative element of the feature vector.
+//!
+//! @returns false in case of an error i.e. no feature vector present. True otherwise.
+bool Vertex::getFeatureVecMaxSigned( double* rFeatureVecMaxSigned ) {
+	// Sanity check
+	if( ( mFeatureVecLen == 0 ) || ( mFeatureVec == nullptr ) || ( rFeatureVecMaxSigned == nullptr ) ) {
+		return( false );
+	}
+	double maxValue = 0.0;
+	for( unsigned int i=0; i<mFeatureVecLen; i++ ) {
+		if( abs( maxValue ) < abs( mFeatureVec[i] ) ) {
+			maxValue = mFeatureVec[i];
+		}
+	}
+	(*rFeatureVecMaxSigned) = maxValue;
 	return true;
 }
 

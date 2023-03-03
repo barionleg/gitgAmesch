@@ -203,9 +203,9 @@
      <addaction name="actionVisVertFaceSphereMeanAngleMax"/>
      <addaction name="actionFuncVertDistancesMax"/>
     </widget>
-    <widget class="QMenu" name="menuFeatureVectorsExtraFunctions">
+    <widget class="QMenu" name="menuFeatureVectorsExtraFunctions1">
      <property name="title">
-      <string>Feature Vectors - Extra Functions</string>
+      <string>Feature Vectors - Extra Functions (2)</string>
      </property>
      <addaction name="actionFuncValFeatureVecElementsStdDev"/>
      <addaction name="separator"/>
@@ -251,20 +251,28 @@
      <addaction name="actionSphereVolumeArea"/>
      <addaction name="actionSphereSurfaceNumberOfComponents"/>
     </widget>
+    <widget class="QMenu" name="menuFeature_Vectors_Extra_Functions_1">
+     <property name="title">
+      <string>Feature Vectors - Extra Functions (1)</string>
+     </property>
+     <addaction name="actionFeatDistSelMan"/>
+     <addaction name="actionFeatDistSelEuc"/>
+     <addaction name="actionFeatDistSelEucNorm"/>
+     <addaction name="separator"/>
+     <addaction name="actionFeatCorrelationSelectedVert"/>
+     <addaction name="actionFuncValFeatureVecCorrelateWith"/>
+    </widget>
     <addaction name="actionFeatLengthMan"/>
     <addaction name="actionFeatLengthEuc"/>
-    <addaction name="separator"/>
-    <addaction name="actionFeatDistSelMan"/>
-    <addaction name="actionFeatDistSelEuc"/>
-    <addaction name="actionFeatDistSelEucNorm"/>
-    <addaction name="actionFeatCorrelationSelectedVert"/>
-    <addaction name="actionFuncValFeatureVecCorrelateWith"/>
     <addaction name="separator"/>
     <addaction name="actionFeatElement"/>
     <addaction name="actionFuncValFeatureVecMin"/>
     <addaction name="actionFuncValFeatureVecMax"/>
+    <addaction name="actionFuncValFeatureVecMinSigned"/>
+    <addaction name="actionFuncValFeatureVecMaxSigned"/>
     <addaction name="separator"/>
-    <addaction name="menuFeatureVectorsExtraFunctions"/>
+    <addaction name="menuFeature_Vectors_Extra_Functions_1"/>
+    <addaction name="menuFeatureVectorsExtraFunctions1"/>
     <addaction name="separator"/>
     <addaction name="actionFuncValPlaneAngle"/>
     <addaction name="actionDistanceToPlane"/>
@@ -4549,6 +4557,16 @@ The latter will be shown, when the processing has finished.</string>
   <action name="actionAutomatic_Mesh_Alignment">
    <property name="text">
     <string>Automatic Mesh Alignment</string>
+   </property>
+  </action>
+  <action name="actionFuncValFeatureVecMinSigned">
+   <property name="text">
+    <string>Feature Element Min Signed</string>
+   </property>
+  </action>
+  <action name="actionFuncValFeatureVecMaxSigned">
+   <property name="text">
+    <string>Feature Element Max Signed</string>
    </property>
   </action>
  </widget>

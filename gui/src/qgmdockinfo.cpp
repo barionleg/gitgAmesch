@@ -80,7 +80,7 @@ QGMDockInfo::QGMDockInfo( QWidget *parent ) :
 
 #ifdef COMP_EDIT
 	//cout << "[QGMDockInfo] .... for: " << COMP_EDIT << endl;
-	ui->labelEdition->setText( QString().fromLocal8Bit( COMP_EDIT ) );
+	//ui->labelEdition->setText( QString().fromLocal8Bit( COMP_EDIT ) );
 #else
 	cerr << "[QGMDockInfo] ERROR: Build information missing!" << endl;
 #endif

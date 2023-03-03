@@ -252,12 +252,14 @@ virtual bool     setAlpha(unsigned char alpha);
 				bool     assignFeatureVecValues( const std::vector<double>& newFeatureVec );
 				bool     copyFeatureVecTo( double* rFetchFeatureVec ) const override;
 				bool     getFeatureVectorElements( std::vector<double>& rFeatVec ) const override;
-		// Norm of the feature vector
+		// Norm of the feature vector inlcuding related functions
 		        bool     getFeatureVecMeanStdDev( double& rFeatureVecMean, double& rFeatureVecStdDev ) const;
 		virtual bool     getFeatureVecLenMan( double* rFeatureVecLenMan );
 		virtual bool     getFeatureVecLenEuc( double* rFeatureVecLenEuc );
 		virtual bool     getFeatureVecMin( double* rFeatureVecMin );
 		virtual bool     getFeatureVecMax( double* rFeatureVecMax );
+		virtual bool     getFeatureVecMinSigned( double* rFeatureVecMinSigned );
+		virtual bool     getFeatureVecMaxSigned( double* rFeatureVecMaxSigned );
 		virtual bool     getFeatureVecBVFunc( double* rFeatureVecBVFunc );
 		virtual bool     getFeatureVecTVSeqn( double* rFeatureVecTVSeqn );
 		// Norm of the feature vector with a given reference

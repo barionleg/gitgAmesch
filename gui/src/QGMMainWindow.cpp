@@ -1077,6 +1077,8 @@ void QGMMainWindow::initMeshSignals() {
 	actionFuncValOrthogonalAxisAngleToRaial->setProperty(         "gmMeshFunctionCall", MeshParams::FUNCVAL_ORTHOGONAL_AXIS_ANGLE_TO_RADIAL      );
 	actionFuncValFeatureVecMin->setProperty(                      "gmMeshFunctionCall", MeshParams::FUNCVAL_FEATUREVECTOR_MIN_ELEMENT            );
 	actionFuncValFeatureVecMax->setProperty(                      "gmMeshFunctionCall", MeshParams::FUNCVAL_FEATUREVECTOR_MAX_ELEMENT            );
+	actionFuncValFeatureVecMinSigned->setProperty(                "gmMeshFunctionCall", MeshParams::FUNCVAL_FEATUREVECTOR_MIN_ELEMENT_SIGNED     );
+	actionFuncValFeatureVecMaxSigned->setProperty(                "gmMeshFunctionCall", MeshParams::FUNCVAL_FEATUREVECTOR_MAX_ELEMENT_SIGNED     );
 	actionColorRGBAvgToFuncVal->setProperty(                      "gmMeshFunctionCall", MeshParams::FUNCVAL_SET_GRAY_RGB_AVERAGE                 );
 	actionColorRGBAvgWeigthToFuncVal->setProperty(                "gmMeshFunctionCall", MeshParams::FUNCVAL_SET_GRAY_RGB_AVERAGE_WEIGHTED        );
 	actionColorRGBSaturationRemovalToFuncVal->setProperty(        "gmMeshFunctionCall", MeshParams::FUNCVAL_SET_GRAY_SATURATION_REMOVAL          );

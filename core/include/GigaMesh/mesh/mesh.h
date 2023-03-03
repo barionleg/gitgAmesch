@@ -542,12 +542,14 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				bool funcVertFeatureElementsStdDev();
 		virtual bool funcVertFeatureVecMin();
 		virtual bool funcVertFeatureVecMax();
+		virtual bool funcVertFeatureVecMinSigned();
+		virtual bool funcVertFeatureVecMaxSigned();
 		virtual bool funcVertFeatureVecMahalDist();
 		virtual bool funcVertFeatureVecPNorm();
 		virtual bool funcVertFeatureVecPNorm( const std::vector<double>& rReferenceVector, const double& rpNorm, eFuncFeatureVecPNormWeigth rWeigthType );
 		virtual bool funcVertFeatureVecElementByIndex( unsigned int rElementNr );
 		virtual bool funcVertDistanceToPlane( Vector3D rPlaneHNF, bool rAbsDist, bool rSilent=false );
-				bool funcVertAddLight(Matrix4D &rTransformMat, unsigned int rArrayWidth, unsigned int rArrayHeight, const std::vector<float>& rDepths, float rZTolerance );
+				bool funcVertAddLight( Matrix4D &rTransformMat, unsigned int rArrayWidth, unsigned int rArrayHeight, const std::vector<float>& rDepths, float rZTolerance );
 				bool funcVertSphereSurfaceLength();
 				bool funcVertSphereVolumeArea();
 				bool funcVertSphereSurfaceNumberOfComponents();

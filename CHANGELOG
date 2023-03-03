@@ -1,5 +1,7 @@
 Current Version
-+) ....
++) New: 'Functions -> Feature Element Min Signed' showing more details than the unsigned function.
++) New: 'Functions -> Feature Element Max Signed' showing more details than the unsigned function.
++) Changed: moved less used menu items of the 'Functions' menu to a '-> Feature Vectors Extra Functions (1)'.
 
 Version 230302 (incomplete)
 +) New: Automatic mesh alignment based on PCA 
