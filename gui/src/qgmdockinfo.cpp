@@ -68,13 +68,13 @@ QGMDockInfo::QGMDockInfo( QWidget *parent ) :
 	//cout << "[QGMDockInfo] Built by: " << COMP_USER << endl;
 	//buildInfo = "Compiled by: " + QString().fromLocal8Bit( COMP_USER );
 #else
-	cerr << "[QGMDockInfo] ERROR: Build information missing!" << endl;
+	std::cerr << "[QGMDockInfo] ERROR: Build information missing!" << endl;
 #endif
 #ifdef COMP_DATE
 	//cout << "[QGMDockInfo] ..... on: " << COMP_DATE << endl;
 	buildInfo = "Build: " + QString().fromLocal8Bit( COMP_DATE );
 #else
-	cerr << "[QGMDockInfo] ERROR: Build information missing!" << endl;
+	std::cerr << "[QGMDockInfo] ERROR: Build information missing!" << endl;
 #endif
 	ui->labelBuild->setText( buildInfo );
 
@@ -82,13 +82,13 @@ QGMDockInfo::QGMDockInfo( QWidget *parent ) :
 	//cout << "[QGMDockInfo] .... for: " << COMP_EDIT << endl;
 	//ui->labelEdition->setText( QString().fromLocal8Bit( COMP_EDIT ) );
 #else
-	cerr << "[QGMDockInfo] ERROR: Build information missing!" << endl;
+	std::cerr << "[QGMDockInfo] ERROR: Build information missing!" << endl;
 #endif
 
 #ifdef COMP_GITHEAD
 	//cout << "[QGMDockInfo] .... git head: " << COMP_GITHEAD << endl;
 #else
-	cerr << "[QGMMainWindow] ERROR: Build information missing!" << endl;
+	std::cerr << "[QGMMainWindow] ERROR: Build information missing!" << endl;
 #endif
 }
 
