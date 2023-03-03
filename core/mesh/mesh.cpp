@@ -470,6 +470,9 @@ bool Mesh::callFunction(
 		case FEATUREVEC_UNLOAD_ALL:
 			removeFeatureVectors();
 			break;
+		case FUNCVAL_FEATUREVECTOR_STDDEV_ELEMENTS:
+			retVal = funcVertFeatureElementsStdDev();
+			break;
 		case FUNCVAL_FEATUREVECTOR_CORRELATE_WITH: {
 			vector<double> refernceVector;
 			if( !showEnterText( refernceVector, "Reference vector" ) ) {
@@ -8938,6 +8941,34 @@ bool Mesh::funcVertDistancesMax() {
 	showProgressStop( funcName );
 	changedVertFuncVal();
 	return true;
+}
+
+//! Set the function value to the standard deviation of the feature vector's element.
+//!
+//! @returns true, when all vertices got a new function value. False otherwise i.e. in case of an error.
+bool Mesh::funcVertFeatureElementsStdDev() {
+	bool allSet = true;
+
+	string funcName = "Compute standard deviation of the feature vectors' elements.";
+	uint64_t nrOfVertices = getVertexNr();
+	showProgressStart( funcName );
+
+	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
+		Vertex* currVertex = getVertexPos( vertIdx );
+		double featureVecMean; 
+		double featureVecStdDev;
+		if( !currVertex->getFeatureVecMeanStdDev( &featureVecMean, &featureVecStdDev ) ) {
+			allSet = false;
+		}
+		if( !currVertex->setFuncValue( featureVecStdDev ) ) {
+			allSet = false;
+		}
+		showProgress( static_cast<double>(vertIdx+1)/static_cast<double>(nrOfVertices), funcName );
+	}
+	showProgressStop( funcName );
+
+	changedVertFuncVal();
+	return( allSet );
 }
 
 //! Set the function value to the minimum of the feature vector's element.

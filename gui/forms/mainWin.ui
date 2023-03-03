@@ -207,6 +207,11 @@
      <property name="title">
       <string>Feature Vectors - Extra Functions (2)</string>
      </property>
+     <property name="icon">
+      <iconset>
+       <normalon>:/GMToolBar/gigamesh_icon_feature_vector_generic.svg</normalon>
+      </iconset>
+     </property>
      <addaction name="actionFuncValFeatureVecElementsStdDev"/>
      <addaction name="separator"/>
      <addaction name="actionFeatBVFunc"/>
@@ -254,6 +259,11 @@
     <widget class="QMenu" name="menuFeature_Vectors_Extra_Functions_1">
      <property name="title">
       <string>Feature Vectors - Extra Functions (1)</string>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normalon>:/GMToolBar/gigamesh_icon_feature_vector_generic.svg</normalon>
+      </iconset>
      </property>
      <addaction name="actionFeatDistSelMan"/>
      <addaction name="actionFeatDistSelEuc"/>
@@ -1986,6 +1996,10 @@
    </property>
   </action>
   <action name="actionFeatLengthEuc">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_feature_vector_norm2.svg</normaloff>:/GMToolBar/gigamesh_icon_feature_vector_norm2.svg</iconset>
+   </property>
    <property name="text">
     <string>Feature Vector Length (Euclid/&amp;2-Norm)</string>
    </property>
@@ -2026,8 +2040,12 @@
    </property>
   </action>
   <action name="actionFeatLengthMan">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_feature_vector_norm1.svg</normaloff>:/GMToolBar/gigamesh_icon_feature_vector_norm1.svg</iconset>
+   </property>
    <property name="text">
-    <string>&amp;Feature Vector Length (Man/1-Norm)</string>
+    <string>&amp;Feature Vector Length (Man/1-Norm) ⭑</string>
    </property>
   </action>
   <action name="actionVisMapQuantil">
@@ -2057,8 +2075,12 @@
    </property>
   </action>
   <action name="actionFeatElement">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_feature_vector_element_index.svg</normaloff>:/GMToolBar/gigamesh_icon_feature_vector_element_index.svg</iconset>
+   </property>
    <property name="text">
-    <string>Feature &amp;Element by Index</string>
+    <string>Feature Vector &amp;Element by Index ⭑</string>
    </property>
   </action>
   <action name="actionVisMapFixedMinMax">
@@ -3491,8 +3513,12 @@ p, li { white-space: pre-wrap; }
    </property>
   </action>
   <action name="actionFuncValFeatureVecMax">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_feature_vector_max.svg</normaloff>:/GMToolBar/gigamesh_icon_feature_vector_max.svg</iconset>
+   </property>
    <property name="text">
-    <string>Feature Element Ma&amp;x</string>
+    <string>Feature Vector Element Ma&amp;x ★</string>
    </property>
   </action>
   <action name="actionShowInfoMesh">
@@ -3606,8 +3632,12 @@ p, li { white-space: pre-wrap; }
    </property>
   </action>
   <action name="actionFuncValFeatureVecMin">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_feature_vector_min.svg</normaloff>:/GMToolBar/gigamesh_icon_feature_vector_min.svg</iconset>
+   </property>
    <property name="text">
-    <string>Feature Element Min</string>
+    <string>Feature Vector Element Min</string>
    </property>
   </action>
   <action name="actionFuncValMedianOneRingRepeat">
@@ -4291,7 +4321,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionFuncValFeatureVecElementsStdDev">
    <property name="text">
-    <string>Feature Elements Standard Deviation</string>
+    <string>Feature Vector Elements Standard Deviation</string>
    </property>
   </action>
   <action name="actionGridCenter">
@@ -4560,13 +4590,21 @@ The latter will be shown, when the processing has finished.</string>
    </property>
   </action>
   <action name="actionFuncValFeatureVecMinSigned">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_feature_vector_min_sign.svg</normaloff>:/GMToolBar/gigamesh_icon_feature_vector_min_sign.svg</iconset>
+   </property>
    <property name="text">
-    <string>Feature Element Min Signed</string>
+    <string>Feature Vector Element Min Signed 🞵</string>
    </property>
   </action>
   <action name="actionFuncValFeatureVecMaxSigned">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_feature_vector_max_sign.svg</normaloff>:/GMToolBar/gigamesh_icon_feature_vector_max_sign.svg</iconset>
+   </property>
    <property name="text">
-    <string>Feature Element Max Signed</string>
+    <string>Feature Vector Element Max Signed ❋</string>
    </property>
   </action>
  </widget>

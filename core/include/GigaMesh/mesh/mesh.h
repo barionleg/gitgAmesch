@@ -539,7 +539,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool funcVert1RingRMin();
 		virtual bool funcVert1RingVolInt();
 		virtual bool funcVertDistancesMax();
-				bool funcVertFeatureElementsStdDev();
+		virtual bool funcVertFeatureElementsStdDev();
 		virtual bool funcVertFeatureVecMin();
 		virtual bool funcVertFeatureVecMax();
 		virtual bool funcVertFeatureVecMinSigned();

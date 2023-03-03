@@ -1681,8 +1681,8 @@ bool Vertex::getFeatureVectorElements( vector<double>& rFeatVec ) const {
 //! @returns false in case of an error e.g. no feature vector.
 //!          True otherwise
 bool Vertex::getFeatureVecMeanStdDev( 
-        double& rFeatureVecMean, 
-        double& rFeatureVecStdDev 
+        double* rFeatureVecMean, 
+        double* rFeatureVecStdDev 
 ) const {
 	// Sanity check
 	if( ( mFeatureVecLen == 0 ) || ( mFeatureVec == nullptr ) ) {
@@ -1704,8 +1704,8 @@ bool Vertex::getFeatureVecMeanStdDev(
 	elementValueMean = sqrt( elementValueMean / ( mFeatureVecLen-1 ) );
 
 	// Done - return values.
-	rFeatureVecMean   = elementValueMean;
-	rFeatureVecStdDev = elementValueMean;
+	(*rFeatureVecMean)   = elementValueMean;
+	(*rFeatureVecStdDev) = elementValueMean;
 	return( true );
 }
 
