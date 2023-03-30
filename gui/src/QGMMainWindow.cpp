@@ -36,6 +36,9 @@
 #include "qgmdockview.h"
 #include "ExternalProgramsDialog.h"
 #include "dialogGridCenterSelect.h"
+#include "QGMDialogWebView.h"
+#include "QGMAnnotationTemplateDialog.h"
+#include "QGMAnnotationDialog.h"
 
 using namespace std;
 
@@ -240,6 +243,9 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionSetLengthSmooth,               SIGNAL(triggered()), this, SIGNAL(setLengthSmooth())                   );
 	QObject::connect( actionPolylinesCopyNormalToVertices, SIGNAL(triggered()), this, SIGNAL(sPolylinesCopyNormalToVertices())    );
 
+
+
+
 	//.
     QObject::connect( actionCheckNonMaxCorr,         SIGNAL(triggered()), this, SIGNAL(nonMaxCorrCheck())                   );
     //.
@@ -309,6 +315,11 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionVisitVideoTutorials,   &QAction::triggered, this, &QGMMainWindow::visitVideoTutorials   );
 	QObject::connect( actionVisitWebSite,          &QAction::triggered, this, &QGMMainWindow::visitWebSite          );
 	QObject::connect( actionAbout,                 &QAction::triggered, this, &QGMMainWindow::aboutBox              );
+    QObject::connect( actionAnnotateRendering,      &QAction::triggered, this, &QGMMainWindow::openAnnotationWindow  );
+    QObject::connect(actionLoad_Annotations_From_File, &QAction::triggered, this, &QGMMainWindow::loadAnnotationsFromFile);
+    QObject::connect(actionEdit_Annotation_Templates, &QAction::triggered, this, &QGMMainWindow::createAnnotationTemplateWindow);
+    QObject::connect(actionGet_Label_Info, &QAction::triggered, this, &QGMMainWindow::createAnnotationWindowFromTemplate);
+
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
 
 	// --- DOCK Widgets: Surface ---------------------------------------------------------------------------------------------------------------------------
@@ -334,6 +345,9 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( this,      &QGMMainWindow::sShowProgressStart,                                mDockInfo, &QGMDockInfo::showProgressStart                                  );
 	QObject::connect( this,      &QGMMainWindow::sShowProgress,                                     mDockInfo, &QGMDockInfo::showProgress                                       );
 	QObject::connect( this,      &QGMMainWindow::sShowProgressStop,                                 mDockInfo, &QGMDockInfo::showProgressStop                                   );
+    QObject::connect( this,      &QGMMainWindow::sShowInfoMessage,                                 mDockInfo, &QGMDockInfo::showInfoMessage                                   );
+    QObject::connect( this,      &QGMMainWindow::sClearInfoMessage,                                 mDockInfo, &QGMDockInfo::clearInfoMessage                                   );
+
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
 
 	// --- DOCK Widgets: Viewport --------------------------------------------------------------------------------------------------------------------------
@@ -433,6 +447,8 @@ QGMMainWindow::~QGMMainWindow() {
 
 }
 
+
+
 //! Initialization regarding signals to the MeshWidget - ONLY to be called ONCE from the constructor!
 void QGMMainWindow::initMeshWidgetSignals() {
 	// Setup group of flags for visualization - see mMeshWidget
@@ -520,7 +536,9 @@ void QGMMainWindow::initMeshWidgetSignals() {
 	mGroupSelPrimitive = new QActionGroup( this );
 	actionSelMVertsGUIPinPoint->setActionGroup( mGroupSelPrimitive );
 	actionSelMVertsGUILasso->setActionGroup(    mGroupSelPrimitive );
+    //actionMarkAnnotation->setActionGroup(    mGroupSelPrimitive );
 	actionSelMFacesGUIPinPoint->setActionGroup( mGroupSelPrimitive );
+    actionGet_Label_Info->setActionGroup(    mGroupSelPrimitive );
 	actionSelectVertex->setActionGroup(    mGroupSelPrimitive );
 	actionSelectFace->setActionGroup(      mGroupSelPrimitive );
 	actionSelectPlane3FP->setActionGroup(  mGroupSelPrimitive );
@@ -531,6 +549,8 @@ void QGMMainWindow::initMeshWidgetSignals() {
 
 	actionSelMVertsGUIPinPoint->setProperty( "gmMeshWidgetParamInt", MeshWidgetParams::SELECTION_MODE );
 	actionSelMVertsGUILasso->setProperty(    "gmMeshWidgetParamInt", MeshWidgetParams::SELECTION_MODE );
+    //actionMarkAnnotation->setProperty(    "gmMeshWidgetParamInt", MeshWidgetParams::SELECTION_MODE );
+    actionGet_Label_Info->setProperty(    "gmMeshWidgetParamInt", MeshWidgetParams::SELECTION_MODE );
 	actionSelMFacesGUIPinPoint->setProperty( "gmMeshWidgetParamInt", MeshWidgetParams::SELECTION_MODE );
 	actionSelectVertex->setProperty(    "gmMeshWidgetParamInt", MeshWidgetParams::SELECTION_MODE );
 	actionSelectFace->setProperty(      "gmMeshWidgetParamInt", MeshWidgetParams::SELECTION_MODE );
@@ -541,6 +561,8 @@ void QGMMainWindow::initMeshWidgetSignals() {
 
 	actionSelMVertsGUIPinPoint->setProperty( "gmMeshWidgetParamValue", MeshWidgetParams::SELECTION_MODE_VERTICES  );
 	actionSelMVertsGUILasso->setProperty(    "gmMeshWidgetParamValue", MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO  );
+    //actionMarkAnnotation->setProperty(    "gmMeshWidgetParamValue", MeshWidgetParams::SELECTION_MODE_MARK_ANNOTATION  );
+    actionGet_Label_Info->setProperty(    "gmMeshWidgetParamInt", MeshWidgetParams::SELECTION_MODE_LABEL_INFO );
 	actionSelMFacesGUIPinPoint->setProperty( "gmMeshWidgetParamValue", MeshWidgetParams::SELECTION_MODE_MULTI_FACES  );
 	actionSelectVertex->setProperty(    "gmMeshWidgetParamValue", MeshWidgetParams::SELECTION_MODE_VERTEX    );
 	actionSelectFace->setProperty(      "gmMeshWidgetParamValue", MeshWidgetParams::SELECTION_MODE_FACE      );
@@ -749,6 +771,7 @@ void QGMMainWindow::initMeshSignals() {
 
 	// INT: Add parameter, double IDs for MeshGL class:
 	actionLabelColorShift->setProperty( "gmMeshGLParamInt", MeshGLParams::COLMAP_LABEL_OFFSET );
+
     actionMax_Number_of_vertices_for_hole_filling->setProperty(    "gmMeshGLParamInt", MeshGLParams::MAX_VERTICES_HOLE_FILLING);
 	// INT: Setup parameter group of menu items
 	mMeshGLParInt = new QActionGroup( this );
@@ -1938,6 +1961,46 @@ void QGMMainWindow::aboutBox() {
 	dlgAbout.exec();
 }
 
+void QGMMainWindow::openAnnotationWindow() {
+    QGMDialogWebView annotationWindow;
+    annotationWindow.exec();
+}
+
+void QGMMainWindow::loadAnnotationsFromFile() {
+    QString filename = QFileDialog::getOpenFileName(
+            this,
+            tr("Open Document"),
+            QDir::currentPath(),
+            tr("Linked Data Files (*.ttl *.json);;All files (*.*)"));
+    if (!filename.isNull())
+    {
+        QFile jsonfile;
+        jsonfile.setFileName(filename);
+        qDebug()<<filename;
+        jsonfile.open(QIODevice::ReadOnly);
+        QByteArray data = jsonfile.readAll();
+        qDebug()<<QJsonDocument::fromJson(data);
+        QJsonDocument annoDoc;
+        annoDoc=QJsonDocument::fromJson(data);
+        QJsonObject mainObject=annoDoc.object();
+        QStringList thekeys=mainObject.keys();
+        mMeshWidget->getMesh()->labelVerticesNone();
+        for( int i=1; i<2; ++i ) {
+            QJsonObject curanno = mainObject.find(thekeys.at(i))->toObject();
+            QString anno3d = curanno.find("target")->toObject().find("selector")->toObject().find("value")->toString();
+            anno3d=anno3d.replace("POLYGON Z((","").replace("))","");
+            qDebug()<<anno3d;
+            double res[6];
+            mMeshWidget->getMesh()->wktStringToBBOX(anno3d.toStdString(),res);
+            std::string resstr="BBOX: "+std::to_string(res[0])+" "+std::to_string(res[1])+" "+std::to_string(res[2])+" "+std::to_string(res[3])+" "+std::to_string(res[4])+" "+std::to_string(res[5]);
+            sShowInfoMessage(QString::fromStdString(resstr));
+            mMeshWidget->getMesh()->selectVerticesInBBOX(res[0],res[3],res[1],res[4],res[2],res[5],2.0);
+        }
+    }
+}
+
+
+
 // --- DYNAMIC MENU -----------------------------------------------------------------------
 
 //! Sets menu items according to the flags of MeshGL::showFlagMeshsArr
@@ -1962,6 +2025,32 @@ void QGMMainWindow::updateMeshShowFlag( MeshGLParams::eParamFlag rShowFlagNr, bo
 		//! Ignore FlagIDs outside the MeshGLParams::SHOW_UNDEFINED to MeshGLParams::PARAMS_FLAG_COUNT range.
 		cerr << "[QGMMainWindow::" << __FUNCTION__ << "] ERROR: unknown or undefined show flag " << rShowFlagNr << "!" << endl;
 	}
+}
+
+
+void QGMMainWindow::createAnnotationWindowFromTemplate(){
+    QFile jsonfile;
+    jsonfile.setFileName("/home/timo/git/GigaMesh/build/annotemplates.json");
+    jsonfile.open(QIODevice::ReadOnly);
+    QByteArray data = jsonfile.readAll();
+    qDebug()<<QJsonDocument::fromJson(data);
+    QJsonDocument annoDoc;
+    annoDoc=QJsonDocument::fromJson(data);
+    QJsonObject mainObject=annoDoc.object();
+    const QJsonArray &annotemplate = annoDoc.array();
+    QFile jsonfile2;
+    jsonfile2.setFileName("/home/timo/git/GigaMesh/build/anno3d.json");
+    jsonfile2.open(QIODevice::ReadOnly);
+    QByteArray data2 = jsonfile2.readAll();
+    qDebug()<<QJsonDocument::fromJson(data2);
+    QJsonDocument annoDataDoc;
+    annoDataDoc=QJsonDocument::fromJson(data2);
+    const QJsonObject &annoData = annoDataDoc.object();
+    QGMAnnotationDialog(annotemplate.at(0).toObject(), annoData, nullptr).exec();
+}
+
+void QGMMainWindow::createAnnotationTemplateWindow(){
+    QGMAnnotationTemplateDialog("/home/timo/git/GigaMesh/build/annotemplates.json",this).exec();
 }
 
 //! Sets menu items according to the flags of MeshGLParams::mParamInt

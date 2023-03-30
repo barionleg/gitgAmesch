@@ -36,6 +36,7 @@
 #include <filesystem>
 #include <cctype>
 #include <cmath>
+#include <string>
 #include <limits>
 
 #include "svg/SvgIncludes.h"
@@ -145,8 +146,7 @@ MeshWidget::MeshWidget( const QGLFormat &format, QWidget *parent )
 	//.
 	QObject::connect( mMainWindow, SIGNAL(sDefaultViewLight()),            this, SLOT(defaultViewLight())             );
 	QObject::connect( mMainWindow, SIGNAL(sDefaultViewLightZoom()),        this, SLOT(defaultViewLightZoom())         );
-    QObject::connect( mMeshVisual, SIGNAL(sSetDefaultView()),              this, SLOT(currentViewToDefault())         );
-    //.
+	//.
 	QObject::connect( mMainWindow, SIGNAL(sSelPrimViewReference()),        this, SLOT(selPrimViewReference())         );
 
 	// Settings menu --------------------------------------------------------------------------------------------------
@@ -263,6 +263,10 @@ bool MeshWidget::getViewPortResolution(
 	//cout << "[MeshWidget::" << __FUNCTION__ << "] diff realHeight: " << *rRealHeight << endl;
 
 	return( true );
+}
+
+MeshQt* MeshWidget::getMesh(){
+    return mMeshVisual;
 }
 
 //! Returns the pixel size in world coordinates.
@@ -524,6 +528,12 @@ bool MeshWidget::setParamIntegerMeshWidget( MeshWidgetParams::eParamInt rParam, 
 				case MeshWidgetParams::SELECTION_MODE_NONE:
 					emit sGuideIDSelection( MeshWidgetParams::GUIDE_SELECT_NONE );
 				break;
+                case MeshWidgetParams::SELECTION_MODE_MARK_ANNOTATION:
+                    emit sGuideIDSelection( MeshWidgetParams::GUIDE_SELECT_NONE );
+                break;
+                case MeshWidgetParams::SELECTION_MODE_LABEL_INFO:
+                    emit sGuideIDSelection( MeshWidgetParams::GUIDE_SELECT_SELPRIM_VERTEX_INFO );
+                break;
 				case MeshWidgetParams::SELECTION_MODE_VERTEX:
 					emit sGuideIDSelection( MeshWidgetParams::GUIDE_SELECT_SELPRIM_VERTEX );
 				break;
@@ -877,7 +887,6 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 	QObject::connect( this,        SIGNAL(sApplyTransfromToPlane(Matrix4D)), mMeshVisual, SLOT(applyTransfromToPlane(Matrix4D)) );
 	QObject::connect( mMeshVisual, &MeshQt::sDefaultViewLight,               this,        &MeshWidget::defaultViewLight         );
 	QObject::connect( mMeshVisual, &MeshQt::sDefaultViewLightZoom,           this,        &MeshWidget::defaultViewLightZoom     );
-    QObject::connect( mMeshVisual, &MeshQt::sSetDefaultView,                 this,        &MeshWidget::currentViewToDefault    );
 	// -----------------------------------------------------------------------------------------------------------------------------------------------------
 
 	// cheks mesh for problems and fix them
@@ -5878,6 +5887,7 @@ void MeshWidget::paintEvent( QPaintEvent *rEvent ) {
 #endif
 }
 
+
 //! Paint the background with a given shader.
 //! @returns false in case of an error. true otherwise.
 bool MeshWidget::paintBackgroundShader( QOpenGLShaderProgram** rShaderProgram ) {
@@ -6044,7 +6054,7 @@ bool MeshWidget::paintRasterImage( eTextureMaps rTexMap, int rPixelX, int rPixel
 	mShaderImage->enableAttributeArray( "textureCoords" );
 
 	//mVertBufObjs[VBO_BACKGROUND_QUAD].bind();
-	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+	glDrawArrays( GL_LINES, 0, 4 );
 	PRINT_OPENGL_ERROR( "glDrawArrays( GL_TRIANGLE_FAN, 0, 4 )" );
 
 	// End of being shady
@@ -6162,7 +6172,7 @@ void MeshWidget::paintSelection() {
 	}
 	MeshWidgetParams::eSelectionModes selectionMode;
 	getParamIntegerMeshWidget( MeshWidgetParams::SELECTION_MODE, reinterpret_cast<int*>(&selectionMode) );
-	if( selectionMode != MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO ) {
+	if( selectionMode != MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO && selectionMode != MeshWidgetParams::SELECTION_MODE_MARK_ANNOTATION) {
 		return;
 	}
 	
@@ -6389,7 +6399,7 @@ void MeshWidget::mousePressEvent( QMouseEvent *rEvent ) {
 	//! Selection of a point of a polyline (left click):
 	if( ( mouseButtonsPressed == Qt::LeftButton ) &&
 	    ( currMouseMode == MOUSE_MODE_SELECT ) &&
-	    ( currSelectionMode == MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO )
+	    ( currSelectionMode == MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO || currSelectionMode == MeshWidgetParams::SELECTION_MODE_MARK_ANNOTATION)
 	  ) {
 		mSelectionPoly.push_back( mLastPos );
 		if( mSelectionPoly.size() == 1 ) {
@@ -6401,7 +6411,7 @@ void MeshWidget::mousePressEvent( QMouseEvent *rEvent ) {
 	//! Close the selection of a polyline by right-click:
 	if( ( mouseButtonsPressed == Qt::RightButton ) &&
 	    ( currMouseMode == MOUSE_MODE_SELECT ) &&
-	    ( currSelectionMode == MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO ) &&
+	    ( currSelectionMode == MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO || currSelectionMode == MeshWidgetParams::SELECTION_MODE_MARK_ANNOTATION) &&
 	    ( mSelectionPoly.size() > 1 )
 	  ) {
 		// Check if the last two points are the same, as this can cause a segmentation fault.
@@ -6423,7 +6433,7 @@ void MeshWidget::mousePressEvent( QMouseEvent *rEvent ) {
 	if( ( mouseButtonsPressed & ( Qt::LeftButton | Qt::MiddleButton | Qt::RightButton ) ) &&
 	    ( currMouseMode == MOUSE_MODE_SELECT )
 	  ) {
-		if( currSelectionMode == MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO ) {
+		if( currSelectionMode == MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO || currSelectionMode == MeshWidgetParams::SELECTION_MODE_MARK_ANNOTATION) {
 			std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Wrong selection mode (SELECTION_MODE_POLYLINE)!" << std::endl;
 			return;
 		}
@@ -6500,7 +6510,7 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 	//! Display the selection of a polyline:
 	if( ( rEvent->buttons() == Qt::NoButton ) &&
 	    ( currMouseMode == MOUSE_MODE_SELECT ) &&
-	    ( currSelectionMode == MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO )
+	    ( currSelectionMode == MeshWidgetParams::SELECTION_MODE_VERTICES_LASSO || currSelectionMode == MeshWidgetParams::SELECTION_MODE_MARK_ANNOTATION )
 	  ) {
 		if( mSelectionPoly.size()>0 ) {
 			mSelectionPoly.pop_back();
@@ -6997,7 +7007,7 @@ bool MeshWidget::userSelectAtMouseLeft( const QPoint& rPoint ) {
 
 	MeshWidgetParams::eSelectionModes selectionMode;
 	this->getParamIntegerMeshWidget( MeshWidgetParams::SELECTION_MODE, reinterpret_cast<int*>(&selectionMode) );
-
+    Primitive *thevertex;
 	bool retVal = false;
 	switch( selectionMode ) {
 		case MeshWidgetParams::SELECTION_MODE_NONE:
@@ -7005,8 +7015,28 @@ bool MeshWidget::userSelectAtMouseLeft( const QPoint& rPoint ) {
 			return( true );
 			break;
 		case MeshWidgetParams::SELECTION_MODE_VERTEX:
-			retVal = mMeshVisual->selectPrimitiveAt( Primitive::IS_VERTEX, xPixel, yPixel, false );
-			break;
+            thevertex = mMeshVisual->selectPrimitiveAt( Primitive::IS_VERTEX, xPixel, yPixel, false );
+            if(thevertex->isLabled()) {
+                uint64_t res;
+                thevertex->getLabel(res);
+                mMainWindow->sShowInfoMessage(QString::fromStdString("X: " + std::to_string(thevertex->getX()) + " Y: " + std::to_string(thevertex->getY()) + " Z: " + std::to_string(thevertex->getZ()) + "\n Label: "+std::to_string(res)+" BG? "+std::to_string(thevertex->isLabelBackGround())));
+            }else{
+                mMainWindow->sShowInfoMessage(QString::fromStdString("X: " + std::to_string(thevertex->getX()) + " Y: " + std::to_string(thevertex->getY()) + " Z: " + std::to_string(thevertex->getZ())));
+            }
+            retVal=thevertex;
+            break;
+        case MeshWidgetParams::SELECTION_MODE_LABEL_INFO:
+            thevertex = mMeshVisual->selectPrimitiveAt( Primitive::IS_VERTEX, xPixel, yPixel, false );
+            if(thevertex->isLabled()) {
+                uint64_t res;
+                thevertex->getLabel(res);
+                QMessageBox::information(
+                        this,
+                        "Label id of primitive",
+                        res+"" );
+
+            }
+            break;
 		case MeshWidgetParams::SELECTION_MODE_FACE:
 			retVal = mMeshVisual->selectPrimitiveAt( Primitive::IS_FACE, xPixel, yPixel, false );
 			break;
@@ -7020,6 +7050,10 @@ bool MeshWidget::userSelectAtMouseLeft( const QPoint& rPoint ) {
 			// Nothing to do.
 			return( true );
 			break;
+        case MeshWidgetParams::SELECTION_MODE_MARK_ANNOTATION:
+            // Nothing to do.
+            return( true );
+            break;
 		case MeshWidgetParams::SELECTION_MODE_PLANE_3FP:
 			retVal = mMeshVisual->selectPlaneThreePoints( xPixel, yPixel );
 			break;

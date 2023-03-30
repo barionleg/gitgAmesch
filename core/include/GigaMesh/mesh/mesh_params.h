@@ -37,6 +37,7 @@ class MeshParams {
 		MeshParams();
 		~MeshParams() = default;
 
+        
 		// Parameters:
 		enum eParamFlag {
 			FILE_TRANSFORMATION_APPLIED,     //!< Has to be set, when a transformation was applied, which is a strong indicator for orientation by the user.
@@ -62,6 +63,19 @@ class MeshParams {
 			PARAMS_STR_COUNT //!< Number of string parameters available
 		};
 
+        enum eUnitStr {
+			UNIT_METER,
+            UNIT_KILOMETER,
+            UNIT_CENTIMETER,
+            UNIT_DECIMETER,
+            UNIT_MILLIMETER,
+            UNIT_MICROMETER,
+            UNIT_NANOMETER,
+            UNIT_INCH,
+            UNIT_YARD,
+            UNIT_FOOT
+		};
+        
 		// Values for eParamInt:
 		enum eHistogramType {
 			HISTOGRAM_EDGE_LENGTH,                  //!< Length of the triangles' edges.
@@ -206,6 +220,8 @@ class MeshParams {
 		// Parameters -- Floating point
 		virtual bool setParamFloatMesh( MeshParams::eParamFlt rParam, double rValue );
 		virtual bool getParamFloatMesh( MeshParams::eParamFlt rParam, double* rValue );
+        
+        bool convertUnit( MeshParams::eUnitStr from, MeshParams::eUnitStr to, double rValue );
 
 	private:
 		bool   mParamFlag[PARAMS_FLAG_COUNT];  //!< Parameters: boolean i.e. flags for processing options.

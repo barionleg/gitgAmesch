@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.10)
 set(OpenGL_GL_PREFERENCE GLVND)
 
 find_package(OpenGL REQUIRED)
-find_package(Qt5 COMPONENTS Core Widgets Gui OpenGL Network REQUIRED)
+find_package(Qt5 COMPONENTS Core Widgets Gui OpenGL Network Svg REQUIRED)
+find_package(Qt5WebEngineWidgets REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -21,6 +22,7 @@ set(GUI_SOURCES src/main.cpp
 				src/qgmdockinfo.cpp                   src/qgmdockinfo.h
 				src/QGMDialogMSII.cpp                 src/QGMDialogMSII.h
 				src/QGMDialogAbout.cpp                src/QGMDialogAbout.h
+				src/QGMDialogWebView.cpp              src/QGMDialogWebView.h
 				src/QGMDialogRuler.cpp                src/QGMDialogRuler.h
 				src/qgmdocksidebar.cpp                src/qgmdocksidebar.h
 				src/qgmdockview.cpp                   src/qgmdockinfo.h
@@ -84,8 +86,9 @@ set(GUI_UI_FILES
 	forms/qgmdocksidebar.ui
 	forms/dialogCutOffValues.ui
 	forms/DialogFindTextures.ui
+		forms/dialogWebView.ui
         forms/QGMDialogMatrix.ui
-)
+        src/QGMDialogWebView.h src/QGMDialogWebView.cpp src/QGMAnnotationDialog.h src/QGMAnnotationDialog.cpp src/QGMAnnotationTemplateDialog.cpp src/QGMAnnotationTemplateDialog.h src/CompleterDelegate.cpp src/CompleterDelegate.h src/CompleterSemWebDelegate.cpp src/CompleterSemWebDelegate.h src/FileDownloader.cpp src/FileDownloader.h)
 
 #NOTE: instead of adding translations via resources, the ts-files can also be build by
 #      qt5_create_translation and then be added
@@ -124,7 +127,7 @@ target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 #needed, if ui-header files need references to custom classes (e.g. NormalSphereSelectionRenderWidget.h)
 target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-target_link_libraries(gigamesh PRIVATE ${Qt5Widgets_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Network_LIBRARIES} psalm OpenGL::GL gigameshCore triangle)
+target_link_libraries(gigamesh PRIVATE Qt5::WebEngineWidgets ${Qt5Widgets_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Network_LIBRARIES} psalm OpenGL::GL gigameshCore triangle)
 
 #extras for static linking using the MXE mingw static build (set this via "export MINGW_CI_BUILD=True" on the command line)
 if(MINGW_CI_BUILD)

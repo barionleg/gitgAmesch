@@ -44,6 +44,7 @@
 #include "meshwidget_params.h"
 #include "meshGL/meshGL_params.h"
 #include "meshGL/meshglcolors.h"
+#include "QGMDialogWebView.h"
 
 class MeshWidget;
 class QGMDockSideBar;
@@ -95,6 +96,7 @@ public slots:
 	void load();                    // Inherited from QGMMainWindow
 	void load(const QString& rFileName );
 	bool loadLast();
+    void loadAnnotationsFromFile();
 	bool fileOpen( QAction* rFileAction );
 	void menuImportFunctionValues();
     void menuImportLabels();
@@ -103,7 +105,7 @@ public slots:
 	void menuImportTexMap();
 	void menuImportFeatureVectors();
 	void menuImportNormalVectors();
-
+    void openAnnotationWindow();
 	// --- MENU - MeshWidget --------------------------------------------------------------------------------------------------------------------------------
 	bool setMeshWidgetFlag( QAction* rAction );
 	bool setMeshWidgetParamInt( QAction* rAction );
@@ -192,7 +194,8 @@ signals:
 	void sFileSaveFlagExportTexture( bool );                 //!< passed down to MeshIO. This probably also needs to be revised.
 	void exportFuncVals();                                   //!< signal MeshQt to export the function values.
 	void sExportFeatureVectors();                            //!< signal MeshQt to export the feature vectors.
-	//.
+
+    //.
 	void exportPolyLinesCoords();                            //!< Triggers the export of polyline coordinates (3D).
 	void exportPolyLinesCoordsProjected();                   //!< Triggers the export of polyline coordinates project on a plane.
 	void exportPolyLinesFuncVals();                          //!< triggers the export of run-length and function values of (selected) polylines.
@@ -292,8 +295,7 @@ signals:
 	//.
 	void sDefaultViewLight();                                //!< signal to restore the default view and lights.
 	void sDefaultViewLightZoom();                            //!< signal to restore the default view, lights and zoom.
-    void sSetDefaultView();                                  //!< signal to meshWidget -> set the mesh after transformation to the camera center and ask for saving the transformation as default.
-    //.
+	//.
 	void rotYaw();                                           //!< trigger manual entry of a yaw angle for changing the camera position.
 	void rotPitch();                                         //!< trigger manual entry of a pitch angle for changing the camera position.
 	void rotRoll();                                          //!< trigger manual entry of a roll angle for changing the camera position.
@@ -419,7 +421,9 @@ signals:
 	void sShowProgressStart(QString);                                //!< emitted, when some longer progress begins -- the string will be shown additionally to the progress bar.
 	void sShowProgress(double);                                      //!< emitted, when a certain percentage of the progress is reached -- will update the progress bar.
 	void sShowProgressStop(QString);                                 //!< emitted, when some progress end -- the string will be shown additionally to the progress bar.
-	//------------------------------------------------------------------------------------------------------------------------------------------------------
+    void sShowInfoMessage(QString);
+    void sClearInfoMessage();
+    //------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	// DockView:
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -487,6 +491,10 @@ private:
 	// QWidget interface
 	protected:
 	virtual void changeEvent(QEvent* event) override;
+
+    void createAnnotationTemplateWindow();
+
+    void createAnnotationWindowFromTemplate();
 };
 
 #endif

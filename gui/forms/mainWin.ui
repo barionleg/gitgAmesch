@@ -183,6 +183,11 @@
     <addaction name="actionLabelFuncValMaxima"/>
     <addaction name="separator"/>
     <addaction name="actionLabelColorShift"/>
+    <addaction name="actionAnnotateRendering"/>
+    <addaction name="actionLoad_Annotations_From_File"/>
+    <addaction name="actionMarkAnnotation"/>
+    <addaction name="actionGet_Label_Info"/>
+    <addaction name="actionEdit_Annotation_Templates"/>
    </widget>
    <widget class="QMenu" name="menuFunctions">
     <property name="title">
@@ -4549,6 +4554,31 @@ The latter will be shown, when the processing has finished.</string>
   <action name="actionAutomatic_Mesh_Alignment">
    <property name="text">
     <string>Automatic Mesh Alignment</string>
+   </property>
+  </action>
+  <action name="actionAnnotateRendering">
+   <property name="text">
+    <string>Annotate Rendering</string>
+   </property>
+  </action>
+  <action name="actionLoad_Annotations_From_File">
+   <property name="text">
+    <string>Load Annotations From File</string>
+   </property>
+  </action>
+  <action name="actionMarkAnnotation">
+   <property name="text">
+    <string>Mark Annotation</string>
+   </property>
+  </action>
+  <action name="actionGet_Label_Info">
+   <property name="text">
+    <string>Get Label Info</string>
+   </property>
+  </action>
+  <action name="actionEdit_Annotation_Templates">
+   <property name="text">
+    <string>Edit Annotation Templates</string>
    </property>
   </action>
  </widget>

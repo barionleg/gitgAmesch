@@ -455,6 +455,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				void labelVerticesBackground();
 		virtual int  labelFaces( int facesNrToRemove=0 );
 		virtual bool labelVerticesAll();
+        virtual void labelVerticesInBBOX(double minX, double maxX, double minY, double maxY, double minZ, double maxZ, double labelValue);
 		virtual bool labelVertices( const std::vector<Vertex*>& rVerticesToLabel, std::set<Vertex*>& rVerticesSeeds );
 		virtual bool labelVertices( const std::set<Vertex*>&    rVerticesToLabel, std::set<Vertex*>& rVerticesSeeds );
 		virtual void labelSelectionToSeeds();
@@ -667,6 +668,7 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 				double*    getTriangleVertices( std::vector<Face*>* someFaceList );
 
 				std::set<Face*> getFacesIntersectSphere1( Vector3D positionVec, float radius );
+                std::set<Vertex*> getVerticesInBBOX( double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
 				std::set<Face*> getFacesIntersectSphere2( Vector3D positionVec, float radius );
 				std::vector<Vector3D> getPointsIntersectSphere( Vector3D positionVec, float radius );
 
@@ -786,7 +788,10 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool getAxisFromCircleCenters();
 		virtual bool getAxisFromCircleCenters( Vector3D &rTop, Vector3D &rBottom );
                 bool getAxisFromEllipseFit();
-
+    void
+    selectVerticesInBBOX(double minX, double maxX, double minY, double maxY, double minZ, double maxZ,
+                         double labelValue);
+    double *wktStringToBBOX(std::string wktString,double* res);
 		// Binary Space Partitioning -- Octree
 	protected:
         Octree*   mOctree     = nullptr;          //! Octree handling the Vertices stored in mParentVertices and the mParentFaces.
@@ -838,6 +843,8 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 protected:
 		virtual bool centerAroundSphere();
 		virtual bool unrollAroundSphere();
+
+
 
 };
 #endif

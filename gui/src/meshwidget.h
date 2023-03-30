@@ -78,11 +78,17 @@ class MeshQt;
 class MeshWidget : public QGLWidget, public MeshWidgetParams, public MeshGLColors {
     Q_OBJECT
 
+
+
+    MeshQt*             mMeshVisual;
+
 public:
 	// Constructor and Destructor:
 	MeshWidget( const QGLFormat& format, QWidget* parent );
 	~MeshWidget() override;
 
+
+    MeshQt *getMesh();
 	bool    getViewPortResolution( double& rRealWidth, double& rRealHeight ) const;
 	bool    getViewPortPixelWorldSize( double& rPixelWidth, double& rPixelHeight ) const;
 	bool    getViewPortDPI( double& rDPI ) const;
@@ -330,7 +336,7 @@ private:
 	// Main members
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
 	QGMMainWindow*      mMainWindow;     //!< reference to our main/top-level window (AKA parent)
-	MeshQt*             mMeshVisual;     //!< Pointer to the Mesh (overloaded with functions for OpenGL and Qt) shown.
+    //!< Pointer to the Mesh (overloaded with functions for OpenGL and Qt) shown.
 
 	// drawing stuff and setting the camera:
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -403,6 +409,7 @@ private:
 	//! Checkes if mesh might cause problems. E.g. too small or georeferenced (far away from origin)
 	void checkMeshSanity();
 	void checkMissingTextures(ModelMetaData& metadata);
+
 };
 
 #endif // MESHWIDGET_H

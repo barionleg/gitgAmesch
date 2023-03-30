@@ -51,6 +51,8 @@ public slots:
 	void showProgressStart(const QString& rMsg );
 	void showProgress( double rVal );
 	void showProgressStop(const QString& rMsg );
+    void showInfoMessage(const QString& themessage);
+    void clearInfoMessage();
 
 private slots:
 	// --- Private slots ----------------------------------------------------------------------

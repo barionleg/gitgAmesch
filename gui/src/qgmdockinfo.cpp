@@ -305,6 +305,14 @@ void QGMDockInfo::showProgressStopReset() {
 	ui->GMLogo->setPixmap( QPixmap( ":/GMGeneric/GigaMesh_Logo_150px.png") );
 }
 
+void QGMDockInfo::showInfoMessage(const QString& themessage){
+    ui->infoLabel->setText(themessage);
+}
+
+void QGMDockInfo::clearInfoMessage(){
+    ui->infoLabel->setText("");
+}
+
 //! Actions undertaken, when hidden.
 void QGMDockInfo::visibility( bool rVisible ) {
 	emit sShowFlagMeshWidget( MeshWidgetParams::SHOW_GIGAMESH_LOGO_FORCED, not(rVisible) );

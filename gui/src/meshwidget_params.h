@@ -172,6 +172,8 @@ class MeshWidgetParams {
 			SELECTION_MODE_FACE,       //!< Select a (single!) Face.
 			SELECTION_MODE_VERTICES,   //!< Select multiple Vertices by pinpointing (SelMVerts).
 			SELECTION_MODE_VERTICES_LASSO,   //!< Selects all/multiple vertices in a polygonal area (SelMVerts).
+            SELECTION_MODE_MARK_ANNOTATION,   //!< Selects all/multiple vertices in a polygonal area for surface annotations.
+            SELECTION_MODE_LABEL_INFO,   //!<Selects a single Vertex and returns its annotation information if labeled.
 			SELECTION_MODE_MULTI_FACES,      //!< Select multiple Vertices by pinpointing (SelMFaces).
 			SELECTION_MODE_PLANE_3FP,  //!< Select 3 point for a plane.
 			SELECTION_MODE_CONE,       //!< Selects points for a cone.
@@ -221,6 +223,7 @@ class MeshWidgetParams {
 			GUIDE_SELECT_NONE,                //!< No user guide shown
 			// Single primitive SelPrim
 			GUIDE_SELECT_SELPRIM_VERTEX,      //!< Select a single vertex (SelPrim/SelVert).
+            GUIDE_SELECT_SELPRIM_VERTEX_INFO, //!< Select a single vertex  (SelPrim/SelVert) for vertex information.
 			GUIDE_SELECT_SELPRIM_FACE,        //!< Select a single face   (SelPrim/SelFace).
 			// Multiple selections:
 			GUIDE_SELECT_SELMVERTS,           //!< Select multiple vertices by pinpointing (SelMVerts).

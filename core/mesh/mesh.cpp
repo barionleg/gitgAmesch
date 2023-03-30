@@ -82,6 +82,7 @@ extern "C"
     #include <spherical_intersection/algorithm/sphere_volume_msii.h>
     #include <spherical_intersection/graph.h>
     #include <spherical_intersection/mesh_spherical.h>
+
 #endif
 
 using namespace std;
@@ -94,6 +95,10 @@ const auto NUM_THREADS = std::thread::hardware_concurrency() * 2;
 		Mesh*   mMesh;     //!< Mesh to be processed.
 		double  mAreaProc; //!< Processed area.
 	};
+
+    struct annotationDataStruct {
+
+    };
 
 	void* estMultiFaceConnection( faceDataStruct* rFaceData ) {
 		const int   threadID = rFaceData->mThreadID;
@@ -2197,6 +2202,22 @@ bool Mesh::selectVertsRandomUser() {
 	return( retVal );
 }
 
+vector<double> transform(double coordX, double coordY, Vertex v){
+    vector<double> result;
+    int i = 0;
+    /*for point in self.coordinates:
+        point[0] = rescale(point[0], self.minXcoordsys2D, self.maxXcoordsys2D, self.minXcoordsys3D, self.maxXcoordsys3D, True)
+    point[1] = self.rescale(point[1], self.minYcoordsys2D, self.maxYcoordsys2D, self.minYcoordsys3D, self.maxYcoordsys3D, True)
+    point.append(0)
+    i += 1
+    self.coordinates2D = copy.deepcopy(self.coordinates);*/
+    return result;
+}
+
+double rescale(double X, double A, double B, double C, double D){
+    return ((double(X - A) / (B - A)) * (D - C)) + C;
+}
+
 
 //! Adds vertices by current index to the selection given as std::vector.
 //!
@@ -4003,6 +4024,18 @@ void linearInterpolateUV(float s1, float t1, float s2, float t2, float factor, f
 {
 	sOut = (1.0f - factor) * s1 + factor * s2;
 	tOut = (1.0f - factor) * t1 + factor * t2;
+}
+
+vector<string> split (const string &s, char delim) {
+    vector<string> result;
+    stringstream ss (s);
+    string item;
+
+    while (getline (ss, item, delim)) {
+        result.push_back (item);
+    }
+
+    return result;
 }
 //----------------------------------
 
@@ -6729,6 +6762,89 @@ bool Mesh::labelVertices(
 	return Mesh::labelVertices( verticesToLabelVec, rVerticesSeeds );
 }
 
+std::set<Vertex*> Mesh::getVerticesInBBOX( double minX, double maxX, double minY, double maxY, double minZ, double maxZ){
+    std::set<Vertex*> result;
+    for( auto const& currVertex: mVertices ) {
+        double x=currVertex->getX();
+        double y=currVertex->getY();
+        double z=currVertex->getZ();
+        if(x>minX && x<minX && y>minY && y<maxY && z>minZ && z<maxZ){
+            result.insert(currVertex);
+        }
+    }
+    return result;
+}
+
+double* Mesh::wktStringToBBOX(std::string wktString,double* res) {
+    const vector<string> &splitted = split(wktString, ',');
+    double minX=DBL_MAX,minY=DBL_MAX,minZ=DBL_MAX,maxX=DBL_MIN,maxY=DBL_MIN,maxZ=DBL_MIN;
+    for (const auto& coord : splitted) {
+        const vector<string> &coordsplit = split(coord, ' ');
+        double curcoord=stod(coordsplit[0]);
+        if(curcoord>maxX) {
+            maxX=curcoord;
+        }
+        if(curcoord<minX) {
+            minX=curcoord;
+        }
+        curcoord=stod(coordsplit[1]);
+        if(curcoord>maxY) {
+            maxY=curcoord;
+        }
+        if(curcoord<minY) {
+            minY=curcoord;
+        }
+        curcoord=stod(coordsplit[2]);
+        if(curcoord>maxZ) {
+            maxZ=curcoord;
+        }
+        if(curcoord<minZ) {
+            minZ=curcoord;
+        }
+    }
+    //qDebug()<<minX<<" "<<minY<<" "<<minZ<<" "<<maxX<<" "<<maxY<<" "<<maxZ;
+    res[0]=minX;
+    res[1]=minY;
+    res[2]=minZ;
+    res[3]=maxX;
+    res[4]=maxY;
+    res[5]=maxZ;
+    return res;
+}
+
+void Mesh::labelVerticesInBBOX( double minX, double maxX, double minY, double maxY, double minZ, double maxZ, double labelValue){
+    std::set<Vertex*> result;
+    for( auto const& currVertex: mVertices ) {
+        double x = currVertex->getX();
+        double y = currVertex->getY();
+        double z = currVertex->getZ();
+        if (x > minX && x < maxX && y > minY && y < maxY && z > minZ && z < maxZ) {
+            result.insert(currVertex);
+        }
+    }
+    cout << result.size() << "\n";
+    labelSelectedVertices(result,false);
+}
+
+void Mesh::selectVerticesInBBOX( double minX, double maxX, double minY, double maxY, double minZ, double maxZ, double labelValue){
+    set<uint64_t> result;
+    int nummatches=0;
+    for( auto const& currVertex: mVertices ) {
+        double x = currVertex->getX();
+        double y = currVertex->getY();
+        double z = currVertex->getZ();
+        if (x > minX && x < maxX && y > minY && y < maxY && z > minZ && z < maxZ) {
+            cout << "[" << minX << "," << minY << "," << minZ << "," << maxX << "," << maxY << "," << maxZ << "]" << "\n";
+            cout << nummatches << " [" << x << "," << y << "," << z << "]" << "\n";
+            mSelectedMVerts.insert( currVertex );
+            nummatches++;
+        }
+    }
+    selectedMVertsChanged();
+    //labelVerticesNone();
+    //labelSelectedVertices(mSelectedMVerts,false);
+}
+
 //! Labeling assings the same index to all connected Faces.
 //!
 //! Label numbering begins with ONE - otherwise the inverted selction using negative
@@ -6797,13 +6913,13 @@ bool Mesh::labelVertices(
 			continue;
 		}
 		if( currVertex->isLabelBackGround() ) {
-			//cout << "[Mesh::" << __FUNCTION__ << "] Vertex can not be labled - already set to background." << endl;
-			//cout << "b";
+			cout << "[Mesh::" << __FUNCTION__ << "] Vertex can not be labled - already set to background." << endl;
+			cout << "b";
 			continue;
 		}
 		if( currVertex->isLabled() ) {
-			//cout << "[Mesh::" << __FUNCTION__ << "] Vertex is already labled." << endl;
-			//cout << "l";
+			cout << "[Mesh::" << __FUNCTION__ << "] Vertex is already labled." << endl;
+			cout << "l";
 			continue;
 		}
 		//cout << "X";
@@ -6814,11 +6930,11 @@ bool Mesh::labelVertices(
 		while( frontVertices.size() > 0 ) {
 			for( itVertexFront=frontVertices.begin(); itVertexFront != frontVertices.end(); itVertexFront++ ) {
 				if( (*itVertexFront)->isLabelBackGround() ) {
-					//cout << "[Mesh::labelVertices] (1) Stop at Vertex: " << (*itVertexFront)->getIndexOriginal() << endl;
+					cout << "[Mesh::labelVertices] (1) Stop at Vertex: " << (*itVertexFront)->getIndexOriginal() << endl;
 					continue;
 				}
 				if( (*itVertexFront)->isLabled() ) {
-					//cout << "[Mesh::labelVertices] (2) Stop at Vertex: " << (*itVertexFront)->getIndexOriginal() << endl;
+					cout << "[Mesh::labelVertices] (2) Stop at Vertex: " << (*itVertexFront)->getIndexOriginal() << endl;
 					continue;
 				}
 				(*itVertexFront)->getNeighbourVertices( &frontVerticesNew );
@@ -10280,7 +10396,7 @@ bool Mesh::removeVerticesSelected() {
 //! Select and remove solo, non-manifold, double-cones and small area vertices.
 //! Optional: save result to rFileName.
 //! This method has to follow a strict order to achieve a clean Mesh.
-//! 
+//!
 //! Public version writing meta-data.
 //!
 //! \returns false in case of an error. True otherwise.
@@ -10326,7 +10442,7 @@ bool Mesh::removeUncleanSmall(
 //! Select and remove solo, non-manifold, double-cones and small area vertices.
 //! Optional: save result to rFileName.
 //! This method has to follow a strict order to achieve a clean Mesh.
-//! 
+//!
 //! Core version without writing meta-data.
 //!
 //! \returns false in case of an error. True otherwise.
@@ -10401,7 +10517,7 @@ bool Mesh::removeUncleanSmallCore(
 	//! 10.) Final remove (including reloading OpenGL buffers and lists.
 	removeVertices( &verticesToRemove );
 
-	std::cout << "[Mesh::" << __FUNCTION__ << "] removed " << vertNoPrev - getVertexNr() << " vertices and " 
+	std::cout << "[Mesh::" << __FUNCTION__ << "] removed " << vertNoPrev - getVertexNr() << " vertices and "
 	          << faceNoPrev - getFaceNr() << " faces." << std::endl;
 	if( rFileName.empty() ) {
 		return( true );
@@ -14569,7 +14685,7 @@ uint8_t* Mesh::rasterToVolume( const float* rasterArray, const int xDim, const i
 // --- IMPORT / EXPORT -----------------------------------------------------------------------------------
 
 //! Uses PSALM as library to fill (closed!) polygonal lines e.g from holes.
-//! 
+//!
 //! In case the polygonal lines are non-manifold the results will be unexpected.
 //!
 //! @returns false in case of an error. True otherwise.
@@ -14734,7 +14850,7 @@ bool Mesh::fillPolyLines(
 			// Estimate average density:
 			borderDensity = numVertices / borderDensity;
 			// Alternative:
-			std::cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " BORDER vertices: " << numVertices << " density: " 
+			std::cout << "[Mesh::" << __FUNCTION__ << "] Hole No. " << holeCtr << " BORDER vertices: " << numVertices << " density: "
 			          << borderDensity << " faces: " << borderAndNewFaces.size() << std::endl;
 			//--------------------------------------------------------------------------------------------------------------------------------------
 			// Variable for the return values of fillhole:
@@ -14746,7 +14862,7 @@ bool Mesh::fillPolyLines(
 			if( !fill_hole( numVertices, vertexIDs.data(), coordinates.data(),
 			                nullptr, nullptr, // was normals along the border (optional)
 			                &numNewVertices, &newCoordinates, &numNewFaces, &newVertexIDs ) ) {
-				std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Hole No. " << holeCtr << " having " 
+				std::cerr << "[Mesh::" << __FUNCTION__ << "] ERROR: Hole No. " << holeCtr << " having "
 				          << numVertices << "vertices FAILED!" << std::endl;
 				rFail++;
 				continue;
@@ -15933,7 +16049,7 @@ bool Mesh::getMeshInfoData(
 	this->getFaceSurfSum( &areaAcq );
 	rMeshInfos.mCountDouble[MeshInfoData::TOTAL_AREA] = std::round( areaAcq );
 	rMeshInfos.mCountDouble[MeshInfoData::TOTAL_AREA] /= 100.0; // cm^2
-	
+
 	// Fetch Bounding Box
 	rMeshInfos.mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_X]  = static_cast<double>( std::round( mMinX*10000.0 ) )/10000.0;
 	rMeshInfos.mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Y]  = static_cast<double>( std::round( mMinY*10000.0 ) )/10000.0;

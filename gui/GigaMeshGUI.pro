@@ -69,9 +69,11 @@ lessThan( QT_MINOR_VERSION, 2 ) {
     error( Qt Version greater than 5.2 required! )
 }
 # User interface with OpenGL
-QT += widgets opengl gui
+QT += widgets opengl gui svg
 # Add the Network-Manager
 QT += network
+QT += webenginewidgets
+QT += webenginecore
 
 # -------------------------------------------------------------------------------
 
@@ -343,6 +345,7 @@ FORMS += forms/dialogEnterText.ui
 FORMS += forms/dialogPlaneParam.ui
 FORMS += forms/dialogComboBox.ui
 FORMS += forms/dialogRuler.ui
+FORMS += forms/dialogWebView.ui
 
 # -------------------------------------------------------------------------------
 DEPENDPATH += .
