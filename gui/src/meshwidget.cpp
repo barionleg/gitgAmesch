@@ -125,6 +125,7 @@ MeshWidget::MeshWidget( const QGLFormat &format, QWidget *parent )
 	QObject::connect( mMainWindow, SIGNAL(saveStillImages360PlaneN()),     this, SLOT(saveStillImages360PlaneN())     );
 	//.
 	QObject::connect( mMainWindow, SIGNAL(sphericalImagesLight()),         this, SLOT(sphericalImagesLight())         );
+    QObject::connect( mMainWindow, SIGNAL(sphericalImagesLightDir()),      this, SLOT(sphericalImagesLightDir())      );
 	QObject::connect( mMainWindow, SIGNAL(sphericalImages()),              this, SLOT(sphericalImages())              );
 	QObject::connect( mMainWindow, SIGNAL(sphericalImagesStateNr()),       this, SLOT(sphericalImagesStateNr())       );
 	//.
@@ -1159,7 +1160,7 @@ void MeshWidget::sphericalImagesLight() {
 		return;
 	}
 	string fileNamePattern;
-	getParamStringMeshWidget( FILENAME_EXPORT_VR, &fileNamePattern );
+    getParamStringMeshWidget( FILENAME_EXPORT_VR, &fileNamePattern );
     QString filePath = QString::fromStdWString( mMeshVisual->getFileLocation().wstring() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as - Using a pattern for spherical images" ), \
 	                                                 filePath + QString( fileNamePattern.c_str() ), \
@@ -1181,21 +1182,58 @@ void MeshWidget::sphericalImagesLight( const QString& rFileName ) {
 	if( userCancel ) {
 		return;
 	}
-	// Execute:
 	sphericalImagesLight( rFileName, useTiled );
 }
 
 //! Compute spherical images with moving light (instead of moving the object).
-//! (3) - execute.
+//! (3) - ask about the step size.
+//! -ask if the user wants to use  a constant theta
+void MeshWidget::sphericalImagesLight( const QString& rFileName, const bool rUseTiled  ) {
+    double stepLight;
+    getParamFloatMeshWidget( LIGHT_STEPPING, &stepLight );
+
+    // Ask user for the light stepping using the current setting
+    QGMDialogEnterText dlgEnterTxt;
+    int stepLightAngle = stepLight * 180;
+    dlgEnterTxt.setWindowTitle( "Set light steps (angle between 1 and 180 degrees)" );
+    dlgEnterTxt.setInt( stepLightAngle );
+    if( dlgEnterTxt.exec() == QDialog::Rejected ) {
+        return;
+    }
+    if( !dlgEnterTxt.getText( &stepLightAngle ) ) {
+        stepLightAngle = stepLight * 180;
+    }
+    stepLight = stepLightAngle/180.0;
+
+    bool userCancel;
+    bool useConstTheta;
+    SHOW_QUESTION( tr("Constant Theta"), tr("Do you want to use a constant theta (see spherical coordinate system) ?") + QString("<br /><br />"), useConstTheta, userCancel );
+    if( userCancel ) {
+        return;
+    }
+
+    if( !saveStillImagesSettings() ) {
+        return;
+    }
+
+    // Execute:
+    if(useConstTheta){
+        sphericalImagesLightConstTheta(rFileName, rUseTiled, stepLight );
+    }else{
+        sphericalImagesLight( rFileName, rUseTiled, stepLight );
+    }
+
+}
+
+
+//! Compute spherical images with moving light (instead of moving the object).
+//! (4) - execute.
 //!
 //! String for Object2VR: 'gigamesh_still_image_'+ fill(row,5,'0') + '_' +fill(column,5,'0')+ '.png'
-void MeshWidget::sphericalImagesLight( const QString& rFileName, const bool rUseTiled ) {
+void MeshWidget::sphericalImagesLight( const QString& rFileName, const bool rUseTiled, const double rStepLight ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
-	if( !saveStillImagesSettings() ) {
-		return;
-	}
 
 	cout << "[MeshWidget::" << __FUNCTION__ << "] Pattern string for Object2VR: '" << rFileName.toStdString() << "'" << endl;
 	int stateNr;
@@ -1204,26 +1242,24 @@ void MeshWidget::sphericalImagesLight( const QString& rFileName, const bool rUse
 	// Store original light position:
 	double phiOri;
 	double thetaOri;
-	double stepLight;
 	getParamFloatMeshWidget( LIGHT_FIXED_CAM_ANGLE_PHI, &phiOri );
 	getParamFloatMeshWidget( LIGHT_FIXED_CAM_ANGLE_THETA, &thetaOri );
-	getParamFloatMeshWidget( LIGHT_STEPPING, &stepLight );
 
 	char buffer[255];
 	int  colIdx = 0;
 	int  rowIdx = 0;
 	unsigned int imageCount = 0;
 
-	for( float i=-0.5; i<+0.5; i+=stepLight ) {
+    for( float i=-0.5; i<+0.5; i+=rStepLight ) {
 		colIdx = 0;
 		double dx = sin( i * M_PI );
-		for( float j=+0.5; j>-0.5; j-=stepLight ) {
+        for( float j=+0.5; j>-0.5; j-=rStepLight ) {
 			sprintf( buffer, rFileName.toStdString().c_str(), colIdx, rowIdx, stateNr );
 			double dy = sin( j * M_PI );
 			double dz = sqrt( 1 - dx*dx - dy*dy );
 			Vector3D dirVec( dx, dy, dz );
 			setParamFloatMeshWidget( LIGHT_FIXED_CAM_ANGLE_PHI,   dirVec.getSphPhiDeg()   );
-			setParamFloatMeshWidget( LIGHT_FIXED_CAM_ANGLE_THETA, dirVec.getSphThetaDeg() );
+            setParamFloatMeshWidget( LIGHT_FIXED_CAM_ANGLE_THETA, dirVec.getSphThetaDeg() );
 			setView();
 			repaint();
 			double realWidth, realHeigth;
@@ -1246,8 +1282,8 @@ void MeshWidget::sphericalImagesLight( const QString& rFileName, const bool rUse
 	QString fileNameWithoutPath = rFileName;
 	QString pathFromFileName;
 	if( dirFileNameSplitPos > 0 ) {
-		fileNameWithoutPath = rFileName.mid( dirFileNameSplitPos+1 );
-		pathFromFileName    = rFileName.left( dirFileNameSplitPos );
+        fileNameWithoutPath = rFileName.mid( dirFileNameSplitPos+1 );
+        pathFromFileName    = rFileName.left( dirFileNameSplitPos );
 	}
 	QString obj2vrPattern = "'" + fileNameWithoutPath + "'";
 	obj2vrPattern.replace( QString( "%05i_%05i_%02i" ), QString( "'+fill(column,5,'0')+'_'+fill(row,5,'0')+'_'+fill(state,2,'0')+'" ) );
@@ -1267,6 +1303,157 @@ void MeshWidget::sphericalImagesLight( const QString& rFileName, const bool rUse
 	clipboard->setText( obj2vrPattern );
 	cout << "[MeshWidget::" << __FUNCTION__ << "] Pattern string for Object2VR: " << obj2vrPattern.toStdString() << endl;
 	emit sStatusMessage( "Spherical image stack was saved to: " + rFileName );
+}
+//! Compute spherical images with moving light (instead of moving the object).
+//! With a constant Theta
+//! (5) - execute.
+
+void MeshWidget::sphericalImagesLightConstTheta( const QString& rFileName, const bool rUseTiled, const double rStepLight ) {
+#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
+    cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
+#endif
+
+    cout << "[MeshWidget::" << __FUNCTION__ << "] Pattern string for Object2VR: '" << rFileName.toStdString() << "'" << endl;
+    int stateNr;
+    getParamIntegerMeshWidget( STATE_NUMBER, &stateNr );
+
+    // Store original light position:
+    double phiOri;
+    double thetaOri;
+    getParamFloatMeshWidget( LIGHT_FIXED_CAM_ANGLE_PHI, &phiOri );
+    getParamFloatMeshWidget( LIGHT_FIXED_CAM_ANGLE_THETA, &thetaOri );
+
+    char buffer[255];
+    unsigned int imageCount = 0;
+    int rStepAngle = rStepLight * 180;
+    for( int i=0; i<360; i+=rStepAngle ) {
+            sprintf( buffer, rFileName.toStdString().c_str(), i, stateNr );
+            setParamFloatMeshWidget( LIGHT_FIXED_CAM_ANGLE_PHI,i-180);
+            setView();
+            repaint();
+            double realWidth, realHeigth;
+            screenshotSingle( buffer, rUseTiled, realWidth, realHeigth );
+            imageCount++;
+    }
+
+    // Restore original light position:
+    setParamFloatMeshWidget( LIGHT_FIXED_CAM_ANGLE_PHI,     phiOri );
+    setParamFloatMeshWidget( LIGHT_FIXED_CAM_ANGLE_THETA, thetaOri );
+    setView();
+    repaint();
+
+    //! String for Object2VR: 'gigamesh_still_image_'+ fill(column,5,'0') + '_' +fill(row,5,'0')+ '.png'
+    // Information for the user
+    int dirFileNameSplitPos = rFileName.lastIndexOf( QDir::separator() );
+    QString fileNameWithoutPath = rFileName;
+    QString pathFromFileName;
+    if( dirFileNameSplitPos > 0 ) {
+        fileNameWithoutPath = rFileName.mid( dirFileNameSplitPos+1 );
+        pathFromFileName    = rFileName.left( dirFileNameSplitPos );
+    }
+
+    emit sStatusMessage( "Spherical image stack was saved to: " + rFileName );
+}
+
+//! Compute spherical images with moving light for a whole directory
+void MeshWidget::sphericalImagesLightDir( ) {
+    if( !saveStillImagesSettings() ) {
+        return;
+    }
+    // Store settings from current Mesh and MeshWidget
+    MeshGLParams storeMeshGLParams( (MeshGLParams)mMeshVisual );
+    MeshWidgetParams storeMeshWidgetParams( (MeshWidgetParams)this );
+
+    //Ask for tiled rendering
+    bool userCancel;
+    bool useTiled;
+    SHOW_QUESTION( tr("Tiled rendering"), tr("Do you want to use tiled rendering?") + QString("<br /><br />") + tr("Typically: NO"), useTiled, userCancel );
+    if( userCancel ) {
+        return;
+    }
+
+    //Ask for the step range
+    double stepLight;
+    getParamFloatMeshWidget( LIGHT_STEPPING, &stepLight );
+
+    // Ask user for the light stepping using the current setting
+    QGMDialogEnterText dlgEnterTxt;
+    int stepLightAngle = stepLight * 180;
+    dlgEnterTxt.setWindowTitle( "Set light steps (angle between 1 and 180 degrees)" );
+    dlgEnterTxt.setInt( stepLightAngle );
+    if( dlgEnterTxt.exec() == QDialog::Rejected ) {
+        return;
+    }
+    if( !dlgEnterTxt.getText( &stepLightAngle ) ) {
+        stepLightAngle = stepLight * 180;
+    }
+    stepLight = stepLightAngle/180.0;
+
+    bool useConstTheta;
+    SHOW_QUESTION( tr("Constant Theta"), tr("Do you want to use a constant theta (see spherical coordinate system) ?") + QString("<br /><br />"), useConstTheta, userCancel );
+    if( userCancel ) {
+        return;
+    }
+
+    // Let the user choose a path
+    QString     pathChoosen;
+    QStringList currFiles;
+    //we need the same functionality as in screenshotViewsDirectoryFiles
+    if( !screenshotViewsDirectoryFiles( pathChoosen, currFiles ) ) {
+        return;
+    }
+
+    //Enter filename
+    QString targetfileName( "gigamesh_still_image_%03i.png");
+    dlgEnterTxt.setWindowTitle( "Filename" );
+    dlgEnterTxt.setText( targetfileName );
+    if( dlgEnterTxt.exec() == QDialog::Rejected ) {
+        return;
+    }
+    if( !dlgEnterTxt.getText( &targetfileName ) ) {
+        return;
+    }
+
+    // for all files
+    bool retVal = true;
+    for( int i=0; i<currFiles.size(); ++i ) {
+        QString currentFile = pathChoosen + '/' + currFiles.at(i);
+        if( !fileOpen( currentFile ) ) {
+            std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: File open failed for '"
+                      << currentFile.toStdString() << "'!" << std::endl;
+            retVal = false;
+            continue;
+        }
+        if( mMeshVisual == nullptr ) {
+            std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: No mesh loaded for '"
+                      << currentFile.toStdString() << "'!" << std::endl;
+            retVal = false;
+            continue;
+        }
+
+        this->setParamAllMeshWidget( storeMeshWidgetParams );
+        mMeshVisual->setParamAllMeshWidget( storeMeshGLParams );
+
+        QString plyFileName = currFiles.at(i);
+        plyFileName.remove(QRegularExpression(".ply"));
+        QString targetDir = pathChoosen + '/' + plyFileName;
+        //create target dir
+        try {
+            std::filesystem::create_directory( targetDir.toStdWString()); // https://en.cppreference.com/w/cpp/filesystem/create_directory
+        } catch ( std::exception& except ) {
+            wcerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: creating '" << targetDir.toStdWString() << endl;
+            cerr << "[MeshWidget::" << __FUNCTION__ << "]        " << except.what() << endl;
+        }
+
+        QString fileTemplate = pathChoosen + '/' + plyFileName + '/' + targetfileName;
+        if(useConstTheta){
+            sphericalImagesLightConstTheta(fileTemplate,useTiled,stepLight);
+        }else{
+            sphericalImagesLight(fileTemplate,useTiled,stepLight);
+        }
+
+    } // for all files
+
 }
 
 //! Compute spherical images (moving the object).
@@ -1772,7 +1959,7 @@ bool MeshWidget::askForCCLicenseParameters(QString *ccParameter, QString *ccVers
      possibleParameters.append("by-nc-nd");
 
      bool userCancel;
-     SHOW_DIALOG_COMBO_BOX( tr("CC-Attribution"), tr("Which type of CC-License you want to use?"), possibleParameters, *ccParameter, userCancel );
+     SHOW_DIALOG_COMBO_BOX( tr("CC-Attribution"), tr("Which type of CC-License do you want to use?"), possibleParameters, *ccParameter, userCancel );
      if( userCancel ) {
          return( false );
      }
@@ -1780,7 +1967,7 @@ bool MeshWidget::askForCCLicenseParameters(QString *ccParameter, QString *ccVers
      QStringList possibleVersions;
      possibleVersions.append("3.0");
      possibleVersions.append("4.0");
-     SHOW_DIALOG_COMBO_BOX( tr("CC-Version"), tr("Which version of CC-License you want to use?"), possibleVersions, *ccVersion, userCancel );
+     SHOW_DIALOG_COMBO_BOX( tr("CC-Version"), tr("Which version of CC-License do you want to use?"), possibleVersions, *ccVersion, userCancel );
      if( userCancel ) {
          return( false );
      }

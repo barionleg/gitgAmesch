@@ -123,8 +123,11 @@ public slots:
 	//.
 	void sphericalImagesLight();
 	void sphericalImagesLight(const QString& rFileName );
-	void sphericalImagesLight(const QString& rFileName, const bool rUseTiled );
-	void sphericalImages();
+    void sphericalImagesLight(const QString& rFileName, const bool rUseTiled );
+    void sphericalImagesLight(const QString& rFileName, const bool rUseTiled, const double rStepLight );
+    void sphericalImagesLightConstTheta(const QString& rFileName, const bool rUseTiled, const double rStepLight );
+    void sphericalImagesLightDir();
+    void sphericalImages();
 	void sphericalImages(const QString& rFileName );
 	void sphericalImages(const QString& rFileName, const bool rUseTiled );
 	bool sphericalImagesStateNr();

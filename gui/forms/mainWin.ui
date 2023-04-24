@@ -57,6 +57,7 @@
      <addaction name="actionSaveStillImages360DurationSlow"/>
      <addaction name="separator"/>
      <addaction name="actionSphericalImagesLight"/>
+     <addaction name="actionSphericalImagesLightDirectory"/>
      <addaction name="separator"/>
      <addaction name="actionSphericalImages"/>
      <addaction name="actionSphericalImagesVertical"/>
@@ -4605,6 +4606,19 @@ The latter will be shown, when the processing has finished.</string>
    </property>
    <property name="text">
     <string>Feature Vector Element Max Signed ❋</string>
+   </property>
+  </action>
+  <action name="actionSphericalImagesLightDirectory">
+   <property name="text">
+    <string>Directory: Spherical Stack Lightsource Orbiting</string>
+   </property>
+   <property name="toolTip">
+    <string>Directory: Spherical Images Light orbiting</string>
+   </property>
+  </action>
+  <action name="actionDirectory_Spherical_Stack_Camera_Orbiting">
+   <property name="text">
+    <string>Directory: Spherical Stack Camera Orbiting</string>
    </property>
   </action>
  </widget>

@@ -117,7 +117,8 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	//.
 	QObject::connect( actionSphericalImagesLight,     SIGNAL(triggered()),   this,     SIGNAL(sphericalImagesLight())          );
 	QObject::connect( actionSphericalImages,          SIGNAL(triggered()),   this,     SIGNAL(sphericalImages())               );
-	QObject::connect( actionSphericalImagesStateNr,   SIGNAL(triggered()),   this,     SIGNAL(sphericalImagesStateNr())        );
+    QObject::connect( actionSphericalImagesLightDirectory, SIGNAL(triggered()),   this,     SIGNAL(sphericalImagesLightDir())               );
+    QObject::connect( actionSphericalImagesStateNr,   SIGNAL(triggered()),   this,     SIGNAL(sphericalImagesStateNr())        );
 	//.
 	QObject::connect( actionUnload3D,                 SIGNAL(triggered()),   this,     SIGNAL(unloadMesh())                    );
 	//.
