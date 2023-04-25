@@ -154,6 +154,9 @@ MeshWidget::MeshWidget( const QGLFormat &format, QWidget *parent )
 	QObject::connect( mMainWindow, &QGMMainWindow::selectColorBackground,  this, &MeshWidget::selectColorBackground  );
 	// ----------------------------------------------------------------------------------------------------------------
 
+    // Edit menu-------------------------------------------------------------------------------------------------------
+    QObject::connect( mMainWindow, SIGNAL(sAutomaticMeshAlignmentDir()),    this, SLOT(applyAutomaticMeshAlignmentDir())     );
+    //-----------------------------------------------------------------------------------------------------------------
 	// Select menu ----------------------------------------------------------------------------------------------------
 	QObject::connect( mMainWindow, &QGMMainWindow::setPlaneHNFByView,      this, &MeshWidget::setPlaneHNFByView      );
 	QObject::connect( mMainWindow, &QGMMainWindow::sOpenNormalSphereSelectionDialogVertices, [this]() {openNormalSphereSelectionDialog(false); });
@@ -1395,6 +1398,13 @@ void MeshWidget::sphericalImagesLightDir( ) {
         return;
     }
 
+    bool renderFront;
+    SHOW_QUESTION( tr("Constant Theta"), tr("Do you want to render the front or the back (Rotated 180 degrees around the x-axis)?") +
+                   QString("<br /><br />") + QString("Yes - render the frontside (current view)") +
+                   QString("<br /><br />") + QString("No - render the backside ") , renderFront, userCancel );
+    if( userCancel ) {
+        return;
+    }
     // Let the user choose a path
     QString     pathChoosen;
     QStringList currFiles;
@@ -1434,6 +1444,16 @@ void MeshWidget::sphericalImagesLightDir( ) {
         this->setParamAllMeshWidget( storeMeshWidgetParams );
         mMeshVisual->setParamAllMeshWidget( storeMeshGLParams );
 
+        //rotate mesh when the user wants to render the backside
+        if(!renderFront){
+            std::vector<double> rotationAngle = {180 * M_PI / 180.0};
+            Matrix4D rotationMatrix(Matrix4D::INIT_ROTATE_ABOUT_X,&rotationAngle);
+            mMeshVisual->applyTransformationToWholeMesh(rotationMatrix);
+            //the transformation with the identity matrix resets the mesh to the center
+            Matrix4D identity(Matrix4D::INIT_IDENTITY);
+            mMeshVisual->applyTransformationDefaultViewMatrix(&identity);
+        }
+
         QString plyFileName = currFiles.at(i);
         plyFileName.remove(QRegularExpression(".ply"));
         QString targetDir = pathChoosen + '/' + plyFileName;
@@ -1454,6 +1474,65 @@ void MeshWidget::sphericalImagesLightDir( ) {
 
     } // for all files
 
+}
+
+//!Automatic Mesh Alignment
+//!calls MeshQT->applyAutomaticMeshAlignment for all files in a given directory
+//! and saves the transformed mesh to the directory
+void MeshWidget::applyAutomaticMeshAlignmentDir(){
+    // Store settings from current Mesh and MeshWidget
+    MeshGLParams storeMeshGLParams( (MeshGLParams)mMeshVisual );
+    MeshWidgetParams storeMeshWidgetParams( (MeshWidgetParams)this );
+    // Let the user choose a path
+    QString     pathChoosen;
+    QStringList currFiles;
+    //we need the same functionality as in screenshotViewsDirectoryFiles
+    if( !screenshotViewsDirectoryFiles( pathChoosen, currFiles ) ) {
+        return;
+    }
+
+    // Enter a suffix
+    QString fileNameSuffix( "_AMA");
+    QGMDialogEnterText dlgEnterTxt;
+    dlgEnterTxt.setWindowTitle( "Filename Suffix" );
+    dlgEnterTxt.setText( fileNameSuffix );
+    if( dlgEnterTxt.exec() == QDialog::Rejected ) {
+        return;
+    }
+    if( !dlgEnterTxt.getText( &fileNameSuffix ) ) {
+        return;
+    }
+
+
+    // for all files
+    bool retVal = true;
+    for( int i=0; i<currFiles.size(); ++i ) {
+        QString currentFile = pathChoosen + '/' + currFiles.at(i);
+        if( !fileOpen( currentFile ) ) {
+            std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: File open failed for '"
+                      << currentFile.toStdString() << "'!" << std::endl;
+            retVal = false;
+            continue;
+        }
+        if( mMeshVisual == nullptr ) {
+            std::cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: No mesh loaded for '"
+                      << currentFile.toStdString() << "'!" << std::endl;
+            retVal = false;
+            continue;
+        }
+
+        this->setParamAllMeshWidget( storeMeshWidgetParams );
+        mMeshVisual->setParamAllMeshWidget( storeMeshGLParams );
+
+        mMeshVisual->applyAutomaticMeshAlignment(false);
+
+        //save file
+        QString plyFileName = currFiles.at(i);
+        plyFileName.remove(QRegularExpression(".ply"));
+        QString newFile = pathChoosen + '/' + plyFileName;
+        newFile = newFile + fileNameSuffix +  ".ply";
+        mMeshVisual->writeFile(newFile);
+    } // for all files
 }
 
 //! Compute spherical images (moving the object).

@@ -354,7 +354,9 @@
      <addaction name="actionApplyMatrix4DVertSel"/>
      <addaction name="separator"/>
      <addaction name="actionApplyMeltingSphere"/>
+     <addaction name="separator"/>
      <addaction name="actionAutomatic_Mesh_Alignment"/>
+     <addaction name="actionDirectoryAutomaticMeshAlignment"/>
     </widget>
     <addaction name="actionEditMeshPolish"/>
     <addaction name="separator"/>
@@ -4619,6 +4621,14 @@ The latter will be shown, when the processing has finished.</string>
   <action name="actionDirectory_Spherical_Stack_Camera_Orbiting">
    <property name="text">
     <string>Directory: Spherical Stack Camera Orbiting</string>
+   </property>
+  </action>
+  <action name="actionDirectoryAutomaticMeshAlignment">
+   <property name="text">
+    <string>Directory: Automatic Mesh Alignment</string>
+   </property>
+   <property name="toolTip">
+    <string>Directory: Automatic Mesh Alignment</string>
    </property>
   </action>
  </widget>

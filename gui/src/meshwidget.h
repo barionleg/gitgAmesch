@@ -134,6 +134,9 @@ public slots:
 	//.
 	void unloadMesh();
 
+    //. Edit->Transform
+    void applyAutomaticMeshAlignmentDir();
+
 private:
 	// Screenshot - Single
 	bool screenshotSingle();
