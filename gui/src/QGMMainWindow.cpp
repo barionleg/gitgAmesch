@@ -117,7 +117,8 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	//.
 	QObject::connect( actionSphericalImagesLight,     SIGNAL(triggered()),   this,     SIGNAL(sphericalImagesLight())          );
 	QObject::connect( actionSphericalImages,          SIGNAL(triggered()),   this,     SIGNAL(sphericalImages())               );
-	QObject::connect( actionSphericalImagesStateNr,   SIGNAL(triggered()),   this,     SIGNAL(sphericalImagesStateNr())        );
+    QObject::connect( actionSphericalImagesLightDirectory, SIGNAL(triggered()),   this,     SIGNAL(sphericalImagesLightDir())               );
+    QObject::connect( actionSphericalImagesStateNr,   SIGNAL(triggered()),   this,     SIGNAL(sphericalImagesStateNr())        );
 	//.
 	QObject::connect( actionUnload3D,                 SIGNAL(triggered()),   this,     SIGNAL(unloadMesh())                    );
 	//.
@@ -148,6 +149,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionApplyMeltingSphere,     SIGNAL(triggered()), this,       SIGNAL(sApplyMeltingSphere())     );
     //.
     QObject::connect( actionAutomatic_Mesh_Alignment,     SIGNAL(triggered()), this,       SIGNAL(sAutomaticMeshAlignment())     );
+    QObject::connect( actionDirectoryAutomaticMeshAlignment,     SIGNAL(triggered()), this,       SIGNAL(sAutomaticMeshAlignmentDir())     );
     //.
 
 	// --- De-Selection ------------------------------------------------------------------------------------------------------------------------------------

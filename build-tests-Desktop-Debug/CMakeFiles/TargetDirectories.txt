@@ -1,0 +1,3 @@
+/home/ernst/GigaMesh/GigaMesh/build-tests-Desktop-Debug/CMakeFiles/gigameshCore_tests.dir
+/home/ernst/GigaMesh/GigaMesh/build-tests-Desktop-Debug/CMakeFiles/edit_cache.dir
+/home/ernst/GigaMesh/GigaMesh/build-tests-Desktop-Debug/CMakeFiles/rebuild_cache.dir

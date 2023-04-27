@@ -1,4 +1,8 @@
 Current Version
++) New: 'Edit -> Transform Extra -> Directory: Automatic Mesh Alignment: for each mesh file in directory
+        do the 'Automatic Mesh Alignment' and save the transformed mesh with a file name suffix.
++) New: 'File -> Export Image Stack -> Directory: Spherical Stack Lightsource Orbiting: for each mesh file in directory 
+         do Spherical Stack Lightsource Orbiting and save the images in a folder named after the file name.
 +) New: 'Functions -> Feature Element Min Signed' showing more details than the unsigned function.
 +) New: 'Functions -> Feature Element Max Signed' showing more details than the unsigned function.
 +) Changed: moved less used menu items of the 'Functions' menu to a '-> Feature Vectors Extra Functions (1)'.
