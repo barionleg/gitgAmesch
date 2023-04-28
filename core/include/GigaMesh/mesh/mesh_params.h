@@ -183,7 +183,8 @@ class MeshParams {
 			EXTRUDE_POLYLINES,                         //!< Extrude the polylines using the axis.
 			LABELING_LABEL_ALL,                        //!< Label all connected components of the mesh.
 			LABELING_LABEL_SELMVERTS,                  //!< Label all selected vertices of the mesh. Vertices not selected will become background.
-			REFRESH_SELECTION_DISPLAY,   //!< Pretend to have all selections changed.
+            LABELING_KMEANS_VERT_POS,                  //!< Label all vertices with a k-means clustering with the vertex position
+            REFRESH_SELECTION_DISPLAY,   //!< Pretend to have all selections changed.
 			SHOW_INFO_MESH,              //!< Display information about the mesh e.g. number of vertices.
 			SHOW_INFO_SELECTION,         //!< Display information about the selected primitve.
 			SHOW_INFO_FUNCVAL,           //!< Display information about the function values of the vertices.

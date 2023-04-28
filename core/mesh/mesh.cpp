@@ -786,6 +786,9 @@ bool Mesh::callFunction(
 		case LABELING_LABEL_SELMVERTS:
 			retVal = Mesh::labelSelectedVerticesUser();
 			break;
+        case LABELING_KMEANS_VERT_POS:
+            labelKMeansVertPos();
+            break;
 		case REFRESH_SELECTION_DISPLAY:
 			selectedMVertsChanged();
 			selectedMFacesChanged();
@@ -7000,14 +7003,34 @@ bool Mesh::labelSelMVertsToBack() {
 	labelsChanged();
     return true;
 }
+
+bool Mesh::labelKMeansVertPos() {
+    cout << "[Mesh::" << __FUNCTION__ << "]" << endl;
+    // check if there is something to label:
+    if( mSelectedMVerts.size() < 2 ) {
+        cout << "[Mesh::" << __FUNCTION__ << "] WARNING: No vertices selected for labeling." << endl;
+        showWarning( "Not enough selected Vertices!", "You have to select at least 2 vertices!" );
+        return( false );
+    }
+    //use the selected vertices as intial centroids
+    std::vector<Vector3D> initCentroids;
+    //extract the vertex pos from the selected vertices
+    set<Vertex*>::iterator itVertex;
+    for( itVertex=mSelectedMVerts.begin(); itVertex != mSelectedMVerts.end(); itVertex++ ) {
+            Vertex* currVertex = (*itVertex);
+            initCentroids.push_back(currVertex->getPositionVector());
+        }
+    computeVertexPositionKMeans(&initCentroids,true);
+    labelsChanged();
+}
 //!K-Means clustering algorithm
 //!@param centroids as input expected. Contains the start centroids and thus defines the number of the clusters
 //!@param clusterSets returns vertex clusters
-//! @param labeling if true, then the vertecis are labeled with their cluster id
-bool Mesh::computeVertexPositionKMeans(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>> *clusterSets, bool labeling)
+//! @param labeling if true, then the vertices are labeled with their cluster id
+bool Mesh::computeVertexPositionKMeans(std::vector<Vector3D> *centroids, bool labeling)
 {
     cout << "[Mesh::" << __FUNCTION__ << "]" << endl;
-    const int cMaxIterations = 50;
+    const int cMaxIterations = 30;
     int iter = 0;
     bool centroidsChanged = true;
     while(iter < cMaxIterations && centroidsChanged){
