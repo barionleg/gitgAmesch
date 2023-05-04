@@ -1662,6 +1662,8 @@ bool MeshQt::applyAutomaticMeshAlignment(bool askForFront)
     resetVertexNormals();
 
 
+
+
     //do not ask if the method is called by the directory function
     if(askForFront){
         //Decide which part of the mesh is the front
@@ -1767,6 +1769,17 @@ bool MeshQt::applyAutomaticMeshAlignment(bool askForFront)
     //the transformation with the identity matrix resets the mesh to the center
     Matrix4D identity(Matrix4D::INIT_IDENTITY);
     applyTransformationDefaultViewMatrix(&identity);
+
+    //calculate: where is the spike of the mesh
+    //the spike should always point to the top
+    Vector3D center = getCenterOfGravity();
+    float distanceTop = mMaxY - center.getY();
+    float distanceBottom = center.getY() - mMinY;
+    if (distanceTop < distanceBottom){
+        rotationAngle = {180 * M_PI / 180.0};
+        Matrix4D zRotation(Matrix4D::INIT_ROTATE_ABOUT_Z,&rotationAngle);
+        applyTransformationToWholeMesh(zRotation);
+    }
 
     // setup initial view (emit Signal to meshwidget.cpp:
     emit sDefaultViewLight();
