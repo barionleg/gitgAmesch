@@ -465,8 +465,9 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
         virtual bool labelVerticesEqualRGB();
 		virtual bool labelSelMVertsToBack();
 
+                bool labelKMeansVertPos();
                 //kMeans (also used for automatic mesh alignment)
-                bool computeVertexPositionKMeans(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>>*clusterSets, bool labeling);
+                bool computeVertexPositionKMeans(std::vector<Vector3D> *centroids, bool labeling);
                 bool assignVerticesToClusterByPosition(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>>*clusterSets, bool labeling);
                 Vector3D getCentroidByPosition(std::set<Vertex*> *clusterSet);
                 std::vector<std::set<Vertex*>> computeVertexNormalKMeans(std::vector<Vector3D> *centroids, bool labeling);

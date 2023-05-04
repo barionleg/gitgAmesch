@@ -1131,6 +1131,8 @@ void QGMMainWindow::initMeshSignals() {
 	// ... Labeling ..........................................................................................................................................
 	actionLabelVertices->setProperty(                             "gmMeshFunctionCall", MeshParams::LABELING_LABEL_ALL                           );
 	actionLabelSelMVerts->setProperty(                            "gmMeshFunctionCall", MeshParams::LABELING_LABEL_SELMVERTS                     );
+    actionLabelKMeansVertPos->setProperty(                        "gmMeshFunctionCall", MeshParams::LABELING_KMEANS_VERT_POS                    );
+
 	// ... Colorramp and Isoline .............................................................................................................................
 	actionSetFixedRangeNormalized->setProperty(                   "gmMeshGLFunctionCall", MeshGLParams::TEXMAP_FIXED_SET_NORMALIZED              );
 	actionViewVerticesNone->setProperty(                          "gmMeshGLFunctionCall", MeshGLParams::SET_SHOW_VERTICES_NONE                   );

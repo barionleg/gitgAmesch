@@ -184,6 +184,8 @@
     <addaction name="actionLabelFuncValMaxima"/>
     <addaction name="separator"/>
     <addaction name="actionLabelColorShift"/>
+    <addaction name="separator"/>
+    <addaction name="actionLabelKMeansVertPos"/>
    </widget>
    <widget class="QMenu" name="menuFunctions">
     <property name="title">
@@ -4629,6 +4631,11 @@ The latter will be shown, when the processing has finished.</string>
    </property>
    <property name="toolTip">
     <string>Directory: Automatic Mesh Alignment</string>
+   </property>
+  </action>
+  <action name="actionLabelKMeansVertPos">
+   <property name="text">
+    <string>Label K-Means: Vertex Position</string>
    </property>
   </action>
  </widget>
