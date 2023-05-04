@@ -1531,6 +1531,23 @@ void MeshWidget::applyAutomaticMeshAlignmentDir(){
         plyFileName.remove(QRegularExpression(".ply"));
         QString newFile = pathChoosen + '/' + plyFileName;
         newFile = newFile + fileNameSuffix +  ".ply";
+
+        //set Metadata of the mesh if not specified before
+        //otherwise gigamesh will ask the metadata and the doesn't continue the process
+
+        std::string modelID = mMeshVisual->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_ID );
+        if( modelID.empty() ) {
+            QString suggestId( QString::fromStdWString(mMeshVisual->getBaseName().wstring()) );
+            suggestId.replace( "_", " " );
+            suggestId.replace( QRegularExpression( "GM[oOcCfFpPxX]*$" ), "" );
+            mMeshVisual->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_ID, suggestId.toStdString() );
+        }
+        std::string modelMaterial = mMeshVisual->getModelMetaDataRef().getModelMetaString( ModelMetaData::META_MODEL_MATERIAL );
+        if( modelMaterial.empty() ) {
+            QString newMaterial = tr( "original, clay" );
+            mMeshVisual->getModelMetaDataRef().setModelMetaString( ModelMetaData::META_MODEL_MATERIAL, newMaterial.toStdString() );
+        }
+
         mMeshVisual->writeFile(newFile);
     } // for all files
 }
