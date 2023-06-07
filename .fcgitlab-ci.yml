@@ -45,9 +45,7 @@ ubuntu bionic:
 
 manjaro arch:
   # Use latest manjaro release
-  #image: archlinux/base
-  #test older archlinux
-  image: archlinux:base-20230409.0.141585
+  image: archlinux/base
   stage: build
   # install the necessary build tools when needed
   before_script:
