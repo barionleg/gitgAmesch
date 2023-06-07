@@ -7022,6 +7022,7 @@ bool Mesh::labelKMeansVertPos() {
         }
     computeVertexPositionKMeans(&initCentroids,true);
     labelsChanged();
+    return( true );
 }
 //!K-Means clustering algorithm
 //!@param centroids as input expected. Contains the start centroids and thus defines the number of the clusters
