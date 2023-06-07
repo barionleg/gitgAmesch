@@ -1366,7 +1366,8 @@ void MeshWidget::sphericalImagesLightDir( ) {
     // Store settings from current Mesh and MeshWidget
     MeshGLParams storeMeshGLParams( (MeshGLParams)mMeshVisual );
     MeshWidgetParams storeMeshWidgetParams( (MeshWidgetParams)this );
-
+    double printResDPI;
+    getViewPortDPI( printResDPI );
     //Ask for tiled rendering
     bool userCancel;
     bool useTiled;
@@ -1443,7 +1444,7 @@ void MeshWidget::sphericalImagesLightDir( ) {
 
         this->setParamAllMeshWidget( storeMeshWidgetParams );
         mMeshVisual->setParamAllMeshWidget( storeMeshGLParams );
-
+        orthoSetDPI( printResDPI );
         //rotate mesh when the user wants to render the backside
         if(!renderFront){
             std::vector<double> rotationAngle = {180 * M_PI / 180.0};
