@@ -50,9 +50,9 @@ manjaro arch:
   # install the necessary build tools when needed
   before_script:
    - pacman -Sy
-   - pacman -S gcc glibc cmake boost unzip qtcreator make git libffi qtcreator-devel --noconfirm
+   - pacman -S gcc glibc cmake boost unzip qtcreator make git libffi qtcreator-devel qt5-base --noconfirm
   script:
-    - export QT_SELECT=qt5
+    - export QT_SELECT=5
 
     # build gigamesh
     - mkdir build

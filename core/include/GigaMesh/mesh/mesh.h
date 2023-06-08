@@ -465,8 +465,9 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
         virtual bool labelVerticesEqualRGB();
 		virtual bool labelSelMVertsToBack();
 
+                bool labelKMeansVertPos();
                 //kMeans (also used for automatic mesh alignment)
-                bool computeVertexPositionKMeans(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>>*clusterSets, bool labeling);
+                bool computeVertexPositionKMeans(std::vector<Vector3D> *centroids, bool labeling);
                 bool assignVerticesToClusterByPosition(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>>*clusterSets, bool labeling);
                 Vector3D getCentroidByPosition(std::set<Vertex*> *clusterSet);
                 std::vector<std::set<Vertex*>> computeVertexNormalKMeans(std::vector<Vector3D> *centroids, bool labeling);
@@ -539,15 +540,17 @@ class Mesh : public Primitive, public MeshIO, public MeshParams,
 		virtual bool funcVert1RingRMin();
 		virtual bool funcVert1RingVolInt();
 		virtual bool funcVertDistancesMax();
-				bool funcVertFeatureElementsStdDev();
+		virtual bool funcVertFeatureElementsStdDev();
 		virtual bool funcVertFeatureVecMin();
 		virtual bool funcVertFeatureVecMax();
+		virtual bool funcVertFeatureVecMinSigned();
+		virtual bool funcVertFeatureVecMaxSigned();
 		virtual bool funcVertFeatureVecMahalDist();
 		virtual bool funcVertFeatureVecPNorm();
 		virtual bool funcVertFeatureVecPNorm( const std::vector<double>& rReferenceVector, const double& rpNorm, eFuncFeatureVecPNormWeigth rWeigthType );
 		virtual bool funcVertFeatureVecElementByIndex( unsigned int rElementNr );
 		virtual bool funcVertDistanceToPlane( Vector3D rPlaneHNF, bool rAbsDist, bool rSilent=false );
-				bool funcVertAddLight(Matrix4D &rTransformMat, unsigned int rArrayWidth, unsigned int rArrayHeight, const std::vector<float>& rDepths, float rZTolerance );
+				bool funcVertAddLight( Matrix4D &rTransformMat, unsigned int rArrayWidth, unsigned int rArrayHeight, const std::vector<float>& rDepths, float rZTolerance );
 				bool funcVertSphereSurfaceLength();
 				bool funcVertSphereVolumeArea();
 				bool funcVertSphereSurfaceNumberOfComponents();

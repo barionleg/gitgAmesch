@@ -46,6 +46,7 @@
 bool infoGigaMeshData(
                 const std::filesystem::path&   rFileNameIn,    //!< Input - filename.
                 MeshInfoData&                  rFileInfos,     //!< Output - data properties.
+                bool                           rSuppressSelfIntersection,   //!< Option: Decision whether the selfintersected face are calculated (computationally intensive)
                 bool                           rAbsolutePath   //!< Option: display absolute path or stem only.
 ) {
 	// Check: Input file exists
@@ -67,7 +68,7 @@ bool infoGigaMeshData(
 	someMesh.labelVerticesAll();
 
 	// Count primitives and their properties
-    if( !someMesh.getMeshInfoData( rFileInfos, rAbsolutePath, true) ) {
+    if( !someMesh.getMeshInfoData( rFileInfos, rAbsolutePath, !rSuppressSelfIntersection) ) {
 		std::wcerr << "[GigaMesh] ERROR: Could not fetch mesh information about '" << rFileNameIn.wstring() << "'!" << std::endl;
 		return( false );
 	}
@@ -91,6 +92,7 @@ void printHelp( const char* rExecName ) {
 	std::cout << "  -x, --write-sidecar-file-xml            Write mesh information in XML as side car file." << std::endl;
 	std::cout << "  -t, --write-sidecar-file-html           Write mesh information in HTML as side car file." << std::endl;
 	std::cout << "  -a, --write-sidecar-files               Write all the above side car files." << std::endl;
+    std::cout << "  -q, --quick                             Suppress detection of self-intersections (computationally intensive)." << std::endl;
 	//! \todo integrate '-k' option for '-j/l/x/t/a' and NOT for '-o'
 //	std::cout << "  -k, --overwrite-existing                Overwrite exisitng files, which is not done by default" << std::endl;
 //	std::cout << "                                          to prevent accidental data loss." << std::endl;
@@ -123,6 +125,7 @@ int main( int argc, char* argv[] ) {
 	bool optSideCarXML   = false;
 	bool optSideCarJSON  = false;
 	bool optSideCarTTL   = false;
+    bool optSuppressSelfIntersection = false;
 
 	// PARSE command line options
 	//--------------------------------------------------------------------------
@@ -136,6 +139,7 @@ int main( int argc, char* argv[] ) {
 		{ "write-sidecar-file-ttl",       no_argument,       nullptr, 'l' },
 		{ "write-sidecar-files",          no_argument,       nullptr, 'a' },
 		{ "overwrite-existing",           no_argument,       nullptr, 'k' },
+        { "quick",                        no_argument,       nullptr, 'q' },
 		{ "version",                      no_argument,       nullptr, 'v' },
 		{ "help",                         no_argument,       nullptr, 'h' },
 		{ "log-level",                    required_argument, nullptr,  0  },
@@ -145,12 +149,13 @@ int main( int argc, char* argv[] ) {
 	int character = 0;
 	int optionIndex = 0;
 
-	while( ( character = getopt_long_only( argc, argv, ":o:stkxjlavh",
+    while( ( character = getopt_long_only( argc, argv, ":o:stkqxjlavh",
 	         longOptions, &optionIndex ) ) != -1 ) {
-		switch(character) {
+
+        switch(character) {
 			case 0:
 				// printf ("option %s", long_options[option_index].name);
-				// if (optarg) printf (" with arg %s", optarg);	
+                //if (optarg) printf (" with arg %s", optarg);
 
 				if(std::string(longOptions[optionIndex].name) == "log-level")
 				{
@@ -190,6 +195,10 @@ int main( int argc, char* argv[] ) {
 			case 'x':
 				optSideCarXML = true;
 				break;
+
+            case 'q':
+                optSuppressSelfIntersection = true;
+                break;
 
 			case 'a':
 				optSideCarHTML = true;
@@ -245,7 +254,10 @@ int main( int argc, char* argv[] ) {
 
 			MeshInfoData fileInfoSingle;
 			if( !infoGigaMeshData( nonOptionArgumentString,
-			                       fileInfoSingle, optAbsolutePath ) ) {
+                                   fileInfoSingle,
+                                   optSuppressSelfIntersection,
+                                   optAbsolutePath
+                                   ) ) {
 				std::cerr << "[GigaMesh] ERROR: infoGigaMeshData failed!" << std::endl;
 				std::exit( EXIT_FAILURE );
 			}

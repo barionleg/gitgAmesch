@@ -48,6 +48,7 @@ All executables provide details by adding `--help` or `-h` on the command line.
 - `gigamesh-tolegacy` ... convert multiple files to legacy Stanford Polygon (PLY) as ASCII and binary.
 - `gigamesh-border` ... extraction of mesh borders as polylines (ASCII formatted .pline files).
 - `gigamesh-sphere-profiles` ... extraction of spherical intersections with the mesh as polylines. Related to `gigamesh-featurevectors-sl`.
+- `gigamesh-gnsphere` ... exports the Gaussian Normal Sphere (GNS) data of the given mesh.
 
 ## EXAMPLES 
 
@@ -139,9 +140,9 @@ in 2010. If you are using GigaMesh please cite the following publication (in Bib
 Author
 ------
 
-*GigaMesh* is developed by [Hubert Mara](https://hubert-mara.at).
+*GigaMesh* is developed by [Hubert Mara](https://hubert-mara.at) ([ORCID: 0000-0002-2004-4153](https://orcid.org/0000-0002-2004-4153)).
 
-Robert Kühl is the senior developer.
+Robert Kühl was the senior developer from 2018-2020.
 
 *psalm* is developed by Bastian Rieck (onfgvna@evrpx.eh; use `rot13` to
 descramble). The original code is available via [GitHub](https://github.com/Pseudomanifold/psalm).

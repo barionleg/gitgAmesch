@@ -206,6 +206,7 @@ signals:
 	void saveStillImages360PlaneN();                         //!< triggers the generation of still images for a 360° rotation about the mesh plane.
 	//.
 	void sphericalImagesLight();                             //!< triggers the generation of still images with the light source in the spherical orbit.
+    void sphericalImagesLightDir();                          //!< triggers the generation of still images with the light source in the spherical orbit for a whole directory.
 	void sphericalImages();                                  //!< triggers the generation of still images in a spherical orbit.
 	void sphericalImagesStateNr();                           //!< triggers the selection of the state nr. used for naming the files during export.
 	//.
@@ -238,6 +239,7 @@ signals:
 	void sApplyMeltingSphere();                              //!< triggers melting with sqrt(r^2-x^2-y^2)
     //.
     void sAutomaticMeshAlignment();                          //! triggers the automatic mesh alignmented with PCA
+    void sAutomaticMeshAlignmentDir();                       //! triggers the automatic mesh alignmented with PCA for a whole directory
 	// --- DeSelect ----------------------------------------------------------------------------------------------------------------------------------------
 	void sDeSelVertsAll();                                   //!< removes all vertices from the selection (SelMVerts).
 	void sDeSelVertsNoLabel();                               //!< removes vertices from the selection (SelMVerts) not assigned to a label.

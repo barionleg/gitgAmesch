@@ -204,6 +204,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 	QObject::connect( mMainWindow, SIGNAL(sApplyMeltingSphere()),        this, SLOT(applyMeltingSphere())     );
 	//.
     QObject::connect( mMainWindow, SIGNAL(sAutomaticMeshAlignment()),    this, SLOT(applyAutomaticMeshAlignment())     );
+
     //.
 
 
@@ -1606,7 +1607,7 @@ bool MeshQt::applyMeltingSphere() {
 //! calculates principal components (PCA) of the vertices
 //! Sets the PCs as new camera vectors
 //! result should be that the biggest extension of the is equal to the y-axis
-bool MeshQt::applyAutomaticMeshAlignment()
+bool MeshQt::applyAutomaticMeshAlignment(bool askForFront)
 {
 
     std::cout << "[MeshQT::" << __FUNCTION__ << "] Start:Automatic Mesh Alignment" << std::endl;
@@ -1662,114 +1663,131 @@ bool MeshQt::applyAutomaticMeshAlignment()
 
 
 
-    //Decide which part of the mesh is the front
-    //only for stone tools
 
-    bool curvatureAlignment = false;
-    bool userCancel = false;
-    SHOW_QUESTION( tr("Front Alignment"), tr( "Do you want to align the front of the mesh based on the curvature?" ), curvatureAlignment, userCancel );
-    if( userCancel ) {
-        return false;
-    }
-    if (curvatureAlignment){
-        //define the start centroids of k-means
-        //use the points in the middle of the mesh and the minimum and the maximum of the dimension with the smallest extension
-        //0 = x
-        //1 = y
-        //2 = z
-        int smallestExtension = 0;
-        double xExtension = abs(Mesh::getMinX() - Mesh::getMaxX());
-        double yExtension = abs(Mesh::getMinY() - Mesh::getMaxY());
-        double zExtension = abs(Mesh::getMinZ() - Mesh::getMaxZ());
-        if (xExtension > yExtension){
-            smallestExtension = 1;
+    //do not ask if the method is called by the directory function
+    if(askForFront){
+        //Decide which part of the mesh is the front
+        //only for stone tools
+
+        bool curvatureAlignment = false;
+        bool userCancel = false;
+        SHOW_QUESTION( tr("Front Alignment"), tr( "Do you want to align the front of the mesh based on the curvature?" ), curvatureAlignment, userCancel );
+        if( userCancel ) {
+            return false;
         }
-        if (xExtension > zExtension && yExtension > zExtension){
-            smallestExtension = 2;
-        }
+        if (curvatureAlignment){
+            //define the start centroids of k-means
+            //use the points in the middle of the mesh and the minimum and the maximum of the dimension with the smallest extension
+            //0 = x
+            //1 = y
+            //2 = z
+            int smallestExtension = 0;
+            double xExtension = abs(Mesh::getMinX() - Mesh::getMaxX());
+            double yExtension = abs(Mesh::getMinY() - Mesh::getMaxY());
+            double zExtension = abs(Mesh::getMinZ() - Mesh::getMaxZ());
+            if (xExtension > yExtension){
+                smallestExtension = 1;
+            }
+            if (xExtension > zExtension && yExtension > zExtension){
+                smallestExtension = 2;
+            }
 
-        Vector3D centroid1;
-        Vector3D centroid2;
-        switch(smallestExtension){
-            case 0:
-                centroid1 = Vector3D(1.0,0.0,0.0);
-                centroid2 = Vector3D(-1.0,0.0,0.0);
-                break;
-            case 1:
-                centroid1 = Vector3D(0.0,1.0,0.0);
-                centroid2 = Vector3D(0.0,-1.0,0.0);
-                break;
-            case 2:
-                centroid1 = Vector3D(0.0,0.0,1.0);
-                centroid2 = Vector3D(0.0,0.0,-1.0);
-                break;
-        }
-        std::vector<Vector3D> centroids = {centroid1,centroid2};
-        std::vector<std::set<Vertex*>> clusterSets = Mesh::computeVertexNormalKMeans(&centroids,true);
+            Vector3D centroid1;
+            Vector3D centroid2;
+            switch(smallestExtension){
+                case 0:
+                    centroid1 = Vector3D(1.0,0.0,0.0);
+                    centroid2 = Vector3D(-1.0,0.0,0.0);
+                    break;
+                case 1:
+                    centroid1 = Vector3D(0.0,1.0,0.0);
+                    centroid2 = Vector3D(0.0,-1.0,0.0);
+                    break;
+                case 2:
+                    centroid1 = Vector3D(0.0,0.0,1.0);
+                    centroid2 = Vector3D(0.0,0.0,-1.0);
+                    break;
+            }
+            std::vector<Vector3D> centroids = {centroid1,centroid2};
+            std::vector<std::set<Vertex*>> clusterSets = Mesh::computeVertexNormalKMeans(&centroids,true);
 
-        //calculate ambient occlusion to get some kind of curviture values
-        //the results are stored in vertices as function values
-        //for parameters we use the recommended values of the GUI
-        /**
-        int depthBuffeRes = 512;
-        unsigned int numberOfDirections = 1000;
-        int maxValueBufferRes = 512;
-        float zTolerance = 0.0;
-        if( !funcVertAmbientOcclusionHW( depthBuffeRes, maxValueBufferRes, numberOfDirections, zTolerance ) ) {
-                return false;
-        }
+            //calculate ambient occlusion to get some kind of curviture values
+            //the results are stored in vertices as function values
+            //for parameters we use the recommended values of the GUI
+            /**
+            int depthBuffeRes = 512;
+            unsigned int numberOfDirections = 1000;
+            int maxValueBufferRes = 512;
+            float zTolerance = 0.0;
+            if( !funcVertAmbientOcclusionHW( depthBuffeRes, maxValueBufferRes, numberOfDirections, zTolerance ) ) {
+                    return false;
+            }
 
-        //calculate the average curviture of the cluster -> the cluster/mesh-side with the higher curviture should be in front
-        double meanClust1 = 0.0;
-        double meanClust2 = 0.0;
+            //calculate the average curviture of the cluster -> the cluster/mesh-side with the higher curviture should be in front
+            double meanClust1 = 0.0;
+            double meanClust2 = 0.0;
 
-        std::set<Vertex*>::iterator itr;
-        for (itr = clusterSets.at(0).begin(); itr != clusterSets.at(0).end(); itr++){
-            double funcVal = 0.0;
-            (*itr)->getFuncValue(&funcVal);
-            meanClust1 += funcVal;
-        }
-        meanClust1 = meanClust1/clusterSets.at(0).size();
+            std::set<Vertex*>::iterator itr;
+            for (itr = clusterSets.at(0).begin(); itr != clusterSets.at(0).end(); itr++){
+                double funcVal = 0.0;
+                (*itr)->getFuncValue(&funcVal);
+                meanClust1 += funcVal;
+            }
+            meanClust1 = meanClust1/clusterSets.at(0).size();
 
-        for (itr = clusterSets.at(1).begin(); itr != clusterSets.at(1).end(); itr++){
-            double funcVal = 0.0;
-            (*itr)->getFuncValue(&funcVal);
-            meanClust2 += funcVal;
-        }
-        meanClust2 = meanClust2/clusterSets.at(1).size();
-        if (meanClust1 < meanClust2){
-            //rotate 180 degree to get the side with higher curviture to front
-            const double s = sin(180 * M_PI / 180.0);
-            const double c = cos(180 * M_PI / 180.0);
-            Matrix4D rotationMatrix( {  c, 0.0,  -s, 0.0,
-                                        0.0, 1.0, 0.0, 0.0,
-                                          s, 0.0,   c, 0.0,
-                                        0.0, 0.0, 0.0, 1.0} );
-            applyTransformationToWholeMesh(rotationMatrix);
+            for (itr = clusterSets.at(1).begin(); itr != clusterSets.at(1).end(); itr++){
+                double funcVal = 0.0;
+                (*itr)->getFuncValue(&funcVal);
+                meanClust2 += funcVal;
+            }
+            meanClust2 = meanClust2/clusterSets.at(1).size();
+            if (meanClust1 < meanClust2){
+                //rotate 180 degree to get the side with higher curviture to front
+                const double s = sin(180 * M_PI / 180.0);
+                const double c = cos(180 * M_PI / 180.0);
+                Matrix4D rotationMatrix( {  c, 0.0,  -s, 0.0,
+                                            0.0, 1.0, 0.0, 0.0,
+                                              s, 0.0,   c, 0.0,
+                                            0.0, 0.0, 0.0, 1.0} );
+                applyTransformationToWholeMesh(rotationMatrix);
 
-        }
-        **/
-        if (clusterSets.at(0).size() < clusterSets.at(1).size()){
-            //rotate 180 degree to get the side with higher curviture to front
-            const double s = sin(180 * M_PI / 180.0);
-            const double c = cos(180 * M_PI / 180.0);
-            Matrix4D rotationMatrix( {  c, 0.0,  -s, 0.0,
-                                        0.0, 1.0, 0.0, 0.0,
-                                          s, 0.0,   c, 0.0,
-                                        0.0, 0.0, 0.0, 1.0} );
-            applyTransformationToWholeMesh(rotationMatrix);
+            }
+            **/
+            if (clusterSets.at(0).size() < clusterSets.at(1).size()){
+                //rotate 180 degree to get the side with higher curviture to front
+                const double s = sin(180 * M_PI / 180.0);
+                const double c = cos(180 * M_PI / 180.0);
+                Matrix4D rotationMatrix( {  c, 0.0,  -s, 0.0,
+                                            0.0, 1.0, 0.0, 0.0,
+                                              s, 0.0,   c, 0.0,
+                                            0.0, 0.0, 0.0, 1.0} );
+                applyTransformationToWholeMesh(rotationMatrix);
 
+            }
         }
     }
     //the transformation with the identity matrix resets the mesh to the center
     Matrix4D identity(Matrix4D::INIT_IDENTITY);
     applyTransformationDefaultViewMatrix(&identity);
 
+    //calculate: where is the spike of the mesh
+    //the spike should always point to the top
+    Vector3D center = getCenterOfGravity();
+    float distanceTop = mMaxY - center.getY();
+    float distanceBottom = center.getY() - mMinY;
+    if (distanceTop < distanceBottom){
+        rotationAngle = {180 * M_PI / 180.0};
+        Matrix4D zRotation(Matrix4D::INIT_ROTATE_ABOUT_Z,&rotationAngle);
+        applyTransformationToWholeMesh(zRotation);
+    }
+
     // setup initial view (emit Signal to meshwidget.cpp:
     emit sDefaultViewLight();
 
+
     return true;
 }
+
 
 
 // --- Select actions ------------------------------------------------------------------------------------------------------------------------------------------

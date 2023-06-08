@@ -16,10 +16,10 @@ authors:
     given-names: Hubert
     orcid: "https://orcid.org/0000-0002-2004-4153"
 cff-version: "1.1.0"
-date-released: 2020-05-28
+date-released: 2023-03-02
 license: GPL
 message: "If you use this software, please cite it using these metadata."
 repository-code: "https://gitlab.com/fcgl/GigaMesh/"
 title: "GigaMesh Software Framework"
-version: 200528
+version: 230302
 ...

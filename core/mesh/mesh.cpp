@@ -470,13 +470,16 @@ bool Mesh::callFunction(
 		case FEATUREVEC_UNLOAD_ALL:
 			removeFeatureVectors();
 			break;
+		case FUNCVAL_FEATUREVECTOR_STDDEV_ELEMENTS:
+			retVal = funcVertFeatureElementsStdDev();
+			break;
 		case FUNCVAL_FEATUREVECTOR_CORRELATE_WITH: {
 			vector<double> refernceVector;
 			if( !showEnterText( refernceVector, "Reference vector" ) ) {
 				break;
 			}
 			retVal |= setVertFuncValCorrTo( &refernceVector );
-	        } break;
+			} break;
 		case FUNCVAL_FEATUREVECTOR_APPLY_PNORM:
 			retVal = funcVertFeatureVecPNorm();
 			break;
@@ -488,6 +491,12 @@ bool Mesh::callFunction(
 			break;
 		case FUNCVAL_FEATUREVECTOR_MAX_ELEMENT:
 			retVal = funcVertFeatureVecMax();
+			break;
+		case FUNCVAL_FEATUREVECTOR_MIN_ELEMENT_SIGNED:
+			retVal = funcVertFeatureVecMinSigned();
+			break;
+		case FUNCVAL_FEATUREVECTOR_MAX_ELEMENT_SIGNED:
+			retVal = funcVertFeatureVecMaxSigned();
 			break;
 		case FUNCVAL_FEATUREVECTOR_ELEMENT_BY_INDEX: {
 			uint64_t valueIndex = _NOT_A_NUMBER_UINT_;
@@ -646,7 +655,7 @@ bool Mesh::callFunction(
 			}
 			LOG::error() << "[Mesh::" << __FUNCTION__ << "] ERROR: Bad number of values given. Expecting one or three values, but "<< valuesScaleSkew.size() << " were given!\n";
 			retVal = false;
-	        } break;
+			} break;
 		case APPLY_TRANSMAT_SELMVERT: {
 			if(hasDatumObjects())
 			{
@@ -663,7 +672,7 @@ bool Mesh::callFunction(
 				break;
 			}
 			retVal = applyTransformation( valuesMatrix4x4, &mSelectedMVerts );
-	        } break;
+			} break;
 
 		case SELMPRIMS_POS_DESELECT_ALL:
 			mSelectedPositions.clear();
@@ -777,6 +786,9 @@ bool Mesh::callFunction(
 		case LABELING_LABEL_SELMVERTS:
 			retVal = Mesh::labelSelectedVerticesUser();
 			break;
+        case LABELING_KMEANS_VERT_POS:
+            labelKMeansVertPos();
+            break;
 		case REFRESH_SELECTION_DISPLAY:
 			selectedMVertsChanged();
 			selectedMFacesChanged();
@@ -6991,14 +7003,35 @@ bool Mesh::labelSelMVertsToBack() {
 	labelsChanged();
     return true;
 }
+
+bool Mesh::labelKMeansVertPos() {
+    cout << "[Mesh::" << __FUNCTION__ << "]" << endl;
+    // check if there is something to label:
+    if( mSelectedMVerts.size() < 2 ) {
+        cout << "[Mesh::" << __FUNCTION__ << "] WARNING: No vertices selected for labeling." << endl;
+        showWarning( "Not enough selected Vertices!", "You have to select at least 2 vertices!" );
+        return( false );
+    }
+    //use the selected vertices as intial centroids
+    std::vector<Vector3D> initCentroids;
+    //extract the vertex pos from the selected vertices
+    set<Vertex*>::iterator itVertex;
+    for( itVertex=mSelectedMVerts.begin(); itVertex != mSelectedMVerts.end(); itVertex++ ) {
+            Vertex* currVertex = (*itVertex);
+            initCentroids.push_back(currVertex->getPositionVector());
+        }
+    computeVertexPositionKMeans(&initCentroids,true);
+    labelsChanged();
+    return( true );
+}
 //!K-Means clustering algorithm
 //!@param centroids as input expected. Contains the start centroids and thus defines the number of the clusters
 //!@param clusterSets returns vertex clusters
-//! @param labeling if true, then the vertecis are labeled with their cluster id
-bool Mesh::computeVertexPositionKMeans(std::vector<Vector3D> *centroids, std::vector<std::set<Vertex*>> *clusterSets, bool labeling)
+//! @param labeling if true, then the vertices are labeled with their cluster id
+bool Mesh::computeVertexPositionKMeans(std::vector<Vector3D> *centroids, bool labeling)
 {
     cout << "[Mesh::" << __FUNCTION__ << "]" << endl;
-    const int cMaxIterations = 50;
+    const int cMaxIterations = 30;
     int iter = 0;
     bool centroidsChanged = true;
     while(iter < cMaxIterations && centroidsChanged){
@@ -8934,13 +8967,46 @@ bool Mesh::funcVertDistancesMax() {
 	return true;
 }
 
+//! Set the function value to the standard deviation of the feature vector's element.
+//!
+//! @returns true, when all vertices got a new function value. False otherwise i.e. in case of an error.
+bool Mesh::funcVertFeatureElementsStdDev() {
+	bool allSet = true;
+
+	string funcName = "Compute standard deviation of the feature vectors' elements.";
+	uint64_t nrOfVertices = getVertexNr();
+	showProgressStart( funcName );
+
+	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
+		Vertex* currVertex = getVertexPos( vertIdx );
+		double featureVecMean; 
+		double featureVecStdDev;
+		if( !currVertex->getFeatureVecMeanStdDev( &featureVecMean, &featureVecStdDev ) ) {
+			allSet = false;
+		}
+		if( !currVertex->setFuncValue( featureVecStdDev ) ) {
+			allSet = false;
+		}
+		showProgress( static_cast<double>(vertIdx+1)/static_cast<double>(nrOfVertices), funcName );
+	}
+	showProgressStop( funcName );
+
+	changedVertFuncVal();
+	return( allSet );
+}
+
 //! Set the function value to the minimum of the feature vector's element.
+//!
 //! @returns true, when all vertices got a new function value. False otherwise i.e. in case of an error.
 bool Mesh::funcVertFeatureVecMin() {
 	bool allSet = true;
-	Vertex* currVertex;
+
+	string funcName = "Determine minimal value of the feature vectors' elements.";
+	uint64_t nrOfVertices = getVertexNr();
+	showProgressStart( funcName );
+
 	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
-		currVertex = getVertexPos( vertIdx );
+		Vertex* currVertex = getVertexPos( vertIdx );
 		double minFeatureVecElement;
 		if( !currVertex->getFeatureVecMin( &minFeatureVecElement ) ) {
 			allSet = false;
@@ -8948,19 +9014,27 @@ bool Mesh::funcVertFeatureVecMin() {
 		if( !currVertex->setFuncValue( minFeatureVecElement ) ) {
 			allSet = false;
 		}
+		showProgress( static_cast<double>(vertIdx+1)/static_cast<double>(nrOfVertices), funcName );
 	}
+	showProgressStop( funcName );
+
 	changedVertFuncVal();
-	return allSet;
+	return( allSet );
 }
 
 //! Set the function value to the maximum of the feature vector's element.
 //! This is not the same as the maximum norm!
+//!
 //! @returns true, when all vertices got a new function value. False otherwise i.e. in case of an error.
 bool Mesh::funcVertFeatureVecMax() {
 	bool allSet = true;
-	Vertex* currVertex;
+
+	string funcName = "Determine maximum value of the feature vectors' elements.";
+	uint64_t nrOfVertices = getVertexNr();
+	showProgressStart( funcName );
+
 	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
-		currVertex = getVertexPos( vertIdx );
+		Vertex* currVertex = getVertexPos( vertIdx );
 		double maxFeatureVecElement;
 		if( !currVertex->getFeatureVecMax( &maxFeatureVecElement ) ) {
 			allSet = false;
@@ -8968,9 +9042,67 @@ bool Mesh::funcVertFeatureVecMax() {
 		if( !currVertex->setFuncValue( maxFeatureVecElement ) ) {
 			allSet = false;
 		}
+		showProgress( static_cast<double>(vertIdx+1)/static_cast<double>(nrOfVertices), funcName );
 	}
+	showProgressStop( funcName );
+
 	changedVertFuncVal();
-	return allSet;
+	return( allSet );
+}
+
+//! Set the function value to the minimal positve or negative value of the feature vectors' elements.
+//!
+//! @returns true, when all vertices got a new function value. False otherwise i.e. in case of an error.
+bool Mesh::funcVertFeatureVecMinSigned() {
+	bool allSet = true;
+
+	string funcName = "Determine minimal positve or negative value of the feature vectors' elements.";
+	uint64_t nrOfVertices = getVertexNr();
+	showProgressStart( funcName );
+
+	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
+		Vertex* currVertex = getVertexPos( vertIdx );
+		double minFeatureVecElement;
+		if( !currVertex->getFeatureVecMinSigned( &minFeatureVecElement ) ) {
+			allSet = false;
+		}
+		if( !currVertex->setFuncValue( minFeatureVecElement ) ) {
+			allSet = false;
+		}
+		showProgress( static_cast<double>(vertIdx+1)/static_cast<double>(nrOfVertices), funcName );
+	}
+	showProgressStop( funcName );
+
+	changedVertFuncVal();
+	return( allSet );
+}
+
+//! Set the function value to the maximum positve or negative value of the feature vectors' elements.
+//! This is not the same as the maximum norm!
+//!
+//! @returns true, when all vertices got a new function value. False otherwise i.e. in case of an error.
+bool Mesh::funcVertFeatureVecMaxSigned() {
+	bool allSet = true;
+
+	string funcName = "Determine maximal positve or negative value of the feature vectors' elements.";
+	uint64_t nrOfVertices = getVertexNr();
+	showProgressStart( funcName );
+
+	for( uint64_t vertIdx=0; vertIdx<getVertexNr(); vertIdx++ ) {
+		Vertex* currVertex = getVertexPos( vertIdx );
+		double maxFeatureVecElement;
+		if( !currVertex->getFeatureVecMaxSigned( &maxFeatureVecElement ) ) {
+			allSet = false;
+		}
+		if( !currVertex->setFuncValue( maxFeatureVecElement ) ) {
+			allSet = false;
+		}
+		showProgress( static_cast<double>(vertIdx+1)/static_cast<double>(nrOfVertices), funcName );
+	}
+	showProgressStop( funcName );
+
+	changedVertFuncVal();
+	return( allSet );
 }
 
 //! Compute a Mahalanobis distance using the feature vector of the vertices.

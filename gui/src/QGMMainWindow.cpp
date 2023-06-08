@@ -117,7 +117,8 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	//.
 	QObject::connect( actionSphericalImagesLight,     SIGNAL(triggered()),   this,     SIGNAL(sphericalImagesLight())          );
 	QObject::connect( actionSphericalImages,          SIGNAL(triggered()),   this,     SIGNAL(sphericalImages())               );
-	QObject::connect( actionSphericalImagesStateNr,   SIGNAL(triggered()),   this,     SIGNAL(sphericalImagesStateNr())        );
+    QObject::connect( actionSphericalImagesLightDirectory, SIGNAL(triggered()),   this,     SIGNAL(sphericalImagesLightDir())               );
+    QObject::connect( actionSphericalImagesStateNr,   SIGNAL(triggered()),   this,     SIGNAL(sphericalImagesStateNr())        );
 	//.
 	QObject::connect( actionUnload3D,                 SIGNAL(triggered()),   this,     SIGNAL(unloadMesh())                    );
 	//.
@@ -148,6 +149,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionApplyMeltingSphere,     SIGNAL(triggered()), this,       SIGNAL(sApplyMeltingSphere())     );
     //.
     QObject::connect( actionAutomatic_Mesh_Alignment,     SIGNAL(triggered()), this,       SIGNAL(sAutomaticMeshAlignment())     );
+    QObject::connect( actionDirectoryAutomaticMeshAlignment,     SIGNAL(triggered()), this,       SIGNAL(sAutomaticMeshAlignmentDir())     );
     //.
 
 	// --- De-Selection ------------------------------------------------------------------------------------------------------------------------------------
@@ -1077,6 +1079,8 @@ void QGMMainWindow::initMeshSignals() {
 	actionFuncValOrthogonalAxisAngleToRaial->setProperty(         "gmMeshFunctionCall", MeshParams::FUNCVAL_ORTHOGONAL_AXIS_ANGLE_TO_RADIAL      );
 	actionFuncValFeatureVecMin->setProperty(                      "gmMeshFunctionCall", MeshParams::FUNCVAL_FEATUREVECTOR_MIN_ELEMENT            );
 	actionFuncValFeatureVecMax->setProperty(                      "gmMeshFunctionCall", MeshParams::FUNCVAL_FEATUREVECTOR_MAX_ELEMENT            );
+	actionFuncValFeatureVecMinSigned->setProperty(                "gmMeshFunctionCall", MeshParams::FUNCVAL_FEATUREVECTOR_MIN_ELEMENT_SIGNED     );
+	actionFuncValFeatureVecMaxSigned->setProperty(                "gmMeshFunctionCall", MeshParams::FUNCVAL_FEATUREVECTOR_MAX_ELEMENT_SIGNED     );
 	actionColorRGBAvgToFuncVal->setProperty(                      "gmMeshFunctionCall", MeshParams::FUNCVAL_SET_GRAY_RGB_AVERAGE                 );
 	actionColorRGBAvgWeigthToFuncVal->setProperty(                "gmMeshFunctionCall", MeshParams::FUNCVAL_SET_GRAY_RGB_AVERAGE_WEIGHTED        );
 	actionColorRGBSaturationRemovalToFuncVal->setProperty(        "gmMeshFunctionCall", MeshParams::FUNCVAL_SET_GRAY_SATURATION_REMOVAL          );
@@ -1127,6 +1131,8 @@ void QGMMainWindow::initMeshSignals() {
 	// ... Labeling ..........................................................................................................................................
 	actionLabelVertices->setProperty(                             "gmMeshFunctionCall", MeshParams::LABELING_LABEL_ALL                           );
 	actionLabelSelMVerts->setProperty(                            "gmMeshFunctionCall", MeshParams::LABELING_LABEL_SELMVERTS                     );
+    actionLabelKMeansVertPos->setProperty(                        "gmMeshFunctionCall", MeshParams::LABELING_KMEANS_VERT_POS                    );
+
 	// ... Colorramp and Isoline .............................................................................................................................
 	actionSetFixedRangeNormalized->setProperty(                   "gmMeshGLFunctionCall", MeshGLParams::TEXMAP_FIXED_SET_NORMALIZED              );
 	actionViewVerticesNone->setProperty(                          "gmMeshGLFunctionCall", MeshGLParams::SET_SHOW_VERTICES_NONE                   );

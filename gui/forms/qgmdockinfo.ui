@@ -40,7 +40,7 @@
    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
   </property>
   <property name="windowTitle">
-   <string>&amp;Information</string>
+   <string>Information</string>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -215,10 +215,13 @@
          </size>
         </property>
         <property name="text">
-         <string>IWR Open Source</string>
+         <string>&lt;a href=&quot;https://gigamesh.eu&quot;&gt;gigamesh.eu&lt;/a&gt;</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
+        </property>
+        <property name="openExternalLinks">
+         <bool>true</bool>
         </property>
        </widget>
       </item>

@@ -57,6 +57,7 @@
      <addaction name="actionSaveStillImages360DurationSlow"/>
      <addaction name="separator"/>
      <addaction name="actionSphericalImagesLight"/>
+     <addaction name="actionSphericalImagesLightDirectory"/>
      <addaction name="separator"/>
      <addaction name="actionSphericalImages"/>
      <addaction name="actionSphericalImagesVertical"/>
@@ -183,6 +184,8 @@
     <addaction name="actionLabelFuncValMaxima"/>
     <addaction name="separator"/>
     <addaction name="actionLabelColorShift"/>
+    <addaction name="separator"/>
+    <addaction name="actionLabelKMeansVertPos"/>
    </widget>
    <widget class="QMenu" name="menuFunctions">
     <property name="title">
@@ -203,9 +206,14 @@
      <addaction name="actionVisVertFaceSphereMeanAngleMax"/>
      <addaction name="actionFuncVertDistancesMax"/>
     </widget>
-    <widget class="QMenu" name="menuFeatureVectorsExtraFunctions">
+    <widget class="QMenu" name="menuFeatureVectorsExtraFunctions1">
      <property name="title">
-      <string>Feature Vectors - Extra Functions</string>
+      <string>Feature Vectors - Extra Functions (2)</string>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normalon>:/GMToolBar/gigamesh_icon_feature_vector_generic.svg</normalon>
+      </iconset>
      </property>
      <addaction name="actionFuncValFeatureVecElementsStdDev"/>
      <addaction name="separator"/>
@@ -251,20 +259,33 @@
      <addaction name="actionSphereVolumeArea"/>
      <addaction name="actionSphereSurfaceNumberOfComponents"/>
     </widget>
+    <widget class="QMenu" name="menuFeature_Vectors_Extra_Functions_1">
+     <property name="title">
+      <string>Feature Vectors - Extra Functions (1)</string>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normalon>:/GMToolBar/gigamesh_icon_feature_vector_generic.svg</normalon>
+      </iconset>
+     </property>
+     <addaction name="actionFeatDistSelMan"/>
+     <addaction name="actionFeatDistSelEuc"/>
+     <addaction name="actionFeatDistSelEucNorm"/>
+     <addaction name="separator"/>
+     <addaction name="actionFeatCorrelationSelectedVert"/>
+     <addaction name="actionFuncValFeatureVecCorrelateWith"/>
+    </widget>
     <addaction name="actionFeatLengthMan"/>
     <addaction name="actionFeatLengthEuc"/>
-    <addaction name="separator"/>
-    <addaction name="actionFeatDistSelMan"/>
-    <addaction name="actionFeatDistSelEuc"/>
-    <addaction name="actionFeatDistSelEucNorm"/>
-    <addaction name="actionFeatCorrelationSelectedVert"/>
-    <addaction name="actionFuncValFeatureVecCorrelateWith"/>
     <addaction name="separator"/>
     <addaction name="actionFeatElement"/>
     <addaction name="actionFuncValFeatureVecMin"/>
     <addaction name="actionFuncValFeatureVecMax"/>
+    <addaction name="actionFuncValFeatureVecMinSigned"/>
+    <addaction name="actionFuncValFeatureVecMaxSigned"/>
     <addaction name="separator"/>
-    <addaction name="menuFeatureVectorsExtraFunctions"/>
+    <addaction name="menuFeature_Vectors_Extra_Functions_1"/>
+    <addaction name="menuFeatureVectorsExtraFunctions1"/>
     <addaction name="separator"/>
     <addaction name="actionFuncValPlaneAngle"/>
     <addaction name="actionDistanceToPlane"/>
@@ -335,7 +356,9 @@
      <addaction name="actionApplyMatrix4DVertSel"/>
      <addaction name="separator"/>
      <addaction name="actionApplyMeltingSphere"/>
+     <addaction name="separator"/>
      <addaction name="actionAutomatic_Mesh_Alignment"/>
+     <addaction name="actionDirectoryAutomaticMeshAlignment"/>
     </widget>
     <addaction name="actionEditMeshPolish"/>
     <addaction name="separator"/>
@@ -1978,6 +2001,10 @@
    </property>
   </action>
   <action name="actionFeatLengthEuc">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_feature_vector_norm2.svg</normaloff>:/GMToolBar/gigamesh_icon_feature_vector_norm2.svg</iconset>
+   </property>
    <property name="text">
     <string>Feature Vector Length (Euclid/&amp;2-Norm)</string>
    </property>
@@ -2018,8 +2045,12 @@
    </property>
   </action>
   <action name="actionFeatLengthMan">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_feature_vector_norm1.svg</normaloff>:/GMToolBar/gigamesh_icon_feature_vector_norm1.svg</iconset>
+   </property>
    <property name="text">
-    <string>&amp;Feature Vector Length (Man/1-Norm)</string>
+    <string>&amp;Feature Vector Length (Man/1-Norm) ⭑</string>
    </property>
   </action>
   <action name="actionVisMapQuantil">
@@ -2049,8 +2080,12 @@
    </property>
   </action>
   <action name="actionFeatElement">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_feature_vector_element_index.svg</normaloff>:/GMToolBar/gigamesh_icon_feature_vector_element_index.svg</iconset>
+   </property>
    <property name="text">
-    <string>Feature &amp;Element by Index</string>
+    <string>Feature Vector &amp;Element by Index ⭑</string>
    </property>
   </action>
   <action name="actionVisMapFixedMinMax">
@@ -3483,8 +3518,12 @@ p, li { white-space: pre-wrap; }
    </property>
   </action>
   <action name="actionFuncValFeatureVecMax">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_feature_vector_max.svg</normaloff>:/GMToolBar/gigamesh_icon_feature_vector_max.svg</iconset>
+   </property>
    <property name="text">
-    <string>Feature Element Ma&amp;x</string>
+    <string>Feature Vector Element Ma&amp;x ★</string>
    </property>
   </action>
   <action name="actionShowInfoMesh">
@@ -3598,8 +3637,12 @@ p, li { white-space: pre-wrap; }
    </property>
   </action>
   <action name="actionFuncValFeatureVecMin">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_feature_vector_min.svg</normaloff>:/GMToolBar/gigamesh_icon_feature_vector_min.svg</iconset>
+   </property>
    <property name="text">
-    <string>Feature Element Min</string>
+    <string>Feature Vector Element Min</string>
    </property>
   </action>
   <action name="actionFuncValMedianOneRingRepeat">
@@ -4283,7 +4326,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionFuncValFeatureVecElementsStdDev">
    <property name="text">
-    <string>Feature Elements Standard Deviation</string>
+    <string>Feature Vector Elements Standard Deviation</string>
    </property>
   </action>
   <action name="actionGridCenter">
@@ -4549,6 +4592,50 @@ The latter will be shown, when the processing has finished.</string>
   <action name="actionAutomatic_Mesh_Alignment">
    <property name="text">
     <string>Automatic Mesh Alignment</string>
+   </property>
+  </action>
+  <action name="actionFuncValFeatureVecMinSigned">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_feature_vector_min_sign.svg</normaloff>:/GMToolBar/gigamesh_icon_feature_vector_min_sign.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Feature Vector Element Min Signed 🞵</string>
+   </property>
+  </action>
+  <action name="actionFuncValFeatureVecMaxSigned">
+   <property name="icon">
+    <iconset resource="gigamesh.qrc">
+     <normaloff>:/GMToolBar/gigamesh_icon_feature_vector_max_sign.svg</normaloff>:/GMToolBar/gigamesh_icon_feature_vector_max_sign.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Feature Vector Element Max Signed ❋</string>
+   </property>
+  </action>
+  <action name="actionSphericalImagesLightDirectory">
+   <property name="text">
+    <string>Directory: Spherical Stack Lightsource Orbiting</string>
+   </property>
+   <property name="toolTip">
+    <string>Directory: Spherical Images Light orbiting</string>
+   </property>
+  </action>
+  <action name="actionDirectory_Spherical_Stack_Camera_Orbiting">
+   <property name="text">
+    <string>Directory: Spherical Stack Camera Orbiting</string>
+   </property>
+  </action>
+  <action name="actionDirectoryAutomaticMeshAlignment">
+   <property name="text">
+    <string>Directory: Automatic Mesh Alignment</string>
+   </property>
+   <property name="toolTip">
+    <string>Directory: Automatic Mesh Alignment</string>
+   </property>
+  </action>
+  <action name="actionLabelKMeansVertPos">
+   <property name="text">
+    <string>Label K-Means: Vertex Position</string>
    </property>
   </action>
  </widget>

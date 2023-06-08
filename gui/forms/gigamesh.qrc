@@ -72,6 +72,14 @@
         <file>gigamesh_icon_export_metadata_json.svg</file>
         <file>gigamesh_icon_export_metadata_html.svg</file>
         <file>gigamesh_icon_export_metadata_all.svg</file>
+        <file>gigamesh_icon_feature_vector_generic.svg</file>
+        <file>gigamesh_icon_feature_vector_norm2.svg</file>
+        <file>gigamesh_icon_feature_vector_norm1.svg</file>
+        <file>gigamesh_icon_feature_vector_element_index.svg</file>
+        <file>gigamesh_icon_feature_vector_max.svg</file>
+        <file>gigamesh_icon_feature_vector_min.svg</file>
+        <file>gigamesh_icon_feature_vector_min_sign.svg</file>
+        <file>gigamesh_icon_feature_vector_max_sign.svg</file>
     </qresource>
     <qresource prefix="/GMToolTipImages">
         <file>tooltips/rendering_flat_smooth_egde_on.png</file>
