@@ -254,7 +254,7 @@ bool QGMDialogEnterText::checkAndConvertTextVecDouble(
                 std::vector<double>*   rValuesReturn
 ) {
 	bool            someTokensAreNoDouble = false;
-	QStringList     someTokens  = rEnteredText.simplified().split( " ", Qt::SkipEmptyParts );
+    QStringList     someTokens  = rEnteredText.simplified().split( " ", QString::SkipEmptyParts );
 	int             someTokenNr = someTokens.size();
 	vector<double>  someTokenDouble;
 	for( int i=0; i<someTokenNr; i++ ) {
@@ -268,7 +268,7 @@ bool QGMDialogEnterText::checkAndConvertTextVecDouble(
 				someTokensAreNoDouble = true;
 				continue;
 			}
-			QStringList colonTokens = someTokens.at( i ).split( ":", Qt::SkipEmptyParts );
+            QStringList colonTokens = someTokens.at( i ).split( ":", QString::SkipEmptyParts );
 			double rangeStart = colonTokens.at( 0 ).toDouble( &convertOk );
 			if( !convertOk ) {
 				// No valid range
@@ -383,7 +383,7 @@ void QGMDialogEnterText::accept() {
 	}
 
 	//! *) Arrays of
-	QStringList someTokens  = someText->text().split( " ", Qt::SkipEmptyParts );
+    QStringList someTokens  = someText->text().split( " ", QString::SkipEmptyParts );
 	int         someTokenNr = someTokens.size();
 
 	//! -) Vector of Integers
