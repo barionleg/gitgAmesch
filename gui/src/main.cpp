@@ -148,7 +148,7 @@ int main( int argc, char *argv[] ) {
     //	glFormat.setVersion( 4, 3 );        //Higher Version needed to handle transparency in shader. Revert to 3.3 if it breaks core functionalities...
     //else
     //	glFormat.setVersion( 3, 3 );                   // The version has to be larger than 3.3 due to geometry shaders and other usefull stuff.
-    //! \todo Properly do system check
+    //! \todo Properly do system check open gl
     if (glFormat.majorVersion() <= 3) {
         LOG::fatal() << "[Main] ERROR: No sufficient OpenGL support in this system!\n";
         SHOW_MSGBOX_WARN( "No OpenGL", "ERROR: This system has no sufficient OpenGL support, need Version 3.3 or higher!" );

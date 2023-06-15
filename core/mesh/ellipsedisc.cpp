@@ -440,8 +440,7 @@ bool EllipseDisc::toconic( vector<pair<double,double> > rFivePoints ) {
 //! \param _righB row count of second matrix
 //! \param _colB column count of secound matrix
 void EllipseDisc::AperB_T( double** _A, double** _B, double** _res, int _righA, int _colA, int _righB, int _colB ) {
-	int p,q,l;
-	p= _righB;
+    int p,q,l;
 	for (p=1;p<=_colA;p++)
 		for (q=1;q<=_colB;q++)
 		{ _res[p][q]=0.0;
@@ -459,8 +458,7 @@ void EllipseDisc::AperB_T( double** _A, double** _B, double** _res, int _righA, 
 //! \param _righB row count of second matrix
 //! \param _colB column count of secound matrix
 void EllipseDisc::A_TperB( double** _A, double**  _B, double** _res, int _righA, int _colA, int _righB, int _colB ) {
-	int p,q,l;
-	p= _righB;
+    int p,q,l;
 	for (p=1;p<=_colA;p++)
 		for (q=1;q<=_colB;q++)
 		{ _res[p][q]=0.0;
@@ -478,8 +476,7 @@ void EllipseDisc::A_TperB( double** _A, double**  _B, double** _res, int _righA,
 //! \param _righB row count of second matrix
 //! \param _colB column count of secound matrix
 void EllipseDisc::AperB( double** _A, double** _B, double** _res, int _righA, int _colA, int _righB, int _colB ) {
-	int p,q,l;
-	p= _righB;
+    int p,q,l;
 	for (p=1;p<=_righA;p++)
 		for (q=1;q<=_colB;q++)
 		{ _res[p][q]=0.0;

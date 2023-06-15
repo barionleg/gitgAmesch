@@ -6186,8 +6186,7 @@ bool Mesh::estFeatureAutoCorrelationVertex( Primitive* somePrim, double** funcVa
 
 	return true;
 #else
-	//! *) Prepare list of vertices.
-	int timeStart = clock();
+    //! *) Prepare list of vertices.
 	vector<Vertex*> verticesSorted;
 	if( !getVertexList( &verticesSorted ) ) {
 		return false;
@@ -6238,7 +6237,7 @@ bool Mesh::estFeatureAutoCorrelationVertex( Primitive* somePrim, double** funcVa
 	}
 
 	//! *) Sort by correlation.
-	timeStart = clock();
+    int timeStart = clock();
 	sort( verticesSorted.begin(), verticesSorted.end(), Vertex::funcValLower );
 	cout << "[Mesh::estFeatureCorrelationVertex] sort time: " << static_cast<float>( clock() - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
 
@@ -13187,12 +13186,8 @@ bool Mesh::fetchSphereBitArray( Vertex*        rSeedVertex,          //!< point 
 	// queue for next:
 	set<Vertex*> nextArray;
 
-	//int timeStart, timeStop; // for performance mesurement
-	//timeStart = clock();
-
 	int  bitOffset;
-	int  bitNr;
-	int  currIdx = rSeedVertex->getIndex();
+    int  bitNr;
 	double seqNr = 0.0; // Only used, when rOrderToFuncVal is setS
 	rSeedVertex->getIndexOffsetBit( &bitOffset, &bitNr );
 	rVertBitArrayVisited[bitOffset] = 1U <<bitNr;
@@ -13205,35 +13200,25 @@ bool Mesh::fetchSphereBitArray( Vertex*        rSeedVertex,          //!< point 
 		nextArray.erase( nextArray.begin() );
 		//! -> Add all its adjacent faces
 		currVert->advanceInSphere( seedXYZ, rRadius, rVertBitArrayVisited, &nextArray, rFaceBitArrayVisited, rOrderToFuncVal, &seqNr );
-		currVert->getIndexOffsetBit( &bitOffset, &bitNr );
-		//cout << "[Mesh::" << __FUNCTION__ << "] seqNr: " << seqNr << endl;
-		//cout << "[Mesh::" << __FUNCTION__ << "] visited: " << currIdx << " Offset " << bitOffset << " Bytes - Bit No: " << bitNr << " Dec: " << ((uint64_t)1<<bitNr) << endl;
-	}
-	//timeStop = clock();
-	//cout << "[Mesh] fetchSphereVolume - fetchSphereBitArray: " << (float)( timeStop - timeStart ) / CLOCKS_PER_SEC << " seconds."  << endl;
+        currVert->getIndexOffsetBit( &bitOffset, &bitNr );
+    }
 
 	int faceInSphereCount = 0;
 	for( int i=0; i<rFaceNrLongs; i++ ) {
 		if( rFaceBitArrayVisited[i] == 0 ) {
 			continue;
-		}
-		//cout << "bitArrayNext[" << i << "]: " << bitArrayNext[i] << endl;
+        }
 		for( int bitIdx=0; bitIdx<64; bitIdx++ ) {
 			if( (static_cast<uint64_t>(1)<<bitIdx) & rFaceBitArrayVisited[i] ) {
 				faceInSphereCount++;
-				currIdx = (i*8*sizeof( uint64_t ))+bitIdx;
-				Face* currFace = getFacePos( currIdx );
-				//vec.push_back( currVert );
-				rFacesInSphere->push_back( currFace );
-				//currVert->getFaces( facesInSphere );
-				//cout << "offset " << i << " bit " << bitIdx << " set " << ( ((uint64_t)1<<bitIdx) & vertBitArrayVisited[i] ) << endl;
-				//cout << "continue with vertex index: " << currIdx << endl;
+                int currIdx = (i*8*sizeof( uint64_t ))+bitIdx;
+                Face* currFace = getFacePos( currIdx );
+                rFacesInSphere->push_back( currFace );
 			}
 		}
 		// clear all bits:
 		rFaceBitArrayVisited[i] = 0;
-	}
-	//cout << "[Mesh::fetchSphereBitArray] faceInSphereCount: " << faceInSphereCount << endl;
+    }
 
 	//! Clears all bits, when finished.
 	for( int i=0; i<rVertNrLongs; i++ ) {
