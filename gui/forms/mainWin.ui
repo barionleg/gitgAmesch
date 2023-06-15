@@ -45,9 +45,15 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
     <widget class="QMenu" name="menuExportImageStack">
      <property name="title">
       <string>Export I&amp;mage Stack</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionSaveStillImages360HLR"/>
      <addaction name="actionSaveStillImages360VUp"/>
@@ -69,6 +75,9 @@
     <widget class="QMenu" name="menuExportScreenshots">
      <property name="title">
       <string>Export Screens&amp;hots</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionScreenshot"/>
      <addaction name="actionScreenshotSVG"/>
@@ -98,6 +107,9 @@
      <property name="title">
       <string>Import</string>
      </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
+     </property>
      <addaction name="actionImportFeatureVectors"/>
      <addaction name="actionImportFunctionValues"/>
      <addaction name="separator"/>
@@ -112,6 +124,9 @@
     <widget class="QMenu" name="menuExport">
      <property name="title">
       <string>Export</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionExportFeatureVectors"/>
      <addaction name="actionExportFuncVals"/>
@@ -130,6 +145,9 @@
     <widget class="QMenu" name="menuExport_Meta_Data">
      <property name="title">
       <string>Export Meta-Data</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionExportMetaDataHTML"/>
      <addaction name="actionExportMetaDataTTL"/>
@@ -169,6 +187,9 @@
     <property name="title">
      <string>&amp;Labeling</string>
     </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
     <addaction name="actionLabelVertices"/>
     <addaction name="actionLabelSelectionToSeeds"/>
     <addaction name="actionLabelSelMVerts"/>
@@ -191,9 +212,15 @@
     <property name="title">
      <string>F&amp;unctions</string>
     </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
     <widget class="QMenu" name="menuVertex_Properties">
      <property name="title">
       <string>&amp;Vertex - Properties</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionVisVertIndex"/>
      <addaction name="actionVisVert1RArea"/>
@@ -215,6 +242,9 @@
        <normalon>:/GMToolBar/gigamesh_icon_feature_vector_generic.svg</normalon>
       </iconset>
      </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
+     </property>
      <addaction name="actionFuncValFeatureVecElementsStdDev"/>
      <addaction name="separator"/>
      <addaction name="actionFeatBVFunc"/>
@@ -235,6 +265,9 @@
      <property name="title">
       <string>Color per Vertex to Function Value</string>
      </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
+     </property>
      <addaction name="actionHueToFuncVal"/>
      <addaction name="actionColorRGBAvgToFuncVal"/>
      <addaction name="actionColorRGBAvgWeigthToFuncVal"/>
@@ -245,6 +278,9 @@
      <property name="title">
       <string>Angles to Axis</string>
      </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
+     </property>
      <addaction name="actionAngleConeAxis"/>
      <addaction name="separator"/>
      <addaction name="actionFuncValAngleToRadial"/>
@@ -254,6 +290,9 @@
     <widget class="QMenu" name="menuSpherical_Intersection">
      <property name="title">
       <string>Spherical Intersection</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionSphereSurfaceLength"/>
      <addaction name="actionSphereVolumeArea"/>
@@ -267,6 +306,9 @@
       <iconset>
        <normalon>:/GMToolBar/gigamesh_icon_feature_vector_generic.svg</normalon>
       </iconset>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionFeatDistSelMan"/>
      <addaction name="actionFeatDistSelEuc"/>
@@ -310,9 +352,15 @@
     <property name="title">
      <string>&amp;Edit</string>
     </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
     <widget class="QMenu" name="menuFunctionsValueExtra">
      <property name="title">
       <string>Function Value - Extra</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionFuncValSet"/>
      <addaction name="actionFuncValueCutOff"/>
@@ -327,6 +375,9 @@
      <property name="title">
       <string>Cone / Cylinder - Extra</string>
      </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
+     </property>
      <addaction name="actionSetConeAxisCentralPixel"/>
      <addaction name="actionSetConeData"/>
      <addaction name="actionMakeConeCoverMesh"/>
@@ -338,6 +389,9 @@
     <widget class="QMenu" name="menuMoreExtra">
      <property name="title">
       <string>More / Extra</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionCutOffFeatureVertex"/>
      <addaction name="actionFeatureVecMeanOneRingRepeat"/>
@@ -351,6 +405,9 @@
     <widget class="QMenu" name="menuTransform_Extra">
      <property name="title">
       <string>Transform - Extra</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionApplyMatrix4D"/>
      <addaction name="actionApplyMatrix4DVertSel"/>
@@ -416,9 +473,15 @@
     <property name="title">
      <string>&amp;View</string>
     </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
     <widget class="QMenu" name="menuVertices">
      <property name="title">
       <string>&amp;Vertices</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionViewVerticesNone"/>
      <addaction name="separator"/>
@@ -449,6 +512,9 @@
      <property name="title">
       <string>&amp;Toolbars</string>
      </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
+     </property>
      <addaction name="actionFullscreen"/>
      <addaction name="separator"/>
      <addaction name="actionMenu"/>
@@ -459,6 +525,9 @@
     <widget class="QMenu" name="menuNormals">
      <property name="title">
       <string>Normalvector Rendering</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionNormalsVertex"/>
      <addaction name="actionNormalsFace"/>
@@ -472,6 +541,9 @@
      <property name="title">
       <string>Polylines - Render Settings</string>
      </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
+     </property>
      <addaction name="actionVisPolyLineWidth"/>
      <addaction name="separator"/>
      <addaction name="actionViewPolylinesCurv"/>
@@ -480,6 +552,9 @@
     <widget class="QMenu" name="menuRotateViewByValue">
      <property name="title">
       <string>Rotate - View - by Value (Degree)</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionRotYaw"/>
      <addaction name="actionRotPitch"/>
@@ -537,9 +612,15 @@
     <property name="title">
      <string>Select</string>
     </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
     <widget class="QMenu" name="menuVertices_SelMVerts_by_Value_Type">
      <property name="title">
       <string>Vertices - SelMVerts - &amp;by Value/Type/Index</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionSelVertSolo"/>
      <addaction name="actionSelVertBorder"/>
@@ -574,11 +655,17 @@
      <property name="title">
       <string>Vertices - SelMVerts - &amp;Deselect</string>
      </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
+     </property>
      <addaction name="actionDeSelVertsNoLabel"/>
     </widget>
     <widget class="QMenu" name="menuPlane_Extra">
      <property name="title">
       <string>Plane - Extra</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionPlaneSetVPos"/>
      <addaction name="actionPlaneSetHNF"/>
@@ -589,6 +676,9 @@
     <widget class="QMenu" name="menuPolylines">
      <property name="title">
       <string>Polylines</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionSelPolyShortest"/>
      <addaction name="actionSelPolyLongest"/>
@@ -603,6 +693,9 @@
     <widget class="QMenu" name="menuFaces_Extra">
      <property name="title">
       <string>Faces - Extra</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionSelFaceSticky"/>
      <addaction name="actionSelFaceNonManifold"/>
@@ -662,6 +755,9 @@
     <property name="title">
      <string>&amp;Histogram</string>
     </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
     <addaction name="actionHistShow"/>
     <addaction name="actionHistLog"/>
     <addaction name="separator"/>
@@ -685,9 +781,15 @@
     <property name="title">
      <string>Sett&amp;ings</string>
     </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
     <widget class="QMenu" name="menuGridsExtra">
      <property name="title">
       <string>Grids - Extra</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionGridRectangular"/>
      <addaction name="separator"/>
@@ -697,6 +799,9 @@
     <widget class="QMenu" name="menuMaterialDefaults">
      <property name="title">
       <string>Material Defaults</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionRenderMatted"/>
      <addaction name="actionRenderDefault"/>
@@ -711,6 +816,9 @@
     <widget class="QMenu" name="menuAutomatic_Mesh_Polishing">
      <property name="title">
       <string>Automatic Mesh Polishing</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionRemove_Dangling_Faces"/>
      <addaction name="actionMax_Number_of_vertices_for_hole_filling"/>
@@ -777,6 +885,9 @@
     <property name="title">
      <string>Colo&amp;rs</string>
     </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
     <addaction name="actionSelectColorBackground"/>
     <addaction name="separator"/>
     <addaction name="actionSelectColorSolid"/>
@@ -796,9 +907,15 @@
     <property name="title">
      <string>&amp;Colorramp</string>
     </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
     <widget class="QMenu" name="menuDeprecatedColorramps">
      <property name="title">
       <string>Deprecated Colorramps</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionVisMapHSV"/>
      <addaction name="actionVisMapHSVPart"/>
@@ -807,6 +924,9 @@
     <widget class="QMenu" name="menuHypsometricTints">
      <property name="title">
       <string>Hypsometric Tints</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionVisMapHypsometric"/>
      <addaction name="actionVisMapHypsoArid"/>
@@ -856,6 +976,9 @@
     <property name="title">
      <string>Info</string>
     </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
     <addaction name="actionShowInfoMesh"/>
     <addaction name="actionShowInfoSelPrim"/>
     <addaction name="actionShowInfoAxis"/>
@@ -886,9 +1009,15 @@
     <property name="title">
      <string>A&amp;nalyze</string>
     </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
     <widget class="QMenu" name="menuOctree">
      <property name="title">
       <string>Octree</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
      </property>
      <addaction name="actionGenerateOctree"/>
      <addaction name="actionDraw_Octree"/>
@@ -4617,7 +4746,7 @@ The latter will be shown, when the processing has finished.</string>
     <string>Directory: Spherical Stack Lightsource Orbiting</string>
    </property>
    <property name="toolTip">
-    <string>Directory: Spherical Images Light orbiting</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This method renders the screenshots for each mesh within a directory with an &lt;span style=&quot; font-weight:600;&quot;&gt;orbiting light source.&lt;/span&gt; The current mesh has to be located in this directory.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="actionDirectory_Spherical_Stack_Camera_Orbiting">
@@ -4636,6 +4765,9 @@ The latter will be shown, when the processing has finished.</string>
   <action name="actionLabelKMeansVertPos">
    <property name="text">
     <string>Label K-Means: Vertex Position</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This method uses selected vertices (SelMVerts) to label the point cloud of the mesh into as many labels as there are selected vertices. The selection sets a preference for the central location of the classes. However, the algorithm is allowed to shift the location of the classes. This means that selections that are too close together may result in clusters in different locations than expected. Also note that highly curved surfaces can cause the labels to be disconnected as they are part of another area of the triangular grid, since only the positions of the vertices are used for clustering.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
  </widget>
