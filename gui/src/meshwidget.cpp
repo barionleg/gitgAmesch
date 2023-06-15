@@ -6782,8 +6782,8 @@ void MeshWidget::mouseMoveEvent( QMouseEvent* rEvent ) {
 	double scaleFactor = 1.0;
 	getParamFloatMeshWidget( HIGHDPI_ZOOM_FACTOR, &scaleFactor );
 
-	GLfloat dx = GLfloat( rEvent->x()*scaleFactor - mLastPos.x() ) / 2.0;
-	GLfloat dy = GLfloat( rEvent->y()*scaleFactor - mLastPos.y() ) / 2.0;
+    GLfloat dx = GLfloat( rEvent->position().x()*scaleFactor - mLastPos.x() ) / 2.0;
+    GLfloat dy = GLfloat( rEvent->position().y()*scaleFactor - mLastPos.y() ) / 2.0;
 
 	mLastPos = rEvent->pos() * scaleFactor;
 
