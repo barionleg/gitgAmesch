@@ -25,7 +25,7 @@
 #include <iostream> // cerr
 
 #include <QColor>
-#include <QtOpenGL/QGLWidget>
+#include <QOpenGLWidget>
 #include <QMessageBox>
 #include <QIcon>
 
@@ -53,7 +53,7 @@ using PglActiveTexture = void (*)(GLenum);
 
 //! Constructor
 MeshGLShader::MeshGLShader(
-                QGLContext* rGLContext,
+                QOpenGLContext* rGLContext,
                 const filesystem::path& rFileName,
                 bool& rReadSuccess
 ) : MeshGL( rGLContext, rFileName, rReadSuccess ) {
@@ -141,8 +141,8 @@ MeshGLShader::MeshGLShader(
 
 	glEnable( GL_VERTEX_PROGRAM_POINT_SIZE );
 	PRINT_OPENGL_ERROR( "glEnable( GL_VERTEX_PROGRAM_POINT_SIZE );" );
-	QGLFormat::OpenGLContextProfile currentProfile = mOpenGLContext->format().profile();
-	if( currentProfile != QGLFormat::CoreProfile ) {
+    QSurfaceFormat::OpenGLContextProfile currentProfile = mOpenGLContext->format().profile();
+    if( currentProfile != QSurfaceFormat::CoreProfile ) {
 		glEnable( GL_POINT_SPRITE );  // <- deprecated with OpenGL 3.x BUT THANKS TO A BUG WE NEED it, when the Coreprofile is NOT used!
 		PRINT_OPENGL_ERROR( "glEnable( GL_POINT_SPRITE );" );
 	}

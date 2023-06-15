@@ -32,7 +32,7 @@ dialogGridCenterSelect::dialogGridCenterSelect(QWidget *parent) :
 {
 	ui->setupUi(this);
 
-	connect(ui->centerSelectBtnGroup, SIGNAL(buttonToggled(QAbstractButton*,bool)), this, SLOT(selectPos(QAbstractButton*, bool)));
+    connect(ui->centerSelectBtnGroup, SIGNAL(buttonToggled(QAbstractButton*,bool)), this, SLOT(selectPos(QAbstractButton*,bool)));
 }
 
 dialogGridCenterSelect::~dialogGridCenterSelect()

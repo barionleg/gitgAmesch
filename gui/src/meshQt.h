@@ -65,7 +65,7 @@ class MeshQt : public QObject, public MeshGLShader, public MeshQtCSVImportExport
 		MeshQt( const QString& rFileName, bool& rReadSuccess, \
 		        const float *rMatModelView, const float *rMatProjection, \
 		        MeshWidgetParams* rMeshWidgetParams, MeshGLColors* rRenderColors, \
-		        QGMMainWindow* setMainWindow, QGLContext* rContext, QObject* rParent=0 );
+                QGMMainWindow* setMainWindow, QOpenGLContext* rContext, QObject* rParent=0 );
 
 		~MeshQt();
 

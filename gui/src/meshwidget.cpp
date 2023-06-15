@@ -65,15 +65,17 @@ using PglBindVertexArray = void (*)(GLuint);
 	mVAO( _NOT_A_NUMBER_UINT_ )
 
 //! Constructor.
-MeshWidget::MeshWidget( const QGLFormat &format, QWidget *parent )
-    : QGLWidget( format, parent ), MESHWIDGETINITDEFAULTS {
+MeshWidget::MeshWidget( const QSurfaceFormat &format, QWidget *parent )
+    : QOpenGLWidget( parent ), MESHWIDGETINITDEFAULTS {
+    setFormat(format);
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
 	// now we can use the keyboard to navigate:
 	setFocusPolicy( Qt::StrongFocus );
 	setAutoFillBackground( false );
-	setAutoBufferSwap( false ); // to preven flickering in ::paintEvent when QPainter.end is called!
+    //! \todo setAutoBufferSwap not in QOpenGLWidget class, so commented it out for now, maybe find analog later
+    //setAutoBufferSwap( false ); // to preven flickering in ::paintEvent when QPainter.end is called!
 	// Store pointer to the main window.
 	mMainWindow = static_cast<QGMMainWindow*>(parent);
 
@@ -921,11 +923,13 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
 	setParamIntegerMeshWidget( MeshWidgetParams::SELECTION_MODE, MeshWidgetParams::SELECTION_MODE_NONE );
 	setParamIntegerMeshWidget( MeshWidgetParams::SELECTION_MODE, MeshWidgetParams::SELECTION_MODE_VERTEX );
 
-	// Update OpenGL context to default view
-	qglClearColor( Qt::white );
+    // Update OpenGL context to default view
+    QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
+    f->glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    //qglClearColor( Qt::white );
 	defaultViewLightZoom();
 
-	//should be valid for QGLContext and QGL* classes. If upgraded to QOpenGLContext, then use context()->defaultFramebufferObject() instead of 0
+    //should be valid for QOpenGLContext and QGL* classes. If upgraded to QOpenGLContext, then use context()->defaultFramebufferObject() instead of 0
 	mMeshVisual->setParamIntMeshGL(MeshGLParams::DEFAULT_FRAMEBUFFER_ID, 0);
 
 	// Initialize Pin size depending on the bounding box diagonal
@@ -1724,8 +1728,10 @@ void MeshWidget::unloadMesh() {
 	if( mMeshVisual != nullptr ) {
 		// remove mesh, when one is present:
 		delete mMeshVisual;
-		mMeshVisual = nullptr;
-		qglClearColor( Qt::gray );
+        mMeshVisual = nullptr;
+        QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
+        f->glClearColor(0.5f, 0.5f, 0.5f, 1.0f); //! \todo make color Qt::gray correct
+        //! qglClearColor( Qt::gray );  \todo qglClearColor not supported anymore, have to use glClearColor from QOpenGLFunctions
 		setView();
 		update();
 	}
@@ -1748,14 +1754,17 @@ void MeshWidget::initializeGL() {
 	cout << "[MeshWidget::" << __FUNCTION__ << "]                     GLSL VERSION: " << reinterpret_cast<const char*>(glGetString( GL_SHADING_LANGUAGE_VERSION )) << endl;
 	cout << "[MeshWidget::" << __FUNCTION__ << "] -----------------------------------------------------------" << endl;
 
-	QGLFormat glFormat = QGLWidget::format();
-	if( !glFormat.sampleBuffers() ) {
-		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Could not enable sample buffers!" << endl;
-	}
+    QSurfaceFormat glFormat = QOpenGLWidget::format();
+    //! \todo look for similar fct to old sampleBuffer in QSurfaceFormat (maybe hasAlpha() ???
+    //if( !glFormat.sampleBuffers() ) {
+    //	cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Could not enable sample buffers!" << endl;
+    //}
 
-	//setFormat( QGLFormat( QGL::DoubleBuffer | QGL::DepthBuffer ) ); // was in fileOpen and caused a addtional calls to initializeGL - maybe not necessary at all.
-	qglClearColor( Qt::white );
-	PRINT_OPENGL_ERROR( "qglClearColor( Qt::white )" );
+    //setFormat( QGLFormat( QGL::DoubleBuffer | QGL::DepthBuffer ) ); // was in fileOpen and caused a addtional calls to initializeGL - maybe not necessary at all.
+    QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
+    f->glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    //! qglClearColor( Qt::white ); \todo deprecated , use glClearColor
+    PRINT_OPENGL_ERROR( "glClearColor( Qt::white ) or so (was updated)" );
 
 	//! \todo Source revision for OpenGL initaliation.
 	glEnable( GL_DEPTH_TEST );
@@ -2023,7 +2032,7 @@ bool MeshWidget::checkUserdefinedLatexFile(QString *latexTemplate, std::vector<L
     bool notUsedPlaceholderFound = false;
     QString informationTextPlaceholders;
     for(LatexPlaceholder placeholder: rPlaceHolders){
-        if(!latexTemplate->contains(QRegExp(placeholder.placeholder))){
+        if(!latexTemplate->contains(QRegularExpression(placeholder.placeholder))){
             informationTextPlaceholders = informationTextPlaceholders + placeholder.placeholder;
             informationTextPlaceholders = informationTextPlaceholders + QString(" | ");
             informationTextPlaceholders = informationTextPlaceholders + placeholder.descr +  QString("\n");
@@ -2551,12 +2560,12 @@ bool MeshWidget::screenshotViewsPDF( const QString& rFileName, QString rTemplate
 	}
 
     //replace license placeholders
-    latexTemplate.replace( QRegExp( "__CC_PARAMETERS__" ), rCCparameter );
-    latexTemplate.replace( QRegExp( "__CC_VERSION__" ), rCCversion );
+    latexTemplate.replace( QRegularExpression( "__CC_PARAMETERS__" ), rCCparameter );
+    latexTemplate.replace( QRegularExpression( "__CC_VERSION__" ), rCCversion );
 
-	latexTemplate.replace( QRegExp( "__FIGURE_PREFIX__" ), filePrefixImgTex );
-	latexTemplate.replace( QRegExp( "__SCALE_FACTOR_STRING__" ), scaleFactorTex );
-	latexTemplate.replace( QRegExp( "__SCALE_FACTOR__" ), QString( "%1" ).arg( scaleFactor, 'f' ).trimmed() );
+    latexTemplate.replace( QRegularExpression( "__FIGURE_PREFIX__" ), filePrefixImgTex );
+    latexTemplate.replace( QRegularExpression( "__SCALE_FACTOR_STRING__" ), scaleFactorTex );
+    latexTemplate.replace( QRegularExpression( "__SCALE_FACTOR__" ), QString( "%1" ).arg( scaleFactor, 'f' ).trimmed() );
 	for( pair<string, string>& replacmentString : replacmentStrings ) {
 		string placeHolder = replacmentString.first;
 		string content = replacmentString.second;
@@ -3235,13 +3244,13 @@ bool MeshWidget::screenshotPDF( const QString& rFileName, const bool rUseTiled, 
 	mMeshVisual->latexFetchFigureInfos( &replacmentStrings );
 
     //replace license placeholders
-    latexTemplate.replace( QRegExp( "__CC_PARAMETERS__" ), rCCparameter );
-    latexTemplate.replace( QRegExp( "__CC_VERSION__" ), rCCversion );
+    latexTemplate.replace( QRegularExpression( "__CC_PARAMETERS__" ), rCCparameter );
+    latexTemplate.replace( QRegularExpression( "__CC_VERSION__" ), rCCversion );
 
 	// Replace placeholders
-	latexTemplate.replace( QRegExp( "__FIGURE_IMAGE_FILE__" ), "\""+QString( prefixStem.c_str() )+"\"" );
-	latexTemplate.replace( QRegExp( "__SCALE_FACTOR_STRING__" ), scaleFactorTex );
-	latexTemplate.replace( QRegExp( "__SCALE_FACTOR__" ), QString( "%1" ).arg( scaleFactor, 'f' ).trimmed() );
+    latexTemplate.replace( QRegularExpression( "__FIGURE_IMAGE_FILE__" ), "\""+QString( prefixStem.c_str() )+"\"" );
+    latexTemplate.replace( QRegularExpression( "__SCALE_FACTOR_STRING__" ), scaleFactorTex );
+    latexTemplate.replace( QRegularExpression( "__SCALE_FACTOR__" ), QString( "%1" ).arg( scaleFactor, 'f' ).trimmed() );
 	for( pair<string, string>& replacmentString : replacmentStrings ) {
 		string placeHolder = replacmentString.first;
 		string content = replacmentString.second;
@@ -3678,8 +3687,10 @@ void MeshWidget::selectColorBackground() {
 	                                        QColorDialog::ShowAlphaChannel );
 	if( !rgbNew.isValid() ) { // Cancel was pressed.
 		return;
-	}
-	qglClearColor( rgbNew );
+    }
+    QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
+    f->glClearColor(rgbNew.redF(), rgbNew.greenF(), rgbNew.blueF(), rgbNew.alphaF());
+    //! qglClearColor( rgbNew ); deprecated use glClearColor
 	update();
 }
 
@@ -5673,7 +5684,7 @@ bool MeshWidget::writePNG( const QString& rFileName,        //!< Filename for wr
 
         if( file.open( QIODevice::ReadWrite ) ){
             QTextStream stream( &file );
-            stream << exifttl << endl;
+            stream << exifttl << Qt::endl;
         }
         file.close();
     }
@@ -6004,8 +6015,8 @@ void MeshWidget::paintEvent( QPaintEvent *rEvent ) {
 #endif
 	PRINT_OPENGL_ERROR( "OLD_ERROR" );
 
-	QGLWidget::paintEvent( rEvent );
-	PRINT_OPENGL_ERROR( "QGLWidget::paintEvent( rEvent )" );
+    QOpenGLWidget::paintEvent( rEvent );
+    PRINT_OPENGL_ERROR( "QOpenGLWidget::paintEvent( rEvent )" );
 
 	//! Initialize shaders (ONCE!)
     if( mVAO == _NOT_A_NUMBER_UINT_ ) {
@@ -6021,12 +6032,13 @@ void MeshWidget::paintEvent( QPaintEvent *rEvent ) {
 	glClear( GL_DEPTH_BUFFER_BIT );
 	PRINT_OPENGL_ERROR( "glClear( GL_DEPTH_BUFFER_BIT )" );
 
-	if( mMeshVisual == nullptr ) {
+    //! \todo set autoBufferswap wasnt done atm, so skip for now (swapBuffers is also not found in QOpenGLWidget
+    //if( mMeshVisual == nullptr ) {
 		//! Do nothing, when no mesh is present.
 		//cerr << "{MeshWidget::" << __FUNCTION__ << "] ERROR: Mesh not present!" << endl;
-		swapBuffers(); // has to be called, when setAutoBufferSwap(false) was set in the constructor to preven flickering when QPainter.end is called!
-		return;
-	}
+        //swapBuffers(); // has to be called, when setAutoBufferSwap(false) was set in the constructor to preven flickering when QPainter.end is called!
+        //return;
+    //}
 
 	//! Enable OpenGL depth test.
 	glEnable( GL_DEPTH_TEST );
@@ -6155,8 +6167,8 @@ void MeshWidget::paintEvent( QPaintEvent *rEvent ) {
 	//if( cullFace ) {
 	//	glEnable( GL_CULL_FACE );
 	//}
-
-	swapBuffers(); // has to be called, when setAutoBufferSwap(false) was set in the constructor to preven flickering when QPainter.end is called!
+    //! \todo put swap buffer equivalent back in if necessary (swap buffers is no method in QOpenGLWidget anymore though
+    //swapBuffers(); // has to be called, when setAutoBufferSwap(false) was set in the constructor to preven flickering when QPainter.end is called!
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "] DONE." << endl;
 #endif
@@ -7207,7 +7219,7 @@ void MeshWidget::keyPressEvent( QKeyEvent *rEvent ) {
 		}
 	}
 	//cout << "[MeshWidget::" << __FUNCTION__ << "] Key: " << rEvent->key() << " ignored." << endl;
-	QGLWidget::keyPressEvent( rEvent );
+    QOpenGLWidget::keyPressEvent( rEvent );
 }
 
 
@@ -7798,7 +7810,7 @@ void MeshWidget::setViewModelMat() {
 int MeshWidget::height() const {
 	double scaleFactor = 1.0;
 	getParamFloatMeshWidget( HIGHDPI_ZOOM_FACTOR, &scaleFactor );
-	return QGLWidget::height()*scaleFactor;
+    return QOpenGLWidget::height()*scaleFactor;
 }
 
 //! Overwritten method using a manual set zoom factor.
@@ -7807,7 +7819,7 @@ int MeshWidget::height() const {
 int MeshWidget::width() const {
 	double scaleFactor = 1.0;
 	getParamFloatMeshWidget( HIGHDPI_ZOOM_FACTOR, &scaleFactor );
-	return QGLWidget::width()*scaleFactor;
+    return QOpenGLWidget::width()*scaleFactor;
 }
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -7833,7 +7845,7 @@ bool MeshWidget::setPlaneHNFByView()
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 // implementation of helper class for offscreen buffer
 
-MeshWidget::OffscreenBuffer::OffscreenBuffer(QGLContext* context) : mContext(context)
+MeshWidget::OffscreenBuffer::OffscreenBuffer(QOpenGLContext* context) : mContext(context)
 {
 	GLint viewportSize[4];
 	glGetIntegerv(GL_VIEWPORT, viewportSize);

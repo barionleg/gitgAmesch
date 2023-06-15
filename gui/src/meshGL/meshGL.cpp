@@ -27,6 +27,7 @@
 #include <future>
 #include <QTime>
 #include <QPixmap>
+#include <QMessageBox>
 
 #include "glmacros.h"
 #include <GigaMesh/mesh/octree.h>
@@ -53,7 +54,7 @@ using PglBindVertexArray = void (*)(GLuint);
 
 
 //! Constructor setting some defaults (e.g. colors).
-MeshGL::MeshGL(QGLContext* rGLContext,
+MeshGL::MeshGL(QOpenGLContext* rGLContext,
                 const std::filesystem::path& rFileName,
                 bool& rReadSuccess
 ) : Mesh( rFileName, rReadSuccess ), mVBOPrepared( false ), mOpenGLContext( rGLContext ) {

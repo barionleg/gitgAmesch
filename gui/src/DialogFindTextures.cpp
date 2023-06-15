@@ -23,7 +23,7 @@
 #include "DialogFindTextures.h"
 #include "ui_DialogFindTextures.h"
 
-#include <QGLWidget>
+#include <QOpenGLWidget>
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QLabel>
@@ -67,7 +67,9 @@ QString FileSelectWidget::sSupportedImageFormats = QString();
 FileSelectWidget::FileSelectWidget(const QString& fileName, QWidget* parent) : QWidget(parent), mFile(fileName)
 {
 	auto layout = new QHBoxLayout;
-	layout->setMargin(0);
+    //! layout->setMargin(0); setMargin is deprecated use setContentsMargins() instead
+    //! \todo check whether correct, cause it now takes left, top, right, bottom integers
+    layout->setContentsMargins(0,0,0,0);
 
 	this->setLayout(layout);
 

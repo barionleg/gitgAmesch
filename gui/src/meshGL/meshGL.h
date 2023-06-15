@@ -40,7 +40,7 @@
 	//#include <QtOpenGL>
 	//#include <GL/glu.h>
 #endif
-#include <QtOpenGL/QGLContext>
+#include <QOpenGLContext> // replaced previous qt5 import: <QtOpenGL/QGLContext>
 #include <QOpenGLBuffer>
 
 #define OPENGL_VBO_SHOW_MEMORY_USAGE 1
@@ -63,7 +63,7 @@ class MeshWidgetParams;
 class MeshGL : public Mesh, public MeshGLParams {
 
 	public:
-		MeshGL( QGLContext* rGLContext, const std::filesystem::path& rFileName, bool& rReadSuccess );
+        MeshGL( QOpenGLContext* rGLContext, const std::filesystem::path& rFileName, bool& rReadSuccess );
 		~MeshGL();
 
 		// Menu interactions:
@@ -272,7 +272,7 @@ protected:
 	const float*       mMatProjection = nullptr;  //!< Pointer to float[16] matrix in column-major format for projection.
 	MeshWidgetParams*  mWidgetParams = nullptr;   //!< reference to settings of the meshwidget, which hold properties used for visualization e.g. light properties.
 	MeshGLColors*      mRenderColors = nullptr;   //!< reference to settings of the meshwidget, which holds the colors used for rendering.
-	const QGLContext*  mOpenGLContext = nullptr;  //!< reference to the (parents) widget's OpenGL context -- see QGLWidget::context()
+    const QOpenGLContext*  mOpenGLContext = nullptr;  //!< reference to the (parents) widget's OpenGL context -- see QGLWidget::context()
 };
 
 #endif

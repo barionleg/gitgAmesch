@@ -31,7 +31,7 @@
 // generic Qt includes:
 #include <QtGui>
 #include <QMainWindow>
-#include <QtOpenGL/QGLFormat>
+#include <QSurfaceFormat> // replaced the deprecated qt5: <QtOpenGL/QGLFormat>
 
 // Qt Interface includes:
 #include "ui_mainWin.h"
@@ -78,7 +78,7 @@ private:
 	void initMeshSignals(); // to be called ONLY from the constructor.
 
 public:
-	bool setupMeshWidget( const QGLFormat& rGLFormat );
+    bool setupMeshWidget( const QSurfaceFormat& rGLFormat );
 	bool setupHighDPI20();
 
 protected:
@@ -344,7 +344,7 @@ signals:
 	//.
 	void sDatumAddSphere();                                  //!< Manually enter a datum sphere.
 
-	// --- Octree reöated ----------------------------------------------------------------------------------------------------------------------------------
+    // --- Octree related ----------------------------------------------------------------------------------------------------------------------------------
 	void generateOctree();
 	void generateOctree(unsigned int);
 	void detectselfintersections();

@@ -31,7 +31,7 @@
 
 // generic Qt includes:
 #include <QApplication>
-#include <QtOpenGL/QGLFormat>
+#include <QSurfaceFormat> // replaced deprecated qt5: <QtOpenGL/QGLFormat>
 #include <QMessageBox>
 #include <QTranslator>
 
@@ -133,22 +133,31 @@ int main( int argc, char *argv[] ) {
 	printBuildInfo();
 
 	// System checks:
-	if( !QGLFormat::hasOpenGL() ) {
-		LOG::fatal() << "[Main] ERROR: This system has no OpenGL support!\n";
-		SHOW_MSGBOX_WARN( "No OpenGL", "ERROR: This system has no OpenGL support!" );
-		exit( EXIT_FAILURE );
-	}
+    //! \todo make system check with QSurfaceFormat instead of QGLFormat
+    //if( !QSurfaceFormat::hasOpenGL() ) {
+    //	LOG::fatal() << "[Main] ERROR: This system has no OpenGL support!\n";
+    //	SHOW_MSGBOX_WARN( "No OpenGL", "ERROR: This system has no OpenGL support!" );
+    //	exit( EXIT_FAILURE );
+    //}
+
 	// Specify an OpenGL 3.2 format using the Core profile.
 	// That is, no old-school fixed pipeline functionality
-	QGLFormat glFormat; //QGLFormat is deprecated...
+    QSurfaceFormat glFormat; //QGLFormat is deprecated...
 	//! \todo QSurfaceFormat is the replacment for the deprecated QGLFormat
-	if(QGLFormat::openGLVersionFlags() & QGLFormat::OpenGL_Version_4_3)
-		glFormat.setVersion( 4, 3 );        //Higher Version needed to handle transparency in shader. Revert to 3.3 if it breaks core functionalities...
-	else
-		glFormat.setVersion( 3, 3 );                   // The version has to be larger than 3.3 due to geometry shaders and other usefull stuff.
+    //if(QSurfaceFormat::openGLVersionFlags() & QSurfaceFormat::OpenGL_Version_4_3)
+    //	glFormat.setVersion( 4, 3 );        //Higher Version needed to handle transparency in shader. Revert to 3.3 if it breaks core functionalities...
+    //else
+    //	glFormat.setVersion( 3, 3 );                   // The version has to be larger than 3.3 due to geometry shaders and other usefull stuff.
+    //! \todo Properly do system check
+    if (glFormat.majorVersion() <= 3) {
+        LOG::fatal() << "[Main] ERROR: No sufficient OpenGL support in this system!\n";
+        SHOW_MSGBOX_WARN( "No OpenGL", "ERROR: This system has no sufficient OpenGL support, need Version 3.3 or higher!" );
+        exit( EXIT_FAILURE );
+    }
 
-	glFormat.setProfile( QGLFormat::CoreProfile ); // Do not even think to change the Profile to CompatibilityProfile !!!
-	glFormat.setSampleBuffers( true );
+    glFormat.setProfile( QSurfaceFormat::CoreProfile ); // Do not even think to change the Profile to CompatibilityProfile !!!
+    //! \todo set sample number (no idea what to choose though) Function for QSurfaceFormat is .smaples(int) and takes number of samples per pixel for multisampling
+    //glFormat.setSampleBuffers( true );
 
 	// The main window:
 	QGMMainWindow mainWindow;

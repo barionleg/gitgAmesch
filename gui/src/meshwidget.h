@@ -51,7 +51,7 @@
 	//#include <QtOpenGL>
 	//#include <GL/glu.h>
 #endif
-#include <QtOpenGL/QGLWidget>
+#include <QOpenGLWidget> // replaced the deprecated qt5: <QtOpenGL/QGLWidget>
 #include <QOpenGLShaderProgram>
 
 class QGMMainWindow;
@@ -75,12 +75,12 @@ class MeshQt;
 //!
 //! Selection of a Primitive: only one type (Vertex, Edge or Face) can be selected.
 
-class MeshWidget : public QGLWidget, public MeshWidgetParams, public MeshGLColors {
+class MeshWidget : public QOpenGLWidget, public MeshWidgetParams, public MeshGLColors {
     Q_OBJECT
 
 public:
 	// Constructor and Destructor:
-	MeshWidget( const QGLFormat& format, QWidget* parent );
+    MeshWidget( const QSurfaceFormat& format, QWidget* parent );
 	~MeshWidget() override;
 
 	bool    getViewPortResolution( double& rRealWidth, double& rRealHeight ) const;
@@ -193,7 +193,7 @@ private:
 	class OffscreenBuffer
 	{
 	public:
-		OffscreenBuffer(QGLContext *context);
+        OffscreenBuffer(QOpenGLContext *context);
 		~OffscreenBuffer();
 
 		OffscreenBuffer(const OffscreenBuffer& other) = delete;
@@ -212,7 +212,7 @@ private:
 		GLuint mColorTextureID;
 		GLuint mDepthTextureID;
 		GLuint mFboID;
-		QGLContext* mContext;
+        QOpenGLContext* mContext;
 		int mTexWidth;
 		int mTexHeight;
 		unsigned char* mColorTextureBuffer;

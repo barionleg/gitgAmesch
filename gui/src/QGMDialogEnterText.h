@@ -91,7 +91,7 @@ public slots:
 	void accept() override;
 
 signals:
-	// Simple signals - new Qt5 style: no overloading allowed/possible.
+    // Simple signals - new Q t5 style: no overloading allowed/possible.
 	void textEnteredStr(QString);     //!< emitted when this dialog is successfully closed - see: accept()
 
 	// Simple signals:

@@ -43,7 +43,7 @@ class ShaderManager;
 class MeshGLShader : public MeshGL {
 
 public:
-	MeshGLShader( QGLContext* rGLContext, const std::filesystem::path& rFileName, bool& rReadSuccess );
+    MeshGLShader( QOpenGLContext* rGLContext, const std::filesystem::path& rFileName, bool& rReadSuccess );
 	~MeshGLShader();
 
 	virtual void glPaint();

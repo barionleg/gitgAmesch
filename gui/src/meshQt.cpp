@@ -52,7 +52,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 		MeshWidgetParams* rMeshWidgetParams,   //!< Parameter pointer to the MeshWidget settings.
 		MeshGLColors*     rRenderColors,       //!< Colors i.e. second set of paramters of the MeshWidget.
 		QGMMainWindow*    setmMainWindow,      //!< required to connect signals
-		QGLContext*       rContext,            //!< OpenGL context for rendering
+        QOpenGLContext*       rContext,            //!< OpenGL context for rendering
 		QObject*          rParent              //!< Qt default
     ) : QObject( rParent ), MeshGLShader( rContext, rFileName.toStdWString(), rReadSuccess ),
                                      MeshQtCSVImportExport(this,
@@ -139,7 +139,7 @@ MeshQt::MeshQt( const QString&           rFileName,           //!< File to read
 
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// ATTENTION: New Signal-Slot-Concept since Qt5 !!!
+    // ATTENTION: New Signal-Slot-Concept since Qt5 !!!
 	// See: https://wiki.qt.io/New_Signal_Slot_Syntax
 	// --------------------------------------------------------------------------------------------------------------------
 	// Overloading Slots and Signals is now a bad idea!
@@ -3906,8 +3906,8 @@ void MeshQt::visualizeFeatCorrSelectedVert() {
 		SHOW_MSGBOX_CRIT( tr("Function not available"), tr("ALGLIB library missing.") );
 		emit statusMessage( "ERROR: Visualization of Correlation of Vertex Features failed!" );
 		return;
-	}
-	setVertexFuncValues( vertices, funcValues, vertCount, ( QString("Correlation of Vertex Features to ")+QString(getPrimitiveSelected()->getIndex()) ).toStdString() );
+    }
+    setVertexFuncValues( vertices, funcValues, vertCount, ( QString("Correlation of Vertex Features to ")+QString::number(getPrimitiveSelected()->getIndex()) ).toStdString() );
 	setParamIntMeshGL( TEXMAP_CHOICE_FACES, TEXMAP_VERT_FUNCVAL );
 	delete[] vertices;
 	delete[] funcValues;
@@ -3938,8 +3938,8 @@ void MeshQt::visualizeFeatAutoCorrSelectedVert() {
 		SHOW_MSGBOX_CRIT( tr("Function not available"), tr("ALGLIB library missing.") );
 		emit statusMessage( "ERROR: Visualization of Auto-Correlation and Correlation of Vertex Features failed!" );
 		return;
-	}
-	setVertexFuncValues( vertices, funcValues, vertCount, ( QString("Auto-Correlation and Correlation of Vertex Features to ")+QString(getPrimitiveSelected()->getIndex()) ).toStdString() );
+    }
+    setVertexFuncValues( vertices, funcValues, vertCount, ( QString("Auto-Correlation and Correlation of Vertex Features to ")+QString::number(getPrimitiveSelected()->getIndex()) ).toStdString() );
 	setParamIntMeshGL( TEXMAP_CHOICE_FACES, TEXMAP_VERT_FUNCVAL );
 	delete[] vertices;
 	delete[] funcValues;

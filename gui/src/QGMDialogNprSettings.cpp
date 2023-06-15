@@ -522,8 +522,9 @@ void QGMDialogNprSettings::emitValues()
 
     m_meshGL->setParamIntMeshGL(MeshGL::NPR_TOON_TYPE, ui->radioButton_toon_select1->isChecked() ? 0 : 1);
 
-
-    qreal r,g,b,a;
+    //! \todo qreal is defined as double -> raises conversion errors below to float, need to sepcify qreal to be float
+    //qreal r,g,b,a;
+    float r,g,b,a;
     GLfloat colorVal[4];
     ui->lineEdit_Outline_Color->palette().color(QPalette::Normal, QPalette::Base).getRgbF(&r, &g, &b, &a);
     colorVal[0] = r; colorVal[1] = g, colorVal[2] = b, colorVal[3] = a;

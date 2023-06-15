@@ -24,6 +24,7 @@
 
 // Qt includes
 #include <QFileDialog>
+#include <QRegularExpression>
 // Qt Network
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkReply>
@@ -306,7 +307,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( actionSelectColorBackground,  SIGNAL(triggered()),   this,       SIGNAL(selectColorBackground())  );
 
 	// --- ? -----------------------------------------------------------------------------------------------------------------------------------------------
-	// New Qt5 Signal-Slot concept:
+    // New Q t5 Signal-Slot concept:
 	QObject::connect( actionInfoKeyShortcuts,      &QAction::triggered, this, &QGMMainWindow::infoKeyShortcuts      );
 	QObject::connect( actionVisitVideoTutorials,   &QAction::triggered, this, &QGMMainWindow::visitVideoTutorials   );
 	QObject::connect( actionVisitWebSite,          &QAction::triggered, this, &QGMMainWindow::visitWebSite          );
@@ -330,7 +331,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( mDockInfo, SIGNAL(sReloadFromFile()),                                         this,      SIGNAL(sFileReload())                                            );
 	QObject::connect( this,      SIGNAL(sSelectMouseModeDefault()),                                 mDockInfo, SLOT(selectMouseModeDefault())                                   );
 	QObject::connect( this,      SIGNAL(sSelectMouseModeExtra(bool,MeshWidgetParams::eMouseModes)), mDockInfo, SLOT(selectMouseModeExtra(bool,MeshWidgetParams::eMouseModes))   );
-	// New Qt5 Signal-Slot concept:
+    // New Q t5 Signal-Slot concept:
 	QObject::connect( this,      &QGMMainWindow::sGuideIDCommon,                                    mDockInfo, &QGMDockInfo::setGuideIDCommon                                   );
 	QObject::connect( this,      &QGMMainWindow::sGuideIDSelection,                                 mDockInfo, &QGMDockInfo::setGuideIDSelection                                );
 	QObject::connect( this,      &QGMMainWindow::sShowProgressStart,                                mDockInfo, &QGMDockInfo::showProgressStart                                  );
@@ -1206,7 +1207,7 @@ void QGMMainWindow::initMeshSignals() {
 }
 
 //! Add and initalize the mMeshWidget
-bool QGMMainWindow::setupMeshWidget( const QGLFormat& rGLFormat ) {
+bool QGMMainWindow::setupMeshWidget( const QSurfaceFormat& rGLFormat ) {
 	cout << "[QGMMainWindow::" << __FUNCTION__ << "] Start ..." << endl;
 	// Initialize the widget for display of the Mesh using OpenGL - AFTER connecting the menu's actions!
 	mMeshWidget = new MeshWidget( rGLFormat, static_cast<QWidget*>( this ) );
@@ -2174,7 +2175,7 @@ void QGMMainWindow::fileChanged(
 	settings.endArray();
 	QString fullName = rFileNameFull;
 	fullName.replace( "//", "/" );
-	QRegExp fullNameExact( fullName, Qt::CaseSensitive, QRegExp::FixedString );
+    QRegularExpression fullNameExact( fullName ); // use QRegularExpression instead of QRegExp (supposed to be better i think
 	int isInListAt;
 	do {
 		isInListAt = recentFiles.indexOf( fullNameExact );

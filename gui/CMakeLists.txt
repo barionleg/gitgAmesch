@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 set(OpenGL_GL_PREFERENCE GLVND)
 
 find_package(OpenGL REQUIRED)
-find_package(Qt5 COMPONENTS Core Widgets Gui OpenGL Network REQUIRED)
+find_package(Qt6 COMPONENTS Core Widgets OpenGLWidgets Gui OpenGL Network REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -88,8 +88,8 @@ set(GUI_UI_FILES
 )
 
 #NOTE: instead of adding translations via resources, the ts-files can also be build by
-#      qt5_create_translation and then be added
-qt5_add_resources(GUI_RESOURCES "forms/gigamesh.qrc"
+#      qt6_create_translation and then be added
+qt6_add_resources(GUI_RESOURCES "forms/gigamesh.qrc"
 								"src/shaders/shaders.qrc"
 								"languages/translations.qrc"
 								"latex_report_template/latex_templates.qrc"
@@ -107,14 +107,14 @@ if(APPLE)
         MACOSX_BUNDLE ON)
 endif()
 
-add_definitions(${Qt5Widgets_DEFINITIONS})
-target_include_directories(gigamesh PRIVATE ${Qt5Widgets_INCLUDES})
+add_definitions(${Qt6Widgets_DEFINITIONS})
+target_include_directories(gigamesh PRIVATE ${Qt6Widgets_INCLUDES})
 
-add_definitions(${Qt5OpenGL_DEFINITIONS})
-target_include_directories(gigamesh PRIVATE ${Qt5OpenGL_INCLUDES})
+add_definitions(${Qt6OpenGL_DEFINITIONS})
+target_include_directories(gigamesh PRIVATE ${Qt6OpenGL_INCLUDES})
 
-add_definitions(${Qt5Network_DEFINITIONS})
-target_include_directories(gigamesh PRIVATE ${Qt5Network_INCLUDES})
+add_definitions(${Qt6Network_DEFINITIONS})
+target_include_directories(gigamesh PRIVATE ${Qt6Network_INCLUDES})
 
 add_dependencies(gigamesh OpenGL::GL)
 
@@ -124,11 +124,11 @@ target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 #needed, if ui-header files need references to custom classes (e.g. NormalSphereSelectionRenderWidget.h)
 target_include_directories(gigamesh PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-target_link_libraries(gigamesh PRIVATE ${Qt5Widgets_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Network_LIBRARIES} psalm OpenGL::GL gigameshCore triangle)
+target_link_libraries(gigamesh PRIVATE ${Qt6Widgets_LIBRARIES} ${Qt6OpenGL_LIBRARIES} ${Qt6Gui_LIBRARIES} ${Qt6Network_LIBRARIES} Qt6::Core Qt6::OpenGLWidgets psalm OpenGL::GL gigameshCore triangle)
 
 #extras for static linking using the MXE mingw static build (set this via "export MINGW_CI_BUILD=True" on the command line)
 if(MINGW_CI_BUILD)
-	qt5_import_plugins(gigamesh INCLUDE Qt5::QSvgIconPlugin Qt5::QSvgPlugin)
+        qt6_import_plugins(gigamesh INCLUDE Qt6::QSvgIconPlugin Qt6::QSvgPlugin)
 	target_link_libraries(gigamesh PRIVATE ssl crypto crypt32 iphlpapi)
 endif()
 
