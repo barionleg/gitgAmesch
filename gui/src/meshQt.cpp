@@ -973,15 +973,15 @@ bool MeshQt::removeUncleanSmallUser() {
 		// Show file dialog
         QString fileSuggest = QString::fromStdWString( getBaseName().wstring() );
         //check if the gigamesh name convention is used
-        QRegularExpression nameContainsGMwithSuffix( ".*_GM[cCoOfFpP]*$" );
+        static QRegularExpression nameContainsGMwithSuffix( ".*_GM[cCoOfFpP]*$" );
         QRegularExpressionMatch match = nameContainsGMwithSuffix.match( fileSuggest );
         if( match.hasMatch()){
             //GM or GMO not followed by "C" --> no match
-            QRegularExpression nameContainsC( "(.*_GM*.C)(.*$)" );
+            static QRegularExpression nameContainsC( "(.*_GM*.C)(.*$)" );
             match = nameContainsC.match( fileSuggest );
             if( !match.hasMatch() ) {
                     //regex to add the C after GM or GMO
-                    QRegularExpression nameContainsGM( "(.*_GM[oO]?)(.*$)" );
+                    static QRegularExpression nameContainsGM( "(.*_GM[oO]?)(.*$)" );
                     fileSuggest.replace( nameContainsGM, "\\1C\\2" );
                 }
           } else {
@@ -1066,18 +1066,18 @@ bool MeshQt::completeRestore() {
 
         QString fileSuggest = QString::fromStdWString( getBaseName().wstring() );
         //check if the gigamesh name convention is used
-        QRegularExpression nameContainsGMwithSuffix( ".*_GM[cCoOfFpP]*$" );
+        static QRegularExpression nameContainsGMwithSuffix( ".*_GM[cCoOfFpP]*$" );
         QRegularExpressionMatch match = nameContainsGMwithSuffix.match( fileSuggest );
         if( match.hasMatch()){
             //check if CF is still used
-            QRegularExpression nameContainsGMCF( ".*_GMC.F*$" );
+            static QRegularExpression nameContainsGMCF( ".*_GMC.F*$" );
             match = nameContainsGMCF.match( fileSuggest );
             if( !match.hasMatch() ) {
                 //add the CF for cleaned and filled
                 //regex groups with "(....)" are used for the replace methode --> it's possible to copy the groups
                 //with \\... in the replace function
                 //check if the name contains a C (GMOC, GMC)
-                QRegularExpression nameContainsC( "(.*_GM)([cC]|[oO][cC])(.?[^F]*)$" );
+                static QRegularExpression nameContainsC( "(.*_GM)([cC]|[oO][cC])(.?[^F]*)$" );
                 match = nameContainsC.match( fileSuggest );
                 if( match.hasMatch() ) {
                     fileSuggest.replace( nameContainsC, "\\1\\2F\\3" );
@@ -1085,7 +1085,7 @@ bool MeshQt::completeRestore() {
                 else{
                     //have to add a CF in the case with no "C" inside the abbreviation
                     //GMO followed by a optional character not "C"
-                    QRegularExpression nameContainsNoC( "(.*_GM[oO])(.*)$" );
+                    static QRegularExpression nameContainsNoC( "(.*_GM[oO])(.*)$" );
                     match = nameContainsNoC.match( fileSuggest );
                     if( match.hasMatch() ) {
                         fileSuggest.replace( nameContainsNoC, "\\1CF\\2" );
@@ -4629,10 +4629,10 @@ bool MeshQt::writeFileUserInteract() {
 	bool mostLikelyOrientated = false;
 	getParamFlagMesh( FILE_TRANSFORMATION_APPLIED, &mostLikelyOrientated );
 	if( mostLikelyOrientated ) {
-		QRegularExpression nameContainsGMwithO( ".*_GM[oOcCfFpP]*$" );
+        static QRegularExpression nameContainsGMwithO( ".*_GM[oOcCfFpP]*$" );
 		QRegularExpressionMatch match = nameContainsGMwithO.match( fileSuggest );
 		if( match.hasMatch() ) {
-			QRegularExpression nameContainsGM( "(.*_GM)([cCfFpP]*)$" );
+            static QRegularExpression nameContainsGM( "(.*_GM)([cCfFpP]*)$" );
 			match = nameContainsGM.match( fileSuggest );
 			if( match.hasMatch() ) {
 				fileSuggest.replace( nameContainsGM, "\\1O\\2" );

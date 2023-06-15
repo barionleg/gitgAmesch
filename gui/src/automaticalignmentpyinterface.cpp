@@ -246,7 +246,7 @@ bool AutomaticAlignmentPyInterface::readPCsFromCSV(QString importPath, Matrix4D 
 
     //read data from CSV
     //-------------------------------------------------
-    const QRegularExpression matchDelimitersRegex(",");
+    static QRegularExpression matchDelimitersRegex(",");
     std::vector<std::pair<int, std::array<double, 4>>> indexPrincipalComponentsMatrix;
     QStringList matrixRowStringList;
     QByteArray lineBuffer;

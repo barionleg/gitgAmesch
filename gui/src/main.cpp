@@ -149,11 +149,11 @@ int main( int argc, char *argv[] ) {
     //else
     //	glFormat.setVersion( 3, 3 );                   // The version has to be larger than 3.3 due to geometry shaders and other usefull stuff.
     //! \todo Properly do system check open gl
-    if (glFormat.majorVersion() <= 3) {
-        LOG::fatal() << "[Main] ERROR: No sufficient OpenGL support in this system!\n";
-        SHOW_MSGBOX_WARN( "No OpenGL", "ERROR: This system has no sufficient OpenGL support, need Version 3.3 or higher!" );
-        exit( EXIT_FAILURE );
-    }
+    //if (glFormat.majorVersion() <= 3) {
+    //    LOG::fatal() << "[Main] ERROR: No sufficient OpenGL support in this system!\n";
+    //    SHOW_MSGBOX_WARN( "No OpenGL", "ERROR: This system has no sufficient OpenGL support, need Version 3.3 or higher!" );
+    //    exit( EXIT_FAILURE );
+    //}
 
     glFormat.setProfile( QSurfaceFormat::CoreProfile ); // Do not even think to change the Profile to CompatibilityProfile !!!
     //! \todo set sample number (no idea what to choose though) Function for QSurfaceFormat is .smaples(int) and takes number of samples per pixel for multisampling

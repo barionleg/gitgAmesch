@@ -125,7 +125,7 @@ bool MeshQtCSVImportExport::importVertexDataFromCSV(const QString& inputFilename
 	                    vertexCoordinatesInputFile.size()/
 	                                        heuristicBytesPerLine;
 
-    const QRegularExpression matchDelimitersRegex("(\\ |\\t)");
+    static QRegularExpression matchDelimitersRegex("(\\ |\\t)");
 
 	std::vector<std::pair<int, std::array<double, 4>>> vertexIndexPositionFunctionValueVector;
 

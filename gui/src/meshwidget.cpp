@@ -1460,7 +1460,8 @@ void MeshWidget::sphericalImagesLightDir( ) {
         }
 
         QString plyFileName = currFiles.at(i);
-        plyFileName.remove(QRegularExpression(".ply"));
+        static QRegularExpression plyEnd(".ply");
+        plyFileName.remove(plyEnd);
         QString targetDir = pathChoosen + '/' + plyFileName;
         //create target dir
         try {
@@ -1533,7 +1534,8 @@ void MeshWidget::applyAutomaticMeshAlignmentDir(){
 
         //save file
         QString plyFileName = currFiles.at(i);
-        plyFileName.remove(QRegularExpression(".ply"));
+        static QRegularExpression plySuffix(".ply");
+        plyFileName.remove(plySuffix);
         QString newFile = pathChoosen + '/' + plyFileName;
         newFile = newFile + fileNameSuffix +  ".ply";
 
