@@ -21,7 +21,6 @@
 
 #ifndef IMAGE2D_H
 #define IMAGE2D_H
-
 #ifdef LIBTIFF
 	#include "tiffio.h"
 	// for insights about uint32_t visit: http://stackoverflow.com/questions/911035/uint32_t-int16-and-the-like-are-they-standard-c
@@ -44,6 +43,10 @@
 //!
 //! This class should be used to access 2D images. (Layer -1)
 //!
+//! This was the class to save tiff images, however tifs are not longer required
+//! the class is refactored completly to PNG
+//!
+//! DEPRECATED
 //! Requires: libtiff
 //! see: http://www.libtiff.org
 //!
@@ -61,12 +64,11 @@ class Image2D {
 
 		void setResolution(const double xRes, const double yRes, const short resolutionUnit=0 );
 
-		int writeTIFF(const std::filesystem::path& filename, uint32_t width, uint32_t height, double* raster, double maxVal, bool isRGB=true );
-		int writeTIFF(const std::filesystem::path& filename, uint32_t width, uint32_t height, float*  raster, float  minVal=_NOT_A_NUMBER_, float  maxVal=_NOT_A_NUMBER_, bool isRGB=true );
-		int writeTIFF(const std::filesystem::path& filename, uint32_t width, uint32_t height, double* raster, double minVal=_NOT_A_NUMBER_, double maxVal=_NOT_A_NUMBER_, bool isRGB=true );
+        int writePNG(const std::filesystem::path& filename, uint32_t width, uint32_t height, double* raster, double maxVal, bool isRGB=true );
+        int writePNG(const std::filesystem::path& filename, uint32_t width, uint32_t height, float*  raster, float  minVal=_NOT_A_NUMBER_, float  maxVal=_NOT_A_NUMBER_, bool isRGB=true );
+        int writePNG(const std::filesystem::path& filename, uint32_t width, uint32_t height, double* raster, double minVal=_NOT_A_NUMBER_, double maxVal=_NOT_A_NUMBER_, bool isRGB=true );
 		//int writeTIFF(      std::string  filename, uint32_t width, uint32_t height, unsigned char* raster, bool isRGB=true );
-		int writeTIFF(std::filesystem::path filename, uint32_t width, uint32_t height, unsigned char* raster, bool isRGB=true );
-		int writeTIFFStack(const std::filesystem::path& filename, uint32_t width, uint32_t height, uint32_t stackheight, unsigned char* imageStack, bool isRGB=true );
+        int writePNG(std::filesystem::path filename, uint32_t width, uint32_t height, unsigned char* raster, bool isRGB=true );
 
 	private:
 		short  resolutionUnit; //!< None, Inch (DPI), Centimeter

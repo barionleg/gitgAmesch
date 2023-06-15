@@ -5,6 +5,7 @@ stages:
 ubuntu bionic:
   only:
     - master
+    - develop
   # Use ubuntu 18.04 LTS
   image: ubuntu:bionic
   stage: build

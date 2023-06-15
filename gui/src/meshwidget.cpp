@@ -146,7 +146,6 @@ MeshWidget::MeshWidget( const QGLFormat &format, QWidget *parent )
 	//.
 	QObject::connect( mMainWindow, SIGNAL(sDefaultViewLight()),            this, SLOT(defaultViewLight())             );
 	QObject::connect( mMainWindow, SIGNAL(sDefaultViewLightZoom()),        this, SLOT(defaultViewLightZoom())         );
-    QObject::connect( mMeshVisual, SIGNAL(sSetDefaultView()),              this, SLOT(currentViewToDefault())         );
     //.
 	QObject::connect( mMainWindow, SIGNAL(sSelPrimViewReference()),        this, SLOT(selPrimViewReference())         );
 
@@ -180,13 +179,6 @@ MeshWidget::MeshWidget( const QGLFormat &format, QWidget *parent )
 	//! \bug Emitting inside constructor has no effect
 	emit sStatusMessage( "No Mesh loaded." );
 
-	// Information about libraries:
-	//------------------------------------------------------------------------------------------------------------------------------------------------------
-#ifdef LIBTIFF
-	cout << "[MeshWidget] compiled with " << TIFFLIB_VERSION_STR << endl;
-#else
-	cerr << "[MeshWidget] compiled without libtiff." << endl;
-#endif
 }
 
 //! Desctructor
@@ -2650,7 +2642,7 @@ void MeshWidget::screenshotViews() {
 	//qDebug() << filePath + QString( fileNamePattern.c_str() );
 	QString fileName = QFileDialog::getSaveFileName( mMainWindow, tr( "Save as - Using a pattern for side, top and bottom views" ), \
 													 filePath + "/" + QString( fileNamePattern.c_str() ),
-													 tr( "Image (*.png *.tiff *.tif)" ),
+                                                     tr( "Image (*.png)" ),
 	                                                 nullptr, 
 	                                                 QFileDialog::DontUseNativeDialog  ); // Native dialog won't show patterns anymore on recent versions of Qt+Linux.
 
@@ -2918,7 +2910,7 @@ bool MeshWidget::screenshotSingle() {
     QString fileSuggest = QString::fromStdWString( mMeshVisual->getBaseName().wstring() ) + ".png";
 
 	QStringList filters;
-	filters << tr("Image (*.png *.tiff *.tif)");
+    filters << tr("Image (*.png)");
 
 	QFileDialog dialog( mMainWindow );
 	dialog.setWindowTitle( tr("Save screenshot as:") );
@@ -3007,8 +2999,8 @@ bool MeshWidget::screenshotSingle( const QString&   rFileName,   //!< Filename t
 	QString fileExtension = QFileInfo(rFileName).suffix().toLower();
 
 	if( fileExtension.isEmpty() ) {
-		cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: No extension/type for file '" << rFileName.toStdString() << "' specified!" << endl;
-		return( false );
+        cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: No extension/type for file '" << rFileName.toStdString() << "' specified!" << endl;
+        return( false );
 	}
 
 	cout << "[MeshWidget::" << __FUNCTION__ << "] extension: " << fileExtension.toStdString() << endl;
@@ -3023,31 +3015,21 @@ bool MeshWidget::screenshotSingle( const QString&   rFileName,   //!< Filename t
 		repaint();
 
 
-		if( ( fileExtension == "tif" ) || ( fileExtension == "tiff" ) ) {
-			if( rUseTiled ) {
-				//! \todo add tiled rendering of TIFFs
-				cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: tiled rendering not implemented for TIFF!"<< endl;
-			} else {
-				ret = screenshotTIFF( rFileName, &offscreenBuffer );
-			}
-		}
+        if( rUseTiled ) {
+            int shaderChoice;
+            mMeshVisual->getParamIntMeshGL( MeshGLParams::SHADER_CHOICE, &shaderChoice );
+            bool drawNPR = ( MeshGLParams::SHADER_NPR==shaderChoice );
+            if( !drawNPR ) {
+                ret = screenshotTiledPNG( rFileName, rWidthReal, rHeigthReal, &offscreenBuffer, 1 );
+            } else {
+                double borderSize;
+                mMeshVisual->getParamFloatMeshGL( MeshGLParams::NPR_OUTLINE_WIDTH, &borderSize );
+                ret = screenshotTiledPNG( rFileName, rWidthReal, rHeigthReal, &offscreenBuffer, static_cast<int>(borderSize) );
+            }
+        } else {
+            ret = screenshotPNG( rFileName, rWidthReal, rHeigthReal, &offscreenBuffer );
+        }
 
-		else if( fileExtension == "png" ) {
-			if( rUseTiled ) {
-				int shaderChoice;
-				mMeshVisual->getParamIntMeshGL( MeshGLParams::SHADER_CHOICE, &shaderChoice );
-				bool drawNPR = ( MeshGLParams::SHADER_NPR==shaderChoice );
-				if( !drawNPR ) {
-					ret = screenshotTiledPNG( rFileName, rWidthReal, rHeigthReal, &offscreenBuffer, 1 );
-				} else {
-					double borderSize;
-					mMeshVisual->getParamFloatMeshGL( MeshGLParams::NPR_OUTLINE_WIDTH, &borderSize );
-					ret = screenshotTiledPNG( rFileName, rWidthReal, rHeigthReal, &offscreenBuffer, static_cast<int>(borderSize) );
-				}
-			} else {
-				ret = screenshotPNG( rFileName, rWidthReal, rHeigthReal, &offscreenBuffer );
-			}
-		}
 
 		bindFramebuffer(defaultFramebuffer);
 
@@ -3572,39 +3554,6 @@ bool MeshWidget::fetchFrameBuffer(
 }
 
 // Write screenshots -------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Copies the Framebuffer to an RGB array, which can be stored as a TIFF Image.
-bool MeshWidget::screenshotTIFF(const QString& rFileName , OffscreenBuffer* offscreenBuffer) {
-#ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
-#endif
-	double realWidth  = 0.0;
-	double realHeight = 0.0;
-	bool orthoMode;
-	getParamFlagMeshWidget( ORTHO_MODE, &orthoMode );
-	if( orthoMode ) {
-		getViewPortResolution( realWidth, realHeight );
-	}
-
-	int imWidth;
-	int imHeight;
-	unsigned char* imArray = nullptr;
-	fetchFrameBuffer( &imArray, &imWidth, &imHeight, mParamFlag[CROP_SCREENSHOTS], offscreenBuffer );
-
-	Image2D frameBufIm;
-	if( orthoMode ) {
-		//! When the widget is in orthographic mode, the proper resolution is set for the image.
-		//! Therefore it is printable in scale.
-		frameBufIm.setResolution( width()/realWidth*10.0, height()/realHeight*10.0 );
-	}
-	frameBufIm.writeTIFF( rFileName.toStdWString(), imWidth, imHeight, imArray, true );
-	delete[] imArray;
-	if( ( realWidth > 0.0 ) && ( realHeight > 0.0 ) ) {
-		cout << "[MeshWidget::" << __FUNCTION__ << "] Ortho Image Size: " << realWidth << " x " << realHeight << " mm (unit assumed)." << endl;
-	}
-	emit sStatusMessage( "Screenshot saved to: " + rFileName );
-	return true;
-}
 
 //! Saves the PNG with transparency to the given filename.
 bool MeshWidget::screenshotPNG(const QString& rFileName,
@@ -5484,7 +5433,7 @@ bool MeshWidget::screenshotRuler(const QString& fileName ) {
 	Image2D imRuler;
 	//cout << "[MeshWidget::" << __FUNCTION__ << "] " << 10.0/pixelWidth << " " << 10.0/pixelHeight << " dots/cm." << endl;
 	imRuler.setResolution( 10.0/pixelWidth, 10.0/pixelHeight );
-	imRuler.writeTIFF( fileName.toStdString(), imWidth, imHeight, imArray, true );
+    imRuler.writePNG( fileName.toStdString(), imWidth, imHeight, imArray, true );
 
 	delete[] imArray;
 
@@ -5673,7 +5622,7 @@ bool MeshWidget::writePNG( const QString& rFileName,        //!< Filename for wr
 
         if( file.open( QIODevice::ReadWrite ) ){
             QTextStream stream( &file );
-            stream << exifttl << Qt::endl;
+            stream << exifttl << endl;
         }
         file.close();
     }
