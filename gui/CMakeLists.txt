@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15, FATAL_ERROR)
 
 set(OpenGL_GL_PREFERENCE GLVND)
 
@@ -90,10 +90,10 @@ set(GUI_UI_FILES
 #NOTE: instead of adding translations via resources, the ts-files can also be build by
 #      qt6_create_translation and then be added
 qt6_add_resources(GUI_RESOURCES "forms/gigamesh.qrc"
-								"src/shaders/shaders.qrc"
-								"languages/translations.qrc"
-								"latex_report_template/latex_templates.qrc"
-								"python-scripts/pythonscripts.qrc"
+                                "src/shaders/shaders.qrc"
+                                "languages/translations.qrc"
+                                "latex_report_template/latex_templates.qrc"
+                                "python-scripts/pythonscripts.qrc"
 )
 
 #set here the paths of the ui-files, so autouic can find them

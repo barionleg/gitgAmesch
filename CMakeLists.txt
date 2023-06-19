@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version")
 
 # CMAKEFile for building gigamesh
@@ -108,7 +108,7 @@ set(CPACK_SOURCE_STRIP_FILES TRUE)
 set(CPACK_STRIP_FILES "bin/gigamesh;bin/gigamesh-tolegacy;bin/gigamesh-clean;bin/gigamesh-info;bin/gigamesh-featurevectors;bin/gigamesh-borders")
 
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Hubert Mara <hubert.mara@iwr.uni-heidelberg.de>")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.14), libgcc1 (>= 1:3.0), qtbase6-dev(>= 6.4.2+dfsg-10),libqt6core6 (>= 6.4.2+dfsg-10), libqt6gui6 (>= 6.4.2+dfsg-10), libqt6opengl6 (>= 6.4.2+dfsg-10), libstdc++6 (>= 5), libtiff6 (>= 4) | libtiff5 (>= 4) | libtiff4 (>= 4), inkscape(>=0.92)")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.14), libgcc1 (>= 1:3.0), qtbase6-dev(>= 6.4.2+dfsg-10),libqt6core6 (>= 6.4.2+dfsg-10), libqt6gui6 (>= 6.4.2+dfsg-10), libqt6opengl6 (>= 6.4.2+dfsg-10), libstdc++6 (>= 5), inkscape(>=0.92)")
 set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://www.gigamesh.eu")
 set(CPACK_DEBIAN_PACKAGE_SECTION "science")
 

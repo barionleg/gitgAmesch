@@ -450,7 +450,7 @@ bool Mesh::callFunction(
 				uint64_t valMax = valuesMinMax.at(1);
 				retVal = selectPolyVertexCount( valMin, valMax );
 			}
-			retVal = true;
+            retVal = true; //! \todo needed? makes the two previous retval unneccessary
 			} break;
 		case SELECT_MESH_PLANE_AXIS_SELPRIM:
 			retVal = setPlaneHNFbyAxisSelPrim();
@@ -520,7 +520,7 @@ bool Mesh::callFunction(
 		case FUNCVAL_ORTHOGONAL_AXIS_ANGLE_TO_RADIAL:
 			retVal = setVertFuncValOrthogonalAxisAngleToRadial();
 			break;
-		// Color - Gralevel to Function Value
+        // Color - Graylevel to Function Value
 		case FUNCVAL_SET_GRAY_RGB_AVERAGE:
 			retVal = setVertFuncValGraylevel( Vertex::RGB_TO_GRAY_AVERAGE );
 			break;

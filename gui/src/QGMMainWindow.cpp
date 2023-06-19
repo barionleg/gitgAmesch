@@ -1087,7 +1087,7 @@ void QGMMainWindow::initMeshSignals() {
 	actionColorRGBSaturationRemovalToFuncVal->setProperty(        "gmMeshFunctionCall", MeshParams::FUNCVAL_SET_GRAY_SATURATION_REMOVAL          );
 	actionColorHSVComponentToFuncVal->setProperty(                "gmMeshFunctionCall", MeshParams::FUNCVAL_SET_GRAY_HSV_DECOMPOSITION           );
 	actionDistanceToLineDir->setProperty(                         "gmMeshFunctionCall", MeshParams::FUNCVAL_SET_DISTANCE_TO_LINE                 );
-	actionDistanceToAxis->setProperty(                            "gmMeshFunctionCall", MeshParams::FUNCVAL_SET_DISTANCE_TO_AXIS                 );
+    actionDistanceToAxis->setProperty(                            "gmMeshFunctionCall", MeshParams::FUNCVAL_SET_DISTANCE_TO_AXIS                 );
 	actionDistanceToSphere->setProperty(                          "gmMeshFunctionCall", MeshParams::FUNCVAL_SET_DISTANCE_TO_SPHERE               );
 	actionAngleConeAxis->setProperty(                             "gmMeshFunctionCall", MeshParams::FUNCVAL_SET_ANGLE_USING_AXIS                 );
 	actionFuncValScalarMultiply->setProperty(                     "gmMeshFunctionCall", MeshParams::FUNCVAL_MULTIPLY_SCALAR                      );
@@ -1269,7 +1269,7 @@ void QGMMainWindow::load() {
 													 tr( "Open 3D-Mesh or Point Cloud" ),
 	                                                 settings.value( "lastPath" ).toString(),
 													 tr( "3D mesh files (*.ply *.PLY *.obj *.OBJ);;Other 3D files (*.txt *.TXT *.xyz *.XYZ)" )
-	                                                );
+                                                    );
 	if( fileName.size() > 0 ) {
 		emit sFileOpen( fileName );
 	}

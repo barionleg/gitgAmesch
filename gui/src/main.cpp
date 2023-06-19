@@ -36,7 +36,7 @@
 #include <QTranslator>
 
 // Qt Interface includes:
-#include "QGMMacros.h"
+//#include "QGMMacros.h" -> runs without so remove?
 #include "QGMMainWindow.h"
 
 // Qt data structure:

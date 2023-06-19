@@ -148,7 +148,6 @@ MeshWidget::MeshWidget( const QSurfaceFormat &format, QWidget *parent )
 	//.
 	QObject::connect( mMainWindow, SIGNAL(sDefaultViewLight()),            this, SLOT(defaultViewLight())             );
 	QObject::connect( mMainWindow, SIGNAL(sDefaultViewLightZoom()),        this, SLOT(defaultViewLightZoom())         );
-    QObject::connect( mMeshVisual, SIGNAL(sSetDefaultView()),              this, SLOT(currentViewToDefault())         );
     //.
 	QObject::connect( mMainWindow, SIGNAL(sSelPrimViewReference()),        this, SLOT(selPrimViewReference())         );
 

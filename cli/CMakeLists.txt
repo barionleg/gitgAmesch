@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15, FATAL_ERROR)
 
 #-- INDIVIDUAL TOOLS--
 add_executable(gigamesh-tolegacy gigamesh-tolegacy.cpp)
