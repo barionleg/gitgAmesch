@@ -450,7 +450,7 @@ bool Mesh::callFunction(
 				uint64_t valMax = valuesMinMax.at(1);
 				retVal = selectPolyVertexCount( valMin, valMax );
 			}
-            retVal = true; //! \todo needed? makes the two previous retval unneccessary
+            //!retVal = true; //! \todo needed? makes the two previous retval unneccessary
 			} break;
 		case SELECT_MESH_PLANE_AXIS_SELPRIM:
 			retVal = setPlaneHNFbyAxisSelPrim();
