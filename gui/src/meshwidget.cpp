@@ -5635,7 +5635,7 @@ bool MeshWidget::writePNG( const QString& rFileName,        //!< Filename for wr
 
         if( file.open( QIODevice::ReadWrite ) ){
             QTextStream stream( &file );
-            stream << exifttl << endl;
+            stream << exifttl << Qt::endl;
         }
         file.close();
     }
