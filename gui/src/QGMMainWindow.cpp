@@ -331,7 +331,7 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QObject::connect( mDockInfo, SIGNAL(sReloadFromFile()),                                         this,      SIGNAL(sFileReload())                                            );
 	QObject::connect( this,      SIGNAL(sSelectMouseModeDefault()),                                 mDockInfo, SLOT(selectMouseModeDefault())                                   );
 	QObject::connect( this,      SIGNAL(sSelectMouseModeExtra(bool,MeshWidgetParams::eMouseModes)), mDockInfo, SLOT(selectMouseModeExtra(bool,MeshWidgetParams::eMouseModes))   );
-    // New Q t5 Signal-Slot concept:
+    // New Qt5 Signal-Slot concept:
 	QObject::connect( this,      &QGMMainWindow::sGuideIDCommon,                                    mDockInfo, &QGMDockInfo::setGuideIDCommon                                   );
 	QObject::connect( this,      &QGMMainWindow::sGuideIDSelection,                                 mDockInfo, &QGMDockInfo::setGuideIDSelection                                );
 	QObject::connect( this,      &QGMMainWindow::sShowProgressStart,                                mDockInfo, &QGMDockInfo::showProgressStart                                  );

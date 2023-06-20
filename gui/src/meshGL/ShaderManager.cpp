@@ -41,7 +41,7 @@ ShaderManager::~ShaderManager()
 	}
 }
 
-//! gets shaderprogram assiciated with ShaderName enum
+//! gets shaderprogram associated with ShaderName enum
 //! @returns pointer to shaderprogram if successfull, nullptr otherwise
 QOpenGLShaderProgram* ShaderManager::getShader(ShaderManager::ShaderName shaderName)
 {

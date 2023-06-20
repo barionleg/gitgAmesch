@@ -159,8 +159,8 @@ int main( int argc, char *argv[] ) {
     //! \todo set sample number (no idea what to choose though) Function for QSurfaceFormat is .smaples(int) and takes number of samples per pixel for multisampling
     //glFormat.setSampleBuffers( true );
 
-	// The main window:
-	QGMMainWindow mainWindow;
+    // The main window:
+    QGMMainWindow mainWindow;
 	mainWindow.show();
 	mainWindow.setupMeshWidget( glFormat );
 	if( hidpi20 ) {

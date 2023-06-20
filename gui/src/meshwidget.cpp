@@ -60,7 +60,7 @@ using PglBindVertexArray = void (*)(GLuint);
 // Sets default values - to be used by all contructors!
 // ----------------------------------------------------
 #define MESHWIDGETINITDEFAULTS       \
-	mMeshVisual( nullptr ),         \
+    mMeshVisual( nullptr ),         \
 	mFrameCount( 0 ),            \
 	mVAO( _NOT_A_NUMBER_UINT_ )
 
@@ -6034,12 +6034,12 @@ void MeshWidget::paintEvent( QPaintEvent *rEvent ) {
 	PRINT_OPENGL_ERROR( "glClear( GL_DEPTH_BUFFER_BIT )" );
 
     //! \todo set autoBufferswap wasnt done atm, so skip for now (swapBuffers is also not found in QOpenGLWidget
-    //if( mMeshVisual == nullptr ) {
+    if( mMeshVisual == nullptr ) {
 		//! Do nothing, when no mesh is present.
 		//cerr << "{MeshWidget::" << __FUNCTION__ << "] ERROR: Mesh not present!" << endl;
         //swapBuffers(); // has to be called, when setAutoBufferSwap(false) was set in the constructor to preven flickering when QPainter.end is called!
-        //return;
-    //}
+        return;
+    }
 
 	//! Enable OpenGL depth test.
 	glEnable( GL_DEPTH_TEST );
@@ -6047,7 +6047,9 @@ void MeshWidget::paintEvent( QPaintEvent *rEvent ) {
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	glEnable( GL_BLEND );
     //! Draw the Mesh.
-    mMeshVisual->glPaint();
+    if( mMeshVisual != nullptr ) {
+        mMeshVisual->glPaint();
+    }
 
 	//! Optional; draw RGB histogram of the scene. Highly recommended to be calle before paintScreenInfo, paintOrthoGrid and paintHistogram!
 	paintHistogramScence(); // This sould be first -- otherwise unwanted elements like logos are accounted to (this color) histogram.
