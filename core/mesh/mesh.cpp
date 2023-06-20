@@ -7003,6 +7003,13 @@ bool Mesh::labelSelMVertsToBack() {
     return true;
 }
 
+/**
+ * This method uses selected vertices (SelMVerts) to label the point cloud of the mesh into as many labels as there are selected vertices.
+ * The selection sets a preference for the central location of the classes.
+ *  However, the algorithm is allowed to shift the location of the classes.
+ *  This means that selections that are too close together may result in clusters in different locations than expected.
+ *  Also note that highly curved surfaces can cause the labels to be disconnected as they are part of another area of the triangular grid, since only the positions of the vertices are used for clustering.
+ */
 bool Mesh::labelKMeansVertPos() {
     cout << "[Mesh::" << __FUNCTION__ << "]" << endl;
     // check if there is something to label:

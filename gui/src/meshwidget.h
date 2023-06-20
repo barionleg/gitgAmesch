@@ -227,7 +227,6 @@ private:
 	bool fetchFrameAndZBuffer( unsigned char*& rImRGBA, uint64_t& rImWidth, uint64_t& rImHeight, bool rCropUsingZBuffer, OffscreenBuffer* offscreenBuffer, bool keepBackground = false );
 	bool fetchFrameBuffer( unsigned char** rImArray, int* rImWidth, int* rImHeight, bool rCropUsingZBuffer, OffscreenBuffer* offscreenBuffer );
 	// Write screenshots:
-	bool screenshotTIFF(const QString& rFileName , OffscreenBuffer *offscreenBuffer);
 	bool screenshotPNG(const QString& rFileName, double& rWidthReal, double& rHeigthReal , OffscreenBuffer *offscreenBuffer);
 
 	// View menu

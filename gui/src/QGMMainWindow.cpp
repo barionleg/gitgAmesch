@@ -356,13 +356,13 @@ QGMMainWindow::QGMMainWindow( QWidget *parent, Qt::WindowFlags flags )
 	QSettings settings;
 	timeLast = settings.value( "lastVersionCheck" ).toLongLong();
 	double daysSinceLastCheck = difftime( timeNow, timeLast ) / ( 24.0 * 3600.0 );
-	// daysSinceLastCheck = 356.0; // for testing (1/2)
+    //daysSinceLastCheck = 356.0; // for testing (1/2)
 	std::cout << "[QGMMainWindow::" << __FUNCTION__ << "] Last check " << daysSinceLastCheck << " days ago." << std::endl;
 	if( daysSinceLastCheck > 3.0 ) {
 		mNetworkManager = new QNetworkAccessManager( this );
 		QObject::connect( mNetworkManager, &QNetworkAccessManager::finished, this, &QGMMainWindow::slotHttpCheckVersion );
 		QNetworkRequest request;
-		request.setUrl( QUrl( "https://www.gigamesh.eu/api.php/currentversion" ) );
+        request.setUrl( QUrl( "https://gigamesh.eu/api.php/currentversion/" ) );
 		request.setRawHeader( "User-Agent", QString( "GigaMesh/%1" ).arg( VERSION_PACKAGE ).toStdString().c_str() );
 		mNetworkManager->get( request );
 	}
@@ -2091,6 +2091,8 @@ void QGMMainWindow::updateWidgetShowFlag(MeshWidgetParams::eParamFlag rFlag, boo
 		break;
 	case MeshWidgetParams::ENABLE_SHOW_MESH_REDUCED:
 		break;
+    case MeshWidgetParams::EXPORT_TTL_WITH_PNG :
+        break;
 	case MeshWidgetParams::PARAMS_FLAG_COUNT:
 		break;
 	default:

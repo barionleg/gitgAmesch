@@ -2688,11 +2688,11 @@ void MeshQt::estimateMSIIFeat( ParamsMSII params ) {
 		if( params.writeRaster ) {
 			char    fileNameStr[512];
             QString fileNamePattern = QString::fromStdWString( params.fileNameRaster.wstring() );
-			fileNamePattern.replace( QString( ".tif" ), QString( "_NEW.tif" ) );
+            fileNamePattern.replace( QString( ".png" ), QString( "_NEW.png" ) );
 			sprintf( fileNameStr, fileNamePattern.toStdString().c_str(), params.seedVertexId );
 			Image2D someImage;
 			//someImage.setSilent();
-			someImage.writeTIFF( fileNameStr, params.cubeEdgeLengthInVoxels, params.cubeEdgeLengthInVoxels, rasterArray2, -params.cubeEdgeLengthInVoxels/2.0, params.cubeEdgeLengthInVoxels/2.0, false );
+            someImage.writePNG( fileNameStr, params.cubeEdgeLengthInVoxels, params.cubeEdgeLengthInVoxels, rasterArray2, -params.cubeEdgeLengthInVoxels/2.0, params.cubeEdgeLengthInVoxels/2.0, false );
 		}
 	} else {
 		cerr << "[MeshQt::" << __FUNCTION__ << "] ERROR: fetchSphereCubeVolume25D FAILED!" << endl;
@@ -2752,7 +2752,7 @@ void MeshQt::estimateMSIIFeat( ParamsMSII params ) {
 			sprintf( fileNameStr, params.fileNameFilterMasks.string().c_str(), params.seedVertexId, i, params.multiscaleRadii[i] );
 			Image2D someImage;
 			//someImage.setSilent();
-			someImage.writeTIFF( fileNameStr, params.cubeEdgeLengthInVoxels, params.cubeEdgeLengthInVoxels, voxelFilters2D[i], 0.0, static_cast<double>(params.cubeEdgeLengthInVoxels)/2.0, false );
+            someImage.writePNG( fileNameStr, params.cubeEdgeLengthInVoxels, params.cubeEdgeLengthInVoxels, voxelFilters2D[i], 0.0, static_cast<double>(params.cubeEdgeLengthInVoxels)/2.0, false );
 		}
 	}
 
@@ -2796,7 +2796,7 @@ void MeshQt::estimateMSIIFeat( ParamsMSII params ) {
 		for( int i=0; i<params.multiscaleRadiiNr; i++ ) {
 			sprintf( fileNameStr, params.fileNameFilterResult.string().c_str(), params.seedVertexId, i, params.multiscaleRadii[i] );
 			Image2D someImage;
-			someImage.writeTIFF( fileNameStr, params.cubeEdgeLengthInVoxels, params.cubeEdgeLengthInVoxels, filterResults2D[i], 0.0, static_cast<double>(params.cubeEdgeLengthInVoxels), false );
+            someImage.writePNG( fileNameStr, params.cubeEdgeLengthInVoxels, params.cubeEdgeLengthInVoxels, filterResults2D[i], 0.0, static_cast<double>(params.cubeEdgeLengthInVoxels), false );
 			double sum = 0.0;
 			for( int j=0; j<params.cubeEdgeLengthInVoxels*params.cubeEdgeLengthInVoxels; j++ ) {
 				if( std::isnan( filterResults2D[i][j] ) ) { \
