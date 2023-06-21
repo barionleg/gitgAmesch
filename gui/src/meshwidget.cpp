@@ -76,6 +76,7 @@ MeshWidget::MeshWidget( const QSurfaceFormat &format, QWidget *parent )
 	setAutoFillBackground( false );
     //! \todo setAutoBufferSwap not in QOpenGLWidget class, so commented it out for now, maybe find analog later
     //setAutoBufferSwap( false ); // to preven flickering in ::paintEvent when QPainter.end is called!
+
 	// Store pointer to the main window.
 	mMainWindow = static_cast<QGMMainWindow*>(parent);
 
@@ -6128,6 +6129,8 @@ void MeshWidget::paintEvent( QPaintEvent *rEvent ) {
 	//}
     //! \todo put swap buffer equivalent back in if necessary (swap buffers is no method in QOpenGLWidget anymore though
     //swapBuffers(); // has to be called, when setAutoBufferSwap(false) was set in the constructor to preven flickering when QPainter.end is called!
+    //! \todo check whether this makes sense: swap buffer stuff is now in QSurfaceFormat:
+    //! format().setSwapBehavior( QSurfaceFormat::DoubleBuffer );
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "] DONE." << endl;
 #endif
