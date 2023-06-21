@@ -158,6 +158,8 @@ int main( int argc, char *argv[] ) {
     glFormat.setProfile( QSurfaceFormat::CoreProfile ); // Do not even think to change the Profile to CompatibilityProfile !!!
     //! \todo set sample number (no idea what to choose though) Function for QSurfaceFormat is .smaples(int) and takes number of samples per pixel for multisampling
     //glFormat.setSampleBuffers( true );
+    //! \todo check if number makes sense:
+    glFormat.setSamples(4);
 
     // The main window:
     QGMMainWindow mainWindow;

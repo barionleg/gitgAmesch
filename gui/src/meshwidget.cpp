@@ -921,8 +921,8 @@ bool MeshWidget::fileOpen( const QString& fileName ) {
     //qglClearColor( Qt::white );
 	defaultViewLightZoom();
 
-    //should be valid for QOpenGLContext and QGL* classes. If upgraded to QOpenGLContext, then use context()->defaultFramebufferObject() instead of 0
-	mMeshVisual->setParamIntMeshGL(MeshGLParams::DEFAULT_FRAMEBUFFER_ID, 0);
+    //should be valid for QGLContext and QGL* classes. If upgraded to QOpenGLContext, then use context()->defaultFramebufferObject() instead of 0
+    mMeshVisual->setParamIntMeshGL(MeshGLParams::DEFAULT_FRAMEBUFFER_ID, context()->defaultFramebufferObject());
 
 	// Initialize Pin size depending on the bounding box diagonal
 	Vector3D boundingbox;
@@ -1750,7 +1750,13 @@ void MeshWidget::initializeGL() {
 
     QSurfaceFormat glFormat = QOpenGLWidget::format();
     //! \todo look for similar fct to old sampleBuffer in QSurfaceFormat (maybe hasAlpha() ???
-    //if( !glFormat.sampleBuffers() ) {
+    //! QGLFormat::sampleBuffers() previously returned true if multisample buffer support was enabled
+    //! QSurfaceFormat::samples() returns number of samples per pixel when multisampling is enabled, -1 otherwise
+    if( glFormat.samples() == -1 ) {
+        cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Could not enable sample buffers!" << endl;
+    }
+    // deprecated:
+    //if( glFormat.sampleBuffers() ) {
     //	cerr << "[MeshWidget::" << __FUNCTION__ << "] ERROR: Could not enable sample buffers!" << endl;
     //}
 
@@ -7635,7 +7641,7 @@ void MeshWidget::setViewInitialZoom() {
 void MeshWidget::setView( GLdouble* rOrthoViewPort //!< position and dimension of the viewport in orthomode
     ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
-	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
+    cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;
 #endif
 	PRINT_OPENGL_ERROR( "OLD_ERROR" );
 
