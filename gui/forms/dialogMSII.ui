@@ -227,7 +227,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>meshpart2_%i.tif</string>
+        <string>meshpart2_%i.png</string>
        </property>
       </widget>
      </item>
@@ -256,7 +256,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>meshpart2_%i_filtermask_%02i_r_%f.tif</string>
+        <string>meshpart2_%i_filtermask_%02i_r_%f.png</string>
        </property>
       </widget>
      </item>
@@ -285,7 +285,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>meshpart2_%i_filterresults_%02i_r_%f.tif</string>
+        <string>meshpart2_%i_filterresults_%02i_r_%f.png</string>
        </property>
       </widget>
      </item>

@@ -106,7 +106,7 @@ MeshWidgetParams::MeshWidgetParams() {
 	mParamStr[FILENAME_EXPORT_VR]          = "gigamesh_still_image_%05i_%05i_%02i.png";
 	mParamStr[FILENAME_EXPORT_VIEWS]       = "%01_%02_%03.png";
 	mParamStr[FILENAME_EXPORT_VIEWS_LATEX] = "%s_%02i_%s_test.png";
-	mParamStr[FILENAME_EXPORT_RULER]       = "%s_ruler%s.tiff";
+    mParamStr[FILENAME_EXPORT_RULER]       = "%s_ruler%s.png";
 	mParamStr[RULER_WIDTH_UNIT]            = "mm";
 
 	//initialize string parameters for tool-paths

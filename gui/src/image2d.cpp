@@ -52,7 +52,7 @@ void Image2D::setResolution( const double setXRes, const double setYRes, const s
 	yRes = setYRes;
 }
 
-int Image2D::writeTIFF( const filesystem::path&  filename, //!< Name of the file to be written.
+int Image2D::writePNG( const filesystem::path&  filename, //!< Name of the file to be written.
             const uint32_t  width,                 //!< Image width (pixel).
             const uint32_t  height,                //!< Image height (pixel).
                     double* raster,              //!< Colour-data width*height*(3|1) [0.0..maxVal].
@@ -91,7 +91,7 @@ int Image2D::writeTIFF( const filesystem::path&  filename, //!< Name of the file
 		}
 	}
 
-	return writeTIFF( filename, width, height, rasterRGB, isRGB );
+    return writePNG( filename, width, height, rasterRGB, isRGB );
 
 	delete[] rasterRGB;
 }
@@ -102,7 +102,7 @@ int Image2D::writeTIFF( const filesystem::path&  filename, //!< Name of the file
 //!
 //! Shows a warning in case of over- and underflows.
 //! Sets pixels with under-/overflow to black/white
-int Image2D::writeTIFF( const filesystem::path& filename, //!< Name of the file to be written.
+int Image2D::writePNG( const filesystem::path& filename, //!< Name of the file to be written.
             const uint32_t width,                 //!< Image width (pixel).
             const uint32_t height,                //!< Image height (pixel).
                     float* raster,              //!< Colour-data width*height*(3|1) [minVal...maxVal].
@@ -161,13 +161,13 @@ int Image2D::writeTIFF( const filesystem::path& filename, //!< Name of the file 
 		cerr << __PRETTY_FUNCTION__ << " Underflow Warning, value < 0 found!";
 	}
 
-	bool retVal = writeTIFF( filename, width, height, rasterArray, isRGB );
+    bool retVal = writePNG( filename, width, height, rasterArray, isRGB );
 	delete[] rasterArray;
 
 	return retVal;
 }
 
-int Image2D::writeTIFF( const filesystem::path&  filename, //!< Name of the file to be written.
+int Image2D::writePNG( const filesystem::path&  filename, //!< Name of the file to be written.
             uint32_t  width,    //!< Image width (pixel).
             uint32_t  height,   //!< Image height (pixel).
 	                double* raster,   //!< Colour-data width*height*(3|1) [minVal...maxVal].
@@ -233,24 +233,23 @@ int Image2D::writeTIFF( const filesystem::path&  filename, //!< Name of the file
 		cerr << __PRETTY_FUNCTION__ << " Underflow Warning, value < 0 found!";
 	}
 
-	bool retVal = writeTIFF( filename, width, height, rasterArray, isRGB );
+    bool retVal = writePNG( filename, width, height, rasterArray, isRGB );
 	delete[] rasterArray;
 
 	return retVal;
 }
 
-int Image2D::writeTIFF(filesystem::path filename, //!< Name of the file to be written.
+int Image2D::writePNG(filesystem::path filename, //!< Name of the file to be written.
             uint32_t width,    //!< Image width (pixel).
             uint32_t height,   //!< Image height (pixel).
             unsigned char*  raster,   //!< Colour-data width*height*(3|1) [0..255].
 			bool   isRGB     //!< RGB or Grayscale
 	) {
-	//! Write some data to a TIFF file.
+    //! Write some data to a PNG file.
 	//!
 	//! and more important a working real-world example: 
 	//! for a binary-image: http://www.ibm.com/developerworks/linux/library/l-libtiff/
 	//! for a colour-image: http://www.ibm.com/developerworks/linux/library/l-libtiff2/
-#ifndef LIBTIFF
 	//cerr << "[Image2D::" << __FUNCTION__ << "] ERROR: libtiff NOT present!" << endl;
 
 	if(filename.extension().empty())
@@ -271,52 +270,7 @@ int Image2D::writeTIFF(filesystem::path filename, //!< Name of the file to be wr
         return WRITE_ERROR;
 
 	return  WRITE_OK;
-#else
-	if( filename.extension.empty() ) {
-		filename += ".tif";
-	}
 
-	TIFF* image = TIFFOpen( filename.string().c_str(), "w" );
-	if( image == nullptr ) {
-		cerr << "[Image2D] Could not open file: '" << filename << "'." << endl;		
-		return WRITE_ERROR;
-	} else {
-		cout << "[Image2D] File open for writing: '" << filename << "'." << endl;
-	}
-
-	// We need to set some values for basic tags before we can add any data
-	TIFFSetField( image, TIFFTAG_IMAGEWIDTH,      width );
-	TIFFSetField( image, TIFFTAG_IMAGELENGTH,     height );
-	// see http://www.libtiff.org/support.html
-	TIFFSetField( image, TIFFTAG_COMPRESSION,     COMPRESSION_LZW ); // COMPRESSION_DEFLATE uses ZIP - see: http://www.awaresystems.be/imaging/tiff/tifftags/compression.html
-	TIFFSetField( image, TIFFTAG_PLANARCONFIG,    PLANARCONFIG_CONTIG );
-	TIFFSetField( image, TIFFTAG_BITSPERSAMPLE,   8 );
-	if( resolutionUnit != RESUNIT_NONE ) {
-		TIFFSetField( image, TIFFTAG_XRESOLUTION,    xRes );
-		TIFFSetField( image, TIFFTAG_YRESOLUTION,    yRes );
-		TIFFSetField( image, TIFFTAG_RESOLUTIONUNIT, resolutionUnit );
-		//cout << "[Image2D] resolutionUnit " << resolutionUnit << " " << xRes << " " << yRes << endl;
-	}
-	if( isRGB ) {
-		TIFFSetField( image, TIFFTAG_PHOTOMETRIC,     PHOTOMETRIC_RGB );
-		TIFFSetField( image, TIFFTAG_SAMPLESPERPIXEL, 3 );
-		// Actually write the RGB information to the file:
-		if( TIFFWriteEncodedStrip( image, 0, raster, width * height * 3 ) == 0 ){
-			cerr << "[Image2D] Could not write tiff image!" << endl;
-		}
-	} else {
-		TIFFSetField( image, TIFFTAG_PHOTOMETRIC,     PHOTOMETRIC_MINISBLACK );
-		TIFFSetField( image, TIFFTAG_SAMPLESPERPIXEL, 1 );
-		// Actually write the grayscale information to the file:
-		if( TIFFWriteEncodedStrip( image, 0, raster, width * height ) == 0 ){
-			cerr << "[Image2D] Could not write tiff image!" << endl;
-		}
-	}
-	// Close the file
-	TIFFClose( image );
-
-	return  WRITE_OK;
-#endif
 }
 
 /*
@@ -331,15 +285,3 @@ int Image2D::writeTIFF( const string& filename,       //!< Name of the file to b
 }
 */
 
-int Image2D::writeTIFFStack( const filesystem::path& filename, uint32_t width, uint32_t height, uint32_t stackheight, unsigned char* imageStack, bool isRGB ) {
-	//! Write a some 3D-data into a stack of single images.
-	//!
-	//! A sequence number and the file extension will be added.
-
-	for( uint32_t i=0; i<stackheight; i++ ) {
-		std::wstringstream sstream;
-		sstream << std::setw(3) << std::setfill(L'0') << i;
-		writeTIFF( filename.wstring() + L"_stack_" + sstream.str() , width, height, &imageStack[i*width*height], isRGB );
-	}
-	return 0;
-}

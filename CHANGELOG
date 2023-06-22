@@ -1,4 +1,5 @@
-Current Version
+Version 230608
++) Improved: tooltips were added to the menu bar 
 +) New: 'CLI: gigamesh-info -> New Option: --quick (-q) Suppress detection of self-intersections (computationally intensive)"  
 +) New: 'Labeling -> Label K-Means: Vertex Position: Label vertices per cluster those are calculated by the K-Means algorithm. 
          The initial centroids are the selected vertices.
