@@ -26,13 +26,17 @@ MONTH=$(echo $CURRENT_VERSION | cut -c 3,4)
 DAY=$(echo $CURRENT_VERSION | cut -c 5,6)
 NEWS_FILE=$YEAR-$MONTH-$DAY"_New_Version_"$CURRENT_VERSION"_Now_Available.md"
 cat > ${NEWS_FILE} << _EOF_
-##New Version $CURRENT_VERSION Now Available
-###*$YEAR-$MONTH-$DAY*
-
+---
+layout: news
+title: New Version $CURRENT_VERSION Now Available
+pubdate: $YEAR-$MONTH-$DAY
+description: ""
+changes:
 _EOF_
-sed 1d ${CHANGELOG_PARTIAL} | sed s/[+-o]\)/\*/ >> ${NEWS_FILE}
+sed 1d ${CHANGELOG_PARTIAL} | sed s/[+-o]\)/\ \ \ \ -\ \"/ | sed ':a;N;$!ba;s/\n/\"\n/g' >> ${NEWS_FILE} 
 cat >>  ${NEWS_FILE} << _EOF_
-Please find links to download on the [Downloads](./?page=downloads) page.
+downloadhint: Please find links to download on the <a href="/downloads/">Downloads</a> page.
+---
 _EOF_
 
 echo News written to: ${NEWS_FILE}
