@@ -143,6 +143,7 @@ int main( int argc, char *argv[] ) {
 	// Specify an OpenGL 3.2 format using the Core profile.
 	// That is, no old-school fixed pipeline functionality
     QSurfaceFormat glFormat; //QGLFormat is deprecated...
+    glFormat.setVersion(4,3);
 	//! \todo QSurfaceFormat is the replacment for the deprecated QGLFormat
     //if(QSurfaceFormat::openGLVersionFlags() & QSurfaceFormat::OpenGL_Version_4_3)
     //	glFormat.setVersion( 4, 3 );        //Higher Version needed to handle transparency in shader. Revert to 3.3 if it breaks core functionalities...
