@@ -1219,7 +1219,6 @@ bool QGMMainWindow::setupMeshWidget( const QSurfaceFormat& rGLFormat ) {
 	//mMeshWidget->show();
 	//mMeshWidget->qglClearColor( Qt::red );
 
-
     if(!((rGLFormat.majorVersion() >= 4) || (rGLFormat.majorVersion() == 4 && rGLFormat.minorVersion() < 3)))
     {
         cout << "[QGMMainWindow::" << __FUNCTION__ << "] OpenGL Version 4.3 not supported: disable atomic-loop and A-Buffer transparency" << endl;

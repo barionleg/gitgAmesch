@@ -5944,7 +5944,7 @@ bool MeshWidget::rotPlaneRoll(double rAngle)
 
 // OpenGL Stuff ----------------------------------------------------------------
 
-//! Re-draws the OpenGL widget, when its size has changed by calling setView().
+//! Re-draws the OpenGL widget, when its size has changed by calling setView(). \todo this is broken with the qt6 change
 void MeshWidget::resizeGL( [[maybe_unused]]int width , [[maybe_unused]]int height  ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "] width: " << width << " height: " << height << endl;
@@ -5967,6 +5967,7 @@ void MeshWidget::resizeGL( [[maybe_unused]]int width , [[maybe_unused]]int heigh
 //! Thanks to OpenGL CoreProfile also the QPainter is rendered unuseable. So the informations are provided in a regular widget OUTSIDE the OpenGL context.
 //!
 //! Actions performed:
+//! \todo this is broken with the qt6 change
 void MeshWidget::paintEvent( QPaintEvent *rEvent ) {
 #ifdef DEBUG_SHOW_ALL_METHOD_CALLS
 	cout << "[MeshWidget::" << __FUNCTION__ << "]" << endl;

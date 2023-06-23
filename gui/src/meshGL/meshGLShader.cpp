@@ -374,7 +374,7 @@ void MeshGLShader::glPaint() {
 	}
 }
 
-
+//! \todo broken with qt6 bufferMethod is 2, but in definition of it only case 0 and 1 are explained, what does 2 mean?
 void MeshGLShader::glPaintTransparent()
 {
 	bool showMeshReduced;
@@ -393,13 +393,13 @@ void MeshGLShader::glPaintTransparent()
 	(mOpenGLContext->format().majorVersion() == 4 && mOpenGLContext->format().minorVersion() >= 3))
 	{
 		if(drawTransparency == MeshGLParams::SHADER_TRANSPARENCY)
-		{
+        {
 			int bufferMethod;
 			getParamIntMeshGL(TRANSPARENCY_BUFFER_METHOD, &bufferMethod);
 
 			if(mTransIsInitialized != (bufferMethod + 1) && mTransIsInitialized != 0)
 			{
-				mGL4_3Functions.glDeleteBuffers(static_cast<GLsizei>(mSSBOs.size()),mSSBOs.data());
+                mGL4_3Functions.glDeleteBuffers(static_cast<GLsizei>(mSSBOs.size()),mSSBOs.data());
 
 
 				if(mTransIsInitialized == 2)
@@ -413,15 +413,15 @@ void MeshGLShader::glPaintTransparent()
 
 			if(bufferMethod == 0)
 			{
-				//vboPaintTransparencyKPBuffer();
+                //vboPaintTransparencyKPBuffer();
 				vboPaintTransparencyWAVG();
 			}
 			else if(bufferMethod == 1)
-			{
+            {
 				vboPaintTransparencyABuffer();
 			}
 			else if(bufferMethod == 2)
-			{
+            {
 				//vboPaintTransparencyWAVG();
 				vboPaintTransparencyALBuffer();
 			}
@@ -429,7 +429,7 @@ void MeshGLShader::glPaintTransparent()
 		else
 		{
 
-			//free transparency buffers, if no longer needed
+            //free transparency buffers, if no longer needed
 			if(mTransIsInitialized)
 			{
 				mGL4_3Functions.glDeleteBuffers(static_cast<GLsizei>(mSSBOs.size()),mSSBOs.data());
@@ -443,7 +443,7 @@ void MeshGLShader::glPaintTransparent()
 				mTransIsInitialized = 0;
 			}
 		}
-	}
+    }
 	//no OpenGl4.3 -> only weighted average blending (OpenGL3.2)
 	else
 	{
@@ -459,8 +459,7 @@ void MeshGLShader::glPaintTransparent()
 				mTransIsInitialized = 0;
 			}
 		}
-	}
-
+    }
 }
 
 void MeshGLShader::glPaintOverlay()
