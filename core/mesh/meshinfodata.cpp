@@ -1326,8 +1326,9 @@ bool MeshInfoData::getMeshInfoHTML(
 	//-----------------------------------------------------------
 
 	std::string tableBorder = "0"; // For visual debugging set to 1 - 0 (zero) for release!
+    indid=urlEncode(this->mStrings[MeshInfoData::FILENAME]);
 	std::string infoStr = "<!DOCTYPE html>\n";
-	infoStr += "<html about=\""+this->mStrings[MeshInfoData::FILENAME]+"\" typeof=\"http://www.gigamesh.eu/ont#Mesh\">\n";
+	infoStr += "<html about=\""+indid+"\" typeof=\"http://www.gigamesh.eu/ont#Mesh\">\n";
 	infoStr += "<head>\n";
 	infoStr += "<title property=\"http://purl.org/dc/elements/1.1/title\">GigaMesh Information about [" + this->mStrings[MeshInfoData::FILENAME] + "]</title>\n";
 	infoStr += "</head>\n";
@@ -1348,23 +1349,23 @@ bool MeshInfoData::getMeshInfoHTML(
 	infoStr += "<table align='center' border='" + tableBorder + "'>\n";
 	infoStr += "<tr><td align='center'>\n";
 
-	infoStr += "<b>Bounding Box</b> in mm (assumed)\n";
-	infoStr += "<table border='" + tableBorder + "'>\n";
-	infoStr += "<tr><td>X:</td><td align='right' property=\"http://www.gigamesh.eu/ont#minimumXCoordinate\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_X] ) + "</td>";
+	infoStr += "<b property=\"http://www.gigamesh.eu/ont#boundingBox\" resource=\""+indid+"_geom\">Bounding Box</b> in mm (assumed)\n";
+	infoStr += "<table border='" + tableBorder + "' about=\""+indid+"_geom\" typeof=\"http://www.opengis.net/ont/geosparql#Geometry\">\n";
+	infoStr += "<tr><td>X:</td><td align='right' about=\""+indid+"_geom\" property=\"http://www.gigamesh.eu/ont#minimumXCoordinate\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_X] ) + "</td>";
 	infoStr += "<td align='center'>&nbsp;&#8722;&nbsp;</td>";
-	infoStr += "<td align='left' property=\"http://www.gigamesh.eu/ont#maximumXCoordinate\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_X] ) + "</td>";
+	infoStr += "<td align='left' about=\""+indid+"_geom\" property=\"http://www.gigamesh.eu/ont#maximumXCoordinate\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_X] ) + "</td>";
 	infoStr += "<td align='center'>&nbsp;=&nbsp;</td>";
-	infoStr += "<td align='center' property=\"http://www.gigamesh.eu/ont#boundingboxWidth\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">&nbsp;" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_X] - this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_X] ) + "</td></tr>\n";
-	infoStr += "<tr><td>Y:</td><td align='right' property=\"http://www.gigamesh.eu/ont#minimumYCoordinate\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Y] ) + "</td>";
+	infoStr += "<td align='center' about=\""+indid+"_geom\" property=\"http://www.gigamesh.eu/ont#boundingboxWidth\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">&nbsp;" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_X] - this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_X] ) + "</td></tr>\n";
+	infoStr += "<tr><td>Y:</td><td align='right' about=\""+indid+"_geom\" property=\"http://www.gigamesh.eu/ont#minimumYCoordinate\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Y] ) + "</td>";
 	infoStr += "<td align='center'>&nbsp;&#8722;&nbsp;</td>";
-	infoStr += "<td align='left' property=\"http://www.gigamesh.eu/ont#maximumYCoordinate\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Y] ) + "</td>";
+	infoStr += "<td align='left' about=\""+indid+"_geom\" property=\"http://www.gigamesh.eu/ont#maximumYCoordinate\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Y] ) + "</td>";
 	infoStr += "<td align='center'>&nbsp;=&nbsp;</td>";
-	infoStr += "<td align='center' property=\"http://www.gigamesh.eu/ont#boundingboxHeight\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">&nbsp;" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Y] - this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Y] ) + "</td></tr>\n";
-	infoStr += "<tr><td>Z:</td><td align='right' property=\"http://www.gigamesh.eu/ont#minimumZCoordinate\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Z] ) + "</td>";
+	infoStr += "<td align='center' about=\""+indid+"_geom\" property=\"http://www.gigamesh.eu/ont#boundingboxHeight\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">&nbsp;" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Y] - this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Y] ) + "</td></tr>\n";
+	infoStr += "<tr><td>Z:</td><td align='right' about=\""+indid+"_geom\" property=\"http://www.gigamesh.eu/ont#minimumZCoordinate\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Z] ) + "</td>";
 	infoStr += "<td align='center'>&nbsp;&#8722;&nbsp;</td>";
-	infoStr += "<td align='left' property=\"http://www.gigamesh.eu/ont#maximumZCoordinate\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Z] ) + "</td>";
+	infoStr += "<td align='left' about=\""+indid+"_geom\" property=\"http://www.gigamesh.eu/ont#maximumZCoordinate\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Z] ) + "</td>";
 	infoStr += "<td align='center'>&nbsp;=&nbsp;</td>";
-	infoStr += "<td align='center' property=\"http://www.gigamesh.eu/ont#boundingBoxThickness\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">&nbsp;" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Z] - this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Z] ) + "</td></tr>\n";
+	infoStr += "<td align='center' about=\""+indid+"_geom\" property=\"http://www.gigamesh.eu/ont#boundingBoxThickness\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">&nbsp;" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Z] - this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Z] ) + "</td></tr>\n";
 	infoStr += "</table>\n";
 
 	// Outer table - Row I, Col II
