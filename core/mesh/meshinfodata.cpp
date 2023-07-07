@@ -501,6 +501,7 @@ bool MeshInfoData::writeMeshInfoProcess(
     xmlMeta+="<TotalNumberOfVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_TOTAL])+"</TotalNumberOfVertices>\n";
     xmlMeta+="<NaNVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_NAN])+"</NaNVertices>\n";
     xmlMeta+="<NormalLengthVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_NORMAL_LEN_NORMAL])+"</NormalLengthVertices>\n";
+    xmlMeta+="<PolylineVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_POLYLINE])+"</PolylineVertices>\n";
     xmlMeta+="<IsolatedVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_SOLO])+"</IsolatedVertices>\n";
     xmlMeta+="<BorderVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_BORDER])+"</BorderVertices>\n";
     xmlMeta+="<NonManifoldVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_NONMANIFOLD])+"</NonManifoldVertices>\n";
@@ -585,6 +586,7 @@ bool MeshInfoData::writeMeshInfoProcess(
     xmlMeta+="<MaximumZCoordinate>"+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Z])+"</MaximumZCoordinate>\n";
     xmlMeta+="<BoundingBoxWidth>"+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_WIDTH])+"</BoundingBoxWidth>\n";
     xmlMeta+="<BoundingBoxHeight>"+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_HEIGHT])+"</BoundingBoxHeight>\n";
+    xmlMeta+="<BoundingBoxThickness>"+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_THICK])+"</BoundingBoxThickness>\n";
     xmlMeta+="</BoundingBox>\n";    
     xmlMeta+="<prov:wasAttributedTo>"+funcid+"</prov:wasAttributedTo>\n";
     xmlMeta+="<prov:wasGeneratedBy>"+actid+"</prov:wasGeneratedBy>\n";    
@@ -619,6 +621,7 @@ bool MeshInfoData::getMeshInfoXML( std::string& rInfoXML ){
     infoStr+="<TotalNumberOfVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_TOTAL])+"</TotalNumberOfVertices>\n";
     infoStr+="<NaNVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_NAN])+"</NaNVertices>\n";
     infoStr+="<NormalLengthVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_NORMAL_LEN_NORMAL])+"</NormalLengthVertices>\n";
+    infoStr+="<PolylineVertices>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::VERTICES_POLYLINE])+"</PolylineVertices>\n";
     infoStr+="<IsolatedVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_SOLO])+"</IsolatedVertices>\n";
     infoStr+="<BorderVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_BORDER])+"</BorderVertices>\n";
     infoStr+="<NonManifoldVertices>"+std::to_string(this->mCountULong[MeshInfoData::VERTICES_NONMANIFOLD])+"</NonManifoldVertices>\n";
@@ -658,6 +661,7 @@ bool MeshInfoData::getMeshInfoXML( std::string& rInfoXML ){
     infoStr+="<MaximumZCoordinate>"+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Z])+"</MaximumZCoordinate>\n";
     infoStr+="<BoundingBoxWidth>"+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_WIDTH])+"</BoundingBoxWidth>\n";
     infoStr+="<BoundingBoxHeight>"+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_HEIGHT])+"</BoundingBoxHeight>\n";
+    xmlMeta+="<BoundingBoxThickness>"+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_THICK])+"</BoundingBoxThickness>\n";
     infoStr+="</BoundingBox>\n";    
     infoStr+="<MetadataObject>\n";
     infoStr+="<Filename>"+this->mStrings[MeshInfoData::FILENAME]+"</Filename>\n";
@@ -695,6 +699,7 @@ bool MeshInfoData::getMeshInfoJSON(std::string& rInfoJSON){
     infoStr+="\"giga:NaNVertices\":\""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_NAN])+"\",\n";    
     infoStr+="\"giga:NormalLengthVertices\":\""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_NORMAL_LEN_NORMAL])+"\",\n";    
     infoStr+="\"giga:IsolatedVertices\":\""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_SOLO])+"\",\n";
+    infoStr+="\"giga:PolylineVertices\":\""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_POLYLINE])+"\",\n";
     infoStr+="\"giga:BorderVertices\":\""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_BORDER])+"\",\n"; 
     infoStr+="\"giga:NonManifoldVertices\":\""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_NONMANIFOLD])+"\",\n"; 
     infoStr+="\"giga:SingularVertices\":\""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_SINGULAR])+"\",\n"; 
@@ -734,6 +739,7 @@ bool MeshInfoData::getMeshInfoJSON(std::string& rInfoJSON){
     infoStr+="\"giga:MaximumZCoordinate\":\""+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Z])+"\",\n"; 
     infoStr+="\"giga:BoundingBoxWidth\":\""+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_WIDTH])+"\",\n"; 
     infoStr+="\"giga:BoundingBoxHeight\":\""+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_HEIGHT])+"\"\n"; 
+    infoStr+="\"giga:BoundingBoxThickness\":\""+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_THICK])+"\"\n"; 
     infoStr+="},\n";
     infoStr+="\"giga:Metadata\":{\n";
     infoStr+="\"giga:TotalArea\":\""+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_AREA])+"\",\n";   
@@ -931,6 +937,17 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:circleCenterVertices rdfs:comment \"Gigamesh Info: Vertices circle center\" .\n";
     infoStr+="giga:"+indid+" giga:circleCenterVertices giga:"+indid+"_circleCenterVertices .\n"; 
     infoStr+="giga:"+indid+"_circleCenterVertices wdt:P361 giga:"+indid+"_totalNumberOfVertices .\n";
+    infoStr+="giga:PolylineVertices rdf:type owl:Class .\n";    
+    infoStr+="giga:PolylineVertices rdfs:subClassOf giga:GigameshInfo .\n";    
+    infoStr+="giga:"+indid+"_polylineVertices rdf:type giga:SelectedVertices .\n";   
+    infoStr+="giga:"+indid+"_polylineVertices rdfs:label \""+indname+" Amount of selected vertices\"@en .\n";
+    infoStr+="giga:"+indid+"_polylineVertices rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::VERTICES_POLYLINE])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:polylineVertices rdf:type owl:ObjectProperty .\n";
+    infoStr+="giga:polylineVertices rdfs:domain giga:Mesh .\n";
+    infoStr+="giga:polylineVertices rdfs:label \"Vertices selected\"@en .\n";
+    infoStr+="giga:polylineVertices skos:definition \"The total number of vertices of polylines\" .\n";
+    infoStr+="giga:polylineVertices rdfs:comment \"Gigamesh Info: Vertices of polylines\" .\n";
+    infoStr+="giga:"+indid+" giga:polylineVertices giga:"+indid+"_polylineVertices .\n"; 
     infoStr+="giga:SelectedVertices rdf:type owl:Class .\n";    
     infoStr+="giga:SelectedVertices rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_selectedVertices rdf:type giga:SelectedVertices .\n";   
@@ -1294,9 +1311,9 @@ bool MeshInfoData::getMeshInfoHTML(
 
 	std::string tableBorder = "0"; // For visual debugging set to 1 - 0 (zero) for release!
 	std::string infoStr = "<!DOCTYPE html>\n";
-	infoStr += "<html>\n";
+	infoStr += "<html about=\""+this->mStrings[MeshInfoData::FILENAME]+"\">\n";
 	infoStr += "<head>\n";
-	infoStr += "<title>GigaMesh Information about [" + this->mStrings[MeshInfoData::FILENAME] + "]</title>\n";
+	infoStr += "<title property=\"http://purl.org/dc/elements/1.1/title\">GigaMesh Information about [" + this->mStrings[MeshInfoData::FILENAME] + "]</title>\n";
 	infoStr += "</head>\n";
 	infoStr += "<body>\n";
 
@@ -1317,21 +1334,21 @@ bool MeshInfoData::getMeshInfoHTML(
 
 	infoStr += "<b>Bounding Box</b> in mm (assumed)\n";
 	infoStr += "<table border='" + tableBorder + "'>\n";
-	infoStr += "<tr><td>X:</td><td align='right'>" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_X] ) + "</td>";
+	infoStr += "<tr><td>X:</td><td align='right' property=\"http://www.gigamesh.eu/ont#minimumXCoordinate\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_X] ) + "</td>";
 	infoStr += "<td align='center'>&nbsp;&#8722;&nbsp;</td>";
-	infoStr += "<td align='left'>" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_X] ) + "</td>";
+	infoStr += "<td align='left' property=\"http://www.gigamesh.eu/ont#maximumXCoordinate\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_X] ) + "</td>";
 	infoStr += "<td align='center'>&nbsp;=&nbsp;</td>";
-	infoStr += "<td align='center'>&nbsp;" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_X] - this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_X] ) + "</td></tr>\n";
-	infoStr += "<tr><td>Y:</td><td align='right'>" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Y] ) + "</td>";
+	infoStr += "<td align='center' property=\"http://www.gigamesh.eu/ont#boundingboxWidth\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">&nbsp;" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_X] - this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_X] ) + "</td></tr>\n";
+	infoStr += "<tr><td>Y:</td><td align='right' property=\"http://www.gigamesh.eu/ont#minimumYCoordinate\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Y] ) + "</td>";
 	infoStr += "<td align='center'>&nbsp;&#8722;&nbsp;</td>";
-	infoStr += "<td align='left'>" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Y] ) + "</td>";
+	infoStr += "<td align='left' property=\"http://www.gigamesh.eu/ont#maximumYCoordinate\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Y] ) + "</td>";
 	infoStr += "<td align='center'>&nbsp;=&nbsp;</td>";
-	infoStr += "<td align='center'>&nbsp;" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Y] - this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Y] ) + "</td></tr>\n";
-	infoStr += "<tr><td>Z:</td><td align='right'>" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Z] ) + "</td>";
+	infoStr += "<td align='center' property=\"http://www.gigamesh.eu/ont#boundingboxHeight\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">&nbsp;" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Y] - this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Y] ) + "</td></tr>\n";
+	infoStr += "<tr><td>Z:</td><td align='right' property=\"http://www.gigamesh.eu/ont#minimumZCoordinate\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Z] ) + "</td>";
 	infoStr += "<td align='center'>&nbsp;&#8722;&nbsp;</td>";
-	infoStr += "<td align='left'>" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Z] ) + "</td>";
+	infoStr += "<td align='left' property=\"http://www.gigamesh.eu/ont#maximumZCoordinate\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Z] ) + "</td>";
 	infoStr += "<td align='center'>&nbsp;=&nbsp;</td>";
-	infoStr += "<td align='center'>&nbsp;" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Z] - this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Z] ) + "</td></tr>\n";
+	infoStr += "<td align='center' property=\"http://www.gigamesh.eu/ont#boundingBoxThickness\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">&nbsp;" + std::to_string( this->mCountDouble[MeshInfoData::BOUNDINGBOX_MAX_Z] - this->mCountDouble[MeshInfoData::BOUNDINGBOX_MIN_Z] ) + "</td></tr>\n";
 	infoStr += "</table>\n";
 
 	// Outer table - Row I, Col II
@@ -1363,24 +1380,24 @@ bool MeshInfoData::getMeshInfoHTML(
 
 	infoStr += "<table align=\"center\" width=\"99%\" border='" + tableBorder + "'>\n";
 	infoStr += "<tr><td colspan=\"3\" align=\"center\"><b>Vertices</b></td></tr>\n";
-	infoStr += "<tr><td>Total:</td><td align=\"right\">"                                + std::to_string( this->mCountULong[MeshInfoData::VERTICES_TOTAL] )                  + "</td><td align=\"center\">-</td></tr>\n";
-	infoStr += "<tr><td>NaN<sup>a)</sup>&ensp;coordinate(s):</td><td align=\"right\">"  + std::to_string( this->mCountULong[MeshInfoData::VERTICES_NAN] )                    + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_SOLO].str()                   + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Normal&nbsp;length&nbsp;not&nbsp;normal:</td><td align=\"right\">"      + std::to_string( this->mCountULong[MeshInfoData::VERTICES_NORMAL_LEN_NORMAL] )      + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_NORMAL_LEN_NORMAL].str()      + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Solo:</td><td align=\"right\">"                                 + std::to_string( this->mCountULong[MeshInfoData::VERTICES_SOLO] )                   + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_SOLO].str()                   + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Polyline:</td><td align=\"right\">"                             + std::to_string( this->mCountULong[MeshInfoData::VERTICES_POLYLINE] )               + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_POLYLINE].str()               + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Border:</td><td align=\"right\">"                               + std::to_string( this->mCountULong[MeshInfoData::VERTICES_BORDER] )                 + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_BORDER].str()                 + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Non-manifold:</td><td align=\"right\">"                         + std::to_string( this->mCountULong[MeshInfoData::VERTICES_NONMANIFOLD] )            + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_NONMANIFOLD].str()            + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Singular:</td><td align=\"right\">"                             + std::to_string( this->mCountULong[MeshInfoData::VERTICES_SINGULAR] )               + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_SINGULAR].str()               + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Inverted edge<sup>b)</sup>:</td><td align=\"right\">"           + std::to_string( this->mCountULong[MeshInfoData::VERTICES_ON_INVERTED_EDGE] )       + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_ON_INVERTED_EDGE].str()       + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Part&nbsp;of&nbsp;zero&nbsp;area&nbsp;face:</td><td align=\"right\">"   + std::to_string( this->mCountULong[MeshInfoData::VERTICES_PART_OF_ZERO_FACE] )      + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_PART_OF_ZERO_FACE].str()      + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Synthetic:</td><td align=\"right\">"                            + std::to_string( this->mCountULong[MeshInfoData::VERTICES_SYNTHETIC] )              + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_SYNTHETIC].str()              + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Manual:</td><td align=\"right\">"                               + std::to_string( this->mCountULong[MeshInfoData::VERTICES_MANUAL] )                 + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_MANUAL].str()                 + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Circle Centers:</td><td align=\"right\">"                       + std::to_string( this->mCountULong[MeshInfoData::VERTICES_CIRCLE_CENTER] )          + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_CIRCLE_CENTER].str()          + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Selected:</td><td align=\"right\">"                             + std::to_string( this->mCountULong[MeshInfoData::VERTICES_SELECTED] )               + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_SELECTED].str()               + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Total:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#totalNumberOfVertices\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"+ std::to_string( this->mCountULong[MeshInfoData::VERTICES_TOTAL] )                  + "</td><td align=\"center\">-</td></tr>\n";
+	infoStr += "<tr><td>NaN<sup>a)</sup>&ensp;coordinate(s):</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#naNVertices\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"  + std::to_string( this->mCountULong[MeshInfoData::VERTICES_NAN] )                    + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_NAN].str()                   + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Normal&nbsp;length&nbsp;not&nbsp;normal:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#normalLengthVertices\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"      + std::to_string( this->mCountULong[MeshInfoData::VERTICES_NORMAL_LEN_NORMAL] )      + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_NORMAL_LEN_NORMAL].str()      + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Solo:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#isolatedVertices\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                                 + std::to_string( this->mCountULong[MeshInfoData::VERTICES_SOLO] )                   + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_SOLO].str()                   + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Polyline:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#polylineVertices\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                             + std::to_string( this->mCountULong[MeshInfoData::VERTICES_POLYLINE] )               + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_POLYLINE].str()               + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Border:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#borderVertices\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                               + std::to_string( this->mCountULong[MeshInfoData::VERTICES_BORDER] )                 + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_BORDER].str()                 + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Non-manifold:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#nonManifoldVertices\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                         + std::to_string( this->mCountULong[MeshInfoData::VERTICES_NONMANIFOLD] )            + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_NONMANIFOLD].str()            + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Singular:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#singularVertices\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                             + std::to_string( this->mCountULong[MeshInfoData::VERTICES_SINGULAR] )               + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_SINGULAR].str()               + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Inverted edge<sup>b)</sup>:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#verticesOnInvertedEdge\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"           + std::to_string( this->mCountULong[MeshInfoData::VERTICES_ON_INVERTED_EDGE] )       + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_ON_INVERTED_EDGE].str()       + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Part&nbsp;of&nbsp;zero&nbsp;area&nbsp;face:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#verticesPartOfZeroAreaFace\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"   + std::to_string( this->mCountULong[MeshInfoData::VERTICES_PART_OF_ZERO_FACE] )      + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_PART_OF_ZERO_FACE].str()      + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Synthetic:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#syntheticVertices\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                            + std::to_string( this->mCountULong[MeshInfoData::VERTICES_SYNTHETIC] )              + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_SYNTHETIC].str()              + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Manual:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#manuallyAddedVertices\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                               + std::to_string( this->mCountULong[MeshInfoData::VERTICES_MANUAL] )                 + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_MANUAL].str()                 + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Circle Centers:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#circleCenterVertices\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                       + std::to_string( this->mCountULong[MeshInfoData::VERTICES_CIRCLE_CENTER] )          + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_CIRCLE_CENTER].str()          + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Selected:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#selectedVertices\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                             + std::to_string( this->mCountULong[MeshInfoData::VERTICES_SELECTED] )               + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_SELECTED].str()               + "&#37;</td></tr>\n";
 	infoStr += "<tr><td colspan=\"3\"><i><u>Function values:</u></i></td></tr>\n";
-	infoStr += "<tr><td>...&ensp;non finite:</td><td align=\"right\">"                           + std::to_string( this->mCountULong[MeshInfoData::VERTICES_TOTAL] - this->mCountULong[MeshInfoData::VERTICES_FUNCVAL_FINITE] )         + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_FUNCVAL_FINITE].str()         + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>...&ensp;local&ensp;minimum:</td><td align=\"right\">"                   + std::to_string( this->mCountULong[MeshInfoData::VERTICES_FUNCVAL_LOCAL_MIN] )      + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_FUNCVAL_LOCAL_MIN].str()      + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>...&ensp;local&ensp;maximum:</td><td align=\"right\">"                   + std::to_string( this->mCountULong[MeshInfoData::VERTICES_FUNCVAL_LOCAL_MAX] )      + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_FUNCVAL_LOCAL_MAX].str()      + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>...&ensp;non finite:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#finiteFunctionValueVertices\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                           + std::to_string( this->mCountULong[MeshInfoData::VERTICES_TOTAL] - this->mCountULong[MeshInfoData::VERTICES_FUNCVAL_FINITE] )         + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_FUNCVAL_FINITE].str()         + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>...&ensp;local&ensp;minimum:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#localFunctionMinValueVertices\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                   + std::to_string( this->mCountULong[MeshInfoData::VERTICES_FUNCVAL_LOCAL_MIN] )      + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_FUNCVAL_LOCAL_MIN].str()      + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>...&ensp;local&ensp;maximum:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#localFunctionMaxValueVertices\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                   + std::to_string( this->mCountULong[MeshInfoData::VERTICES_FUNCVAL_LOCAL_MAX] )      + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::VERTICES_FUNCVAL_LOCAL_MAX].str()      + "&#37;</td></tr>\n";
 	infoStr += "</table>\n";
 
 	// Outer table - Row II, Col II
@@ -1388,25 +1405,25 @@ bool MeshInfoData::getMeshInfoHTML(
 
 	infoStr += "<table align=\"center\" width=\"99%\" border='" + tableBorder + "'>\n";
 	infoStr += "<tr><td colspan=\"3\" align=\"center\"><b>Faces</b></td></tr>\n";
-	infoStr += "<tr><td>Total:</td><td align=\"right\">"                                       + std::to_string( this->mCountULong[MeshInfoData::FACES_TOTAL] )                   + "</td><td align=\"center\">-</td></tr>\n";
-	infoStr += "<tr><td>Manifold:</td><td align=\"right\">"                                    + std::to_string( this->mCountULong[MeshInfoData::FACES_MANIFOLD] )                + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_MANIFOLD].str()              + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Non-manifold:</td><td align=\"right\">"                                + std::to_string( this->mCountULong[MeshInfoData::FACES_NONMANIFOLD] )             + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_NONMANIFOLD].str()           + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Inverted<sup>c)</sup>:</td><td align=\"right\">"                       + std::to_string( this->mCountULong[MeshInfoData::FACES_INVERTED] )                + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_INVERTED].str()              + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Sticky:</td><td align=\"right\">"                                      + std::to_string( this->mCountULong[MeshInfoData::FACES_STICKY] )                  + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_STICKY].str()                + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Zero&ensp;area:</td><td align=\"right\">"                              + std::to_string( this->mCountULong[MeshInfoData::FACES_ZEROAREA] )                + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_ZEROAREA].str()              + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>Border:</td><td align=\"right\">"                                      + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER] )                  + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER].str()                + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>...&nbsp;3&nbsp;Vertices&nbsp;(3V):</td><td align=\"right\">"          + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER_THREE_VERTICES] )   + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER_THREE_VERTICES].str() + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>&nbsp;&nbsp;&nbsp;...&nbsp;Bridge&nbsp;triconn.&nbsp;(3V0E):</td><td align=\"right\">"   + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER_BRDIGE_TRICONN] )   + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER_BRDIGE_TRICONN].str() + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>&nbsp;&nbsp;&nbsp;...&nbsp;Bridge&nbsp;(3V1E):</td><td align=\"right\">"                 + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER_BRDIGE] )           + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER_BRDIGE].str()         + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>&nbsp;&nbsp;&nbsp;...&nbsp;Dangling&nbsp;(3V2E):</td><td align=\"right\">"               + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER_DANGLING] )         + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER_DANGLING].str()       + "&#37;</td></tr>\n";
-	infoStr += "<tr><td>&nbsp;&nbsp;&nbsp;...&nbsp;3&nbsp;Edges&nbsp;(Solo,3E):</td><td align=\"right\">"        + std::to_string( this->mCountULong[MeshInfoData::FACES_SOLO] )                    + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_SOLO].str()                  + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Total:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#totalNumberOfFaces\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                                       + std::to_string( this->mCountULong[MeshInfoData::FACES_TOTAL] )                   + "</td><td align=\"center\">-</td></tr>\n";
+	infoStr += "<tr><td>Manifold:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#manifoldFaces\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                                    + std::to_string( this->mCountULong[MeshInfoData::FACES_MANIFOLD] )                + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_MANIFOLD].str()              + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Non-manifold:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#nonManifoldFaces\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                                + std::to_string( this->mCountULong[MeshInfoData::FACES_NONMANIFOLD] )             + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_NONMANIFOLD].str()           + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Inverted<sup>c)</sup>:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#invertedFaces\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                       + std::to_string( this->mCountULong[MeshInfoData::FACES_INVERTED] )                + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_INVERTED].str()              + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Sticky:</td><td align=\"right\">"                                      + std::to_string( this->mCountULong[MeshInfoData::FACES_STICKY] )                  + "</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#stickyFaces\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">" + fractionsFormatted[MeshInfoData::FACES_STICKY].str()                + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Zero&ensp;area:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#zeroAreaFaces\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                              + std::to_string( this->mCountULong[MeshInfoData::FACES_ZEROAREA] )                + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_ZEROAREA].str()              + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Border:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#borderFaces\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                                      + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER] )                  + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER].str()                + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>...&nbsp;3&nbsp;Vertices&nbsp;(3V):</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#threeBorderVertexFaces\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"          + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER_THREE_VERTICES] )   + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER_THREE_VERTICES].str() + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>&nbsp;&nbsp;&nbsp;...&nbsp;Bridge&nbsp;triconn.&nbsp;(3V0E):</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#borderFacesBridgeTriConnection\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"   + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER_BRDIGE_TRICONN] )   + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER_BRDIGE_TRICONN].str() + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>&nbsp;&nbsp;&nbsp;...&nbsp;Bridge&nbsp;(3V1E):</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#bridgeBorderFaces\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                 + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER_BRDIGE] )           + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER_BRDIGE].str()         + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>&nbsp;&nbsp;&nbsp;...&nbsp;Dangling&nbsp;(3V2E):</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#danglingBorderFaces\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"               + std::to_string( this->mCountULong[MeshInfoData::FACES_BORDER_DANGLING] )         + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_BORDER_DANGLING].str()       + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>&nbsp;&nbsp;&nbsp;...&nbsp;3&nbsp;Edges&nbsp;(Solo,3E):</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#soloFaces\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"        + std::to_string( this->mCountULong[MeshInfoData::FACES_SOLO] )                    + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_SOLO].str()                  + "&#37;</td></tr>\n";
 	//infoStr += "<tr><td></td><td></td><td></td></tr>\n"; // Empty line
-	infoStr += "<tr><td>Selected:</td><td align=\"right\">"                                    + std::to_string( this->mCountULong[MeshInfoData::FACES_SELECTED] )                + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_SELECTED].str()              + "&#37;</td></tr>\n";
+	infoStr += "<tr><td>Selected:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#selectedFaces\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                                    + std::to_string( this->mCountULong[MeshInfoData::FACES_SELECTED] )                + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_SELECTED].str()              + "&#37;</td></tr>\n";
 	infoStr += "<tr><td></td><td></td><td></td></tr>\n"; // Empty line
-	infoStr += "<tr><td>Smallest&nbsp;area:</td><td align=\"right\">"                          + std::to_string( this->mCountDouble[MeshInfoData::FACES_AREA_SMALLEST] )          + "</td><td align=\"right\">mm<sup>2</sup></td></tr>\n";
-	infoStr += "<tr><td>Largest&nbsp;area:</td><td align=\"right\">"                           + std::to_string( this->mCountDouble[MeshInfoData::FACES_AREA_LARGEST] )           + "</td><td align=\"right\">mm<sup>2</sup></td></tr>\n";
+	infoStr += "<tr><td>Smallest&nbsp;area:</td><td align=\"right\">"                          + std::to_string( this->mCountDouble[MeshInfoData::FACES_AREA_SMALLEST] )          + "</td><td align=\"right\" property=\"http://www.ontology-of-units-of-measure.org/resource/om-2/hasUnit\" resource=\"http://www.ontology-of-units-of-measure.org/resource/om-2/squareMillimetre\">mm<sup>2</sup></td></tr>\n";
+	infoStr += "<tr><td>Largest&nbsp;area:</td><td align=\"right\">"                           + std::to_string( this->mCountDouble[MeshInfoData::FACES_AREA_LARGEST] )           + "</td><td align=\"right\" property=\"http://www.ontology-of-units-of-measure.org/resource/om-2/hasUnit\" resource=\"http://www.ontology-of-units-of-measure.org/resource/om-2/squareMillimetre\">mm<sup>2</sup></td></tr>\n";
     if(this->mCountULong[MeshInfoData::FACES_SELFINTERSECTED] != -1){
-        infoStr += "<tr><td>Self-intersected:</td><td align=\"right\">"                     + std::to_string( this->mCountULong[MeshInfoData::FACES_SELFINTERSECTED] )               + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_SELFINTERSECTED].str()               + "&#37;</td></tr>\n";
+        infoStr += "<tr><td>Self-intersected:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#selfIntersectedFaces\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                     + std::to_string( this->mCountULong[MeshInfoData::FACES_SELFINTERSECTED] )               + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_SELFINTERSECTED].str()               + "&#37;</td></tr>\n";
     }
     //infoStr += "<tr><td>Self-intersected:</td><td align=\"right\">"                     + std::to_string( this->mCountULong[MeshInfoData::FACES_SELFINTERSECTED] )               + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_SELFINTERSECTED].str()               + "&#37;</td></tr>\n";
     infoStr += "</table>\n";
