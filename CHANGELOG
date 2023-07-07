@@ -1,3 +1,7 @@
+Version XXXXXX
+
++) Changed HTML export to include RDFa
+
 Version 230608
 +) Improved: tooltips were added to the menu bar 
 +) New: 'CLI: gigamesh-info -> New Option: --quick (-q) Suppress detection of self-intersections (computationally intensive)"  
