@@ -529,6 +529,7 @@ bool MeshInfoData::writeMeshInfoProcess(
     xmlMeta+="<StickyFaces>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_STICKY])+"</StickyFaces>\n";
     xmlMeta+="<ZeroAreaFaces>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_ZEROAREA])+"</ZeroAreaFaces>\n";
     xmlMeta+="<InvertedFaces>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_INVERTED])+"</InvertedFaces>\n";
+    xmlMeta+="<SelfIntersectedFaces>"+std::to_string(this->mCountULong[MeshInfoData::FACES_SELFINTERSECTED])+"</SelfIntersectedFaces>\n";
     xmlMeta+="<SelectedFaces>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_SELECTED])+"</SelectedFaces>\n";
     xmlMeta+="<SyntheticVertexFaces>"+std::to_string(rMeshInfoPrevious.mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES])+"</SyntheticVertexFaces>\n";
     xmlMeta+="</FacesInformation>\n";
@@ -650,6 +651,7 @@ bool MeshInfoData::getMeshInfoXML( std::string& rInfoXML ){
     infoStr+="<ZeroAreaFaces>"+std::to_string(this->mCountULong[MeshInfoData::FACES_ZEROAREA])+"</ZeroAreaFaces>\n";
     infoStr+="<InvertedFaces>"+std::to_string(this->mCountULong[MeshInfoData::FACES_INVERTED])+"</InvertedFaces>\n";
     infoStr+="<SelectedFaces>"+std::to_string(this->mCountULong[MeshInfoData::FACES_SELECTED])+"</SelectedFaces>\n";
+    infoStr+="<SelfIntersectedFaces>"+std::to_string(this->mCountULong[MeshInfoData::FACES_SELFINTERSECTED])+"</SelfIntersectedFaces>\n";
     infoStr+="<SyntheticVertexFaces>"+std::to_string(this->mCountULong[MeshInfoData::FACES_WITH_SYNTH_VERTICES])+"</SyntheticVertexFaces>\n";
     infoStr+="</FacesInformation>\n";
     infoStr+="<BoundingBox>\n";
@@ -1155,6 +1157,18 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:selectedFaces rdfs:comment \"Gigamesh Info: Selected Faces\" .\n";
     infoStr+="giga:"+indid+" giga:selectedFaces giga:"+indid+"_selectedFaces .\n";
     infoStr+="giga:"+indid+"_selectedFaces wdt:P361 giga:"+indid+"_totalNumberOfFaces .\n";
+    infoStr+="giga:SelfIntersectedFaces rdf:type owl:Class .\n";    
+    infoStr+="giga:SelfIntersectedFaces rdfs:subClassOf giga:GigameshInfo .\n";    
+    infoStr+="giga:"+indid+"_selfIntersectedFaces rdf:type giga:SelfIntersectedFaces .\n";   
+    infoStr+="giga:"+indid+"_selfIntersectedFaces rdfs:label \""+indname+" Amount of self-intersected faces\"@en .\n";
+    infoStr+="giga:"+indid+"_selfIntersectedFaces rdf:value \""+std::to_string(this->mCountULong[MeshInfoData::FACES_SELFINTERSECTED])+"\"^^xsd:integer .\n";  
+    infoStr+="giga:selfIntersectedFaces rdf:type owl:ObjectProperty .\n";
+    infoStr+="giga:selfIntersectedFaces rdfs:domain giga:Mesh .\n";
+    infoStr+="giga:selfIntersectedFaces rdfs:label \"Selected Faces\"@en .\n";
+    infoStr+="giga:selfIntersectedFaces skos:definition \"The total number of selected faces\" .\n";
+    infoStr+="giga:selfIntersectedFaces rdfs:comment \"Gigamesh Info: Selected Faces\" .\n";
+    infoStr+="giga:"+indid+" giga:selfIntersectedFaces giga:"+indid+"_selfIntersectedFaces .\n";
+    infoStr+="giga:"+indid+"_selfIntersectedFaces wdt:P361 giga:"+indid+"_totalNumberOfFaces .\n";
     infoStr+="giga:SyntheticVertexFaces rdf:type owl:Class .\n";    
     infoStr+="giga:SyntheticVertexFaces rdfs:subClassOf giga:GigameshInfo .\n";    
     infoStr+="giga:"+indid+"_syntheticVertexFaces rdf:type giga:SyntheticVertexFaces .\n";   
