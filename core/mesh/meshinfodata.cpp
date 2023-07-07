@@ -672,6 +672,8 @@ bool MeshInfoData::getMeshInfoXML( std::string& rInfoXML ){
     //infoStr+="<dc:date>"+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_AREA])+"</dc:date>\n";  
     //infoStr+="<dc:contributor>"+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_AREA])+"</dc:contributor>\n";   
     //infoStr+="<dc:creator>"+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_AREA])+"</dc:creator>\n";   
+    infoStr+="<SmallestArea>"+std::to_string(this->mCountDouble[MeshInfoData::FACES_AREA_SMALLEST])+"</SmallestArea>\n";
+    infoStr+="<LargestArea>"+std::to_string(this->mCountDouble[MeshInfoData::FACES_AREA_LARGEST])+"</LargestArea>\n";
     infoStr+="<TotalArea>"+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_AREA])+"</TotalArea>\n";    
     infoStr+="<TotalVolumeDX>"+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_VOLUME_DX])+"</TotalVolumeDX>\n"; 
     infoStr+="<TotalVolumeDY>"+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_VOLUME_DY])+"</TotalVolumeDY>\n";
@@ -742,6 +744,8 @@ bool MeshInfoData::getMeshInfoJSON(std::string& rInfoJSON){
     infoStr+="\"giga:BoundingBoxThickness\":\""+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_THICK])+"\"\n"; 
     infoStr+="},\n";
     infoStr+="\"giga:Metadata\":{\n";
+    infoStr+="\"giga:SmallestArea\":\""+std::to_string(this->mCountDouble[MeshInfoData::FACES_AREA_SMALLEST])+"\",\n";
+    infoStr+="\"giga:LargestArea\":\""+std::to_string(this->mCountDouble[MeshInfoData::FACES_AREA_LARGEST])+"\",\n";  
     infoStr+="\"giga:TotalArea\":\""+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_AREA])+"\",\n";   
     infoStr+="\"giga:TotalVolumeDX\":\""+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_VOLUME_DX])+"\",\n";   
     infoStr+="\"giga:TotalVolumeDY\":\""+std::to_string(this->mCountDouble[MeshInfoData::TOTAL_VOLUME_DY])+"\",\n";  
@@ -1236,6 +1240,18 @@ bool MeshInfoData::getMeshInfoTTL(std::string& rInfoTTL){
     infoStr+="giga:boundingBoxThickness skos:definition \"The thickness of the bounding box encompassing the mesh\" .\n";
     infoStr+="giga:boundingBoxThickness rdfs:comment \"Gigamesh Info: Bounding Box Thickness\" .\n";
     infoStr+="giga:"+indid+"_geom giga:boundingBoxThickness \""+std::to_string(this->mCountDouble[MeshInfoData::BOUNDINGBOX_THICK])+"\"^^xsd:double .\n";
+    infoStr+="giga:largestArea rdf:type owl:DatatypeProperty .\n";
+    infoStr+="giga:largestArea rdfs:domain giga:Mesh .\n";
+    infoStr+="giga:largestArea rdfs:label \"Largest Area\"@en . \n";
+    infoStr+="giga:largestArea skos:definition \"The largest area of the mesh\" .\n";
+    infoStr+="giga:largestArea rdfs:comment \"Gigamesh Info: Largest Area\" .\n";
+    infoStr+="giga:"+indid+" giga:largestArea \""+std::to_string(this->mCountDouble[MeshInfoData::FACES_AREA_LARGEST])+"\"^^xsd:double .\n";
+    infoStr+="giga:smallestArea rdf:type owl:DatatypeProperty .\n";
+    infoStr+="giga:smallestArea rdfs:domain giga:Mesh .\n";
+    infoStr+="giga:smallestArea rdfs:label \"Smallest Area\"@en . \n";
+    infoStr+="giga:smallestArea skos:definition \"The smallest area of the mesh\" .\n";
+    infoStr+="giga:smallestArea rdfs:comment \"Gigamesh Info: Smallest Area\" .\n";
+    infoStr+="giga:"+indid+" giga:smallestArea \""+std::to_string(this->mCountDouble[MeshInfoData::FACES_AREA_SMALLEST])+"\"^^xsd:double .\n";
     infoStr+="giga:totalArea rdf:type owl:DatatypeProperty .\n";
     infoStr+="giga:totalArea rdfs:domain giga:Mesh .\n";
     infoStr+="giga:totalArea rdfs:label \"Total Area\"@en . \n";
@@ -1311,18 +1327,18 @@ bool MeshInfoData::getMeshInfoHTML(
 
 	std::string tableBorder = "0"; // For visual debugging set to 1 - 0 (zero) for release!
 	std::string infoStr = "<!DOCTYPE html>\n";
-	infoStr += "<html about=\""+this->mStrings[MeshInfoData::FILENAME]+"\">\n";
+	infoStr += "<html about=\""+this->mStrings[MeshInfoData::FILENAME]+"\" typeof=\"http://www.gigamesh.eu/ont#Mesh\">\n";
 	infoStr += "<head>\n";
 	infoStr += "<title property=\"http://purl.org/dc/elements/1.1/title\">GigaMesh Information about [" + this->mStrings[MeshInfoData::FILENAME] + "]</title>\n";
 	infoStr += "</head>\n";
 	infoStr += "<body>\n";
 
-	infoStr += "<b>Filename:</b> " + this->mStrings[MeshInfoData::FILENAME] + "<br />\n";
+	infoStr += "<b>Filename:</b> <span property=\"http://purl.org/dc/elements/1.1/identifier\">" + this->mStrings[MeshInfoData::FILENAME] + "</span><br />\n";
 	infoStr += "<br />\n";
 
 	infoStr += "Connected components: ";
 	if( isnormal( static_cast<double>(this->mCountULong[MeshInfoData::CONNECTED_COMPONENTS]) ) ) {
-		infoStr += std::to_string( this->mCountULong[MeshInfoData::CONNECTED_COMPONENTS] );
+		infoStr += "<span property=\"http://www.gigamesh.eu/ont#connectedComponentCountDifference\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">"+std::to_string( this->mCountULong[MeshInfoData::CONNECTED_COMPONENTS] )+"</span>";
 	} else {
 		infoStr += "not determined";
 	}
@@ -1358,18 +1374,18 @@ bool MeshInfoData::getMeshInfoHTML(
 	infoStr += "<table align=\"center\" width=\"99%\" border='" + tableBorder + "'>\n";
 	infoStr += "<tr>\n";
 	infoStr += "<td align=\"left\"><b>Resolution,&nbsp;average:</b></td>";
-	infoStr += "<td align=\"right\">" + avgResMetric + "</td>";
-	infoStr += "<td align=\"left\">cm<sup>-2</sup></td>";
+	infoStr += "<td align=\"right\" property=\"https://www.w3.org/2003/12/exif/resolution\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">" + avgResMetric + "</td>";
+	infoStr += "<td align=\"left\" property=\"http://www.ontology-of-units-of-measure.org/resource/om-2/hasUnit\" resource=\"http://www.ontology-of-units-of-measure.org/resource/om-2/squareCentimetre\">cm<sup>-2</sup></td>";
 	infoStr += "</tr>\n";
 	infoStr += "<tr>\n";
 	infoStr += "<td align=\"left\"></td>";
-	infoStr += "<td align=\"right\">" + avgResDPI + "</td>";
-	infoStr += "<td align=\"left\">DPI</td>";
+	infoStr += "<td align=\"right\" property=\"https://www.w3.org/2003/12/exif/resolution\" datatype=\"http://www.w3.org/2001/XMLSchema#double\">" + avgResDPI + "</td>";
+	infoStr += "<td align=\"left\" property=\"http://www.ontology-of-units-of-measure.org/resource/om-2/hasUnit\" resource=\"http://www.ontology-of-units-of-measure.org/resource/om-2/dotsPerInch\">DPI</td>";
 	infoStr += "</tr>\n";
 	infoStr += "<tr>\n";
 	infoStr += "<td align=\"left\"><b>Total&nbsp;surface area:</b></td>";
-	infoStr += "<td align=\"right\">" + areaAcqStr + "</td>";
-	infoStr += "<td align=\"left\">cm<sup>2</sup></td>";
+	infoStr += "<td align=\"right\" property=\"http://www.gigamesh.eu/ont#totalArea\" ><span datatype=\"http://www.w3.org/2001/XMLSchema#double\">" + areaAcqStr + "</span></td>";
+	infoStr += "<td align=\"left\" property=\"http://www.ontology-of-units-of-measure.org/resource/om-2/hasUnit\" resource=\"http://www.ontology-of-units-of-measure.org/resource/om-2/squareCentimetre\">cm<sup>2</sup></td>";
 	infoStr += "</tr>\n";
 	infoStr += "</table>\n";
 
@@ -1420,8 +1436,8 @@ bool MeshInfoData::getMeshInfoHTML(
 	//infoStr += "<tr><td></td><td></td><td></td></tr>\n"; // Empty line
 	infoStr += "<tr><td>Selected:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#selectedFaces\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                                    + std::to_string( this->mCountULong[MeshInfoData::FACES_SELECTED] )                + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_SELECTED].str()              + "&#37;</td></tr>\n";
 	infoStr += "<tr><td></td><td></td><td></td></tr>\n"; // Empty line
-	infoStr += "<tr><td>Smallest&nbsp;area:</td><td align=\"right\">"                          + std::to_string( this->mCountDouble[MeshInfoData::FACES_AREA_SMALLEST] )          + "</td><td align=\"right\" property=\"http://www.ontology-of-units-of-measure.org/resource/om-2/hasUnit\" resource=\"http://www.ontology-of-units-of-measure.org/resource/om-2/squareMillimetre\">mm<sup>2</sup></td></tr>\n";
-	infoStr += "<tr><td>Largest&nbsp;area:</td><td align=\"right\">"                           + std::to_string( this->mCountDouble[MeshInfoData::FACES_AREA_LARGEST] )           + "</td><td align=\"right\" property=\"http://www.ontology-of-units-of-measure.org/resource/om-2/hasUnit\" resource=\"http://www.ontology-of-units-of-measure.org/resource/om-2/squareMillimetre\">mm<sup>2</sup></td></tr>\n";
+	infoStr += "<tr><td>Smallest&nbsp;area:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#smallestArea\" ><span datatype=\"http://www.w3.org/2001/XMLSchema#double\">"                          + std::to_string( this->mCountDouble[MeshInfoData::FACES_AREA_SMALLEST] )          + "</td><td align=\"right\" property=\"http://www.ontology-of-units-of-measure.org/resource/om-2/hasUnit\" resource=\"http://www.ontology-of-units-of-measure.org/resource/om-2/squareMillimetre\">mm<sup>2</sup></td></tr>\n";
+	infoStr += "<tr><td>Largest&nbsp;area:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#largestArea\" ><span datatype=\"http://www.w3.org/2001/XMLSchema#double\">"                           + std::to_string( this->mCountDouble[MeshInfoData::FACES_AREA_LARGEST] )           + "</td><td align=\"right\" property=\"http://www.ontology-of-units-of-measure.org/resource/om-2/hasUnit\" resource=\"http://www.ontology-of-units-of-measure.org/resource/om-2/squareMillimetre\">mm<sup>2</sup></td></tr>\n";
     if(this->mCountULong[MeshInfoData::FACES_SELFINTERSECTED] != -1){
         infoStr += "<tr><td>Self-intersected:</td><td align=\"right\" property=\"http://www.gigamesh.eu/ont#selfIntersectedFaces\" datatype=\"http://www.w3.org/2001/XMLSchema#integer\">"                     + std::to_string( this->mCountULong[MeshInfoData::FACES_SELFINTERSECTED] )               + "</td><td align=\"right\">" + fractionsFormatted[MeshInfoData::FACES_SELFINTERSECTED].str()               + "&#37;</td></tr>\n";
     }
