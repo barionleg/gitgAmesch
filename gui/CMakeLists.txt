@@ -2,8 +2,13 @@ cmake_minimum_required(VERSION 3.15, FATAL_ERROR)
 
 set(OpenGL_GL_PREFERENCE GLVND)
 
+#list(APPEND CMAKE_PREFIX_PATH "/home/jp/Qt/6.5.2/Src/gcc_64/lib/cmake/Qt6HostInfo")
+#set(QT_HOST_PATH "/home/jp/Qt/6.5.2/Src/gcc_64/lib/cmake/Qt6HostInfo")
+#set(Qt6ShaderTools_DIR "/home/jp/Qt/6.5.2/Src/gcc_64/lib/cmake")
+
 find_package(OpenGL REQUIRED)
-find_package(Qt6 COMPONENTS Core Widgets OpenGLWidgets Gui OpenGL Network REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets ShaderTools OpenGLWidgets Gui OpenGL Network)
+#find_package(Qt6 REQUIRED COMPONENTS ShaderTools PATHS /home/jp/Qt/6.5.2/Src/shadertools )
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -95,6 +100,54 @@ qt6_add_resources(GUI_RESOURCES "forms/gigamesh.qrc"
                                 "latex_report_template/latex_templates.qrc"
                                 "python-scripts/pythonscripts.qrc"
 )
+#[===[
+qt6_add_shaders(GUI_RESOURCES "porting_shaders"
+    PREFIX
+        "/shaders"
+    FILES
+        "shaders/boundingbox.frag"
+        "shaders/boundingbox.vert"
+        "shaders/cone.frag"
+        "shaders/cone.geom"
+        "shaders/cone.vert"
+        "shaders/depth.frag"
+        "shaders/depth.vert"
+        "shaders/frontal_light_per_vertex.frag"
+        "shaders/frontal_light_per_vertex.vert"
+        "shaders/fullscreebQuad_passthrough.vert"
+        "shaders/funcval.frag"
+        "shaders/funcval.geom"
+        "shaders/funcval.vert"
+        "shaders/meshwidget_background_grid.frag"
+        "shaders/meshwidget_background_grid.vert"
+        "shaders/meshwidget_background_highlight_center.frag"
+        "shaders/meshwidget_background_highlight_center.vert"
+        "shaders/meshwidget_background_polar_circles.frag"
+        "shaders/meshwidget_background_polar_circles.vert"
+        "shaders/meshwidget_background_polar_lines.frag"
+        "shaders/meshwidget_background_polar_lines.vert"
+        "shaders/meshwidget_image2d.frag"
+        "shaders/meshwidget_image2d.vert"
+        "shaders/polyline.geom"
+        "shaders/"
+        "shaders/vertex_pin.frag"
+        "shaders/vertex_pin.vert"
+        "shaders/vertex_sprite.frag"
+        "shaders/vertex_sprite.geom"
+        "shaders/vertex_sprite.vert"
+        "shaders/transparency/ABuffer/transparency_clearABuffers.frag"
+        "shaders/transparency/ABuffer/transparency_createABuffers.frag"
+        "shaders/transparency/ABuffer/transparency_minGeom.frag"
+        "shaders/transparency/ABuffer/transparency_minGeom.vert"
+        "shaders/transparency/ABuffer/transparency_renderABuffers.frag"
+        "shaders/transparency/atomicLoop/transparency_ALcollectDepth.frag"
+        "shaders/transparency/atomicLoop/transparency_clearALBuffers.frag"
+        "shaders/transparency/atomicLoop/transparency_createALBuffers.frag"
+        "shaders/transparency/atomicLoop/transparency_renderALBuffers.frag"
+        "shaders/transparency/WeightedOIT/transparency_blendWOIT.frag"
+        "shaders/transparency/WeightedOIT/transparency_geomWOIT.frag"
+)
+]===]
 
 #set here the paths of the ui-files, so autouic can find them
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/forms
