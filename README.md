@@ -9,6 +9,9 @@
 
 ## DESCRIPTION
 
+![image](https://github.com/barionleg/gitgAmesch/assets/102619282/004018df-f9de-4385-997d-2d5bb78904e7)
+
+
 The **GigaMesh Software Framework** is a modular software for display, editing and visualization of 3D-data 
 typically acquired with structured light scanning (SLS) or structure from motion (SfM).
 
